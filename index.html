@@ -125,6 +125,12 @@
   --ceremony-sq1:#B27E7C;
   --ceremony-sq2:#97B999;
   --ceremony-sq3:#EDD4FA;
+  --ceremony-pig0:#492D2C;        /* the ceremony ramp’s pigments: a face on a ceremony object keeps the DARK disc in both printings (TEN / W6) */
+  --ceremony-pig1:#473C28;
+  --ceremony-pig2:#293B2B;
+  --ceremony-pig3:#1F4648;
+  --ceremony-pig4:#293B4E;
+  --ceremony-pig5:#4E3C4F;
   --crest:#33463B;                /* the crest plate behind a medallion */
   --folio-rule:#8B8F8B;           /* the folio hairline on an object, which is not the page rule */
   --scrim-ink:#F1F4EF;            /* type over a photograph — the photo is the ground, not the theme */
@@ -307,7 +313,9 @@ html[data-theme="light"]{
   --ceremony:#0A0E0C; --ceremony-ink:#F1F4EF; --ceremony-mut:#9BA69D;
   --ceremony-brand:#E8622C; --ceremony-gold:#D8B25A; --ceremony-pos:#4EC584;
   --ceremony-cool:#7F8C95; --ceremony-sq0:#366F87; --ceremony-sq1:#B27E7C;
-  --ceremony-sq2:#97B999; --ceremony-sq3:#EDD4FA; --crest:#33463B;
+  --ceremony-sq2:#97B999; --ceremony-sq3:#EDD4FA;
+  --ceremony-pig0:#492D2C; --ceremony-pig1:#473C28; --ceremony-pig2:#293B2B;
+  --ceremony-pig3:#1F4648; --ceremony-pig4:#293B4E; --ceremony-pig5:#4E3C4F; --crest:#33463B;
   --folio-rule:#8B8F8B; --scrim-ink:#F1F4EF; --scrim-mut:#CBD2C8;
   /* pigment */
   --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7;
@@ -378,16 +386,23 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
     padding:32px 20px 20px;
   }
 }
-.brand{display:flex; align-items:center; gap:12px; padding:0 0 32px;}
-.brand .mk{width:20px; height:20px; flex:none; color:var(--ink); display:block;}
-.brand .mk svg{width:20px; height:20px; display:block;}
-/* D339 · the pennant is wider than it is tall; the sidebar's mark box follows it */
-.brand .mk{width:28px; height:16px;} .brand .mk svg.cs-mark{width:28px; height:16px;}
-html[data-theme="light"] .brand .mk{color:var(--ink);}
-.brand b{
-  font-family:var(--board); font-size:15px; font-weight:700; line-height:1.16;
-  text-transform:uppercase; letter-spacing:calc(var(--agate) * 1em); color:var(--ink);
-}
+.brand{display:flex; align-items:center; padding:0 0 32px;}
+/* ═══ D358 · THE LOCKUP — one mark and one name wherever identity signs ═══
+   The wordmark was set four ways (craft C, category T, owner C; critique-B):
+   serif caps on the Door, sans title case in the phone header, board caps at
+   agate tracking in the sidebar, and mono or board caps on the public pages.
+   This is the one lockup, and it is the phone's own: `CSMasthead.wordmark`
+   (Chrome.swift) draws `CSBrandMark` in an s5 × s4 box, s2, then "Cup Season"
+   in the `name` role — the share card's cut (the pennant and the condensed
+   caps, `csArtifactSignature`) in the app's type roles. The header, the
+   sidebar, the public pages and get/support/legal (their own inline copy of
+   the same rule) all draw it. The Door keeps its serif name for now: the
+   owner's 2026-09-14 board sets the lockup in a serif, which is a brand call
+   (root, 2026-09-28), so it waits for the owner memo. Nothing under brand/
+   changes. The mark takes `ink` on both grounds (D358's two variations). */
+.cs-lockup{display:inline-flex; align-items:center; gap:var(--s2); min-width:0; color:var(--ink);}
+.cs-lockup .cs-mark{width:var(--s5); height:var(--s4); flex:none; display:block;}
+.cs-lockup .cs-name{color:var(--ink); overflow-wrap:anywhere;}   /* the name wraps whole at enlarged text, never an ellipsis (§12.3) */
 .navitem{
   display:block; width:100%; text-align:left;
   background:none; border:0; cursor:pointer;
@@ -424,13 +439,34 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sideme .mefact.owed b{color:var(--neg);}
 .sideme .mefact:hover b{color:var(--act);}
 .sideme .mefact:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
+/* TEN / W6 · the season row is a SENTENCE in sentence case now (D165), so it
+   takes the sans `body-s` role (`.cs-body-s` in the markup), in `mut` — the
+   owner's desk T: "column-size sans in the sidebar", not 11px caps */
 .sideme .mesr{
-  display:block; width:100%; margin-top:12px; padding:0; border:0; background:none; cursor:pointer;
-  font-family:var(--sans); font-size:11.5px; line-height:1.5; color:var(--mut); text-align:left;
-  letter-spacing:.02em;
+  display:block; width:100%; margin-top:var(--s3); padding:0; border:0; background:none; cursor:pointer;
+  color:var(--mut); text-align:left; min-height:44px;
 }
 .sideme .mesr:hover{color:var(--ink);}
 .sideme .mesr:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
+/* TEN / W6 · LAST and NEXT as dated rows, the wire's weight-5 row (`.cswire`) */
+.sideme .medays{margin-top:var(--s2);}
+.sideme .medays .cswire:first-child{border-top:var(--hair) solid var(--rule);}
+.sideme .medays .cswire .ln{color:var(--ink);}
+.sideme .mesay{margin:0; color:var(--ink);}
+.sideme .medoors{margin-top:var(--s1);}
+/* TEN / W6 · THE SIDEBAR YIELDS A FACT TO THE PAGE THAT OWNS IT (L-34, §16A.4:
+   one fact, one encoding, per viewport). You's card prints the number (it
+   was "14.2 YOUR NUMBER" beside "14.2 HANDICAP INDEX"); the composer's eyebrow
+   prints it (NW-5); the season page's table owns the standings (the gap was
+   drawn four times in one window); the schedule and the record list the next
+   and the last round. The page's print is the object; the chrome stands down. */
+@media(min-width:960px){
+  .shell:has(#view-stats.active) #sideMe [data-mego="my_number"],
+  .shell:has(#view-post.active) #sideMe [data-mego="my_number"],
+  .shell:has(#view-hub.active) #sideMe [data-mego="season_row"],
+  .shell:has(#view-schedule.active) #sideMe [data-mego="my_next_round"],
+  .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"]{display:none;}
+}
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
    two shapes (D234, R-C as revised): the dispatch reads down the left, the
@@ -504,6 +540,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .hstart a{display:inline-flex; align-items:center; min-height:44px; color:var(--ink);
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
 .hstart a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.wire-empty{margin:0; color:var(--mut);}   /* TEN / W6 · the empty wire's head: body, mut (EmptyRoot) */
 /* Weight 5 -- minor activity: one 44pt row, a day marker in the leading
    column, one line of prose, a rule on top. The marker is `mut` and never
    `dim`: `dim` is 3.15 / 2.89 and may not carry a word. */
@@ -542,9 +579,15 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .deskmenu[hidden]{display:none;}
 .navitem.sub{
   font-size:11px; padding-top:8px; padding-bottom:8px; color:var(--mut);
+  min-height:44px; display:flex; align-items:center;   /* TEN / W6 · §16.2 · 44 tall (was 29, critique-B desk P3) */
   letter-spacing:calc(var(--agate-s) * 1em);
 }
 .navitem.sub.active{color:var(--ink);}
+/* TEN / W6 · W5's needs-root 3 (critique-B desk P3): a golfer with no league
+   was offered THE SEASON, THE RULES and THE ARCHIVE — pages about a season
+   they are not in. They wait for a league. THE SCHEDULE stays: a plan with
+   buddies needs no league. */
+body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{display:none;}
 /* D228's two-column body, GENERALISED (D222). It was `#homeHub .deskmain`
    only; Compete and Golfers are desk bodies too, and the reading measure is a
    property of a COLUMN of prose, not of one screen. */
@@ -859,17 +902,21 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .cmphead a[hidden]{display:none;}
 .emptyroot{padding:6px 0 2px;}
 .emptyroot h3{font-family:var(--serif); font-size:22px; margin:0 0 8px; font-weight:700;}
-.emptyroot .fact{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin:0 0 6px;}
-.emptyroot .sub{font-size:13.5px; color:var(--mut); margin:0 0 12px; max-width:46ch;}
-.emptyroot .doors{display:flex; flex-wrap:wrap; gap:18px;}
-.emptyroot .doors button{
-  /* MW-01 · a door is a tap target: 44 tall, at every width (the audit's
-     regression measures it). The type is unchanged; the padding is the target. */
-  background:none; border:0; padding:6px 0; min-height:44px; cursor:pointer;
-  font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);
+.emptyroot .fact{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--ink); margin:0 0 var(--s2);}
+.emptyroot .sub{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut); margin:0 0 var(--s4); max-width:46ch;}
+/* TEN / W6 · W5's needs-root 2: the empty root had equal mono doors, so the
+   page had no action. It takes the shape W5 gave the empty Compete: ONE primary
+   (the first door, the ordinary act button) and the rest as quiet links
+   (§16A.5), the words in sentence case — mono never sets a label (§1.4). */
+.emptyroot .doors{display:flex; flex-wrap:wrap; align-items:center; gap:var(--s3) var(--s4);}
+.emptyroot .doors .btn{width:auto; margin:0; padding:0 var(--s4); flex:none;}
+.emptyroot .doors .alt{
+  /* MW-01 · a door is a tap target: 44 tall, at every width */
+  background:none; border:0; padding:0; min-height:44px; cursor:pointer;
+  font-family:var(--sans); font-size:15px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;
 }
-.emptyroot .doors button:first-child{color:var(--act);}
-.emptyroot .doors button:focus-visible{outline:2px solid var(--act); outline-offset:3px;}
+.emptyroot .doors .alt:focus-visible{outline:2px solid var(--act); outline-offset:3px;}
 /* THE FOOT - the viewer, and the build (D280). The face is the golfer's own
    marker on their own frozen pigment, which is the guaranteed floor (6.1):
    there is no silhouette state on this product and never has been. The build
@@ -969,8 +1016,11 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 @media(prefers-reduced-motion:reduce){ .view{animation:none;} }
 
 .eyebrow{
-  font-family:var(--mono); font-size:11.5px; font-weight:500;
-  letter-spacing:.16em; text-transform:uppercase; color:var(--mut);
+  /* TEN / W6 · OB-05 (lanes' needs-root): a section head is a LABEL, and a
+     label is the `agate` role — the board face at 12, caps, agate tracking —
+     not mono (UI_SYSTEM §1.4: mono keeps codes, columns and times). */
+  font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2;
+  letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);
   margin:26px 2px 10px; display:flex; align-items:center; justify-content:space-between;
 }
 .view .eyebrow:first-child{margin-top:4px;}
@@ -1199,7 +1249,7 @@ th.deskonly, td.deskonly{display:none;}
 .cs-tskip:focus-visible, .navitem:focus-visible,
 .sideme .mesr:focus-visible, .setrow .ctl button:focus-visible{color:var(--ink);}
 .peerrow:focus-visible, .rdrow:focus-visible, .sysrow.opens:focus-visible,
-.coursedd button:focus-visible, .mini:focus-visible{background:var(--bg1);}
+.coursedd button:focus-visible{background:var(--bg1);}   /* TEN / W6 · TP-08: `.mini` left this rule — its focus is the ring alone (below) */
 .pool-row:focus-visible, .optcard:focus-visible, .htile:focus-visible,
 .upchip[data-upgo]:focus-visible, .calcell.tap:focus-visible,
 .check:focus-visible{border-color:var(--rule);}
@@ -1351,7 +1401,7 @@ th.deskonly, td.deskonly{display:none;}
 .frow + .frow{margin-top:10px;}
 .frow.one{grid-template-columns:1fr;}
 label.f, legend.f, .teefield > span.f{
-  display:block; font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  display:block; font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate) * 1em);   /* TEN / W6 · OB-05: a field label is agate, not mono */
   text-transform:uppercase; color:var(--mut); margin-bottom:6px;
 }
 /* 16px floor on EVERY .f control — iOS Safari auto-zooms any focused field
@@ -1613,7 +1663,7 @@ button.payer{cursor:pointer;}
   padding:12px 14px; margin-bottom:8px;
 }
 .setrow .lab{font-size:13px; font-weight:600;}
-.setrow .lab small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--mut); margin-top:2px;}
+.setrow .lab small{display:block; font-family:var(--sans); font-size:13px; line-height:1.35; color:var(--mut); margin-top:2px;}   /* TEN / W6 · W5's needs-root 1: a setting's explanation is a sentence — sans, as W5 set it in the wizard — never mono (§1.4) */
 .setrow .val{font-family:var(--mono); font-size:15px; font-weight:600; min-width:72px; text-align:center; font-variant-numeric:tabular-nums;}
 .setrow .ctl{display:flex; gap:2px; background:var(--bg2); border-radius:10px; border:1px solid var(--rule);}
 .setrow .ctl button{
@@ -2204,7 +2254,7 @@ body.guestlive #onboard{display:none !important;}
 .prow .sw{width:9px; height:28px; border-radius:3px; flex:none;}
 .prow .nm{flex:1; min-width:0;}
 .prow .nm b{font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:6px;}
-.prow .nm small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.06em;}
+.prow .nm small{font-family:var(--sans); font-size:13px; line-height:1.35; color:var(--mut);}   /* TEN / W6 · W5's needs-root 1: the line under a name is a sentence (sans), not mono */
 .strokedot{width:6px; height:6px; border-radius:50%; background:var(--ink); display:inline-block; flex:none;}   /* W1 · ink: a shot received is not an earning (D359); the row's line names it */
 .prow .tot{font-family:var(--mono); font-size:12px; color:var(--mut); text-align:right; min-width:66px; font-variant-numeric:tabular-nums;}
 /* W1 · TP-22 · THE LIVE ROW IS A ROW. It borrowed `.prow`, whose card rule
@@ -2378,7 +2428,8 @@ body.guestlive #onboard{display:none !important;}
    value inside it, the pigments too. In the light printing the discs took the
    paper pigments under ceremony-ink glyphs, and the golfers' marks vanished
    (craft C/R, critique-B P2). These are tokens.json's dark pigment values. */
-.evcard{--pig0:#492D2C; --pig1:#473C28; --pig2:#293B2B; --pig3:#1F4648; --pig4:#293B4E; --pig5:#4E3C4F;}
+.evcard{--pig0:var(--ceremony-pig0); --pig1:var(--ceremony-pig1); --pig2:var(--ceremony-pig2);
+        --pig3:var(--ceremony-pig3); --pig4:var(--ceremony-pig4); --pig5:var(--ceremony-pig5);}   /* TEN / W6 · the ceremony pigment tokens (tokens.json), no re-typed hexes */
 .evclinch{margin:0; color:var(--mut);}
 .evstake{margin:12px 0 0; display:flex; align-items:baseline; gap:8px;}
 .evstake b{font-family:var(--board); font-size:20px; font-weight:700; color:var(--gold);}
@@ -2469,7 +2520,11 @@ body.guestlive #onboard{display:none !important;}
   color:var(--ink); background:var(--bg2); border:0;
   border-radius:var(--rc); padding:0 14px; min-height:44px; min-width:44px; cursor:pointer; flex:none;
 }
-.mini:hover{background:var(--bg1);}   /* TP-08 · the rule fill under mut/pos/dusk labels read 2.31–3.08:1 (§14.4: hover steps to bg1) */
+/* TEN / W6 · TP-08, finished. A hover or focus FILL on a mini reads as a
+   second choice beside the chosen one (W2 fixed the card's three option sets
+   by hand: owner H, category C, critique-B P3). Every mini now answers hover
+   with a ring, only where hover exists, and focus with the product's ring. */
+@media (hover:hover){ .mini:hover{box-shadow:inset 0 0 0 1.5px var(--mut);} }
 .mini:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
@@ -3311,11 +3366,19 @@ body.guestlive #onboard{display:none !important;}
   @media(min-width:760px){ .sheet .panel{ max-height:82dvh; } }
 }
 .sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--rule); margin:0 auto 14px;}
+/* TEN / W6 · ONE WAY TO CLOSE (lanes' needs-root; LINT-25's one dismiss).
+   · The drag pill is a PHONE affordance: the desk opens a sheet as a dialog
+     and nothing there is dragged.
+   · A sheet whose body answers its own question with a decline ("Not now",
+     marked `data-decline`) drew the × as well — two closes for one question.
+     The body's decline is the close; Escape and the backdrop still work. */
+@media(min-width:960px){ .sheet .grab{display:none;} }
+.sheet .panel:has(#shBody [data-decline]) > .x{display:none;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
 /* F03 · a layer's title and the page heading take focus so a screen reader
    starts at the top; they are not controls, so they draw no ring */
 #shTitle:focus, #bfTitle:focus, #finish:focus, h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus, .view[tabindex="-1"]:focus{outline:none;}
-.sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
+.sheet .sub{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:3px;}   /* TEN / W6 · OB-05: the sheet's eyebrow is agate, not mono */
 .sheet .x{position:absolute; top:6px; right:6px; width:44px; height:44px; display:flex; align-items:center; justify-content:center;
   border:none; background:none; color:var(--mut); font-size:20px; cursor:pointer; padding:0;}   /* §16.2 · was 26×31 */
 /* WAVE 7 - THE RECEIPT IS PRINTED ON A LEAF (leaderboard.md 6). A receipt is a
@@ -3515,8 +3578,12 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   background:var(--ink); color:var(--bg0); font-size:13px; font-weight:600;
   padding:11px 18px; border-radius:99px; opacity:0; pointer-events:none;
   /* above the sheets (z 200) — "Card saved" was firing invisibly behind an
-     open sheet (pilot feedback, 2026-07-17) */
-  transition:all .22s ease; max-width:86%; text-align:center; z-index:1000;
+     open sheet (pilot feedback, 2026-07-17). TEN / W6 · and above EVERY layer:
+     at 1000 it sat under the finish ceremony (#finish, 1100), so the share
+     path's "Card downloaded · caption copied" painted behind the card it was
+     about (critique-B share), and under the public covers (99999). A toast is
+     the system talking; nothing sits on top of it. */
+  transition:all .22s ease; max-width:86%; text-align:center; z-index:100000;
 }
 @media(min-width:960px){ .toast{bottom:28px;} }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
@@ -3646,12 +3713,10 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 /* D339 · the seared wordmark, the fuse and the Forge are retired from the
    door (the rules below this comment went with them). */
 
-/* the header mark: ember on charcoal, ink on light (the mark-light rule) */
 /* THE MARK IS CREAM ON FESCUE AND DARK GREEN ON WARM PAPER — the owner's
    2026-09-14 board, both variations, and `ink` already holds exactly those two
-   values. It was ember on both grounds, which the board does not show anywhere. */
-.hdrmark{color:var(--ink);}
-html[data-theme="light"] .hdrmark{color:var(--ink);}
+   values. It was ember on both grounds, which the board does not show anywhere.
+   The header's mark is `.cs-lockup`'s now (TEN / W6), which paints it `ink`. */
 /* ignition (D76): the ember floor-glow — a low radiance warming in from the
    bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
    rests it ON), it sits under all content and never takes input. Nothing
@@ -3998,7 +4063,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 #lgRec .csleaf .qual{display:block; margin:2px 0 0;}
 /* the course facts' separators are opaque mut (§16.1: dim/faded is never a
    word) — they were `mut` at .56 opacity, 3.09:1 */
-#view-stats .cs-facts .sep{opacity:1;}
+/* (#view-stats' opacity override retired: every .sep is opaque mut now) */
 /* ── Card & settings (W2 2026-09-28) ─────────────────────────────────────
    Once the card has a change to save, its Save rides the foot of the sheet —
    it sat below fourteen markers, a photo row and the handle at 375 */
@@ -4085,7 +4150,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-panel .cs-unit{color:var(--panel-mut); display:block;}
 .cs-facts{display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--s2); margin-top:var(--s4);}
 .cs-facts .u{color:var(--mut);}
-.cs-facts .sep{color:var(--mut); opacity:var(--a56);}
+.cs-facts .sep{color:var(--mut);}   /* TEN / W6 · opaque `mut` (§16.1): it sat at 56% everywhere but You */
 /* F06 (web half) · THE CARD FOLDS, LIKE A REAL ONE. The leaf printed all
    eighteen holes in one row, 514px, so it scrolled on every phone and even in
    the desk's 340 column, and its HOLE / PAR / HCP key scrolled away from the
@@ -4886,6 +4951,11 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
   --panel:#E9ECE3; --panel-ink:#0B120E; --panel-mut:#4C574F;
   --leaf:#EFEADD; --leaf-ink:#1A1B14; --leaf-mut:#57605A;
   --scrim-ink:#F1F4EF; --scrim-mut:#CBD2C8;
+  /* TEN / W6 · the pigments too: a golfer's disc inside the room took the
+     paper pigments in the light printing (W2's `.evcard` fixed its own plate
+     by hand). The ceremony ramp carries them now (tokens.json). */
+  --pig0:var(--ceremony-pig0); --pig1:var(--ceremony-pig1); --pig2:var(--ceremony-pig2);
+  --pig3:var(--ceremony-pig3); --pig4:var(--ceremony-pig4); --pig5:var(--ceremony-pig5);
   color:var(--ink);
 }
 /* the draw reveal is a whole room, not a card floating on a board — give it
@@ -5175,10 +5245,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
    (D234): the object's second half — the photograph, the hole strip, the
    table, the rounds — beside it, not a phone column in a field.
    #svCard is the grid: head · photo · facts · second · foot. */
-#shareView.sv { position:fixed; inset:0; z-index:99999; overflow:auto; background:var(--bg0); color:var(--ink); -webkit-font-smoothing:antialiased; text-align:left; }
+#shareView.sv, #unsubView.sv { position:fixed; inset:0; z-index:99999; overflow:auto; background:var(--bg0); color:var(--ink); -webkit-font-smoothing:antialiased; text-align:left; }
 .sv .sv-page { max-width:600px; margin:0 auto; padding:var(--s5) var(--gutter) var(--s6); }
 .sv .sv-signature { display:flex; gap:var(--s3); align-items:center; padding-bottom:var(--s4); border-bottom:var(--hair) solid var(--rule); }
-.sv .sv-signature svg { width:64px; height:37px; flex-shrink:0; }
+/* TEN / W6 · the signature is `.cs-lockup` (one lockup with the header and the sidebar), so its mark is 32×20, not 64×37 */
 .sv .sv-signature .sv-kind { margin-left:auto; text-align:right; color:var(--mut); }
 .sv #svCard { display:grid; grid-template-columns:minmax(0,1fr); grid-template-areas:"head" "photo" "facts" "second" "foot"; align-content:start; margin-top:var(--s5); }
 .sv .sv-head { grid-area:head; min-width:0; }
@@ -5218,6 +5288,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .sv .sv-action { display:flex; align-items:center; justify-content:center; min-height:50px; padding:var(--s3) var(--s4); border:0; border-radius:var(--rc); background:var(--bg2); color:var(--ink); text-align:center; text-decoration:none; cursor:pointer; width:100%; }
 .sv .sv-action.is-primary { background:var(--act); color:var(--bg0); }
 .sv .sv-action:focus-visible { outline:2px solid var(--act); outline-offset:2px; }
+.sv .sv-unsub { margin-top:var(--s5); } .sv .sv-unsub .cs-body-s { color:var(--mut); margin:var(--s3) 0 var(--s4); }
 .sv .sv-retry { margin-top:var(--s4); }
 .sv .sv-note { color:var(--mut); margin-top:var(--s3); }
 @media (min-width:1024px){
@@ -5310,10 +5381,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 .cs-inbox-n.is-unread .cs-inbox-line{font-weight:600;}
 .cs-inbox-dot{width:8px; height:8px; flex:none; margin-top:var(--s2); color:var(--act);}
 .cs-inbox-bar{display:flex; justify-content:flex-end; gap:var(--s2); padding-bottom:var(--s2);}
-.cs-inbox-pref{display:flex; gap:var(--s3); align-items:center; justify-content:space-between; padding:var(--s3) 0; border-bottom:var(--hair) solid var(--rule); min-height:44px; cursor:pointer;}
-.cs-inbox-pref > span{display:flex; flex-direction:column;}
-.cs-inbox-pref .cs-body-s{color:var(--mut);}
-.cs-inbox-pref input{width:22px; height:22px; flex:none; accent-color:var(--act);}
+/* (the inbox's own pref rows are gone — Settings owns the three switches; TEN / W6) */
 
 </style>
 <script>
@@ -5606,10 +5674,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          - one mark, everywhere (D358; it was the Tracer until 2026-09-14).
          #brandSeason setters are guarded. -->
     <div class="brand">
-      <span class="mk" aria-hidden="true">
-        <svg class="cs-mark" viewBox="0 0 1000 570"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
+      <span class="cs-lockup">
+        <svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
+        <b class="cs-name">Cup Season</b>
       </span>
-      <b>Cup Season</b>
     </div>
     <!-- D222 / R-C (revised), amended by D280 · THE DESK'S OWN NAV. The five
          destinations, in `agate` with no icons — the icon each carried came
@@ -5705,17 +5773,18 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div id="lgRow"><h1 id="leagueName">The Sunday Cup</h1><svg id="lgChev" viewBox="0 0 24 24" style="display:none"><path d="M6 9.5l6 6 6-6"/></svg></div>
           <div class="sub" id="phaseSub">Wk 18 / 36</div>
         </div>
-        <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; padding:6px 0;">
+        <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; background:none; border:0; cursor:pointer; padding:6px 0; min-height:44px;">
           <!-- D339 · WEB HALF (I-1) · the pennant, the same generated mark the
-               door and the sidebar carry. D358 closed the icon-tile question
-               the same way, so the icons, the favicon and the link card now
-               carry it too — one mark on every surface. Ember on the charcoal
-               theme, ink on light (mark-light rule): currentColor, set by the
-               .hdrmark rules below the theme tokens. -->
-          <svg class="hdrmark cs-mark" viewBox="0 0 1000 570" style="width:30px; height:17px; flex:none" aria-hidden="true">
+               sidebar and the public pages carry (D358: one mark on every
+               surface). TEN / W6 · and one LOCKUP: the header set the name in
+               sans title case at 15px while the sidebar set board caps, so it
+               wears `.cs-lockup` now — the phone masthead's own geometry. -->
+          <span class="cs-lockup">
+            <svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true">
             <g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g>
-          </svg>
-          <b style="font-size:15px; color:var(--ink); letter-spacing:.01em">Cup Season</b>
+            </svg>
+            <b class="cs-name">Cup Season</b>
+          </span>
         </button>
       </div>
     </header>
@@ -5832,7 +5901,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           </div>
           <div class="cfoot">
             <div class="cfigs" id="youFigs">
-              <div class="cfig"><b id="youIdx">&#8212;</b><small>Handicap index</small></div>
+              <div class="cfig"><b id="youIdx">&#8212;</b><small>Your number</small></div>
               <div class="cfig"><b id="youRds">&#8212;</b><small>Rounds</small></div>
               <span class="crule" style="width:66.67%"></span>
             </div>
@@ -6847,7 +6916,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
           <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
           <div class="composer">
-            <input class="f" id="chatIn" placeholder="Message the league…">
+            <input class="f" id="chatIn" placeholder="Post to the board…">
             <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league" aria-label="Announce to the league"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg></button>
             <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
           </div>
@@ -7937,8 +8006,13 @@ function switchView(v){
     window._schedFrom = null;   /* one trip only — the next entry decides again */
   }
   gateLiveRound();
-  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
-  $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
+  /* TEN / W6 · WHERE YOU ARE (critique-B events, heuristic 1): a Ryder or a
+     Major room is a Compete page — it is reached from Compete and goes back to
+     it — so Compete stays selected in the tab band and the sidebar while one is
+     open. It selected nothing: no tab and no sidebar row said where you were. */
+  const selected = v === 'event' ? 'compete' : v;
+  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===selected));
+  $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===selected));
   window.csDeskReveal?.(v);
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.csHideInstallNudge?.();   /* Q-13: after the swap — busy() reads the view that is now on */
@@ -10185,7 +10259,7 @@ function renderFeedFull(force){
         const counting = r.month_rank==null
           ? `<span class="dim">PRE-SEASON · NOT COUNTING</span>`
           : r.month_rank<=capN
-            ? `<span class="ok">COUNTING #${r.month_rank} THIS MONTH</span>`
+            ? `<span class="ok">COUNTING #${r.month_rank}${capN===Infinity ? '' : ' OF ' + capN} THIS MONTH</span>`   /* TEN / W6 · the receipt's rule: the month's count, not a rank */
             : `<span class="dim">BUMPED — OUTSIDE THE BEST ${capN===Infinity?'':capN} THIS MONTH</span>`;
         /* photos arc, task 3.2: a photo becomes the card's ground rather than
            an attachment below it — .has-photo carries the background-image +
@@ -19167,8 +19241,8 @@ function renderHomeHero(){
   if(force==='rung7' || (!force && rounds===0)){
     seen('rung7');
     box.innerHTML = heroCard('calm', 'Your card',
-      '', `Three rounds and your index goes live. <em>Nothing else needed.</em>`,
-      `<span>Index</span><span class="hh-bar"><i style="width:3%"></i></span><span>0 of 3</span>`,
+      '', `Three rounds and your number goes live. <em>Nothing else needed.</em>`,
+      `<span>Your number</span><span class="hh-bar"><i style="width:3%"></i></span><span>0 of 3</span>`,
       `<button class="hh-cta" data-hpost type="button">Post your first round</button>`);
     wire('[data-hpost]', ()=> switchView('record'));
     return;
@@ -19177,10 +19251,10 @@ function renderHomeHero(){
     const est = idx!=null;
     seen('rung6');
     box.innerHTML = heroCard('calm', `Your card · ${rounds} round${rounds===1?'':'s'}`,
-      est?`<div class="hh-fig"><span class="hh-pos">${fmtIdx(idx)}</span><span class="hh-ord">index</span></div>`:'',
+      est?`<div class="hh-fig"><span class="hh-pos">${fmtIdx(idx)}</span><span class="hh-ord">your number</span></div>`:'',
       est ? `Established. <em>Nobody's seen it</em> — you haven't added a buddy yet.`
-          : `${3-Math.min(rounds,2)} more and your index is live. <em>Play anywhere.</em>`,
-      est?'':`<span>Index</span><span class="hh-bar"><i style="width:${Math.round(Math.min(rounds,3)/3*100)}%"></i></span><span>${Math.min(rounds,3)} of 3</span>`,
+          : `${3-Math.min(rounds,2)} more and your number is live. <em>Play anywhere.</em>`,
+      est?'':`<span>Your number</span><span class="hh-bar"><i style="width:${Math.round(Math.min(rounds,3)/3*100)}%"></i></span><span>${Math.min(rounds,3)} of 3</span>`,
       `<button class="hh-cta${est?'':' q'}" data-hbud type="button">${est?'Find your buddies':'Add my round'}</button>`);
     wire('[data-hbud]', ()=> est ? (window.goCrewPeople?window.goCrewPeople():switchView('stats')) : switchView('record'));
     return;
@@ -19574,7 +19648,12 @@ function homeRoundStory(r){
   const rank = r.month_rank!=null ? r.month_rank : (c && c.month_rank!=null ? c.month_rank : null);
   if(pts!=null && rank!=null){
     const cap = r.counting_cap!=null ? Number(r.counting_cap) : capNum();
-    const counting = cap===Infinity || rank<=cap ? `counting #${rank} this month`
+    /* TEN / W6 · "counting #1 this month" read as a RANK (critique-B home P3).
+       The receipt's own clause is "COUNTING #2 OF 4": the denominator makes it
+       the month's count. Uncapped has nothing to be out of, so it stays bare.
+       `HomeWireCopy.roundStory` is the phone's twin. */
+    const counting = cap===Infinity ? `counting #${rank} this month`
+                   : rank<=cap ? `counting #${rank} of ${cap} this month`
                    : `bumped — outside the best ${cap} this month`;
     return `${pts} pts · ${counting}`;
   }
@@ -20255,6 +20334,22 @@ function wireFeedReceipts(box){
     el.addEventListener('keydown', e=>{ if(e.target.closest('[data-tc],button')) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(e); } });
   });
 }
+/* TEN / W6 · QB-05 · WHAT THE WIRE SAYS WHEN NO BUDDY HAS POSTED — the web
+   twin of `EmptyRoot.wireEmpty` (EmptyRoot.swift), in its words. "Post one,
+   or add some buddies" is a claim about the golfer's life, and for a member
+   of a season it is false (a blind walker met it ninety seconds after a
+   covenant that named all six of his season's golfers). With a season of two
+   or more that has not wrapped, the door is that season's table; with nobody,
+   the buddies door stays exactly right. The web reads the season in hand
+   (`CS.league`); the phone picks the earliest-starting of all memberships. */
+function csWireEmpty(){
+  const lg = (!state.demo && window.CS && CS.league) || null;
+  const n = (window.CS && Array.isArray(CS.members)) ? CS.members.length : 0;
+  if(lg && CS.season?.status !== 'complete' && n >= 2)
+    return { head:'No rounds from your buddies yet.', door:`See who\u2019s in ${lg.name}.`, table:true };
+  return { head:'No rounds from your buddies yet. Post one, or', door:'add some buddies.', table:false };
+}
+window.csWireEmpty = csWireEmpty;
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
@@ -20330,8 +20425,11 @@ function renderHomeFeed(){
     if(img.complete && img.naturalWidth > 0 && img.getAttribute('data-path'))
       keep.set(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'), img);
   });
+  /* TEN / W6 · the empty wire is a sentence WITH A DOOR (LINT-21), and the
+     door is true to the golfer's life: `csWireEmpty`, below. */
+  const we = html ? null : csWireEmpty();
   box.innerHTML = html
-    || '<p class="fine" style="padding:0">No rounds from your buddies yet. Post one, or <a href="#" data-gopeople>add some buddies</a>.</p>';
+    || `<p class="cs-body wire-empty">${esc(we.head)}</p><div class="hstart"><a href="#" ${we.table ? 'data-wiretable' : 'data-gopeople'}>${esc(we.door)}</a></div>`;
   box.querySelectorAll('img.hsbg').forEach(img => {
     const old = keep.get(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'));
     if(old) img.replaceWith(old);
@@ -21453,7 +21551,10 @@ function csMeStrip(){
       slots.push({ fact:'my_number', label:'STARTER', value: csStarterText(starter), go:'card' });
     } else if(window.career && window.career.rounds != null){
       const n = Math.min(Number(window.career.rounds)||0, 3);
-      slots.push({ fact:'my_number', label:'BUILDING', value: n<=0 ? '—' : `${n} OF 3`, go:'card' });
+      /* TEN / W6 · a PLACEHOLDER, as `MeStripCopy.numberSlot` marks it
+         (`isPlaceholder: true`): the phone's rail never draws one, and the
+         value slot never renders a dash (§9.9, L-44) — at zero it is empty. */
+      slots.push({ fact:'my_number', label:'BUILDING', value: n<=0 ? '' : `${n} OF 3`, go:'card', ph:true });
     }
     /* no index AND no round count = nothing is known, so nothing is said */
   }
@@ -21467,10 +21568,14 @@ function csMeStrip(){
   const feedLeadsWithIt = !!(lastR && feedLead && feedLead.is_me && feedLead.round_id === lastR.id);
   if(feedLeadsWithIt){ /* said by the feed card */ }
   else if(lastR && lastR.gross != null && lastR.played_on){
+    /* TEN / W6 · the parts ride with the value (`fig`, `on`), so the desk's
+       dated row never re-splits a string; `csRailCell` still splits `value`
+       for the phone's rail, as `HomeWireCopy.railCell` does. */
     slots.push({ fact:'my_last_round', label:'LAST',
-                 value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id });
+                 value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id,
+                 fig:String(lastR.gross), on:String(lastR.played_on) });
   } else if(window.career && Number(window.career.rounds) === 0){
-    slots.push({ fact:'my_last_round', label:'LAST', value:'NO ROUNDS YET', go:'post' });
+    slots.push({ fact:'my_last_round', label:'LAST', value:'NO ROUNDS YET', go:'post', ph:true });
   }
 
   /* 3 - NEXT. `isMyPlan` is the ONE plan predicate on this client (D219); the
@@ -21495,9 +21600,9 @@ function csMeStrip(){
       const course = csShortCourse(up.course_label);
       slots.push({ fact:'my_next_round', label:'NEXT',
                    value: tee ? `${day} ${tee}` : (course ? `${day} · ${course}` : day),
-                   go:'plan', id:up.id });
+                   go:'plan', id:up.id, on:String(up.play_on), tee: tee || '', course: course || '' });
     } else {
-      slots.push({ fact:'my_next_round', label:'NEXT', value:'PLAN ONE', go:'declare' });
+      slots.push({ fact:'my_next_round', label:'NEXT', value:'PLAN ONE', go:'declare', ph:true });
     }
   }
 
@@ -21555,25 +21660,29 @@ function csMeSeasonRow(){
   if(i<0) return null;
   /* L-03 / L-16 · a finished season says where it FINISHED, from the stored
      crown, and chases nobody: no "leads by", no "back of", no Final clause. */
+  /* TEN / W6 · SENTENCE CASE AT THE PRODUCER (D165, LINT-14: case is a
+     role's job, never a string's). The row was built in caps with
+     `toUpperCase()` on the golfers' own names, and it is a sentence a golfer
+     reads, not a label. `MeStripCopy.seasonRow` is the phone's twin. */
   if(CS.season?.status === 'complete'){
     const cId = solo ? CS.season.champion_member_id : CS.season.champion_squad_id;
     const rId = solo ? CS.season.runnerup_member_id : CS.season.runnerup_squad_id;
-    const who = solo ? null : teams[i].name.toUpperCase();
-    const place = myId === cId ? 'CHAMPION' : myId === rId ? 'RUNNER-UP' : 'FINISHED';
-    const parts = [String(CS.league.name||'').toUpperCase(), who ? `${who} · ${place}` : place];
-    if(place === 'FINISHED' && cId){ const c = teams.find(t => t.id === cId); if(c) parts.push(`${String(c.name).toUpperCase()} WON IT`); }
+    const who = solo ? null : teams[i].name;
+    const place = myId === cId ? 'Champion' : myId === rId ? 'Runner-up' : 'Finished';
+    const parts = [String(CS.league.name||''), who ? `${who} · ${place}` : place];
+    if(place === 'Finished' && cId){ const c = teams.find(t => t.id === cId); if(c) parts.push(`${String(c.name)} won it`); }
     return { text: parts.join(' · '), parts };
   }
-  const parts=[String(CS.league.name||'').toUpperCase()];
-  const rank=`${climbOrd(i+1).toUpperCase()} OF ${teams.length}`;
-  parts.push(solo ? rank : [teams[i].name.toUpperCase(), rank].join(' '));
+  const parts=[String(CS.league.name||'')];
+  const rank=`${climbOrd(i+1)} of ${teams.length}`;
+  parts.push(solo ? rank : [teams[i].name, rank].join(' '));
   if(i >= 2 && teams[0]){
     const gap = Number(teams[0].pts) - Number(teams[i].pts);
-    if(gap > 0) parts.push(`${teams[0].name.toUpperCase()} LEADS BY ${csN(gap)}`);
+    if(gap > 0) parts.push(`${teams[0].name} leads by ${csN(gap)}`);
   }
   const up = teams[i-1], down = teams[i+1];
-  if(up)   parts.push(`${csN(Number(up.pts)-Number(teams[i].pts))} BACK OF ${String(up.name).toUpperCase()}`);
-  if(down) parts.push(`${csN(Number(teams[i].pts)-Number(down.pts))} CLEAR OF ${String(down.name).toUpperCase()}`);
+  if(up)   parts.push(`${csN(Number(up.pts)-Number(teams[i].pts))} back of ${String(up.name)}`);
+  if(down) parts.push(`${csN(Number(teams[i].pts)-Number(down.pts))} clear of ${String(down.name)}`);
   if(i < 2){ const c = csEndgameClause(teams.length); if(c) parts.push(c); }
   return { text: parts.join(' · '), parts };
 }
@@ -21586,15 +21695,15 @@ function csEndgameClause(n){
   try{
     if(finish === 'points_table'){
       const e = new Date(seasonE());
-      return `POINTS TABLE CROWNS IT ${MOS[e.getMonth()].toUpperCase()} ${e.getDate()}`;
+      return `Points table crowns it ${MOS[e.getMonth()]} ${e.getDate()}`;
     }
     const cf = cupFinalStart();
-    const when = `${MOS[cf.getMonth()].toUpperCase()} ${cf.getDate()}`;
+    const when = `${MOS[cf.getMonth()]} ${cf.getDate()}`;
     /* a field of two is BOTH, never "top 2" (SA-3's tautology, which the
        squads2 league still printed: "TOP 2 INTO THE FINAL" of two squads) */
-    return (state.structure==='solo' && n===2) ? `A FINAL BETWEEN THE TWO OF YOU, OPENS ${when}`
-      : n === 2 ? `BOTH SQUADS PLAY THE FINAL, OPENS ${when}`
-      : `TOP 2 INTO THE FINAL, OPENS ${when}`;
+    return (state.structure==='solo' && n===2) ? `A Final between the two of you, opens ${when}`
+      : n === 2 ? `Both squads play the Final, opens ${when}`
+      : `Top 2 into the Final, opens ${when}`;
   }catch(_){ return null; }
 }
 
@@ -22572,7 +22681,8 @@ function csEmptyRootHtml(root){
   return `<div class="emptyroot"><h3>${esc(root.head)}</h3>`
     + (root.fact ? `<p class="fact">${esc(root.fact)}</p>` : '')
     + `<p class="sub">${esc(root.sub)}</p>`
-    + `<div class="doors">${root.doors.map(d=>`<button type="button" data-erdoor="${esc(d.k)}">${esc(d.t.toUpperCase())}</button>`).join('')}</div></div>`;
+    /* TEN / W6 · one primary, the rest quiet links (W5's empty-Compete shape) */
+    + `<div class="doors">${root.doors.map((d, i)=>`<button type="button" class="${i===0?'btn':'alt'}" data-erdoor="${esc(d.k)}">${esc(d.t)}</button>`).join('')}</div></div>`;
 }
 
 function csPeerRowHtml(r){
@@ -22761,7 +22871,7 @@ function renderGolfers(){
     const person=async()=>{
       if(btn.disabled) return; btn.disabled=true;
       await csShareIntentLink('person', window.CS?.profile?.id,
-        `${window.CS?.profile?.display_name || 'A golfer'} wants you in their golf. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.`);
+        `${window.CS?.profile?.display_name || 'A golfer'} wants to play golf with you. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.`);
       btn.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
     };
     const season=lg=>{
@@ -22818,33 +22928,78 @@ function csRailCell(s){
   if(!/[0-9]/.test(fig) || !day) return { value: v, label: s.label };
   return { value: fig, label: `${s.label} · ${day}` };
 }
+/* TEN / W6 · THE DESK'S IDENTITY BLOCK, IN THREE PARTS (owner desk C, critique-B
+   home/identity/desk; root's rulings of 2026-09-28).
+   · THE RAIL HOLDS NUMERALS (§16A.4): my number and my money. The day words
+     left it — "84 SUN" and "WED 7:40" set a weekday beside 14.2 and $75.
+   · LAST AND NEXT ARE DATED ROWS, the wire's own weight-5 row (`.cswire`): the
+     day in the leading date column, where dates live, then the fact, then the
+     chevron. The desk only — the phone's rail splits LAST with `csRailCell`
+     (`HomeWireCopy.railCell`) and never shows NEXT, which has its own row.
+   · A PLACEHOLDER IS NEVER A VALUE (L-44, §9.9). `— BUILDING`, `NO ROUNDS YET`
+     and `PLAN ONE` were doors wearing a slot's clothes. On the desk a missing
+     round is a quiet door ("Add my round", "Plan one"); when EVERY slot is a
+     placeholder the block is one sentence with one door — TERMINOLOGY §2's own
+     line, "Your number builds itself from three posted rounds." On the phone
+     the strip filters placeholders and stands down when nothing is left, which
+     is `MeStripCopy`'s `allEmpty` rule and `HomeFacts`' filter (native parity):
+     Home's lead already says the first round is the only thing missing. */
+const CS_ME_EMPTY = { line:'Your number builds itself from three posted rounds.', door:'Add my round' };
+function csMeCell(s, cls){
+  const c = csRailCell(s);
+  return `<button class="mefact${cls||''}" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
+        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
+      </button>`;
+}
+function csMeDated(s){
+  const mk = csDayMarker(s.on);
+  const what = s.fact === 'my_last_round' ? `Last round · ${s.fig}`
+             : ['Next round', s.tee ? `${s.tee} tee` : (s.course || '')].filter(Boolean).join(' · ');
+  return `<button type="button" class="cswire" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
+        <span class="mk cs-agate-s is-phrase">${esc(mk)}</span>
+        <span class="ln cs-body-s">${esc(what)}</span>
+        <span class="cv" aria-hidden="true">&rsaquo;</span>
+      </button>`;
+}
 function renderMeStrip(){
   const strip = csMeStrip();
-  const html = (!strip.slots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${strip.slots.map(s => { const c = csRailCell(s); return `
-      <button class="mefact${s.fact==='my_money'?' owed':''}" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
-      </button>`; }).join('')}</div>
-    ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
+  const real = strip.slots.filter(s => !s.ph);
+  const rail = real.filter(s => s.fact === 'my_number' || s.fact === 'my_money');
+  const dated = real.filter(s => s.fact === 'my_last_round' || s.fact === 'my_next_round');
+  const doorFor = { my_last_round:['add_round', CS_ME_EMPTY.door], my_next_round:['plan_one', 'Plan one'] };
+  const doors = strip.slots.filter(s => s.ph && doorFor[s.fact]).map(s => doorFor[s.fact]);
+  /* the league's name is the foot's (`#sideLeague`, one step down): the
+     sidebar's season row starts after it rather than saying it twice */
+  const row = strip.seasonRow;
+  const sideRowText = !row ? '' : (row.parts && row.parts.length > 1 && window.CS?.league && row.parts[0] === String(CS.league.name||''))
+    ? row.parts.slice(1).join(' · ') : row.text;
+  const onlyPlaceholders = strip.slots.length > 0 && !real.length && !row;
+  const html = onlyPlaceholders ? `
+    <p class="mesay cs-body-s">${esc(CS_ME_EMPTY.line)}</p>
+    <div class="hstart medoors"><a href="#" data-mego="add_round">${esc(CS_ME_EMPTY.door)}</a></div>`
+    : (!real.length && !row && !doors.length) ? '' : `
+    ${rail.length ? `<div class="mefacts">${rail.map(s => csMeCell(s, s.fact==='my_money' ? ' owed' : '')).join('')}</div>` : ''}
+    ${dated.length ? `<div class="medays">${dated.map(csMeDated).join('')}</div>` : ''}
+    ${doors.length ? `<div class="hstart medoors">${doors.map(([k, t]) => `<a href="#" data-mego="${k}">${esc(t)}</a>`).join('')}</div>` : ''}
+    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(sideRowText)}</button>` : ''}`;
   /* MW-02 · below the desk the strip is COMPACT: the number, the last round
      and the season row. The next round has its own row further down
      (`#homeUpNext`) and the money owed has its own page (the pot), where the
      tile already leads; printing both again above the lead put four small
      facts and a debt ahead of the one thing Home is for. The desk's sidebar
      keeps the full strip. Suppression is unchanged: the facts are still spent
-     on this page, just not at its head. */
-  const compactSlots = strip.slots.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
-  const compact = (!compactSlots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${compactSlots.map(s => { const c = csRailCell(s); return `
-      <button class="mefact" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
-      </button>`; }).join('')}</div>
-    ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
+     on this page, just not at its head. TEN / W6 · and no placeholder: the
+     phone's rail draws facts only (`HomeFacts` filters `isPlaceholder`). */
+  const compactSlots = real.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
+  const compact = (!compactSlots.length && !row) ? '' : `
+    <div class="mefacts">${compactSlots.map(s => csMeCell(s)).join('')}</div>
+    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(row.text)}</button>` : ''}`;
   ['#sideMe', '#homeMe'].forEach(sel => {
     const box = document.querySelector(sel);
     if(!box) return;
     box.innerHTML = sel === '#homeMe' ? compact : html;
-    box.querySelectorAll('[data-mego]').forEach(el => el.addEventListener('click', () => {
+    box.querySelectorAll('[data-mego]').forEach(el => el.addEventListener('click', (e) => {
+      e.preventDefault();
       const go = el.getAttribute('data-mego'), id = el.getAttribute('data-meid');
       qaEvent('cta_tapped', { door: go });
       /* Every figure taps to its receipt (L-01). Each door is one that already
@@ -22857,6 +23012,9 @@ function renderMeStrip(){
       else if(go==='my_next_round') { if(id) switchView('schedule'); else window.openDeclareSheet?.(); }
       else if(go==='my_money')      { switchView('pot'); }
       else if(go==='season_row')    { switchView('hub'); }
+      /* TEN / W6 · the placeholders' doors: the composer, and the declare sheet */
+      else if(go==='add_round')     { switchView('post'); }
+      else if(go==='plan_one')      { window.openDeclareSheet?.(); }
     }));
   });
   /* WAVE 11 / D280 - THE SIDEBAR'S FOOT IS THE VIEWER. It rides here because
@@ -22883,7 +23041,7 @@ function renderMeStrip(){
      lands exactly once at every width. `my_money` leaves the phone's set with
      no consumer — the pot keeps its own page and no money copy is added. */
   const onDesk = !window.matchMedia || window.matchMedia('(min-width:960px)').matches;
-  window.__meSuppress = new Set((onDesk ? strip.slots : compactSlots).map(s => s.fact));
+  window.__meSuppress = new Set((onDesk ? rail.concat(dated) : compactSlots).map(s => s.fact));
   /* D234 - the same funnel the phone writes, off the same producer. No name,
      no handle, no id; `qaEvent` stamps the platform centrally. */
   const tag = `${strip.slots.length}${strip.seasonRow?'s':'-'}`;
@@ -25003,6 +25161,9 @@ const CS_INBOX = {
          ['replies','Replies to me','When someone replies directly to one of your comments.'],
          ['followed','Conversations I follow','New comments in threads you’ve chosen to follow.']],
   prefsNote:'Muted conversations stay quiet. You won’t be notified of your own comments.',
+  /* TEN / W6 · the three switches live in Settings now (W2: one Notifications
+     section, owner C); the inbox keeps a door to them, not a second copy */
+  prefsDoor:'Notification settings',
   /* the three sentences both clients print (contract §3) */
   line: n => {
     const who = csTalkFirst(n && n.actor && n.actor.name);
@@ -25291,15 +25452,11 @@ async function csOpenInbox(){
   document.getElementById('sheet')?.classList.add('is-anchored');
   csInbox.items = []; csInbox.next = null; csInbox.nextId = null;
   try{
-    const [a, b] = await Promise.all([
-      window.sb.rpc('my_notifications', { p_before: null, p_limit: 30 }),
-      window.sb.rpc('social_notify_prefs'),
-    ]);
+    const a = await window.sb.rpc('my_notifications', { p_before: null, p_limit: 30 });
     if(a.error) throw a.error;
     csInbox.items = (a.data && a.data.items) || [];
     csInbox.next = (a.data && a.data.next_before) || null;
     csInbox.nextId = (a.data && a.data.next_before_id) || null;
-    csInbox.prefs = (!b.error && b.data) ? b.data : null;
     csBadgeSet(a.data && a.data.unread);
   }catch(e){
     $('#shBody').innerHTML = `<p class="fine">${esc(humanError(e, 'Couldn’t load notifications.'))}</p>`;
@@ -25320,11 +25477,11 @@ function csInboxRender(){
       </span>
       ${n.read ? '' : '<svg class="cs-inbox-dot" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>'}
     </button>`;
-  const p = csInbox.prefs;
-  const prefs = p ? `<h3 class="eyebrow" style="margin-top:var(--s5)">${esc(CS_INBOX.prefsHead)}</h3>`
-    + CS_INBOX.prefs.map(([k, name, sub]) => `<label class="cs-inbox-pref"><span><b class="cs-name">${esc(name)}</b><span class="cs-body-s">${esc(sub)}</span></span>`
-      + `<input type="checkbox" data-pref="${esc(k)}"${p[k] !== false ? ' checked' : ''}></label>`).join('')
-    + `<p class="fine">${esc(CS_INBOX.prefsNote)}</p>` : '';
+  /* TEN / W6 · ONE NOTIFICATIONS SECTION (W2, owner C): the three
+     conversation switches are Settings' now, read and written there through
+     the same RPCs. The inbox carries a door to them rather than a second set
+     of switches that could disagree with the first. */
+  const prefs = `<div class="hstart"><a href="#" data-inbox-prefs>${esc(CS_INBOX.prefsDoor)}</a></div>`;
   body.innerHTML = (unread ? `<div class="cs-inbox-bar"><button type="button" class="mini" data-inbox-all>${esc(CS_INBOX.markAll)}</button></div>` : '')
     + (items.length ? items.map(row).join('') : `<p class="fine">${esc(CS_INBOX.empty)}</p>`)
     + (csInbox.next ? `<div class="cs-inbox-bar"><button type="button" class="mini" data-inbox-more>${esc(CS_INBOX.more)}</button></div>` : '')
@@ -25359,16 +25516,16 @@ function csInboxRender(){
     }catch(err){ toast(humanError(err, 'Couldn’t load older notifications.')); }
     csInboxRender();
   });
-  body.querySelectorAll('input[data-pref]').forEach(inp=>inp.addEventListener('change', async ()=>{
-    const k = inp.dataset.pref, on = inp.checked;
-    inp.disabled = true;
-    try{
-      const { data, error } = await window.sb.rpc('set_social_notify_prefs', { ['p_' + k]: on });
-      if(error) throw error;
-      csInbox.prefs = data || Object.assign({}, csInbox.prefs, { [k]: on });
-    }catch(err){ inp.checked = !on; toast(humanError(err, 'That setting did not save.')); }
-    inp.disabled = false;
-  }));
+  body.querySelector('[data-inbox-prefs]')?.addEventListener('click', e=>{
+    e.preventDefault();
+    if(!window.openProfileHub) return;
+    window.openProfileHub();
+    /* land on the settings pane, at the Notifications section */
+    setTimeout(()=>{
+      document.querySelector('#phSeg [data-ph="settings"]')?.click();
+      document.getElementById('phNotify')?.scrollIntoView({ block:'start' });
+    }, 0);
+  });
 }
 /* open = read it, then go to the exact comment */
 function csOpenNotification(n){
@@ -28296,7 +28453,12 @@ function refreshWhoChip(){
     const known = window.career && window.career.rounds != null;
     const rounds = known ? Number(window.career.rounds) : null;
     const cells = [];
-    if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Handicap index']);
+    /* TEN / W6 · ONE LABEL PER OBJECT (root, 2026-09-28; D319, TERMINOLOGY
+       row 90): the viewer's own figure is YOUR NUMBER everywhere it is
+       labelled — the strip, the masthead and this card; another golfer's card
+       says Handicap index (`csCredentialHtml`). One print per viewport: the
+       desk sidebar yields its copy while You is open. */
+    if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Your number']);
     cells.push([rounds == null ? '\u2014' : String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
     figs.innerHTML = cells.map(([v, l]) =>
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
@@ -28749,7 +28911,9 @@ function csCredentialHtml(profileId, card){
   const mk = (typeof MARKERS !== 'undefined' && (MARKERS[p.marker] || MARKERS.saguaro)) || null;
   const photo = (window.avatarUrl && window.avatarUrl[profileId]) || null;
   const figs = [];
-  if(p.index_current != null) figs.push([fmtIdx(p.index_current), 'Handicap index', '']);
+  /* one label per object: another golfer's figure is their Handicap index; the viewer's own is YOUR NUMBER */
+  const mine = !!(window.CS?.profile?.id && profileId === window.CS.profile.id);
+  if(p.index_current != null) figs.push([fmtIdx(p.index_current), mine ? 'Your number' : 'Handicap index', '']);
   figs.push([String(Number(c.rounds || 0)), 'Rounds', '']);
   /* the position figure needs a STANDING, and `tour_card` carries none - see
      IOS-047. It falls to the best round, which the card already holds. */
@@ -30197,6 +30361,8 @@ function openFindGolfers(){
 }
 window.openFindGolfers = openFindGolfers;
 document.addEventListener('click', e=>{ if(e.target.closest('[data-gopeople]')){ e.preventDefault(); goCrewPeople(); } });
+/* TEN / W6 · the empty wire's other door: the season's table (`openCompetition(id, .table)` on the phone) */
+document.addEventListener('click', e=>{ if(e.target.closest('[data-wiretable]')){ e.preventDefault(); switchView('hub'); setRoomSeg('standings'); } });
 $('#wFind')?.addEventListener('click', openFindGolfers);
 $('#hdrSearch')?.addEventListener('click', openFindGolfers);
 $('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));
@@ -31992,7 +32158,7 @@ $('#obJoin').addEventListener('click', () => {
    the money, and a fact with no read renders NOTHING (L-44) — which is what
    makes a client that ships ahead of the migration honest rather than empty.
    `CS_COVENANT_FACTS` is the order both suites pin. */
-window.CS_COVENANT_FACTS = ['season','who','length','rules','ending','stake','ledger','split','pay','starter'];
+window.CS_COVENANT_FACTS = ['season','who','length','structure','rules','ending','stake','ledger','split','pay','starter'];   /* TEN / W6 · JoinLeague.Fact's order, `structure` included */
 function csWord(n){
   const w=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve',
            'thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
@@ -32045,6 +32211,14 @@ function csCovenantFacts(info, postedRounds){
   if(weeksText && tee) out.push({ k:'length', t: weeksText + ' from ' + tee + '.' });
   else if(weeksText)   out.push({ k:'length', t: weeksText + '.' });
   else if(tee)         out.push({ k:'length', t: 'First tee ' + tee + '.' });
+  /* TEN / W6 (root, 2026-09-28; L-34) · WHAT COMPETES is its own fact, as the
+     phone gives it its own row (JoinLeague.facts, JoinLeague.swift:366) —
+     word for word. The ending below says only how the season ends. */
+  if(info.structure){
+    out.push({ k:'structure', t: info.structure === 'solo' ? 'Every golfer plays for their own place.'
+      : info.structure === 'squads2' ? 'Two squads. Your round points contribute to your squad\u2019s season.'
+      : 'Squads compete together. Your round points contribute to your squad\u2019s season.' });
+  }
   /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap.
      D353 · an Unlimited league says "every round counts" off the payload's own
      boolean (never off an absent key), and the allowance says what every points
@@ -32069,22 +32243,19 @@ function csCovenantFacts(info, postedRounds){
      leader 10 up; larger squads send the top two; a points table has no reset;
      a season under six weeks is a points-table season (D384). With no structure
      in the payload (an older server) the sentence is exactly what it was. */
+  /* TEN / W6 (root, 2026-09-28; L-34) · THE PHONE'S WORDS, word for word
+     (JoinLeague.endingLine, JoinLeague.swift:264-269). The web's own branching
+     stays: a points table and a season under six weeks (D384) both end on the
+     table; an older server with no structure keeps its one sentence. What
+     competes moved to the `structure` fact above. */
   const st = info.structure || null;
   const shortSeason = wk > 0 && wk < 6;
   const table = info.finish === 'points_table' || shortSeason;
-  const nSq = st === 'squads2' ? 2 : st === 'squads3' ? 3 : st === 'squads4' ? 4 : 0;
-  let ending;
-  if(!st){
-    ending = table ? "The season's points decide it. No reset." : 'It ends with a four-week Cup Final between the top two.';
-  } else if(st === 'solo'){
-    ending = table ? "Everyone plays for themselves, and the season's points decide it. No reset."
-                   : 'Everyone plays for themselves. The top two on points meet in a four-week Cup Final.';
-  } else {
-    const squads = csCap(csWord(nSq || 2)) + ' squads, and every round you post counts toward yours.';
-    ending = table ? squads + " The season's points decide it. No reset."
-      : nSq === 2 ? squads + ' Both squads meet in a four-week Cup Final, and the squad leading on points starts it 10 up.'
-      : squads + ' The top two squads on points meet in a four-week Cup Final.';
-  }
+  const ending = table ? "The season's points decide it. No reset."
+    : !st ? 'It ends with a four-week Cup Final between the top two.'
+    : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.'
+    : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh.'
+    : 'The top two squads qualify for a four-week Cup Final, scored fresh.';
   out.push({ k:'ending', t: ending });
   /* L-10 · every money line is ABOVE $0 only */
   if(paid){
@@ -32244,7 +32415,7 @@ async function eventTermsGate(inv){
       facts.map((t,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${(b>0 && /each\.$/.test(t))?';color:var(--ink)':''}">${esc(t)}</p>`).join('')
       + `<p class="fine" style="padding-top:6px">Invited by ${esc(inv.inviter||'a golfer')}.</p>
       <button class="btn" id="evAccept" style="margin-top:12px">${b>0?`Accept — I’m in for $${Math.round(b)}`:'Accept'}</button>
-      <button class="btn dark" id="evNo" style="margin-top:8px">Not now</button>`);
+      <button class="btn dark" id="evNo" data-decline style="margin-top:8px">Not now</button>`);
     let done = false;
     const sheet = document.getElementById('sheet');
     let obs = null;
@@ -32302,7 +32473,7 @@ function showCovenant(info){
     openSheet(csCovenantTitle(info), csCovenantEyebrow(info),
       facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--ink)':''}">${esc(f.t)}</p>`).join('') + `
       <button class="btn" id="covJoin" style="margin-top:12px">${esc(csCovenantButton(info))}</button>
-      <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
+      <button class="btn dark" id="covNo" data-decline style="margin-top:8px">Not now</button>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
        two buttons. The sheet has three other ways out — the X, the backdrop and
        Escape — and none of them touched it. While the gate lived behind a click
@@ -34669,7 +34840,7 @@ async function openDeclareSheet(prefillISO, opts){
   const joining = opts.hostName ? `You're in — your own round goes on the schedule alongside ${esc(opts.hostName)}.` : '';
   openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the schedule',
     opts.hostName ? 'YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY' : 'BUDDIES AND YOUR SEASONS SEE IT THE MOMENT YOU POST',
-    `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--gold)">${joining}</p>` : ''}
+    `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--ink)">${joining}</p>` : ''}
      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
        <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drDate">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
        <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drTee" style="color:var(--ink)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
@@ -35379,10 +35550,17 @@ function openScoringHelp(){
   const covenant = solo === false
     ? `<b>You can't hurt your squad by playing badly — only by not playing.</b>`
     : `<b>You can't hurt your standing by playing badly — only by not playing.</b>`;
+  /* TEN / W6 · ONE PRODUCER FOR THE MINIMUM (L-34; E's twin of GuideCopy →
+     LeagueCopy.floorSentence). With a league in hand the paragraph said the
+     minimum in its own words — "Miss it once and your bye covers you" — beside
+     `floorSentence`, which Home, the pot and the rules already print with the
+     league's real number, penalty and waiver. It says that sentence now. With
+     no league in hand there is no minimum to state, so the general account
+     stays. */
   const counts = solo === true
-    ? `Your best rounds each month count — a better round always bumps the worst one that counts. In a solo league the monthly minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in <b>The rules</b>.`
+    ? `Your best rounds each month count — a better round always bumps the worst one that counts. ${esc(floorSentence())} Your league's exact numbers are in <b>The rules</b>.`
     : solo === false
-    ? `Your best rounds each month count for your squad — a better round always bumps the worst one that counts — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your <b>bye</b> covers you automatically — life happens; the penalty bites from the second miss. Your league's exact numbers are in <b>The rules</b>.`
+    ? `Your best rounds each month count for your squad — a better round always bumps the worst one that counts. ${esc(floorSentence())} Your league's exact numbers are in <b>The rules</b>.`
     : `Your best rounds each month count — a better round always bumps the worst one that counts. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your <b>bye</b> covers you automatically — life happens; the penalty bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in <b>The rules</b>.`;
   openSheet('How scoring works', 'HANDICAPS · CUP POINTS · THE MONEY', `
     <div class="eyebrow" style="margin-top:0">Your index</div>
@@ -35789,17 +35967,22 @@ if(unsubParam){
     catch(_){ ok = false; }
     const w = document.createElement('div');
     w.id = 'unsubView';   /* a cover: csModal isolates the app under it */
-    /* the ceremony ground and ink (D277, as the share view); the way back in is
-       an ordinary action, so it is act, never ember (D359). Mono is kept for
-       the wordmark; the sentences are sans. */
-    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0A0E0C;color:#F1F4EF;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,system-ui,Segoe UI,sans-serif';
-    w.innerHTML = `<div style="max-width:340px">
-      <div style="letter-spacing:.22em;font-size:12px;color:#9BA69D;font-family:ui-monospace,Menlo,monospace">CUP SEASON</div>
-      <div style="font-family:Georgia,serif;font-size:26px;margin:16px 0 8px">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</div>
-      <p style="color:#9BA69D;font-size:15px;line-height:1.5;margin:0 0 20px">${ok
-        ? 'No more season-end emails. Your league and your rounds are untouched — this only stops the mail.'
-        : 'Nothing changed. You can turn season emails off any time from the app.'}</p>
-      <a href="/" style="display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:11px;background:#5FA271;color:#0A0E0C;font-weight:600;text-decoration:none;font-size:15px">Open Cup Season</a>
+    /* TEN / W6 · THE PUBLIC SHELL (W4's `.sv`), so this landing signs with the
+       one lockup and says its way back in with the one CTA grammar — it drew a
+       mono "CUP SEASON" with no mark, a Georgia headline and a sans button in
+       typed hexes (craft C: the wordmark set four ways; one CTA grammar). The
+       tokens carry both printings, as the share view's do. */
+    w.className = 'sv';
+    const mark = `<svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>`;
+    w.innerHTML = `<div class="sv-page">
+      <header class="sv-signature"><span class="cs-lockup">${mark}<span class="cs-name">Cup Season</span></span></header>
+      <div class="sv-unsub">
+        <h1 class="cs-lead">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</h1>
+        <p class="cs-body-s">${ok
+          ? 'No more season-end emails. Your league and your rounds are untouched — this only stops the mail.'
+          : 'Nothing changed. You can turn season emails off any time from the app.'}</p>
+        <a class="sv-action is-primary cs-name" href="/">Open Cup Season</a>
+      </div>
     </div>`;
     document.body.appendChild(w);
   })();
@@ -35846,9 +36029,9 @@ async function renderShareView(tok, _testInfo){
   const wrap = document.createElement('div');
   wrap.id = 'shareView';
   wrap.className = 'sv';
-  const MARK = `<svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>`;
+  const MARK = `<svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>`;
   wrap.innerHTML = `<div class="sv-page">
-    <header class="sv-signature">${MARK}<span class="cs-name">Cup Season</span><span class="sv-kind cs-agate"></span></header>
+    <header class="sv-signature"><span class="cs-lockup">${MARK}<span class="cs-name">Cup Season</span></span><span class="sv-kind cs-agate"></span></header>
     <div id="svCard"><p class="sv-wait cs-body-s">Opening the card…</p></div>
   </div>`;
   document.body.appendChild(wrap);
@@ -36299,7 +36482,7 @@ async function csLinkAskOnce(card){
         ${card.facts ? `<p class="fine" style="padding-top:4px">${esc(card.facts)}</p>` : ''}
         ${card.note ? `<p class="fine" style="padding-top:4px">${esc(card.note)}</p>` : ''}
         <button class="btn" id="lnkYes" style="margin-top:12px">${esc(card.yes)}</button>
-        <button class="btn dark" id="lnkNo" style="margin-top:8px">${esc(CS_LINK_ASK.no)}</button>
+        <button class="btn dark" id="lnkNo" data-decline style="margin-top:8px">${esc(CS_LINK_ASK.no)}</button>
       </div>`);
       const sheet = document.getElementById('sheet'), body = document.getElementById('shBody');
       const root = document.getElementById('lnkAsk');

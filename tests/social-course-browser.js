@@ -172,11 +172,14 @@
     check(more.p_before===notes[0].created_at && more.p_before_id===N1 && more.p_limit===30,'"Show older" did not send the composite cursor: '+JSON.stringify(more));
     const item=document.querySelector('#shBody [data-inbox="'+N1+'"]');
     check(item.textContent.includes('Mara replied to your comment.') && item.textContent.includes('“Caught the left edge.”') && item.textContent.includes('Unread'),'the inbox sentence is wrong: '+item.textContent.replace(/\s+/g,' '));
-    /* a preference that fails reverts */
-    const pref=document.querySelector('#shBody input[data-pref="followed"]');
-    fail.set_social_notify_prefs={ message:'Failed to fetch' };
-    pref.click();
-    await until(()=>!pref.disabled && pref.checked===true);
+    /* TEN / W6 (root, 2026-09-28) · the three conversation switches are
+       Settings' now (W2's one Notifications section, owner C), read and written
+       there through the same RPCs — so the inbox carries ONE door to them and
+       no second set of switches. The revert-on-failure this block exercised
+       belongs to Settings' switches (`phTalk_*`). */
+    check(!document.querySelector('#shBody input[data-pref]'),'the inbox still carries its own notification switches');
+    const door=document.querySelector('#shBody [data-inbox-prefs]');
+    check(!!door && door.textContent.trim()==='Notification settings','the inbox lost its door to the notification settings');
     item.click();
     await until(()=>calls.some(c=>c[0]==='posted_round_thread' && c[1].p_focus===C2));
     const target=await until(()=>document.querySelector(`#rcptTalk #talk-c-${C2}.is-target`));

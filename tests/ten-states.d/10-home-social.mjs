@@ -71,6 +71,19 @@ const meStripShown = (page) => page.evaluate(() => {
   return el && el.innerText.trim().length > 0 ? true : 'the ME strip is empty or hidden'
 })
 const all = (...fns) => async (page) => { for (const f of fns) { const r = await f(page); if (r !== true) return r } return true }
+/* TEN / W6 (root, 2026-09-28) · a BRAND-NEW golfer's strip holds only
+   placeholders — `— BUILDING`, `NO ROUNDS YET`, `PLAN ONE`. The phone stands
+   it down (MeStripCopy's `allEmpty`, HomeFacts' placeholder filter: native
+   parity; the lead already says the first round is missing) and the desk's
+   sidebar prints ONE sentence with ONE door. `meStripShown` pinned the old
+   three-placeholder strip at every width. */
+const meStripBrandNew = (page) => page.evaluate(() => {
+  const home = document.getElementById('homeMe'), side = document.getElementById('sideMe')
+  if (innerWidth < 960) return !(home && home.innerText.trim()) ? true : 'the phone strip did not stand down: ' + JSON.stringify(home.innerText.trim().slice(0, 80))
+  const t = ((side && side.innerText) || '').replace(/\s+/g, ' ')
+  return /Your number builds itself from three posted rounds\./.test(t) && /Add my round/i.test(t) && !/BUILDING|NO ROUNDS YET|PLAN ONE/.test(t)
+    ? true : 'the desk strip is not the sentence and its door: ' + JSON.stringify(t.slice(0, 140))
+})
 const homePainted = async (page) => {
   await until(page, () => !!(document.querySelector('#homeLead .csedn') || document.querySelector('#homeDeck .cswire')), null, 10000)
   await page.waitForTimeout(300)
@@ -128,7 +141,7 @@ const leadShown = (re) => async (page) => page.evaluate((re) => {
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripShown) },
+    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew) },
   { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
     expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown, async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'my own rounds are not in the feed')) },

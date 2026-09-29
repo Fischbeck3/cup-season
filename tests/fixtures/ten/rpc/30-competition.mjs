@@ -621,7 +621,7 @@ function profileFor(W, name) {
   if (had) return had
   const n = (W._bookPeople = (W._bookPeople || 0) + 1)
   const p = { id: ids.person(n), display_name: name, city: null, home_course: null, index_current: r1(6 + ((n * 37) % 190) / 10), index_source: 'auto',
-    marker: MARKER_POOL[n % MARKER_POOL.length], notify_chat: true, notify_rounds: true, handle: slug(name), discoverable: true, ghin_number: null,
+    marker: MARKER_POOL[n % MARKER_POOL.length], notify_chat: true, notify_rounds: true, handle: slug(name), discoverable: 'everyone', ghin_number: null,
     created_at: '2026-06-01T19:00:00Z', photo_path: null, scan_consent_at: null, email: `${slug(name)}@example.invalid` }
   T_(W, 'profiles').push(p)
   return p

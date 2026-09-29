@@ -122,7 +122,9 @@ export default function install(W) {
     return out
   }
   /* the Tour-Card gate (L-37 / D150): self, buddy, shared league or event, or discoverable = everyone */
-  const discoverable = (p) => p && (p.discoverable === true || p.discoverable === 'everyone')
+  /* TEN / W6 · the column is TEXT ('everyone' | 'friends' | 'nobody', 20260712010000);
+     the world stored `true`, which no real row can hold */
+  const discoverable = (p) => p && p.discoverable === 'everyone'
   const cardVisible = (v, p) => p === v || accepted(v, p) || shareLeague(v, p) || shareEvent(v, p) || discoverable(prof(p))
   const apiCourse = (id) => (T.api_courses || []).find((c) => String(c.id) === String(id)) || null
   const courseKey = (r) => { if (r.api_course_id == null || r.api_course_id === '') return null; const c = apiCourse(r.api_course_id); return c ? (c.club_name + (c.course_name && c.course_name !== c.club_name ? ' ' + c.course_name : '')).toLowerCase().trim() : String(r.course_label || '').split(' · ')[0].toLowerCase().trim() }
