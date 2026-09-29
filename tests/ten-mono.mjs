@@ -359,3 +359,24 @@ export const deskMenuIs = (want) => async (page) => page.evaluate((want) => {
   if (aria.length !== 1 || aria[0] !== cur[0]) return 'aria-current is not on the marked row alone'
   return true
 }, want)
+
+/* TEN / W8 · W7-032 · UI_SYSTEM §7.2: a segment is a 44pt row of agate labels
+ * on a hairline with a 2px ink underline under the chosen one — no pill, no
+ * track fill, no radius. `isSystemSegment(sel, chosen)` fails the capture when
+ * the control is not the system segment (`.cs-seg`), wears a radius or a track
+ * fill, has a tab under 44px, has `aria-pressed` disagree with `.on`, has no
+ * group name, or when `chosen` (the label expected chosen) is not the chosen
+ * one with a 2px underline. */
+export const isSystemSegment = (sel, chosen) => async (page) => page.evaluate(([sel, chosen]) => {
+  const seg = document.querySelector(sel); if (!seg) return `${sel} is not drawn`
+  const cs = getComputedStyle(seg), tabs = [...seg.querySelectorAll('button')]
+  if (!seg.classList.contains('cs-seg')) return `${sel} is not the system segment (.cs-seg)`
+  if (parseFloat(cs.borderTopLeftRadius) > 0 || cs.backgroundColor !== 'rgba(0, 0, 0, 0)') return `${sel} wears a pill (radius ${cs.borderTopLeftRadius}, fill ${cs.backgroundColor})`
+  if (!seg.getAttribute('role') || !seg.getAttribute('aria-label')) return `${sel} has no group name`
+  const small = tabs.filter((b) => b.getBoundingClientRect().height < 44); if (small.length) return `a tab in ${sel} is ${Math.round(small[0].getBoundingClientRect().height)}px tall`
+  const on = tabs.filter((b) => b.getAttribute('aria-pressed') === 'true')
+  if (on.length !== 1 || !on[0].classList.contains('on') || tabs.filter((b) => b.classList.contains('on')).length !== 1) return `aria-pressed and .on disagree in ${sel}`
+  if (on[0].textContent.trim() !== chosen) return `${sel} has ${JSON.stringify(on[0].textContent.trim())} chosen, expected ${JSON.stringify(chosen)}`
+  const u = getComputedStyle(on[0]).borderBottomWidth
+  return u === '2px' ? true : `the chosen tab has a ${u} underline, not 2px`
+}, [sel, chosen])

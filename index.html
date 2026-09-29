@@ -30892,9 +30892,9 @@ function openProfileHub(){
      device & account). The old single scroll buried notifications and
      sign-out under ten sections of identity fields. */
   openSheet('Card & settings', 'Your card is what your buddies see · settings run the app', `
-    <div class="seg" id="phSeg" style="margin-bottom:14px">
-      <button data-ph="card" class="on">Your card</button>
-      <button data-ph="settings">Settings</button>
+    <div class="cs-seg is-fill" id="phSeg" role="group" aria-label="Your card or settings" style="margin-bottom:14px">
+      <button data-ph="card" class="on" aria-pressed="true">Your card</button>
+      <button data-ph="settings" aria-pressed="false">Settings</button>
     </div>
     <div id="phPaneCard">
     <label class="f" for="phName">Name on the card</label>
@@ -31016,7 +31016,7 @@ function openProfileHub(){
   `);
   $('#shSub').classList.add('is-phrase');   /* TEN / W6 · TP-11 · this sub-line is a sentence */
   document.querySelectorAll('#phSeg [data-ph]').forEach(b => b.addEventListener('click', () => {
-    document.querySelectorAll('#phSeg [data-ph]').forEach(x => x.classList.toggle('on', x===b));
+    document.querySelectorAll('#phSeg [data-ph]').forEach(x => { x.classList.toggle('on', x===b); x.setAttribute('aria-pressed', String(x===b)); });
     $('#phPaneCard').style.display = b.dataset.ph==='card' ? '' : 'none';
     $('#phPaneSettings').style.display = b.dataset.ph==='settings' ? '' : 'none';
   }));
