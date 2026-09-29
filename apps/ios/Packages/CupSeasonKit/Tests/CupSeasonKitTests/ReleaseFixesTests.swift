@@ -89,7 +89,7 @@ import Foundation
 
   @Test func aGolferWhoJoinedThisMonthIsToldTheMinimumIsWaived() {
     let t = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 0, partial: false, joinedThisMonth: true, byeAvailable: true).text
-    #expect(t == "You joined this month, so there's no minimum to clear until October. Your best 4 each month count.")
+    #expect(t == "You joined this month, so there's no minimum to clear until October. Your best four each month count.")
     #expect(!t.contains("more toward"), "no figure to chase in a month close_month will waive")
     #expect(!t.contains("bye"), "the bye is not spent in a waived month, so it is not mentioned")
   }
@@ -101,7 +101,7 @@ import Foundation
     #expect(used.hasSuffix(LeagueCopy.byeUsed))
     // an older server: neither fact, and the sentence is exactly D352's
     let old = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 1, partial: false).text
-    #expect(old == "1 more toward September's minimum of 2 — you're at 1. Your best 4 each month count.")
+    #expect(old == "1 more toward September's minimum of 2 — you're at 1. Your best four each month count.")
     // met: nothing about the bye either way
     let met = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 2, partial: false, joinedThisMonth: false, byeAvailable: false).text
     #expect(!met.contains("bye"))

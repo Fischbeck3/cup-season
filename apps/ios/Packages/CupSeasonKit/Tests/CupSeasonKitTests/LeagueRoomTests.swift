@@ -421,18 +421,24 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   @Test func bylawsRowsVerbatim() {
     let rows = LeagueCopy.bylawsRows(Bylaws.from(season), clock: clock("2026-06-01"))
     // D249 · the row KEYS stopped naming dials (L-16, TERMINOLOGY §4 rows 1-4):
-    // a Pro reads what the rule DOES, in the same words the rules page uses.
-    #expect(rows.map(\.k) == ["FORMAT", "THE DRAW", "HOUSE RULES", "HOW SCORES COUNT", "SCORES", "EACH MONTH", "THE MINIMUM", "BUY-IN", "POT SPLIT", "SEASON", "CUP FINAL"])
+    // a Pro reads what the rule DOES. N4-208 · they are the web review's own
+    // labels now, in sentence case — their caps are the role's (§1.3).
+    #expect(rows.map(\.k) == ["Format", "The draw", "House rules", "How scores count", "Scores", "Each month", "The minimum",
+                              "If you miss it", "Buy-in", "How to pay", "Pot split", "Season", "Cup Final"])
     #expect(rows[0].v == "4 squads" && rows[1].v == "Random draw" && rows[3].v == "Scored against your playing HCP — your index at 95 percent"
-            && rows[5].v == "Best 4 a month count" && rows[6].v == "2 a month · −5 squad points a round short")
+            && rows[5].v == "Your best four each month count." && rows[6].v == "2 per golfer each month")
     #expect(rows[4].v == "Post what you'd post to GHIN")   // M-15: a norm the league holds
     #expect(Bylaws.verif == ["Honor system", "Post what you'd post to GHIN", "Vouched by the group where you can; the Pro rules on the rest"])
-    #expect(rows[7].v == "$75 / golfer" && rows[8].v == "60 / 25 / 15 · champion / runner-up / points king")
-    #expect(rows[9].v == "5 mo · Sun May 3 \u{2013} Sat Sep 26 · 21 wks")
-    #expect(rows[10].v == "Final 4 weeks · from Sun Aug 30 · scored fresh")
+    #expect(rows[7].v == "One missed minimum is forgiven each season. After that, the team loses 5 points per round short. Partial months are exempt.")
+    #expect(rows[8].v == "$75 / golfer" && rows[9].v == "Not set yet" && rows[10].v == "60 / 25 / 15 · champion / runner-up / Points King")
+    #expect(rows[11].v == "Sun May 3 \u{2013} Sat Sep 26 · 21 weeks")
+    #expect(rows[12].v == "Final 4 weeks · from Sun Aug 30. Final rounds must also fit the monthly counting limit; an earlier round can take a place.")
     let free = LeagueCopy.bylawsRows(Bylaws(stake: 0, finish: "points_table"), clock: clock("2026-06-01", finish: "points_table"))
-    #expect(free.first { $0.k == "BUY-IN" }?.v == "None · bragging rights" && free.last?.k == "FINISH" && free.last?.v == "Points table crowns it · whole season, one race")
-    #expect(!free.contains { $0.k == "POT SPLIT" })
+    #expect(free.first { $0.k == "Buy-in" }?.v == "None · bragging rights" && free.last?.k == "Finish" && free.last?.v == "Points table crowns it · whole season, one race")
+    #expect(!free.contains { $0.k == "Pot split" })
+    // `csCountingRule`, word for word
+    #expect(LeagueCopy.countingRule(nil) == "Every round you post counts.")
+    #expect(LeagueCopy.countingRule(1) == "Your best round each month counts.")
   }
   @Test func theSeasonTileDeadlines() {
     let b = Bylaws.from(season)
@@ -487,13 +493,13 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // is `floor_credit`, the minimum's own unit. The minimum now speaks in its
     // own unit against its own target, and the counting rule speaks as a rule.
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text
-            == "1 more toward August's minimum of 2 — you're at 1. Your best 4 each month count.")
+            == "1 more toward August's minimum of 2 — you're at 1. Your best four each month count.")
     // D234 · the half is GLOSSED, and only when there is a half on screen: the
     // floor is measured in credits (an eighteen is one, a nine is a half), and
     // "you've posted 0.5" without that clause told a golfer they had posted
     // half a round. The web's `nextUpText` carries the same words.
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0.5, partial: false).text
-            == "1.5 more toward August's minimum of 2 — you're at 0.5. A nine counts half. Your best 4 each month count.")
+            == "1.5 more toward August's minimum of 2 — you're at 0.5. A nine counts half. Your best four each month count.")
     // a whole number of eighteens never meets the rule
     #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text.contains("A nine counts half."))
     #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text.contains("A nine counts half."))
@@ -502,11 +508,11 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // COUNTING-rounds figure. With a cap of 4 and five eighteens those are 5
     // and 4, and they are never the same question.
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2.5, partial: false).text
-            == "August's minimum is met — 2.5 of 2. A nine counts half. Your best 4 each month count. Another round is another chance to improve on one of them.")
+            == "August's minimum is met — 2.5 of 2. A nine counts half. Your best four each month count. Another round is another chance to improve on one of them.")
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text
-            == "August's minimum is met — 2 of 2. Your best 4 each month count. Another round is another chance to improve on one of them.")
+            == "August's minimum is met — 2 of 2. Your best four each month count. Another round is another chance to improve on one of them.")
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0, partial: true)
-            == ("Up next · August", "August is a short month — no minimum to clear. Your best 4 each month count."))
+            == ("Up next · August", "August is a short month — no minimum to clear. Your best four each month count."))
 
     // D352 · a league with NO MINIMUM. The zero-remaining branch used to fire
     // here and announce the month "covered", which says something was owed in a
@@ -514,7 +520,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // of points, an overtake or a qualification — only Postgres decides a band.
     let noFloor = Bylaws(floor: 0, cap: 4)
     let free = LeagueCopy.nextUp(clock("2026-08-27"), b: noFloor, credits: 3, partial: false)
-    #expect(free.text == "Your best 4 each month count. Another round is another chance to improve on one of them.")
+    #expect(free.text == "Your best four each month count. Another round is another chance to improve on one of them.")
     #expect(!free.text.contains("covered"))
     #expect(!free.text.lowercased().contains("minimum"))
     for word in ["adds", "overtake", "guarantee", "qualif"] {
