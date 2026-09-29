@@ -85,7 +85,8 @@ struct RoundReceiptSheet: View {
   @State private var countingDoor: ReceiptCountingDoor?
   @State private var roundPreview = false
   @State private var sharePhoto: UIImage?
-  @State private var shareBusy = false
+  /// the round's own photograph, fetched by the preview once it is up
+  @State private var sharePhotoURL: URL?
   @State private var publicLink: JSONValue?
   @State private var linkNote: String?
   @State private var revokingLink = false
@@ -159,8 +160,8 @@ struct RoundReceiptSheet: View {
             .accessibilityHint("Opens the course page, golfers and scores")
           }
           if enriched, r.profileId == store.session?.user.id, recap(r) != nil {
-            CSMini("Share round", glyph: .share, busy: shareBusy) {
-              Task { await previewRound(r) }
+            CSMini("Share round", glyph: .share) {
+              previewRound(r)
             }
             .accessibilityIdentifier("round.share.preview")
             if publicLink?["token"]?.string != nil || publicLink?["cleanup_pending"]?.bool == true || linkNote != nil {
@@ -270,7 +271,7 @@ struct RoundReceiptSheet: View {
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
     .sheet(item: $countingDoor) { CountingRoundsSheet(door: $0) }
     .sheet(isPresented: $roundPreview) {
-      if let seed, let recap = recap(seed) { RoundSharePreview(recap: recap, photo: sharePhoto, roundId: roundId) }
+      if let seed, let recap = recap(seed) { RoundSharePreview(recap: recap, photo: sharePhoto, roundId: roundId, photoURL: sharePhotoURL) }
     }
     #if DEBUG
     .fullScreenCover(isPresented: $artifactPreview) { artifactShot }
@@ -593,23 +594,22 @@ struct RoundReceiptSheet: View {
     return said.isEmpty ? nil : said
   }
 
-  private func previewRound(_ r: ReceiptSeed) async {
-    guard !shareBusy else { return }
-    shareBusy = true
-    defer { shareBusy = false }
+  /// The preview opens at once. It used to wait here for the round's
+  /// photograph, on URLSession's 60-second default, so on a weak signal a
+  /// Share tap sat behind a busy button with nothing on screen; the preview
+  /// now fetches the photograph itself and the card fills in when it lands.
+  private func previewRound(_ r: ReceiptSeed) {
+    guard !roundPreview else { return }
     sharePhoto = nil
     #if DEBUG
     // `-cs_dev_receipt_photo on` stands a photograph on the round itself. The
-    // fetch below deliberately accepts only a signed HTTP 200, and the hatch's
+    // fetch deliberately accepts only a signed HTTP 200, and the hatch's
     // URL is a file on disk, so the stand-in is handed over directly rather
     // than smuggled through a relaxed status check on the real path.
     if ReceiptPhotoDev.mode == "on" { sharePhoto = ReceiptPhotoDev.image }
     #endif
     // Only the photograph attached to this accepted, owned round; no course fallback.
-    if sharePhoto == nil, let url = r.photoURL, let (data, response) = try? await URLSession.shared.data(from: url),
-       (response as? HTTPURLResponse)?.statusCode == 200 {
-      sharePhoto = UIImage(data: data)
-    }
+    sharePhotoURL = sharePhoto == nil ? r.photoURL : nil
     roundPreview = true
   }
 
@@ -663,7 +663,7 @@ struct RoundReceiptSheet: View {
     #endif
     #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview"), let r = seed,
-       r.profileId == store.session?.user.id { await previewRound(r) }
+       r.profileId == store.session?.user.id { previewRound(r) }
     #endif
     #if DEBUG
     if (ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_export") || ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_finish")),

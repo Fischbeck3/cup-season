@@ -295,7 +295,12 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertFalse(mark(app, "composer").exists)
   }
 
-  /// The share preview opens from the receipt and closes without sharing.
+  /// The share preview opens from the receipt and closes without sharing. It
+  /// opens at once, before the round's photograph has come (it waited for
+  /// the photograph, and root's run at a3f7bcad saw the tap sit past 10s).
+  /// The Close tapped is the preview's own, in its bar, once it is up: the
+  /// first "Close" in the tree is the receipt's, underneath, and when the
+  /// preview was late the tap closed the receipt.
   @MainActor func testSharePreviewCancel() {
     let app = launch("season-live", "receipt")
     XCTAssertTrue(mark(app, "receipt").waitForExistence(timeout: 30))
@@ -304,11 +309,13 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertTrue(share.waitForExistence(timeout: 10))
     share.tap()
     let send = app.buttons["round.share.send"]
-    XCTAssertTrue(send.waitForExistence(timeout: 10))
+    XCTAssertTrue(send.waitForExistence(timeout: 10), "the preview opens")
+    let close = app.navigationBars["Share round"].buttons.matching(NSPredicate(format: "label ==[c] %@", "close")).firstMatch
+    XCTAssertTrue(close.waitForExistence(timeout: 5), "the preview's own Close, in its bar")
     attach(app, "flow__share-preview")
-    closeButton(app).tap()
+    close.tap()
     XCTAssertTrue(send.waitForNonExistence(timeout: 10))
-    XCTAssertTrue(mark(app, "receipt").exists)
+    XCTAssertTrue(mark(app, "receipt").exists, "and the receipt stays")
   }
 
   /// The Album's read fails once, F16's failed state says so with Try again,
