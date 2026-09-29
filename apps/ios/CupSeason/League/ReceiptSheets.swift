@@ -32,8 +32,15 @@ struct SquadReceiptSheet: View {
         // The Book owns eligibility, caps and adjustments. Individual totals
         // include pre-seat rounds and must never be summed into a squad receipt.
         CSLeaf(padding: CSTokens.Space.s3) {
-          RoomMathRow(k: "Rounds that count", v: String(squad.entries.filter(\.isRound).reduce(0) { $0 + $1.contribution }))
-          ForEach(squad.entries.filter { !$0.isRound }) { entry in
+          // W7-031 · the points those rounds are worth, not a count of rounds
+          // ("Rounds that count" is the counting-cap dial's name); and with an
+          // empty ledger and nothing left over, the second term is on the sheet
+          // at 0, so "Total" never just repeats the first row (C's words, §16)
+          let fromRounds = squad.entries.filter(\.isRound).reduce(0) { $0 + $1.contribution }
+          let ledger = squad.entries.filter { !$0.isRound }
+          RoomMathRow(k: "Points from rounds that count", v: String(fromRounds))
+          if ledger.isEmpty && fromRounds == squad.points { RoomMathRow(k: "Bonuses & penalties", v: "0") }
+          ForEach(ledger) { entry in
             RoomMathRow(k: entry.reason, v: (entry.contribution > 0 ? "+" : "") + String(entry.contribution))
           }
           RoomMathRow(k: "Total", v: String(squad.points), total: true)
