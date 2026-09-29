@@ -62,10 +62,13 @@
   /* the product's focus ring: 2px act, 2px off the control (critique B) */
   a:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:4px;}
   .mast{display:flex; align-items:center; gap:var(--s3); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule); margin:0 0 var(--s5);}
-  .mast .home{display:inline-flex; align-items:center; gap:var(--s3); min-height:44px; color:var(--ink); text-decoration:none;}
+  .mast .home{display:inline-flex; align-items:center; gap:var(--s2); min-height:44px; color:var(--ink); text-decoration:none;}
   .mast .home:hover{color:var(--ink);}
-  .mast svg{width:48px; height:28px; flex:none; display:block;}
-  .mast .name{font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:var(--caps); text-transform:uppercase;}
+  /* TEN / W6 · ONE LOCKUP (D358): index.html's `.cs-lockup` — the phone masthead's own
+     geometry, the pennant in an s5 × s4 box, s2, the name in the `name` role (board
+     600, 17, caps). These pages carry no shared stylesheet, so this is its inline twin. */
+  .mast svg{width:var(--s5); height:var(--s4); flex:none; display:block;}
+  .mast .name{font-family:var(--board); font-weight:600; font-size:17px; line-height:1.16; letter-spacing:var(--caps); text-transform:uppercase; overflow-wrap:anywhere;}
   .mast .where{margin-left:auto; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); text-align:right;}
   h1{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.01em; margin:0 0 var(--s3); text-wrap:balance;}
   .sum{color:var(--mut); margin:0 0 var(--s5); text-wrap:pretty;}

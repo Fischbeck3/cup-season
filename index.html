@@ -378,16 +378,23 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
     padding:32px 20px 20px;
   }
 }
-.brand{display:flex; align-items:center; gap:12px; padding:0 0 32px;}
-.brand .mk{width:20px; height:20px; flex:none; color:var(--ink); display:block;}
-.brand .mk svg{width:20px; height:20px; display:block;}
-/* D339 · the pennant is wider than it is tall; the sidebar's mark box follows it */
-.brand .mk{width:28px; height:16px;} .brand .mk svg.cs-mark{width:28px; height:16px;}
-html[data-theme="light"] .brand .mk{color:var(--ink);}
-.brand b{
-  font-family:var(--board); font-size:15px; font-weight:700; line-height:1.16;
-  text-transform:uppercase; letter-spacing:calc(var(--agate) * 1em); color:var(--ink);
-}
+.brand{display:flex; align-items:center; padding:0 0 32px;}
+/* ═══ D358 · THE LOCKUP — one mark and one name wherever identity signs ═══
+   The wordmark was set four ways (craft C, category T, owner C; critique-B):
+   serif caps on the Door, sans title case in the phone header, board caps at
+   agate tracking in the sidebar, and mono or board caps on the public pages.
+   This is the one lockup, and it is the phone's own: `CSMasthead.wordmark`
+   (Chrome.swift) draws `CSBrandMark` in an s5 × s4 box, s2, then "Cup Season"
+   in the `name` role — the share card's cut (the pennant and the condensed
+   caps, `csArtifactSignature`) in the app's type roles. The header, the
+   sidebar, the public pages and get/support/legal (their own inline copy of
+   the same rule) all draw it. The Door keeps its serif name for now: the
+   owner's 2026-09-14 board sets the lockup in a serif, which is a brand call
+   (root, 2026-09-28), so it waits for the owner memo. Nothing under brand/
+   changes. The mark takes `ink` on both grounds (D358's two variations). */
+.cs-lockup{display:inline-flex; align-items:center; gap:var(--s2); min-width:0; color:var(--ink);}
+.cs-lockup .cs-mark{width:var(--s5); height:var(--s4); flex:none; display:block;}
+.cs-lockup .cs-name{color:var(--ink); overflow-wrap:anywhere;}   /* the name wraps whole at enlarged text, never an ellipsis (§12.3) */
 .navitem{
   display:block; width:100%; text-align:left;
   background:none; border:0; cursor:pointer;
@@ -3347,12 +3354,10 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 /* D339 · the seared wordmark, the fuse and the Forge are retired from the
    door (the rules below this comment went with them). */
 
-/* the header mark: ember on charcoal, ink on light (the mark-light rule) */
 /* THE MARK IS CREAM ON FESCUE AND DARK GREEN ON WARM PAPER — the owner's
    2026-09-14 board, both variations, and `ink` already holds exactly those two
-   values. It was ember on both grounds, which the board does not show anywhere. */
-.hdrmark{color:var(--ink);}
-html[data-theme="light"] .hdrmark{color:var(--ink);}
+   values. It was ember on both grounds, which the board does not show anywhere.
+   The header's mark is `.cs-lockup`'s now (TEN / W6), which paints it `ink`. */
 /* ignition (D76): the ember floor-glow — a low radiance warming in from the
    bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
    rests it ON), it sits under all content and never takes input. Nothing
@@ -4876,7 +4881,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 #shareView.sv { position:fixed; inset:0; z-index:99999; overflow:auto; background:var(--bg0); color:var(--ink); -webkit-font-smoothing:antialiased; text-align:left; }
 .sv .sv-page { max-width:600px; margin:0 auto; padding:var(--s5) var(--gutter) var(--s6); }
 .sv .sv-signature { display:flex; gap:var(--s3); align-items:center; padding-bottom:var(--s4); border-bottom:var(--hair) solid var(--rule); }
-.sv .sv-signature svg { width:64px; height:37px; flex-shrink:0; }
+/* TEN / W6 · the signature is `.cs-lockup` (one lockup with the header and the sidebar), so its mark is 32×20, not 64×37 */
 .sv .sv-signature .sv-kind { margin-left:auto; text-align:right; color:var(--mut); }
 .sv #svCard { display:grid; grid-template-columns:minmax(0,1fr); grid-template-areas:"head" "photo" "facts" "second" "foot"; align-content:start; margin-top:var(--s5); }
 .sv .sv-head { grid-area:head; min-width:0; }
@@ -5304,10 +5309,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          - one mark, everywhere (D358; it was the Tracer until 2026-09-14).
          #brandSeason setters are guarded. -->
     <div class="brand">
-      <span class="mk" aria-hidden="true">
-        <svg class="cs-mark" viewBox="0 0 1000 570"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
+      <span class="cs-lockup">
+        <svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
+        <b class="cs-name">Cup Season</b>
       </span>
-      <b>Cup Season</b>
     </div>
     <!-- D222 / R-C (revised), amended by D280 · THE DESK'S OWN NAV. The five
          destinations, in `agate` with no icons — the icon each carried came
@@ -5403,17 +5408,18 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div id="lgRow"><h1 id="leagueName">The Sunday Cup</h1><svg id="lgChev" viewBox="0 0 24 24" style="display:none"><path d="M6 9.5l6 6 6-6"/></svg></div>
           <div class="sub" id="phaseSub">Wk 18 / 36</div>
         </div>
-        <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; padding:6px 0;">
+        <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; background:none; border:0; cursor:pointer; padding:6px 0; min-height:44px;">
           <!-- D339 · WEB HALF (I-1) · the pennant, the same generated mark the
-               door and the sidebar carry. D358 closed the icon-tile question
-               the same way, so the icons, the favicon and the link card now
-               carry it too — one mark on every surface. Ember on the charcoal
-               theme, ink on light (mark-light rule): currentColor, set by the
-               .hdrmark rules below the theme tokens. -->
-          <svg class="hdrmark cs-mark" viewBox="0 0 1000 570" style="width:30px; height:17px; flex:none" aria-hidden="true">
+               sidebar and the public pages carry (D358: one mark on every
+               surface). TEN / W6 · and one LOCKUP: the header set the name in
+               sans title case at 15px while the sidebar set board caps, so it
+               wears `.cs-lockup` now — the phone masthead's own geometry. -->
+          <span class="cs-lockup">
+            <svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true">
             <g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g>
-          </svg>
-          <b style="font-size:15px; color:var(--ink); letter-spacing:.01em">Cup Season</b>
+            </svg>
+            <b class="cs-name">Cup Season</b>
+          </span>
         </button>
       </div>
     </header>
@@ -34754,9 +34760,9 @@ async function renderShareView(tok, _testInfo){
   const wrap = document.createElement('div');
   wrap.id = 'shareView';
   wrap.className = 'sv';
-  const MARK = `<svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>`;
+  const MARK = `<svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>`;
   wrap.innerHTML = `<div class="sv-page">
-    <header class="sv-signature">${MARK}<span class="cs-name">Cup Season</span><span class="sv-kind cs-agate"></span></header>
+    <header class="sv-signature"><span class="cs-lockup">${MARK}<span class="cs-name">Cup Season</span></span><span class="sv-kind cs-agate"></span></header>
     <div id="svCard"><p class="sv-wait cs-body-s">Opening the card…</p></div>
   </div>`;
   document.body.appendChild(wrap);
