@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -186,6 +186,8 @@ const SEASON = [
     expect: { view: 'view-hub', selectors: { '#standings': 'visible', '#indTable': 'visible' } },
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
+      /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
+      tertiaryDoor('#seasonBookDoor'),
       async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows'),
       /* TEN / W6 · AW2-06 + OB-05: every label on the season page is agate and
          every phrase agate or body — mono keeps the figures (§1.4). The page
@@ -551,6 +553,8 @@ const COMPETE = [
        column (#cmpMoments) — beside the seasons on the desk, after them on
        the phone */
     check: all(has('#cmpList [data-cband]', '137[\\s\\S]*Fixture Wrens · 2nd[\\s\\S]*34 back from Fixture Javelinas\\.', 'the band (137 points, Fixture Wrens 2nd, 34 back)'),
+      /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
+      tertiaryDoor('#cmpBookDoor'),
       has('#cmpList', 'South Wash Weekday \\(fixture\\)', 'the second season'),
       has('#cmpMoments', 'The North Grove Ryder \\(fixture\\)', 'the live Ryder in the moments'),
       has('#cmpFinished', 'The North Grove Ryder \\(fixture\\)', 'the finished Ryder on the shelf')) },

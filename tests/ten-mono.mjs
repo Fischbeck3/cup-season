@@ -426,3 +426,20 @@ export const ariaWellFormed = (root) => async (page) => page.evaluate((root) => 
   for (const el of host.querySelectorAll('p, span, div')) if (!el.getAttribute('role') && (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby'))) bad.push(`${path(el)} is named with no role`)
   return bad.length ? 'the markup says one thing to a screen reader and draws another: ' + bad.slice(0, 5).join('; ') : true
 }, root)
+
+/* TEN / W8 · W7-028 [B2-season-24] (E3, D's second reader) · UI_SYSTEM §7.1 and §16.4: a door in content is marked by a 2px mut rule under its label
+ * (never the row's 1px hairline, which is a divider and reads 2.3:1 to 2.7:1) and is a 44 target. `tertiaryDoor(sel)` fails the capture when a drawn
+ * element the selector names has no underline, an underline that is not 2px, an underline that is not the mut colour, or a box under 44px tall. */
+export const tertiaryDoor = (sel) => async (page) => page.evaluate((sel) => {
+  const els = [...document.querySelectorAll(sel)].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+  if (!els.length) return `${sel} is not drawn`
+  const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+  for (const el of els) {
+    const cs = getComputedStyle(el), label = JSON.stringify((el.textContent || '').trim().slice(0, 24))
+    if (!/underline/.test(cs.textDecorationLine)) return `${sel} ${label} has no underline (its affordance is the row's hairline)`
+    if (parseFloat(cs.textDecorationThickness) !== 2) return `${sel} ${label} is underlined ${cs.textDecorationThickness}, not 2px`
+    if (cs.textDecorationColor !== mut) return `${sel} ${label} is underlined ${cs.textDecorationColor}, not mut (${mut})`
+    if (el.getBoundingClientRect().height < 43.5) return `${sel} ${label} is ${Math.round(el.getBoundingClientRect().height)}px tall, not 44`
+  }
+  return true
+}, sel)

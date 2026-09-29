@@ -719,7 +719,10 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .sb-terrain .cs-topohead{opacity:1; width:100%; height:auto; top:0; left:0; right:auto; transform:none; z-index:0; color:inherit;}
 .sb-terrain .cs-topohead .t-sur{opacity:1; stroke-width:.5;}
 .sb-terrain .cs-topohead .t-edge{opacity:1; stroke-width:1;}
-.sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;}
+.sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;
+  /* W7-028 · the door lost its typed arrow and kept only the row's hairline, which is a divider, never the underline that is the affordance (§7.1; 2.3:1 to 2.7:1 against §16.4's 3:1).
+     The label takes the in-content tertiary's mark: a 2px mut rule under it; the row is 44 tall already */
+  text-decoration:underline; text-decoration-thickness:2px; text-decoration-color:var(--mut); text-underline-offset:var(--s1);}
 .sb-door[hidden]{display:none;}
 /* W5 · the Book is as tall as what it holds (a two-line "no standing yet"
    or an error sat in a 90vh frame, ~70% empty) and never taller than 90vh.
