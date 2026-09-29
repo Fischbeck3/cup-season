@@ -246,42 +246,87 @@ async function fillCard(page, { course = 'Saguaro Flats Municipal (fixture) · B
   await page.locator('#inB9').press('Tab').catch(() => {})
   await page.waitForTimeout(400)
 }
+/* TEN / W6 · noCourse, read the way noRating is: blocked on the course, no
+   preview, focus on the course field (marked and described), the ruling's
+   words under it and on screen */
+const NO_COURSE = 'Add the course you played \u2014 its tee sets the rating and slope.'
+const courseBlocked = async (page) => page.evaluate((words) => {
+  if (state.postBlocked !== 'course') return 'the card is not blocked on its course: ' + state.postBlocked
+  if (document.getElementById('calcPts').textContent.trim() !== '\u2013') return 'a card with no course previewed points'
+  const a = document.activeElement
+  if (!a || a.id !== 'inCourse') return 'focus is not on the course field: ' + (a && (a.id || a.tagName))
+  if (a.offsetParent === null) return 'the course field is folded away'
+  if (a.getAttribute('aria-invalid') !== 'true' || a.getAttribute('aria-describedby') !== 'postCourseErr') return 'the course field is not marked and described'
+  const e = document.getElementById('postCourseErr')
+  if (e.textContent !== words) return 'the words are not the ruling\u2019s: ' + JSON.stringify(e.textContent)
+  const w = e.getBoundingClientRect()
+  return w.top >= 0 && w.bottom <= innerHeight ? true : 'the words are off screen from the field they name'
+}, NO_COURSE)
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
     drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } } },
-  /* TEN / W6 · critique A2 (P1): a first round's gross, then Add my round. The
-     guidance named fields inside the shut #postCardFold, focus went to a
-     hidden field and the words left on a 2.4s toast. The fold opens, the
-     field it names takes focus (marked), and the words stand right under it
-     (#postRateErr, which describes the field). */
-  { family: 'composer', id: 'first-round-blocked', variant: 'brand_new', title: 'Composer · a first round’s gross and Add my round, with no course yet (the guidance opens the fold)',
+  /* TEN / W6 · critique A2 (P1), then root's noCourse ruling (2026-09-29): a
+     first round's gross, then Add my round, with no course yet. The guidance
+     never points at a folded field and never leaves on a toast: the fold
+     opens, the course field takes focus (marked), and the ruling's sentence
+     stands right under it (#postCourseErr, which describes the field). The
+     order is noCard → noCourse → noRating, as PostCalc.Blocked has it. */
+  { family: 'composer', id: 'first-round-blocked', variant: 'brand_new', title: 'Composer · a first round’s gross and Add my round, with no course yet (the fold opens on the course)',
     drive: async (page) => {
       await toComposer(page)
       await page.locator('#inGross').fill('88')
       await page.waitForTimeout(300)
       await click(page, '#postBtn')
-      await until(page, () => { const e = document.getElementById('postRateErr'); return !!e && !e.hidden }, null, 6000)
+      await until(page, () => { const e = document.getElementById('postCourseErr'); return !!e && !e.hidden }, null, 6000)
       await page.waitForTimeout(300)
     },
-    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postRateErr': 'text:rating and slope' } },
+    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postCourseErr': 'text:^Add the course you played — its tee sets the rating and slope\\.$', '#postRateErr': 'hidden' } },
+    check: courseBlocked },
+  /* the same card on an empty MEMBER composer: no course picked, none typed */
+  { family: 'composer', id: 'member-no-course', variant: 'member', title: 'Composer · a member’s gross and Add my round, with no course (noCourse)',
+    drive: async (page) => {
+      await toComposer(page)
+      await page.locator('#inGross').fill('84')
+      await page.waitForTimeout(300)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postCourseErr'); return !!e && !e.hidden }, null, 6000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postCourseErr': 'text:^Add the course you played — its tee sets the rating and slope\\.$' } },
+    check: courseBlocked },
+  /* a tee picked from the course search: the course, the rating and the slope
+     arrive together, so nothing blocks and the preview scores the card */
+  { family: 'composer', id: 'tee-picked', variant: 'member', title: 'Composer · a gross and a tee picked from the course search (no block)',
+    drive: async (page) => {
+      await toComposer(page)
+      await page.locator('#inGross').fill('84')
+      await page.evaluate(() => { if (typeof togglePostFold === 'function') togglePostFold(true) })
+      await page.locator('#inCourse').click()
+      await page.locator('#inCourse').fill('Saguaro')
+      await until(page, () => [...document.querySelectorAll('.coursedd [data-ci]')].some((b) => b.textContent.includes('Saguaro Flats')), null, 10000)
+      await page.locator('.coursedd [data-ci]', { hasText: 'Saguaro Flats' }).first().click()
+      await until(page, () => document.querySelectorAll('.coursedd [data-ti]').length > 0)
+      await page.locator('.coursedd [data-ti]', { hasText: 'Blue' }).first().click()
+      await until(page, () => document.getElementById('inRating').value !== '' && document.getElementById('inSlope').value !== '')
+      await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postCourseErr': 'hidden' } },
     check: async (page) => page.evaluate(() => {
-      const a = document.activeElement
-      if (!a || !['inRating', 'inSlope'].includes(a.id)) return 'focus is not on the field the guidance names: ' + (a && (a.id || a.tagName))
-      if (a.offsetParent === null) return 'the focused field is folded away'
-      if (a.getAttribute('aria-invalid') !== 'true' || a.getAttribute('aria-describedby') !== 'postRateErr') return 'the named field is not marked and described'
-      /* the words stand where the eye is: on screen with the focused field */
-      const w = document.getElementById('postRateErr').getBoundingClientRect()
-      return w.top >= 0 && w.bottom <= innerHeight ? true : 'the words are off screen from the field they name'
+      const pts = document.getElementById('calcPts').textContent.trim()
+      return state.postBlocked === null && pts !== '–' && pts !== '' ? true : 'a picked tee still blocks the card: ' + JSON.stringify({ blocked: state.postBlocked, pts })
     }) },
   /* TEN / W6 · root's ruling (the phone's IOS-030 guard): a hand-typed course
      with the rating in and the slope EMPTY previews nothing — it previewed
      points at a standard 113 the record never stores — and Post marks the
      slope, the field the words name */
-  { family: 'composer', id: 'rating-no-slope', variant: 'brand_new', title: 'Composer · a hand-typed course with the rating in and the slope empty (no preview; Post marks the slope)',
+  { family: 'composer', id: 'rating-no-slope', variant: 'brand_new', title: 'Composer · a hand-typed course with the rating in and the slope empty (noRating: no preview; Post marks the slope)',
     drive: async (page) => {
       await toComposer(page)
       await page.locator('#inGross').fill('88')
       await page.evaluate(() => { if (typeof togglePostFold === 'function') togglePostFold(true) })
+      /* a course the catalogue lacks, typed by hand: past noCourse to noRating */
+      await page.locator('#inCourse').fill('Fixture Muni (typed)')
+      await page.keyboard.press('Escape').catch(() => {})
       await page.locator('#inRating').fill('70.1')
       await page.waitForTimeout(300)
     },

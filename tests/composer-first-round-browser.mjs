@@ -60,8 +60,11 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
   const toggled = await page.evaluate(() => ({ exp: document.getElementById('postBandsDoor').getAttribute('aria-expanded'), hidden: document.getElementById('postBandsCard').hidden, focus: document.activeElement?.id, rows: document.querySelectorAll('#postBandsCard .bands tr').length }))
   const openedFirst = who !== 'no-league' && width >= 960   /* W1: open by default only for a live season on the desk */
   check(`${label}: Enter toggles the bands and focus stays on the control`, toggled.exp === (openedFirst ? 'false' : 'true') && toggled.hidden === openedFirst && toggled.focus === 'postBandsDoor' && toggled.rows === 5, toggled)
-  /* the same round scores the same either way */
+  /* the same round scores the same either way. TEN / W6 · root's noCourse
+     ruling (2026-09-29): a card with no course cannot be scored, so a TYPED
+     round names its course as well as its rating and slope */
   const scored = await page.evaluate(() => {
+    document.getElementById('inCourse').value = 'Fixture Links (typed)'
     document.getElementById('inRating').value = '71.2'; document.getElementById('inSlope').value = '131'
     const g = document.getElementById('inGross'); if (g) { g.value = '88'; g.dispatchEvent(new Event('input', { bubbles: true })) }
     recalc()
@@ -77,6 +80,7 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
     const edge = await page.evaluate(() => {
       const keep = { ix: state.myIndex, al: state.allowance }
       state.myIndex = 14.2; state.allowance = 95
+      document.getElementById('inCourse').value = 'Fixture Links (typed)'
       document.getElementById('inRating').value = '68.9'; document.getElementById('inSlope').value = '118'
       const g = document.getElementById('inGross'); g.value = '82'; g.dispatchEvent(new Event('input', { bubbles: true }))
       recalc()

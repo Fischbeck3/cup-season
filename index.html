@@ -6514,6 +6514,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                   <label class="f" for="inCourse">Course & tees</label>
                   <input class="f" id="inCourse" placeholder="Search for the course you played" autocomplete="off" style="font-family:var(--sans)">
                   <p class="fine" id="inCourseHint" style="display:none;padding:2px 0 0"></p>
+                  <!-- TEN / W6 · noCourse (root's ruling on A2): the words stand under the field they name -->
+                  <p class="posterr" id="postCourseErr" role="alert" hidden></p>
                   <div id="courseChips" style="margin-top:8px"></div>
                 </div>
               </div>
@@ -12806,6 +12808,19 @@ function recalc(){
      no tee picked previewed "-75.8 vs your index · 5 pts" and Post stayed
      live. A course with no rating cannot be scored; say so instead of
      inventing a differential from zero. */
+  /* TEN / W6 · root's ruling on critique A2 (2026-09-29): a card with no
+     course, picked or typed, cannot be scored. PostCalc.Blocked.noCourse is the
+     phone's twin, and it is checked BEFORE the rating: noCard → noCourse →
+     noRating. The preview promises nothing, and Post names the course field. */
+  if(entry && !($('#inCourse')?.value || '').trim()){
+    $('#calcPts').textContent='–';
+    $('#calcMsg').textContent='Add the course you played \u2014 its tee sets the rating and slope.';
+    $('#calcGross').textContent=String(Math.round(entry.gross) || '–');
+    $('#calcVs').textContent='—';
+    const snc=$('#calcSeason'); if(snc) snc.textContent='';
+    state.postBlocked='course';
+    state.lastPost=null; return;
+  }
   if(entry && (!(rating>0) || !(slope>0))){
     $('#calcPts').textContent='–';
     $('#calcMsg').textContent='Pick a tee — or type the rating and slope — to see the points.';
@@ -12900,6 +12915,9 @@ function recalc(){
 /* W1 · the golfer answering a refused post is the golfer changing the card */
 ['inRating','inSlope','inF9','inB9','inGross','inCourse','inDate'].forEach(id=>$('#'+id)?.addEventListener('input',()=>csPostError(null)));
 $('#inCourse')?.addEventListener('input', renderInheritLine);
+/* TEN / W6 · noCourse: the course is part of what can be scored now, so naming
+   it (or clearing it) re-reads the card the way a rating does */
+$('#inCourse')?.addEventListener('input', recalc);
 $('#inDate')?.addEventListener('input', renderInheritLine);
 $('#postInherit')?.addEventListener('click', ()=>togglePostFold());
 /* D72: a hand-typed rating is assumed to be an 18-hole rating (recalc halves it
@@ -13203,8 +13221,20 @@ function csPostRefused(msg){
 }
 $('#postBtn').addEventListener('click', async ()=>{
   csPostError(null);
-  { const h=$('#postRateErr'); if(h && !h.hidden){ h.hidden=true; h.textContent=''; } }
+  ['#postRateErr','#postCourseErr'].forEach(id=>{ const h=$(id); if(h && !h.hidden){ h.hidden=true; h.textContent=''; } });
   if(!state.lastPost){
+    /* TEN / W6 · noCourse, before noRating: the fold opens, the course field
+       takes focus and is marked, and the sentence stands under it
+       (#postCourseErr, an alert that describes the field). No toast. */
+    if(state.postBlocked==='course'){
+      togglePostFold(true);
+      const cEl=$('#inCourse'), said=$('#postCourseErr');
+      if(said){ said.textContent='Add the course you played \u2014 its tee sets the rating and slope.'; said.hidden=false; }
+      cEl?.setAttribute('aria-invalid','true'); cEl?.classList.add('bad'); cEl?.setAttribute('aria-describedby','postCourseErr');
+      cEl?.scrollIntoView?.({block:'center'}); cEl?.focus?.();
+      window.qaEvent?.('post_blocked', { reason: 'no_course' });
+      return;
+    }
     /* D234 · say which field is missing, and mark it. A hand-typed course has
        no tee to pick, so the rating and slope are the golfer's to type — and
        they are printed on the back of the scorecard, which is the one place
@@ -13231,6 +13261,7 @@ $('#postBtn').addEventListener('click', async ()=>{
   }
   $('#inRating')?.removeAttribute('aria-invalid'); $('#inRating')?.classList.remove('bad'); $('#inRating')?.removeAttribute('aria-describedby');
   $('#inSlope')?.removeAttribute('aria-invalid'); $('#inSlope')?.classList.remove('bad'); $('#inSlope')?.removeAttribute('aria-describedby');
+  $('#inCourse')?.removeAttribute('aria-invalid'); $('#inCourse')?.classList.remove('bad'); $('#inCourse')?.removeAttribute('aria-describedby');
   /* Q-21 · never let the round leave without a date. The server's NOT NULL was
      the only thing catching this, and its message ("please try again") sent the
      golfer round a loop that could not succeed. Say it here, mark the field. */
@@ -13846,6 +13877,10 @@ function putTheCardDown({ restamp = false } = {}){
      plan it has nothing to do with. */
   state.post.plan = null;
   state.lastPost=null; state.postBlocked=null;
+  /* TEN / W6 · and the blocked guidance goes with the card: the words and the
+     marks on the course, rating and slope fields */
+  ['#postRateErr','#postCourseErr'].forEach(id=>{ const h=$(id); if(h){ h.hidden=true; h.textContent=''; } });
+  ['#inCourse','#inRating','#inSlope'].forEach(id=>{ const f=$(id); if(f){ f.removeAttribute('aria-invalid'); f.classList.remove('bad'); f.removeAttribute('aria-describedby'); } });
   if(restamp){ const d=$('#inDate'); if(d) d.value=''; stampPostDate(); }
   /* the stamp is refreshed above, so a save fired by the clearing itself finds
      the machine's date, not the posted one, and writes nothing */
