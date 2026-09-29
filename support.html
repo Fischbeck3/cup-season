@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0F1A15">
 <title>Cup Season — Support</title>
 <meta name="description" content="How to get help with Cup Season: a sign-in code that did not arrive, a link that did not open, and how to delete your account.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,6 +17,10 @@
   var t = 'dark';
   try { var saved = localStorage.getItem('cs_theme'); if (['light', 'dark', 'auto'].includes(saved)) t = saved; } catch (e) {}
   document.documentElement.dataset.theme = t;
+  /* TEN / W6 · AW2-17 · the browser's own chrome takes the page's --bg0, as the
+     app's does (index.html applyTheme), so there is no seam over the page */
+  var light = t === 'light' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+  var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = light ? '#F4F1E9' : '#0F1A15';
 </script>
 <style>
   /* the palette is packages/tokens/tokens.json (D270 over D103a over D76), the

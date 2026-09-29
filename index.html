@@ -51,8 +51,10 @@
      SPIRIT: packages/tokens/tokens.json is the source and preflight check 10
      compares the two byte for byte, so a colour changed here and not there
      cannot ship. Two printings of one system: fescue at dusk, and warm
-     almanac stock. Two metals and only two — ember is LIVE and the one
-     primary action, champagne gold is EARNED and nothing else. There is no
+     almanac stock. Two metals and only two — ember is COMPETITION (upcoming,
+     live, finished) and the identity hairline, and champagne gold is EARNED;
+     neither is anything else (D359). The ordinary action is its own token,
+     `act`, and never a metal (D359, over D270's ember primary). There is no
      border token, no heat axis, no third metal, no glow and no gradient:
      BRIEF §4 names the last two as do-nots and D270 deletes them. */
   /* ground — Surfaces, darkest to raised. D270: bg0 is 49% further from
@@ -1636,7 +1638,6 @@ html[data-theme="light"] #inDate{color-scheme:light;}
 .btn:hover{filter:brightness(1.06);}
 .btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 .btn.dark{background:var(--bg2); color:var(--ink); border:1px solid var(--rule);}
-.btn.gold{background:var(--gold); color:#171204;}
 .btn.apple{background:#fff; color:#0A0A0A;}
 .btn + .btn{margin-top:9px;}
 
@@ -3672,7 +3673,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
      caps, never mono (§1.4) */
   font-family:var(--board); font-size:11px; font-weight:600;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
-  color:var(--gold); background:rgba(233,190,98,.08); border:1px solid rgba(233,190,98,.25);
+  color:var(--gold); background:color-mix(in srgb, var(--gold) 8%, transparent); border:1px solid color-mix(in srgb, var(--gold) 25%, transparent);   /* AW2-17 · token mixes, not a pre-token gold */
   border-radius:6px; padding:5px 9px; margin-bottom:10px;
 }
 /* TEN / W6 · TP-11 · the draft's lock line is a SENTENCE ("You are on the
@@ -3685,8 +3686,8 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   border:1px solid var(--rule); border-radius:var(--p); padding:6px 12px; cursor:pointer; }
 .fbcat.on{ color:var(--ink); border-color:var(--act); background:var(--bg2); }
 .ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--board); font-size:11px; font-weight:600;   /* TEN / W6 · AW2-06: a tag, agateS */
-  letter-spacing:calc(var(--agate-s) * 1em); color:var(--gold); background:rgba(216,178,90,.12);  /* founder = earned → champagne */
-  border:1px solid rgba(216,178,90,.34); border-radius:var(--p); padding:1px 6px; vertical-align:middle; white-space:nowrap; }
+  letter-spacing:calc(var(--agate-s) * 1em); color:var(--gold); background:color-mix(in srgb, var(--gold) 12%, transparent);  /* founder = earned → champagne */
+  border:1px solid color-mix(in srgb, var(--gold) 34%, transparent); border-radius:var(--p); padding:1px 6px; vertical-align:middle; white-space:nowrap; }
 #errbar{
   position:fixed; left:0; right:0; bottom:0; z-index:999; display:none;
   font-family:var(--mono); font-size:12px; line-height:1.6; letter-spacing:.02em;
@@ -4652,19 +4653,6 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 @keyframes sfFlip{from{transform:translateY(0)}to{transform:translateY(-75%)}}
 /* reduced motion: rest on the real glyph — settled = truth, instantly */
 @media(prefers-reduced-motion:reduce){ .sfc > i{animation:none; transform:translateY(-75%);} }
-/* D76 — the /?share= round card: the gross flips in at hero scale. Entry-board
-   pattern, not .sfc's: base state SETTLED (translateY(-75%)) + `both` fill, so
-   with animations disabled the real digits rest on screen. Sized in em — the
-   share template sets the font. */
-.svfw{display:inline-flex; gap:5px; justify-content:center; vertical-align:baseline;}
-.svfc{position:relative; overflow:hidden; flex:none; width:.72em; height:1.18em;
-  background:linear-gradient(180deg,#1B1E22,#101214); border:1px solid rgba(255,255,255,.08);
-  border-radius:8px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 2px 6px rgba(0,0,0,.35);}
-.svfc::after{content:""; position:absolute; left:0; right:0; top:50%; height:1px; background:rgba(0,0,0,.45);}
-.svfc > i{display:block; font-style:normal; white-space:pre; text-align:center; line-height:1.18;
-  transform:translateY(-75%); animation:sfFlip .55s steps(3,end) both; animation-delay:var(--d,0s);}
-.svfc > i::before{content:attr(data-d);}
-@media(prefers-reduced-motion:reduce){ .svfc > i{animation:none;} }
 
 /* (the D76 "machined" charcoal gradient that sat here re-painted every dark
    .card/.stat over the base rule's tokens: charcoal boxes with a drop shadow on
@@ -4675,26 +4663,17 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
   .check:hover{border-color:var(--rule); transform:translateY(-1px);}
 }
 
-/* D76: primary actions are flat ember with near-black ink (the hottest thing
-   you can touch); the amber→ember --grad is reserved for the tee, which has a
-   cream glyph and no text to worry about. */
-/* THE ORDINARY PRIMARY ACTION IS GREEN (owner board, 2026-09-14). Ember keeps
-   live and urgent states, the semantic colours keep their meanings and earned
-   gold is untouched — only the everyday control moved. */
-.btn:not(.dark):not(.gold):not(.apple){
-  background:var(--act); color:#0E1B14;
+/* THE ORDINARY PRIMARY ACTION IS `act` (owner board, 2026-09-14; D359): ember is
+   competition, gold is earned, and the everyday control is neither. TEN / W6 ·
+   AW2-17: its type is the token's own — `bg0` on act, which is fescue on the
+   dark ground and cream on the paper one (tokens.json `act`), and inside a dusk
+   room the room's own ground — never a hex typed here. */
+.btn:not(.dark):not(.apple){
+  background:var(--act); color:var(--bg0);
   /* F18 · the coloured blurred drop (0 8px 22px act@22%) is gone: the system has
      no glow (BRIEF §33). The zero-blur top highlight is a printed edge, kept. */
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
 }
-/* F1 (re-run for D76): dark ink on the light-theme ember (#C94E1F) is ~3.0:1 —
-   fails AA. White ink clears 4.5:1. Dark theme's brighter ember (#E8622C)
-   passes at ~5.6:1 with the near-black ink above — untouched. */
-html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#F7F4EB;}
-/* D211: the paper gold moved to #846415 to clear AA as TEXT, and #171204 on it
-   is 3.4:1 — white clears 5.5:1. Dark keeps the near-black ink (9.28:1) it has
-   always had. The phone's twin is CSButton .gold, which paints cs.bg0. */
-html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
 .btn:active, .mini:active{transform:scale(.98);}
 /* D76 sweep: the file's one focus rule that wasn't on --focus. It hardcoded
@@ -4823,16 +4802,16 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    point. Spin is an off-center dimple rotating inside the wrapper. */
 .finish-ball{position:absolute; left:50%; bottom:6px; width:13px; height:13px; margin-left:-6px; opacity:0; pointer-events:none; z-index:1;}
 .finish-ball i{display:block; width:100%; height:100%; position:relative;}
-.finish-ball i::before{content:""; position:absolute; inset:0; border-radius:50%; background:#F4F7F4;
+.finish-ball i::before{content:""; position:absolute; inset:0; border-radius:50%; background:var(--ceremony-ink);   /* AW2-17 · the ceremony tokens */
   box-shadow:0 4px 3px -1px rgba(0,0,0,.5);}   /* contact shadow - the roll stays on the ground */
-.finish-ball i::after{content:""; position:absolute; left:2.5px; top:5.5px; width:3px; height:3px; border-radius:50%; background:#B9C2BB;}
+.finish-ball i::after{content:""; position:absolute; left:2.5px; top:5.5px; width:3px; height:3px; border-radius:50%; background:var(--ceremony-mut);}
 /* the hole is SIBLING layers (never nested - an opacity animation would trap
    the front lip's z-index inside its own stacking context and the ball would
    paint over it): opening z0 < ball z1 < front-lip crescent z2 < ring z3 */
-.finish-cup,.finish-cupfront{position:absolute; left:50%; bottom:-4px; width:22px; height:10px; margin-left:-11px; border-radius:50%; background:#050807; opacity:0; pointer-events:none;}
-.finish-cup{box-shadow:inset 0 2px 4px rgba(0,0,0,.9), 0 0 0 1.5px #1C2620; z-index:0;}
-.finish-cupfront{box-shadow:0 0 0 1.5px #1C2620; clip-path:inset(52% 0 0 0); z-index:2;}
-.finish-cupring{position:absolute; left:50%; bottom:-5px; width:12px; height:12px; margin-left:-6px; border-radius:50%; border:1.5px solid #D8B25A; opacity:0; z-index:3; pointer-events:none;}
+.finish-cup,.finish-cupfront{position:absolute; left:50%; bottom:-4px; width:22px; height:10px; margin-left:-11px; border-radius:50%; background:var(--ceremony); opacity:0; pointer-events:none;}
+.finish-cup{box-shadow:inset 0 2px 4px rgba(0,0,0,.9), 0 0 0 1.5px color-mix(in srgb, var(--ceremony-ink) 10%, var(--ceremony)); z-index:0;}
+.finish-cupfront{box-shadow:0 0 0 1.5px color-mix(in srgb, var(--ceremony-ink) 10%, var(--ceremony)); clip-path:inset(52% 0 0 0); z-index:2;}
+.finish-cupring{position:absolute; left:50%; bottom:-5px; width:12px; height:12px; margin-left:-6px; border-radius:50%; border:1.5px solid var(--ceremony-gold); opacity:0; z-index:3; pointer-events:none;}
 @keyframes csPutt{  /* piecewise-linear friction: equal distance steps take longer and longer */
   0%{opacity:0; transform:translateX(-150px);}
   6%{opacity:1;}
@@ -5155,7 +5134,6 @@ html[data-theme="light"] .room-dusk .stat{
   border-color:var(--rule);
   box-shadow:none;
 }
-html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color:#08120C;}
 
 /* ---- D67's record was four bordered tiles with 26px gold serif numerals
    (`.recgrid` / `.rec` / `.recmoney`). D291 deleted all three: the record
@@ -7942,6 +7920,13 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
    sentence's own size (`.cfrun`). The braces never render, and nothing is
    found by a regex over prose, which would also restyle dates, money and a
    digit inside a course's name. A string with no braces is only escaped. */
+/* TEN / W6 · AW2-17 · a canvas cannot read var(), so the artifacts read the
+   token's VALUE: the share cards paint from the ceremony palette the
+   stylesheet carries (pinned in both printings), never from hexes typed at
+   the call site. csTokA gives a token's colour at an alpha. */
+function csTok(name){ try{ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }catch(_){ return ''; } }
+function csTokA(name, a){ const h = csTok(name).replace('#',''); if(!/^[0-9a-fA-F]{6}$/.test(h)) return 'rgba(0,0,0,'+a+')'; const n = parseInt(h,16); return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'; }
+window.csTok = csTok; window.csTokA = csTokA;
 function csFigRun(marked){ return esc(String(marked ?? '')).replace(/\{([^{}]*)\}/g, '<span class="cfrun">$1</span>'); }
 window.csFigRun = csFigRun;
 /* D-04 (security review 2026-09-25) · a URL inside CSS url('...') inside a
@@ -10882,8 +10867,8 @@ function renderDraft(){
       ? '<span class="dot"></span> You are on the clock: make your pick'
       : `<span class="dot"></span> ${esc(captains[onClock])} is picking: only their account can select`;
     lock.style.color = mine ? 'var(--pos)' : 'var(--gold)';
-    lock.style.borderColor = mine ? 'rgba(78,197,132,.3)' : 'rgba(233,190,98,.25)';
-    lock.style.background = mine ? 'rgba(78,197,132,.06)' : 'rgba(233,190,98,.08)';
+    lock.style.borderColor = mine ? 'color-mix(in srgb, var(--pos) 30%, transparent)' : 'color-mix(in srgb, var(--gold) 25%, transparent)';   /* AW2-17 · tokens */
+    lock.style.background = mine ? 'color-mix(in srgb, var(--pos) 6%, transparent)' : 'color-mix(in srgb, var(--gold) 8%, transparent)';
   }
 
   const clock=$('#clock');
@@ -11367,7 +11352,7 @@ function drawRecapCard(d){
   /* WAVE 8 · the `ceremony` ramp, the same eight values the settlement card
      and the phone's `LiveSettlementCard` read (D277). This card carried the
      palette D270 replaced. */
-  const BG='#0A0E0C', PANEL='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D', GOLD='#D8B25A';
+  const BG=csTok('--ceremony'), PANEL=csTok('--ceremony'), INK=csTok('--ceremony-ink'), MUT=csTok('--ceremony-mut'), GOLD=csTok('--ceremony-gold');   /* AW2-17 · the ceremony tokens */
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
@@ -11402,11 +11387,11 @@ function drawRecapCard(d){
   }
   if(!d._img){ x.fillStyle = PANEL; x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill(); }
   /* the frame is a hairline, not gold: gold is for what was won (§2.4) */
-  x.strokeStyle='rgba(241,244,239,.22)'; x.lineWidth=2;
+  x.strokeStyle=csTokA('--ceremony-ink', .22); x.lineWidth=2;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
   /* the marker — identity above everything (living-card rule) */
   const mk=(window.MARKERS||{})[d.marker];
-  x.strokeStyle='rgba(233,190,98,.4)'; x.lineWidth=2;
+  x.strokeStyle=csTokA('--ceremony-gold', .4); x.lineWidth=2;
   x.beginPath(); x.arc(W/2,208,78,0,7); x.stroke();
   if(mk){
     const s=4.6, path=new Path2D(mk.p);
@@ -11479,7 +11464,7 @@ function drawRecapCard(d){
    pattern, and this is where it would have repeated. */
 function drawRoundCardArtifact(d){
   const W=1080, H=1350;
-  const BG='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D', GOLD='#D8B25A';
+  const BG=csTok('--ceremony'), INK=csTok('--ceremony-ink'), MUT=csTok('--ceremony-mut'), GOLD=csTok('--ceremony-gold');   /* AW2-17 · the ceremony tokens */
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const BOARD="'IBM Plex Sans Condensed',system-ui,sans-serif";
@@ -11539,7 +11524,7 @@ function drawRoundCardArtifact(d){
       });
       if(r.tot) cell(r.tot, LEFT+LAB+9*CELL+TOT, base, f, r.v==='score'?INK:MUT, 0, 'right');
       if(ri===0){
-        x.strokeStyle='rgba(241,244,239,.24)'; x.lineWidth=1;
+        x.strokeStyle=csTokA('--ceremony-ink', .24); x.lineWidth=1;
         x.beginPath(); x.moveTo(LEFT, y+ROW+RGAP/2); x.lineTo(LEFT+LAB+9*CELL+TOT, y+ROW+RGAP/2); x.stroke();
       }
     });
@@ -11614,8 +11599,8 @@ function drawSettlementCard(d){
      new one. These are the `ceremony` ramp, which is pinned in both
      printings — the same eight values the phone's `LiveSettlementCard` reads
      from `CSTokens.dark`, and preflight 47 fails if the two drift apart. */
-  const BG='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D',
-        GOLD='#D8B25A', HOT='#E8622C', SLATE='#7F8C95';
+  const BG=csTok('--ceremony'), INK=csTok('--ceremony-ink'), MUT=csTok('--ceremony-mut'),
+        GOLD=csTok('--ceremony-gold'), HOT=csTok('--ceremony-brand'), SLATE=csTok('--ceremony-cool');   /* AW2-17 · the ceremony tokens */
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
@@ -11639,7 +11624,7 @@ function drawSettlementCard(d){
      inside a container (non-negotiable 1), and the card's edge is the object's
      own line rather than a second surface */
   x.fillStyle=BG; x.fillRect(0,0,W,H);
-  x.strokeStyle='rgba(216,178,90,.24)'; x.lineWidth=2;
+  x.strokeStyle=csTokA('--ceremony-gold', .24); x.lineWidth=2;
   x.strokeRect(36,36,W-72,H-72);
 
   const r=d.result||{}, HL=r.holes||null;
@@ -11685,7 +11670,7 @@ function drawSettlementCard(d){
       const cx=L+i*(cw+gap), ch=isClose?hgt+10:hgt, cy=top+(hgt-ch);
       x.globalAlpha = v==null ? .28 : 1;
       if(v==null || v==='h' || v==='c'){
-        x.strokeStyle='rgba(241,244,239,.56)'; x.lineWidth=2;
+        x.strokeStyle=csTokA('--ceremony-ink', .56); x.lineWidth=2;
         x.strokeRect(cx,cy,cw,ch);
       } else {
         x.fillStyle = String(v)===String(HL.hot) ? HOT : SLATE;
@@ -27856,7 +27841,7 @@ function renderMajorRoom(el, E){
 function drawMajorCard(d){
   const W=1080, H=1350;
   /* WAVE 8 · the `ceremony` ramp, as on the settlement and recap cards (D277) */
-  const BG='#0A0E0C', PANEL='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D', GOLD='#D8B25A';
+  const BG=csTok('--ceremony'), PANEL=csTok('--ceremony'), INK=csTok('--ceremony-ink'), MUT=csTok('--ceremony-mut'), GOLD=csTok('--ceremony-gold');   /* AW2-17 · the ceremony tokens */
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
@@ -27869,10 +27854,10 @@ function drawMajorCard(d){
   x.fillStyle=BG; x.fillRect(0,0,W,H);
   x.fillStyle=PANEL;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
-  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
+  x.strokeStyle=csTokA('--ceremony-gold', .35); x.lineWidth=2;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
   const mk=(window.MARKERS||{})[d.marker];
-  x.strokeStyle='rgba(233,190,98,.4)'; x.lineWidth=2;
+  x.strokeStyle=csTokA('--ceremony-gold', .4); x.lineWidth=2;
   x.beginPath(); x.arc(W/2,208,78,0,7); x.stroke();
   if(mk){
     const s=4.6, path=new Path2D(mk.p);

@@ -349,7 +349,13 @@ const COMPOSER = [
       })
     } },
   { family: 'composer', id: 'member', variant: 'member', short: true, title: 'Composer · a league member (the inherit line holds the last course)',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:your index 14\\.2' } } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:your index 14\\.2' } },
+    /* TEN / W6 · AW2-17: the primary's type is the token's own (bg0 on act), never a typed hex */
+    check: async (page) => page.evaluate(() => {
+      const i = document.createElement('i'); i.style.color = 'var(--bg0)'; document.body.appendChild(i); const bg0 = getComputedStyle(i).color; i.remove()
+      const c = getComputedStyle(document.getElementById('postBtn')).color
+      return c === bg0 ? true : `Add my round's type is ${c}, not --bg0 ${bg0}`
+    }) },
   { family: 'composer', id: 'filled', variant: 'member', title: 'Composer · a full card entered, before Post',
     drive: async (page) => { await toComposer(page); await fillCard(page) },
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },

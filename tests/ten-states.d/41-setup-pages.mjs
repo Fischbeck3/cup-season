@@ -241,7 +241,11 @@ const staticPage = (id, url, title, want) => ({
   check: async (page) => page.evaluate((want) => {
     const t = document.body.innerText.replace(/\s+/g, ' ')
     if (!new RegExp(want, 'i').test(t)) return `the page does not read /${want}/: ${JSON.stringify(t.slice(0, 120))}`
-    return document.getElementById('onboard') ? 'the app shell rendered instead of the page' : true
+    if (document.getElementById('onboard')) return 'the app shell rendered instead of the page'
+    /* TEN / W6 · AW2-17: the browser's chrome takes the page's own --bg0, as the app's does */
+    const tc = document.querySelector('meta[name="theme-color"]'), light = document.documentElement.dataset.theme === 'light'
+    if (!tc) return 'the page carries no theme-color'
+    return tc.content.toUpperCase() === (light ? '#F4F1E9' : '#0F1A15') ? true : `theme-color is ${tc.content} on the ${light ? 'light' : 'dark'} printing`
   }, want),
 })
 const STATIC = [

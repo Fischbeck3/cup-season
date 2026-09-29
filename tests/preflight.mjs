@@ -2871,11 +2871,22 @@ const lint = (id, name, hits, note = '') => {
   };
   const card = html.slice(html.indexOf('function drawSettlementCard('), html.indexOf('async function shareSettlementCard('));
   if (!card) problems.push('the web has no drawSettlementCard');
+  /* TEN / W6 · AW2-17: the card reads the ramp's own TOKENS (csTok), which
+     check 10 binds to tokens.json byte for byte — so a constant is right when
+     it names the right ceremony token, or (the old form) types its value */
+  const tokFor = { BG: '--ceremony', INK: '--ceremony-ink', MUT: '--ceremony-mut', GOLD: '--ceremony-gold', HOT: '--ceremony-brand', SLATE: '--ceremony-cool' };
+  const readOf = (src, name) => {
+    const tok = src.match(new RegExp(`${name}\\s*=\\s*csTok\\('(--[a-z0-9-]+)'\\)`));
+    if (tok) return { tok: tok[1] };
+    const m = src.match(new RegExp(`${name}\\s*=\\s*'(#[0-9A-Fa-f]{6})'`));
+    return m ? { hex: m[1] } : null;
+  };
   for (const [name, value] of Object.entries(want)) {
-    const m = card.match(new RegExp(`${name}\\s*=\\s*'(#[0-9A-Fa-f]{6})'`));
-    if (!m) problems.push(`the web settlement card declares no ${name}`);
-    else if (m[1].toUpperCase() !== String(value).toUpperCase()) {
-      problems.push(`the web settlement card's ${name} is ${m[1]}, tokens.json says ${value}`);
+    const got = readOf(card, name);
+    if (!got) problems.push(`the web settlement card declares no ${name}`);
+    else if (got.tok && got.tok !== tokFor[name]) problems.push(`the web settlement card's ${name} reads ${got.tok}, not ${tokFor[name]}`);
+    else if (got.hex && got.hex.toUpperCase() !== String(value).toUpperCase()) {
+      problems.push(`the web settlement card's ${name} is ${got.hex}, tokens.json says ${value}`);
     }
   }
   /* the phone reads the ramp; it must not type a hex of its own */
@@ -2890,11 +2901,13 @@ const lint = (id, name, hits, note = '') => {
 
   /* self-test: the check has to be able to see a card that drifted */
   {
-    const drifted = card.replace(/GOLD\s*=\s*'#[0-9A-Fa-f]{6}'/, "GOLD='#E9BE62'");
-    const m = drifted.match(/GOLD\s*=\s*'(#[0-9A-Fa-f]{6})'/);
-    if (!m || m[1].toUpperCase() === String(want.GOLD).toUpperCase()) {
-      problems.push('self-test failed: the palette probe cannot see a drifted gold');
-    }
+    /* a card that drifted to the wrong token, and one that typed a wrong hex */
+    const driftTok = readOf(card.replace(/GOLD\s*=\s*csTok\('[^']*'\)/, "GOLD=csTok('--gold')"), 'GOLD');
+    const driftHex = readOf("GOLD='#E9BE62'", 'GOLD');
+    if (!driftTok || !(driftTok.tok === '--gold' || (driftTok.hex && driftTok.hex.toUpperCase() !== String(want.GOLD).toUpperCase())))
+      problems.push('self-test failed: the palette probe cannot see a drifted gold token');
+    if (!driftHex || driftHex.hex.toUpperCase() === String(want.GOLD).toUpperCase())
+      problems.push('self-test failed: the palette probe cannot see a drifted gold hex');
   }
 
   problems.length === 0
