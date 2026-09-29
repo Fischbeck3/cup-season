@@ -331,6 +331,24 @@ const SEASON = [
       }),
       stateContrast([{ sel: '#payers .payer:not(.paid) .tick', prop: 'borderTopColor', min: 3, what: 'the unpaid box' }]),
       headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
+  /* TEN / W8 · W7-062 [B2-season-11] · the Pro's 'Cancel this season' is the page's FOOT, beside Leave the season: not a red link in the season's head between it and the
+     week clock. A tertiary link in content (2px mut rule, 44 tall), not neg: the consent sheet it opens is where the act is armed in neg */
+  { family: 'season', id: 'pro-foot', variant: 'pro', fullPage: false, title: 'The season page, as the Pro: the foot (Leave the season, and Cancel this season as a quiet link)',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => { const a = document.getElementById('hhDelete'); return !!a && a.offsetParent !== null })
+      await page.evaluate(() => document.getElementById('hhDanger').scrollIntoView({ block: 'center' })); await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#hhDelete': 'visible' } },
+    check: all(onNorthGrove, tertiaryDoor('#hhDelete'), async (page) => page.evaluate(() => {
+      const dz = document.getElementById('hhDanger'), head = document.getElementById('hubHeader'), clock = document.getElementById('monthClock'), leave = document.getElementById('leaveSeason')
+      if (head.contains(dz)) return "the cancel link is still in the season's head"
+      if (clock && dz.getBoundingClientRect().top < clock.getBoundingClientRect().bottom) return 'the cancel link is above the week clock'
+      if (leave && dz.getBoundingClientRect().top < leave.getBoundingClientRect().top) return 'the cancel link is not at the foot, beside Leave the season'
+      const p = document.createElement('i'); p.style.color = 'var(--neg)'; document.body.appendChild(p); const neg = getComputedStyle(p).color; p.remove()
+      return getComputedStyle(document.getElementById('hhDelete')).color === neg ? 'the cancel link is drawn in neg before the consent sheet arms it' : true
+    })) },
   /* TEN / W6 · DX2 OB2-03 · the Pro's "Cancel this season", opened and NOT
      confirmed: North Grove is under way, so it is the consent flow's sheet,
      and its armed control is §7.1's destructive tier */

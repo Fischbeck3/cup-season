@@ -7201,7 +7201,6 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                league showed no add path at all. This button always works; the
                picker's footer offers the share link. -->
           <span id="hhAddSlot"><button class="mini" id="hhAdd">Add golfers</button></span>
-          <div class="fine" id="hhDanger" style="display:none; flex-basis:100%; padding:0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> <span id="hhDangerNote">(only possible before the first tee)</span></div>
         </div>
 
         <!-- D71: the cancellation consent banner — an open request shows here to
@@ -7462,6 +7461,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              reading column on the desk): it sat between the rules and the
              story, mid-page (the owner's panel). -->
         <div class="league-only" id="leaveSeason" style="grid-column:1; margin-top:var(--s6); border-top:1px solid var(--rule); padding-top:12px; text-align:left"></div>
+        <!-- W7-062 · the Pro's 'Cancel this season' is the page's FOOT, beside Leave the season, not a red link between the season's head and its week clock (the head is
+             for the season; a consequence is not). A tertiary link in content (ink on a 2px mut rule, 44 tall), not inline neg: the sheet it opens arms the act in neg. -->
+        <div class="league-only fine" id="hhDanger" style="display:none; grid-column:1; padding:0; text-align:left"><button type="button" class="lrcasual" id="hhDelete">Cancel &amp; delete this league</button> <span id="hhDangerNote">(only possible before the first tee)</span></div>
         </div><!-- /seasonBody -->
       </section>
 
