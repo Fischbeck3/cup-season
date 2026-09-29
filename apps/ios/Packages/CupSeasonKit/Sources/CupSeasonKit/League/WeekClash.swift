@@ -79,3 +79,21 @@ public enum ClashMath {
     return LeagueDates.dow[calendar.component(.weekday, from: d) - 1]
   }
 }
+
+/// N4-209 (PAR-20) · the words the season page's clash block says, the web's
+/// `renderClash`. A settled week says who took it, or that it was all square,
+/// in words: the panel on the higher side is emphasis, and a result is never
+/// carried by emphasis alone (UI_SYSTEM §16.4). The head's own form is
+/// DEC-COPY's, so this is the head's rider, where "settled" stood.
+public enum ClashCopy {
+  /// *"through Thu"* while the week is open; once settled, *"Blake took the
+  /// week"*, *"You took the week"* or *"All square"*.
+  public static func rider(settled: Bool, winner: String?, winnerIsYou: Bool = false, through day: String) -> String {
+    guard settled else { return "through \(day)" }
+    if winnerIsYou { return "You took the week" }
+    guard let winner, !winner.isEmpty else { return "All square" }
+    return "\(CourseNames.first(winner)) took the week"
+  }
+  /// a side with no round: idle once the week is settled, not yet before
+  public static func noRound(settled: Bool) -> String { settled ? "Idle \u{2014} no round" : "No round yet" }
+}
