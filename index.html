@@ -12748,7 +12748,14 @@ function renderPostHoles(){
 function recalc(){
   if(typeof savePostDraft==='function') savePostDraft();   /* every card change mirrors to the draft */
   const rating=parseFloat($('#inRating').value)||0;
-  const slope=parseFloat($('#inSlope').value)||113;
+  /* TEN / W6 · root's ruling (parity with the phone's IOS-030 guard): an
+     EMPTY slope is a missing one. It read as the standard 113, so a hand-
+     typed course previewed points at 113 and the post then sent NaN, which
+     score_round scored against its own 113 — a figure the golfer was shown
+     and the record never stored (W1: the preview is the stored figure). It
+     falls through Q-22's branch below: no preview, the sentence, and Post
+     marks the slope (a picked tee always fills it). */
+  const slope=parseFloat($('#inSlope').value)||0;
   const {f9,b9}=postInputs();
   const entry=postEntry();
   renderInheritLine();
