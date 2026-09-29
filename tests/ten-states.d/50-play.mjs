@@ -217,9 +217,15 @@ export default [
       await page.evaluate(() => window.scrollTo(0, 0))
       await page.waitForTimeout(300)
     },
-    expect: { view: 'view-play', selectors: { '#matchCard': 'visible', '#matchStatus': 'visible' } },
+    /* AW2-16 · the match state is said once, by the scoreboard hero; the card
+       keeps the terms (who, strokes, stake) and its status line stays hidden */
+    expect: { view: 'view-play', selectors: { '#matchCard': 'visible', '#matchStatus': 'hidden', '#sbHero': 'visible' } },
     check: all(scoredCheck(4), async (page) => { const f = await liveFacts(page); return f.game === 'match' ? true : 'the game is ' + f.game },
-      has('#matchMeta', 'THRU 4', 'the match line')) },
+      has('#matchMeta', 'THRU 4', 'the match line'),
+      async (page) => {
+        const t = await page.evaluate(() => [document.getElementById('sbHero')?.textContent || '', document.getElementById('matchStatus')?.textContent || ''])
+        return t[0] && t[0] === t[1] && /UP|SQUARE|WIN/.test(t[0]) ? true : 'the hero does not carry the match state: ' + JSON.stringify(t)
+      }) },
 
   /* Skins, three golfers, through five */
   { family: 'play', id: 'skins-scoring', variant: 'member', title: 'Live round · Skins, three golfers, $2 a skin, through five',

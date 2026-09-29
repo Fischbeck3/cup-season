@@ -2354,6 +2354,7 @@ body.guestlive #onboard{display:none !important;}
 .gamecard .gk{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
 .gamecard .gs{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); margin-top:6px;}
 .gamecard .gm{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); margin-top:4px; line-height:1.35;}
+.gamecard .gs[hidden] + .gm{margin-top:var(--s2);}   /* AW2-16 · the hero says the state; who and the terms stay two statements */
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
   flex:1; min-width:72px; border:1px solid var(--rule); background:var(--bg2);
@@ -6375,7 +6376,12 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="eyebrow sg-head">Side games</div><p class="cs-agate-s is-phrase eb-gloss sg-head">Tracked live, settled between friends</p>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
-              <div class="gs" id="matchStatus">ALL SQUARE</div>
+              <!-- AW2-16 · one fact, one place (D201): the card shows only for a
+                   match or a Sunningdale, and in both the scoreboard hero IS this
+                   line (D85 — renderScoreboard reads it from here), sticky at every
+                   width and kept on the stuck face. The card says who is playing
+                   and on what terms; the hero says who is winning. -->
+              <div class="gs" id="matchStatus" hidden>ALL SQUARE</div>
               <div class="gm" id="matchMeta">THRU 0 · STROKES OFF LOW MAN (DANNY)</div>
             </div>
             <div class="gamecard" id="wolfCard" style="--acc:var(--gold)">
