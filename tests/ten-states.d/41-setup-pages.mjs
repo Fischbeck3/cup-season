@@ -794,12 +794,21 @@ const squadsStack = async (page) => page.evaluate(() => {
   if (cards.length < 2) return `the draw room shows ${cards.length} squad(s), so the stack cannot be read`
   return cards.every((c, i) => i === 0 || c.getBoundingClientRect().top >= cards[i - 1].getBoundingClientRect().bottom - 1) ? true : 'below 380 the squads still sit two to a row'
 })
+/* TEN / W6 · root's ruling · the draw clock's card has no spine down its left edge (UI_SYSTEM retires the 3.5pt card spine;
+   the phone's went in 5b407a5b): no thin, tall, painted bar at the card's left edge */
+const noClockSpine = async (page) => page.evaluate(() => {
+  const clock = document.getElementById('clock'); if (!clock || clock.offsetParent === null) return 'the draw clock is not drawn'
+  const cb = clock.getBoundingClientRect()
+  const bar = [...clock.querySelectorAll('*')].find((el) => { const b = el.getBoundingClientRect(), cs = getComputedStyle(el)
+    return b.width > 0 && b.width <= 6 && b.height >= cb.height * 0.5 && Math.abs(b.left - cb.left) < 2 && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' })
+  return bar ? 'the clock card draws a spine down its left edge' : true
+})
 const DRAW = [
   { family: 'draft', id: 'formation', variant: 'pro', title: 'The draw room of a real league in the draw, as its Pro',
     prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
     drive: async (page) => { await page.evaluate(() => window.switchView('draft')); await until(page, () => { const c = document.querySelector('#view-draft #clock'); return !!c && c.offsetParent !== null }); await page.waitForTimeout(800) },
     expect: { view: 'view-draft', selectors: { '#view-draft #clock': 'visible' } },
-    check: async (page) => { const stack = await squadsStack(page); if (stack !== true) return stack; return page.evaluate(() => {
+    check: async (page) => { const stack = await squadsStack(page); if (stack !== true) return stack; const spine = await noClockSpine(page); if (spine !== true) return spine; return page.evaluate(() => {
       const room = document.getElementById('view-draft'), foot = room.getBoundingClientRect().bottom
       let low = -Infinity
       const w = document.createTreeWalker(room, NodeFilter.SHOW_TEXT)

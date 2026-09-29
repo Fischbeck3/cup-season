@@ -1431,7 +1431,10 @@ th.deskonly, td.deskonly{display:none;}
 .clock .k{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}   /* TEN / W6 · AW2-06: the clock's eyebrow is agate, its line an agateS phrase — never mono */
 .clock .n{font-size:30px; font-weight:700; letter-spacing:-.01em; margin:5px 0 3px;}
 .clock .m{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);}
-.clock .accent{position:absolute; left:0; top:0; bottom:0; width:3.5px; border-radius:3px 0 0 3px;}
+/* TEN / W6 · root's ruling: the clock's 3.5px accent was the retired card
+   spine (UI_SYSTEM: "the 3.5pt spine leaves the card edge"); b9b50e63 took
+   the squad cards' and missed this one. It is gone on both clients. The words
+   carry the state ("On the clock", "Squads are set", "Form squads"). */
 .snake{display:flex; gap:5px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
 .snake i{width:13px; height:13px; border-radius:4px; background:var(--bg2); border:1px solid var(--rule);}
 .snake i.made{background:var(--dim); border-color:transparent;}
@@ -11532,11 +11535,11 @@ function renderDraft(){
 
   if(dt==='assign'){
     $('#draftLock').style.display='none';
-    $('#clock').innerHTML='<span class="accent" style="background:var(--gold)"></span><div class="k">The Pro picks</div><div class="n">You place the squads</div><div class="m">TAP A GOLFER, PICK A SQUAD</div>';
+    $('#clock').innerHTML='<div class="k">The Pro picks</div><div class="n">You place the squads</div><div class="m">TAP A GOLFER, PICK A SQUAD</div>';
     $('#pool').innerHTML='';
   }
   if(!teams.length){
-    $('#clock').innerHTML='<span class="accent" style="background:var(--pos)"></span><div class="k">'+STAGE_LABEL.drawing+'</div><div class="n">Waiting on the golfers</div><div class="m">SQUADS DRAW ONCE THE ROSTER IS IN</div>';
+    $('#clock').innerHTML='<div class="k">'+STAGE_LABEL.drawing+'</div><div class="n">Waiting on the golfers</div><div class="m">SQUADS DRAW ONCE THE ROSTER IS IN</div>';
     $('#squads').innerHTML='';
     $('#pool').innerHTML='<p class="fine">Golfers show up here as they sign in with your season code.</p>';
     return;
@@ -11560,10 +11563,10 @@ function renderDraft(){
 
   const clock=$('#clock');
   clock.innerHTML= done
-    ? `<span class="accent" style="background:var(--gold)"></span>
+    ? `
        <div class="k">Squads are set</div><div class="n">Good luck, everybody</div>
        <div class="m">Squads are set · season opens W1</div>`
-    : `<span class="accent" style="background:${SQHEX[onClock]}"></span>
+    : `
        <div class="k">On the clock</div><div class="n">${captains[onClock]}</div>
        <div class="m">R${rd} · PICK ${pk}/4 · ${squadNames[onClock].toUpperCase()}</div>`;
   const snake=document.createElement('div'); snake.className='snake';
@@ -33292,7 +33295,7 @@ function renderFormation(){
      a real league; the server owns squad formation */
   const rst = document.getElementById('resetDraft'); if(rst) rst.style.display = 'none';
 
-  $('#clock').innerHTML = `<span class="accent" style="background:var(--pos)"></span>
+  $('#clock').innerHTML = `
     <div class="k">Form squads</div>
     <div class="n">${pool.length ? pool.length + ' not on a squad yet' : 'Everyone has a squad'}</div>
     <div class="m">${
