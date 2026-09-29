@@ -217,6 +217,19 @@ private struct PostRoundBody: View {
   @State private var searchTop: CGFloat = .nan
   @State private var scrollProxy: ScrollViewProxy?
 
+  /// N4-021 · **THE NUMBER BEING TYPED IS NEVER SCROLLED AWAY.** Bringing the
+  /// worth sentence's last line to the keypad is right while the hero and the
+  /// sentence both fit above the keys. At AX3 the sentence alone runs five
+  /// lines, so on an SE that scroll put the gross field above the top of the
+  /// screen and the golfer typed a score they could not see (owner judge,
+  /// P1). At the accessibility sizes the field itself anchors at the top of
+  /// the scroll view — the one edge the keypad's inset cannot move — and the
+  /// sentence reads on beneath it.
+  private func keepTheNumberInView(_ proxy: ScrollViewProxy) {
+    if typeSize.isAccessibilitySize { proxy.scrollTo("gross", anchor: .top) }
+    else { proxy.scrollTo("worth", anchor: .bottom) }
+  }
+
   var body: some View {
     ScrollViewReader { proxy in
       ScrollView {
@@ -251,7 +264,7 @@ private struct PostRoundBody: View {
         // bottom edge of the scroll view, which the keypad has already inset —
         // so it lands just above the keys at every text size. Anchoring the
         // hero's TOP left it 160pt under the keypad at AX3.
-        CSMotion.run(CSMotion.rise) { proxy.scrollTo("worth", anchor: .bottom) }
+        CSMotion.run(CSMotion.rise) { keepTheNumberInView(proxy) }
       }
       #if DEBUG
       // `-cs_dev_post_scroll <card|bands>`: a simulator without a finger reaches the fold
@@ -269,9 +282,10 @@ private struct PostRoundBody: View {
       }
       #endif
       // the keypad rising re-insets the scroll view: bring the sentence back
+      // (and at the accessibility sizes, the number being typed)
       .onChange(of: grossFocused) { _, up in
-        guard up, !model.worthLines.isEmpty else { return }
-        CSMotion.run(CSMotion.rise) { proxy.scrollTo("worth", anchor: .bottom) }
+        guard up, typeSize.isAccessibilitySize || !model.worthLines.isEmpty else { return }
+        CSMotion.run(CSMotion.rise) { keepTheNumberInView(proxy) }
       }
     }
     .scrollDismissesKeyboard(.interactively)
@@ -835,6 +849,8 @@ private struct PostHeroContent: View {
         .csType(.agateS, caps: true).foregroundStyle(cs.mut)
     }
     .frame(width: PostCameraColumn.plateWidth, alignment: .leading)
+    // the composer keeps THIS in view at the accessibility sizes (N4-021)
+    .id("gross")
   }
 
   /// The nines (or the strip) are carrying the card, so the one box stands down

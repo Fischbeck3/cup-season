@@ -8,6 +8,9 @@ import UIKit
 ///   cover over it — so the element was in the tree and the golfer saw
 ///   nothing (`flow__post-failed.png`). The answer is now said above
 ///   `Add my round`, and this reads it off the screenshot.
+/// - N4-021: at AX3 the worth sentence's scroll put the gross field above the
+///   top of the screen, and the golfer typed a score they could not see
+///   (`se3/composer-dark-AX3.png`). Run this on an SE as well as a 17 Pro.
 final class N4PostUITests: N2UITestCase {
   override func setUp() { continueAfterFailure = true }
 
@@ -50,6 +53,41 @@ final class N4PostUITests: N2UITestCase {
       for x in stride(from: x0, to: x1, by: 2) where zip(px(x, y), ground).contains(where: { abs($0 - $1) > 40 }) { inked += 1 }
     }
     return inked
+  }
+
+  @MainActor func testAtAX3TheGrossFieldStaysInViewAboveTheKeypad() {
+    // The reads are held, so the worth sentence lands AFTER the keypad is up —
+    // the order a loaded phone (and the capture matrix) produced, and the one
+    // that scrolled the field away. Unheld, a fast simulator lands the
+    // sentence first and the bug hides.
+    let app = launch("season-live", "postround", size: "AX3", extra: ["-cs_synth_delay", "3"])
+    _ = root(app, "composer", timeout: 45)
+    let gross = app.textFields["Your gross"].firstMatch
+    XCTAssertTrue(gross.waitForExistence(timeout: 15))
+    // IOS-030 focuses the box; the keypad rises, then the sentence lands —
+    // both scrolls have had their turn once this settles
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10), "the keypad is up")
+    let sentence = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "can score up to")).firstMatch
+    _ = sentence.waitForExistence(timeout: 15)
+    Thread.sleep(forTimeInterval: 2)
+    let post = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "add my round")).allElementsBoundByIndex
+      .max { $0.frame.minY < $1.frame.minY }
+    let nav = app.navigationBars.firstMatch
+    func onScreen(_ when: String) {
+      XCTAssertTrue(gross.isHittable, "\(when): the gross field is on screen — \(gross.frame)")
+      if nav.exists { XCTAssertGreaterThanOrEqual(gross.frame.minY, nav.frame.maxY - 1, "\(when): below the bar — \(gross.frame)") }
+      if let post { XCTAssertLessThanOrEqual(gross.frame.maxY, post.frame.minY, "\(when): above the pinned foot — \(gross.frame)") }
+      XCTAssertLessThanOrEqual(gross.frame.maxY, app.keyboards.firstMatch.frame.minY, "\(when): above the keypad")
+    }
+    onScreen("focused")
+    attach(app, "n4-composer-AX3-focused")
+    // the golfer types, and sees the number they typed
+    gross.typeText("84")
+    XCTAssertEqual(gross.value as? String, "84")
+    onScreen("typed")
+    XCTAssertGreaterThan(inkedPixels(app, in: gross.frame), 20, "the typed score is drawn in the picture")
+    attach(app, "n4-composer-AX3-typed")
+    app.terminate()
   }
 
   @MainActor func testARefusedPostIsSaidAboveTheButtonWhereTheGolferCanSeeIt() {
