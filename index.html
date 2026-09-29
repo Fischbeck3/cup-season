@@ -3117,6 +3117,29 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    it, and 3px a side meets its neighbour's in the 6px gap without overlapping. */
 .rxadd, .rxcm, .rxchip{position:relative;}
 .rxadd::after, .rxcm::after, .rxchip::after{content:""; position:absolute; inset:-9px -3px;}
+/* AW2-19 · §16.2, the rest of the floor. Every control below keeps the size it
+   is drawn at; its hit box grows to 44 on a pseudo-element that covers only
+   text, never another control (measured on each page it sits on).
+   The flag was 33 drawn, 39 with the 3px a side above: 38 drawn is the 44. */
+.rxadd{min-width:38px;}
+/* a link on its own line, the desk rail's league switch and a course row's
+   name: 44 tall, centred on the line, as wide as the words */
+#seasonMore, #bfOpen, #sideLeague, .cs-krow-open{position:relative;}
+#seasonMore::after, #bfOpen::after, #sideLeague::after, .cs-krow-open::after{content:""; position:absolute;
+  left:0; right:0; top:calc(50% - 22px); bottom:calc(50% - 22px);}
+/* a figure inside a sentence ("best 90"): 44 wide, centred on the figure */
+.cs-bestlink{position:relative;}
+.cs-bestlink::after{content:""; position:absolute; top:0; bottom:0; left:calc(50% - 22px); right:calc(50% - 22px);}
+/* a course's card leaf: its ::after draws the chevron, so the box is ::before */
+.cs-cardleaf>summary{position:relative;}
+.cs-cardleaf>summary::before{content:""; position:absolute; left:0; right:0; top:calc(50% - 22px); bottom:calc(50% - 22px);}
+.cs-note{min-height:44px;}
+/* a golfer row: the face disc was a mouse-only second target for the same
+   card. The name's hit box now takes in the disc (36 + the 10px gap) and 44 of
+   height, so the row is one target that a keyboard reaches too. */
+.prow .pmeta[role="button"]{position:relative;}
+.prow .pmeta[role="button"]::after{content:""; position:absolute; left:-46px; right:0;
+  top:calc(50% - 22px); bottom:calc(50% - 22px);}
 /* D341 · Home keeps given reactions and an invitation to reveal the rest.
    Every choice retains a 44px target; the reveal wraps on narrow screens. */
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
