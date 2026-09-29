@@ -336,6 +336,8 @@ final class ScheduleModel {
   var weekLines: [WeekLine] = []
   var inLeague = false
   var busy = Set<UUID>()
+  /// N4-136 · the first load may move the calendar to the next plan's month
+  private var openingSettled = false
   private let toasts: CSToastCenter
   private let sched = ScheduleService()
 
@@ -358,6 +360,20 @@ final class ScheduleModel {
     async let r = RivalsCache.shared.rivals()
     if let rows = try? await m { schedule = rows }
     if let rows = try? await w { watchAll = rows }
+    // N4-136 · on the first load, a month with no plan still ahead opens on
+    // the month of the next one instead (September was shown while the
+    // plans were in October); paging is the golfer's from then on
+    if !openingSettled {
+      openingSettled = true
+      let ahead = schedule.contains { ($0.play_on ?? "") >= today }
+      if !ahead, let next = watchAll.compactMap(\.play_on).filter({ $0 >= today }).min() {
+        let target = CalendarMonth.of(next)
+        if target != month {
+          month = target
+          if let rows = try? await sched.month(month) { schedule = rows }
+        }
+      }
+    }
     rivals = await r
     let memberships = me?.memberships ?? []
     let cur = memberships.first { $0.league_id == current } ?? memberships.first
