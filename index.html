@@ -478,7 +478,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    W7-009 · and You's Form row and Recent rounds open on the last round; the
    schedule's empty state and its "Put a round on the schedule" carry planning
    (so "Plan one" stands down); an empty record says the first round is
-   missing and holds the door (so the sidebar's sentence and its door go). */
+   missing and holds the door (so the sidebar's sentence and its door go).
+   The door goes whether or not the strip also holds a season row or dues (a
+   golfer seated in a season with no rounds has both), and its row with it. */
 @media(min-width:960px){
   .shell:has(#view-stats.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-post.active) #sideMe [data-mego="my_number"],
@@ -488,6 +490,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
   .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"],
   .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay),
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe [data-mego="add_round"],
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe .medoors:has(> [data-mego="add_round"]:only-child),
   .shell:has(#view-stats.active) #sideMe .mesay{display:none;}   /* W7-053 · You prints the building clause under its card: the sentence once per viewport */
 }
 /* ============ D228 - the desk's two-column body ============
