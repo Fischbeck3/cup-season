@@ -94,9 +94,11 @@ final class SyntheticRouteTests: XCTestCase {
     let settle: Double?
     /// An optional XCUITest step before the shot: "keyboard" focuses the first
     /// text field and waits for the keyboard; `reveal:<identifier>` (or
-    /// `reveal:~<words in a label>`) scrolls a below-the-fold element into
-    /// the shot once the root is up.
+    /// `reveal:~<words in a label>`) scrolls an element outside the fold into
+    /// the shot once the root is up, down the page or back up it.
     let step: String?
+    /// The same reveal, for a row whose `step` is already a tap.
+    let reveal: String?
   }
 
   @MainActor func testCapturePlan() throws {
@@ -125,12 +127,17 @@ final class SyntheticRouteTests: XCTestCase {
           if field.exists { field.tap() }
           _ = app.keyboards.firstMatch.waitForExistence(timeout: 6)
         }
-        if found, let step = entry.step, step.hasPrefix("reveal:") {
-          let key = String(step.dropFirst(7))
+        let revealKey = entry.reveal ?? entry.step.flatMap { $0.hasPrefix("reveal:") ? String($0.dropFirst(7)) : nil }
+        if found, let key = revealKey {
           let target = key.hasPrefix("~")
-            ? app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", String(key.dropFirst()))).firstMatch
+            ? app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] %@", String(key.dropFirst()))).firstMatch
             : app.descendants(matching: .any)[key]
-          if target.waitForExistence(timeout: 10) { reveal(target, in: app) }
+          if target.waitForExistence(timeout: 10) {
+            // a board opens on its newest line, so what it pins sits ABOVE the fold
+            for _ in 0..<8 where !target.isHittable {
+              if target.frame.maxY < app.windows.firstMatch.frame.midY { app.swipeDown() } else { app.swipeUp() }
+            }
+          }
         }
         Thread.sleep(forTimeInterval: entry.settle ?? 2.0)
         // The counters are the router's, not the screen's: every mark carries
