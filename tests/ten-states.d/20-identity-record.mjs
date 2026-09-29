@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -51,7 +51,9 @@ const YOU = [
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
-    check: all(recordState('some'), notMono(['.bagrow .bslot'], ['.bagrow .bslot'])) },
+    check: all(recordState('some'), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
+      /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
+      readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]])) },
   /* the career read fails both ways (the full select and its skew retry):
      the record must say the READ failed, never "no rounds" (F10) */
   { family: 'you', id: 'error', variant: 'member', title: 'You · the rounds read failed',

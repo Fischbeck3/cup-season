@@ -9,7 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
-import { notMono } from '../ten-mono.mjs'
+import { notMono, readsAsWritten } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -223,7 +223,9 @@ export default [
     },
     expect: { view: 'view-play', selectors: { '#matchCard': 'visible', '#matchStatus': 'visible' } },
     check: all(scoredCheck(4), async (page) => { const f = await liveFacts(page); return f.game === 'match' ? true : 'the game is ' + f.game },
-      has('#matchMeta', 'THRU 4', 'the match line')) },
+      has('#matchMeta', 'THRU 4', 'the match line'),
+      /* TEN / W6 · AW2-15: the side games' gloss is a phrase, in sentence case (§1.3) */
+      readsAsWritten([['p.eb-gloss.sg-head', 'Tracked live, settled between friends']])) },
 
   /* Skins, three golfers, through five */
   { family: 'play', id: 'skins-scoring', variant: 'member', title: 'Live round · Skins, three golfers, $2 a skin, through five',

@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono } from '../ten-mono.mjs'
+import { notMono, readsAsWritten } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -230,13 +230,15 @@ const GOLFERS = [
        under the search lists only what it does not — it drew Kit twice, with
        two Accepts */
     expect: { view: 'view-golfers', selectors: { '#glfBoard .fbrow.mine': 'visible', '#peopleRequests': 'text:Kit Specimen', '#crBud': 'text:Buddies · 5' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const rows = document.querySelectorAll('#glfBoard .fbrow').length
       if (rows !== 6) return `the board has ${rows} rows, expected 6 (me and five buddies)`
       if (!/Kit Specimen/.test(document.getElementById('peopleRequests').innerText)) return 'Kit’s request is not listed'
       if (/Kit Specimen/.test(document.getElementById('crReq').innerText)) return 'Kit’s request is drawn twice'
       return /Finley Stubbs/.test(document.getElementById('crBud').innerText) ? true : 'the request I sent Finley is not listed'
-    }) },
+    }),
+    /* TEN / W6 · AW2-15: the form lens's note is a phrase, in sentence case (§1.3) */
+    readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']])) },
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },

@@ -43,3 +43,22 @@ export const noSerifFigure = (sels, need = []) => async (page) => page.evaluate(
   }
   return bad.length ? 'a number set in the serif (§1.4): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
 }, [sels, need])
+
+/* TEN / W6 · AW2-15 · UI_SYSTEM §1.3: a phrase a person could read aloud is
+ * set in sentence case, never tracked caps. `readsAsWritten(pairs)` checks
+ * the RENDERED text (innerText carries text-transform), case-sensitively —
+ * the harness's own `text:` expectation ignores case, so it cannot see caps.
+ * Each pair is [selector, exact text] or [selector, /regex/ source]; the
+ * first visible match must read as written, and a missing one fails. */
+export const readsAsWritten = (pairs) => async (page) => page.evaluate((pairs) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' }
+  const bad = []
+  for (const [sel, want, isRe] of pairs) {
+    const el = [...document.querySelectorAll(sel)].find(shown)
+    if (!el) { bad.push(`the state does not draw ${sel}`); continue }
+    const got = (el.innerText || '').replace(/\s+/g, ' ').trim()
+    const ok = isRe ? new RegExp(want).test(got) : got === want
+    if (!ok) bad.push(`${sel} reads ${JSON.stringify(got.slice(0, 60))}`)
+  }
+  return bad.length ? 'a phrase is not in sentence case (§1.3): ' + bad.join('; ') : true
+}, pairs)

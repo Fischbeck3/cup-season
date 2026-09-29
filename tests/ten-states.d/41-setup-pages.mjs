@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono } from '../ten-mono.mjs'
+import { notMono, readsAsWritten } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -117,12 +117,14 @@ const WIZARD = [
     expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
     /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
        narrowed column broke it ("Best / 4", "2 / / mo") */
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
         .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
         .map((v) => JSON.stringify(v.textContent.trim()))
       return broken.length ? `a dial value breaks across lines: ${broken.join(', ')}` : true
-    }) },
+    }),
+    /* TEN / W6 · AW2-15: the pace question is a sentence, in sentence case (§1.3) */
+    readsAsWritten([['#wizPaceK', 'How often will most of you play?']])) },
   { family: 'wizard', id: 'step-3-review', variant: 'pro_setup', title: 'Wizard · step 3 of 3, review and lock',
     drive: async (page) => {
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
