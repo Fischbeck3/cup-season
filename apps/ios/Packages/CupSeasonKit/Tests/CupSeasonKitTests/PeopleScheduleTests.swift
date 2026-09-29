@@ -314,3 +314,16 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(JoinService.joinError(E(m: "invalid code")) == "No league with that code. Check with your Pro")
   }
 }
+
+/// W2 twin (the web's markOf) · the calendar's filled disc is a round you are
+/// on — yours, or one that names you and you have not declined; any other
+/// round in your seasons is the ring.
+@Suite struct CalendarDotTests {
+  @Test func aRoundYouAreOnIsTheDisc() {
+    func dot(_ sr: ScheduledRound) -> CalendarItem.Dot { CalendarItem.round(sr).dot }
+    #expect(dot(ScheduledRound(id: UUID(), mine: true)) == .round)
+    #expect(dot(ScheduledRound(id: UUID(), mine: false, tagged_me: true)) == .round)
+    #expect(dot(ScheduledRound(id: UUID(), mine: false, tagged_me: true, my_rsvp: "out")) == .leagueMate)
+    #expect(dot(ScheduledRound(id: UUID(), mine: false, shared_league: true)) == .leagueMate)
+  }
+}

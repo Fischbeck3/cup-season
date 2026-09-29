@@ -225,9 +225,14 @@ public enum CalendarItem: Sendable, Equatable {
 
   public enum Dot: Sendable { case round, leagueMate, season }
   /// The legend: ON THE SCHEDULE · IN YOUR SEASONS · SEASON DATE (12078).
+  ///
+  /// W2 twin (the web's `markOf`) · a round you are ON is the filled disc: your
+  /// own, or one that names you and you have not declined. Any other round in
+  /// your seasons is the ring. A tagged round drew the ring, which said the
+  /// opposite of the plan's own sheet.
   public var dot: Dot {
     switch self {
-    case .round(let sr): (sr.tagged_me == true || (sr.shared_league == true && !sr.isMine)) ? .leagueMate : .round
+    case .round(let sr): (sr.isMine || (sr.tagged_me == true && sr.my_rsvp != "out")) ? .round : .leagueMate
     case .league: .season
     }
   }
