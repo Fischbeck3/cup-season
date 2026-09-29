@@ -20904,9 +20904,14 @@ function csLinkAskPlan(host, course, day){
   return csLinkName(host, 'A golfer') + '’s round at ' + csLinkName(course, 'the course') + (day ? ' on ' + day : '') + ' — take a seat?';
 }
 function csLinkPlanNote(host){ return 'Taking the seat puts you down as in and sends ' + csLinkName(host, 'the host') + ' a buddy request.'; }
+/* W4 (critique B) · the question names the CLUB, and the course and tee go
+   to the facts line under it: "…Golf Club (fixture) — Mesquite Wash · Black to
+   your record?" ran a dash-joined triple into the question. The holes are a
+   scorecard; "card" is the person (T-01). Twin: LinkConfirmation.swift. */
+function csLinkClub(course){ return String(course == null ? '' : course).split(' — ')[0]; }
 function csLinkAskClaim(gross, course){
-  const at = csLinkName(course, 'the course'), g = csLinkName(gross, '');
-  return (g ? 'Add this ' + g + ' at ' + at : 'Add this card from ' + at) + ' to your record?';
+  const at = csLinkName(csLinkClub(course), 'the course'), g = csLinkName(gross, '');
+  return (g ? 'Add this ' + g + ' at ' + at : 'Add this scorecard from ' + at) + ' to your record?';
 }
 
 /* R8 (S7, Guideline 1.2) · MUTE BECOMES BLOCK, and it is one real thing. The
@@ -34056,9 +34061,10 @@ function csLinkCard(kind, info){
              mark: mkr(i.marker), ask: csLinkAskPlan(i.host, String(i.course || '').split(' — ')[0], csLinkDay(i.play_on)),
              facts: [tee ? tee + ' tee' : '', who.length ? whoTxt + (who.length === 1 ? ' is in.' : ' are in.') : ''].filter(Boolean).join(' · ') };
   }
+  const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
            mark: '', ask: csLinkAskClaim(i.gross, i.course_label),
-           facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
+           facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
 }
 /* R5 · what a claim link is, before anything is claimed. The two sources
    answer a token they do not know differently — claim_round_info with null,
