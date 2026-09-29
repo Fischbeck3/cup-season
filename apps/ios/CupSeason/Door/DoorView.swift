@@ -152,12 +152,20 @@ struct DoorView: View {
         Text(CSBrandCopy.tagline).csType(.lead).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityAddTraits(.isHeader)
+        // N4-003 · the pitch is the one sentence that says what Cup Season
+        // is, and an invite REPLACED it. The invite's own line is printed with
+        // it now, never instead of it.
+        Text("Golf with your people, all season.")
+          .csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityIdentifier(pending == nil ? "door.context" : "door.pitch")
         // The recipient sees why they arrived before choosing a sign-in door.
         // The same producer follows them above the email field; no extra copy.
-        Text(pending ?? "Golf with your people, all season.")
-          .csType(.body).foregroundStyle(pending == nil ? cs.mut : cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
-          .accessibilityIdentifier("door.context")
+        if let pending {
+          Text(pending).csType(.body).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("door.context")
+        }
       }
       .padding(CSTokens.Space.gutter)
       .padding(.top, CSTokens.Space.s6)
