@@ -213,13 +213,37 @@ const onScreen = (re, what) => async (page) => page.evaluate(({ re, what }) => {
 }, { re, what })
 const feedHasRounds = async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'the circle feed drew no rounds')
 
+/* TEN / W7-050 [A2-home-11] · what is read and tabbed to is what is seen:
+   below 960 the Home blocks' DOM order is their painted order (no CSS
+   `order` over the desk's DOM). On the desk, ↓ moves from a deck line to the
+   next slat (UI_SYSTEM §14.4). */
+const readingOrder = async (page) => {
+  const r = await page.evaluate(() => {
+    if (innerWidth >= 960) return 'desk'
+    const ids = ['#homeLead', '#homeRequests', '#homeMe', '#homeDeck', '#homeHero', '#homeHub > .deskwire', '#homeUpNext', '#homeTiles', '#homeOccasion', '#homeStart', '#homePulse']
+    const els = ids.map((s) => document.querySelector(s)).filter((el) => el && el.getBoundingClientRect().height > 0)
+    if (els.length < 3) return 'Home drew too few blocks to read an order'
+    const dom = els.slice().sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+    const seen = els.slice().sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+    const name = (el) => el.id || el.className
+    return dom.every((el, i) => el === seen[i]) ? true
+      : 'the reading order is not the painted order: DOM ' + dom.map(name).join(' > ') + ' | seen ' + seen.map(name).join(' > ')
+  })
+  if (r !== 'desk') return r
+  const lines = await page.evaluate(() => [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].filter((el) => el.offsetParent !== null).length)
+  if (lines < 2) return true
+  await page.evaluate(() => { const f = [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].find((el) => el.offsetParent !== null); f.focus(); window.__slat0 = f })
+  await page.keyboard.press('ArrowDown')
+  const moved = await page.evaluate(() => { const a = document.activeElement; const ok = a && a !== window.__slat0 && a.matches('.cswire, .hfcard'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return ok })
+  return moved ? true : '↓ on a deck line does not move to the next slat'
+}
 const HOME_WORLD = [
   /* North Grove week 8 of 13, the Fixture Wrens 2nd of 2 and 34 back; the
      week-8 clash with Devon ("The Fixture Derby"), both in; Kit's buddy
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, nextOnce,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, nextOnce, readingOrder,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

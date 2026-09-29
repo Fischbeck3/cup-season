@@ -609,10 +609,19 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    dissolves into the column only here, so the DOM stays the desk's. */
 @media(max-width:959px){
   #homeHub.deskbody{display:flex; flex-direction:column;}
-  #homeHub .deskmain{display:contents;}
-  #homeLead{order:1;} #homeRequests{order:2;} #homeMe{order:3;} #homeDeck{order:4;} #homeHero{order:5;}
-  #homeHub .deskwire{order:6;} #homeUpNext{order:7;} #homeTiles{order:8;}
-  #homeOccasion{order:9;} #homeStart{order:10;} #homePulse{order:11;}
+  /* TEN / W7-050 · no `order`: the DOM is lead, requests, ME strip, deck,
+     hero, wire, foot, which is this column's order, so what is read and what
+     is tabbed to is what is seen */
+  #homeHub .deskmain, #homeHub .deskfoot{display:contents;}
+}
+/* TEN / W7-050 · the desk: the dispatch over its foot on the left, the wire
+   beside both, still sticky. `auto 1fr` rows keep a tall wire's height out of
+   the dispatch's row, so the foot follows the hero with no gap, as before. */
+@media(min-width:960px){
+  #homeHub.deskbody{grid-template-areas:"main wire" "foot wire"; grid-template-rows:auto 1fr; row-gap:0;}
+  #homeHub .deskmain{grid-area:main;}
+  #homeHub .deskwire{grid-area:wire;}
+  #homeHub .deskfoot{grid-area:foot; min-width:0;}
 }
 /* MW-02 · the league's name before a shared sentence, in the agate role */
 .cswire .lc{display:block; color:var(--mut); margin-bottom:2px;}
@@ -6242,8 +6251,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              it is the same producer in the shape a desk earns. -->
         <div id="homeHub" class="deskbody">
           <div class="deskmain">
-            <!-- the identity block below desk width; #sideMe carries it above -->
-            <div class="sideme homeme" id="homeMe"></div>
+            <!-- TEN / W7-050 [A2-home-11] · THE DOM IS THE PAGE'S ORDER. Below
+                 960 the phone paints lead, requests, the ME strip, deck, hero,
+                 wire, then the foot; the markup reads the same now, so Tab and a
+                 screen reader meet what the eye meets (WCAG 2.4.3, 1.3.2). The
+                 desk keeps its two columns by grid areas, not by `order`. -->
             <!-- D231 · THE LEAD. One card, a human subject, one ember verb —
                  or no card at all, which is what a golfer with nothing
                  pressing gets. The ladder that used to pick it is a written
@@ -6253,6 +6265,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  never above it, and only while the dispatch is not already
                  carrying it (one owner per fact — the phone's rule). -->
             <div id="homeRequests"></div>
+            <!-- the identity block below desk width; #sideMe carries it above -->
+            <div class="sideme homeme" id="homeMe"></div>
             <!-- D228 · THE DECK: items 2–5, ranked, each one sentence with one
                  door. A shorter deck is a shorter deck; it is never padded. -->
             <div id="homeDeck"></div>
@@ -6262,13 +6276,6 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  golfer answers the contest that is open before starting a new
                  one. They sat above the lead here, so Start something outranked
                  "you have until Sunday to answer it". -->
-            <!-- TEN · the foot reads as one list (Up next, then the season,
-                 next and board rows), the occasion, then the quiet doors -->
-            <div id="homeUpNext"></div>
-            <div id="homeTiles"></div>
-            <div id="homeOccasion"></div>
-            <div id="homeStart"></div>
-            <div id="homePulse"></div>
           </div>
           <aside class="deskwire">
             <!-- TEN · §16A.2: a section head's right-of-rule slot carries a count
@@ -6279,6 +6286,17 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div id="homeDigest"></div>
             <div id="homeFeed"></div>
           </aside>
+          <!-- TEN · the foot reads as one list (Up next, then the season,
+               next and board rows), the occasion, then the quiet doors. It
+               follows the wire in the DOM, as it does on the phone; on the desk
+               it sits under the dispatch, in the grid's "foot" area. -->
+          <div class="deskfoot">
+            <div id="homeUpNext"></div>
+            <div id="homeTiles"></div>
+            <div id="homeOccasion"></div>
+            <div id="homeStart"></div>
+            <div id="homePulse"></div>
+          </div>
         </div>
       </section>
 
@@ -10738,7 +10756,11 @@ document.addEventListener('keydown', e=>{
    a `g`, and the arrows move a caret. Everything below returns early on any
    editable target, which is the bug every hand-rolled hotkey ships with. */
 (function(){
-  const SLAT = '.tbl tr.tap, .fbrow.tap, .peerrow, .rdrow';
+  /* TEN / W7-050 · Home's deck lines and the wire's cards are slats too:
+     ↑/↓ move between them and → opens (UI_SYSTEM §14.4). Scoped to Home's
+     deck and wire: the sidebar strip's rows are `.cswire` buttons as well,
+     and are not a list the arrows walk. */
+  const SLAT = '.tbl tr.tap, .fbrow.tap, .peerrow, .rdrow, #homeDeck .cswire, #homeFeed .hfcard';
   const editing = t => !!t && (t.isContentEditable ||
     /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ''));
 
@@ -10781,6 +10803,9 @@ document.addEventListener('keydown', e=>{
       const fields = Array.from(document.querySelectorAll('input[id*="Search" i], input[id*="Find" i], input[type="search"]'))
         .filter(n => n.offsetParent !== null);
       if(fields.length){ e.preventDefault(); fields[0].focus(); fields[0].select?.(); }
+      /* W7-050 · a page with no search field of its own (Home's search is the
+         header's button) opens the one search the product has: Find golfers */
+      else if(typeof window.openFindGolfers === 'function'){ e.preventDefault(); window.openFindGolfers(); }
       return;
     }
 
@@ -10788,7 +10813,10 @@ document.addEventListener('keydown', e=>{
     if(!slat) return;
     if(e.key === 'ArrowDown'){ e.preventDefault(); step(slat, 1); }
     else if(e.key === 'ArrowUp'){ e.preventDefault(); step(slat, -1); }
-    else if(e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' '){
+    /* W7-050 · a control INSIDE a slat keeps its own activation: a wire card
+       carries the golfer's own door and the reactions, and Enter on one of
+       them clicked the card instead (the receipt), swallowing the key */
+    else if((e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') && e.target === slat){
       e.preventDefault(); slat.click();
     }
   });
