@@ -1266,6 +1266,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .tbl .chg .tri.up{border-bottom:7px solid var(--pos);}
 .tbl .chg .tri.dn{border-top:7px solid var(--cool);}
 .tbl .chg .held{display:inline-block; width:9px; height:2px; background:var(--mut); vertical-align:3px;}
+@media(min-width:960px){ .tbl[data-since] td.chg:not(.since) .mv, .tbl[data-since] td.chg:not(.since) .held{display:none;} }   /* W7-112 · the mark lives under its own head from 960 */
 /* the gap and the movement mark are two facts in one cell: a held bar set
    flush against "+34" read as "+34–" (the owner's panel) */
 .tbl .chg .gp + .held, .tbl .chg .gp + .mv{margin-left:8px;}
@@ -9935,7 +9936,12 @@ function renderStandings(){
     : '';
   /* the head names what the rows are: a squads season lists SQUADS ("GOLFER"
      headed a column of squads, the category panel) */
-  let html=`<tr><th class="rk">Pos</th><th>${solo ? 'Golfer' : 'Squad'}</th>${dhead}<th class="num">Gap</th><th class="num">Pts</th></tr>`;
+  /* W7-112 · at the desk the movement mark ('held since Sun', up or down) leaves the merged Gap cell for a column of its own, headed with the day it is measured from ('Since Sun'): '+34 —' and a lone '—'
+     under GAP named no thing. The phone keeps its merged cell (the extra column is desk-only, and the marks in the Gap cell stand down beside it from 960). No snapshot, no day, no column. */
+  const sinceRaw = (csMovement(0, priorSince)||{}).sinceShort || '';
+  const sinceDay = sinceRaw ? sinceRaw.charAt(0) + sinceRaw.slice(1).toLowerCase() : '';
+  if(el) el.toggleAttribute('data-since', !!sinceDay);
+  let html=`<tr><th class="rk">Pos</th><th>${solo ? 'Golfer' : 'Squad'}</th>${dhead}<th class="num">Gap</th>${sinceDay ? `<th class="num deskonly">Since ${sinceDay}</th>` : ''}<th class="num">Pts</th></tr>`;
   /* the five-dot form column, inside the row. `pos` filled = beat your playing
      HCP that round, `rule` = did not - the sign convention `CSBands` ships
      (D276 / Wave 7: a POSITIVE pvi is a round beaten). Oldest to newest, left
@@ -10018,6 +10024,7 @@ function renderStandings(){
       <td><div style="display:flex;align-items:center;gap:12px">${solo?face:bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
       ${deskCols ? `<td class="num rds deskonly">${t.sub||0}</td><td class="deskonly">${formOf(t.id)}</td>` : ''}
       <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap ? `<span class="gp">${gap}</span>` : ''}${mvH}</td>
+      ${sinceDay ? `<td class="num chg since deskonly">${mvH}</td>` : ''}
       <td class="num pts">${t.pts}</td>
     </tr>`;
     /* The cut is a Cup-Final concept — meaningless for a points table or a
@@ -10033,7 +10040,7 @@ function renderStandings(){
       /* a two-squad season has no cut: BOTH squads play the Final and the
          leader carries +10 in (enter_cup_final), so its line is the seed,
          word for word the phone's StandingsTableView — never "top one plays" */
-      html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>${esc(cutOf.seed ? 'Top seed · +10' : csCutLabel(cutK))}</span><i></i></td></tr>`;
+      html+=`<tr class="cutrow"><td colspan="${(deskCols?6:4)+(sinceDay?1:0)}"><span>${esc(cutOf.seed ? 'Top seed · +10' : csCutLabel(cutK))}</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   sfGo(el);   /* SF-6: arm any freshly wrapped ranks — no-op on a static render */

@@ -166,6 +166,27 @@ const clinchSentence = async (page) => page.evaluate(() => {
   if (/\b[A-Z]{3,}\b/.test(t)) return `capitals are typed into the clinch line: ${JSON.stringify(t)}`
   return /^Fixture Javelinas clinch the top seed with \d+ more points\.( |$)/.test(t) ? true : `the clinch line reads ${JSON.stringify(t)}`
 })
+/* TEN / W8 · W7-112 [A2-desk-20] · the standings' movement mark has a head that names it: from 960 a column headed 'Since <day>' holds the mark (held bar, up or down count) and the Gap cell holds only the gap;
+   below 960 the merged cell keeps both, as before, and the extra column is not drawn */
+const sinceColumn = async (page) => page.evaluate(() => {
+  const t = document.getElementById('standings'), shown = (el) => el && el.getBoundingClientRect().width > 0 && getComputedStyle(el).display !== 'none'
+  if (!t || !shown(t)) return 'the standings table is not on the page'
+  const head = [...t.querySelectorAll('tr:first-child th')].find((h) => /^Since /i.test(h.textContent.trim()))
+  if (!head) return 'the head row has no Since column'
+  const rows = [...t.querySelectorAll('tr.tap')], marks = (r, sel) => [...r.querySelectorAll(sel)].filter(shown)
+  if (innerWidth >= 960) {
+    if (!shown(head)) return "the 'Since' head is not drawn at the desk"
+    for (const r of rows) {
+      if (marks(r, 'td.chg:not(.since) .mv, td.chg:not(.since) .held').length) return 'a movement mark still sits under Gap at the desk'
+    }
+    if (!rows.some((r) => marks(r, 'td.since .mv, td.since .held').length)) return 'no movement mark sits under the Since head'
+    if (!/^Since (Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/.test(head.textContent.trim())) return `the head reads ${JSON.stringify(head.textContent.trim())}, not sentence case`
+  } else {
+    if (shown(head)) return "the 'Since' head is drawn below the desk"
+    if (!rows.some((r) => marks(r, 'td.chg:not(.since) .mv, td.chg:not(.since) .held').length)) return 'the merged Gap cell lost its mark below the desk'
+  }
+  return true
+})
 /* TEN / W8 · W7-066 [B2-desk-17] · the figures under a table's title cell stand under a head: a right-aligned 'Pts' cell in the head row, on the same edge as the figures (the clash's 9 and 7, the Cup Final race's totals) */
 const ptsHead = (tableSel) => async (page) => page.evaluate((tableSel) => {
   const t = document.querySelector(tableSel)
@@ -237,7 +258,7 @@ const SEASON = [
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
-      tertiaryDoor('#seasonBookDoor'), clashOpen, ptsHead('#clashTbl'),
+      tertiaryDoor('#seasonBookDoor'), clashOpen, ptsHead('#clashTbl'), sinceColumn,
       /* TEN / W8 · W7-060 [A2-season-5]: a tied Points King names who is level (never the word 'Level' in the name's slot), wraps rather than clipping, and the sub says 'level on N' */
       async (page) => page.evaluate(() => {
         const k = document.getElementById('awKing'), sub = document.getElementById('awKingS')
