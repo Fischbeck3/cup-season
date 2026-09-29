@@ -18043,7 +18043,12 @@ function csCourseBooksWire(box){
   }));
   box.querySelectorAll('[data-cslead]').forEach(row=>{
     const go = e => {
-      if(e.target.closest('details') || e.target.closest('input')) return;
+      /* a disclosure INSIDE the row (its own facts) is its own control. W2
+         (f46086b4) put the whole book behind You's "Your courses" door, so
+         `closest('details')` matched that door for every tap and no course
+         could ever be opened (session D, round 2 at fd27ace4). */
+      const d = e.target.closest('details');
+      if((d && row.contains(d)) || e.target.closest('input')) return;
       window.CS_COURSE_LEAD = row.dataset.cslead;
       renderCourseBooks();
       box.scrollIntoView({ block:'start', behavior:'smooth' });
@@ -21676,14 +21681,15 @@ function csMeSeasonRow(){
   const parts=[String(CS.league.name||'')];
   const rank=`${climbOrd(i+1)} of ${teams.length}`;
   parts.push(solo ? rank : [teams[i].name, rank].join(' '));
-  if(i >= 2 && teams[0]){
-    const gap = Number(teams[0].pts) - Number(teams[i].pts);
-    if(gap > 0) parts.push(`${teams[0].name} leads by ${csN(gap)}`);
-  }
+  /* PAR-01 (session A, 2026-09-28) · the phone's QB-03, one rule on both
+     clients: the endgame clause is said AT EVERY RANK — it answers "am I in or
+     out" — and the leader's name is the clause that yields. At rank 3 or lower
+     the desk had added "X leads by n" and dropped the cut line
+     (MeStripCopy.seasonRow, MeStripCopy.swift:464). */
   const up = teams[i-1], down = teams[i+1];
   if(up)   parts.push(`${csN(Number(up.pts)-Number(teams[i].pts))} back of ${String(up.name)}`);
   if(down) parts.push(`${csN(Number(teams[i].pts)-Number(down.pts))} clear of ${String(down.name)}`);
-  if(i < 2){ const c = csEndgameClause(teams.length); if(c) parts.push(c); }
+  { const c = csEndgameClause(teams.length); if(c) parts.push(c); }
   return { text: parts.join(' · '), parts };
 }
 
@@ -22125,6 +22131,23 @@ function csSeasonRowFacts(f, role){
   const tee = upcoming && se && se.starts_on ? csRoundDay(se.starts_on) : null;
   const toTee = !tee ? null : se.days_to_first_tee != null ? Number(se.days_to_first_tee) : csDaysBetween(isoOf(new Date()), se.starts_on);
   const teeStory = tee ? 'The first tee is ' + tee + (toTee > 1 ? ', in ' + toTee + ' days.' : toTee === 1 ? ', tomorrow.' : '.') : 'No standing yet. First tee is ahead.';
+  /* PAR-03 (session A) · THE CUP FINAL IS ITS OWN STAGE on Compete's row, as on
+     the phone (SeasonPhase.cupFinal, CompeteRoot.seasonRow): the eyebrow says
+     "Cup Final" once, the line under it is the Final's clock ("3 weeks left",
+     SeasonFacts.finalClock: days to the end, up to whole weeks), and no rank is
+     drawn — the Final is scored fresh, so the season table's place is not a
+     standing in it. */
+  const inFinal = !upcoming && !!se && se.status === 'cup_final';
+  if(inFinal){
+    const dl = se.days_left != null && Number.isFinite(Number(se.days_left)) ? Number(se.days_left)
+             : (se.ends_on ? csDaysBetween(isoOf(new Date()), se.ends_on) : 0);
+    const w = Math.max(1, Math.floor((Math.max(0, dl) + 6) / 7));
+    return { upcoming:false, final:true, eyebrow: STAGE_LABEL.final,
+      sub: w + ' week' + (w === 1 ? '' : 's') + ' left' + (role==='commissioner' ? ' · you run it' : ''),
+      /* the phone's competitionLine is nil outside a running season, so the
+         band says no standing sentence in the Final either */
+      status: null, rank: null, points: null, standing: null, story: null };
+  }
   let eyebrow = null;
   if(upcoming) eyebrow = STAGE_LABEL.preseason;
   else if(se && se.week_no != null && se.weeks_total != null) eyebrow = 'Week ' + se.week_no + ' of ' + se.weeks_total;
@@ -22242,7 +22265,7 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     }
     const f = !done && lg.phase==='season' ? csSeasonRowFacts(fm.get(lg.id), m.role) : null;
     const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
-                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && f.upcoming ? f.eyebrow : (f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
+                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && (f.upcoming || f.final) ? f.eyebrow : (f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
                 title: lg.name || 'A season',
                 /* L-44 · a finished season says it is finished. The champion's
                    NAME is a fact the boot's membership rows do not carry, so it
