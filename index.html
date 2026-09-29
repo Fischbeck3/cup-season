@@ -37606,8 +37606,12 @@ async function renderShareView(tok, _testInfo){
           ${highs.length ? `<p class="sv-highs cs-agate is-phrase">${highs.map(t => esc(t)).join(' · ')}</p>` : ''}
         </div>`;
     }
+    /* W7-057 · a column of bare figures carries its head (UI_SYSTEM §16A.3): the four scores under a result decided by holes were an unlabelled number a
+       stranger could not tell from a net or a points figure. The round page names its figure Gross and the recap's table names its Points; the
+       settlement's head names these, and only when a player carries one */
+    const grossed = (info.players || []).some(p => p.gross != null);
     const players = (info.players || []).length
-      ? `<div class="sv-rows">${info.players.map(p => `<div class="sv-row"><span class="nm cs-social">${esc(p.name)}</span><span class="fig">${p.gross != null ? esc(String(p.gross)) : ''}</span></div>`).join('')}</div>`
+      ? `${grossed ? '<div class="sv-colhead cs-agate"><span>Golfers</span><span>Gross</span></div>' : ''}<div class="sv-rows">${info.players.map(p => `<div class="sv-row"><span class="nm cs-social">${esc(p.name)}</span><span class="fig">${p.gross != null ? esc(String(p.gross)) : ''}</span></div>`).join('')}</div>`
       : '';
     const when = fmtD(info.played_on);
     card.className = strip ? '' : 'sv-short';
