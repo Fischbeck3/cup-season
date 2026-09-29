@@ -383,6 +383,14 @@ const courseBookWide = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W8 · W7-099 [A2-courses-7, B2-courses-5] · the label under the lead's rating rail names the object it is about: 'Your rating · 4.5', or 'Your rating · not yet' for a course you have not rated; never
+   'Not yours yet', which read as 'this course is not yours' */
+const mineLabel = async (page) => page.evaluate(() => {
+  const l = document.querySelector('#youCourses [data-csmine]')
+  if (!l) return 'the lead draws no rating label'
+  const t = l.textContent.trim()
+  return /^Your rating \u00b7 (\d\.\d|not yet)$/.test(t) ? true : `the rating label reads ${JSON.stringify(t)}`
+})
 const courseCard = (id, courseId, title, want, circle = true) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
@@ -395,7 +403,7 @@ const courseCard = (id, courseId, title, want, circle = true) => ({
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card'), courseCircle(circle)),
+    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',

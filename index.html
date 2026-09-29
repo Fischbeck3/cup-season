@@ -14557,6 +14557,9 @@ function paintCourseHint(){
    MacBook is not reading it on a phone and L-32 is about telling the truth. */
 const CS_COURSE_KEY = 'cs.courses.v1';
 const CS_COURSE_CAP = 40;
+/* W7-099 · the label under the rating rail names the object it is about: 'Your rating · 4.5', and for an unrated course 'Your rating · not yet' (the empty rail's old label, 'Not yours yet', read as 'this
+   course is not yours'); one producer for the block and its live repaint */
+const csMineLabel = m => m != null ? `Your rating · ${Number(m).toFixed(1)}` : 'Your rating · not yet';
 const CS_COURSE_COPY = {
   neverKept: 'This course is not on this device. Cup Season keeps the courses you have played or planned; open this one with a signal and it will be here next time.',
   readFailed: 'Could not reach the course list. What this device has kept is below.',
@@ -18702,7 +18705,7 @@ function csRatingBlock(id, opts){
     + ` aria-label="${dir < 0 ? 'Half a star less' : 'Half a star more'}" aria-disabled="${csStepOff(mine, dir)}">${dir < 0 ? '−' : '+'}</button>`;
   const rail = `<div class="cs-rate-ctl">${step(-1)}`
     + csStarsSvg(mine || 0, mine == null, { size: o.size || CS_RATE_STAR, rate: id }) + `${step(1)}</div>`;
-  const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
+  const mineLab = csMineLabel(mine);
   /* the phone's own words for the field (RateCourseSheet: label, placeholder,
      caption), so the label stays when the placeholder has gone and the golfer
      is told who reads it */
@@ -19121,7 +19124,7 @@ function csCourseRowRepaint(box, id){
   if(fr) fr.innerHTML = (r.friends != null && r.friends_count > 0)
     ? `Your buddies ${one(r.friends)} <span style="color:var(--mut)">(${r.friends_count})</span>` : '';
   const mine = box.querySelector(`[data-csmine="${CSS.escape(String(id))}"]`);
-  if(mine) mine.textContent = r.mine != null ? `Your rating · ${one(r.mine)}` : 'Not yours yet';
+  if(mine) mine.textContent = csMineLabel(r.mine);
   /* the pair's bounds follow the rating: − stops at ½, + at 5 */
   box.querySelectorAll(`button[data-csstep="${CSS.escape(String(id))}"]`).forEach(b=>{
     b.setAttribute('aria-disabled', String(csStepOff(r.mine != null ? Number(r.mine) : null, Number(b.dataset.csdir))));
