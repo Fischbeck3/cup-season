@@ -168,12 +168,16 @@ struct SeasonBookPage: View {
           }.buttonStyle(.plain).accessibilityIdentifier("seasonBook.name.\(row.id)")
         }
       }.frame(width:140).background(cs.bg1)
+      // W5 twin · the grid OPENS ON ITS WEEK: a live season's current week is
+      // scrolled into view rather than left off the right edge on a phone
+      ScrollViewReader { proxy in
       ScrollView(.horizontal) {
         VStack(spacing:0) {
           HStack(spacing:0) {
             ForEach(book.weeks) { w in
               VStack(spacing:0) { Text("W\(w.week)"); Text(CSDate.local(w.starts_on)?.formatted(.dateTime.month(.abbreviated).day()) ?? w.starts_on) }.csType(.agateS)
                 .frame(width:width,height:44)
+                .id("book.week.\(w.week)")
                 .accessibilityLabel("Week \(w.week), starting \(CSDate.short(w.starts_on))")
                 .foregroundStyle(book.live && w.week == book.current_week ? cs.brandInk : cs.ink)
                 .background(book.live && w.week == book.current_week ? cs.brand : cs.bg1)
@@ -194,6 +198,11 @@ struct SeasonBookPage: View {
             }
           }
         }
+      }
+      .onAppear {
+        guard book.current_week > 0 else { return }
+        proxy.scrollTo("book.week.\(book.current_week)", anchor: .center)
+      }
       }
     }
   }
