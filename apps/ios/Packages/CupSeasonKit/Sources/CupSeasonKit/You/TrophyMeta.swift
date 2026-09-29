@@ -87,6 +87,18 @@ public enum TrophyMeta {
     return AchMeta(glyph: "medal", title: (label ?? "").isEmpty ? "Milestone" : label!)
   }
 
+  /// N4-192 · a milestone's headline where only its title and a round's gross
+  /// are printed (the Record widget). A personal best is measured against the
+  /// course, not by the gross printed under it — "Personal best 81" sat beside
+  /// a record whose best was 79 — so its headline carries the achievement's
+  /// own fact, from the trophy case's producer: "Personal best · 7.8 vs course".
+  public static func headline(_ a: Achievement) -> String {
+    let title = meta(kind: a.kind, label: a.label).title
+    guard a.kind == "personal_best" else { return title }
+    let fact = achSubtitle(kind: a.kind, label: a.label, meta: a.meta)
+    return fact.hasSuffix("vs course") ? "\(title) · \(fact)" : title
+  }
+
   /// `achSubtitle(a)`. D210 · the personal best is the engine's lowest
   /// round vs course (IOS-016's mechanic); the receipt's own name for that
   /// figure is "Round vs course", so the tile says "7.8 vs course" — never
