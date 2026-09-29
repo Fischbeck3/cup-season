@@ -1660,6 +1660,14 @@ button.payer{cursor:pointer;}
 #view-stats[data-courses-empty] [data-courses]{display:none;}
 .fine{font-size:13px; color:var(--mut); line-height:1.6; padding:10px 2px 0;}
 .fine b{color:var(--ink);}
+/* TEN / W6 · TP-20 (detector P3): desk prose ran 81–148 characters a line at
+   1280. At the desk width a paragraph keeps a reading measure of 60ch. A
+   CENTRED paragraph centres its block too, or the measure would pull it off
+   its axis — several set their margin inline, so the centring must win. */
+@media(min-width:960px){
+  p.fine, p.endgamefoot, .hocc > p, #optLive > p, #optPlan > p{max-width:60ch;}
+  p.fine[style*="text-align:center"]{margin-left:auto !important; margin-right:auto !important;}
+}
 
 /* ============ league / settings ============ */
 .setgrid{display:block;}
