@@ -42,12 +42,18 @@ struct ReceiptMoment: View {
       // ring off the side of the screen
       ground.accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 0) {
-        if let course, !course.isEmpty {
-          Text(course).csType(.agateS, caps: true).foregroundStyle(ink.opacity(0.86))
+        // N4-072 · the marker medallion rides the photo's top-trailing corner;
+        // the two lines under it keep clear of it rather than print through it
+        Group {
+          if let course, !course.isEmpty {
+            Text(course).csType(.agateS, caps: true).foregroundStyle(ink.opacity(0.86))
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          Text(dateline).csType(.agateS, caps: true).foregroundStyle(ink.opacity(0.86))
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, CSTokens.Space.s1)
         }
-        Text(dateline).csType(.agateS, caps: true).foregroundStyle(ink.opacity(0.86))
-          .padding(.top, CSTokens.Space.s1)
+        .padding(.trailing, stamped ? CSTokens.Space.s6 : 0)
         if let gross {
           // THE SCORE IS A TOURNAMENT FIGURE — the board face, never the serif
           Text("\(gross)").csType(.figureXL).foregroundStyle(ink)
@@ -93,6 +99,8 @@ struct ReceiptMoment: View {
   }
 
   private var ink: Color { onPhoto ? CSTokens.dark.scrimInk : cs.ink }
+  /// The marker medallion is drawn over a photograph only (D59).
+  private var stamped: Bool { onPhoto && marker != nil }
   /// The card's one shape: what it is clipped to, and the accessibility
   /// frame VoiceOver draws round it.
   private var card: RoundedRectangle { RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous) }
