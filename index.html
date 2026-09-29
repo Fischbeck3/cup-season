@@ -2325,11 +2325,14 @@ body.guestlive #onboard{display:none !important;}
 .holestrip .key s.u{border-radius:50%;}
 .holestrip .key s.l{width:4px; height:4px; border:none; background:var(--mut); border-radius:50%;}
 .holestrip .key b{margin-left:auto; font-weight:400;}
-.prow{
-  display:flex; align-items:center; gap:10px;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:12px;
-  padding:10px 12px; margin-top:8px;
-}
+/* TEN / W6 · DX2 TP-22 · THE `.prow` CARD RULE IS GONE. Two rules drew one
+   row: this one's bg1 fill, 1px border and 12px corner, and the later
+   hairline-row rule's `padding:11px 0` and top rule, so every `.prow` outside
+   Golfers was a card whose content touched its own sides (the wizard's Pro
+   row, the people picker's buddies). A row never gets a container (UI_SYSTEM
+   §3.1): each `.prow` is now the row the later rule lays out, with the rule
+   between rows as its only line. `.pcell .prow` keeps its own layout and
+   loses only the frame. */
 .prow .sw{width:9px; height:28px; border-radius:3px; flex:none;}
 .prow .nm{flex:1; min-width:0;}
 .prow .nm b{font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:6px;}
@@ -2722,12 +2725,8 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 #view-wizard .eyebrow{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
 #view-wizard label.f{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
 #view-wizard .ptag{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);}
-/* TEN / W6 · delta G6: the Pro row is a CARD here (the first .prow rule's
-   ground, border and radius), but the later hairline-row .prow rule zeroes
-   its sides, and 3324ae89 took the tag's own right inset for Golfers' slats
-   — so "THE PRO" sat flush on the card's right border. The card keeps its
-   inset; the slats keep theirs. */
-#view-wizard #commishChip.prow{padding-left:var(--s3); padding-right:var(--s3);}
+/* (TEN / W6 · delta G6's side inset for the wizard's Pro row went with TP-22:
+   with no card there is no border for "THE PRO" to sit flush against.) */
 /* a question takes a section's space above it — it sat 4px under the
    sentence before it */
 #view-wizard .eyebrow.wizq{margin-top:var(--s4);}

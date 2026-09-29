@@ -31,6 +31,23 @@ async function tapUntil(page, sel, done, tries = 4) {
   return false
 }
 
+/* TEN / W6 · DX2 TP-22 · a row never gets a container (UI_SYSTEM §3.1): no
+   fill, no border on its sides or foot, no corner. The rule between rows is
+   its only line. Every drawn element under `sel` must be a row. */
+const isRow = (sel, what) => async (page) => page.evaluate(({ sel, what }) => {
+  const rows = [...document.querySelectorAll(sel)].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+  if (!rows.length) return `${what}: no ${sel} is drawn`
+  const alpha = (c) => { c = c || ''; const sl = /\/\s*([0-9.]+)\s*\)\s*$/.exec(c); if (sl) return parseFloat(sl[1]); const m = /rgba?\(([^)]+)\)/.exec(c); if (!m) return /^color\(/.test(c) ? 1 : 0; const v = m[1].split(','); return v[3] !== undefined ? parseFloat(v[3]) : 1 }
+  for (const el of rows) {
+    const cs = getComputedStyle(el), bad = []
+    if (alpha(cs.backgroundColor) > 0) bad.push(`a ${cs.backgroundColor} fill`)
+    if (['Left', 'Right', 'Bottom'].some((k) => (parseFloat(cs['border' + k + 'Width']) || 0) > 0)) bad.push('a border on its sides or foot')
+    if ((parseFloat(cs.borderTopLeftRadius) || 0) > 0) bad.push(`a ${cs.borderTopLeftRadius} corner`)
+    if (bad.length) return `${what} is a card, not a row (§3.1): ${bad.join(', ')}`
+  }
+  return true
+}, { sel, what })
+
 /* ------------------------------------------------------ SCHEDULE & PLAN */
 const toSchedule = async (page) => {
   await page.evaluate(() => { window._schedFrom = null; window.switchView('schedule') })
@@ -70,15 +87,9 @@ const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } },
-    /* TEN / W6 · delta G6: the Pro row is a card, and "THE PRO" sat flush on
-       its right border (3324ae89 took the tag's own inset for Golfers' slats) */
-    check: all(async (page) => page.evaluate(() => {
-      const row = document.getElementById('commishChip'), tag = row && row.querySelector('.ptag'), mk = row && row.querySelector('.pmk')
-      if (!row || !tag || !mk) return 'the Pro row is missing'
-      const r = row.getBoundingClientRect(), t = tag.getBoundingClientRect(), m = mk.getBoundingClientRect()
-      const right = Math.round(r.right - t.right), left = Math.round(m.left - r.left)
-      return right >= 8 && left >= 8 ? true : `the Pro row's content touches its border: tag ${right}px from the right, marker ${left}px from the left`
-    }),
+    /* TEN / W6 · DX2 TP-22: the Pro row is a row, not a card whose content
+       touched its sides (delta G6's inset patched the card; the card is gone) */
+    check: all(isRow('#commishChip', 'the Pro row'),
     /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
     async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
     noRetiredGlyph()) },
@@ -303,6 +314,20 @@ const DESK = [
    as DX2's draft/formation state set it), then the page's own router. The
    room's dusk ground takes the gutter on all three sides (UI_SYSTEM §3.4):
    its last line of text stands at least a gutter above the ground's foot. */
+/* TEN / W6 · DX2 TP-22 · the people picker (Golfers' "Find golfers"): with
+   nothing typed it lists your buddies, each a `.prow` */
+const PICKER = [
+  { family: 'golfers', id: 'find-sheet', variant: 'member', fullPage: false, title: 'Find golfers · the people picker, listing your buddies',
+    drive: async (page) => {
+      await until(page, () => typeof window.openFindGolfers === 'function')
+      await page.evaluate(() => window.openFindGolfers())
+      await until(page, () => { const s = document.getElementById('sheet'); return !!s && s.classList.contains('open') && !!document.querySelector('#ppList .prow') }, null, 10000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-home', sheet: '^Find golfers$', selectors: { '#ppFind': 'visible', '#ppList .prow': 'visible' } },
+    check: isRow('#ppList .prow', "the picker's buddy row") },
+]
+
 const DRAW = [
   { family: 'draft', id: 'formation', variant: 'pro', title: 'The draw room of a real league in the draw, as its Pro',
     prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
@@ -324,4 +349,4 @@ const DRAW = [
     }) },
 ]
 
-export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK, ...DRAW]
+export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK, ...DRAW, ...PICKER]
