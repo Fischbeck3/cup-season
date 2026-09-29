@@ -79,8 +79,7 @@ struct SocialActivitySheet: View {
           if inbox.missing {
             Text("Comment activity needs the latest server update.").csType(.body).foregroundStyle(cs.mut)
           } else if inbox.items.isEmpty && !inbox.loading && inbox.error == nil {
-            Text("When someone comments on your round or replies to you, it will be here.")
-              .csType(.body).foregroundStyle(cs.mut)
+            Text(SocialNotice.inboxEmpty).csType(.body).foregroundStyle(cs.mut)
           }
           ForEach(inbox.items) { notice in
             CSRule()
