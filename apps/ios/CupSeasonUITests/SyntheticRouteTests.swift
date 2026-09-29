@@ -24,13 +24,18 @@ final class SyntheticRouteTests: XCTestCase {
 
   // MARK: launching
 
+  /// The reading size is PINNED, never inherited (as `N2UITestCase` pins
+  /// it): a simulator left at an accessibility size by a capture pass ran
+  /// the default-size flows at AX3, where the live page's Finish sits three
+  /// swipes lower and the recap never came up (N4, 2026-09-28).
   @MainActor private func launch(_ scenario: String, _ route: String? = nil, _ detail: String? = nil,
-                                 theme: String = "dark", size: String? = nil, extra: [String] = []) -> XCUIApplication {
+                                 theme: String = "dark", size: String? = "large", extra: [String] = []) -> XCUIApplication {
     let app = XCUIApplication()
     var args = ["-cs_dev_synthetic", scenario]
     if let route { args += ["-cs_dev_open", route] + (detail.map { [$0] } ?? []) }
     args += ["-cs_dev_appearance", theme] + (extra.contains("-cs_dev_look") ? [] : ["-cs_dev_look", "none"])
-    if let size { args += ["-cs_dev_text_size", size] }
+    // an explicit `-cs_dev_text_size` in `extra` (a dump at AX3) wins over the pin
+    if let size, !extra.contains("-cs_dev_text_size") { args += ["-cs_dev_text_size", size] }
     app.launchArguments = args + extra
     app.launch()
     // Every synthetic launch draws at least one `cs.screen.*` mark (the boot's
