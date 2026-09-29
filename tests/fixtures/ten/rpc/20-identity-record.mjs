@@ -561,5 +561,7 @@ export default function install(W) {
     },
     /* 20261027090000_a_post_can_be_asked_about.sql */
     round_post_status: ({ p_request_id }) => (W.postReceipts || {})[p_request_id] || null,
+    /* 20260712010000_social_graph.sql: set_discoverable(p_mode) sets the viewer's own profile and returns void */
+    set_discoverable: ({ p_mode }) => { const p = prof(me); if (p) p.discoverable = p_mode; return null },
   }
 }

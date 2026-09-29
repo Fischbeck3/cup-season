@@ -282,3 +282,101 @@ export const bandContrast = (card, parts) => async (page) => {
   console.log(`[bandContrast] ${card} @${Math.round(got.clip.width)}w · ${log.join(' · ')}`)
   return bad.length ? 'copy over the photograph under AA (§10.3): ' + bad.join('; ') : true
 }
+
+/* TEN / W8 · W7-009 · L-34 and UI_SYSTEM §16A.4 (one fact, one encoding, per
+ * viewport): at the desk a second print of a fact yields to the first.
+ * `standsDown(sels)` fails the capture when an element a selector names (the
+ * sidebar's strip, an aside's headline) is drawn at 960 or wider, or when the
+ * page never built it (the check must find the element it says stands down).
+ * Below 960 the desk's shape is not drawn and the check passes. */
+export const standsDown = (sels) => async (page) => page.evaluate((sels) => {
+  if (innerWidth < 960) return true
+  const bad = []
+  for (const sel of sels) {
+    const el = document.querySelector(sel)
+    if (!el) { bad.push(`${sel} was never built, so nothing yielded`); continue }
+    const r = el.getBoundingClientRect(), cs = getComputedStyle(el)
+    if (cs.display !== 'none' && r.width > 0 && r.height > 0) bad.push(`${sel} still prints (${JSON.stringify((el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 50))})`)
+  }
+  return bad.length ? 'the desk prints a fact twice (§16A.4): ' + bad.join('; ') : true
+}, sels)
+
+/* TEN / W8 · W7-011, W7-012 · UI_SYSTEM §16.1 and WCAG 1.4.11: rule may
+ * separate and never state, and a mark that carries a state reads at 3:1 or
+ * better on its ground. `stateContrast(parts)` measures each part
+ * `{ sel, prop, min, what }` (the first VISIBLE element's computed colour, its
+ * `prop` — backgroundColor or a border colour — against the first opaque
+ * ground above it) and fails the capture when a ratio is under `min` or a
+ * part is not drawn. */
+export const stateContrast = (parts) => async (page) => {
+  const got = await page.evaluate((parts) => {
+    const rgb = (c) => (c.match(/[\d.]+/g) || []).slice(0, 4).map(Number)
+    const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+    const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+    const ground = (el) => { for (let p = el.parentElement; p; p = p.parentElement) { const c = rgb(getComputedStyle(p).backgroundColor); if (c.length >= 3 && (c.length < 4 || c[3] > 0.99)) return c } return [255, 255, 255] }
+    return parts.map((p) => {
+      const el = [...document.querySelectorAll(p.sel)].find((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+      if (!el) return { what: p.what, missing: true }
+      const c = rgb(getComputedStyle(el)[p.prop]), g = ground(el)
+      const a = lum(c), b = lum(g)
+      return { what: p.what, min: p.min, ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) }
+    })
+  }, parts)
+  const bad = got.filter((r) => r.missing || r.ratio < r.min).map((r) => (r.missing ? `${r.what} is not drawn` : `${r.what} ${r.ratio.toFixed(2)}:1, under ${r.min}:1`))
+  console.log(`[stateContrast] ${got.filter((r) => !r.missing).map((r) => `${r.what} ${r.ratio.toFixed(2)}`).join(' · ')}`)
+  return bad.length ? 'a state is drawn in rule or too faint (§16.1): ' + bad.join('; ') : true
+}
+
+/* TEN / W8 · W7-014 · UI_SYSTEM §4: the gap between two sections is s5 (32px),
+ * and a section head that opens its wrapper still follows a block. `headGap(
+ * sels, min)` fails the capture when a visible head a selector names has less
+ * than `min` px above it, or when none is drawn. The gap is the head's own
+ * margin-top: the rule that pulled it to 4px is what this pins. */
+export const headGap = (sels, min = 32) => async (page) => page.evaluate(([sels, min]) => {
+  const bad = []; let seen = 0
+  for (const sel of sels) for (const el of document.querySelectorAll(sel)) {
+    const r = el.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0)) continue
+    seen++
+    const m = parseFloat(getComputedStyle(el).marginTop)
+    if (m < min) bad.push(`${sel} ${JSON.stringify((el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30))} has ${m}px above it`)
+  }
+  if (!seen) return 'the state draws none of ' + sels.join(', ')
+  return bad.length ? `a section head clings to the block above it (s5 is ${min}px, §4): ` + bad.join('; ') : true
+}, [sels, min])
+
+/* TEN / W8 · W7-025 · UI_SYSTEM §12.1 and §14.1: the desk sidebar's season
+ * list marks where you are — one row current (`.active`, the 3px tick) and
+ * said to a screen reader (`aria-current`), and it is the row of the section
+ * in view, not always 'The season'. `deskMenuIs(name)` fails a desk capture
+ * when the marked row is not `name`, or when the row is marked by one channel
+ * only. Below 960 the sidebar is not drawn and the check passes. */
+export const deskMenuIs = (want) => async (page) => page.evaluate((want) => {
+  if (innerWidth < 960) return true
+  const rows = [...document.querySelectorAll('#deskMenu .navitem')]
+  const cur = rows.filter((r) => r.classList.contains('active')), aria = rows.filter((r) => r.getAttribute('aria-current'))
+  const names = cur.map((r) => r.textContent.trim().replace(/’/g, "'"))
+  if (names.length !== 1 || names[0] !== want) return `the desk menu marks ${JSON.stringify(names)}, expected ${JSON.stringify([want])}`
+  if (aria.length !== 1 || aria[0] !== cur[0]) return 'aria-current is not on the marked row alone'
+  return true
+}, want)
+
+/* TEN / W8 · W7-032 · UI_SYSTEM §7.2: a segment is a 44pt row of agate labels
+ * on a hairline with a 2px ink underline under the chosen one — no pill, no
+ * track fill, no radius. `isSystemSegment(sel, chosen)` fails the capture when
+ * the control is not the system segment (`.cs-seg`), wears a radius or a track
+ * fill, has a tab under 44px, has `aria-pressed` disagree with `.on`, has no
+ * group name, or when `chosen` (the label expected chosen) is not the chosen
+ * one with a 2px underline. */
+export const isSystemSegment = (sel, chosen) => async (page) => page.evaluate(([sel, chosen]) => {
+  const seg = document.querySelector(sel); if (!seg) return `${sel} is not drawn`
+  const cs = getComputedStyle(seg), tabs = [...seg.querySelectorAll('button')]
+  if (!seg.classList.contains('cs-seg')) return `${sel} is not the system segment (.cs-seg)`
+  if (parseFloat(cs.borderTopLeftRadius) > 0 || cs.backgroundColor !== 'rgba(0, 0, 0, 0)') return `${sel} wears a pill (radius ${cs.borderTopLeftRadius}, fill ${cs.backgroundColor})`
+  if (!seg.getAttribute('role') || !seg.getAttribute('aria-label')) return `${sel} has no group name`
+  const small = tabs.filter((b) => b.getBoundingClientRect().height < 44); if (small.length) return `a tab in ${sel} is ${Math.round(small[0].getBoundingClientRect().height)}px tall`
+  const on = tabs.filter((b) => b.getAttribute('aria-pressed') === 'true')
+  if (on.length !== 1 || !on[0].classList.contains('on') || tabs.filter((b) => b.classList.contains('on')).length !== 1) return `aria-pressed and .on disagree in ${sel}`
+  if (on[0].textContent.trim() !== chosen) return `${sel} has ${JSON.stringify(on[0].textContent.trim())} chosen, expected ${JSON.stringify(chosen)}`
+  const u = getComputedStyle(on[0]).borderBottomWidth
+  return u === '2px' ? true : `the chosen tab has a ${u} underline, not 2px`
+}, [sel, chosen])

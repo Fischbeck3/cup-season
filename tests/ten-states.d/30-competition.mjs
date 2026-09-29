@@ -19,8 +19,9 @@
  * that must be showing; a fall-through to the Door, Home or a blank pane fails.
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
+import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -100,6 +101,12 @@ const text = (sel) => (page) => page.evaluate((sel) => ((document.querySelector(
 /* innerText carries text-transform, so a name set in caps reads in caps: match case-blind */
 const has = (sel, re, what) => async (page) => { const t = await text(sel)(page); return new RegExp(re, 'i').test(t) ? true : `${what}: ${JSON.stringify(t.slice(0, 160))} !~ /${re}/i` }
 
+/* the light printing's flipped tokens, read from the source (packages/tokens/tokens.json) */
+const LIGHT_PRINTING = (() => {
+  const doc = JSON.parse(readFileSync(new URL('../../packages/tokens/tokens.json', import.meta.url), 'utf8')), out = {}
+  for (const g of Object.values(doc.groups)) for (const [n, t] of Object.entries(g.tokens)) if (t.light !== undefined && String(t.light) !== String(t.dark)) out[n] = String(t.light)
+  return out
+})()
 /* ------------------------------------------------------------ the world */
 const NG = { league: 'f3000000-0000-4000-8000-000000000001', season: 'f4000000-0000-4000-8000-000000000011' }
 /* the Pro's own instructions (D129): a pot seven of eight have paid into was
@@ -128,7 +135,7 @@ const onNorthGrove = async (page) => { const f = await seasonFacts(page); return
 /* AW2-04: at the desk the climb draws only its cut, and "What's on it" yields
    to the pot beside it, so the rungs, the seat line and the line card are
    words the phone's shape must draw and the desk's must not */
-const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#climbNote', below: 960 }, '#climb .climb-cut', { sel: '#climb .climb-rung .voice', below: 960 },
+const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#climbNote', below: 960 }, { sel: '#climb .climb-cut', below: 960 }, { sel: '#climb .climb-rung .voice', below: 960 },
   '#scenarioLine', { sel: '#lineSplit', below: 960 }, { sel: '#homeSeason .ontheline .ok', below: 960 }, '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
   '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
   { sel: '#seasonJump button', below: 960 }, { sel: '.tabbar .tab', below: 960 }]
@@ -138,6 +145,14 @@ const SEASON = [
     drive: async (page) => { await toSeasonViaBand(page); await page.evaluate(() => window.scrollTo(0, 0)); await scrollSettled(page) },
     expect: { view: 'view-hub', selectors: { '#seasonScoreboard': 'visible', '#seasonDateline': 'text:Week 8 of 13', '#seasonLead': 'visible' } },
     check: all(onNorthGrove, inViewport('#seasonScoreboard', 'the season head'),
+      /* TEN / W8 · W7-028 [B2-season-24]: the story link carries no typed arrow (AW2-08) and its second channel is the rule beneath it (§16.4) */
+      async (page) => page.evaluate(() => {
+        const a = document.getElementById('seasonMore'), r = a.getBoundingClientRect()
+        if (!(r.width > 0)) return 'the story link is not drawn'
+        const cs = getComputedStyle(a), i = document.createElement('i'); i.style.color = 'var(--act)'; a.appendChild(i); const act = getComputedStyle(i).color; i.remove()
+        if (/[\u2192\u2197\u2190]/.test(a.textContent)) return `the story link carries a typed arrow: ${JSON.stringify(a.textContent)}`
+        return cs.borderBottomWidth === '2px' && cs.borderBottomColor === act ? true : `the story link has no 2px act rule under it (${cs.borderBottomWidth} ${cs.borderBottomColor})`
+      }),
       has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'),
       async (page) => page.evaluate(() => window.seasonStory && window.seasonStory.season && window.seasonStory.season.id === 'f4000000-0000-4000-8000-000000000011' ? true : 'season_story did not answer for North Grove')) },
   { family: 'season', id: 'leaderboard', variant: 'member', title: 'The season page, the table: two squads, the clash, every golfer', fullPage: false,
@@ -170,10 +185,10 @@ const SEASON = [
         if (story !== 'Fixture Javelinas lead by 34.') return `the story reads ${JSON.stringify(story)}`
         if (innerWidth < 960) return [...document.querySelectorAll('#climb .climb-rung')].some(shown) ? true : 'the phone lost its ladder'
         if ([...document.querySelectorAll('#climb .climb-rung, #climb .climb-ellip')].some(shown)) return 'the desk climb still draws the rungs the table draws'
-        const cut = document.querySelector('#climb .climb-cut')
-        if (!shown(cut)) return 'the desk climb does not draw its cut line'
-        const cutTxt = cut.innerText.replace(/\s+/g, ' ').trim()
-        if (cutTxt !== 'TOP SEED · +10 · 34 BACK') return `the cut line reads ${JSON.stringify(cutTxt)}`
+        /* W7-021: a two-squad season's cut is the seed line, which the table's cut row and its GAP column already print
+           (the fixture is two squads), so the whole climb column yields at the desk */
+        if (![...document.querySelectorAll('#homeSeason .homegrid > [data-desk-yields]')].length) return 'the desk climb column does not yield for a two-squad season'
+        if (['#climbEyebrow', '#climb', '#climb .climb-cut'].some((s) => shown(document.querySelector(s)))) return 'the desk still draws the climb card (its line is the table\'s cut row and GAP)'
         const note = document.getElementById('climbNote')
         if (shown(note) && note.innerText.trim()) return `the desk climb still says the seat line: ${JSON.stringify(note.innerText.trim())}`
         if ([...document.querySelectorAll('#homeSeason .ontheline')].some(shown)) return '"What\'s on it" still prints the pot beside the pot'
@@ -183,7 +198,19 @@ const SEASON = [
         ['the pot ($600)', '\\$600(?![\\d.,])']], 960),
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
-      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine'])) },
+      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine']),
+      /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
+      headGap(['#climbEyebrow', '#standingsEyebrow']),
+      /* TEN / W8 · W7-023 [B2-desk-9]: the individual board carries Last five inside the row at the desk (D280), and not below it */
+      async (page) => page.evaluate(() => {
+        const th = document.querySelector('#indTable th.deskonly'), rows = [...document.querySelectorAll('#indTable tr[data-ri]')]
+        const shown = (el) => !!el && el.getBoundingClientRect().width > 0
+        if (!th || !rows.length) return 'the individual table has no Last five head or no rows'
+        if (innerWidth < 960) return shown(th) ? 'Last five is drawn below the desk' : true
+        if (!shown(th) || th.textContent.trim() !== 'Last five') return 'the desk individual table draws no Last five column'
+        const bad = rows.filter((r) => r.querySelectorAll('td.deskonly .form5 i').length !== 5).length
+        return bad ? `${bad} of ${rows.length} rows lack the five dots` : true
+      })) },
   /* TEN / W6 · DX2 OB2-02 · the season six days before its first tee, and a
      league in its draw: the two heroes' lines (#khCount, #draftPoolSub).
      DX2's own states (season/kickoff, season/draft-phase): the synthetic
@@ -211,6 +238,8 @@ const SEASON = [
       /* the one lead change the rebuilt snapshots hold (week 2); the core
          world has no other season-long board history to tell */
       has('#seasonArc', 'Week 2[\\s\\S]*Fixture Javelinas took the lead from Fixture Wrens\\.', 'the arc’s lead change'),
+      /* TEN / W8 · W7-025 [B2-season-8]: the row that opened the story is the current one */
+      deskMenuIs("The season's story"),
       async (page) => page.evaluate(() => /TAKE THE LEAD IN WEEK 8/i.test(document.getElementById('seasonArc').innerText) ? 'the invented week-8 moment is still on the story' : true)) },
   { family: 'season', id: 'pot', variant: 'member', title: 'The season page, the money: $600 pot, $525 in, how to pay, a member reads the ledger', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
@@ -225,7 +254,9 @@ const SEASON = [
         return rows.filter((r) => r.classList.contains('paid')).length === 7 ? true : 'seven of eight should read paid'
       }),
       /* TEN / W6 · AW2-07: the pot is the board `figure`, never the serif */
-      noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt'])) },
+      noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt']),
+      /* TEN / W8 · W7-014 [B2-season-6]: 'Season stakes' and 'How to pay' take the section gap */
+      headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
   { family: 'season', id: 'pot-pro', variant: 'pro', title: 'The season page, the money, as the Pro: tap a name as money moves', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
     drive: (page) => toRoom(page, 'pot'),
@@ -235,7 +266,15 @@ const SEASON = [
         const rows = [...document.querySelectorAll('#payers .payer')]
         if (rows.length !== 8) return `${rows.length} payer rows, expected 8`
         return rows.every((r) => r.tagName === 'BUTTON') ? true : 'the Pro’s payer rows are not controls'
-      })) },
+      }),
+      /* TEN / W8 · W7-012 [B2-season-13]: the Pro's box carries the word (Paid / Not yet) and the empty box is mut,
+         never rule (§16.1); a member's rows already read the word */
+      async (page) => page.evaluate(() => {
+        const st = [...document.querySelectorAll('#payers .payer .st')].map((e) => e.textContent.trim())
+        return st.length === 8 && st.filter((x) => x === 'Paid').length === 7 && st.filter((x) => x === 'Not yet').length === 1 ? true : `the Pro's rows say ${JSON.stringify(st)}`
+      }),
+      stateContrast([{ sel: '#payers .payer:not(.paid) .tick', prop: 'borderTopColor', min: 3, what: 'the unpaid box' }]),
+      headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
   /* TEN / W6 · DX2 OB2-03 · the Pro's "Cancel this season", opened and NOT
      confirmed: North Grove is under way, so it is the consent flow's sheet,
      and its armed control is §7.1's destructive tier */
@@ -253,9 +292,102 @@ const SEASON = [
   { family: 'season', id: 'rules', variant: 'member', title: 'The season page, the rules in sentences', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: (page) => toRoom(page, 'league'),
-    expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible' } },
+    expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible', '#hubSeasonRevoke': 'text:^Turn off$' } },
     check: all(onNorthGrove, inViewport('#room-league', 'the rules'),
-      async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty')) },
+      async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
+      /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
+         scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
+         scrolled back, the rules again (the scroll-spy, not only the click) */
+      async (page) => {
+        if (!(await isDesk(page))) return true
+        const names = await page.evaluate(() => [...document.querySelectorAll('#deskMenu .navitem')].map((r) => r.textContent.trim().replace(/\u2019/g, "'")))
+        if (names.join('|') !== "The season|The schedule|The rules|The season's story") return `the desk season list reads ${JSON.stringify(names)}`
+        const r0 = await deskMenuIs('The rules')(page); if (r0 !== true) return r0
+        const y = await page.evaluate(() => window.scrollY)
+        await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(400)
+        const r1 = await deskMenuIs('The season')(page)
+        await page.evaluate((y) => window.scrollTo(0, y), y); await page.waitForTimeout(400)
+        return r1 !== true ? 'scrolled to the top, ' + r1 : deskMenuIs('The rules')(page)
+      }) },
+  /* TEN / W8 · W7-026 [X01] · UI_SYSTEM §13.3, keep what is on screen: the standings read fails on a REFRESH (the
+     season page was read once), and the table that was on screen stays, wearing "As of … · couldn't refresh", instead
+     of every squad drawn at 0 */
+  { family: 'season', id: 'standings-stale', variant: 'member', title: 'The season page, the table, after a refresh of the standings failed (the last table stays, under its dateline)', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toRoom(page, 'standings')
+      ctx.world.errors.table.v_squad_standings = { __error: 'fixture: the standings read failed', status: 503 }
+      await page.evaluate(() => window.loadStandingsAndFeed())
+      await until(page, () => !!document.getElementById('standingsStale'), null, 10000)
+      await page.waitForTimeout(400)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#standingsStale': 'text:^As of .* couldn.t refresh$' } },
+    check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
+      has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the last table stays (171 / 137), not every squad at 0'),
+      async (page) => page.evaluate(() => {
+        const t = document.getElementById('standingsStale')
+        return t.getBoundingClientRect().top > document.getElementById('standings').getBoundingClientRect().bottom - 2 ? true : 'the dateline is not under the table'
+      })) },
+  /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
+     the first week closes" (the phone's storyRead == .failed) */
+  { family: 'season', id: 'story-failed', variant: 'member', title: 'The season page, the story, when the story read failed', fullPage: false,
+    world: { errors: { rpc: { season_story: { __error: 'fixture: the story read failed', status: 503, code: 'XX000' } } } },
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => !!document.getElementById('seasonStoryRetry'), null, 10000)
+      await page.evaluate(() => document.getElementById('seasonStoryRetry').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#seasonStoryRetry': 'visible', '#seasonArc': 'text:Couldn.t load this' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => /starts when the first week closes/i.test(document.getElementById('seasonArc').innerText) ? 'a failed story read says the story has not started' : true)) },
+  /* TEN / W8 · W7-015 [B2-season-2] · the season album for a league whose rounds carry no photograph (every new league):
+     the written empty state runs the whole row of the three-column grid, and has its door (LINT-21) */
+  { family: 'season', id: 'album-empty', variant: 'member', world: { photo: 'none' }, title: 'The season page, the album, for a league with no photographs', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await page.evaluate(() => window.setRoomSeg('album'))
+      await until(page, () => /Photos land here/.test((document.getElementById('albumGrid') || {}).innerText || ''), null, 10000)
+      await page.evaluate(() => document.getElementById('albumGrid').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#albumGrid': 'text:Photos land here', '#albumGrid [data-empty-go]': 'visible' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const g = document.getElementById('albumGrid'), line = g.querySelector('.tempty')
+      if (!line) return 'the empty album has no empty-state block'
+      const w = line.getBoundingClientRect().width, gw = g.getBoundingClientRect().width
+      return w >= gw * 0.98 ? true : `the empty line is ${Math.round(w)}px in a ${Math.round(gw)}px grid (one third of the row)`
+    })) },
+  /* TEN / W8 · W7-011 [B2-season-12] · the week clock, cropped: the weeks played are ink, the live week brand
+     and tall, the weeks ahead mut — never rule (§16.1), so each reads as a state on the page's ground */
+  { family: 'season', id: 'month-clock', variant: 'member', title: 'The season page, the week clock (its own crop)', shot: '#monthClock',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toSeasonViaBand(page); await until(page, () => document.querySelectorAll('#monthClock .t.played').length > 0); await page.waitForTimeout(300) },
+    expect: { view: 'view-hub', selectors: { '#monthClock .t.played': 'visible', '#monthClock .t.now': 'visible' } },
+    check: all(onNorthGrove, stateContrast([
+      { sel: '#monthClock .t:not(.played):not(.now)', prop: 'backgroundColor', min: 4.5, what: 'the weeks ahead' },
+      { sel: '#monthClock .t.played', prop: 'backgroundColor', min: 12, what: 'the weeks played' },
+      { sel: '#monthClock .t.now', prop: 'backgroundColor', min: 3, what: 'the live week' }])) },
+  /* TEN / W8 · W7-008 [A2-season-1] · the season link's off switch is a word,
+     and armed: the first tap says what the next one does and turns nothing off */
+  { family: 'season', id: 'link-off', variant: 'member', title: 'The season page, the rules: the season link row at rest ("Link" and "Turn off")', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'league'); await page.locator('#hubSeasonRevoke').scrollIntoViewIfNeeded(); await page.waitForTimeout(300) },
+    expect: { view: 'view-hub', selectors: { '#hubSeasonRevoke': 'text:^Turn off$' } },
+    check: all(onNorthGrove, inViewport('#hubSeasonRevoke', 'the season link row')) },
+  { family: 'season', id: 'link-armed', variant: 'member', title: 'The season page, the rules: "Turn off" tapped once (armed, not confirmed)', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'league'); await click(page, '#hubSeasonRevoke'); await page.waitForTimeout(300) },
+    expect: { view: 'view-hub', selectors: { '#hubSeasonRevoke': 'text:^Sure\\? Turn it off$' } },
+    check: all(onNorthGrove, inViewport('#hubSeasonRevoke', 'the season link row'),
+      async (page) => page.evaluate(() => {
+        const b = document.getElementById('hubSeasonRevoke')
+        if (!b.classList.contains('is-armed') || b.dataset.armed !== '1') return 'the first tap did not arm the control'
+        return (window.__tenNet || []).some((n) => /revoke_share|create_share/.test(n.url)) ? 'the first tap already turned the link off' : true
+      })) },
 ]
 
 /* ------------------------------------------------------------ compete */
@@ -512,4 +644,29 @@ const EVENTS = [
     check: async (page) => page.evaluate((id) => (window.__tenNet || []).some((e) => e.url.includes('/rest/v1/events') && e.url.includes(id) && e.status === 503) ? true : 'the event read did not fail', E_LIVE) },
 ]
 
-export default [...SEASON, ...COMPETE, ...BOOK, ...EVENTS]
+/* ------------------------------------------------------------ print */
+/* TEN / W8 · W7-013 [B2-season-14] · the season page AS PRINTED. A probe, run with `--only print --widths 816`: print
+   media at a paper's width (816 CSS px is Letter at 96dpi), because a sheet is laid out at the page's width and not the
+   window's. From the dark or the light default the sheet prints the light printing: every token the light theme
+   flips (held to tokens.json, so a drifted print block fails here), the main text darker than the secondary text, and
+   both at AA on the paper. */
+const PRINT = [
+  { family: 'print', id: 'season', variant: 'member', probe: true, title: 'The season page as printed (print media, paper width), from the dark or the light default',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'standings'); await page.emulateMedia({ media: 'print' }); await page.waitForTimeout(500) },
+    expect: { view: 'view-hub' },
+    check: all(onNorthGrove, async (page) => page.evaluate((want) => {
+      const cs = getComputedStyle(document.documentElement)
+      const bad = Object.entries(want).filter(([n, v]) => cs.getPropertyValue('--' + n).trim().toLowerCase() !== v.toLowerCase()).map(([n, v]) => `--${n} is ${cs.getPropertyValue('--' + n).trim()}, the light printing is ${v}`)
+      return bad.length ? `the sheet does not print the light printing (${bad.length} of ${Object.keys(want).length} tokens): ` + bad.slice(0, 3).join('; ') : true
+    }, LIGHT_PRINTING),
+    stateContrast([{ sel: '#standingsStory', prop: 'color', min: 4.5, what: 'the story (ink) on the paper' },
+      { sel: '#standings th', prop: 'color', min: 4.5, what: 'a column head (mut) on the paper' }]),
+    async (page) => page.evaluate(() => {
+      const l = (c) => { const v = (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4 }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] }
+      const ink = l(getComputedStyle(document.querySelector('#standingsStory')).color), mut = l(getComputedStyle(document.querySelector('#standings th')).color)
+      return ink < mut ? true : 'the main text prints lighter than the secondary text'
+    })) },
+]
+
+export default [...SEASON, ...COMPETE, ...BOOK, ...EVENTS, ...PRINT]

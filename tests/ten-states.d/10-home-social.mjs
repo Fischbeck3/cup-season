@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast, standsDown } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -230,7 +230,14 @@ const GOLFERS = [
        under the search lists only what it does not — it drew Kit twice, with
        two Accepts */
     expect: { view: 'view-golfers', selectors: { '#glfBoard .fbrow.mine': 'visible', '#peopleRequests': 'text:Kit Specimen', '#crBud': 'text:Buddies · 5' } },
-    check: all(async (page) => page.evaluate(() => {
+    check: all(
+      /* TEN / W8 · W7-023 [B2-desk-9]: from 1100 up the ranking's rows sit inside one reading measure (760), not the whole track */
+      async (page) => page.evaluate(() => {
+        if (innerWidth < 1100) return true
+        const w = Math.max(...[...document.querySelectorAll('#glfBoard .fbrow')].map((r) => r.getBoundingClientRect().width))
+        return w <= 762 ? true : `a ranking row is ${Math.round(w)}px wide, past the 760px reading measure`
+      }),
+      async (page) => page.evaluate(() => {
       const rows = document.querySelectorAll('#glfBoard .fbrow').length
       if (rows !== 6) return `the board has ${rows} rows, expected 6 (me and five buddies)`
       if (!/Kit Specimen/.test(document.getElementById('peopleRequests').innerText)) return 'Kit’s request is not listed'
@@ -265,12 +272,16 @@ const GOLFERS = [
     },
     expect: { view: 'view-person', selectors: { '#perName': 'text:^Devon Testwell$', '#perAside .cred': 'visible', '#perOpenH2H': 'visible' } },
     check: all(async (page) => page.evaluate(() => {
-      const t = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
-      return /The record between you/i.test(t) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
+      /* the verdict is the head's sentence at the desk (W7-010 stands the aside's headline down there) and the aside's headline on the phone */
+      const aside = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
+      const t = document.getElementById('view-person').innerText.replace(/\s+/g, ' ')
+      return /The record between you/i.test(aside) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
     }),
     /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
     notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
-    noRetiredGlyph()) },
+    noRetiredGlyph(),
+    /* TEN / W8 · W7-010: at the desk the head says the record in prose and the season row as a figure, so the aside's bold headline stands down */
+    standsDown(['#perAside .perhl'])) },
   /* The person page's only door to the head-to-head is #perOpenH2H, drawn
      after tour_card lands -- and openPerson never gets that far (see the WX
      report: `sb.rpc(...).catch` is not a function on a PostgREST builder, so
