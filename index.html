@@ -554,6 +554,20 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   .deskbody.wide{grid-template-columns:minmax(0,1fr) 340px;}
   .deskaside{position:sticky; top:40px;}
 }
+/* TEN · Golfers below the desk: the two columns dissolve into one lane in the
+   phone's order — a request waiting on you, the ranking, the invite door, the
+   search and the roster, then who is playing soon. The DOM stays the desk's. */
+@media(max-width:959px){
+  #glfHub.deskbody{display:flex; flex-direction:column;}
+  #glfHub .deskmain, #glfHub .deskaside{display:contents;}
+  #glfHub .cmphead{order:1;} #glfRoot{order:2;} #peopleRequests{order:3;} #glfBoard{order:4;}
+  #glfPersonLink{order:5;} #youPeople{order:6;} #glfSoonWrap{order:7;}
+}
+@media(min-width:960px){
+  #glfAside #peopleRequests:not(:empty){margin-bottom:var(--s4);}
+  #glfAside #glfPersonLink .eyebrow:first-child, #glfAside #peopleRequests .eyebrow:first-child{margin-top:0;}
+}
+#glfSoonWrap{margin-top:var(--s5);}
 /* the peer row: mono eyebrow, name, one true sentence. No card, no border —
    a hairline between, the whole row a button (COMPONENT_SYSTEM's list weight) */
 .peerrow{
@@ -1083,6 +1097,16 @@ th.deskonly, td.deskonly{display:none;}
   flex:none; text-align:right; min-width:44px; font-variant-numeric:tabular-nums;
 }
 .round .pts small{display:block; font-size:11px; color:var(--mut); letter-spacing:.14em;}
+/* TEN · on the board a round's margin is a LABELLED figure: "+2.4" alone was
+   a signed number nobody could read (owner R, §16A.3), set as a green or red
+   bordered chip — the P&L axis D273 took off the phone's card. It is the
+   column face in mut now, with its unit under it, as PTS has. */
+#boardFull .round .pvi{background:none; border:0; border-radius:0; padding:0; color:var(--mut);
+  text-align:right; max-width:72px; font-family:var(--mono); font-size:14px; font-weight:500;}
+#boardFull .round .pvi.up,#boardFull .round .pvi.dn{color:var(--mut);}
+#boardFull .round .pvi small{display:block; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; line-height:1.2; margin-top:2px;}
+#boardFull .fcard .round.has-photo .pvi{color:var(--scrim-mut);}
 
 /* ============ draft ============ */
 .draftgrid{display:block;}
@@ -3443,8 +3467,19 @@ body.noleague .league-only{display:none !important;}
 .prow .pmeta b{font-size:14px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}   /* a name wraps whole */
 .prow .pmeta small{font-size:13px; color:var(--mut);}
 .prow .pact{flex:none; display:flex; gap:6px;}
-.ptag{flex:none; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--mut); padding:2px 8px; white-space:nowrap;}
-.ptag.ok{color:var(--pos);} .ptag.pos{color:var(--act);}   /* "Wants to add you" is a request to answer, not a contest */
+/* TEN · a relationship STATUS is a label in agate mut, never a green word
+   that reads as a button (craft C; D359: pos is performance, not a tie) */
+.ptag{flex:none; font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); padding:2px 0 2px 8px; white-space:nowrap;}
+.ptag.ok{color:var(--mut);} .ptag.pos{color:var(--act);}   /* "Wants to add you" is a request to answer, not a contest */
+/* TEN · on Golfers a person is a SLAT on the page's rule, not the boxed card
+   `.prow` also draws elsewhere (TP-22: a card whose content touched its own
+   border, one rule overriding half of another). Scoped to this page: the
+   live-scoring and rivalry rows keep theirs. */
+#view-golfers .prow{background:none; border:0; border-radius:0; border-top:1px solid var(--rule);
+  margin:0; padding:var(--s2) 0; min-height:52px;}
+/* the name is the `social` role here (a person off the board is title case,
+   §1.3); the shared `.prow .pmeta b` rule would otherwise hold it at 14px */
+#view-golfers .prow .pmeta b.cs-social{font-family:var(--board); font-size:17px; font-weight:600; color:var(--ink);}
 body:not(.noleague) #hubLeagueless{display:none;}
 /* Up Next strip — what's coming, one glance, hides when empty */
 #homeUpNext:not(:empty){display:block; margin:var(--s5) 0 0;}   /* the foot list starts a clear step below the wire */
@@ -3619,14 +3654,20 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* D180 · a standing notice row — amber, an icon, room to breathe. Used where
    the app reports a state the golfer chose, never to scold them for it. */
 /* D177 · the buddies invite-link door */
+/* TEN · Golfers' ONE invite door is a door ROW on the page's rules, not a
+   bordered box (§3.1) and not the old zero-padded dark button: the verb in
+   body, the gloss in agate sentence case (TP-18: no off-token tracking), a
+   chevron as furniture (D359: a way in is not a metal) */
 .pdoorlink{display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--rc);
-  padding:11px 13px; min-height:44px; cursor:pointer; text-align:left;
-  font-family:var(--sans); color:var(--ink);}
-.pdoorlink span{font-size:13.5px; font-weight:600;}
-.pdoorlink small{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut);}
-.pdoorlink::after{content:'→'; position:absolute; right:13px; color:var(--act);}
-.pdoorlink{position:relative;}
+  background:none; border:0; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  padding:var(--s3) var(--s5) var(--s3) 0; min-height:44px; cursor:pointer; text-align:left;
+  font-family:var(--sans); color:var(--ink); position:relative;}
+.pdoorlink span{font-size:15px; font-weight:600;}
+.pdoorlink small{color:var(--mut);}
+.pdoorlink::after{content:'\203A'; position:absolute; right:0; top:50%; transform:translateY(-50%); color:var(--mut); font-size:17px;}
+.pdoorlink[aria-expanded="true"]::after{transform:translateY(-50%) rotate(90deg);}
+.pdoorlink:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.invpick{display:flex; flex-wrap:wrap; gap:var(--s2); padding:var(--s3) 0 0;}
 /* D176: the lead card — ember, because every face of it is something still
    running (a clash mid-week, a month not yet closed, a table that just moved).
    Gold would be wrong: nothing on this card is earned yet. */
@@ -4066,8 +4107,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .cstape .rail{position:relative; flex:1; height:46px; display:flex; align-items:center;}
 .cstape .rail::before{content:''; position:absolute; left:0; right:0; top:50%;
   height:2px; margin-top:-1px; background:var(--ink);}
-.cstape .ticks{position:relative; display:flex; width:100%;}
-.cstape .ticks i{display:block; height:16px; max-width:17px;}
+.cstape .ticks{position:relative; display:flex; width:100%; justify-content:space-between; gap:var(--s1);}
+.cstape .ticks i{display:block; flex:0 1 16px; height:16px; min-width:4px; box-sizing:border-box;}
 .cstape .ticks i.me{background:var(--ink); transform:translateY(-12px);}
 .cstape .ticks i.them{border:1.7px solid var(--mut); transform:translateY(12px);}
 .cstape .ticks i.half{height:2px; background:var(--mut);}
@@ -6000,28 +6041,36 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <!-- GOLFERS (D222) — `view-people` promoted. The old route still works:
            `switchView('people')` resolves here through `csViewFor`. -->
       <section class="view" id="view-golfers">
-        <div class="deskbody wide">
+        <!-- TEN · THE DESK'S OWN SHAPE (D234; craft D, owner row "desk
+             golfers"). The people read down the reading column — the ranking,
+             then the roster it is drawn from, with the search that grows it.
+             The ACTS sit in the aside, where the eye rests: a request waiting
+             on you (D177: it outranks the page, so it heads the aside), the one
+             invite door, and who is playing soon. It was one long column and a
+             340px aside holding two lines. Below 960 both columns dissolve into
+             the phone's own order (request, ranking, invite, people, soon). -->
+        <div class="deskbody wide" id="glfHub">
           <div class="deskmain">
             <div class="cmphead"><h2>Golfers</h2></div>
             <div id="glfRoot" style="text-align:left"></div>
-            <div id="peopleRequests" style="text-align:left"></div>
-            <!-- IOS-032 / D245 - THE BOARD. It sits above the buddies list
+            <!-- IOS-032 / D245 - THE RANKING. It sits above the buddies list
                  because "who is playing well right now" is the question friends
-                 actually ask; the list under it is the roster the board is
-                 drawn from. -->
+                 actually ask; the list under it is the roster it is drawn from. -->
             <div id="glfBoard" style="text-align:left"></div>
-            <!-- D241 - THE PERSON LINK. Below the requests and the board on
-                 purpose (D177: a person waiting on you outranks everything
-                 else on this page), and above the roster, because the golfer
-                 with nobody in their list is the one it is for. -->
-            <div id="glfPersonLink" style="text-align:left"></div>
             <div id="youPeople" style="text-align:left"></div>
           </div>
-          <!-- R-15 · the head is rendered WITH its content, never over nothing.
-               A head with an empty box under it is a promise (L-32). -->
-          <aside class="deskaside" id="glfSoonWrap" hidden>
-            <div class="eyebrow">Playing soon</div>
-            <div id="glfSoon" style="text-align:left"></div>
+          <aside class="deskaside" id="glfAside">
+            <div id="peopleRequests" style="text-align:left"></div>
+            <!-- D241 - THE PERSON LINK, now the ONE invite door (it asks
+                 buddy-or-season). The golfer with nobody in their list is the
+                 one it is for. -->
+            <div id="glfPersonLink" style="text-align:left"></div>
+            <!-- R-15 · the head is rendered WITH its content, never over nothing.
+                 A head with an empty box under it is a promise (L-32). -->
+            <div id="glfSoonWrap" hidden>
+              <div class="eyebrow">Playing soon</div>
+              <div id="glfSoon" style="text-align:left"></div>
+            </div>
           </aside>
         </div>
       </section>
@@ -6114,7 +6163,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
   </header>
   <div id="feedListFull"></div>
   <div class="composer bf-comp">
-    <input class="f" id="chatInFull" placeholder="Message the league…">
+    <input class="f" id="chatInFull" placeholder="Post to the board…">
     <button class="btn" id="chatSendFull" style="width:auto; padding:0 18px;">Send</button>
   </div>
 </div>
@@ -9209,7 +9258,7 @@ function renderFeedFull(force){
             <div class="rline">${counting}</div>
             ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} STRAIGHT UNDER</span></div>`:''}
           </div>
-          ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
+          ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}<small>vs playing HCP</small></span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
           ${r.photo_url && r.profile_id && window.mkr ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : ''}
         </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
@@ -21059,17 +21108,47 @@ function renderGolfers(){
      that cannot open is the one thing not permitted (L-32). */
   const plink=document.getElementById('glfPersonLink');
   if(plink){
+    /* TEN · ONE INVITE DOOR THAT ASKS. The page drew two near-identical doors
+       — "Text someone a link" (D241's person link, a zero-padded dark button)
+       and, under the search, "Send an invite link" (a season's join link) —
+       for one act. This is the one door: with no season code it sends the
+       person link at once; with codes it asks which — as a buddy, or into
+       which season — and sends that. Both links are the same two that
+       existed; nothing new is minted. */
+    const codes=(window.CS?.memberships||[]).filter(m=>m.league?.code).map(m=>m.league);
     plink.innerHTML = `<div class="eyebrow">Bring someone in</div>
-      <button class="btn dark" id="glfPersonLinkBtn" style="display:block;width:100%;text-align:left">
-        <span style="display:block">Text someone a link</span>
-        <span class="fine" style="display:block;padding:0">Works for anyone · no account needed</span>
-      </button>`;
-    plink.querySelector('#glfPersonLinkBtn').addEventListener('click', async(e)=>{
-      const b=e.currentTarget; if(b.disabled) return; b.disabled=true;
-      const r = await csShareIntentLink('person', window.CS?.profile?.id,
+      <button type="button" class="pdoorlink" id="glfInviteBtn" aria-expanded="false">
+        <span>Send an invite link</span>
+        <small class="cs-agate-s is-phrase">Works for anyone, account or not</small>
+      </button>
+      <div id="glfInvitePick" class="invpick" hidden role="group" aria-label="Invite them"></div>`;
+    const btn=plink.querySelector('#glfInviteBtn'), pick=plink.querySelector('#glfInvitePick');
+    const person=async()=>{
+      if(btn.disabled) return; btn.disabled=true;
+      await csShareIntentLink('person', window.CS?.profile?.id,
         `${window.CS?.profile?.display_name || 'A golfer'} wants you in their golf. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.`);
-      b.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
+      btn.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
+    };
+    const season=lg=>{
+      const url=`https://cupseason.app/?join=${lg.code}`;
+      if(navigator.share) navigator.share({ title:'Cup Season', text:`You're invited to ${lg.name} on Cup Season`, url }).catch(()=>{});
+      else { navigator.clipboard?.writeText(url); toast('Invite link copied'); }
+    };
+    btn.addEventListener('click', ()=>{
+      if(!codes.length) return person();
+      const open=!pick.hidden;
+      pick.hidden=open; btn.setAttribute('aria-expanded', String(!open));
+      if(!open && !pick.dataset.built){
+        pick.innerHTML=`<button type="button" class="mini" data-invperson>As a buddy</button>`
+          + codes.map((m,i)=>`<button type="button" class="mini" data-invseason="${i}">Into ${esc(m.name)}</button>`).join('');
+        pick.dataset.built='1';
+        pick.querySelector('[data-invperson]')?.addEventListener('click', person);
+        pick.querySelectorAll('[data-invseason]').forEach(b=>b.addEventListener('click',()=>season(codes[+b.dataset.invseason])));
+      }
     });
+    /* while the page's empty root is up, its own "Text someone a link" IS this
+       door, so the section stands down rather than printing it twice */
+    plink.hidden = !!document.querySelector('#glfRoot .emptyroot');
   }
   /* D245 · the board sits above the buddies list, because "who is playing well
      right now" is the question friends actually ask and the list under it is
@@ -21080,8 +21159,11 @@ function renderGolfers(){
     if(soonWrap) soonWrap.hidden = false;
     /* R-15 · L-32, both halves: the head renders WITH its content, and the
        empty state ends in a next move rather than in a full stop. */
+    /* TEN · a sentence line says its day in sentence case ("today", "Sun"),
+       not the caps token a rail uses ("TODAY" mid-sentence read as a shout) */
+    const dayWord = iso => { const t = String(csDayToken(iso)||''); return t === 'TODAY' ? 'today' : t.charAt(0) + t.slice(1).toLowerCase(); };
     soon.innerHTML = rows.length
-      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(csDayToken(sr.play_on))} ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
+      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(dayWord(sr.play_on))} · ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
       : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one →</a></p>';
     soon.querySelector('#glfSoonPlan')?.addEventListener('click', e=>{ e.preventDefault(); window.openDeclareSheet?.(); });
   }
@@ -26283,11 +26365,12 @@ function psRow(r, actionHTML){
      credential), the home course follows (it is the reason you might have met). */
   const idx  = (r.index_current!=null && typeof fmtIdx==='function') ? fmtIdx(r.index_current)
              : (r.index_current!=null ? String(r.index_current) : null);
-  const line2 = ['@'+esc(r.handle||'?'), idx ? esc(idx)+' number' : null, r.city?esc(r.city):null]
+  /* TEN · "9.8 number" is not how a golfer says it (owner D): "index 9.8" */
+  const line2 = ['@'+esc(r.handle||'?'), idx ? 'index '+esc(idx) : null, r.city?esc(r.city):null]
                   .filter(Boolean).join(' · ');
   const home = r.home_course ? `<small style="color:var(--mut)">${esc(r.home_course)}</small>` : '';
   return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker, 36) : mkr(r.marker||'saguaro')}</span>
-    <span class="pmeta" data-tc="${r.profile_id}" role="button" tabindex="0"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
+    <span class="pmeta" data-tc="${r.profile_id}" role="button" tabindex="0"><b class="cs-social">${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
       <small>${line2}</small>${home}</span>${actionHTML}</div>`;
 }
 function psFriendTag(rel){
@@ -26323,43 +26406,8 @@ async function renderCrewPeople(){
     <div id="crResults" style="margin-top:10px"></div>
     <div id="crLink" style="margin-top:10px"></div>
     <div id="crBud" style="margin-top:6px"></div>`;
-  {
-    /* the LEAGUE join link is the only invite link that exists — a buddy-invite
-       link is a different mechanic and would need a decision, not a tidy. So:
-       offer what is real, or offer nothing. */
-    /* Y-04 · the row NAMES the league it invites people INTO. It used to take
-       `.find(m=>m.code)` and say nothing, so a golfer in two leagues sent the
-       wrong link and never saw which. With more than one code in hand it asks. */
-    /* `loadMemberships()` selects `league:leagues(id,name,code,phase,sandbox)`,
-       so the code and the name live one level down — `m.code` is undefined on
-       every row and the filter used to return []. */
-    const codes=(window.CS?.memberships||[]).filter(m=>m.league?.code).map(m=>m.league);
-    const el=document.getElementById('crLink');
-    if(codes.length && el){
-      const one=codes.length===1;
-      const sub=(one?`${codes[0].name} \u00b7 works for anyone, account or not`
-                    :'Choose the season \u00b7 works for anyone, account or not').toUpperCase();
-      el.innerHTML=`<button type="button" class="pdoorlink" id="crLinkBtn" aria-expanded="false">
-        <span>Send an invite link</span><small>${esc(sub)}</small></button>
-        <div id="crLinkPick" hidden style="margin-top:6px"></div>`;
-      const share=lg=>{
-        const url=`https://cupseason.app/?join=${lg.code}`;
-        if(navigator.share) navigator.share({ title:'Cup Season', text:`You're invited to ${lg.name} on Cup Season`, url }).catch(()=>{});
-        else { navigator.clipboard?.writeText(url); toast('Invite link copied'); }
-      };
-      const btn=document.getElementById('crLinkBtn'), pick=document.getElementById('crLinkPick');
-      btn.addEventListener('click', ()=>{
-        if(one) return share(codes[0]);
-        const open=!pick.hidden;
-        pick.hidden=open; btn.setAttribute('aria-expanded', String(!open));
-        if(!open && !pick.dataset.built){
-          pick.innerHTML=codes.map((m,i)=>`<button type="button" class="mini" data-inv="${i}" style="margin:0 6px 6px 0">${esc(m.name)}</button>`).join('');
-          pick.dataset.built='1';
-          pick.querySelectorAll('[data-inv]').forEach(b=>b.addEventListener('click',()=>share(codes[+b.dataset.inv])));
-        }
-      });
-    }
-  }
+  /* TEN · the season join link lives in the ONE invite door above
+     (`#glfInviteBtn`, which asks buddy-or-season); #crLink stays empty */
   const paint = async () => {
     const data = await psFriends();
     /* D222 / L-32 · the destination's own root. A read that did not answer says
@@ -26380,9 +26428,15 @@ async function renderCrewPeople(){
     const bare = !buds.length && !reqs.length && !out.length;
     if(root){
       root.innerHTML = bare ? csEmptyRootHtml(csEmptyRoot('golfers', {})) : '';
+      /* TEN · each door does what it says: "Text someone a link" focused the
+         SEARCH field like "Find golfers" did. It opens the invite now, and the
+         separate "Bring someone in" section stands down while the root is up,
+         so the empty page offers its two acts once each, not twice. */
       if(bare) root.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>{
+        if(b.dataset.erdoor==='personLink'){ document.getElementById('glfInviteBtn')?.click(); return; }
         document.getElementById('crFind')?.focus();
       }));
+      const pl=document.getElementById('glfPersonLink'); if(pl) pl.hidden = bare;
     }
     /* TEN · one request block: the head block (#peopleRequests) owns what it
        shows, and this section lists only what it does not (csDedupeCrReq
@@ -26398,7 +26452,9 @@ async function renderCrewPeople(){
     document.getElementById('crBud').innerHTML =
       (bare ? '' :
         `<div class="eyebrow">Buddies${buds.length?' · '+buds.length:''}</div>`+
-        (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
+        /* TEN · every row under BUDDIES · 5 said "Buddies" again, in green that
+           read as a button (owner D, craft C): the head says it once */
+        (buds.length ? buds.map(f=>psRow(f,'')).join('')
           : '<p class="fine" style="padding:0">No buddies yet. Search up top to add them.</p>'))+
       (out.length ? `<div class="eyebrow">Requested</div>`+out.map(f=>psRow(f,'<span class="ptag">Requested</span>')).join('') : '');
     box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
@@ -26487,9 +26543,13 @@ async function renderRivalries(){
 function csTapeHtml(meetings, opts){
   const o = opts || {};
   if(!meetings || !meetings.length) return '';
+  /* TEN · one SQUARE per meeting, with a gap, spread along the rule so the
+     first and last dates sit under the first and last marks. A percentage
+     width capped at 17px left four wins abutting as one white bar, and the
+     end date ~250px from the last mark (owner P, critique-B P2). */
   const ticks = meetings.map(m => {
     const cls = m.won === true ? 'me' : m.won === false ? 'them' : 'half';
-    return `<i class="${cls}" style="width:${(100/meetings.length).toFixed(3)}%"></i>`;
+    return `<i class="${cls}"></i>`;
   }).join('');
   const rows = o.rows === false ? '' :
     `<span class="rows cs-agate-s"><span>YOURS</span><span>THEIRS</span></span>`;
@@ -27168,6 +27228,10 @@ function csH2HUsesHeuristic(h){ return !!h && h.facets.some(f => f.heuristic > 0
 /* the clause the PERSON page borrows */
 function csH2HPersonClause(h){
   if(!h || !h.settled) return null;
+  /* TEN · a level record is said as level. "Devon Testwell has beaten you
+     five times out of ten" framed a 5–5 as a loss over a record the same
+     page calls all square (owner E). Twin: HeadToHeadCopy.personClause. */
+  if(h.lead === 'even' && h.wins === h.losses) return `All square between you, ${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}.`;
   if(h.losses > 0) return `${h.name} has beaten you ${csSpelled(h.losses)} ${h.losses === 1 ? 'time' : 'times'} out of ${csSpelled(h.settled)}.`;
   return `You have taken all ${csSpelled(h.settled)} of them.`;
 }
@@ -27283,7 +27347,7 @@ async function renderFriendsBoard(){
   }catch(e){ missing = /PGRST202|does not exist|schema cache|42883/i.test(e?.message || ''); }
   if(rows === null){
     box.innerHTML = missing ? ''
-      : '<div class="eyebrow">The board</div><p class="fine" style="padding:0">The board didn’t load.</p>';
+      : '<div class="eyebrow">Among your buddies</div><p class="fine" style="padding:0">The ranking didn’t load.</p>';
     return;
   }
   /* a board of ONE is not a board — it is me, alone, ranked first of one. It
@@ -27316,11 +27380,16 @@ async function renderFriendsBoard(){
      (D201, one fact one place). */
   const rounds = r => Number(r.rounds_30d || 0);
   const signed = v => (v < 0 ? '\u2212' : '+') + Math.abs(v).toFixed(1);
+  /* TEN · A-3: "the board" is the season's thread, and this is not it — the
+     ranking is AMONG YOUR BUDDIES, and the form lens says its window (the
+     read is `friends_board(p_days: 30)`), because "+3.5" over an unstated
+     period is a claim nobody can check (owner R). The chosen lens is the
+     chosen pill (`.mini.sel`, aria-pressed), not a green word (§16.4, D359). */
+  const lensBtn = (k, t) => `<button class="mini${lens===k?' sel':''}" type="button" data-lens="${esc(k)}" aria-pressed="${lens===k?'true':'false'}">${esc(t)}</button>`;
   box.innerHTML = `
-    <div class="eyebrow" style="display:flex; align-items:center; gap:10px">The board
+    <div class="eyebrow" style="display:flex; align-items:center; gap:10px">${lens === 'form' ? 'Among your buddies \u00b7 last 30 days' : 'Among your buddies'}
       <span style="margin-left:auto; display:flex; gap:6px">
-        <button class="mini" type="button" data-lens="form"${lens==='form'?' style="border-color:var(--pos); color:var(--pos)"':''}>Form</button>
-        <button class="mini" type="button" data-lens="handicap"${lens==='handicap'?' style="border-color:var(--pos); color:var(--pos)"':''}>Handicap</button>
+        ${lensBtn('form', 'Form')}${lensBtn('handicap', 'Handicap')}
       </span></div>
     ${lens === 'form' ? '<div class="fbnote">Vs playing HCP \u00b7 plus is better</div>' : ''}
     ${sorted.map(r => {
@@ -27496,7 +27565,12 @@ async function openHeadToHead(profileId, fallbackName){
     }catch(_){ /* neither read answered */ }
   }
   const name = (h && h.name !== '—') ? h.name : (fallbackName || 'them');
-  if(head) head.textContent = `You and ${name}`;
+  /* TEN · ONE TITLE (craft H, critique-B P2, UI_SYSTEM §12.2). The page said
+     the pairing three times — "YOU AND DEVON TESTWELL", then the rivalry's
+     name, then "YOU AND DEVON" — two display heads 60px apart. The page's
+     own head is the title: the rivalry's name when it has one, the pairing
+     otherwise; the pairing rides as its agate line in the body. */
+  if(head) head.textContent = h && h.rivalryName ? h.rivalryName : `You and ${name}`;
   if(safe){ safe.innerHTML = csSafetyMenuHtml(profileId, name); csWireSafety(safe); }
 
   if(!h){
@@ -27519,11 +27593,13 @@ async function openHeadToHead(profileId, fallbackName){
     const mo = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     return (p.length===3 && p[1]>=1 && p[1]<=12) ? mo[p[1]-1]+' '+p[2] : ''; };
   const tapeSpoken = `${h.total || ms.length} meetings. You won ${h.wins}, ${name} won ${h.losses}.`;
+  /* the rivalry's name is a thing either golfer types (set_rivalry_name),
+     not a thing that was won: ink, never gold (D359) — and it is the title
+     now, so the body carries only the pairing it names */
   if(main) main.innerHTML = `
-    ${h.rivalryName ? `<div class="cs-agate" style="color:var(--gold)">${esc(h.rivalryName)}</div>` : ''}
-    <h3 class="cs-display" style="margin:2px 0 10px">${esc('You and ' + String(name).split(' ')[0])}</h3>
+    ${h.rivalryName ? `<div class="cs-agate" style="color:var(--mut); margin:0 0 10px">${esc('You and ' + name)}</div>` : ''}
     ${csH2HStandfirst(h) ? `<p class="cs-story" style="color:var(--ink); margin:0 0 18px">${esc(csH2HStandfirst(h))}</p>` : ''}
-    ${ms.length ? `<div class="eyebrow">Every meeting <span style="float:right; color:var(--mut)">${spanAll ? 'OLDEST FIRST' : 'LAST FIVE'}</span></div>
+    ${ms.length ? `<div class="eyebrow">${spanAll ? 'Every meeting' : 'The last five meetings'}</div>
       ${csTapeHtml(ms, { first: md(ms[0] && ms[0].on), last: md(ms[ms.length-1] && ms[ms.length-1].on), spoken: tapeSpoken })}` : ''}
     <div class="eyebrow" style="margin-top:16px">Where it was decided</div>
     <div class="csleaf"><table>
@@ -27536,12 +27612,20 @@ async function openHeadToHead(profileId, fallbackName){
       </tbody></table></div>
     ${h.facets.some(f => f.key === 'played_together') ? `<p class="fine">${esc(CS_H2H_NOT_A_VOUCH)}</p>` : ''}`;
 
+  /* TEN · the page where a rivalry is read ends on its next meeting (D363's
+     "Play with Devon", the person page's own door) as the one primary; the
+     card and the name are quiet links (§16A.5), not two equal buttons and
+     no way to play (critique-B P3) */
   if(aside) aside.innerHTML = `
-    <button class="btn dark" type="button" id="h2hCard" style="margin-bottom:8px">Open ${esc(name)}’s card</button>
-    <button class="btn dark" type="button" id="h2hName2">${h.rivalryName ? 'Rename “' + esc(h.rivalryName) + '”' : 'Name it'}</button>
+    <button class="btn" type="button" id="h2hPlay">${esc(CS_PLAY_WITH.head(name))}</button>
+    <p class="hstart"><a href="#" id="h2hCard">Open ${esc(name)}’s card</a><a href="#" id="h2hName2">${h.rivalryName ? 'Rename “' + esc(h.rivalryName) + '”' : 'Name it'}</a></p>
     <p class="fine">Give it a name your crew would actually say.</p>`;
-  document.getElementById('h2hCard')?.addEventListener('click', () => openPerson(profileId));
-  document.getElementById('h2hName2')?.addEventListener('click', () => openNameRivalry(profileId, name, h.rivalryName || ''));
+  document.getElementById('h2hPlay')?.addEventListener('click', () => {
+    window.qaEvent?.('cta_tapped', { door: 'play.with' });
+    window.csAskTheLength?.(profileId, name);
+  });
+  document.getElementById('h2hCard')?.addEventListener('click', (e) => { e.preventDefault(); openPerson(profileId); });
+  document.getElementById('h2hName2')?.addEventListener('click', (e) => { e.preventDefault(); openNameRivalry(profileId, name, h.rivalryName || ''); });
 }
 window.openHeadToHead = openHeadToHead;
 

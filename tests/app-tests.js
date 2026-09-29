@@ -1159,6 +1159,10 @@
           streak:{ who:'me', n:1 }, facets:{} }).streak, null);
       t('R4: the person clause is the one the card borrows',
         csH2HPersonClause(full), 'Galen has beaten you five times out of eleven.');
+      /* TEN (W3) · a 5–5 is level, never "has beaten you five times out of ten" */
+      t('TEN: a level record is said as level',
+        csH2HPersonClause(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:5,ties:0,total:10}, lead:'even', facets:{} })),
+        'All square between you, 5–5.');
       /* a real screenshot caught the first cut naming the golfer twice in two
          consecutive clauses — "Galen has won one title. Galen has beaten you…" */
       t('the day said out loud never shouts mid-sentence (L-33)',

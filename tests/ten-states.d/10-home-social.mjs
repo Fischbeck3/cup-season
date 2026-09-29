@@ -206,7 +206,9 @@ const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
       await toGolfers(page)
-      await until(page, () => document.querySelectorAll('#glfBoard .fbrow').length >= 2 && /Buddies/.test((document.getElementById('crBud') || {}).innerText || ''))
+      /* TEN (W3) · case-blind: the head renders "BUDDIES · 5" (innerText follows
+         the caps role) and the rows no longer repeat a mixed-case "Buddies" tag */
+      await until(page, () => document.querySelectorAll('#glfBoard .fbrow').length >= 2 && /Buddies/i.test((document.getElementById('crBud') || {}).innerText || ''))
       await page.waitForTimeout(400)
     },
     /* TEN (W3, 2026-09-28) · one request block: the head block
@@ -253,8 +255,15 @@ const GOLFERS = [
       await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-h2h' && !!document.querySelector('#h2hMain .csleaf'), null, 10000)
       await page.waitForTimeout(300)
     },
-    expect: { view: 'view-h2h', selectors: { '#h2hName': 'text:^You and Devon Testwell$', '#h2hMain .csleaf tbody tr': 'visible', '#h2hMain .cstape': 'visible' } },
-    check: async (page) => page.evaluate(() => /The Fixture Derby/i.test(document.getElementById('view-h2h').innerText) ? true : 'the rivalry name is missing') },
+    /* TEN (W3, 2026-09-28) · ONE TITLE: a christened rivalry's name is the
+       page's head, and the pairing ("You and Devon Testwell") is its agate
+       line — the page used to print the pairing twice around the name */
+    expect: { view: 'view-h2h', selectors: { '#h2hName': 'text:^The Fixture Derby$', '#h2hMain .csleaf tbody tr': 'visible', '#h2hMain .cstape': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = document.getElementById('view-h2h').innerText
+      if (!/You and Devon Testwell/i.test(t)) return 'the pairing is missing'
+      return document.querySelectorAll('#view-h2h .cs-display').length ? 'a second display title is on the page' : true
+    }) },
   { family: 'golfers', id: 'board', variant: 'member', title: 'The league board · chat, round posts, kudos, a comment count', fullPage: false,
     drive: async (page) => {
       await page.evaluate(() => window.switchView('board'))
