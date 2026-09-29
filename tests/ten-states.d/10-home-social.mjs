@@ -420,6 +420,22 @@ const oneDisc = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W7-045 [A2-golfers-7] · the person page's ONE primary is the way to
+   play, in the aside under the record; "See the whole record" is a tier-3
+   link, never the heavier door */
+const playPrimary = async (page) => page.evaluate(() => {
+  const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
+  const plays = [...document.querySelectorAll('#perMain [data-playwith], #perAside [data-playwith]')].filter(seen)
+  if (plays.length !== 1) return `${plays.length} play doors on the page, expected one`
+  const play = plays[0]
+  if (!play.closest('#perAside')) return 'the play door is not in the aside, under the record'
+  if (!play.classList.contains('btn') || play.classList.contains('dark')) return 'the play door is not the page’s primary'
+  const others = [...document.querySelectorAll('#perMain .btn, #perAside .btn')].filter((b) => seen(b) && b !== play && !b.classList.contains('dark'))
+  if (others.length) return 'another primary competes with the play door: ' + others.map((b) => b.id || b.textContent.trim()).join(', ')
+  const rec = document.getElementById('perOpenH2H')
+  if (rec && (rec.tagName !== 'A' || rec.classList.contains('btn') || !rec.closest('.hstart'))) return '“See the whole record” still outweighs the act'
+  return /they’re in it from the start\./.test(play.parentElement.textContent) ? true : 'the play door lost its line'
+})
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -487,7 +503,9 @@ const GOLFERS = [
     notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
     noRetiredGlyph(),
     /* TEN / W8 · W7-010: at the desk the head says the record in prose and the season row as a figure, so the aside's bold headline stands down */
-    standsDown(['#perAside .perhl'])) },
+    standsDown(['#perAside .perhl']),
+    /* TEN / W7-045 [A2-golfers-7]: the page's one primary is the way to play, in the aside under the record */
+    playPrimary) },
   /* TEN / W8 · W7-019 · at the desk a click on the scrim closes the board, as the sheet's does (a dialog) */
   { family: 'golfers', id: 'board-scrim', variant: 'member', desk: true, fullPage: false, title: 'The league board, dismissed by a click on the scrim (desk)',
     drive: async (page) => {

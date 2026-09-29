@@ -31055,12 +31055,14 @@ async function openPerson(profileId){
         <td class="ag">${x.last_played ? 'Last played ' + esc(csDayToken(x.last_played)) : ''}</td>
         <td class="rt">${Number(x.rounds || 0)} round${Number(x.rounds || 0) === 1 ? '' : 's'}</td></tr>`).join('')}</tbody></table>` : ''}
     ${caseLine ? `<div class="dsec"><span>The record</span><i></i><span></span></div><p class="fine" style="padding-top:0">${esc(caseLine)}</p>` : ''}
-    ${shared ? `<p class="cstatus">${esc(csBothPlayed(card.shared_courses || []))}</p>` : ''}
-    <div class="eyebrow" style="margin-top:18px">Play</div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <button class="mini" type="button" data-playwith="1">${esc(CS_PLAY_WITH.head(name))}</button>
-    </div>
-    <p class="fine" style="padding-top:6px">A round together, a head-to-head, or a season — they're in it from the start.</p>`;
+    ${shared ? `<p class="cstatus">${esc(csBothPlayed(card.shared_courses || []))}</p>` : ''}`;
+  /* TEN / W7-045 [A2-golfers-7] · the page's ONE primary is the way to play,
+     under the record in the aside, as the head-to-head page draws it (#h2hPlay)
+     and the phone's PersonPage.action does. It was a small `.mini` in the main
+     column while "See the whole record" was a full-width button: the reading
+     door outweighed the act. The record's door is a tier-3 link now. */
+  const playDoor = `<button class="btn" type="button" data-playwith="1" style="margin-top:18px">${esc(CS_PLAY_WITH.head(name))}</button>
+    <p class="fine" style="padding-top:6px">A round together, a head-to-head, or a season \u2014 they\u2019re in it from the start.</p>`;
 
   /* the aside IS the record between the two of you - the desk's own shape */
   if(aside){
@@ -31073,16 +31075,16 @@ async function openPerson(profileId){
         ${csH2HStandfirst(h2h) ? `<p class="fine" style="padding-top:0">${esc(csH2HStandfirst(h2h))}</p>` : ''}
         ${h2h.facets.map(f => `<div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>`).join('')}
         ${csH2HUsesHeuristic(h2h) ? `<p class="fine">${esc(CS_H2H_HEURISTIC)}</p>` : ''}
-        <button class="btn dark" type="button" id="perOpenH2H" style="margin-top:10px">See the whole record</button>`;
-      document.getElementById('perOpenH2H')?.addEventListener('click', () => openHeadToHead(profileId, name));
+        <p class="hstart"><a href="#" id="perOpenH2H">See the whole record</a></p>` + playDoor;
+      document.getElementById('perOpenH2H')?.addEventListener('click', (e) => { e.preventDefault(); openHeadToHead(profileId, name); });
     } else {
       aside.innerHTML = object + `<div class="eyebrow" style="margin-top:24px">The record between you</div>
-        <p class="fine" style="padding:0">Nothing between you yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
+        <p class="fine" style="padding:0">Nothing between you yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>` + playDoor;
     }
   }
   /* D363 · one door, headed the same way as the sheet it opens; the person
      rides into whichever of the three ways is picked. */
-  main?.querySelectorAll('[data-playwith]').forEach(b => b.addEventListener('click', () => {
+  aside?.querySelectorAll('[data-playwith]').forEach(b => b.addEventListener('click', () => {
     window.qaEvent?.('cta_tapped', { door: 'play.with' });
     window.csAskTheLength?.(profileId, name);
   }));
