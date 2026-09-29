@@ -282,3 +282,21 @@ export const bandContrast = (card, parts) => async (page) => {
   console.log(`[bandContrast] ${card} @${Math.round(got.clip.width)}w · ${log.join(' · ')}`)
   return bad.length ? 'copy over the photograph under AA (§10.3): ' + bad.join('; ') : true
 }
+
+/* TEN / W8 · W7-009 · L-34 and UI_SYSTEM §16A.4 (one fact, one encoding, per
+ * viewport): at the desk the sidebar's strip yields a fact to the page that
+ * prints it. `standsDown(sels)` fails the capture when a sidebar element a
+ * selector names is drawn at 960 or wider, or when the sidebar never built it
+ * (the check must find the element it says stands down). Below 960 the
+ * sidebar is not drawn and the check passes. */
+export const standsDown = (sels) => async (page) => page.evaluate((sels) => {
+  if (innerWidth < 960) return true
+  const bad = []
+  for (const sel of sels) {
+    const el = document.querySelector(sel)
+    if (!el) { bad.push(`${sel} was never built, so nothing yielded`); continue }
+    const r = el.getBoundingClientRect(), cs = getComputedStyle(el)
+    if (cs.display !== 'none' && r.width > 0 && r.height > 0) bad.push(`${sel} still prints (${JSON.stringify((el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 50))})`)
+  }
+  return bad.length ? 'the desk sidebar repeats a fact the page prints: ' + bad.join('; ') : true
+}, sels)

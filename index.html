@@ -474,13 +474,20 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    was "14.2 YOUR NUMBER" beside "14.2 HANDICAP INDEX"); the composer's eyebrow
    prints it (NW-5); the season page's table owns the standings (the gap was
    drawn four times in one window); the schedule and the record list the next
-   and the last round. The page's print is the object; the chrome stands down. */
+   and the last round. The page's print is the object; the chrome stands down.
+   W7-009 · and You's Form row and Recent rounds open on the last round; the
+   schedule's empty state and its "Put a round on the schedule" carry planning
+   (so "Plan one" stands down); an empty record says the first round is
+   missing and holds the door (so the sidebar's sentence and its door go). */
 @media(min-width:960px){
   .shell:has(#view-stats.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-post.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-hub.active) #sideMe [data-mego="season_row"],
   .shell:has(#view-schedule.active) #sideMe [data-mego="my_next_round"],
-  .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"]{display:none;}
+  .shell:has(#view-schedule.active) #sideMe [data-mego="plan_one"],
+  .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
+  .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"],
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay){display:none;}
 }
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,

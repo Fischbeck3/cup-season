@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -62,7 +62,8 @@ const SCHEDULE = [
       notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink']),
       noRetiredGlyph()) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
-    drive: toSchedule, expect: { view: 'view-schedule' } },
+    /* TEN / W8 · W7-009: the empty schedule and its own door carry planning, so the sidebar's "Plan one" stands down */
+    drive: toSchedule, expect: { view: 'view-schedule' }, check: standsDown(['#sideMe [data-mego="plan_one"]']) },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
     drive: async (page) => {
       await toSchedule(page)
@@ -307,7 +308,8 @@ const DESK = [
     expect: { view: 'view-golfers' }, check: deskCheck },
   { family: 'desk', id: 'you', variant: 'member', desk: true, title: 'The desk · You',
     drive: async (page) => { await click(page, '.navitem[data-v="stats"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-stats'); await page.waitForTimeout(900) },
-    expect: { view: 'view-stats' }, check: deskCheck },
+    /* TEN / W8 · W7-009: You's Form row and Recent rounds open on the last round, so the sidebar's LAST row stands down */
+    expect: { view: 'view-stats' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : standsDown(['#sideMe [data-mego="my_last_round"]'])(page) } },
 ]
 
 /* ------------------------------------------------------------ THE DRAW */
