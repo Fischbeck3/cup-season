@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. |
-| **Status read at** | **`144ee0b0`** on integration: every lane (W1–W6), root's fixes through `7141516f`, and E's native phase 1 (`6716b0ed`). The web shipped as `272c2da1`. |
+| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every lane (W1–W6), root's fixes through `41cf8050` (round 2's included), and E's native phase 1 (`6716b0ed`). The previous web ship was `272c2da1`. |
 | **Date** | 2026-09-28 |
 | **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 |
@@ -50,8 +50,8 @@ Settled items are recorded as settled, with the commit that settled them. A defe
 
 **Recommendation: (b), today.**
 - It is the smallest change that keeps D359's signal readable on launch day, and it touches no palette.
-- It needs a phone build: TestFlight 1324 is being archived from `144ee0b0` without it.
-- So the ruling decides whether 1324 is the launch build or whether E makes the change and a new build is archived.
+- It needs a phone build. TestFlight 1324 (from `144ee0b0`) and 1328 (from `41cf8050`, being archived now) are both without it: no commit after `144ee0b0` touches the look resolver.
+- So the ruling decides whether 1328 is the launch build, or whether E makes the change and another build is archived.
 
 **Blocked until ruled:** N4-105; which build ships on Oct 1.
 
@@ -1185,7 +1185,9 @@ These need the owner's hands, not a ruling.
   - It was reverted on B's branch at `d355b115`, so it is held off main.
   - **Owner action:** take `d30f1ecb` from `claude/ten-w6-shared-2026-09-28` and `supabase db push` when you want it.
   - Its twins, when taken: `HomeFallbackItems.swift:100` and `SyntheticWorld+Home.swift:143` (N4), and the web fixture line.
-- **X42 in round 2.** The public plan link's "are in" is the top open item in round 2: category P0, owner P1. It still needs its migration written; none exists on integration.
+- **X42 in round 2.** The public plan link's "are in" was round 2's top item (category P0, owner P1).
+  - The client now says "on the plan", which is true whatever the server counts (09beefd3).
+  - The database half still needs its migration written; none exists on integration. It is what lets the card say "in" truthfully again.
 - **The clash lead's sentence** (`home_dispatch`, `20261006093000:243`) hides who holds the week. Root lists it as database owed, and it rides with Q10.
 
 ## E · Recorded by root, with no question
@@ -1195,5 +1197,6 @@ These need the owner's hands, not a ruling.
   - One index label per object: YOUR NUMBER on the viewer's own figure, and "Handicap index" on another golfer's card (57ca5eee; the phone's `YouScreen.swift:328` twin goes to N4).
   - The in-app `.btn` type role is the owner's (Q25).
   - The index-label ruling also answers session A's DEC-N4-4 for the index. The live seat's "PLAYING HCP" names a different figure, the index times the allowance.
-- **The wizard's "best four" is right** (W5, root: "resolved, not a defect"). Standard is best 3 with a two-round minimum, and the fixture league is a customised Standard (`counting_cap` 4). W5's `1d6ed619` now says "Custom, built on Standard" when the dials leave a preset.
+- **The wizard's "best four" is right** (W5, root: "resolved, not a defect"). Standard is best 3 with a two-round minimum, and the fixture league is a customised Standard (`counting_cap` 4). W5's `1d6ed619` says "Custom, built on Standard" when the dials leave a preset.
+  - Round 2 found the covenant still headed "Standard rules" for such a league. It now says "Custom rules, built on Standard" (3d3b9e55). The number was right, the label was not.
 - **Counsel should see one rename.** W4 renamed the "Prize Pool Disclaimer" to "The pot" in `legal.html` and `legal/*.md`, following TERMINOLOGY T-12 (0fca89d5). Every other clause is counsel's text, unchanged. It ships with the next web push, and a revert is one line.
