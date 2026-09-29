@@ -511,6 +511,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
         background:none; border:0; border-top:1px solid var(--rule);
         padding:11px 0; min-height:44px; cursor:pointer;}
 .cswire:first-child{border-top:0;}
+.cswire-ans .csans{margin:0 0 var(--s2) var(--rail); gap:var(--s4);}   /* the two ways out sit under the sentence, past the day marker */
 .cswire .mk{flex:none; width:34px; color:var(--mut); text-transform:none; letter-spacing:.02em;}
 .cswire .ln{flex:1; min-width:0; color:var(--mut);}
 .cswire .cv{flex:none; color:var(--mut);}
@@ -2461,14 +2462,14 @@ body.guestlive #onboard{display:none !important;}
 .hhero.earned .hh-pos{color:var(--gold);}
 .hhero .hh-ord{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--ord) * 1em); text-transform:uppercase; color:var(--mut); align-self:baseline;}
 .hhero .hh-move{display:inline-flex; align-items:center; gap:4px; border-radius:99px; padding:3px 9px; margin-left:auto;
-  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; background:rgba(78,197,132,.13); color:var(--pos);}
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); background:rgba(78,197,132,.13); color:var(--pos);}
 .hhero .hh-move.dn{background:rgba(255,95,86,.12); color:var(--neg);}
 .hhero .hh-move.flat{background:var(--bg2); color:var(--mut);}
 .hhero .hh-line{font-size:13.5px; line-height:1.5; color:var(--ink); margin:10px 0 0;}
 .hhero .hh-line em{font-style:normal; color:var(--brand); font-weight:600;}
 .hhero.earned .hh-line em{color:var(--gold);}
-.hhero .hh-foot{display:flex; align-items:center; gap:9px; margin-top:12px; padding-top:11px; border-top:1px solid var(--rule);
-  font-family:var(--mono); font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);}
+.hhero .hh-foot{display:flex; align-items:center; gap:var(--s2); margin-top:var(--s3); padding-top:var(--s3); border-top:1px solid var(--rule);
+  font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 .hhero .hh-bar{flex:1; height:5px; border-radius:99px; background:var(--bg2); overflow:hidden;}
 .hhero .hh-bar i{display:block; height:100%; border-radius:99px; background:var(--brand);}
 .hhero .hh-bar i.ok{background:var(--pos);}
@@ -2619,18 +2620,20 @@ body.guestlive #onboard{display:none !important;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
    what changed since you were last here, or (on a genuinely quiet day) it
    resurfaces the best recent thing so the open still reveals something. */
+/* TEN · "Since you were here" is a quiet note on the page's rule, not a
+   bordered box with a 3px EMBER spine (the spine is retired — UI_SYSTEM §0.3,
+   TP-09 / OB-06 — and ember is competition, D359; F4 had already said so).
+   The label is agate, never mono (§1.4); the sentence is body. */
 .digest{
-  font-family:var(--sans); font-size:13px; line-height:1.55; color:var(--mut);
-  background:var(--bg1); border:1px solid var(--rule);
-  border-left:3px solid var(--brand);
-  border-radius:12px; padding:10px 13px; margin-bottom:10px;
+  font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut);
+  background:none; border:0; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  padding:var(--s3) 0; margin-bottom:var(--s3);
 }
 .digest b{color:var(--ink); font-weight:650;}
 .digest .dk{
-  display:block; font-family:var(--mono); font-size:11px; letter-spacing:.08em;
-  text-transform:uppercase; color:var(--mut); margin-bottom:4px;
+  display:block; font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--mut); margin-bottom:var(--s1);
 }
-html[data-theme="light"] .digest{background:#FBFCFA;}
 /* v23.65: the feed loosens up — league notices read like a clubhouse note,
    not a terminal. Sans, sentence-sized, quiet gold accent instead of the
    dashed mono banner. */
@@ -4405,11 +4408,18 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 }
 /* a room's name is ink; --pos is a signed gain, and this is not one */
 .bf-hdr b{font-size:12px; letter-spacing:.14em; color:var(--ink);}
-.bf-hdr small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; margin-top:2px;}
+.bf-hdr small{display:block; font-family:var(--board); font-weight:600; font-size:11px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; margin-top:2px;}   /* a label: agate, not mono (§1.4) */
 #feedListFull{flex:1; overflow-y:auto; padding:6px 16px 12px; overscroll-behavior:contain;}
 .bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--rule); background:var(--bg0);}
 .rline{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rline .ok{color:var(--pos);} .rline .dim{color:var(--mut);}
+/* TEN · on the board a round card's lines are LABELS (course · holes · day,
+   the gross and its band, the counting state) — agate, not mono (§1.4 keeps
+   mono for codes, columns and times) — and its points are a figure in the
+   board face (§1.6). Scoped to the board takeover; the season card keeps its
+   own until its lane moves it. */
+#boardFull .round .l2, #boardFull .rline{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
+#boardFull .round .pts{font-family:var(--board); font-weight:700; font-size:20px; font-feature-settings:'tnum' 1,'lnum' 1;}
 
 /* views: settle rather than pop — on the roll, like everything else (L-30) */
 .view{animation:vin .26s var(--roll) both;}
@@ -4983,7 +4993,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div id="homePulse"></div>
           </div>
           <aside class="deskwire">
-            <div class="eyebrow withgo" id="homeFeedHead">Around your buddies<a href="#" data-go="board" id="homeBoardGo">THE BOARD ↗</a></div>
+            <!-- TEN · §16A.2: a section head's right-of-rule slot carries a count
+                 and nothing else. "THE BOARD ↗" sat in it as a link; the board's
+                 one door on Home is the foot list's row, which carries its count
+                 ("The board · 1 new today", renderHomeTiles). -->
+            <div class="eyebrow" id="homeFeedHead">Around your buddies</div>
             <div id="homeDigest"></div>
             <div id="homeFeed"></div>
           </aside>
@@ -18889,15 +18903,21 @@ function renderHomeFeed(){
     /* L-34 · one course's circle per course per section, on its newest round
        (the fold already orders each section newest first) */
     const seenCourse=new Set();
+    /* D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE (the phone's
+       `HomePage.headedPeriods`): a period holding ONE row gets no displayS
+       head, and the lone row keeps its own date and joins the run behind its
+       rule. The desk drew "TODAY" over a single line. */
+    const lone = b.items.length < 2;
     const rows=b.items.map(x=>{
-      if(x.kind!=='round') return momentRow(x.p, x.stamp, x.leagues);
+      const stamp = (lone && !x.stamp) ? (x.when || null) : x.stamp;
+      if(x.kind!=='round') return momentRow(x.p, stamp, x.leagues);
       const tk=(window.csTalkSocial && x.r.round_id) ? window.csTalkSocial[x.r.round_id] : null;
       const cid=tk && tk.course && tk.course.api_course_id!=null ? String(tk.course.api_course_id) : null;
       const first=!cid || !seenCourse.has(cid);
       if(cid) seenCourse.add(cid);
-      return feedRow(x.r, x.i, x.stamp, { course:first });
+      return feedRow(x.r, x.i, stamp, { course:first });
     });
-    html += `<div class="feedsec cs-display-s">${b.label}</div>`;
+    if(!lone) html += `<div class="feedsec cs-display-s">${b.label}</div>`;
     if(rows.length<=CAP+1) html += rows.join('');
     else html += rows.slice(0,CAP).join('')
       + `<details class="feedmore"><summary>Show ${rows.length-CAP} more · ${b.label.toLowerCase()}</summary>${rows.slice(CAP).join('')}</details>`;
@@ -19554,9 +19574,12 @@ function csDayMarker(iso){
    marker, a chevron because it knows where it goes. Never a second card. */
 function csWireLine(it, ctx){
   /* D353 · a wire line is ONE button, and a button may not contain buttons.
-     An item that can be answered renders as the quiet block instead, so its
-     two ways out are reachable wherever it lands in the deck. */
-  if(csAfterplan(it)) return csLeadBlock(it);
+     TEN · so an item that can be answered is the wire line AND its two ways
+     out beneath it, as SIBLINGS — not the lead block again: rendered as a
+     block it put a second serif headline and a second action door in the
+     viewport, under the real lead (critique-B P2, §15.1's one serif, §16A.5's
+     one primary). Later · Didn't play keep their 44px targets. */
+  if(csAfterplan(it) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}</div>`;
   const mk = csDayMarker(it.at);
   /* MW-02 · the league, when the sentence alone would not say which. Two
      `chapter:` items read "You are the one to catch." for two leagues and the
@@ -19655,7 +19678,7 @@ function renderHomeDispatch(){
   }));
   document.querySelectorAll('[data-ans]').forEach(b => b.addEventListener('click', () => {
     const plan = b.getAttribute('data-plan'), ans = b.getAttribute('data-ans');
-    const card = b.closest('.csedn');
+    const card = b.closest('.csedn, .cswire-ans');
     const btns = card ? Array.from(card.querySelectorAll('[data-ans]')) : [b];
     qaEvent('cta_tapped', { door: 'afterplan', tier: ans });   /* the family and the answer, nothing else */
     csAnswerPlan(plan, ans, btns);
