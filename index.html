@@ -11016,7 +11016,7 @@ const csModal = (() => {
     if(e.key === 'Escape' && !e.defaultPrevented){
       /* the ceremony keeps its own capture-phase Escape (it must also stop the
          sheet under it from closing on the same keypress) */
-      if(id === 'sheet') closeSheet();
+      if(id === 'sheet') dismissSheet();
       else if(id === 'boardFull') closeBoardFull();
       return;
     }
@@ -26763,6 +26763,7 @@ function confirmHandleChange(oldH, newH){
 }
 
 function openSheet(title, sub, bodyHtml){
+  window.csSheetGuard = null;   /* W7-042 · the sheet that is opened sets its own guard, after this call */
   $('#shTitle').textContent=title;
   $('#shSub').textContent=sub;
   $('#shSub').classList.remove('is-phrase');   /* TEN / W6 · TP-11 · a phrase sub-line is opted in per sheet (below) */
@@ -26787,15 +26788,25 @@ function openSheet(title, sub, bodyHtml){
     }));
   csModal.opened('sheet');   /* F03 · a replacement keeps the first opener; focus moves to the new title */
 }
+/* W7-042 · a DISMISSAL (the ×, the backdrop, Escape) is not a discard. closeSheet() is the close the code
+   calls on purpose and stays as it was; the three ways a golfer leaves ask the sheet first — a sheet that
+   holds unsaved edits sets `csSheetGuard`, which answers false to keep it open (openProfileHub's card) —
+   and openSheet clears it, since a sheet opened over another is another sheet. */
+function dismissSheet(){
+  if(window.csSheetGuard && window.csSheetGuard() === false) return;
+  closeSheet();
+}
+window.dismissSheet = dismissSheet;
 function closeSheet(){
+  window.csSheetGuard = null;
   $('#sheet').classList.remove('open');
   /* drop any keyboard-fit inline sizing so the next open starts clean */
   const p=$('#sheet .panel'); if(p){ p.style.maxHeight=''; p.style.bottom=''; }
   unlockBody();
   csModal.closed('sheet');   /* F03 · focus goes back to whatever opened it */
 }
-$('#shClose').addEventListener('click',closeSheet);
-$('#sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') closeSheet(); });
+$('#shClose').addEventListener('click',dismissSheet);
+$('#sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') dismissSheet(); });
 /* iOS: a drag that starts on the backdrop must not pan the page behind */
 $('#sheet').addEventListener('touchmove',e=>{ if(e.target.id==='sheet') e.preventDefault(); },{passive:false});
 /* Escape is csModal's: it closes the top layer only (F03) */
@@ -30884,6 +30895,8 @@ function phSwitchSet(el, on){ if(el) el.setAttribute('aria-checked', on ? 'true'
    the phone (CardAndSettingsScreen): the words and the photographs go and the
    shared links stop, the rounds stay so nobody else's table breaks. The web's
    sentence named one photo and said nothing of posts, comments or links. */
+/* W7-042 · what the card says when it is dismissed with edits pending (the phone's twin owes the same words) */
+const CS_CARD_UNSAVED = 'You have unsaved changes. Save them, or close again to leave without saving.';
 const CS_DELETE_ACCOUNT = 'This can\u2019t be undone. Your name, email and profile are removed, your posts and comments are cleared, your shared links stop working, and your photos are queued for removal. Notifications stop and your login is closed for good. Rounds you\u2019ve posted stay in the record so nobody else\u2019s standings or pot break \u2014 you\u2019ll just show as \u201cFormer member\u201d.';
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
@@ -30931,7 +30944,7 @@ function openProfileHub(){
     <input class="f" id="phGhin" inputmode="numeric" placeholder="e.g. 1234567" style="font-family:var(--sans); max-width:180px">
     <p class="fine" style="padding-left:0">A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.</p>
     <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
-    <span class="fine" id="phStatus"></span>
+    <span class="fine" id="phStatus" role="status"></span>
 
     <!-- AW2-02 (round 2, WCAG 4.1.2): the field is named by its eyebrow, and
          the sentence under it describes it -->
@@ -31057,8 +31070,23 @@ function openProfileHub(){
   const phArm = () => { const b=$('#phSave');
     if(b && !b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Save changes'; } };
   ['phName','phCity','phHome','phGhin','phHandle'].forEach(id=>$('#'+id)?.addEventListener('input', phArm));
-  $('#phDisc')?.addEventListener('click', phArm);
+  /* W7-042 · Findable-by saves on the tap (set_discoverable) and says so under the row (#phDiscSaid), so it
+     never arms 'Save changes': it was arming a save for a change that had already been saved */
   $('#phMarkers')?.addEventListener('click', phArm);
+  /* W7-042 · and an armed card is not dropped by a tap outside: the first dismissal keeps the sheet open,
+     puts focus on Save and says why; a second within four seconds (csArmTap's window) leaves without
+     saving. The phone's sheet drops the edits silently too (CardAndSettingsScreen keeps vm.dirty only to
+     relabel Save), so it owes the same guard. */
+  let leaveAsked = 0;
+  window.csSheetGuard = () => {
+    const b = $('#phSave');
+    if(!b || !b.classList.contains('armed') || Date.now() - leaveAsked < 4000) return true;
+    leaveAsked = Date.now();
+    b.focus();
+    const st = $('#phStatus'); st.textContent = CS_CARD_UNSAVED; st.style.color = '';
+    st.scrollIntoView({ block:'nearest' });   /* the line sits after the last field, below the fold of a golfer who edited the name */
+    return false;
+  };
   const cropSquare = async (file) => {
     const im = await window.photoDrawable(file);
     const w0=im.width||im.naturalWidth, h0=im.height||im.naturalHeight, side=Math.min(w0,h0);

@@ -215,6 +215,36 @@ const SETTINGS = [
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
     check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings')) },
+  /* TEN / W8 · W7-042 [A2-settings-3] · an armed card is not dropped by a dismissal. Findable-by saves on the tap, so it does not arm
+     Save changes; a pending name edit does, and the first dismissal (the ×) keeps the sheet open, puts focus on Save and says why */
+  { family: 'settings', id: 'card-unsaved', variant: 'member', fullPage: false, title: 'Card & settings · an edit is pending and the sheet is dismissed once (kept open, and it says why)',
+    drive: async (page) => {
+      await openHub(page)
+      await click(page, '#phDisc [data-disc="friends"]'); await page.waitForTimeout(400)
+      await page.evaluate(() => { window.__w8 = { armedByFindable: document.getElementById('phSave').classList.contains('armed') } })
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#shClose'); await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: async (page) => page.evaluate(() => {
+      if (window.__w8.armedByFindable) return 'a Findable-by tap armed Save changes for a change it had already saved'
+      const a = document.activeElement, s = document.getElementById('phStatus')
+      if (!a || a.id !== 'phSave') return `focus is on ${a && (a.id || a.tagName)}, not Save`
+      if (s.getAttribute('role') !== 'status') return 'the message is not a status'
+      const r = s.getBoundingClientRect()
+      if (!(r.bottom > 0 && r.top < innerHeight)) return 'the message is below the fold of the golfer who edited the name'
+      return /Save them, or close again to leave without saving/.test(s.textContent) ? true : `the message reads ${JSON.stringify(s.textContent)}`
+    }) },
+  /* ...and a second dismissal within four seconds leaves without saving */
+  { family: 'settings', id: 'card-unsaved-leave', variant: 'member', fullPage: false, title: 'Card & settings · the second dismissal leaves without saving',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#shClose'); await page.waitForTimeout(300)
+      await click(page, '#shClose'); await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats' },
+    check: async (page) => page.evaluate(() => document.getElementById('sheet').classList.contains('open') ? 'the second dismissal did not close the sheet' : true) },
   /* TEN / W8 · W7-033 [A2-settings-8] · the Settings pane's 'How it works' rows, scrolled to: ruled rows (a hairline above, no box, no
      radius, no typed arrow), as the You door rows are, not bordered cards between ruled rows (§3.1, §5.1, §5.2) */
   { family: 'settings', id: 'guide', variant: 'member', fullPage: false, title: 'Card & settings · Settings, scrolled to How it works (ruled rows)',
