@@ -1029,6 +1029,18 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 }
 .view .eyebrow:first-child{margin-top:4px;}
 .eyebrow a{color:var(--act); text-decoration:none;}   /* D359 · a link is an ordinary action; --pos is a signed gain */
+/* TEN / W6 · TP-11 · CASE IS THE ROLE'S JOB (§1.3, LINT-14). A head, a field
+   label and a sheet's sub-line are LABELS, set in caps; a phrase a person
+   could read aloud is never a clause inside one ("League setup · three steps
+   to first tee"), because a tracked line never mixes case. The label keeps
+   its caps; the phrase moves to its own line in the agate phrase — same
+   face, a size down, sentence case (`.cs-agate-s.is-phrase`). An element
+   whose whole text is a sentence takes the switch itself. */
+.eb-gloss{margin:calc(var(--s1) * -1) 2px var(--s3); color:var(--mut);}
+.f-gloss{display:block; margin-top:var(--s1);}
+.eyebrow.is-phrase, .sheet .sub.is-phrase{text-transform:none;}
+.seasondate span.is-phrase{text-transform:none; flex-basis:100%;}
+.seasondate span.is-phrase + span:not(:empty)::before{content:none;}
 
 .card{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -1397,7 +1409,7 @@ th.deskonly, td.deskonly{display:none;}
 /* 16A.3 - the column says which way is good, over the column. NOT "lower is
    better": in this product a POSITIVE figure means the golfer beat their
    playing HCP by that much (bandName(+3) is "Torched it"). */
-.fbnote{font-family:var(--board); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+.fbnote{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:none;   /* TEN / W6 · TP-11: a sentence ("Vs playing HCP · plus is better") */
   color:var(--mut); text-align:right; padding:8px 2px 6px;}
 .h2hdots{display:flex; align-items:center; gap:7px; min-height:28px;}
 /* the tape's meeting mark, and (WAVE 11) the board's five-dot form column:
@@ -3559,6 +3571,12 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   color:var(--gold); background:rgba(233,190,98,.08); border:1px solid rgba(233,190,98,.25);
   border-radius:6px; padding:5px 9px; margin-bottom:10px;
 }
+/* TEN / W6 · TP-11 · the draft's lock line is a SENTENCE ("You are on the
+   clock: make your pick", "<captain> is picking: only their account can
+   select"), so it leaves the badge's mono caps for the prose voice (§1.3,
+   §1.4: mono is never a sentence). The badge's labels (SIGNED IN, CARD
+   SAVED) keep theirs. */
+#draftLock.lockbadge{font-family:var(--sans); font-size:13px; letter-spacing:var(--flat); text-transform:none;}
 .fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
   border:1px solid var(--rule); border-radius:99px; padding:6px 12px; cursor:pointer; }
 .fbcat.on{ color:var(--ink); border-color:var(--act); background:var(--bg2); }
@@ -6175,7 +6193,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  one line. The inputs were placeholders only — filled, nothing
                  said which number was the slope, and none had an accessible name. -->
             <fieldset class="teefields">
-              <legend class="f">Tee &amp; rating — off the scorecard</legend>
+              <legend class="f">Tee &amp; rating<span class="f-gloss cs-agate-s is-phrase">Off the scorecard</span></legend>
               <div class="teegrid">
                 <label class="teefield"><span class="f">Tee</span><input class="f" id="lrTee" value="Blue" placeholder="—" autocomplete="off"></label>
                 <label class="teefield"><span class="f">Rating</span><input class="f" id="lrRate" type="number" step="0.1" value="70.2" placeholder="—" inputmode="decimal"></label>
@@ -6219,7 +6237,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             </div>
             <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four golfers; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--rule); padding-top:12px;">
-              <label class="f" for="lrStake">Stake per side · $0 is bragging rights</label>
+              <label class="f" for="lrStake">Stake per side<span class="f-gloss cs-agate-s is-phrase">$0 is bragging rights</span></label>
               <!-- max=200 to match the season buy-in ladder's own ceiling. The
                    field was unbounded, which made it the one surface in the
                    product that scales from "a friendly five" to a number that
@@ -6271,7 +6289,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                button and five lines of teaching copy. Wide puts finish back
                under the entry column and the games alongside, unchanged. -->
           <div class="pggames">
-            <div class="eyebrow sg-head">Side games · tracked live, settled between friends</div>
+            <div class="eyebrow sg-head">Side games</div><p class="cs-agate-s is-phrase eb-gloss sg-head">Tracked live, settled between friends</p>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
               <div class="gs" id="matchStatus">ALL SQUARE</div>
@@ -6544,7 +6562,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <p class="fine wizfoot">Verification is a norm the league holds, not a filter Cup Season applies.</p>
           <!-- W5 · the pace is the one segment component every dial wears
                (it was the page's only native select, in mono) -->
-          <div class="eyebrow wizq" id="wizPaceK">How often will most of you play?</div>
+          <div class="eyebrow wizq is-phrase" id="wizPaceK">How often will most of you play?</div>
           <div class="cs-seg is-fill" id="wizardFrequency" role="group" aria-labelledby="wizPaceK" data-value="0">
             <button type="button" data-pace="1" aria-pressed="false">About once a month</button>
             <button type="button" data-pace="2" aria-pressed="false">About twice a month</button>
@@ -6774,7 +6792,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
         <div class="roompane on" id="room-standings">
         <div id="homeSetup" style="display:none">
-          <div class="eyebrow">League setup · three steps to first tee</div>
+          <div class="eyebrow">League setup</div><p class="cs-agate-s is-phrase eb-gloss">Three steps to first tee</p>
           <div class="check"><span class="num">1</span><div class="tt"><b>The rules</b><small>The stakes, the format, the minimum</small></div><button class="mini" data-go="wizard">Continue</button></div>
           <div class="check"><span class="num">2</span><div class="tt"><b>Invite the crew</b><small>One link fills the league — it opens the moment you start the season</small></div><button class="mini" disabled style="opacity:.4">After step 1</button></div>
           <div class="check"><span class="num">3</span><div class="tt"><b>Squads form</b><small>After the season starts</small></div><button class="mini" disabled style="opacity:.4">After step 1</button></div>
@@ -6929,8 +6947,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <hr style="border:0; border-top:1px solid var(--rule); margin:18px 0 8px">
         <p class="fine" data-ledger style="padding:0"></p>
         <div class="league-only" id="stakesWrap" style="margin-top:18px">
-          <div class="eyebrow" style="display:flex; align-items:center">Pride bets · on the record
-            <button class="mini" id="stakeAdd" style="margin-left:auto">Post a pride bet</button></div>
+          <div class="eyebrow" style="display:flex; align-items:center">Pride bets
+            <button class="mini" id="stakeAdd" style="margin-left:auto">Post a pride bet</button></div><p class="cs-agate-s is-phrase eb-gloss">On the record</p>
           <div id="stakesList"></div>
         </div>
         </div><!-- /room-pot -->
@@ -6938,7 +6956,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
         <div class="roompane" id="room-board">
         <div class="card league-only" id="boardCard" style="margin-bottom:14px; text-align:left;">
-          <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
+          <div class="eyebrow" style="margin-top:0">The board <a href="#" id="bfOpen">OPEN ↗</a></div><p class="cs-agate-s is-phrase eb-gloss">Rounds land here automatically</p>
           <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
           <div class="composer">
             <input class="f" id="chatIn" placeholder="Post to the board…">
@@ -6952,7 +6970,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              photos in one place, newest first. Data is the same rounds the
              board already reads; the grid renders lazily on first open. -->
         <div class="roompane" id="room-album">
-          <div class="eyebrow league-only" style="margin-top:0">The album · every round photo this season</div>
+          <div class="eyebrow league-only" style="margin-top:0">The album</div><p class="cs-agate-s is-phrase eb-gloss league-only">Every round photo this season</p>
           <div id="albumGrid"></div>
         </div><!-- /room-album -->
 
@@ -16632,10 +16650,11 @@ function renderMatchPrev(){
   box.style.display = money ? 'block' : 'none';
   const prev=$('#matchPrev'); if(!money || !prev) return;
   const lbl=box.querySelector('label[for="lrStake"]');
-  if(lbl) lbl.textContent = g==='match' ? 'Stake per side · $0 is bragging rights'
-    : g==='wolf' ? 'Dollars per point · $0 is bragging rights'
-    : g==='sunningdale' ? 'Bank unit · $0 is bragging rights'
-    : 'Dollars per skin · $0 is bragging rights';
+  /* TEN / W6 · TP-11 · the label in caps, its phrase on its own sentence-case line */
+  if(lbl) lbl.innerHTML = esc(g==='match' ? 'Stake per side'
+    : g==='wolf' ? 'Dollars per point'
+    : g==='sunningdale' ? 'Bank unit'
+    : 'Dollars per skin') + '<span class="f-gloss cs-agate-s is-phrase">$0 is bragging rights</span>';
   if(g==='sunningdale'){
     /* D74: no handicaps, so no strokes table — the game IS the equalizer */
     prev.innerHTML = (sel.length===2 || sel.length===4)
@@ -17926,7 +17945,7 @@ function renderCourseBooks(){
       ${plate?`<div class="cs-kplate">${plate}</div>`:''}
       ${said}
       <div class="cs-facts">${factLine}</div>
-      <p class="cs-agate-s" style="color:var(--mut);padding-top:8px">${esc(label)}</p>
+      <p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:8px">${esc(label)}</p>
       ${leaf}
     </section>`;
   };
@@ -17971,13 +17990,13 @@ function renderCourseBooks(){
       <div>
         <div class="cs-plate">${plate}<div class="cs-scrim"></div>
           <div class="cs-plate-copy"><div style="min-width:0;flex:1">
-            <div class="cs-agate cs-sub">${why}</div>
+            <div class="cs-agate cs-sub is-phrase">${why}</div>
             <div class="${csCourseLabel(b).length > 40 ? 'cs-display-s' : 'cs-display'} cs-name">${esc(csCourseLabel(b))}</div>
             ${csCoursePlace(b)?`<div class="cs-agate cs-sub">${esc(csCoursePlace(b))}</div>`:''}
           </div></div>
         </div>
         <div class="cs-facts">${factLine}</div>
-        <p class="cs-agate-s" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
+        <p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
       </div>
@@ -23992,15 +24011,17 @@ function renderCareer(){
     const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
     yr.innerHTML = (c.recent && c.recent.length)
       ? c.recent.map((r,ri)=>{
-          const when = r.played_on ? csMonthDay(r.played_on).toUpperCase() : '';
-          const course = esc((r.course_label||'').toUpperCase()) || 'SOMEWHERE OUT THERE';
+          /* TEN / W6 · TP-11 · case is the role's (§1.3, LINT-14): the name role
+             sets the course in caps; the sub-line is an agate PHRASE */
+          const when = r.played_on ? csMonthDay(r.played_on) : '';
+          const course = esc(r.course_label||'') || 'Somewhere out there';
           const fig = r.pvi!=null ? Number(r.pvi) : null;
           const sub = [when, fig!=null ? sign(fig)+' vs your playing HCP' : null,
                        r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
           const bk = bookOf(r.api_course_id);
           const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
           return `<div class="yrow" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${course}, ${esc(String(r.gross??''))}">
-            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s">${esc(sub)}</small>`:''}</span>
+            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}</small>`:''}</span>
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
             <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
         }).join('')
@@ -25372,7 +25393,7 @@ function csTalkRender(slot, rid, focusId){
     : pr.replies !== false ? CS_TALK.replyHint : CS_TALK.offHint;
   const course = d.round && d.round.course;
   const door = course && course.api_course_id && course.name
-    ? `<button type="button" class="cs-talk-door" data-talk-course="${esc(course.api_course_id)}"><span><b class="cs-name">${esc(course.name)}</b><span class="cs-agate-s">${esc(CS_TALK.courseSub)}</span></span><span aria-hidden="true">›</span></button>`
+    ? `<button type="button" class="cs-talk-door" data-talk-course="${esc(course.api_course_id)}"><span><b class="cs-name">${esc(course.name)}</b><span class="cs-agate-s is-phrase">${esc(CS_TALK.courseSub)}</span></span><span aria-hidden="true">›</span></button>`
     : '';
   slot.innerHTML = `<section class="cs-talk" aria-labelledby="talkHead">
     ${door}
@@ -25913,6 +25934,7 @@ function confirmHandleChange(oldH, newH){
 function openSheet(title, sub, bodyHtml){
   $('#shTitle').textContent=title;
   $('#shSub').textContent=sub;
+  $('#shSub').classList.remove('is-phrase');   /* TEN / W6 · TP-11 · a phrase sub-line is opted in per sheet (below) */
   $('#shBody').innerHTML=bodyHtml;
   /* F03 · a dialog is named by its title; a sheet opened without one is named
      by its sub-line, so no modal is ever announced as an unnamed dialog */
@@ -27571,7 +27593,7 @@ const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 function renderLeagueMeta(){
   if(state.demo){
     /* the diorama's header card rides the demo season frame — E6 */
-    const sp=$('#hhSpan'); if(sp) sp.textContent=seasonSpanText();
+    const sp=$('#hhSpan'); if(sp){ sp.textContent=seasonSpanText(); sp.classList.remove('is-phrase'); }
     const ph=$('#hhPhase'); if(ph) ph.textContent='Season live';
     const dz=$('#hhDanger'); if(dz) dz.style.display='none';
     return;
@@ -27627,6 +27649,7 @@ function renderLeagueMeta(){
     $('#hhSpan').textContent = state.seasonStart
       ? seasonSpanText()
       : 'Season dates are set when the season starts';
+    $('#hhSpan').classList.toggle('is-phrase', !state.seasonStart);   /* TEN / W6 · TP-11 · a sentence, not a label */
     /* in setup the roster isn't loaded yet, so the Pro who just created the
        league would see "—" — fall back to their own name */
     const pro=members.find(m=>m.role==='commissioner');
@@ -30008,7 +30031,7 @@ function openProfileHub(){
     </div>
     <label class="f" style="display:block; margin-top:8px">Ball marker</label>
     <div id="phMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
-    <label class="f" style="display:block; margin-top:10px">Your photo · the marker always backs it up</label>
+    <label class="f" style="display:block; margin-top:10px">Your photo<span class="f-gloss cs-agate-s is-phrase">The marker always backs it up</span></label>
     <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
       <span id="phFace" style="flex:none; display:flex"></span>
       <button class="mini" id="phPhotoBtn" type="button">Add a photo</button>
@@ -30112,6 +30135,7 @@ function openProfileHub(){
     <p class="fine" style="padding-left:0; margin-top:6px"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">The pot (legal)</a></p>
     </div>
   `);
+  $('#shSub').classList.add('is-phrase');   /* TEN / W6 · TP-11 · this sub-line is a sentence */
   document.querySelectorAll('#phSeg [data-ph]').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('#phSeg [data-ph]').forEach(x => x.classList.toggle('on', x===b));
     $('#phPaneCard').style.display = b.dataset.ph==='card' ? '' : 'none';
