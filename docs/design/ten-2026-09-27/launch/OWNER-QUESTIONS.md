@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. |
-| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every lane (W1–W6), root's fixes through `41cf8050` (round 2's included), and E's native phase 1 (`6716b0ed`). The previous web ship was `272c2da1`. |
+| **Status read at** | **`7b9c17e4`**, live on the web since 03:53 MST on 2026-09-29, with Owner TestFlight 1335 from the same SHA (04:04). That covers every lane (W1–W6), E's native phase 1 (`6716b0ed`) and phase 2 set 1 (`146401bb`), and root's fixes through `7b9c17e4`. Earlier ships were `272c2da1` and 1328 (`41cf8050`). |
 | **Date** | 2026-09-28 |
 | **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 |
@@ -50,8 +50,8 @@ Settled items are recorded as settled, with the commit that settled them. A defe
 
 **Recommendation: (b), today.**
 - It is the smallest change that keeps D359's signal readable on launch day, and it touches no palette.
-- It needs a phone build. TestFlight 1324 (from `144ee0b0`) and 1328 (from `41cf8050`, being archived now) are both without it: no commit after `144ee0b0` touches the look resolver.
-- So the ruling decides whether 1328 is the launch build, or whether E makes the change and another build is archived.
+- It needs a phone build. TestFlight 1324 (`144ee0b0`), 1328 (`41cf8050`) and 1335 (`7b9c17e4`, 04:04 on 2026-09-29) are all without it: no commit through `7b9c17e4` touches the look resolver.
+- So the ruling decides whether 1335 is the launch build, or whether E makes the change and another build is archived.
 
 **Blocked until ruled:** N4-105; which build ships on Oct 1.
 
@@ -113,6 +113,7 @@ These block work in flight or define the gate.
 | Q35 | The Cup Final's one sentence (DEC-01) | decision | "Scored fresh" plus the counting-limit clause | freeze |
 | Q36 | Does a live moment keep an ember rail? | decision | Retire it; the dot and eyebrow say live | freeze |
 | Q37 | Whose words, when canon names none (DEC-COPY) | decision | The Kit's, where it is the older producer | any time |
+| Q38 | The composer's "what a round can add": before a gross, or only after? | decision (parity) | Both halves on both clients: the ceiling before a gross, the card's arithmetic after | freeze |
 
 "freeze" means before the Sep 30 visual freeze, because the answer changes words or layout on both clients.
 
@@ -175,7 +176,7 @@ These block work in flight or define the gate.
 - The parity defects need no ruling and go to lanes: the phone's "‹FIRST› LEADS" against the web's THEY LEAD, and the phone fallback's contradictory lead (N4).
 - So does `head_to_head`'s season-week dedupe, a migration the owner pushes when convenient.
 
-**Round 2:** the owner judge raises it again as a P1, "unchanged since round 1", and the category judge as a P2 (PANEL.md, Round 2).
+**Round 2:** the owner judge raises it again as a P1, "unchanged since round 1", and the category judge as a P2 (PANEL.md, Round 2). Critique B2 adds the head-to-head's "Ten meetings": the server counts a week once per shared season, so two shared seasons count one week twice. That is the season-week dedupe `head_to_head` needs, a migration (§D) under options (1) and (4).
 
 **Blocked until ruled:** the owner judge's P1 (PANEL.md #15, and round 2's); the "weekly clash" wording on both clients; You's rivalry row on the phone, which opens a page with a different number.
 
@@ -914,7 +915,9 @@ Each is a TERMINOLOGY §2.2 amendment with a decision entry, and no migration.
 - The web epilogue already says it.
 - A copy entry, with no migration.
 
-**Blocked until ruled:** the ceremony, epilogue and receipt labels on both clients. The web's link omission is a defect and is not blocked.
+**Blocked until ruled:** the ceremony, epilogue and receipt labels on both clients.
+
+**Not blocked:** the web's missing link is a defect against D380, not a decision. It is in session B's queue; root's dcafca7f names it as the next wave, because routing the share through `csShareRound` needs its outcome said under the button. Critique B2 found it again.
 
 ### Q24 · The Door's wordmark
 **Status at `fd27ace4`.** Session B's one lockup (`.cs-lockup`: the pennant plus "Cup Season" in the `name` role, the phone masthead's geometry) now signs the phone-width header, the desk sidebar, the public shell and get, support and legal (5498a79f, merged at f6cb4760; `tests/lockup-browser.mjs`, 192 checks). **The Door alone keeps its serif name**, on root's ruling that this is the owner's brand call. UI_SYSTEM §12.3 now carries a note on the one lockup (1688c9d7, at fd27ace4).
@@ -1160,6 +1163,29 @@ At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SY
 
 **Blocked until ruled:** the six rows' final words. No mechanic moves.
 
+### Q38 · The composer's "what a round can add": before a gross, or only after?
+**The question.** The two clients show D362's sentence at different times. Which is the one behaviour, and do both follow it?
+- The phone's composer shows the round's worth before a gross is typed: "This round can score up to 12, and it counts…"
+- The web shows nothing until the card is scored, then the card's own arithmetic: "This 9 replaces your lowest, a 6: +3 this month." W1 made this change (84983c4c) after critique B's "hypothetical 12": the ceiling stayed on screen under a real 9.
+
+**Canon.**
+- D362's own title: "what a round can add, **said before**; what it did, said once".
+- D364: "The worth line says the ceiling, then the counting rule, then the arithmetic", with the ceiling form "This round can score up to 12, and it counts…" and the arithmetic form "…so a 12 would add 7".
+- D234: one sentence, both clients.
+- Critique B's defect was the ceiling surviving **after** a gross; nothing in canon objects to the ceiling before one.
+
+**Options.**
+- (a) **The phone's way on both:** the ceiling before a gross. If it stays after a gross, critique B's defect returns.
+- (b) **The web's way on both:** nothing until the card is scored, then its arithmetic. This drops D362's "said before".
+- (c) **Both halves on both clients:** before a gross, the ceiling and the counting rule; once a gross is typed, the card's own arithmetic replaces it.
+  - The web restores its before-gross line.
+  - The phone replaces its ceiling with the arithmetic once a gross exists, as bf67db31's composer already scrolls to.
+  - Tests that pin either half: `RoundWorthTests`, `counting-explained-browser.js`, `ComposerWorthUITests` and `composer-first-round-browser`.
+
+**Recommendation: (c).** It is what D362 and D364 already describe, it keeps critique B's fix, and it needs no new ruling, only the two halves aligned. No database change.
+
+**Blocked until ruled:** the composer's worth line on both clients.
+
 ## D · Owner actions owed (not questions)
 
 These need the owner's hands, not a ruling.
@@ -1174,7 +1200,8 @@ These need the owner's hands, not a ruling.
   - The client half: the in-app producer is lane W2's.
   - It is CQ-04 and a category P1.
 - **Human proof.** HUMAN.md's gates are NOT RUN: G1–G4 need three people who have never opened Cup Season, on their own phones, and D1–D13 are the owner's device checks, including finishing a live round (D12) and the album's retry (D13). No capture or test can pass them.
-- **Pushes and deploys.** Nothing after `cf401dee` is pushed (SESSIONS §0). Every web push, `db push`, functions deploy and TestFlight upload waits on the owner's yes to root.
+- **Pushes and deploys.** Web `7b9c17e4` has been live since 03:53 MST on 2026-09-29, and Owner TestFlight 1335 came from the same SHA at 04:04 (LEDGER §4i, HUMAN §0). Earlier: web `272c2da1`, and TestFlight 1328 from `41cf8050`. No database change has shipped with any of them. Every further push, `db push`, functions deploy and upload waits on the owner's yes to root.
+- **A database item behind X36:** `head_to_head`'s season facet counts a week once per shared season, so two shared seasons count one week twice. The head-to-head's "Ten meetings" comes from that (critique B2). The dedupe to one per calendar week is a migration.
 - **Three defects found or raised again while writing this memo.**
   - The `?cs_home_state` hatch lifted the Door on any host (X37). Found by C from the code; root confirmed it on a prod-like server (`cf401dee` lifted the Door). **Fixed (45d40eb3):** the Door stays up, with the shell inert, unless the hatch's fixture is served. The exposure is live on cupseason.app until the ship.
   - The LEDGER's X37 line printed the owner's handle. **Fixed (ba6935a5):** it names the handle by role. History is not rewritten, since the handle had been public in `index.html` as the old placeholder.
@@ -1192,6 +1219,10 @@ These need the owner's hands, not a ruling.
 
 ## E · Recorded by root, with no question
 - **The covenant's ending uses the phone's words on both clients** (L-34). Done at 8b87a90d (merged with W6): the web's ending is `JoinLeague.endingLine` word for word, and the structure is its own fact. Q2 lists the other two-squad producers.
+- **Ruled from canon by root, 2026-09-29.** None is built at `7b9c17e4`.
+  - **N4-070:** the receipt's photograph is an inset 3:2 plate, with its copy on the card ground (UI_SYSTEM §10.3), on both clients. It answers AN-02, the native P1 for text over photographs.
+  - **The live sync sentence** keeps the phone's 24-hour window clause, and the web adds it.
+  - **"You're on the pot: $X buy-in."** is ink on both clients (UI_SYSTEM §2.4's money row; DXN TPN-14).
 - **Root's rulings sent to session B with GO.**
   - The Door keeps its serif until the owner rules Q24.
   - One index label per object: YOUR NUMBER on the viewer's own figure, and "Handicap index" on another golfer's card (57ca5eee; the phone's `YouScreen.swift:328` twin goes to N4).
