@@ -378,8 +378,11 @@ final class SyntheticRouteTests: XCTestCase {
       .max { $0.frame.minY < $1.frame.minY }
     XCTAssertNotNil(post)
     post?.tap()
-    let why = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Fix the card")).firstMatch
+    // W1 / N4-020 · the refusal is said above the button, in the picture —
+    // it was a toast drawn under the composer's cover
+    let why = app.staticTexts["post.refusal"]
     XCTAssertTrue(why.waitForExistence(timeout: 10))
+    XCTAssertTrue(why.isHittable, "the refusal is on screen, not under the cover")
     attach(app, "flow__post-failed")
     XCTAssertTrue(mark(app, "composer").exists)
     XCTAssertEqual(app.textFields["Your gross"].firstMatch.value as? String, "84")

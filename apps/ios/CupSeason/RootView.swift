@@ -419,7 +419,8 @@ struct BootFailedView: View {
       Task { await store.reload() }
     }
     .fullScreenCover(isPresented: $offlineLive) {
-      LiveRoundHost(links: LiveLinks(done: { offlineLive = false }))
+      // the live round's toasts show over the round, not under it (N4-020)
+      LiveRoundHost(links: LiveLinks(done: { offlineLive = false })).csCoverToasts()
     }
     // OE-1 · the boot-failed door onto the courses this phone kept. It reads
     // `CourseDisk` and needs no session, so it works on this screen unchanged

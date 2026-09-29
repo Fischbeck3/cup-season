@@ -85,7 +85,9 @@ import Foundation
     })
     let first = await OrdinaryPost.run(owner: owner, request: request, card: c, payload: payload(c), playedWith: [], jpeg: Data([1]), ports: p)
     guard case .failed(let msg) = first else { Issue.record("expected an ambiguous failure, got \(first)"); return }
-    #expect(msg.hasPrefix(OrdinaryPost.ambiguousPrefix))
+    // W1 · the web's words: the same round, retried, can't post twice
+    #expect(msg == OrdinaryPost.ambiguousCopy)
+    #expect(!msg.contains("press Post"))
     #expect(try disk.read(owner, request)?.accepted == nil, "the envelope is frozen and unresolved")
     // the golfer presses Post again: same id, same envelope, no new upload
     let second = await OrdinaryPost.run(owner: owner, request: request, card: c, payload: payload(c), playedWith: [], jpeg: Data([1]), ports: p)
@@ -201,6 +203,25 @@ import Foundation
     #expect(amended && net.posts[0].playedWith == [mate] && net.posts[0].request == request)
   }
 
+  // MARK: - W1 · the action's answer, in the action's name (N4)
+
+  @Test func theRefusalSaysWhyOrSaysItWasNotTold() {
+    // a refusal whose reason is not a golfer's sentence is the honest unknown
+    let shrug = OrdinaryPost.refusal(RpcError(name: "post_round_once", underlying: #"{"code":"XX000"}"#, droppedArgs: []))
+    #expect(shrug == OrdinaryPost.refusedUnknown)
+    #expect(shrug == "The server didn’t accept this card and didn’t say why. Nothing was posted, and your card is kept — press Add my round to try again.")
+    // the server's own sentence is passed through, once, closed with a period
+    let ours = OrdinaryPost.refusal(rejected())
+    #expect(ours.hasPrefix("Nothing was posted: ") && ours.hasSuffix(". Your card is kept."), "\(ours)")
+    #expect(!ours.contains(".. "))
+    // no answer names a button the composer does not have
+    for s in [OrdinaryPost.saveFailed, OrdinaryPost.ambiguousCopy, OrdinaryPost.refusedUnknown,
+              OrdinaryPost.earlierUnknownCopy, ours] {
+      #expect(!s.contains("press Post") && !s.contains("Post again"), "\(s)")
+    }
+    #expect(OrdinaryPost.ambiguousCopy == "Couldn’t confirm the post. Press Add my round again to retry the same round — it can’t post twice.")
+  }
+
   // MARK: - a definite refusal keeps the id; the corrected card posts under it
 
   @Test func aDefiniteRefusalKeepsTheIdAndTheCorrectedCardPostsUnderIt() async throws {
@@ -213,7 +234,11 @@ import Foundation
     })
     let r = await OrdinaryPost.run(owner: owner, request: request, card: bad, payload: payload(bad), playedWith: [], jpeg: nil, ports: p)
     guard case .refused(let msg) = r else { Issue.record("expected a refusal, got \(r)"); return }
-    #expect(msg.hasSuffix(OrdinaryPost.refusedSuffix))
+    // W1 · a definite refusal: nothing was posted, the card is kept, and the
+    // server's reason (or the honest unknown) is said, never "press Post"
+    #expect(msg.hasPrefix("Nothing was posted: ") || msg == OrdinaryPost.refusedUnknown, "\(msg)")
+    #expect(msg.hasSuffix("Your card is kept.") || msg == OrdinaryPost.refusedUnknown)
+    #expect(!msg.contains("press Post"))
     #expect(try disk.read(owner, request)?.accepted == nil)
     let fixed = card("85")
     let r2 = await OrdinaryPost.run(owner: owner, request: request, card: fixed, payload: payload(fixed), playedWith: [], jpeg: nil, ports: p)

@@ -89,12 +89,14 @@ public struct HomeDigest: Sendable, Equatable {
   }
 
   /// A milestone outranks a good score, a good score outranks a recent one.
-  static func best(_ rounds: [HomeFeedRow], now: Date) -> HomeFeedRow? {
+  static func best(_ rounds: [HomeFeedRow], now: Date, holes: KnownHoles = .none) -> HomeFeedRow? {
     let recent = rounds.filter { r in
       let t = r.created_at ?? CSDate.local(r.played_on ?? "") ?? .distantPast
       return now.timeIntervalSince(t) <= 14 * 86400
     }
-    func rank(_ r: HomeFeedRow) -> Int { r.is_pr == true ? 4 : r.is_sub80 == true ? 3 : r.is_first == true ? 2 : 1 }
+    func rank(_ r: HomeFeedRow) -> Int {
+      r.is_pr == true ? 4 : HomeWireCopy.claimsSub80(r, holes: holes.of(r)) ? 3 : r.is_first == true ? 2 : 1
+    }
     return recent.sorted { a, b in
       if rank(a) != rank(b) { return rank(a) > rank(b) }
       if (a.pvi ?? 0) != (b.pvi ?? 0) { return (a.pvi ?? 0) > (b.pvi ?? 0) }
@@ -102,10 +104,10 @@ public struct HomeDigest: Sendable, Equatable {
     }.first
   }
 
-  static func line(_ r: HomeFeedRow) -> String {
+  static func line(_ r: HomeFeedRow, holes: KnownHoles = .none) -> String {
     let w = who(r), course = r.course ?? "a round", g = r.gross.map(String.init) ?? "—"
     if r.is_pr == true { return "\(w) set a personal best — \(g) at \(course)" }
-    if r.is_sub80 == true { return "\(w) broke 80 — \(g) at \(course)" }
+    if HomeWireCopy.claimsSub80(r, holes: holes.of(r)) { return "\(w) broke 80 — \(g) at \(course)" }
     if r.is_first == true { return "\(w) posted \(r.is_me == true ? "your" : "their") first round — \(g) at \(course)" }
     return "\(w) posted \(g) at \(course)"
   }
@@ -119,12 +121,13 @@ public struct HomeDigest: Sendable, Equatable {
   /// which is A-6's worked example word for word. The digest yields.
   public static func make(rounds: [HomeFeedRow], posts: [HomePost], photoURLs: [UUID: URL] = [:], mark: Date?,
                           mentions: [HomeSocial.Mention] = [], spent: Set<UUID> = [],
+                          holes: KnownHoles = .none,
                           now: Date = Date(), calendar: Calendar = .current) -> HomeDigest? {
     guard let mark else { return nil }   // first visit — the feed IS the reveal
     let freshRounds = rounds.filter { ($0.created_at ?? CSDate.local($0.played_on ?? "") ?? .distantPast) > mark }
     let freshPosts = posts.filter { ($0.created_at ?? .distantPast) > mark }
     if freshRounds.count == 1, freshPosts.isEmpty, mentions.isEmpty, let round = freshRounds.first {
-      return HomeDigest(kind: .since, label: "Since you were here", body: line(round) + ".",
+      return HomeDigest(kind: .since, label: "Since you were here", body: line(round, holes: holes) + ".",
                         roundId: round.round_id, photoURL: round.round_id.flatMap { photoURLs[$0] },
                         strong: [who(round)], isRoundStory: true)
     }
@@ -145,7 +148,7 @@ public struct HomeDigest: Sendable, Equatable {
       var bits: [String] = [], strong: [String] = []
       if !freshRounds.isEmpty { bits.append("\(freshRounds.count) round\(freshRounds.count > 1 ? "s" : "")"); strong.append(bits[0]) }
       if let pr = freshRounds.first(where: { $0.is_pr == true }) { bits.append("a personal best from \(who(pr))") }
-      if let s = freshRounds.first(where: { $0.is_sub80 == true }) { bits.append("\(who(s)) broke 80") }
+      if let s = freshRounds.first(where: { HomeWireCopy.claimsSub80($0, holes: holes.of($0)) }) { bits.append("\(who(s)) broke 80") }
       if let f = freshRounds.first(where: { $0.is_first == true }) { bits.append("\(who(f))'s first round") }
       if !freshPosts.isEmpty { bits.append("\(freshPosts.count) league note\(freshPosts.count > 1 ? "s" : "")") }
       // D365 · applause is grouped by round and distinct people — "Alex and 2
@@ -163,9 +166,9 @@ public struct HomeDigest: Sendable, Equatable {
       guard !bits.isEmpty else { return nil }
       return HomeDigest(kind: .since, label: "Since you were here", body: join(bits) + ".", roundId: nil, photoURL: nil, strong: strong)
     }
-    guard let b = best(rounds.filter { !($0.round_id.map(spent.contains) ?? false) }, now: now) else { return nil }
+    guard let b = best(rounds.filter { !($0.round_id.map(spent.contains) ?? false) }, now: now, holes: holes) else { return nil }
     let t = b.created_at ?? CSDate.local(b.played_on ?? "") ?? now
-    return HomeDigest(kind: .quiet, label: "Quiet since your last visit", body: "\(day(t, now: now, calendar: calendar)) — \(line(b))",
+    return HomeDigest(kind: .quiet, label: "Quiet since your last visit", body: "\(day(t, now: now, calendar: calendar)) — \(line(b, holes: holes))",
                       roundId: b.round_id, photoURL: b.round_id.flatMap { photoURLs[$0] }, strong: [who(b)])
   }
 }

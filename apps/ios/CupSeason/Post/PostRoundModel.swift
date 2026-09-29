@@ -97,6 +97,13 @@ final class PostRoundModel {
   var busy = false
   var scanning = false
   var draftRestored = false
+  /// W1 / N4-020 · **THE ACTION'S ANSWER IS SAID ABOVE THE ACTION, AND STAYS.**
+  /// Every "it didn't post" went to a toast, and the only toast host drew at
+  /// the app's root, UNDER the composer's full-screen cover: a refused round
+  /// said nothing at all (`flow__post-failed.png`). The composer sets this
+  /// line over `Add my round` and VoiceOver hears it once; changing the card
+  /// is the golfer answering it, and so is pressing the button again.
+  var refusal: String?
 
   // sheets and the ceremony
   var showPars = false
@@ -437,14 +444,22 @@ final class PostRoundModel {
   var blocked: PostCalc.Blocked? { PostCalc.blocked(card) }
 
   func tapPost() {
+    refusal = nil
     if let b = blocked {
-      toast.show(b.message)
+      refuse(b.message)
       svc.event("post_blocked", ["reason": .string(b.reason)])
       return
     }
-    guard preview != nil else { toast.show(PostCalc.Blocked.noCard.message); return }
+    guard preview != nil else { refuse(PostCalc.Blocked.noCard.message); return }
     if card.needsEvenParGuard { showEvenPar = true; return }
     Task { await submit() }
+  }
+
+  /// The inline answer (see `refusal`), and one announcement of it. Focus is
+  /// not moved: the golfer is on the button they just pressed, and stays.
+  private func refuse(_ message: String) {
+    refusal = message
+    AccessibilityNotification.Announcement(message).post()
   }
 
   func postEvenParAnyway() {
@@ -458,8 +473,8 @@ final class PostRoundModel {
     guard !busy, preview != nil else { return }
     // Account switch: the composer was opened by one golfer and the session
     // now belongs to another. Say so rather than returning in silence.
-    guard let uid else { toast.show(OrdinaryPost.wrongGolferCopy, kind: .failed); return }
-    if seededFrom == nil, requestUnreadable { toast.show(OrdinaryPost.pointerUnreadable, kind: .failed); return }
+    guard let uid else { refuse(OrdinaryPost.wrongGolferCopy); return }
+    if seededFrom == nil, requestUnreadable { refuse(OrdinaryPost.pointerUnreadable); return }
     busy = true; defer { busy = false }
     // D350 · mint the request identity BEFORE the draft is written, and write
     // it to the owner-scoped store, so the id is durable before anything can
@@ -482,17 +497,17 @@ final class PostRoundModel {
             toast.show("This round already posted. Open your round history to view it.", kind: .confirmed); return
           }
           guard previous.card == card else {
-            toast.show("A previous post still needs confirmation. Reopen this phone scorecard to retry the original round before editing it.", kind: .failed); return
+            refuse("A previous post still needs confirmation. Reopen this phone scorecard to retry the original round before editing it."); return
           }
           pending = previous
         } else {
-          guard card.date != nil else { toast.show("Choose the date you played.", kind: .failed); return }
+          guard card.date != nil else { refuse("Choose the date you played."); return }
           if card.mode == .holes, card.scores.prefix(payload.holes_played).contains(where: { $0 <= 0 }) {
-            toast.show("Fill every hole on this scorecard before posting.", kind: .failed); return
+            refuse("Fill every hole on this scorecard before posting."); return
           }
           if let jpeg = photoJPEG {
             guard let path = await svc.uploadPhoto(jpeg, uid: uid) else {
-              toast.show("Couldn’t upload the photo. Your scorecard is still on this phone.", kind: .failed); return
+              refuse("Couldn’t upload the photo. Your scorecard is still on this phone."); return
             }
             payload.photo_path = path
           }
@@ -537,21 +552,21 @@ final class PostRoundModel {
           recoveredRoundId = landed
           return
         case .storageFailed(let msg):
-          toast.show(msg, kind: .failed); return
+          refuse(msg); return
         case .notAvailable:
-          toast.show(OrdinaryPost.notAvailableCopy, kind: .failed); return
+          refuse(OrdinaryPost.notAvailableCopy); return
         case .refused(let msg):
           // definite: nothing was written, the id stays, the card needs a change
-          toast.show(msg, kind: .failed); return
+          refuse(msg); return
         case .failed(let msg):
-          toast.show(msg, kind: .failed); return
+          refuse(msg); return
         }
       }
     } catch {
       let message = seededFrom != nil && PostService.fallbackFires(on: error)
         ? "Posting saved scorecards isn’t available yet. Your round is still kept here."
         : HumanError.text(error, prefix: "Couldn’t confirm the post. Your phone scorecard is kept for retry.")
-      toast.show(message, kind: .failed); return
+      refuse(message); return
     }
     let roundId = outcome.roundId
     let postedFromPhone = seededFrom != nil
