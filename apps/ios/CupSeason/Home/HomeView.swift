@@ -86,7 +86,7 @@ struct HomeView: View {
           // own value, so the masthead and the card can never disagree about
           // it, and a golfer with no number yet still gets the date.
           let numberSlot = strip.slots.first { $0.fact == .myNumber }
-          CSMasthead(date: Date(), asOf: staleAt,
+          CSMasthead(date: Date(), asOf: staleAt, offline: vm.feedOffline,
                      number: numberSlot?.value,
                      // D319 · the slot's own label — STARTER and BUILDING are
                      // real states and the masthead must not print YOUR NUMBER
@@ -103,9 +103,9 @@ struct HomeView: View {
               HStack(spacing: CSTokens.Space.s2) {
                 CSGlyph(.bell, size: .inline)
                 Text("Activity").csType(.bodyS)
-                if inbox.unread > 0 { Text("\(inbox.unread)").csType(.agate).foregroundStyle(cs.brand) }
+                if inbox.unread > 0 { Text("\(inbox.unread)").csType(.agate).foregroundStyle(cs.ink) }   // N4-091 · a count is ink, never ember
               }
-              .frame(minHeight: 44)
+              .frame(minHeight: 44).contentShape(Rectangle())
             }
             .accessibilityLabel(inbox.unread > 0 ? "Activity, \(inbox.unread) unread" : "Activity")
             .accessibilityIdentifier("home.activity")
@@ -476,7 +476,7 @@ struct HomeView: View {
         } else if let rid = r.round_id, vm.roundSocial[rid] != nil {
           Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
             Label("Comments", systemImage: "bubble.left").csType(.bodyS)
-              .foregroundStyle(cs.ink).frame(minHeight: 44)
+              .foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
           }
           .buttonStyle(.plain).padding(.horizontal, CSTokens.Space.gutter)
         }
@@ -688,6 +688,9 @@ final class HomeModel {
   /// have posted nothing", which is what the screen used to say over a dead
   /// network (L-32's second half).
   var feedFailed = false
+  /// N4-013 · and it failed for want of a network, so the masthead may say
+  /// "offline"; any other failure "couldn't refresh".
+  var feedOffline = false
   var loading = false
   var social = HomeSocial.Snapshot()
   var roundSocial: [UUID: JSONValue] = [:]
@@ -800,7 +803,7 @@ final class HomeModel {
     leadSuppress = p.leadSuppress
     usedFallback = false
     occasion = nil
-    items = []; digest = nil; feedFailed = false
+    items = []; digest = nil; feedFailed = false; feedOffline = false
     social = HomeSocial.Snapshot()
     guard p.me != nil else { return }
     let r = ranked()
@@ -869,6 +872,7 @@ final class HomeModel {
     // A failed read is not an empty feed. With rounds already on screen, a
     // pull on a bad signal keeps them.
     feedFailed = r.failed
+    feedOffline = r.offline
     photoDenied = r.photoDenied
     if !(r.failed && !items.isEmpty) {
       items = r.items

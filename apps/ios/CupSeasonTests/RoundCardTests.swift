@@ -115,6 +115,16 @@ final class RoundCardTests: XCTestCase {
     XCTAssertEqual(you.cells.map(\.overPar), [1, 1, -1, 2, 1, 1, 1, 0, 1])
   }
 
+  /// N4-084 · the board's scorecard sheet reads the same quantity for its ink
+  /// mark, and marks nothing it cannot measure.
+  func testTheBoardSheetMarksAHoleAgainstItsPar() {
+    XCTAssertEqual(ScorecardSheet.overPar("5", "4"), 1)
+    XCTAssertEqual(ScorecardSheet.overPar("3", "5"), -2)
+    XCTAssertEqual(ScorecardSheet.overPar("4", "4"), 0)
+    XCTAssertNil(ScorecardSheet.overPar("·", "4"), "a gap is not a score")
+    XCTAssertNil(ScorecardSheet.overPar("5", ""), "no par, no mark")
+  }
+
   func testAStrokesOnlyCardCarriesNoMark() {
     let you = RoundCardBlocks.build(strokesOnly(), mine: true)[0].rows.last!
     XCTAssertTrue(you.cells.allSatisfy { ($0.overPar ?? 0) == 0 },

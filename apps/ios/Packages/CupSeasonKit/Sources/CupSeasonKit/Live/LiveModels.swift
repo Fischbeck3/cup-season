@@ -486,6 +486,12 @@ public struct LiveRoundState: Codable, Sendable, Equatable {
   /// D153 · has anyone put a single number on this card yet? Gates the
   /// first-round teaching copy, which is an explanation, not a running label.
   public var anyScored: Bool { scores.contains { $0.contains { $0 != nil } } }
+  /// TEN / W6 · the holes anyone has a number on — the held round's count, as
+  /// the web's `csLiveHeldLine` counts it (a hole any row has scored).
+  public var holesScored: Int {
+    guard let first = scores.first else { return 0 }
+    return first.indices.filter { h in scores.contains { h < $0.count && $0[h] != nil } }.count
+  }
   /// `thru` — holes every player has finished, counted from the first (7716).
   public var thru: Int {
     var t = 0

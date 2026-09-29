@@ -7,17 +7,20 @@ final class SeasonBookUITests: XCTestCase {
     let app=launch(), id="squad:c50b0000-0000-4000-8000-000000000300"
     let name=app.buttons["seasonBook.name."+id]
     XCTAssertTrue(name.waitForExistence(timeout:15));let x=name.frame.minX
-    app.buttons["seasonBook.cell."+id+".2"].swipeLeft()
-    XCTAssertEqual(name.frame.minX,x,accuracy:1);name.tap()
+    // the grid opens on its week (W5): swipe it both ways, and the names hold
+    let grid=app.scrollViews["seasonBook.grid"];XCTAssertTrue(grid.exists)
+    grid.swipeRight();XCTAssertEqual(name.frame.minX,x,accuracy:1)
+    grid.swipeLeft();XCTAssertEqual(name.frame.minX,x,accuracy:1);name.tap()
     XCTAssertTrue(app.staticTexts["seasonBook.receipt.total"].waitForExistence(timeout:5))
-    XCTAssertTrue(app.buttons["Open round receipt"].firstMatch.exists)
+    XCTAssertTrue(app.buttons["Open the round’s receipt"].firstMatch.exists)
   }
   @MainActor func testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead() {
     let app=launch("tie")
     XCTAssertTrue(app.staticTexts["seasonBook.title"].waitForExistence(timeout:15))
     XCTAssertEqual(app.staticTexts["seasonBook.title"].label.lowercased(),"rounds & points")
     XCTAssertFalse(app.segmentedControls["seasonBook.mode"].exists)
-    XCTAssertEqual(app.staticTexts.matching(identifier:"1st · Tied").count,2)
+    // W5 · the reader's own row reads "You · 1st · Tied": both tied rows end the same
+    XCTAssertEqual(app.staticTexts.matching(NSPredicate(format:"label ENDSWITH %@","1st · Tied")).count,2)
   }
   @MainActor func testRealRootUsesTheSameTieAndOpensTheBookDoor() {
     let app=launch("tie",screen:"root")

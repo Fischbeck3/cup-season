@@ -93,7 +93,7 @@ struct CourseCircleSection: View {
         }
       }
     } label: {
-      Label(page.teeName ?? "No confirmed tees", systemImage: "chevron.down").csType(.bodyS).frame(minHeight: 44)
+      Label(page.teeName ?? "No confirmed tees", systemImage: "chevron.down").csType(.bodyS).frame(minHeight: 44).contentShape(Rectangle())
     }
     .foregroundStyle(cs.ink).accessibilityIdentifier("course.social.tee")
   }
@@ -103,7 +103,7 @@ struct CourseCircleSection: View {
         Button("\(holes) holes") { Task { await load(tee: page.tee, holes: holes) } }
       }
     } label: {
-      Label("\(page.holes) holes", systemImage: "chevron.down").csType(.bodyS).frame(minHeight: 44)
+      Label("\(page.holes) holes", systemImage: "chevron.down").csType(.bodyS).frame(minHeight: 44).contentShape(Rectangle())
     }.foregroundStyle(cs.ink)
   }
   @ViewBuilder private func best(_ page: CourseCirclePage) -> some View {
@@ -124,7 +124,7 @@ struct CourseCircleSection: View {
                     CSGlyph(.chevron, size: .inline)
                   }
                   Text(holder["played_on"]?.string.map { LeagueDates.dowMonDay($0) } ?? "").csType(.agateS).foregroundStyle(cs.mut)
-                }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).foregroundStyle(cs.ink)
+                }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle()).foregroundStyle(cs.ink)
               }.buttonStyle(.plain).accessibilityHint("Opens the round that set this best")
             }
           }
@@ -141,7 +141,7 @@ struct CourseCircleSection: View {
             Text("Your best here").csType(.social).frame(maxWidth: .infinity, alignment: .leading)
             Text("\(mine)").csType(.figureM)
             CSGlyph(.chevron, size: .inline)
-          }.foregroundStyle(cs.ink).frame(minHeight: 44)
+          }.foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityHint("Opens your round")
       }
     } else {

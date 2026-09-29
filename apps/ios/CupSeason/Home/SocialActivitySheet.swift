@@ -72,6 +72,7 @@ struct SocialActivitySheet: View {
       ScrollView {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           Text("Activity").csType(.display).foregroundStyle(cs.ink)
+            .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
           if inbox.unread > 0 {
             Button("Mark all read") { Task { await inbox.mark() } }.buttonStyle(.csTertiary(.content))
           }
@@ -95,7 +96,7 @@ struct SocialActivitySheet: View {
                   if let course = notice.course { Text(course).csType(.agateS).foregroundStyle(cs.mut) }
                   Text(SocialDate.label(notice.createdAt)).csType(.agateS).foregroundStyle(cs.mut)
                 }.frame(maxWidth: .infinity, alignment: .leading)
-                if !notice.read { Circle().fill(cs.brand).frame(width: 8, height: 8).accessibilityLabel("Unread") }
+                if !notice.read { Circle().fill(cs.ink).frame(width: 8, height: 8).accessibilityLabel("Unread") }   // N4-091 · a notice mark is ink
               }
               .padding(.vertical, CSTokens.Space.s3)
               .contentShape(Rectangle())

@@ -528,7 +528,7 @@ struct ScheduleMonthGrid: View {
         }
         .frame(height: 6)
       }
-      .frame(maxWidth: .infinity, minHeight: 44)
+      .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
       // today is the panel, not an ember outline — a day is not a live action.
       // The panel is inset inside the day's own target, so the tile keeps the
       // gap the eye knew while the target keeps the whole column.

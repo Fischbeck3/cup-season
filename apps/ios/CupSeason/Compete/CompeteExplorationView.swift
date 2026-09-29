@@ -325,7 +325,7 @@ private struct ExploreBack: View {
   var body: some View {
     Button { dismiss() } label: {
       Label(title, systemImage: "chevron.left").csType(.nameS).foregroundStyle(cs.ink)
-        .frame(minHeight: 44).padding(.horizontal, CSTokens.Space.gutter)
+        .frame(minHeight: 44).contentShape(Rectangle()).padding(.horizontal, CSTokens.Space.gutter)
     }.buttonStyle(.plain)
   }
 }
@@ -439,7 +439,7 @@ private struct SeasonBookView: View {
                 .csType(.bodyS).foregroundStyle(cs.mut)
               ForEach(rows) { row in
                 NavigationLink { SeasonBookReceiptList(season: season, title: row.name, entries: row.entries) } label: {
-                  HStack { Text(row.name); Spacer(); Text("\(season.total(row.entries)) pts") }.csType(.name).frame(minHeight: 44)
+                  HStack { Text(row.name); Spacer(); Text("\(season.total(row.entries)) pts") }.csType(.name).frame(minHeight: 44).contentShape(Rectangle())
                 }.buttonStyle(.plain)
                   .accessibilityIdentifier("explore.race.receipts.\(row.id)")
               }

@@ -44,6 +44,7 @@ public struct CSGlyph: View {
     case scheduleSheet    // nothing is scheduled
     case rack             // no trophies yet
     case bag              // nothing in the bag
+    case scoreboard       // nothing is running (N4-112)
 
     /// One 24 × 24 path, stroked. Round caps, round joins, no fill.
     var path: String {
@@ -78,6 +79,13 @@ public struct CSGlyph: View {
       case .emptyRail: "M3.5 4h5.5v16H3.5zM12 7h8.5M12 12h8.5M12 17h8.5"
       case .scheduleSheet: "M4 5.5h16V21H4zM4 10.5h16M8.5 3v4.5M15.5 3v4.5M8 14.5h3M13 14.5h3"
       case .rack: "M4 20.5h16M6.5 20.5V8.5h11v12M6.5 13h11M10 8.5V4h4v4.5"
+      // N4-112 · **AN EMPTY SCOREBOARD**: two rows, each a name not yet
+      // written and a score box with nothing in it — the web's Compete empty
+      // object (`.cmpempty-obj`), redrawn at this family's one stroke. The
+      // web's single figure slot and dashes read as a card with a chip at
+      // 1.7, which is a payment card on a product with a pot; two rows of
+      // name and box read as a board.
+      case .scoreboard: "M1.8 4.2h20.4v15.6H1.8zM4.8 8.4h7.4M4.8 15.6h7.4M15 6.6h4.4v3.6H15zM15 13.8h4.4v3.6H15z"
       // **A GOLF BAG, NOT A TOTE.** The first drawing was a body with a
       // handle arching over it and three ticks above — which is a handbag,
       // and the owner said so on sight: *"Bag needs to look more like a golf
@@ -164,6 +172,8 @@ public struct CSMasthead: View {
   /// OFFLINE` — and nothing else on the page changes and no action is
   /// disabled. It is the one place the product says the read did not land.
   let asOf: Date?
+  /// N4-013 · whether the read behind `asOf` failed for want of a network.
+  let offline: Bool
   /// **THE GOLFER'S OWN NUMBER, WHERE THE DATE USED TO BE** (D318).
   ///
   /// The owner, on the strip that carried it at the foot of the wire:
@@ -183,21 +193,19 @@ public struct CSMasthead: View {
   /// kept since it shipped). nil until there are five.
   let numberLabel: String?
   let trend: CSNumberTrend?
-  public init(date: Date = Date(), calendar: Calendar = .current, asOf: Date? = nil,
+  public init(date: Date = Date(), calendar: Calendar = .current, asOf: Date? = nil, offline: Bool = true,
               number: String? = nil, numberLabel: String? = nil, trend: CSNumberTrend? = nil) {
-    self.date = date; self.calendar = calendar; self.asOf = asOf
+    self.date = date; self.calendar = calendar; self.asOf = asOf; self.offline = offline
     self.number = number; self.numberLabel = numberLabel; self.trend = trend
   }
 
   /// `SUN · SEP 6`.
   public static func dateline(_ d: Date, calendar: Calendar = .current) -> String {
-    let f = DateFormatter(); f.calendar = calendar; f.locale = Locale(identifier: "en_US_POSIX")
-    f.dateFormat = "EEE · MMM d"
-    return f.string(from: d).uppercased()
+    CSDateFormat.string(d, "EEE · MMM d", calendar: calendar).uppercased()
   }
 
   private var line: String {
-    if let asOf { return CSStale.line(asOf, calendar: calendar) }
+    if let asOf { return CSStale.line(asOf, offline: offline, calendar: calendar) }
     if let number, !number.isEmpty { return number }
     return Self.dateline(date, calendar: calendar)
   }
@@ -403,8 +411,14 @@ public struct CSTabBand<T: Hashable>: View {
           .modifier(CSPlayHold(on: item.isPlay, act: onPlayHold))
           .accessibilityLabel(item.label)
           .accessibilityAddTraits(on ? [.isSelected] : [])
+          // N4-095 · Play is not a place: it opens the ways to play, and says so
+          .accessibilityHint(item.isPlay ? "Opens the ways to play a round" : "")
         }
       }
+      // N4-095 · the band is the tab bar, and VoiceOver says so, with each
+      // tab's position ("Home, tab, 1 of 5"), as it would of the system bar
+      .accessibilityElement(children: .contain)
+      .accessibilityAddTraits(.isTabBar)
     }
     .background(cs.bg0)
   }

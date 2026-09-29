@@ -74,6 +74,7 @@ struct CardGateView: View {
       VStack(alignment: .leading, spacing: 18) {
         Text(OnboardingCopy.cardEyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
         Text(OnboardingCopy.cardTitle).csType(.display).foregroundStyle(cs.ink)
+          .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
           .fixedSize(horizontal: false, vertical: true)
         Text(OnboardingCopy.cardSub).csType(.body).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)

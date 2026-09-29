@@ -47,7 +47,9 @@ struct MorningReviewFixtureView: View {
       RoundSharePreview(recap: MorningReviewFixture.recap, photo: MorningReviewFixture.photo)
     } else {
       NavigationStack {
-        if store.state.active { LivePlayView(store: store, links: LiveLinks()) }
+        // the host's own predicate: a held round (Change setup mid-play) is in
+        // its setup, not on the live sheet
+        if store.state.active, store.state.stage == .live { LivePlayView(store: store, links: LiveLinks()) }
         else { LiveSetupView(store: store) }
       }
     }

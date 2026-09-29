@@ -26,10 +26,10 @@ struct FeedbackSheet: View {
           ForEach([("confusing", "Confusing"), ("friction", "Friction"), ("idea", "Idea"), ("bug", "Bug")], id: \.0) { key, title in
             let on = category == key
             Button { category = on ? "" : key } label: {
-              Text(title).csType(.nameS).foregroundStyle(on ? cs.brand : cs.ink)
+              Text(title).csType(.nameS).foregroundStyle(on ? cs.act : cs.ink)
                 .padding(.horizontal, 12).padding(.vertical, 8)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.brand : cs.rule, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.act : cs.rule, lineWidth: 1))
                 .a11yHitSlop(vertical: 5, horizontal: 0)
             }
             .buttonStyle(.plain)

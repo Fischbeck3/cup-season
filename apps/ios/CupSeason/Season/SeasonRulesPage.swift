@@ -98,7 +98,7 @@ struct SeasonRulesPage: View {
       let door = model.rosterDoor
       RoomCheckRow(door.eyebrow(members: n), sub: door.line()) {
         Image(systemName: door.isOpen ? "door.left.hand.open" : "door.left.hand.closed")
-          .font(.system(size: 15, weight: .regular)).foregroundStyle(door.isOpen ? cs.brand : cs.mut)
+          .font(.system(size: 15, weight: .regular)).foregroundStyle(door.isOpen ? cs.ink : cs.mut)
       } trail: {
         if let url = model.inviteURL, door.isOpen {
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
@@ -113,10 +113,10 @@ struct SeasonRulesPage: View {
         }
       }
       RoomCheckRow("Squads", sub: LeagueCopy.squadsSub(model.clock, solo: model.solo)) {
-        Image(systemName: "person.2").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
+        CSGlyph(.people, size: .row).foregroundStyle(cs.ink)   // N4-095 · the drawn family, not an SF Symbol
       } trail: { RoomMini("View") { links.openDraft() } }
       RoomCheckRow("Share the season", sub: "A public page — the standings so far, no account needed") {
-        Text("🔗").font(.system(size: 15))
+        CSGlyph(.link, size: .row).foregroundStyle(cs.ink)   // N4-097 · a drawn mark, not an emoji (LINT-12, D326)
       } trail: {
         HStack(spacing: 6) {
           RoomMini("Link", busy: sharing) {

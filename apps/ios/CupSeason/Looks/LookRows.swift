@@ -79,7 +79,7 @@ struct LookRoomSection: View {
           LookSwatch(spec: current, size: 16)
           Text(current?.name ?? "Calendar").csType(.columnS).foregroundStyle(cs.mut)
         }
-        .frame(minHeight: 44)
+        .frame(minHeight: 44).contentShape(Rectangle())
       }
       .tint(cs.mut)
       .padding(.top, 4)
@@ -143,7 +143,7 @@ struct LookPickRow: View {
         }
         Spacer(minLength: 8)
         if selected {
-          Image(systemName: "checkmark").font(.system(size: 14, weight: .semibold)).foregroundStyle(cs.brand)
+          Image(systemName: "checkmark").font(.system(size: 14, weight: .semibold)).foregroundStyle(cs.act)
         }
       }
       .padding(.vertical, 10)

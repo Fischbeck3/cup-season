@@ -263,4 +263,17 @@ public enum HumanError {
     }
     return prefix.map { "\($0) \(msg)" } ?? msg
   }
+
+  /// A read that failed for want of a signal, as opposed to one the server
+  /// refused. Only the transport's own "no network" answers count; anything
+  /// else is an ordinary failure (never a guess about the golfer's phone).
+  /// The album's rule, lifted here so Home's stale line reads it too (N4-013).
+  public static func isOffline(_ error: Error) -> Bool {
+    let offline: Set<URLError.Code> = [.notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff]
+    if let u = error as? URLError { return offline.contains(u.code) }
+    let ns = error as NSError
+    if ns.domain == NSURLErrorDomain { return offline.contains(URLError.Code(rawValue: ns.code)) }
+    if let under = ns.userInfo[NSUnderlyingErrorKey] as? Error { return isOffline(under) }
+    return false
+  }
 }

@@ -135,7 +135,7 @@ struct EpilogueSheet: View {
         // the photo answer, so the separate link button retires. Revoke stays.
         if show.epilogue.gross != nil {
           Button { Task { await revoke() } } label: {
-            Text(PostEpilogue.revokeLabel).csType(.body).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
+            Text(PostEpilogue.revokeLabel).csType(.body).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
           }
           .buttonStyle(.plain).disabled(revoking)
           Text(PostEpilogue.revokeFine).csType(.bodyS).foregroundStyle(cs.mut).multilineTextAlignment(.center).frame(maxWidth: .infinity)

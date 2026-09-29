@@ -110,7 +110,19 @@ struct ScorecardSheet: View {
               Text(c.text).font(CSFont.monoSmall.weight(c.state == .plain || c.state == .gap ? .regular : .bold)).csTabular()
                 .foregroundStyle(color(c.state))
                 .frame(minWidth: 26, minHeight: 30)
-                .background(c.state == .won ? cs.gold : .clear, in: RoundedRectangle(cornerRadius: 4))
+                // N4-084 · no gold on a scorecard (D359): a score's quality is
+                // the D267 mark round the numeral, in ink, and a won hole is
+                // underlined in ink rather than filled with a metal
+                .overlay {
+                  if let o = Self.overPar(c.text, card.par(h)), o != 0 {
+                    CSScoreMark(o, size: 24).foregroundStyle(cs.ink).accessibilityHidden(true)
+                  }
+                }
+                .overlay(alignment: .bottom) {
+                  if c.state == .won {
+                    Rectangle().fill(cs.ink).frame(width: 14, height: 2).padding(.bottom, CSTokens.Space.s1)
+                  }
+                }
                 .overlay(alignment: .trailing) { if h == 8 { Rectangle().fill(cs.rule).frame(width: 1) } }
                 .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
                 .accessibilityLabel(Self.cellLabel(hole: h, par: card.par(h), cell: c))
@@ -140,11 +152,15 @@ struct ScorecardSheet: View {
 
   private func color(_ s: Scorecard.CellState) -> Color {
     switch s {
-    case .plain: cs.ink
+    case .plain, .bird, .won: cs.ink
     case .gap: cs.mut
-    case .bird: cs.gold
-    case .won: cs.bg0
     }
+  }
+
+  /// Strokes over par, when the cell and the hole's par are both numbers.
+  static func overPar(_ strokes: String, _ par: String) -> Int? {
+    guard let s = Int(strokes), let p = Int(par) else { return nil }
+    return s - p
   }
 
   private func head(_ t: String, who: Bool = false, tot: Bool = false, nine: Bool = false) -> some View {

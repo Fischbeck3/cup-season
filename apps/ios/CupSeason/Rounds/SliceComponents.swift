@@ -201,7 +201,7 @@ struct MiniButton: View {
   var body: some View {
     Button(action: action) {
       Text(label).csType(.nameS).foregroundStyle(tone ?? cs.ink)
-        .padding(.horizontal, 14).frame(minHeight: 44)
+        .padding(.horizontal, 14).frame(minHeight: 44).contentShape(Rectangle())
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .opacity(busy ? 0.5 : 1)
     }

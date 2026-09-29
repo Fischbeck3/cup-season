@@ -513,7 +513,7 @@ struct YouScreen: View {
       .buttonStyle(.plain)
       .accessibilityLabel("Retry loading your card")
     }
-    .frame(minHeight: 44)
+    .frame(minHeight: 44).contentShape(Rectangle())
   }
 }
 

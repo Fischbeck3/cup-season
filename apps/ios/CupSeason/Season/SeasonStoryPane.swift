@@ -55,6 +55,7 @@ struct SeasonStoryPane: View {
       Text(SeasonBoardCopy.dateline(number: model.season?.number, span: model.league?.name ?? "", pro: nil))
         .csType(.agate, caps: true).foregroundStyle(cs.mut)
       Text("The story").csType(.display).foregroundStyle(cs.ink)
+        .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
       CSFactStrip([
         .init(value: String(format: "%02d", played), label: "weeks played"),
         .init(value: String(format: "%02d", total), label: "weeks in all"),

@@ -27,7 +27,7 @@ struct PostSeg<T: Hashable>: View {
           Text(l).csType(.columnS).foregroundStyle(on ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(minHeight: 36).frame(maxWidth: .infinity)
             .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
-            .frame(minHeight: 44)
+            .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(l)
@@ -57,7 +57,7 @@ struct PostScorecardStrip: View {
       VStack(alignment: .leading, spacing: 0) {
         CSFine("Each hole starts on par — tap to adjust only what you didn't.")
         Button { model.showPars = true } label: {
-          Text("Set the pars").csType(.bodyS).foregroundStyle(cs.brand).frame(minHeight: 44)
+          Text("Set the pars").csType(.bodyS).foregroundStyle(cs.act).frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }
@@ -113,7 +113,7 @@ struct PostScorecardStrip: View {
 
   private func tone(_ i: Int) -> Color {
     switch model.card.result(at: i) {
-    case .eagle: cs.gold
+    case .eagle: cs.pos   // N4-084 · under par is not a thing won: no gold
     case .birdie: cs.pos
     case .bogey: cs.mut
     case .par: cs.ink
@@ -192,7 +192,7 @@ struct PostScorecardStrip: View {
         CSMotion.run(CSMotion.rise) { selected = PostStrip.next(after: i, side: model.card.side) }
         CSHaptic.selection()
       } label: {
-        Text("Next hole").csType(.bodyS).foregroundStyle(cs.ink).frame(maxWidth: .infinity, minHeight: 44)
+        Text("Next hole").csType(.bodyS).foregroundStyle(cs.ink).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
       }
       .buttonStyle(.plain)
     }

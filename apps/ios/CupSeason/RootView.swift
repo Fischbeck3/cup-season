@@ -376,8 +376,9 @@ struct BootFailedView: View {
           if let s = snapshot { lastKnown(s) }
           Button { courses = true } label: {
             HStack(spacing: 8) {
-              Text("Courses on your phone").csType(.body).foregroundStyle(cs.brand)
-              Text("›").csType(.body).foregroundStyle(cs.brand)
+              // N4-091 · a link is `act`; ember is competition only (D359)
+              Text("Courses on your phone").csType(.body).foregroundStyle(cs.act)
+              Text("›").csType(.body).foregroundStyle(cs.act)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())
@@ -388,7 +389,9 @@ struct BootFailedView: View {
             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
         }
 
-        Button("Sign out") { askSignOut = true }.csType(.body).foregroundStyle(cs.mut)
+        // N4-014 · a link, drawn as one: the tertiary style's rule and its
+        // whole 44pt row (it was body text in mut, with a ~20pt target)
+        Button("Sign out") { askSignOut = true }.buttonStyle(.csTertiary)
           .padding(.top, 6)
       }
       .padding(28)

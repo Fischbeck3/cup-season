@@ -236,8 +236,8 @@ struct HeadToHeadPage: View {
   @ViewBuilder private var empty: some View {
     Text("Nothing counted yet").csType(.agate, caps: true).foregroundStyle(cs.mut)
       .padding(.top, CSTokens.Space.s4)
+    // N4-086 · a name wraps whole: no two-line clamp and no shrink to 72%
     Text(TourCard.youAndThem(name)).csType(.display, caps: true).foregroundStyle(cs.ink)
-      .lineLimit(2).minimumScaleFactor(0.72)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, CSTokens.Space.s2)
       .accessibilityAddTraits(.isHeader)

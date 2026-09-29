@@ -122,7 +122,7 @@ struct ReportGolferSheet: View {
               HStack {
                 Text(r).csType(.body).foregroundStyle(cs.ink)
                 Spacer(minLength: 8)
-                if reason == r { Text("✓").csType(.body).foregroundStyle(cs.brand) }
+                if reason == r { Text("✓").csType(.body).foregroundStyle(cs.act) }
               }
               .frame(minHeight: 44)
               .contentShape(Rectangle())

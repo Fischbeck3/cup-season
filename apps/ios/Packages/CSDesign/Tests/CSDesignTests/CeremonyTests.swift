@@ -108,6 +108,15 @@ struct GlyphFamilyTests {
     for n in added { #expect(CSGlyph.Name.allCases.contains(n)) }
   }
 
+  /// §13.1 · two absences never share an object. N4-112 adds the empty
+  /// scoreboard, "nothing is running", beside the five before it.
+  @Test("every empty-state object draws its own absence")
+  func emptyObjects() {
+    let objects: [CSGlyph.Name] = [.scorecard, .emptyRail, .scheduleSheet, .rack, .bag, .scoreboard]
+    #expect(Set(objects.map(\.path)).count == objects.count, "two absences share a drawing")
+    #expect(CSGlyph.Name.scoreboard.spoken == "scoreboard")
+  }
+
   /// LINT-28 · the pennant is the tab band's and the app icon's. Nothing else
   /// in the family is a flag, so a surface reaching for one has to reach for
   /// the reserved name and fail the check rather than find a lookalike.

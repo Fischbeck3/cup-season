@@ -101,9 +101,34 @@ public extension CSPageHeader where Trailing == EmptyView {
 /// "THU · AUG 27" — the header's date eyebrow.
 public enum CSHeaderDate {
   public static func today(_ date: Date = Date(), calendar: Calendar = .current) -> String {
-    let f = DateFormatter(); f.calendar = calendar; f.locale = Locale(identifier: "en_US_POSIX")
-    f.dateFormat = "EEE · MMM d"
-    return f.string(from: date).uppercased()
+    CSDateFormat.string(date, "EEE · MMM d", calendar: calendar).uppercased()
+  }
+}
+
+/// N4-098 · ONE formatter per format, not one allocated on every call from a
+/// view body. A `DateFormatter` is not safe to mutate across threads, so the
+/// calendar is set and the string made under one lock. The locale is pinned
+/// to en_US_POSIX as every caller pinned it.
+enum CSDateFormat {
+  nonisolated(unsafe) private static var cache: [String: DateFormatter] = [:]
+  private static let lock = NSLock()
+
+  static func string(_ date: Date, _ format: String, calendar: Calendar) -> String {
+    lock.lock(); defer { lock.unlock() }
+    let f: DateFormatter
+    if let cached = cache[format] {
+      f = cached
+    } else {
+      f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = format
+      cache[format] = f
+    }
+    if f.calendar != calendar { f.calendar = calendar }
+    // A formatter prints in its OWN zone, never its calendar's (measured), and
+    // a cached one keeps the zone it was made in. The zone comes from the
+    // caller's calendar on every call: `.current` for every screen, so the
+    // phone's zone as of now, as a fresh formatter had it.
+    if f.timeZone != calendar.timeZone { f.timeZone = calendar.timeZone }
+    return f.string(from: date)
   }
 }
 

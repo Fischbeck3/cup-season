@@ -9,8 +9,10 @@ import CSDesign
 // ceremony and epilogue lines.
 
 @Suite struct PostRecalcTests {
+  // A2 · a card names its course, or it previews nothing (noCourse)
   func card(f9: String = "", b9: String = "", rating: String = "71.2", slope: String = "128", side: Int = 18) -> PostCard {
-    var c = PostCard(); c.f9 = f9; c.b9 = b9; c.rating = rating; c.slope = slope; c.side = side; return c
+    var c = PostCard(); c.f9 = f9; c.b9 = b9; c.rating = rating; c.slope = slope; c.side = side
+    c.course = "Fixture Muni"; return c
   }
 
   @Test func eighteenHolesAtOneHundredPercent() {

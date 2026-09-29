@@ -30,17 +30,33 @@ struct LiveSetupView: View {
     ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        if let sr = store.plan, !store.planDismissed, !store.scoreOnPhone { planBridge(sr) }
-        Toggle("Score on this phone", isOn: Binding(get: { store.scoreOnPhone }, set: { store.useLocalScoring($0) }))
-          .disabled(store.busy)
-        if store.scoreOnPhone {
-          CSFine("No signal needed. Review and post when you reconnect. No group sync or automatic posting.")
+        if store.held {
+          // TEN / W6 (critique A2, P1) · a round opened here mid-play is HELD,
+          // not dropped: the line says so first, and the way back is on the
+          // first screen. The group and the game were seated on the server at
+          // tee-off, and a plan, local scoring or a kept card would start
+          // another round, so none of them is offered; nor is Tee off.
+          Text(LiveCopy.heldLine(scored: store.state.holesScored)).csType(.bodyS).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("live.setup.held")
+          Button(LiveCopy.backToRound) { store.backToRound() }
+            .buttonStyle(.csPrimary())
+            .accessibilityIdentifier("live.setup.backToRound")
+        } else {
+          if let sr = store.plan, !store.planDismissed, !store.scoreOnPhone { planBridge(sr) }
+          Toggle("Score on this phone", isOn: Binding(get: { store.scoreOnPhone }, set: { store.useLocalScoring($0) }))
+            .disabled(store.busy)
+          if store.scoreOnPhone {
+            CSFine("No signal needed. Review and post when you reconnect. No group sync or automatic posting.")
+          }
         }
         if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
         courseCard(proxy)
-        if !store.scoreOnPhone { foursomeCard; gameCard; nearbyCard }
+        if store.held {
+          EmptyView()
+        } else if !store.scoreOnPhone { foursomeCard; gameCard; nearbyCard }
         else { CSFine("Your round only. Choose the actual tees and pars before you leave service.") }
-        if !phoneCards.isEmpty {
+        if !phoneCards.isEmpty, !store.held {
           // D364 (F2) · an unfinished round says it is one: resume, then post
           CSSectionHead("Unfinished rounds", count: "\(phoneCards.count)")
           ForEach(KeptCards.rows(phoneCards)) { card in
@@ -48,7 +64,7 @@ struct LiveSetupView: View {
               VStack(alignment: .leading, spacing: 4) {
                 Text(card.line).csType(.name)
                 Text([card.playedOn, "Not posted · resume it here"].compactMap { $0 }.joined(separator: " · ")).csType(.bodyS)
-              }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+              }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
             }.buttonStyle(.plain)
           }
         }
@@ -58,12 +74,15 @@ struct LiveSetupView: View {
     }
     .background(cs.bg0)
     .safeAreaInset(edge: .bottom, spacing: 0) {
-      Button("Tee off") { teeOffTaps += 1; Task { await store.teeOff() } }
-        .buttonStyle(.csPrimary(busy: store.busy))
-        .disabled(store.busy)
-        .accessibilityIdentifier("live.setup.teeOff")
-        .padding(CSTokens.Space.gutter)
-        .background(cs.bg0)
+      // TEN / W6 · Tee off starts a NEW round: never over a held one
+      if !store.held {
+        Button("Tee off") { teeOffTaps += 1; Task { await store.teeOff() } }
+          .buttonStyle(.csPrimary(busy: store.busy))
+          .disabled(store.busy)
+          .accessibilityIdentifier("live.setup.teeOff")
+          .padding(CSTokens.Space.gutter)
+          .background(cs.bg0)
+      }
     }
     .toolbar {
       ToolbarItemGroup(placement: .keyboard) {

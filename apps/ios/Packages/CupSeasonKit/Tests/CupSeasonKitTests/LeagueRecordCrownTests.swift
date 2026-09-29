@@ -100,3 +100,14 @@ import Foundation
   }
 
 }
+
+/// W2 twin · one rule for a season under way, on both record paths.
+@Suite struct LeagueRecordLiveRuleTests {
+  @Test func aSeasonUnderWayIsPastItsFirstTeeAndNotFinished() {
+    #expect(LeagueRecord.isLive(status: "active", phase: "season", startsOn: "2026-07-05", today: "2026-09-29"))
+    #expect(!LeagueRecord.isLive(status: "active", phase: "season", startsOn: "2026-10-05", today: "2026-09-29"))
+    #expect(!LeagueRecord.isLive(status: "complete", phase: "complete", startsOn: "2026-05-03", today: "2026-09-29"))
+    #expect(!LeagueRecord.isLive(status: nil, phase: "setup", startsOn: "2026-07-05", today: "2026-09-29"))
+    #expect(LeagueRecord.isLive(status: "cup_final", phase: "season", startsOn: "2026-07-05", today: "2026-09-29"))
+  }
+}

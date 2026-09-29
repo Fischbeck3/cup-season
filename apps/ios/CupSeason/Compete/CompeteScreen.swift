@@ -92,7 +92,9 @@ struct CompeteScreen: View {
           EmptyRootView(root: root, take: take)
         case .empty(let root):
           invitations
-          EmptyRootView(root: root, take: take)
+          // N4-112 · nothing running is drawn, as the web's empty Compete is:
+          // an empty scoreboard over the head
+          EmptyRootView(root: root, object: .scoreboard, take: take)
           // Finished seasons still render under an empty root: "nothing
           // running" is true and "you have never played one" is not.
           section(CompeteRoot.Head.finished, list.finished)
@@ -112,7 +114,7 @@ struct CompeteScreen: View {
               CSGlyph(.chevron, size: .row)
             }
             .padding(.horizontal, CSTokens.Space.s4)
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
           }
           .buttonStyle(.csPrimary())
           .padding(.top, CSTokens.Space.s3)
@@ -353,6 +355,9 @@ private struct CompeteRowView: View {
 struct EmptyRootView: View {
   @Environment(\.cs) private var cs
   let root: EmptyRoot
+  /// N4-112 · §13.1's drawn object, when the surface has one: 64pt in mut,
+  /// its name its label. Two absences never share one.
+  var object: CSGlyph.Name? = nil
   let take: (EmptyRoot.Door) -> Void
 
   private func open(_ d: EmptyRoot.Door) {
@@ -363,6 +368,10 @@ struct EmptyRootView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
+      if let object {
+        CSGlyph(object, size: .empty, labelled: true).foregroundStyle(cs.mut)
+          .padding(.bottom, CSTokens.Space.s1)
+      }
       Text(root.head).csType(.displayS).foregroundStyle(cs.ink)
       if let fact = root.fact {
         Text(fact).csType(.columnS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)

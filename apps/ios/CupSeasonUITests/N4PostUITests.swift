@@ -14,8 +14,9 @@ import UIKit
 final class N4PostUITests: N2UITestCase {
   override func setUp() { continueAfterFailure = true }
 
-  /// The card the route tests fill: a gross, then the rating and slope.
-  @MainActor private func fill(_ app: XCUIApplication) {
+  /// The card the route tests fill: a gross, then the rating and slope, and
+  /// (unless told not to) a course typed by hand.
+  @MainActor private func fill(_ app: XCUIApplication, course named: Bool = true) {
     let gross = app.textFields["Your gross"].firstMatch
     XCTAssertTrue(gross.waitForExistence(timeout: 10))
     if !app.keyboards.firstMatch.exists { gross.tap() }
@@ -27,7 +28,59 @@ final class N4PostUITests: N2UITestCase {
     rating.tap(); rating.typeText("70.1")
     let slope = app.textFields["Slope"].firstMatch
     slope.tap(); slope.typeText("124")
+    // A2 · a round names its course (noCard, noCourse, noRating): the synthetic
+    // composer inherits none, so one is typed by hand, as a golfer off the list
+    // types it — last, because its results open under the field and move the
+    // rating and slope
+    if named {
+      let course = courseField(app)
+      XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+      course.tap(); course.typeText("Fixture Muni")
+    }
     app.swipeDown()
+  }
+
+  @MainActor private func courseField(_ app: XCUIApplication) -> XCUIElement {
+    app.textFields.matching(NSPredicate(format: "identifier == %@ OR placeholderValue BEGINSWITH %@",
+                                        "post.course.search", "Search a course")).firstMatch
+  }
+
+  /// A2 (B d4d7c6f0) · **a round with no course is the course field's own
+  /// error.** A gross, a rating and a slope, and no course: Add my round says
+  /// the sentence under the course field and puts the cursor there, and the
+  /// post's own answer slot above the button stays empty — it is for the post.
+  @MainActor func testARoundWithNoCourseIsTheCourseFieldsOwnError() {
+    let app = launch("season-live", "postround")
+    _ = root(app, "composer")
+    fill(app, course: false)
+    let words = "Add the course you played — its tee sets the rating and slope."
+    let post = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "add my round")).allElementsBoundByIndex
+      .max { $0.frame.minY < $1.frame.minY }
+    XCTAssertNotNil(post, "Add my round is there")
+    post?.tap()
+    let said = app.staticTexts.matching(NSPredicate(format: "label == %@", words))
+    XCTAssertTrue(said.firstMatch.waitForExistence(timeout: 10), "the course's own error is said")
+    let course = courseField(app)
+    XCTAssertTrue(course.waitForExistence(timeout: 5), "the card opened on the course field")
+    // the field's element carries its own error line (CSField's family), so
+    // "under" is under the 50pt input box at its top, inside what it reports
+    let box = course.frame.minY + 44
+    let under = said.allElementsBoundByIndex.contains { $0.frame.minY >= box && $0.frame.minY <= course.frame.maxY + 60 }
+    XCTAssertTrue(under, "the sentence stands under the course field — \(course.frame) · \(said.allElementsBoundByIndex.map(\.frame))")
+    let focused = NSPredicate(format: "hasKeyboardFocus == true")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: focused, evaluatedWith: course)], timeout: 5), .completed,
+                   "the course field takes the cursor")
+    XCTAssertFalse(app.staticTexts["post.refusal"].exists, "the post's answer slot is left for the post")
+    attach(app, "a2-no-course")
+    // naming a course answers it: the field's error goes, and the calc line
+    // previews the round instead of saying what it is missing
+    course.typeText("Fixture Muni")
+    XCTAssertTrue(waitGone(said.firstMatch, timeout: 5), "the sentence goes once a course is named")
+    app.terminate()
+  }
+
+  @MainActor private func waitGone(_ e: XCUIElement, timeout: TimeInterval) -> Bool {
+    XCTWaiter().wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: e)], timeout: timeout) == .completed
   }
 
   /// How many pixels inside `frame` differ from its own top-left corner —

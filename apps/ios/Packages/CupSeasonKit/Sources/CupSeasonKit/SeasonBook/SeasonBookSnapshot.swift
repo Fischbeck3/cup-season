@@ -46,6 +46,12 @@ public struct SeasonBookSnapshot: Codable, Sendable {
     public var standing: String? {
       points_rank.map { CSCopy.ordinal($0) + (tied ? " · Tied" : "") }
     }
+    /// W5 twin (the web's `standingOf`) · the reader's own row says so: "You ·
+    /// 2nd". nil when there is nothing to say.
+    public var standingLine: String? {
+      let parts = [mine ? "You" : nil, standing].compactMap { $0 }
+      return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
   }
   public struct Entry: Codable, Sendable, Identifiable, Hashable {
     public let id: String
@@ -64,7 +70,14 @@ public struct SeasonBookSnapshot: Codable, Sendable {
     public var isRound: Bool { round_id != nil }
     public var dateLine: String {
       if let week { return "Week \(week)" }
-      return recorded_on.map { "Recorded \(CSDate.short($0)) · outside the season weeks" } ?? "Assessment date unavailable"
+      return recorded_on.map { "Recorded \(LeagueDates.roundDay($0)) · outside the season weeks" } ?? "Assessment date unavailable"
+    }
+
+    /// W5 twin (csSeasonBookReceipt) · the entry's place line. A WEEK's
+    /// receipt says its week once, in its head, so its entries do not repeat
+    /// "Week 12"; an entry outside the season's weeks still says so.
+    public func place(inWeek: Bool) -> String? {
+      inWeek && week != nil ? nil : dateLine
     }
   }
   public struct Cell: Codable, Sendable {

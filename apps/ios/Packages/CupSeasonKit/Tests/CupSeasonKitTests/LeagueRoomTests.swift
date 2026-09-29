@@ -621,3 +621,15 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(!race.isLive && race.finalists.isEmpty)
   }
 }
+
+/// W5 twin · the rules page's HOUSE RULES says "Custom, built on Standard"
+/// once the league's dials leave the preset's (the web's csPresetMatches).
+@Suite struct HouseRulesCustomTests {
+  @Test func aMovedDialIsCustomBuiltOnThePreset() {
+    #expect(LeagueCopy.houseRules(Bylaws(floor: 2, cap: 3, presetIdx: 1)) == "Standard")
+    #expect(LeagueCopy.houseRules(Bylaws(floor: 2, cap: 4, presetIdx: 1)) == "Custom, built on Standard")
+    #expect(LeagueCopy.houseRules(Bylaws(floor: 1, cap: 3, presetIdx: 1)) == "Custom, built on Standard")
+    #expect(LeagueCopy.houseRules(Bylaws(floor: 0, cap: nil, presetIdx: 0)) == "Casual")
+    #expect(LeagueCopy.houseRules(Bylaws(floor: 3, cap: 2, presetIdx: 2)) == "Cutthroat")
+  }
+}

@@ -23,6 +23,7 @@ struct CourseHomeScreen: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
         Text("Courses").csType(.agate, caps: true).foregroundStyle(cs.mut)
         Text("Places you play.").csType(.display).foregroundStyle(cs.ink)
+          .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
           .fixedSize(horizontal: false, vertical: true)
         CSField("Find a course", text: $query, font: CSFont.body)
           .accessibilityIdentifier("courses.search")
@@ -59,7 +60,7 @@ struct CourseHomeScreen: View {
             Text("Saved for offline").csType(.bodyS)
             Spacer()
             CSGlyph(.chevron, size: .inline)
-          }.frame(minHeight: 44).foregroundStyle(cs.ink)
+          }.frame(minHeight: 44).contentShape(Rectangle()).foregroundStyle(cs.ink)
         }.buttonStyle(.plain).accessibilityIdentifier("courses.offline")
       }
       .padding(CSTokens.Space.gutter)
@@ -145,9 +146,12 @@ struct CourseHomeScreen: View {
 /// Shared by Home and the navigation test, so the test enters the real screen.
 struct CourseHomeLink: View {
   var body: some View {
-    NavigationLink { CourseHomeScreen() } label: {
-      Text("Courses").csType(.bodyS).frame(minHeight: 44)
-    }.accessibilityIdentifier("home.courses")
+    // N4-014 · "Courses" read as a label beside the bell's "Activity". It is
+    // the header's tertiary link now: the toolbar rule under the word, and
+    // the style's whole 44pt row as the target.
+    NavigationLink { CourseHomeScreen() } label: { Text("Courses") }
+      .buttonStyle(.csTertiary(.toolbar))
+      .accessibilityIdentifier("home.courses")
   }
 }
 

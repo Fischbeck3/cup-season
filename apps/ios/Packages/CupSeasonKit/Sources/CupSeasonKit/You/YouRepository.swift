@@ -156,11 +156,16 @@ public struct YouRepository: Sendable {
     return me.memberships.map { m in
       let f = LeagueRecord.finish(phase: m.phase, season: m.season, standings: standings, myMemberId: m.member_id)
       let n = m.season?.number ?? 1
+      // W2 · the fallback path keeps the primary's rule: a season under way
+      // has no finish and no podium mark, only its line
+      let live = LeagueRecord.isLive(status: m.phase == "complete" ? "complete" : m.season?.status,
+                                     phase: m.phase, startsOn: m.season?.starts_on)
       return LeagueRecordRow(id: m.league_id, name: m.name, number: n,
                              line: LeagueRecord.line(phase: m.phase, season: m.season, standings: standings, myMemberId: m.member_id),
-                             finish: f?.finish, tied: f?.tied ?? false, of: f?.of, won: f?.won ?? false,
+                             finish: live ? nil : f?.finish, tied: f?.tied ?? false, of: live ? nil : f?.of,
+                             won: live ? false : (f?.won ?? false),
                              year: LeagueRecord.year(m.season?.starts_on),
-                             qualifier: LeagueRecord.spelledSeason(n))
+                             qualifier: LeagueRecord.spelledSeason(n), live: live)
     }
   }
 

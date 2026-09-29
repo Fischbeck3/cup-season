@@ -66,6 +66,7 @@ struct RateCourseSheet: View {
           // catch exactly this phrasing aimed at a third object.
           Text("Your rating").csType(.agate, caps: true).foregroundStyle(cs.mut)
           Text(course).csType(.display).foregroundStyle(cs.ink)
+            .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
             .fixedSize(horizontal: false, vertical: true)
 
           control

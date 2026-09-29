@@ -339,7 +339,6 @@ struct PersonRow<Action: View>: View {
   @Environment(\.cs) private var cs
   let person: Person
   var subline: String? = nil
-  var spine: Color? = nil
   let links: CSLinks
   @ViewBuilder let action: Action
   @State private var founder: UUID? = nil
@@ -347,7 +346,7 @@ struct PersonRow<Action: View>: View {
   var body: some View {
     // Y-23 · the person is a BUTTON (one element, a hint), not a tap gesture
     // over a row; the trailing action keeps its own control.
-    RoomLineRow(face: Faces.of(person.id, marker: person.marker, name: person.name), title: title, sub: Text(subline ?? person.subline), spine: spine,
+    RoomLineRow(face: Faces.of(person.id, marker: person.marker, name: person.name), title: title, sub: Text(subline ?? person.subline),
                 onTap: open, hint: open == nil ? nil : GolfersRoot.CardName.hint(person.name), label: spokenTitle) { action }
       .task { founder = await FounderBadge.shared.id() }
   }
