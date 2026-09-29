@@ -83,10 +83,21 @@ async function openLatestReceipt(page) {
 const heroState = (want) => async (page) => page.evaluate((want) => {
   const h = document.getElementById('rcptHero')
   if (!h) return 'no receipt moment'
-  const img = h.querySelector(':scope > img')
+  /* TEN / W6 · §10.3: the photograph is an inset 3:2 plate of its own, after
+     the league's verdict; the moment's words keep the card's ground */
+  const plate = document.getElementById('rcptPlate'), img = plate && !plate.hidden && plate.querySelector(':scope > img')
   const broken = [...document.querySelectorAll('#sheet img')].filter((i) => i.complete && i.naturalWidth === 0 && i.offsetParent !== null)
   if (broken.length) return `${broken.length} broken image(s) are showing`
-  if (want === 'photo') return img && !h.querySelector('.rm-topo') ? true : 'the moment has no photograph'
+  if (want === 'photo') {
+    if (!img || h.querySelector('.rm-topo') || h.querySelector('img')) return 'the photograph is not on its own plate'
+    const p = plate.getBoundingClientRect(), f = document.getElementById('rcptFigs')
+    if (Math.abs(p.width / p.height - 1.5) > 0.02) return `the plate is not 3:2 (${Math.round(p.width)}×${Math.round(p.height)})`
+    const above = f && !f.hidden ? f.getBoundingClientRect().bottom : h.getBoundingClientRect().bottom
+    if (p.top < above - 0.5) return 'the plate sits above the league verdict'
+    const ground = getComputedStyle(h).backgroundColor, probe = document.createElement('i')
+    probe.style.color = 'var(--bg1)'; h.appendChild(probe); const bg1 = getComputedStyle(probe).color; probe.remove()
+    return ground === bg1 ? true : `the moment is not on the card's ground (${ground}, not ${bg1})`
+  }
   return !img && !!h.querySelector('.rm-topo') && !h.classList.contains('has-photo') && !!h.querySelector('.rm-fig')
     ? true : 'the moment did not keep its no-photo face: ' + h.className
 }, want)
@@ -110,7 +121,7 @@ const RECORD = [
     expectConsole: [/status of 404/],
     drive: async (page) => {
       await openLatestReceipt(page)
-      await until(page, () => { const h = document.getElementById('rcptHero'); return !!h && !h.querySelector(':scope > img') && !!h.querySelector('.rm-topo') }, null, 10000)
+      await until(page, () => { const h = document.getElementById('rcptHero'), p = document.getElementById('rcptPlate'); return !!h && (!p || p.hidden) && !!h.querySelector('.rm-topo') }, null, 10000)
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptHero': 'visible', '#rcptPhotoGone': 'text:^This round\u2019s photo couldn\u2019t be opened\.$' } },

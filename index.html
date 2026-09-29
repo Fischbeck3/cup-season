@@ -1746,14 +1746,17 @@ button.payer{cursor:pointer;}
   position:relative; overflow:hidden; border-radius:var(--p);
   background:var(--bg1); color:var(--ink); margin:0 0 var(--s4); isolation:isolate;
 }
-.rcpt-moment img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2;}
-/* the scrim: type over a photograph reads on its own ground (§10.3) */
-.rcpt-moment.has-photo::before{
-  content:""; position:absolute; inset:0; z-index:-1;
-  background:linear-gradient(180deg, rgba(10,14,12,.34) 0%, rgba(10,14,12,.62) 46%, rgba(10,14,12,.86) 100%);
-}
-/* TP-03 · the scrim's light ink always has its dark ground, photo or not yet */
-.rcpt-moment.has-photo{color:var(--scrim-ink, #F1F4EF); background:var(--ceremony);}
+/* TEN / W6 · UI_SYSTEM §10.3: in the receipt a round photo is a 3:2 PLATE,
+   inset — never the ground the words are set on. The copy sat over the
+   picture on an unnamed 0.34→0.86 wash, and its meta lines measured 2.1–3.4:1
+   (root's ruling to E, N4-070; this is the web twin). The moment's words keep
+   the card's ground in their own ink, exactly as the no-photo moment always
+   set them, and the photograph is its own plate right after the league's
+   verdict — so the verdict stays on the first screen (D362/D387), which a
+   plate at the moment's head pushed to 723px at 375 × 667. */
+.rcpt-plate{position:relative; aspect-ratio:3/2; margin:0 0 var(--s4); overflow:hidden; border-radius:var(--p);}   /* a photograph, not a boxed surface: no fill of its own (LINT-10) */
+.rcpt-plate[hidden]{display:none;}
+.rcpt-plate img{display:block; width:100%; height:100%; object-fit:cover;}
 .rcpt-moment .rm-topo{position:absolute; right:-14%; top:50%; transform:translateY(-50%);
   width:70%; height:auto; z-index:-1; color:var(--mut); pointer-events:none;}
 .rcpt-moment .rm-topo .t-sur{stroke-width:.9; opacity:.08;}
@@ -1778,7 +1781,7 @@ button.payer{cursor:pointer;}
 .rcpt-moment .rm-foot{display:flex; align-items:center; gap:var(--s3); width:100%; margin-top:auto; padding-top:var(--s4);}
 .rcpt-moment .rm-tag{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate) * 1em); opacity:.7;}
 .rcpt-moment .rm-mark{width:34px; height:20px; margin-left:auto; flex:none; color:inherit;}
-.rcpt-moment .mkstamp{position:absolute; right:var(--s3); top:var(--s3); z-index:1;}
+.rcpt-plate .mkstamp{right:var(--s3); top:var(--s3); bottom:auto; z-index:1;}   /* D59 · the medallion rides the photograph, on its plate */
 @media(max-width:360px){ .rcpt-moment .rm-fig{font-size:62px;} }
 .rcpt-hero img{width:100%; max-height:260px; object-fit:cover; border-radius:12px; border:1px solid var(--rule); display:block;}
 .digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--rule);}
@@ -25110,13 +25113,22 @@ const CS_RM_TOPO = `
         <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
         <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
       </g></svg>`;
+/* TEN / W6 · §10.3 · the photograph is an inset 3:2 plate of its own, after
+   the league's verdict, with the marker medallion on it (D59) */
+function csRcptPlateHtml(url, stampHtml){
+  return `<img src="${esc(url)}" alt="Round photo">${stampHtml||''}`;
+}
 /* W1 · the moment's picture layer, set and cleared on its own: the words, the
-   figure and the mark in `.rm-in` are never touched */
+   figure and the mark in `.rm-in` are never touched. With a photograph the
+   moment keeps the card's ground (no contour: the plate is the picture) and
+   the plate shows; without one, the contour comes back and the plate goes. */
 function csRcptHeroSet(hero, url, stampHtml){
   if(!hero) return;
   hero.querySelectorAll(':scope > img, :scope > .mkstamp, :scope > .rm-topo').forEach(n => n.remove());
   hero.classList.toggle('has-photo', !!url);
-  hero.insertAdjacentHTML('afterbegin', url ? `<img src="${esc(url)}" alt="Round photo">${stampHtml||''}` : CS_RM_TOPO);
+  if(!url) hero.insertAdjacentHTML('afterbegin', CS_RM_TOPO);
+  const plate = document.getElementById('rcptPlate');
+  if(plate){ plate.innerHTML = url ? csRcptPlateHtml(url, stampHtml) : ''; plate.hidden = !url; }
   hero.style.display = '';
   csRcptHeroWire(hero);
 }
@@ -25129,7 +25141,8 @@ function csRcptPhotoGone(on){
   const el=document.getElementById('rcptPhotoGone'); if(el) el.hidden = !on;
 }
 function csRcptHeroWire(hero){
-  const img = hero && hero.querySelector(':scope > img');
+  const plate = document.getElementById('rcptPlate');
+  const img = hero && plate && plate.querySelector(':scope > img');
   if(!img || img.__csWired) return;
   img.__csWired = true;
   const fall = () => { if(img.isConnected){ csRcptHeroSet(hero, null); csRcptPhotoGone(true); } };
@@ -25247,7 +25260,7 @@ function openRoundReceipt(x, opts){
      rows below it stop saying. */
   const rmShowsFigure = r.gross != null;
   const figs = `<div class="rcpt-moment${r.photo_url?' has-photo':''}" id="rcptHero">
-      ${r.photo_url ? `<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}` : CS_RM_TOPO}
+      ${r.photo_url ? '' : CS_RM_TOPO}
       <div class="rm-in">
         ${rmCourse ? `<div class="rm-meta">${esc(rmCourse.toUpperCase())}</div>` : ''}
         ${rmWhen ? `<div class="rm-meta">${esc(rmWhen)}</div>` : ''}
@@ -25260,7 +25273,8 @@ function openRoundReceipt(x, opts){
         </div>
       </div>
     </div>
-    ${csRcptFigs(r, rmShowsFigure)}`;
+    ${csRcptFigs(r, rmShowsFigure)}
+    <div class="rcpt-plate" id="rcptPlate"${r.photo_url ? '' : ' hidden'}>${r.photo_url ? csRcptPlateHtml(r.photo_url, stampOf()) : ''}</div>`;
   /* D293 · the photograph's own slot, and it is HIS round only — the same gate
      the desk already applies to the delete. Demo never writes. */
   const canPhoto = mineOf(r) && !!rid && !state.demo && !!window.sb && !!window.CS?.user;
