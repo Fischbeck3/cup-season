@@ -13273,7 +13273,26 @@ function renderPostHoles(){
   }
   recalc();
 }
+/* TEN / W7-005 (the remainder, D's delta) · the blocked guidance answers to
+   the golfer at once. The course sentence (#postCourseErr) and the course
+   field's aria-invalid stayed until the NEXT press of Post, after the golfer
+   had typed or picked a course; the rating sentence (#postRateErr) and its
+   marks did the same. Each mark clears the moment its field holds an answer,
+   and each sentence when its block no longer holds. The fields are read
+   directly, so a tee picked from the search clears them too (recalc runs). */
+function csPostBlockAnswered(){
+  const clear = (el) => { if(el && el.getAttribute('aria-invalid')){ el.removeAttribute('aria-invalid'); el.classList.remove('bad'); el.removeAttribute('aria-describedby'); } };
+  const said = (id) => { const h = $(id); if(h && !h.hidden){ h.hidden = true; h.textContent = ''; } };
+  const cEl = $('#inCourse');
+  if(cEl && (cEl.value || '').trim()){ clear(cEl); said('#postCourseErr'); }
+  const rEl = $('#inRating'), sEl = $('#inSlope');
+  const r = parseFloat(rEl?.value) > 0, sl = parseFloat(sEl?.value) > 0;
+  if(r) clear(rEl);
+  if(sl) clear(sEl);
+  if(r && sl) said('#postRateErr');
+}
 function recalc(){
+  csPostBlockAnswered();
   if(typeof savePostDraft==='function') savePostDraft();   /* every card change mirrors to the draft */
   const rating=parseFloat($('#inRating').value)||0;
   /* TEN / W6 · root's ruling (parity with the phone's IOS-030 guard): an

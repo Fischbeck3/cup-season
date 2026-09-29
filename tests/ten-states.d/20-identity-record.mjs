@@ -397,6 +397,57 @@ const COMPOSER = [
     },
     expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postCourseErr': 'text:^Add the course you played — its tee sets the rating and slope\\.$' } },
     check: courseBlocked },
+  /* TEN / W7-005 (the remainder, D's delta) · the golfer answers a block and
+     its guidance goes at once, before any second press of Post. A typed course
+     takes the course sentence and the field's marks with it. Then, on the
+     rating block, a typed rating takes its own marks while the sentence stays
+     (the slope is still missing), and a typed slope takes the sentence. The
+     phone already does this (PostRoundScreen's onChange of the card). */
+  { family: 'composer', id: 'blocked-answered', variant: 'member', title: 'Composer · the blocks answered: a typed course, then a typed rating and slope (the guidance goes at once)',
+    drive: async (page) => {
+      const snap = (key) => {
+        const m = (id) => { const el = document.getElementById(id); return { invalid: el.getAttribute('aria-invalid'), bad: el.classList.contains('bad'), desc: el.getAttribute('aria-describedby') } }
+        const e = (id) => { const el = document.getElementById(id); return { hidden: el.hidden, text: el.textContent } }
+        ;(window.__w7005 = window.__w7005 || {})[key] = { blocked: state.postBlocked, course: m('inCourse'), rating: m('inRating'), slope: m('inSlope'), courseErr: e('postCourseErr'), rateErr: e('postRateErr') }
+      }
+      await toComposer(page)
+      await page.locator('#inGross').fill('84')
+      await page.waitForTimeout(300)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postCourseErr'); return !!e && !e.hidden }, null, 6000)
+      await page.evaluate(snap, 'pressed')
+      await page.locator('#inCourse').fill('Pinecrest Muni (fixture)')
+      await page.waitForTimeout(400)
+      await page.evaluate(snap, 'course')
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postRateErr'); return !!e && !e.hidden }, null, 6000)
+      await page.evaluate(snap, 'ratePressed')
+      await page.locator('#inRating').fill('70.1')
+      await page.waitForTimeout(300)
+      await page.evaluate(snap, 'rating')
+      await page.locator('#inSlope').fill('121')
+      await page.waitForTimeout(400)
+      await page.evaluate(snap, 'slope')
+    },
+    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postCourseErr': 'hidden', '#postRateErr': 'hidden' } },
+    check: async (page) => page.evaluate(() => {
+      const w = window.__w7005 || {}
+      const unmarked = (f) => f.invalid === null && !f.bad && f.desc === null
+      /* the blocks engaged (the check is not vacuous) */
+      if (!w.pressed || w.pressed.blocked !== 'course' || w.pressed.course.invalid !== 'true' || w.pressed.courseErr.hidden) return 'Post never blocked on the course: ' + JSON.stringify(w.pressed)
+      if (!w.ratePressed || w.ratePressed.blocked !== 'rating' || w.ratePressed.rating.invalid !== 'true' || w.ratePressed.rateErr.hidden) return 'Post never blocked on the rating: ' + JSON.stringify(w.ratePressed)
+      /* a typed course answers the course block at once */
+      if (!w.course.courseErr.hidden || w.course.courseErr.text !== '') return 'the course sentence outlived the typed course: ' + JSON.stringify(w.course.courseErr)
+      if (!unmarked(w.course.course)) return 'the course field is still marked after a course was typed: ' + JSON.stringify(w.course.course)
+      /* a typed rating takes its own marks; the sentence stays while the slope is missing */
+      if (!unmarked(w.rating.rating)) return 'the rating field is still marked after a rating was typed: ' + JSON.stringify(w.rating.rating)
+      if (w.rating.blocked !== 'rating' || w.rating.rateErr.hidden) return 'the rating sentence left while the slope was still missing: ' + JSON.stringify(w.rating)
+      /* a typed slope answers the block: no sentence, no marks, and the card scores */
+      if (!w.slope.rateErr.hidden || w.slope.rateErr.text !== '') return 'the rating sentence outlived the typed rating and slope: ' + JSON.stringify(w.slope.rateErr)
+      if (!['course', 'rating', 'slope'].every((k) => unmarked(w.slope[k]))) return 'a field is still marked once the card could post: ' + JSON.stringify(w.slope)
+      const pts = document.getElementById('calcPts').textContent.trim()
+      return w.slope.blocked === null && pts !== '\u2013' && pts !== '' ? true : 'the answered card does not score: ' + JSON.stringify({ blocked: w.slope.blocked, pts })
+    }) },
   /* a tee picked from the course search: the course, the rating and the slope
      arrive together, so nothing blocks and the preview scores the card */
   { family: 'composer', id: 'tee-picked', variant: 'member', title: 'Composer · a gross and a tee picked from the course search (no block)',
