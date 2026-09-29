@@ -93,19 +93,23 @@ final class N4ShellUITests: N2UITestCase {
   /// N4-040 (root) · the signed-out claim names the product the way the door
   /// does, says what its button does next, and has a way out: "Not now" lands
   /// on the plain door (both of its actions, no claim line). That the claim
-  /// stays pending for the next launch is `PendingLinkTests`' to prove — the
+  /// stays pending for the next launch is OnboardingTests' to prove — the
   /// synthetic sandbox starts every launch clean.
   @MainActor func testTheSignedOutClaimNamesItselfAndHasAWayOut() {
     let app = launch("signed-out", "claim")
     _ = root(app, "claimpencil")
     XCTAssertTrue(app.descendants(matching: .any)["claim.brand"].waitForExistence(timeout: 20), "the claim names the product")
-    XCTAssertTrue(app.buttons["Sign in with your email to keep it"].exists, "the act says what it does next")
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Sign in with your email to keep it")).firstMatch.exists,
+                  "the act says what it does next")
     let notNow = app.buttons["claim.notNow"]
     XCTAssertTrue(notNow.exists && notNow.isHittable, "a way out")
     attach(app, "n4-claim-signedout")
     notNow.tap()
-    XCTAssertTrue(app.buttons["Get started"].waitForExistence(timeout: 10), "the plain door, both of its actions")
-    XCTAssertTrue(app.buttons["Sign in"].exists)
+    // the Door's actions set their labels in caps: match them as the buttons
+    // set them, as N2DoorUITests does
+    let start = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Get started")).firstMatch
+    XCTAssertTrue(start.waitForExistence(timeout: 20), "the plain door, both of its actions")
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Sign in")).firstMatch.exists)
     XCTAssertFalse(app.staticTexts["A round is waiting. Sign in to review it."].exists, "no claim line on the plain door")
     attach(app, "n4-claim-not-now-door")
     app.terminate()
