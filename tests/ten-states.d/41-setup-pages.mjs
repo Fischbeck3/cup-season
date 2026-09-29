@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -237,7 +237,9 @@ const SETTINGS = [
       await click(page, '#phDelete')
       await until(page, () => { const c = document.getElementById('phDelConfirm'); return !!c && c.offsetParent !== null })
       await page.locator('#phDelYes').scrollIntoViewIfNeeded().catch(() => {})
-      return back === 'phDelete' ? true : 'Not now did not return focus to the opener: ' + back
+      if (back !== 'phDelete') return 'Not now did not return focus to the opener: ' + back
+      /* TEN / W6 · DX2 OB2-03: the armed delete is §7.1's tier — bg2 fill, neg label */
+      return armedDelete('#phDelYes')(page)
     } },
   /* NOT CAPTURED: the composer's own confirmation ("Post as even par?") is
      reachable only in hole-by-hole mode, and #postMode is display:none --

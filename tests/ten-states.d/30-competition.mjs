@@ -20,7 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -219,6 +219,20 @@ const SEASON = [
         if (rows.length !== 8) return `${rows.length} payer rows, expected 8`
         return rows.every((r) => r.tagName === 'BUTTON') ? true : 'the Pro’s payer rows are not controls'
       })) },
+  /* TEN / W6 · DX2 OB2-03 · the Pro's "Cancel this season", opened and NOT
+     confirmed: North Grove is under way, so it is the consent flow's sheet,
+     and its armed control is §7.1's destructive tier */
+  { family: 'season', id: 'cancel-confirm', variant: 'pro', fullPage: false, title: 'The season page, as the Pro: Cancel this season, the confirmation (not confirmed)',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => { const a = document.getElementById('hhDelete'); return !!a && a.offsetParent !== null })
+      await click(page, '#hhDelete')
+      await until(page, () => { const s = document.getElementById('sheet'); return !!s && s.classList.contains('open') && !!document.getElementById('cxGo') })
+      await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-hub', sheet: '^Cancel ', selectors: { '#cxGo': 'visible', '#cxNo2': 'visible' } },
+    check: armedDelete('#cxGo') },
   { family: 'season', id: 'rules', variant: 'member', title: 'The season page, the rules in sentences', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: (page) => toRoom(page, 'league'),

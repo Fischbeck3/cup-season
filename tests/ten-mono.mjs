@@ -153,3 +153,19 @@ export const onceInView = (facts, from = 0) => async (page) => page.evaluate(([f
   }
   return bad.length ? 'one fact, one place per viewport (L-34, §16A.4): ' + bad.join('; ') : true
 }, [facts, from])
+
+/* TEN / W6 · DX2 OB2-03 · UI_SYSTEM §7.1 "Destructive, armed": a `bg2` fill
+ * and a `neg` label (the phone's CSDestructiveStyle), and the label reads at
+ * AA on its fill. `armedDelete(sel)` fails the capture otherwise. The tokens
+ * are read beside the control, so a room's own ground re-declaration counts. */
+export const armedDelete = (sel) => async (page) => page.evaluate((sel) => {
+  const b = [...document.querySelectorAll(sel)].find((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+  if (!b) return `the state does not draw ${sel}`
+  const tok = (n) => { const i = document.createElement('i'); i.style.color = `var(${n})`; b.parentElement.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const cs = getComputedStyle(b)
+  if (cs.backgroundColor !== tok('--bg2')) return `${sel}'s fill is ${cs.backgroundColor}, not bg2 (${tok('--bg2')}) — §7.1`
+  if (cs.color !== tok('--neg')) return `${sel}'s label is ${cs.color}, not neg (${tok('--neg')}) — §7.1`
+  const lum = (c) => { const [r, g, bl] = (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }); return 0.2126 * r + 0.7152 * g + 0.0722 * bl }
+  const a = lum(cs.color), z = lum(cs.backgroundColor), ratio = (Math.max(a, z) + 0.05) / (Math.min(a, z) + 0.05)
+  return ratio >= 4.5 ? true : `${sel}'s label is ${ratio.toFixed(2)}:1 on its fill`
+}, sel)

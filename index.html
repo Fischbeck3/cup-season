@@ -4729,6 +4729,13 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
 }
 .btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
+/* TEN / W6 · DX2 OB2-03 · UI_SYSTEM §7.1 "Destructive, armed": a `bg2` fill
+   and a `neg` label; pressed, the fill is neg at a16. It is the phone's
+   CSDestructiveStyle. The four armed deletes (your account, and the league's
+   cancel and delete sheets) painted a neg FILL under a bg0 label, a tier
+   §7.1 does not have. Declared after the primary so it wins at equal weight. */
+.btn.destructive:not(.dark){background:var(--bg2); color:var(--neg); box-shadow:none;}
+.btn.destructive:not(.dark):active{background:color-mix(in srgb, var(--neg) 16%, transparent);}
 .btn:active, .mini:active{transform:scale(.98);}
 /* D76 sweep: the file's one focus rule that wasn't on --focus. It hardcoded
    rgba(233,190,98,.55) — a pre-token gold matching NEITHER theme's --gold —
@@ -30634,7 +30641,7 @@ function openProfileHub(){
            photos go, every share link is withdrawn, the rounds stay -->
       <p class="fine" id="phDelWhat" tabindex="-1" style="padding-left:0">${esc(CS_DELETE_ACCOUNT)}</p>
       <div style="display:flex; gap:8px; margin-top:10px">
-        <button class="btn" id="phDelYes" aria-describedby="phDelWhat" style="background:var(--neg); color:var(--bg0); box-shadow:none; flex:1">Delete permanently</button>
+        <button class="btn destructive" id="phDelYes" aria-describedby="phDelWhat" style="flex:1">Delete permanently</button>
         <button class="mini" id="phDelNo">Not now</button>
       </div>
     </div>
@@ -34086,7 +34093,7 @@ document.getElementById('hhDelete')?.addEventListener('click', async e => {
   if(!preTee){
     openSheet('Cancel '+nm+'?', 'THE SEASON IS UNDER WAY', `
       <p class="fine" style="padding-top:0">A free league cancels now. If there's a buy-in, every member must approve and each gets their buy-in back. Either way the league, its board and pot go — but every posted round stays where it is.</p>
-      <button class="btn" id="cxGo" style="margin-top:10px;background:var(--neg)">Start the cancellation</button>
+      <button class="btn destructive" id="cxGo" style="margin-top:10px">Start the cancellation</button>
       <button class="btn dark" id="cxNo2" style="margin-top:8px">Keep it</button>`);
     document.getElementById('cxNo2')?.addEventListener('click', closeSheet);
     document.getElementById('cxGo')?.addEventListener('click', async () => {
@@ -34124,13 +34131,13 @@ document.getElementById('hhDelete')?.addEventListener('click', async e => {
   if(others === 0){
     openSheet('Delete '+nm+'?', 'ONLY POSSIBLE BEFORE THE FIRST TEE', `
       <p class="fine" style="padding-top:0">It's just you in it — the league, its board and settings go completely. Your rounds stay where they are.</p>
-      <button class="btn" id="delGo" style="margin-top:10px;background:var(--neg)">Delete the league</button>
+      <button class="btn destructive" id="delGo" style="margin-top:10px">Delete the league</button>
       <button class="btn dark" id="delNo" style="margin-top:8px">Keep it</button>`);
   } else {
     openSheet('Delete '+nm+'?', 'THIS TAKES EVERYONE’S SEAT', `
       <p class="fine" style="padding-top:0">This deletes ${esc(nm)} for everyone in it: golfers, board, pot, squads. Every golfer's rounds stay where they are. Type the league name to confirm.</p>
       <input class="f" id="delName" placeholder="${esc(nm)}" autocomplete="off" style="font-family:var(--sans)">
-      <button class="btn" id="delGo" style="margin-top:10px;background:var(--neg)">Delete for everyone</button>
+      <button class="btn destructive" id="delGo" style="margin-top:10px">Delete for everyone</button>
       <button class="btn dark" id="delNo" style="margin-top:8px">Keep it</button>`);
   }
   document.getElementById('delNo')?.addEventListener('click', closeSheet);
