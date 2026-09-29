@@ -1738,6 +1738,10 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .dtab td.rt{text-align:right; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap;}
 @media (hover:hover){ .dtab tr:hover td{background:var(--bg1);} }
+/* TEN · the person page's "Last played Sep 20" is one fact: it stacked into
+   three agate lines at 375 (critique-B minor). The course column takes the
+   wrap instead — a name wraps whole. */
+#view-person .dtab td.ag{white-space:nowrap;}
 /* the status sentence under the card, and its figure run - the board face at
    the SENTENCE's own size, so the number sits on the sentence's baseline
    rather than looking pasted in */
@@ -2199,7 +2203,7 @@ body.guestlive #onboard{display:none !important;}
 .feedsec{color:var(--ink); margin:32px 0 12px;}
 .feedsec:first-child{margin-top:0;}
 /* the first row under a dateline needs no rule — the head is its edge */
-.feedsec + .hfcard.hfrail, .feedsec + .hfcard.hfrecord, .feedsec + .hfline{border-top:0;}
+.feedsec + .hfcard.hfrail, .feedsec + .hfcard.hfrecord, .feedsec + .hfcard.hfstory, .feedsec + .hfline{border-top:0;}
 .feedmore{margin-top:4px;}
 /* TEN · the expander is a row on the wire's rule, not a bordered pill (§8:
    there is no pill; critique-B P3): the label in agate, a 44px target */
@@ -21196,13 +21200,23 @@ window.renderGolfers = renderGolfers;
 /* The desk header. One block, rendered into the sidebar at desk widths and at
    the head of Home below them - exactly one is on screen at any width, which is
    what "two shapes, one producer" means in CSS. */
+/* TEN · A NUMERAL RAIL HOLDS NUMERALS (§16A.4) — the web twin of the phone's
+   `HomeWireCopy.railCell`: "84 SUN" over LAST becomes "84" over "LAST · SUN".
+   A layout split, not a re-wording; both halves are the producer's words. */
+function csRailCell(s){
+  const v = String((s && s.value) || ''), sp = v.indexOf(' ');
+  if(!s || s.fact !== 'my_last_round' || sp < 1) return { value: v, label: (s && s.label) || '' };
+  const fig = v.slice(0, sp), day = v.slice(sp + 1).trim();
+  if(!/[0-9]/.test(fig) || !day) return { value: v, label: s.label };
+  return { value: fig, label: `${s.label} · ${day}` };
+}
 function renderMeStrip(){
   const strip = csMeStrip();
   const html = (!strip.slots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${strip.slots.map(s => `
+    <div class="mefacts">${strip.slots.map(s => { const c = csRailCell(s); return `
       <button class="mefact${s.fact==='my_money'?' owed':''}" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(s.value)}</b><small>${esc(s.label)}</small>
-      </button>`).join('')}</div>
+        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
+      </button>`; }).join('')}</div>
     ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
   /* MW-02 · below the desk the strip is COMPACT: the number, the last round
      and the season row. The next round has its own row further down
@@ -21213,10 +21227,10 @@ function renderMeStrip(){
      on this page, just not at its head. */
   const compactSlots = strip.slots.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
   const compact = (!compactSlots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${compactSlots.map(s => `
+    <div class="mefacts">${compactSlots.map(s => { const c = csRailCell(s); return `
       <button class="mefact" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(s.value)}</b><small>${esc(s.label)}</small>
-      </button>`).join('')}</div>
+        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
+      </button>`; }).join('')}</div>
     ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
   ['#sideMe', '#homeMe'].forEach(sel => {
     const box = document.querySelector(sel);
