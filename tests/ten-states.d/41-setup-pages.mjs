@@ -417,7 +417,7 @@ const notifyGroups = (heads) => async (page) => page.evaluate(({ heads, groups }
     const want = groups[h.textContent.trim()]
     if (JSON.stringify(ids) !== JSON.stringify(want)) return `${JSON.stringify(h.textContent.trim())} holds ${JSON.stringify(ids)}, expected ${JSON.stringify(want)}`
   }
-  const all = [...pane.querySelectorAll('.phsws')].filter(shown)
+  const all = [...pane.querySelectorAll('.phsws')].filter(shown)   /* Scorecard scanning's block included: nothing abuts it either */
   for (const g of all) if (g.nextElementSibling && g.nextElementSibling.classList.contains('phsws') && shown(g.nextElementSibling)) return 'two ruled switch blocks abut (a doubled hairline)'
   const off = [...pane.querySelectorAll('.phsw')].filter((b) => shown(b) && b.disabled).map((b) => b.id)
   if (off.length) return `switches disabled: ${off.join(', ')}`
@@ -433,7 +433,7 @@ const notifyGroups = (heads) => async (page) => page.evaluate(({ heads, groups }
   }
   const last = [...pane.querySelectorAll(':scope > .fine')].find((p) => /^Milestones, results and month closes always come through\.$/.test(p.textContent.trim()))
   if (!last) return 'the always-come-through line is gone'
-  const lastGroup = [...pane.querySelectorAll('.phsws')].filter(shown).pop()
+  const lastGroup = [...pane.querySelectorAll('#phNotify, #phMailGroup .phsws, #phTalk')].filter(shown).pop()   /* the channel groups only: Scorecard scanning's switch follows the line */
   return lastGroup.compareDocumentPosition(last) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the always-come-through line is not after the last group'
 }, { heads, groups: NOTIFY_GROUPS })
 const SETTINGS = [
