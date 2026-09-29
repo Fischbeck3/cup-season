@@ -249,7 +249,9 @@ public enum ReceiptRows {
       rows.append(.math(label: "This month", value: ReceiptRows.clause(rank: rank, cap: cap) ?? "COUNTING #\(rank)", sub: false))
     }
     if r.holesPlayed == 9 { rows.append(.math(label: "Nine holes", value: "HALF VALUE · HALF A ROUND", sub: false)) }
-    if r.attested == true { rows.append(.math(label: "Attested", value: "PLAYED WITH THE GROUP", sub: false)) }
+    // N4-206 · the web's word (receipt math rows): a round played with the
+    // group is VOUCHED — the word the finish and the fine print already use
+    if r.attested == true { rows.append(.math(label: "Vouched", value: "PLAYED WITH THE GROUP", sub: false)) }
     if !r.playedWith.isEmpty { rows.append(.playedWith(r.playedWith)) }
     if let live = r.liveRoundId { rows.append(.scorecard(live)) }
     return rows
