@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**, source read from the snapshot `candidate-9d84c483/`. Live probes ran against the pinned server, which served `index.html` sha256 `2ac5c63a…`. |
-| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every web lane, E's native phase 1 (`6716b0ed`), and root's fixes through `41cf8050`. Nothing after `144ee0b0` changes an item in this file. |
+| **Status read at** | **`7b9c17e4`**, live on the web since 03:53 MST on 2026-09-29, and Owner TestFlight 1335 from the same SHA: every web lane, E's native phase 1 (`6716b0ed`) and phase 2 set 1 (`146401bb`), and root's fixes through `7b9c17e4`. |
 | **Date** | 2026-09-28 |
 | **Assessors** | **AW**, an independent web audit with Impeccable 4.3.1 `audit`. AW wrote no code. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/audit-web/AUDIT-web.md` and `audit-web.json` · `…/audit-web/raw/` (probe results) · `…/audit-web/shots/` · `…/audit-web/snapshots/` and `…/audit-web/detector/` (sanitised DOMs and detector runs) · `…/audit-web/probe/aw-probe.mjs` |
@@ -55,7 +55,7 @@ AW's integrity verdict: "Pass, with verified drift."
 | P3-24 | P3 | theming | Small colour misuses: `::selection` in the retired hot, the Pro's note in pre-token gold, a pointer on non-Pro payer rows, dim "·" separators on You | index.html:3594, :4248–4262, :1338–1343 | **fixed.** `::selection` is act (69f40d1f); only the Pro's payer rows are buttons with a pointer (735a63ec); the Pro's note is on tokens with no gold, naming AW P3-24 (e8108e59: ffdcd6b4); and the facts' separators (`.cs-facts .sep`) are opaque mut (f46086b4: 35b4f475; f6cb4760: 71d9b41d). The phone's gold "From the Pro" goes to N4. |
 | P3-25 | P3 | performance | One 2.05 MB document is parsed by every visitor, and every view's DOM stays resident | index.html (1.64 MB inline JS, 285 KB CSS); render-blocking Google Fonts CSS | **open.** AW calls it "structural, post-launch"; the owner's direction defers nothing, so this is Q12 in OWNER-QUESTIONS. |
 
-**Tally at `fd27ace4`:** 25 findings. Every fixed item is verification pending until round 2.
+**Tally at `7b9c17e4`:** 25 findings. Every fixed item is verification pending until round 2.
 - **fixed: 23.** P1-1 to P1-6; P2-7 to P2-10 and P2-12 to P2-17; P3-18 to P3-24. P2-10 keeps two controls its commit does not name (the half-star buttons and the calendar arrows); they are open, verification pending.
 - **fixed in part: 1.** P2-11: Home's single render remains.
 - **open: 1.** P3-25, code splitting (Q12).
@@ -86,8 +86,8 @@ Issues: P0 0, P1 2, P2 15, P3 10. Session A also notes that the 4112 matrix wrot
 
 | AN id | Sev | Dimension | Finding | Where (A, at `4112a3f0`) | Status at `144ee0b0` |
 |---|---|---|---|---|---|
-| AN-01 | P1 | accessibility | At AX3 the composer scrolls the gross field out of view while the keypad types into it | `CupSeason/Post/PostRoundScreen.swift:251` | open · N4 (not in E's phase 1) |
-| AN-02 | P1 | accessibility | Type set over round photographs fails WCAG AA in both themes (2.0:1 to 3.4:1) | `Packages/CSDesign/Sources/CSDesign/Course.swift:573` | open · N4 (not in E's phase 1) |
+| AN-01 | P1 | accessibility | At AX3 the composer scrolls the gross field out of view while the keypad types into it | `CupSeason/Post/PostRoundScreen.swift:251` | **fixed (146401bb: bf67db31)**, in TestFlight 1335 |
+| AN-02 | P1 | accessibility | Type set over round photographs fails WCAG AA in both themes (2.0:1 to 3.4:1) | `Packages/CSDesign/Sources/CSDesign/Course.swift:573` | open · N4-070. The fix is ruled from canon (OWNER-QUESTIONS §E): an inset 3:2 plate with its copy on the card ground (UI_SYSTEM §10.3), on both clients. Not built at `7b9c17e4`. |
 | AN-03 | P2 | accessibility | CSFactStrip gives VoiceOver every fact three times, out of order (Home's ME strip, the story head) | `Packages/CSDesign/Sources/CSDesign/Chrome.swift:533` | open · N4 (not in E's phase 1) |
 | AN-04 | P2 | accessibility | Nine screen names set in raw `display` are not headings, on pages that blank the navigation title | `CupSeason/Season/SeasonStoryPane.swift:57` | open · N4 (not in E's phase 1) |
 | AN-05 | P2 | accessibility | Plan rows open on .onTapGesture and are not buttons to VoiceOver | `CupSeason/Schedule/ScheduleScreen.swift:89` | open · N4 (not in E's phase 1) |
@@ -114,9 +114,11 @@ Issues: P0 0, P1 2, P2 15, P3 10. Session A also notes that the 4112 matrix wrot
 | AN-26 | P3 | integrity | The activity inbox's empty state is a sentence with no door (LINT-21) | `CupSeason/Home/SocialActivitySheet.swift:86` | open · N4 (not in E's phase 1) |
 | AN-27 | P3 | responsive | Live scoring truncates a player's running line on SE3 at the default size | `CupSeason/Live/LivePlayView.swift:448` | **fixed (6716b0ed: 327d6708, d27d3b6e, b9e42723)**: the SE keeps its 20pt gutter, and a live row wraps its name and breaks its facts on their separator |
 
-**Tally at `144ee0b0`:** 27 findings.
-- **fixed: 3.** AN-10, AN-25 and AN-27.
+**Tally at `7b9c17e4`:** 27 findings.
+- **fixed: 4.** AN-01 (a P1, in E's phase 2 set 1), AN-10, AN-25 and AN-27.
 - **fixed in part: 2.** AN-06 and AN-16.
-- **open: 22.** Both P1s among them (AN-01, the AX3 gross field; AN-02, text over photographs), for N4 phase 2.
+- **open: 21.** Among them is the other P1, AN-02, whose fix is ruled but not built.
+
+**Round 2 (AW2), so far:** AW2-02 is fixed at 7b9c17e4: the Handicap index field has an accessible name (WCAG 4.1.2). Session D's full AW2 is pending.
 
 N4-WORKLIST.md tracks each by its N4 id.

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). Native **`4112a3f0`**, Owner TestFlight 1.0.0 (1180), judged from `native-4112/` (COVERAGE.md §2). |
-| **Status read at** | **`41cf8050`**, which is shipping as web plus TestFlight 1328 (its suites and archive were running when this was written). The previous ship was `272c2da1`. Round 2's judges read `fd27ace4`, and `ed8e6837` for home, compete, desk, courses and you. |
+| **Status read at** | **`7b9c17e4`**, live on the web since 03:53 MST on 2026-09-29; Owner TestFlight 1335 comes from the same SHA. Round 2's judges read `fd27ace4`, and `ed8e6837` for home, compete, desk, courses and you. |
 | **Date** | 2026-09-28 |
 | **Assessors** | the **category**, **craft** and **owner** judges: three fresh agents that wrote no code. Their calibration stays with root, which runs the same three on the native half and on round 2. |
 | **Raw evidence (outside git)** | Web: `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/`. Native: `…/evidence/panel/{category,craft,owner}-native.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/native-4112/`. |
@@ -135,7 +135,7 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 
 | # | Judge | Pri | Row | Defect (the judge's words, shortened) | Captures | Status at `de3eaf35` |
 |---|---|---|---|---|---|---|
-| 1 | category | **P0** | home | A nine-hole 43 is announced "Broke 80 for the first time." on Home, the golfer's own feed and every buddy's. `home_feed.is_sub80` has no `holes_played = 18` guard (`20261020090000_one_round_one_number.sql`). | `home--league-less-rounds_no_buddies--375--dark.png` | **fixed in part (e8108e59).** The web claims sub-80 only for a round known to be 18 holes, and a known nine reads "9 HOLES" (2dce66e6). **Open:** the server half, X41 (owner's `db push`), and the phone's guard (N4). |
+| 1 | category | **P0** | home | A nine-hole 43 is announced "Broke 80 for the first time." on Home, the golfer's own feed and every buddy's. `home_feed.is_sub80` has no `holes_played = 18` guard (`20261020090000_one_round_one_number.sql`). | `home--league-less-rounds_no_buddies--375--dark.png` | **fixed in part (e8108e59).** The web claims sub-80 only for a round known to be 18 holes, and a known nine reads "9 HOLES" (2dce66e6). **Open:** the server half, X41 (owner's `db push`). The phone's guard is fixed too (146401bb: 5404441a). |
 | 2 | category | P1 | home | The Home photo round card is broken at every width and theme: the reactions foot is an opaque band across the photograph, the icons stack, and the course door is clipped (`.hsfoot`). | `home--member--375--dark.png`, `home--member--1280--dark.png` | **fixed (e8108e59)**: a plate on a bottom-anchored scrim, with one foot row under it (2dce66e6) |
 | 3 | category | P1 | wizard | Desk wizard step 3 "Review the rules" shows no rules (`#bylawsReview` hidden at ≥1100px). | `wizard--step-3-review--1280--light.png` | **fixed (38471687)**: the review shows on the desk |
 | 4 | category | P1 | identity/history | EVERY SEASON prints live seasons under FINISH as "1ST"/"2ND" with the podium rule, a standing presented as a finish (`csRecordLeaf`). | `you--populated--375--dark.png`, `record--populated--375--dark.png` | **fixed (f46086b4)**: a live season has no finish; it reads "In play" with its standing in its own line, and the podium mark is a finished season's (35b4f475) |
@@ -151,9 +151,9 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 | 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending: W5's merge (`4a703402`) reworked the portrait without naming it. |
 | 15 | owner | P1 | golfers/identity/schedule | The rivalry verdict contradicts itself: "3–4 · THEY LEAD" on You and "leads 4–3" on the plan, but "All square, 5–5" on the person page. | `you--populated--375--dark.png`, `golfers--person--375--dark.png` | **decision X36** (OWNER-QUESTIONS). W3 changed the person page's words ("All square between you, 5–5.", 3324ae89), but which facet each surface shows is still the question. |
 
-**Tally at `fd27ace4`:** 15 defects. Every fix is verification pending.
+**Tally at `7b9c17e4`:** 15 defects. Every fix is verification pending.
 - **fixed: 12.** #2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14. #11 keeps the preflight check as a residual; #14 keeps the aside's "forming" line.
-- **fixed in part: 2.** #1 and #6, each waiting on a database item (X41, X42) and N4.
+- **fixed in part: 2.** #1 waits on X41 alone, since its phone half is fixed (5404441a). #6 waits on X42 and N4.
 - **decision: 1.** #15 (X36).
 
 The judges' P2 and P3 defects (category 22 + 16, craft 23 + 10, owner 23 + 22) are listed in their `.md` files. Lanes W1–W5 were briefed on them, and they are re-measured in round 2.
@@ -233,8 +233,8 @@ No judge raised a P0. The six P1 entries are four distinct defects.
 |---|---|---|---|---|---|
 | N-1 | category, craft | identity | FORM gilds a nine-hole 43 as the best of the last five beside 18-hole grosses, and VoiceOver calls it "their best" (craft); the web's twin defect | `17pro/tourcard-dark-large.png`, `17pro/person-me-dark-large.png` | **fixed (de3eaf35)**: N2's 74997409: a nine never takes the gold, and a nine says so; tests ab3d1cac. Not in 1180; verification pending. |
 | N-2 | category | history | The record prints two LIVE seasons (week 6 of 13, week 4 of 10) under FINISH as "2ND" with the podium rule; the web's twin defect | `17pro/record-dark-large.png`, `se3/record-light-large.png` | open · in lane N4 (not in E's phase 1, `6716b0ed`). The web twin is fixed (f46086b4: "In play"). |
-| N-3 | craft | post | A refused or failed post shows no message: the composer's toast is drawn by the app-root host beneath the Play full-screen cover, for every composer failure (`PostRoundModel.swift:541`, `CupSeasonApp.swift:76`, `MainTabView.swift:1043`) | `flows/flow__post-failed.png` | open · in lane N4 (N4-020; not in E's phase 1). The web twin, CQ-09, is fixed at 1e9eb856 (an inline refusal that keeps focus). |
-| N-4 | craft, owner | post | At AX3 the composer scrolls the focused gross field off screen with the keypad up, and content slides under the status bar: the golfer types a score they cannot see | `17pro/composer-light-AX3.png`, `se3/composer-dark-AX3.png` | open · in lane N4 (N4-021; not in E's phase 1) |
+| N-3 | craft | post | A refused or failed post shows no message: the composer's toast is drawn by the app-root host beneath the Play full-screen cover, for every composer failure (`PostRoundModel.swift:541`, `CupSeasonApp.swift:76`, `MainTabView.swift:1043`) | `flows/flow__post-failed.png` | **fixed (146401bb: 678b1868)**: said inline above Add my round, and every cover has its own toast host; in TestFlight 1335. The web twin, CQ-09, is fixed at 1e9eb856. |
+| N-4 | craft, owner | post | At AX3 the composer scrolls the focused gross field off screen with the keypad up, and content slides under the status bar: the golfer types a score they cannot see | `17pro/composer-light-AX3.png`, `se3/composer-dark-AX3.png` | **fixed (146401bb: bf67db31)**: at the accessibility sizes the gross field anchors at the top of the scroll; in TestFlight 1335 |
 
 The judges' P2 and P3 counts: category 19 + 12, craft 24 + 5, owner 7 + 17. They are listed in the `-native.md` files.
 

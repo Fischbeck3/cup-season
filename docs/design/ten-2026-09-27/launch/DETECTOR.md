@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`f88f538d`** (`index.html`, `get.html`, `support.html`, `legal.html`), the branch head when DX started. It is an ancestor of the candidate `9d84c483`. The baseline is the 214 candidates in `docs/design/ten-2026-09-27/detector-ledger.json`, taken at `5fabf861`. |
-| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every web lane, E's native phase 1 (`6716b0ed`), and root's fixes through `41cf8050`. Nothing after `144ee0b0` changes an item in this file. |
+| **Status read at** | **`7b9c17e4`**, live on the web since 03:53 MST on 2026-09-29, and Owner TestFlight 1335 from the same SHA: every web lane, E's native phase 1 (`6716b0ed`) and phase 2 set 1 (`146401bb`), and root's fixes through `7b9c17e4`. |
 | **Date** | 2026-09-28 |
 | **Assessors** | **DX**, independent: Impeccable 4.3.1's detector (CLI 0.1.5) with three engines (static HTML, in-page, CLI URL). DX wrote no code. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/detector/DETECTOR.md` · `…/detector/detector-resolution.json` (37,919 entries: `meta`, `counts`, `true_positives`, `observations_beyond_detector`, `groups`) · `…/detector/proposals/` (TP-01 to TP-22: 18 diffs and 4 notes, none applied) · `…/detector/measure/`, `…/raw/`, `…/snapshots/` (92 sanitised DOMs), `…/scripts/` |
@@ -96,10 +96,10 @@ Each is DX's element, rule, measurement and minimal fix at `f88f538d`, with its 
 | TP-21 | P3 | `.tslatx small`, the trophy sub-line | text-overflow · 50 | The ellipsis removes the date along with the course name | only the course name truncates | **fixed (38471687)**: `.tslatx b` and `small` wrap whole (`overflow-wrap:anywhere`) instead |
 | TP-22 | P3 | `.prow` | cramped-padding · 184 | A bordered card whose content sits 0px from its left border | delete the card rule | **fixed (f46086b4)**: "Rivalries are rows on rules with faces (no 0-inset card)" (35b4f475) |
 
-**Tally at `fd27ace4`:** 22 true positives. Every fixed item is verification pending until DX2.
+**Tally at `7b9c17e4`:** 22 true positives. Every fixed item is verification pending until DX2.
 - **fixed: 19.** TP-01, 02, 03, 04, 05, 06, 07, 08, 10, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22.
 - **fixed in part: 3.**
-  - TP-09: `.squad.onclock` and `.momrow` remain.
+  - TP-09: `.squad.onclock` (an inset 3px shadow) and `.momrow` (a 3px ember left border) remain at `7b9c17e4`; `.momrow` is Q36.
   - TP-11: 21 caps producers, the next wave (P3).
   - TP-20: the desk prose measure, the next wave (P3).
 - **open: 0.**
@@ -161,7 +161,7 @@ Files: `~/cup-season-claude-ten-gallery/evidence/native/detector/DETECTOR-native
 | TPN-11 | P3 | R1 | Sentences set in the mono record face (columnS / CSFont.label) | open · N4 (not in E's phase 1) |
 | TPN-12 | P3 | R3 · R9 | The receipt moment dims its words with invented opacities | open · N4 (not in E's phase 1) |
 | TPN-13 | P3 | R3 | A disabled chip's label is `dim` | open · N4 (not in E's phase 1) |
-| TPN-14 | P3 | R4 | Gold on a buy-in - money put in, not won | open · N4 (not in E's phase 1) |
+| TPN-14 | P3 | R4 | Gold on a buy-in - money put in, not won | open. Root has ruled "You're on the pot: $X buy-in." ink on both clients (UI_SYSTEM §2.4's money row; OWNER-QUESTIONS §E). Not built at `7b9c17e4`. |
 | TPN-15 | P3 | R4 | A rivalry's typed name wears gold | open · N4 (not in E's phase 1) |
 | TPN-16 | P3 | R4 | Gold on facts nobody won | open · N4 (not in E's phase 1) |
 | TPN-17 | P3 | R5 | Ember on ordinary actions and selected states | open. Its when-fork "Right now" waits on **Q33** (DEC-N4-3); the other sites are N4's. |
