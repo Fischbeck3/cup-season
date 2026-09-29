@@ -5167,7 +5167,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    the dusk floor in EVERY theme. D76 note: the utility theme is charcoal now,
    so "dark already has the dusk floor" stopped being true; the room asserts
    its own ground unconditionally. */
-#view-draft.room-dusk{background:var(--bg0); padding-left:var(--gutter); padding-right:var(--gutter);}   /* TP-16 · the room's ground reached its edges with 0px inset */
+#view-draft.room-dusk{background:var(--bg0); padding-left:var(--gutter); padding-right:var(--gutter); padding-bottom:var(--gutter);}   /* TP-16 · the room's ground reached its edges with 0px inset; TEN / W6 · DX2: and its last line sat 2.8px above the ground's foot, so the foot takes the gutter too (UI_SYSTEM §3.4) */
 /* .card/.stat/.btn paint from hardcoded per-theme values, so the token
    re-declaration above cannot reach them — give them the room's own face
    regardless of the active theme (neither paper nor the blue-leaning utility

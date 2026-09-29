@@ -297,4 +297,31 @@ const DESK = [
     expect: { view: 'view-stats' }, check: deskCheck },
 ]
 
-export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK]
+/* ------------------------------------------------------------ THE DRAW */
+/* TEN / W6 · DX2 TP-16 · the draw room of a real league in the draw, as its
+   Pro: the synthetic world's North Grove is in its "draft" phase (data only,
+   as DX2's draft/formation state set it), then the page's own router. The
+   room's dusk ground takes the gutter on all three sides (UI_SYSTEM §3.4):
+   its last line of text stands at least a gutter above the ground's foot. */
+const DRAW = [
+  { family: 'draft', id: 'formation', variant: 'pro', title: 'The draw room of a real league in the draw, as its Pro',
+    prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
+    drive: async (page) => { await page.evaluate(() => window.switchView('draft')); await until(page, () => { const c = document.querySelector('#view-draft #clock'); return !!c && c.offsetParent !== null }); await page.waitForTimeout(800) },
+    expect: { view: 'view-draft', selectors: { '#view-draft #clock': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const room = document.getElementById('view-draft'), foot = room.getBoundingClientRect().bottom
+      let low = -Infinity
+      const w = document.createTreeWalker(room, NodeFilter.SHOW_TEXT)
+      for (let t = w.nextNode(); t; t = w.nextNode()) {
+        if (!t.textContent.trim() || !t.parentElement || getComputedStyle(t.parentElement).visibility === 'hidden') continue
+        const rg = document.createRange(); rg.selectNodeContents(t)
+        for (const rc of rg.getClientRects()) if (rc.width > 0 && rc.height > 0) low = Math.max(low, rc.bottom)
+      }
+      if (low === -Infinity) return 'the draw room draws no text'
+      const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 20
+      const inset = Math.round((foot - low) * 10) / 10
+      return inset >= gutter - 0.5 ? true : `the draw room's last line sits ${inset}px above its ground's foot (the gutter is ${gutter})`
+    }) },
+]
+
+export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK, ...DRAW]
