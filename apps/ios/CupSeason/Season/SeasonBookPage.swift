@@ -256,10 +256,21 @@ struct SeasonBookPage: View {
                 }
               }
             }
-            if book.live { RuleMark(x:.value("Current week",book.current_week)).foregroundStyle(cs.brand) }
+            if book.live {
+              // W5 twin · the live week says so above its rule, "Now · W13",
+              // as the web's `.sb-race-now` does (the live week is competition,
+              // so its rule and label keep the ember)
+              RuleMark(x:.value("Current week",book.current_week)).foregroundStyle(cs.brand)
+                .annotation(position:.top,alignment:.center,spacing:CSTokens.Space.s1,
+                            overflowResolution:.init(x:.fit(to:.chart),y:.disabled)) {
+                  Text("Now · W\(book.current_week)").csType(.agateS,caps:false).foregroundStyle(cs.brand)
+                }
+            }
           }
           .chartXScale(domain:1...max(2,book.weeks.count),range:.plotDimension(endPadding:gutter+10))
           .chartYScale(domain:domain)
+          // room above the plot for the live week's label
+          .chartPlotStyle { plot in plot.padding(.top, book.live ? CSTokens.Space.s4 : 0) }
           .chartYAxis {
             AxisMarks(position:.leading) { value in
               AxisGridLine()
