@@ -517,8 +517,17 @@ public enum ClimbMath {
   public static func cut(_ meta: SeasonScenarios.Meta?) -> ClimbCut {
     guard let meta else { return ClimbCut(K: 2, line: "CUT LINE") }
     if meta.finish == "points_table" { return ClimbCut(K: 1, line: "CROWN LINE") }
-    if meta.level == "squad" && meta.structure == "squads2" { return ClimbCut(K: 1, line: "TOP SEED · +10") }
+    if seeded(meta) { return ClimbCut(K: 1, line: "TOP SEED · +10") }
     return ClimbCut(K: meta.k ?? 2, line: "CUT LINE")
+  }
+
+  /// A two-squad Cup Final season has no cut: BOTH squads play the Final and
+  /// the leader carries +10 in (`enter_cup_final`; JoinLeague's squads2
+  /// sentence). The climb draws the SEED line there, which is the only reason
+  /// its K is 1.
+  static func seeded(_ meta: SeasonScenarios.Meta?) -> Bool {
+    guard let meta else { return false }
+    return meta.finish != "points_table" && meta.level == "squad" && meta.structure == "squads2"
   }
 
   public static func ordinal(_ n: Int) -> String { CSCopy.ordinal(n) }
@@ -645,6 +654,10 @@ public enum ClimbMath {
     guard n > 0 else { return "" }
     let meta = scenarios?.meta
     let K = max(1, cut(meta).K)
+    // A two-squad season said "TOP 1 ADVANCE TO THE CUP FINAL" — K is 1 only
+    // because the climb draws the seed line. Both squads play, and the leader
+    // carries +10 in: the desk's words, exactly (`renderClimb`).
+    if seeded(meta) { return "BOTH SQUADS PLAY THE CUP FINAL · THE LEADER CARRIES +10" }
     // D127 · when the roster cannot fill more seats than it has contenders the
     // Final is hollow; say so rather than printing "EVERYONE ADVANCES" as if it
     // were a standing. The web took this fix; the phone announced a race with
