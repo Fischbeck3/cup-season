@@ -352,13 +352,34 @@ const deskRailEdge = async (page) => {
   if (!r.over) return `the rail does not overflow at ${vp.width}×800, so its edge cannot be read`
   return r.atRest && r.masked && !r.atEnd && r.back ? true : `the rail's edge at ${vp.width}×800: ${JSON.stringify(r)}`
 }
+/* TEN / W8 · W7-027 [B2-desk-11] · a desk aside (the season's) and Home's wire scroll in their own height under the rail's fade: the box is
+   capped at the window's, it overflows, it says so at rest (data-more + a mask), says nothing at its end, and its tail is reachable */
+const deskScroller = (sel) => async (page) => {
+  const r = await page.evaluate(async (sel) => {
+    const a = document.querySelector(sel), frame = () => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+    if (!a) return { missing: true }
+    const cs = getComputedStyle(a), h = a.getBoundingClientRect().height
+    const capped = h <= innerHeight - 80 + 1, over = a.scrollHeight > a.clientHeight + 2
+    const atRest = a.hasAttribute('data-more'), masked = (cs.webkitMaskImage || cs.maskImage || 'none') !== 'none'
+    a.scrollTop = a.scrollHeight; await frame()
+    const atEnd = a.hasAttribute('data-more')
+    const kids = [...a.children].filter((c) => c.getBoundingClientRect().height > 0), last = kids[kids.length - 1]
+    const tail = !!last && last.getBoundingClientRect().bottom <= a.getBoundingClientRect().bottom + 1
+    a.scrollTop = 0; await frame()
+    return { h: Math.round(h), vh: innerHeight, capped, over, atRest, masked, atEnd, tail, back: a.hasAttribute('data-more') }
+  }, sel)
+  if (r.missing) return `${sel} is not drawn`
+  if (!r.capped) return `${sel} is ${r.h}px tall in a ${r.vh}px window: not a scroll box, so its tail is out of reach`
+  if (!r.over) return `${sel} fits its box, so its edge cannot be read`
+  return r.atRest && r.masked && !r.atEnd && r.tail && r.back ? true : `${sel}'s edge: ${JSON.stringify(r)}`
+}
 const DESK = [
   { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
-    check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskRailEdge(page) } },
+    check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); return b !== true ? b : deskRailEdge(page) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
     /* TEN / W8 · W7-025: the season page at its top marks The season, and only it */
-    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskMenuIs('The season')(page) } },
+    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskMenuIs('The season')(page); return b !== true ? b : deskScroller('#seasonAside')(page) } },
   { family: 'desk', id: 'compete', variant: 'member', desk: true, title: 'The desk · Compete',
     drive: async (page) => { await click(page, '.navitem[data-v="compete"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-compete'); await page.waitForTimeout(900) },
     expect: { view: 'view-compete' }, check: deskCheck },

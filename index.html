@@ -504,8 +504,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   /* WAVE 11 / D280 - 40, not 78: the desk's header is no longer a sticky band
      to clear, so the offset is the gutter. */
   .deskwire{position:sticky; top:40px; max-height:calc(100dvh - 80px); overflow:auto; padding-right:2px;}
-  .deskwire::-webkit-scrollbar{width:6px;}
-  .deskwire::-webkit-scrollbar-thumb{background:var(--rule); border-radius:3px;}
+  .deskwire::-webkit-scrollbar, .deskaside::-webkit-scrollbar{width:6px;}
+  .deskwire::-webkit-scrollbar-thumb, .deskaside::-webkit-scrollbar-thumb{background:var(--rule); border-radius:3px;}
 }
 /* ============ D231 - one dispatch card, two weights ============
    mono dateline / serif headline / sans standfirst / one ember verb. The
@@ -619,6 +619,15 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
      surfaces. D280 - the frame is the frame. */
   .deskbody.wide{grid-template-columns:minmax(0,1fr) 340px;}
   .deskaside{position:sticky; top:40px;}
+  /* W7-027 · the aside scrolls in its own height, as Home's wire does (.deskwire): the season's was taller than the
+     window and stuck at top:40, so its tail (who has paid, the ledger line, the pride bets) was out of reach until
+     the page's own foot. Both wear the rail's bottom fade while there is more (csBookEdge's data-more, wired for
+     every .deskaside and .deskwire below); neither traps the wheel (no overscroll-behavior:contain). */
+  .deskaside{max-height:calc(100dvh - 80px); overflow:auto; padding-right:2px;}
+  .deskwire[data-more], .deskaside[data-more]{
+    -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+  }
 }
 /* TEN · Golfers below the desk: the two columns dissolve into one lane in the
    phone's order — a request waiting on you, the ranking, the invite door, the
@@ -4212,6 +4221,7 @@ body.noleague .league-only{display:none !important;}
   button, .mini, .btn, .livebanner{display:none !important;}
   .deskbody, .deskbody.wide{display:block !important;}
   .deskaside{position:static !important; margin-top:24px;}
+  .deskaside, .deskwire{max-height:none !important; overflow:visible !important; -webkit-mask-image:none !important; mask-image:none !important;}   /* W7-027 · a sheet has no scroll box */
   .roompane{page-break-inside:avoid;}
   body{background:#fff; color:#000;}
   .card, .tblwrap{border-color:#ccc;}
@@ -22812,6 +22822,16 @@ function csBookEdge(scroller,host,axis){
   try{ const ro=new ResizeObserver(again); ro.observe(side); [...side.children].forEach(c=>ro.observe(c)); }
   catch(_){ window.addEventListener('resize', again, {passive:true}); }
 })();
+/* W7-027 · and the same edge on every desk aside and Home's wire, which scroll in their own height
+   (the wire's box was cut through its last card with no fade, B2-desk-8). Re-read when the column or
+   anything in it changes size or content: the pot, the clash and the story arrive after boot, and a
+   box capped at the window's height does not itself change size when its content grows. */
+(()=>{ document.querySelectorAll('.deskaside, .deskwire').forEach(el=>{
+  csBookEdge(el, el, 'y');
+  let q=0; const again=()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; el.dispatchEvent(new Event('scroll')); }); };
+  try{ const ro=new ResizeObserver(again); ro.observe(el); [...el.children].forEach(c=>ro.observe(c)); new MutationObserver(again).observe(el, { childList:true, subtree:true }); }
+  catch(_){ window.addEventListener('resize', again, {passive:true}); }
+}); })();
 async function csOpenSeasonBook(league,season){
   if(!window.CS?.user || !window.sb || state.demo)return;
   csCloseSeasonBook();
