@@ -79,6 +79,13 @@ struct SeasonBookTests {
     }
     #expect(sawStar && sawD)
   }
+  /// The Book's head reads its dates as dates — "Jul 6 – Oct 18, 2026", the
+  /// week columns' own form — never the raw 2026-07-06 – 2026-10-18.
+  @Test func theHeadReadsItsDatesAsDates() throws {
+    #expect(try book().span == "Jul 6 – Oct 18, 2026")
+    let odd = try changed { $0["starts_on"] = "not a date" }
+    #expect(odd.span == "not a date – Oct 18, 2026")
+  }
   @Test func aCellThatIsOnlyAStatusStandsAlone() throws {
     let b=try book()
     let cells=b.rows.flatMap { row in row.cells.map { (row,$0) } }
