@@ -149,7 +149,7 @@ struct CredDevView: View {
      .init("1", label: "The Fellas", ordinal: "ST")]
   }
   private var two: [CSCredentialGolfer.Figure] {
-    [.init("2", label: "Rounds"), .init("79", label: "Best · Papago")]
+    [.init("2", label: "Rounds"), .init("79", label: "Best", note: "Papago")]
   }
 
   private func golfer(slot: String?, name: String = "Galen Marr",
