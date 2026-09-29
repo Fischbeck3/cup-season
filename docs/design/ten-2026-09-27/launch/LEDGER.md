@@ -168,6 +168,79 @@ The owner said *"I give permission to push all remaining and ship to test."* No 
 - **X34 · the live finish route is not proven.** `testLiveFinishToRecap` failed. After the finish sheet's primary was tapped, the app showed Home with "Live round in progress · Hole 15" and no recap takeover. The same test failed in 2 of FX's 4 earlier runs (`fx/flows/`), and it taps a host that reports "not hittable". So it is a flaky route until shown otherwise, not a proven product defect. Finishing a live round on a device is owed. What to Test asks only for a hole to be scored; [HUMAN.md](HUMAN.md) D12 asks for the finish.
 - **X35 · the album retry route is not exercised.** `testAlbumFailureThenRetry` passed only as an expected failure. The synthetic "failures" world rendered the album **with photographs** (`flow__album-failed`), so the failed read was never injected into F16's `AlbumModel`. The product half is code-read: the `.failed` state has "The album didn't load" and a Try again door. The unit tests of a54d2fb7 pass. The route proof is open until the fixture fails the read; [HUMAN.md](HUMAN.md) D13 is the device check.
 
+## 4f · The assessment of `9d84c483`, and the fix waves after it (2026-09-28, night)
+
+**The gates, as first measured on the candidate `9d84c483`.** No gate is met.
+
+| Gate | Target | Measured on `9d84c483` | Evidence |
+|---|---|---|---|
+| §29 panel | no cell < 9, mean ≥ 9.5 | category **6.44**, craft **6.87**, owner **7.09** (web half); 0 of 22 rows ≥ 8 anywhere; schedule and wizard are "redesign" to the category judge; post is "redesign" to the craft judge | `evidence/panel/{category,craft,owner}.{json,md}` |
+| Impeccable critique | ≥ 36/40 per target, no heuristic < 3, no P0/P1 | critique B: best **29/40** (competition, events, support); 4 P0, 20 P1. Critique A is still running | `evidence/critique-B/` |
+| Web audit | ≥ 18/20 | **12/20** (A11y 2, Perf 2, Responsive 3, Theming 3, Integrity 2); 0 P0, 6 P1, 11 P2, 8 P3 | `evidence/audit-web/AUDIT-web.md` |
+| Detector | every candidate resolved | **37,919 resolved, 0 open**; 22 true positives (7 P2, 15 P3) with proposals | `evidence/detector/DETECTOR.md` |
+| Native half | same gates | the phone matrix at `4112a3f0` is still capturing, and native critique/audit have not run | `native-4112/` |
+| Human | three testers G1–G4; owner D1–D13 | **NOT RUN** | [HUMAN.md](HUMAN.md) |
+
+**Fixed at the root, integration commits.**
+- **`38471687`: every P1 in the audit.**
+  - Covers make the app inert (the Door, the share view, unsubscribe).
+  - Six AA contrast failures.
+  - The shadowed `vsShort` ("+1.4 over your playing HCP").
+  - A dead join code said "You're invited".
+  - `[hidden]` lost to component display, so the finish offered a photo on photo-less rounds.
+  - The desk wizard review showed no rules, and a disabled Start said nothing.
+  - The Form row golded a nine.
+  - The retired D76 charcoal.
+  - 44px targets.
+  - Clipped names.
+  - Keyboard access to golfer rows.
+- **`735a63ec`: the season.**
+  - The two-squad endgame line; `tests/fixtures/endgame.json` regenerated, 3 of 24 cases.
+  - One minimum producer.
+  - The ledger line once.
+  - Rules first, and Leave at the foot.
+  - Member voice on the roster, and drawn icons.
+  - A buy-in ledger.
+  - The POS head, and the gap cell.
+  - No gold on your rung or the cut.
+  - An ink average column.
+  - Wrapping chips.
+- **`69f40d1f`: structure.**
+  - Critique B's season P0s: squad colour by `squads.color`; ties are ties, with no Points King crowned by average.
+  - One h1 per view, the main landmark and a skip link.
+  - One focus ring.
+  - No Door flash for a returning session.
+  - A 60px bar, and tab-bar scroll padding.
+  - Theme-color and the manifest, with no portrait lock.
+  - Door errors tied to their fields.
+  - The desk inbox under the bell.
+
+**In flight: five fix lanes, each merged by root.**
+- **W1:** composer, play, receipts.
+- **W2:** schedule, the Ryder/Major room, You, settings.
+- **W3:** Home, Golfers.
+- **W4:** share, public pages, links, get/support/legal.
+- **W5:** Compete, the Book, the wizard.
+
+Brief: `evidence/LANE-BRIEF.md`. Native twins go to N2. So far: LeagueCopy.endgame, SeasonStory's minimum, and the Form row.
+
+**Settled by canon, not changed.**
+- The cut is a 2pt ink rule on both clients (`CSCut`: "the rule carries the meaning"). The craft judge asked for 1px mut.
+- The standings GAP column prints "+34" on both clients (`SeasonBoardCopy.gap`; its spoken form "34 back" is used for VoiceOver). The web's row label was fixed to match.
+
+**Owner questions (decisions, not defects).**
+- **X36 · the rivalry record.** You counts weekly clashes ("3–4, they lead"); the person page counts every week both played ("All square, 5–5"). Both are faceted records, and canon says never one blended number. Which record is "the" record on You, on the plan and on the person page, or should both surfaces name their facet?
+- **X37 · the owner's own identity in the product.** The demo diorama's "you" is the owner's real first name, handle, city and course, and the golfer card's handle placeholder is "@jerecho". Keep, or use a fictional one?
+- **X38 · public privacy.**
+  - The public settlement page shows non-sharing golfers' scores and debts.
+  - The person landing shows an index and dated course visits to anyone holding the link (D241 vs D394).
+- **X39 · trophies on a first round.** One round can earn Personal best, Broke 100 and Broke 90 at once.
+- **X40 · "7.9 vs course".** On a personal best's subtitle (D291), against R-M's "vs your playing HCP". TERMINOLOGY row 92 confines "vs the course" to the receipt.
+
+**Database owed (outside this brief: owner's `db push`).**
+- **X41:** `home_feed.is_sub80` has no 18-hole guard (`20261020090000`), so a nine-hole 43 is "Broke 80". The client guard is lane W3's.
+- **X42:** `the_plan_link.sql` counts an unanswered tag as "in" on the public plan landing. The in-app producer is lane W2's.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
