@@ -332,6 +332,21 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(ClimbMath.note(teams: [teams[0]], scenarios: nil) == "NOBODY TO RACE YET")
     #expect(ClimbMath.items(teams: [], meId: nil, scenarios: nil).isEmpty)
   }
+  /// A two-squad Cup Final season has no cut: both squads play the Final and
+  /// the leader carries +10 in. K is 1 there only because the climb draws the
+  /// seed line — it said "TOP 1 ADVANCE TO THE CUP FINAL". The desk's words.
+  @Test func twoSquadsBothPlayTheFinalAndTheLeaderCarriesTen() {
+    let two = SeasonScenarios.Meta(finish: "cup_final", structure: "squads2", level: "squad", k: 2, months_left: 2, locked: false, cap: 4)
+    let squads = Array(teams.prefix(2))
+    #expect(ClimbMath.note(teams: squads, scenarios: SeasonScenarios(meta: two, rows: [])) == "BOTH SQUADS PLAY THE CUP FINAL · THE LEADER CARRIES +10")
+    #expect(ClimbMath.cut(two) == ClimbCut(K: 1, line: "TOP SEED · +10"))
+    // a two-squad POINTS-TABLE season still crowns the top of the table
+    let pt2 = SeasonScenarios.Meta(finish: "points_table", structure: "squads2", level: "squad", k: 2, months_left: 2, locked: false, cap: 4)
+    #expect(ClimbMath.note(teams: squads, scenarios: SeasonScenarios(meta: pt2, rows: [])) == "TOP 1 — THE POINTS KING")
+    // the golfer-level ladder inside a two-squad season keeps its own cut
+    let golfers = SeasonScenarios.Meta(finish: "cup_final", structure: "squads2", level: "golfer", k: 2, months_left: 2, locked: false, cap: 4)
+    #expect(ClimbMath.note(teams: teams, scenarios: SeasonScenarios(meta: golfers, rows: [])) == "TOP 2 ADVANCE TO THE CUP FINAL")
+  }
   @Test func badgesComeFromTheServer() {
     let meta = SeasonScenarios.Meta(finish: "cup_final", structure: "squads4", level: "squad", k: 2, months_left: 1, locked: false, cap: 4)
     let sc = SeasonScenarios(meta: meta, rows: [.init(id: a, name: "S1", points: 80, max_final: 120, clinched: true, eliminated: false, needs: 0),
