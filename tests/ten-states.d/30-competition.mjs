@@ -709,6 +709,17 @@ const bandSays = (re, what) => async (page) => page.evaluate(({ re, what }) => {
 const adopt = (name, opts) => async (W) => { adoptBook(W, readBook(name), opts) }
 const BOOK_LS = (name) => ({ cs_last_league: readBook(name).league_id })
 
+/* TEN / W8 · W7-070 [A2-competition-1] · the Book's start edge: while earlier weeks sit behind the pinned name column (it opens on the live week) the mirror of the end fade says so
+   (data-more-start, drawn from the name column's right edge), and from 1440 the dialog is wide enough for a 15-week season to show whole */
+const bookStartEdge = async (page) => page.evaluate(() => {
+  const dlg = document.getElementById('seasonBookDialog'), wrap = dlg && dlg.querySelector('.sb-matrix-wrap'), m = wrap && wrap.querySelector('.sb-matrix')
+  if (!wrap || !m) return true
+  const scrolled = m.scrollLeft > 2
+  if (scrolled !== wrap.hasAttribute('data-more-start')) return `data-more-start is ${wrap.hasAttribute('data-more-start')} with scrollLeft ${Math.round(m.scrollLeft)}`
+  if (scrolled && parseFloat(getComputedStyle(wrap, '::before').opacity) < 1) return 'earlier weeks sit behind the name column and the start edge draws nothing'
+  if (innerWidth >= 1440 && dlg.getBoundingClientRect().width < 1500) return `the Book is ${Math.round(dlg.getBoundingClientRect().width)}px wide at ${innerWidth}px`
+  return true
+})
 const BOOK = [
   { family: 'book', id: 'upcoming', variant: 'rounds_no_league', title: 'The Book before the first tee (The Autumn Fixture Cup, week 0 of 15), from the Scoreboard', fullPage: false,
     prepare: adopt('upcoming'), localStorage: BOOK_LS('upcoming'),
@@ -722,7 +733,7 @@ const BOOK = [
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-matrix': 'visible', '#seasonBookDialog #sb-group': 'visible', '#seasonBookDialog .sb-matrix th.sb-current': 'text:W13' } },
     check: all(bookIs({ title: 'The Book', head: 'North Grove (fixture) · Season 1 · Jul 6 – Oct 18, 2026' }),
-      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'),
+      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'), bookStartEdge,
       async (page) => page.evaluate(() => {
         const rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')]
         if (rows.length !== 4) return `${rows.length} squad rows, expected 4`
