@@ -13579,7 +13579,8 @@ function renderCourt(slots){
         && (T[0].includes(_crtPicked)) !== (T[0].includes(k));
       c.className='crtchip'+(k===_crtPicked?' picked':'')+(tradeable?' cantrade':'');
       c.dataset.pos=k;
-      c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</b>
+      /* W1 · ink chips here too: the court is the grouping; the squad dot was the raw SQHEX orange (D359) */
+      c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:''}${esc(p.n)}</b>
         <small>${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</small></div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
       courtDrag(c);
