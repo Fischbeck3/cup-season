@@ -560,10 +560,15 @@ public struct CSFactStrip: View {
         }
       } else {
         VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          // N4-015 · the two drawn rows are the picture; the targets laid over
+          // them are what VoiceOver reads, one element per fact, in order. It
+          // heard each fact three times — '06', 'weeks played, 06', 'weeks
+          // played' — because the figure and the label rows were elements too.
           row { i, c in
             CSFigure(c.value, size: .m, label: nil, ordinal: c.ordinal)
               .frame(maxWidth: .infinity, alignment: alignment(i))
           }
+          .accessibilityHidden(true)
           // ONE rule, the full measure, under all of them — the device the
           // whole strip is: a line of type on the page's own ground.
           CSRule(.heavy)
@@ -572,6 +577,7 @@ public struct CSFactStrip: View {
               .lineLimit(1).minimumScaleFactor(0.8)
               .frame(maxWidth: .infinity, alignment: alignment(i))
           }
+          .accessibilityHidden(true)
         }
         .overlay { targets }
       }
