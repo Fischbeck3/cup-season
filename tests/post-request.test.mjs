@@ -100,7 +100,8 @@ eq(csEventTerms({ kind: 'event', event_kind: 'ryder', buy_in: 0 }), ['A Ryder �
 eq(csEventTerms({ kind: 'event' }), [], 'an older server gives no terms — and no terms is no door');
 eq(csInviteTitle({ kind: 'event', event_kind: 'major' }), 'Major invite', 'a Major is titled a Major');
 eq(csInviteTitle({ kind: 'event' }), 'Invite', 'an unnamed one is not guessed into a Ryder');
-eq(csInviteTitle({ kind: 'league' }), 'League invite', 'a league is a league');
+/* W4 · T §2.3: league is never a thing you join; the invitation is to a season */
+eq(csInviteTitle({ kind: 'league' }), 'Season invite', 'a league invitation is a season invite');
 
 
 /* ---- R2 · the field list, and what counts as work --------------------------

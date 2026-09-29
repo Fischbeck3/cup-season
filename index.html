@@ -2093,13 +2093,26 @@ body.guestlive #onboard{display:none !important;}
 .evclash .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
             font-size:14px; flex:none;}
 @media (min-width:900px){ .evcard h1{font-size:52px;} .evrail .fig{font-size:64px;} }
-/* notifications banner — pending invites, act in line */
+/* notifications banner — pending invites, act in line.
+   Critique B / owner H / craft Sp · ONE invitation object: a flat row on the
+   page's own surface (the ember gradient wash was a decorative fill, and a
+   pending invitation is not a live competition, D359), stacked so the title
+   wraps whole instead of squeezing to three lines beside two buttons, with
+   "See the terms" and a one-tap Decline (D351) — "Details" said nothing the
+   terms do not. A row whose invitation Home's lead already carries stands
+   down (csBannerYield): one invitation, drawn once (L-34/D360). */
 #notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
-.notifrow{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
-  background:linear-gradient(90deg, color-mix(in srgb, var(--brand) 20%, transparent), transparent); border:1px solid var(--brand);}
-.notifrow .tt{flex:1; min-width:0;}
-.notifrow .tt b{font-size:13.5px; display:block;}
-.notifrow .tt small{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut);}
+#notifBanner.yielded{display:none;}
+.notifrow{display:flex; flex-direction:column; align-items:stretch; gap:var(--s2); padding:var(--s3) 14px;
+  border-radius:var(--rc); background:var(--bg1); border:1px solid var(--rule);}
+.notifrow .tt{min-width:0;}
+.notifrow .tt b{display:block; overflow-wrap:anywhere;}
+.notifrow .tt small{display:block; margin-top:2px; color:var(--mut);}
+.notifrow .acts{display:flex; align-items:center; gap:var(--s3); flex-wrap:wrap;}
+.notifrow .ivdec{min-height:44px; padding:0 var(--s1); background:none; border:0; cursor:pointer;
+  font-family:var(--board); font-weight:600; font-size:15px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.notifrow .ivdec:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:4px;}
 .mini{
   font-family:var(--board); font-size:13px; font-weight:600; letter-spacing:.02em;
   color:var(--ink); background:var(--bg2); border:0;
@@ -3259,8 +3272,11 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
    never the serif (§1.4); round points are ambient mut, never ember (D359). ---- */
 .ob-wing{display:none; width:100%; max-width:330px; text-align:left;}
 @media(min-width:1100px){ .ob-wing{display:block;} }
-/* a link landing is about the link: the examples stand down (critique B) */
-.onboard.ob-linked .ob-wing{display:none;}
+/* a door a link brought the visitor to is about the link: the examples stand
+   down (critique B) — on a landing (.ob-linked) and on a link that could not
+   land (.ob-via: unfinished, not started, kept, dead). Hidden, not removed,
+   so the door stays in the grid's middle column. */
+.onboard.ob-linked .ob-wing, .onboard.ob-via .ob-wing{visibility:hidden;}
 .ob-wing .wt{
   display:flex; align-items:center; gap:10px;
   font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
@@ -3301,6 +3317,19 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
   font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
   color:var(--mut); padding-top:8px; border-top:1px solid var(--rule); text-wrap:balance;
 }
+/* ---- the link landing (claim · invitation): the fact that brought the
+   visitor LEADS the door, and the brand statement steps back to the
+   signature above it (owner H, craft H/B, critique B P2). An agate label for
+   the kind of link, the fact in the lead serif with its gross as a figure
+   run (§1.6: never a number in the serif), one supporting line in mut. The
+   status line under the field keeps only the next step. csLinkLanding()
+   builds it; signed out only. ---- */
+.ob-link{margin:40px 0 0; text-align:left;}
+.ob-link .eb{margin:0 0 var(--s2); color:var(--mut);}
+.ob-link h1{margin:0; color:var(--ink); overflow-wrap:anywhere;}
+.ob-link .run{font-family:var(--board); font-weight:700; font-variant-numeric:tabular-nums;}
+.ob-link .sub{margin:var(--s2) 0 0; color:var(--mut); overflow-wrap:anywhere;}
+.onboard.ob-linked .ob-in > .ob-hero{display:none;}
 
 
 /* ---- shared "quiet link" style: sign-in resend code, etc. (formerly also
@@ -6528,7 +6557,7 @@ setInterval(function(){
   const LB_CEIL=232, LB_BASE=181;
   let fi=0, live=[], order=[0,1,2,3], lbRows=[], loopA=null, loopB=null, dead=false, lbSwaps=0;
   /* a link landing hides the wings (.ob-linked), so their loops stop for good */
-  function gone(){ return !ob || ob.classList.contains('hide') || ob.classList.contains('ob-linked'); }
+  function gone(){ return !ob || ob.classList.contains('hide') || ob.classList.contains('ob-linked') || ob.classList.contains('ob-via'); }
   function cardEl(r){
     const el=document.createElement('div'); el.className='ob-pcard';
     el.style.setProperty('--sqc','var('+r.sq+')');
@@ -20636,10 +20665,17 @@ const CS_RUNBACK_NOT_YET = 'Running it back needs the latest update — try agai
 /* D374 · a claim link from a round nobody finished says so — one producer, both
    doors (signed out and signed in). The pencil (D85/D87) stays: the link is
    minted at seat time so a guest can score from their own phone. */
-const CS_CLAIM_UNFINISHED = 'This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.';
-const CS_CLAIM_NOT_STARTED = 'That round hasn’t teed off yet — your card lands here when it finishes.';
+/* T-01 · the holes are the SCORECARD; "card" is the person (critique B). The
+   not-started line says what to do next instead of a vague "lands here". */
+const CS_CLAIM_UNFINISHED = 'This round was never finished, so there’s no scorecard to keep. Whoever ran it can tee off again and send your link from the new round.';
+const CS_CLAIM_NOT_STARTED = 'That round hasn’t teed off yet. Open this link again once it tees off to keep your own score, or once it finishes to keep your scorecard.';
 /* F3's sentence for a claim link nothing answers — both doors now say it */
 const CS_CLAIM_DEAD = 'That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round.';
+/* a link whose scorecard was already kept said NOTHING: the door was the plain
+   door, pixel for pixel (owner R, critique B P2). The likeliest visitor is the
+   golfer who kept it, opening the thread on another device. Not an error, and
+   it reveals no more than CS_CLAIM_DEAD already says to any token. */
+const CS_CLAIM_USED = 'That scorecard is already on a golfer’s record. If it’s yours, sign in with the same email and it’s in your rounds.';
 
 /* R5 (security review 2026-09-25, S5 / D-05) · A LINK NEVER ACTS ON ITS OWN.
    `?p=`, `?plan=` and `?claim=` spent their token the moment a boot found it:
@@ -25082,35 +25118,48 @@ window.shareMajorCard=shareMajorCard;
 function renderNotifications(){
   const el=$('#notifBanner'); if(!el) return;
   const inv=window.myInvites||[];
-  if(!inv.length || state.demo){ el.innerHTML=''; return; }
+  if(!inv.length || state.demo){ el.innerHTML=''; el.classList.remove('yielded'); return; }
+  /* a first tee is a date a golfer writes, not the database's ISO string */
+  const tee = iso => { try{ const d = localDate(String(iso).slice(0,10)); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return String(iso); } };
   el.innerHTML=inv.map(i=>`
-    <div class="notifrow">
-      <div class="tt"><b>${esc((window.csInviteTitle||(()=>'Invite'))(i))} · ${esc(i.container_name||'')}</b>
-        <small>from ${esc(i.inviter||'a golfer')}${i.kind==='event'&&i.starts_on?' · first tee '+i.starts_on:''}</small></div>
-      <span style="display:flex; gap:6px; flex:none">
-        <button class="mini" data-ivacc="${i.id}">See the terms</button>
-        <button class="mini" data-ivdet="${i.id}">Details</button>
-      </span>
+    <div class="notifrow" data-inv="${esc(i.id)}">
+      <div class="tt"><b class="cs-social">${esc((window.csInviteTitle||(()=>'Invite'))(i))} · ${esc(i.container_name||'')}</b>
+        <small class="cs-agate is-phrase">from ${esc(i.inviter||'a golfer')}${i.kind==='event'&&i.starts_on?' · first tee '+esc(tee(i.starts_on)):''}</small></div>
+      <div class="acts">
+        <button class="mini" data-ivacc="${esc(i.id)}">See the terms</button>
+        <button class="ivdec" data-ivdec="${esc(i.id)}">Decline</button>
+      </div>
     </div>`).join('');
   /* D351 / D356 · every primary control READS THE TERMS — a season's covenant
      or an event's own facts; the accept is the sheet's own button.
-     `respondInvite(…, true)` is that gate. */
+     `respondInvite(…, true)` is that gate. Declining stays one tap and
+     ungated (D351), on the row itself, where the Details sheet hid it. */
   el.querySelectorAll('[data-ivacc]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivacc,true)));
-  el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
-    const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
-    const what = i.kind==='league' ? ((i.reup && Number(i.season_number) > 1) ? 'The next season of your league — same rules, fresh table.' : 'A season-long league.')
-               : ((window.csEventTerms ? window.csEventTerms(i)[0] : null) || 'This server hasn’t said whether it’s a Ryder or a Major yet.');
-    openSheet((window.csInviteTitle||(()=>'Invite'))(i), (i.container_name||'').toUpperCase(),
-      `<p class="fine">${esc(what)} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
-       <div style="display:flex; gap:8px; margin-top:14px">
-         <button class="btn" id="ivDetAcc" style="flex:1">See the terms</button>
-         <button class="btn dark" id="ivDetDec" style="flex:1">Decline</button>
-       </div>`);
-    $('#ivDetAcc').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,true); });
-    $('#ivDetDec').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,false); });
-  }));
+  el.querySelectorAll('[data-ivdec]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivdec,false)));
+  csBannerYield();
 }
 window.renderNotifications=renderNotifications;
+/* ONE invitation, drawn once (L-34 / D360, critique B P2): a row whose
+   invitation Home's dispatch is already showing — the lead or a wire line,
+   keyed `invite:<id>` by the served dispatch and the fallback alike — stands
+   down, and comes back when the dispatch moves on. The dispatch's own door
+   opens the same terms. The banner is the safety net for an invitation the
+   dispatch does not carry. (The phone does the inverse: HomeModel.ranked
+   drops invite items and its banner answers in place; either way, once.) */
+function csBannerYield(){
+  const el=$('#notifBanner'); if(!el) return;
+  const rows=[...el.querySelectorAll('.notifrow[data-inv]')];
+  const keys=new Set([...document.querySelectorAll('#homeLead [data-dkey], #homeLead [data-dgo], #homeDeck [data-dgo]')]
+    .map(n=>n.getAttribute('data-dkey')||n.getAttribute('data-dgo')));
+  let shown=0;
+  rows.forEach(r=>{ const dup=keys.has('invite:'+r.dataset.inv); r.hidden=dup; if(!dup) shown++; });
+  el.classList.toggle('yielded', rows.length>0 && shown===0);
+}
+(function(){
+  if(typeof MutationObserver!=='function') return;
+  const mo=new MutationObserver(csBannerYield);
+  ['homeLead','homeDeck'].forEach(id=>{ const n=document.getElementById(id); if(n) mo.observe(n, { childList:true, subtree:true }); });
+})();
 /* every league-identity string on screen renders from real state — the
    markup defaults are demo scenery and must never survive a real league */
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -25592,7 +25641,7 @@ function showProfileGate(){
     if(localStorage.getItem('cs_claim') && !document.getElementById('pfClaimNote')){
       const note=document.createElement('p');
       note.id='pfClaimNote'; note.className='fine';
-      note.style.cssText='padding:0 0 10px; color:var(--gold)';
+      note.style.cssText='padding:0 0 10px; color:var(--mut)';   /* a note, not an earning: gold is earned only (D359) */
       note.textContent='Saving your card attaches the round you’re claiming.';
       g.prepend(note);
     }
@@ -29758,6 +29807,41 @@ function csCovenantFacts(info, postedRounds){
   return out;
 }
 window.csCovenantFacts = csCovenantFacts;
+/* WHERE THE SEASON STANDS, said before the money (owner E, critique B P2).
+   A week-8 joiner was asked for $75 against "Thirteen weeks from Sun Aug 9"
+   and left to do the arithmetic, and nothing said what a late seat means.
+   Pure, with the clock passed in, so it is testable and csCovenantFacts'
+   pinned order is untouched; the sheet sets it after the length. Every
+   clause is a rule the server already keeps, stated rather than invented:
+   - the week, from the payload's own first tee and length (§14.0);
+   - D386: a join after formation is seated on the thinnest squad and counts
+     for it from the seat, never before — said only outside a Cup Final,
+     because D382 holds a Final's squads and no late seat is made in one;
+   - D161 / D354a: the month you join carries no minimum — said only where a
+     minimum exists and the season is not solo (L-23).
+   Nothing before the first tee (the length already says when) or after the
+   last week. Twin to write on the phone: `Covenant` in JoinLeague.swift. */
+function csCovenantClock(info, today){
+  if(!info || !info.starts_on) return null;
+  const wk = Number(info.weeks)||0; if(!wk) return null;
+  const start = localDate(String(info.starts_on).slice(0,10));
+  const now = today instanceof Date ? new Date(today.getFullYear(), today.getMonth(), today.getDate()) : new Date(new Date().setHours(0,0,0,0));
+  const day = Math.round((now - start) / 864e5);
+  if(!(day >= 0) || day >= wk * 7) return null;
+  const week = Math.floor(day / 7) + 1;
+  const ends = info.ends_on ? localDate(String(info.ends_on).slice(0,10)) : new Date(start.getFullYear(), start.getMonth(), start.getDate() + wk * 7 - 1);
+  const finalOpen = info.finish === 'cup_final' && wk >= 6 && Math.round((ends - now) / 864e5) <= 27;
+  if(finalOpen) return { k:'joining', t: 'You’d join in week ' + week + ' of ' + wk + ', during the Cup Final.' };
+  const squads = /^squads[234]$/.test(String(info.structure||''));
+  let t = 'You’d join in week ' + week + ' of ' + wk
+    + (squads ? ', on the squad with the fewest golfers; your rounds count for it from that day.' : '.');
+  if(Number(info.floor) > 0 && info.structure !== 'solo'){
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    t += ' There’s no minimum to clear until ' + CS_MONTHS_LONG[next.getMonth()] + '.';
+  }
+  return { k:'joining', t };
+}
+window.csCovenantClock = csCovenantClock;
 
 async function covenantGate(code){
   let info=null, answered=false;
@@ -29847,7 +29931,7 @@ async function eventTermsGate(inv){
   const b = Number(inv.buy_in) || 0;
   return new Promise(res=>{
     openSheet('Before you accept '+(inv.container_name||'this one'), 'EVERYTHING BEFORE YOU TAP',
-      facts.map((t,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${(b>0 && /each\.$/.test(t))?';color:var(--gold)':''}">${esc(t)}</p>`).join('')
+      facts.map((t,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${(b>0 && /each\.$/.test(t))?';color:var(--ink)':''}">${esc(t)}</p>`).join('')
       + `<p class="fine" style="padding-top:6px">Invited by ${esc(inv.inviter||'a golfer')}.</p>
       <button class="btn" id="evAccept" style="margin-top:12px">${b>0?`Accept — I’m in for $${Math.round(b)}`:'Accept'}</button>
       <button class="btn dark" id="evNo" style="margin-top:8px">Not now</button>`);
@@ -29866,7 +29950,9 @@ async function eventTermsGate(inv){
 /* the title an invitation wears: the event's OWN kind, never a guess */
 function csInviteTitle(i){
   /* D375 · a re-up says which season it is for; a first invitation reads as before */
-  if(!i || i.kind === 'league') return (i && i.reup && Number(i.season_number) > 1) ? ('Season ' + Number(i.season_number) + ' invite') : 'League invite';
+  /* T §2.3 · league is the crew's standing name, never a thing you join: the
+     invitation is to a season (owner C). Twin: ReUpCopy.inviteTitle (ReUp.swift). */
+  if(!i || i.kind === 'league') return (i && i.reup && Number(i.season_number) > 1) ? ('Season ' + Number(i.season_number) + ' invite') : 'Season invite';
   return i.event_kind === 'major' ? 'Major invite' : i.event_kind === 'ryder' ? 'Ryder invite' : 'Invite';
 }
 window.csInviteTitle = csInviteTitle;
@@ -29895,11 +29981,16 @@ function showCovenant(info){
      still a different case and still fails closed (above). */
   if(!info) return false;
   const facts = csCovenantFacts(info);
+  /* where the season stands, right after its length (csCovenantClock) */
+  const clock = csCovenantClock(info);
+  if(clock){ const at = facts.findIndex(f => f.k === 'length'); facts.splice(at >= 0 ? at + 1 : Math.min(1, facts.length), 0, clock); }
   return new Promise(res=>{
     /* D375 · a re-up reads as one: the title names the season and the button
        is the yes to it (csCovenantTitle / csCovenantButton, pinned) */
+    /* the stake is money, and money is ink (UI_SYSTEM §2.5): gold is for the
+       pot or a thing won, and a buy-in is neither (craft C, critique B) */
     openSheet(csCovenantTitle(info), csCovenantEyebrow(info),
-      facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--gold)':''}">${esc(f.t)}</p>`).join('') + `
+      facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--ink)':''}">${esc(f.t)}</p>`).join('') + `
       <button class="btn" id="covJoin" style="margin-top:12px">${esc(csCovenantButton(info))}</button>
       <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
@@ -33470,6 +33561,54 @@ async function renderShareView(tok, _testInfo){
 /* a code that matches no league, said the one way everywhere (the Door's
    dead link, the code box, the join button); it was three literals */
 const CS_NO_LEAGUE = 'No league with that code. Check with your Pro.';
+/* ---- THE LINK LANDING (owner H, craft H/B, critique B P2) -------------------
+   A scorecard link or an invitation brought the visitor, and that fact was
+   the smallest line on the door: 12.5px mono under the email field, beneath a
+   slogan that says the same thing to everyone. It leads now — an agate label
+   for the kind of link, the fact in the lead serif (a gross is a figure run,
+   §1.6), one supporting line — and the brand statement steps back to the
+   signature. The status line under the field keeps the next step only. The
+   claim sentence is TERMINOLOGY §6's, kept word for word and split across
+   the headline and the next step; the club sits in the sentence and the
+   course and tee beneath it, so the headline is not a dash-joined triple.
+   League is never a thing you join (T §2.3): the invitation is to a season.
+   Signed out only (the signed-in doors ask on a sheet, R5); the desk's
+   example wings stand down while it shows (.ob-linked). `o` null removes it. */
+const CS_JOIN_NEXT = 'Sign in to read the terms before you join.';
+function csLinkLanding(o){
+  const ob = document.getElementById('onboard');
+  const hero = ob && ob.querySelector('.ob-in > .ob-hero');
+  if(!ob || !hero) return null;
+  let el = document.getElementById('obLink');
+  ob.classList.add('ob-via');   /* a link brought them: the example wings stand down */
+  if(!o){ if(el) el.remove(); ob.classList.remove('ob-linked'); return null; }
+  if(!el){ el = document.createElement('div'); el.id = 'obLink'; el.className = 'ob-link'; hero.parentNode.insertBefore(el, hero); }
+  el.dataset.kind = o.kind;
+  el.innerHTML = `<p class="eb cs-agate">${esc(o.label)}</p><h1 class="cs-lead">${o.headHtml}</h1>`
+    + (o.sub ? `<p class="sub cs-body-s">${esc(o.sub)}</p>` : '');
+  ob.classList.add('ob-linked');
+  return el;
+}
+function csJoinLanding(name){
+  return csLinkLanding({ kind: 'join', label: 'A season invite',
+    headHtml: name ? `You’re invited to ${esc(name)}.` : 'You’re invited to a season.' });
+}
+/* §1.4 · no number in the serif: the gross is a figure run, and the date
+   rides the supporting line with the course and tee (it read ", Sun, Sep 27"
+   inside the headline) */
+function csClaimLanding(data, when){
+  const label = String(data.course_label || 'the course');
+  const cut = label.indexOf(' — ');
+  const club = cut > 0 ? label.slice(0, cut) : label;
+  const rest = cut > 0 ? label.slice(cut + 3) : '';
+  const day = String(when || '').replace(/^,\s*/, '');
+  return csLinkLanding({ kind: 'claim', label: 'Your scorecard link',
+    headHtml: `${esc(data.guest_name || 'Your scorecard')} — `
+      + (data.gross ? `<span class="run">${esc(String(data.gross))}</span> at ` : '')
+      + `${esc(club)}.`,
+    sub: [rest, day].filter(Boolean).join(' · ') });
+}
+window.csLinkLanding = csLinkLanding;
 /* invite links: /?join=CODE rides the existing cs_code auto-join machinery —
    signed-in users join on this boot; signed-out users join right after auth */
 const joinParam = new URLSearchParams(window.location.search).get('join');
@@ -33484,6 +33623,8 @@ if(joinParam){
      door already opened on the generic line, warm it up in place. */
   sb.rpc('league_by_code', { p_code: jc }).then(({ data, error }) => {
     const st = document.getElementById('obStatus');
+    /* the door may already have opened on the invitation, before the answer */
+    const landing = document.querySelector('#obLink[data-kind="join"]');
     if(!data){
       /* the owner's panel: a code that matches NO league said "You're invited.
          Sign in to review the league before you join." to a stranger. An
@@ -33492,17 +33633,18 @@ if(joinParam){
          that FAILED (error) proves nothing, so it changes nothing. */
       if(error) return;
       try { localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); localStorage.setItem('cs_code_dead', '1'); } catch(_){}
-      if(st && /^You're invited\. /.test(st.textContent)){ st.textContent = CS_NO_LEAGUE; try { localStorage.removeItem('cs_code_dead'); } catch(_){} }
+      if(landing){
+        csLinkLanding(null);
+        if(st && st.textContent === CS_JOIN_NEXT) st.textContent = CS_NO_LEAGUE;
+        try { localStorage.removeItem('cs_code_dead'); } catch(_){}
+      }
       return;
     }
     localStorage.setItem('cs_code_name', data);
-    /* matches the GENERIC line only — it must track the string at ~15900, or
-       the league name silently stops warming it up (the F1 fix this guards) */
-    if(st && /^You're invited\. /.test(st.textContent))
-      /* Q-15 · "and you're in" promised the opposite of what happens: the
-         golfer still reviews the league and confirms before anything is final
-         (D116). Say what the next screen actually does. */
-      st.textContent = `You're invited to ${data}. Sign in to review the league before you join.`;
+    /* F1 · the generic invitation warms up to the season's name in place.
+       Q-15 · the next step says what the next screen does: the terms, then
+       the yes (D116, D351). */
+    if(landing) csJoinLanding(data);
   }).catch(() => {});
 }
 
@@ -33659,7 +33801,7 @@ async function claimPendingRound(){
       if(st === 'setup'){ toast(CS_CLAIM_NOT_STARTED); return; }
       /* R5 · still being played: nothing to ask about yet. D86's sentence,
          said without calling the claim to hear it; the token is kept */
-      if(st === 'live'){ toast('They’re still out there — your card lands here when the round finishes'); return; }
+      if(st === 'live'){ toast('They’re still out there — your scorecard comes to your rounds when the round finishes'); return; }
     }catch(_){}
     /* R5 · the golfer says yes before anything is claimed */
     const pv = await csClaimPreview(tok);
@@ -33701,7 +33843,7 @@ async function csClaimAct(tok){
          thing. Every other failure still retires the token as before. */
       const msg=String((firstErr&&firstErr.message)||(e2&&e2.message)||'');
       if(/still live|not live/i.test(msg)){
-        toast('They’re still out there — your card lands here when the round finishes');
+        toast('They’re still out there — your scorecard comes to your rounds when the round finishes');
         return;
       }
       try{ localStorage.removeItem('cs_claim'); }catch(_){}
@@ -33872,14 +34014,13 @@ async function safeBoot(force){
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
   let deadJoin = false; try { deadJoin = localStorage.getItem('cs_code_dead') === '1'; localStorage.removeItem('cs_code_dead'); } catch(_){}
-  if(!CS.user && !pend && deadJoin) openEmailBox($('#obJoin'), CS_NO_LEAGUE);   /* the lookup beat the boot */
+  if(!CS.user && !pend && deadJoin){ csLinkLanding(null); openEmailBox($('#obJoin'), CS_NO_LEAGUE); }   /* the lookup beat the boot */
   if(!CS.user && pend){
-    openEmailBox($('#obJoin'), pendName
-      ? `You're invited to ${pendName}. Sign in to review the league before you join.`   /* Q-15 */
-      /* the raw code is plumbing — the recipient never types it on this path,
-         the link carries it (F1). Saying it invites them to wonder what to do
-         with it. */
-      : `You're invited. Sign in to review the league before you join.`);
+    /* the invitation leads the door (csLinkLanding); the raw code is plumbing —
+       the recipient never types it on this path, the link carries it (F1). The
+       next step says what the next screen does (Q-15): the terms, then the yes. */
+    csJoinLanding(pendName);
+    openEmailBox($('#obJoin'), CS_JOIN_NEXT);
   }
   /* guest claim: the round is waiting at the door (anon-readable by token) */
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}
@@ -33909,7 +34050,7 @@ async function safeBoot(force){
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
       if(!error && data?.round?.status==='live'
          && window.enterGuestLive(data, claimTok, { signedIn:true })){
-        toast('You’re in this live round — score your own card');
+        toast('You’re in this live round — keep your own score');
         return;
       }
     }catch(_){}
@@ -33922,8 +34063,10 @@ async function safeBoot(force){
       const gs = guestSeen?.round?.status;
       if(gs === 'abandoned'){
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        csLinkLanding(null);
         authStatus(CS_CLAIM_UNFINISHED, 'err');
       } else if(gs === 'setup'){
+        csLinkLanding(null);
         authStatus(CS_CLAIM_NOT_STARTED);          /* not an error: the pencil is kept */
       } else {
       /* the door card serves both claim sources (live guests + scan partners) */
@@ -33948,11 +34091,14 @@ async function safeBoot(force){
           return ', ' + new Date(+m[1], +m[2]-1, +m[3])
             .toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
         })();
-        openEmailBox($('#obJoin'),
-          `${data.guest_name || 'Your card'} — ${data.gross ? data.gross+' at ' : ''}${data.course_label || 'the course'}`
-          + `${when}. Enter your email to keep it.`);
+        /* the round leads the door; the sentence's second half is the next step */
+        csClaimLanding(data, when);
+        openEmailBox($('#obJoin'), 'Enter your email to keep it.');
       } else if(data && data.claimed){
+        /* already kept: say so (it was the plain door, with nothing said) */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        csLinkLanding(null);
+        authStatus(CS_CLAIM_USED);
       } else {
         /* F3 (shareability audit): a dead/garbage token failed SILENT — the
            recipient tapped "your scorecard" and got the marketing door, and the
@@ -33960,6 +34106,7 @@ async function safeBoot(force){
            plainly (same answer for every bad token — nothing to enumerate) and
            drop the token. */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        csLinkLanding(null);
         authStatus(CS_CLAIM_DEAD, 'err');
       }
       }
