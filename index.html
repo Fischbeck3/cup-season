@@ -9696,8 +9696,9 @@ window.csFormFive = csFormFive;
    said there was no network; a read the server refused is "couldn’t refresh"
    (N4-013). The role sets the caps; the string is typed as said. */
 function csStaleLine(d, offline){
-  const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
-  return `As of ${DOW[d.getDay()]} ${h % 12 || 12}:${m} ${h < 12 ? 'AM' : 'PM'} \u00b7 ${offline ? 'offline' : 'couldn\u2019t refresh'}`;
+  const t = d instanceof Date && !isNaN(d) ? d : new Date();
+  const h = t.getHours(), m = String(t.getMinutes()).padStart(2, '0');
+  return `As of ${DOW[t.getDay()]} ${h % 12 || 12}:${m} ${h < 12 ? 'AM' : 'PM'} \u00b7 ${offline ? 'offline' : 'couldn\u2019t refresh'}`;
 }
 window.csStaleLine = csStaleLine;
 function csStandingsStale(){
@@ -21937,14 +21938,10 @@ async function loadHomeDispatch(){
   window.homeDispatchStaleAt = window.homeDispatch ? (window.homeDispatchAt || new Date()) : null;
 }
 window.loadHomeDispatch = loadHomeDispatch;
-/* the dateline of a read that did not land: the phone's CSStale.line, typed as
-   said ("As of Fri 6:12 PM · couldn’t refresh"); the agate role sets its caps */
-function csStaleLine(d){
-  const t = d instanceof Date && !isNaN(d) ? d : new Date();
-  const DW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], h = t.getHours(), m = String(t.getMinutes()).padStart(2, '0');
-  return `As of ${DW[t.getDay()]} ${h % 12 || 12}:${m} ${h < 12 ? 'AM' : 'PM'} \u00b7 couldn\u2019t refresh`;
-}
-window.csStaleLine = csStaleLine;
+/* the dateline of a read that did not land is csStaleLine (§13.3, the phone's
+   CSStale.line), defined ONCE, beside the standings that first wore it. A
+   second declaration here shadowed it for the whole script, so a standings
+   read that failed offline still said "couldn’t refresh". */
 
 /* THE LEAD, weight 1. The chip that carries the rank, the ordinal and the
    movement (`home.md` §1.2, §16A.4) is the phone's for now and is named as
