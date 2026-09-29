@@ -17,6 +17,11 @@ import Foundation
     // D209 · the number rows come FIRST, then the arithmetic; D210 · "VS COURSE"
     #expect(rows[1] == .math(label: "Your index that day", value: "10.0", sub: true))
     #expect(rows[2] == .math(label: "(86 − 64.9) × 113 ⁄ 111", value: "21.5 VS COURSE", sub: true))
+    // AW2-06 · the leaf sets the figure in the column face and its words in agate
+    #expect(ReceiptRows.figureAndWords("21.5 VS COURSE") == ("21.5", "VS COURSE"))
+    #expect(ReceiptRows.figureAndWords("70.1 / 124") == ("70.1 / 124", nil))
+    #expect(ReceiptRows.figureAndWords("COUNTING #2 OF 4") == (nil, "COUNTING #2 OF 4"))
+    #expect(ReceiptRows.figureAndWords("−7.6") == ("−7.6", nil) && ReceiptRows.figureAndWords("$37.50") == ("$37.50", nil))
     #expect(rows[3] == .math(label: "Against your playing HCP", value: "-11.5 — POSTED ANYWAY", sub: false))
     #expect(rows[4] == .math(label: "Points", value: "5", sub: false))
     // L-01 · the denominator is part of the fact, and the fixture carries a

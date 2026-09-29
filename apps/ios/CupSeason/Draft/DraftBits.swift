@@ -203,7 +203,7 @@ struct DraftLockBadge: View {
     let tone = mine ? cs.pos : cs.gold
     HStack(spacing: 8) {
       Circle().fill(tone).frame(width: 7, height: 7)
-      Text(text).csType(.columnS).foregroundStyle(tone)
+      Text(text).csType(.agateS, caps: false).foregroundStyle(tone)   // AW2-06 · a sentence is never mono
     }
     .padding(.horizontal, 12).padding(.vertical, 8)
     .background(tone.opacity(CSTokens.Alpha.a08), in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))   // N4-087
