@@ -476,7 +476,10 @@ public enum LeagueCopy {
     if rem > 0 {
       return (key, "\(fmtN(rem)) more toward \(month)'s minimum of \(b.floor) — you're at \(fmtN(credits))." + half + " \(counts)" + byeNote(byeAvailable))
     }
-    return (key, "\(month)'s minimum is met — \(fmtN(credits)) of \(b.floor)." + half + " \(counts) \(anotherChance)")
+    // N4-106 · "5.5 of 2" read as a fraction or an error: the minimum is
+    // named with its number, and what the golfer has follows (the web's line
+    // moves with it)
+    return (key, "\(month)'s minimum of \(b.floor) is met — you have \(fmtN(credits))." + half + " \(counts) \(anotherChance)")
   }
 
   /// D354 · the bye, said only when the payload says it. A season has one.
