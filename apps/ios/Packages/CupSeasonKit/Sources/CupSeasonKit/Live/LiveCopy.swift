@@ -681,7 +681,10 @@ public extension LiveCopy {
     (scored > 0
       ? "Your round is still on, and its \(scored) \(scored == 1 ? "hole" : "holes") scored \(scored == 1 ? "stays" : "stay") with it."
       : "Your round is still on.")
-      + " Change the course, the tee or the holes here."
+      // W7-003 · the setup is locked while held (the finish posts on the
+      // tee-off snapshot), so the line says why, and names the round's own
+      // control, "Scrap this round": the web's b3c630e2, word for word
+      + " The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again."
   }
   /// The way back to the held round, on the setup's first screen.
   static let backToRound = "Back to the round"

@@ -91,7 +91,16 @@ final class N2LivePlayUITests: XCTestCase {
     let held = app.staticTexts["live.setup.held"]
     XCTAssertTrue(held.waitForExistence(timeout: 10), "the setup says the round is held")
     XCTAssertTrue(held.label.hasPrefix("Your round is still on, and its "), held.label)
-    XCTAssertTrue(held.label.hasSuffix("Change the course, the tee or the holes here."), held.label)
+    XCTAssertTrue(held.label.hasSuffix("To change them, scrap this round and tee off again."), held.label)
+    // W7-003 · the record-bearing setup is shown locked: the finish posts on
+    // the tee-off snapshot, so nothing here may be offered as an edit
+    for id in ["live.setup.tee", "live.setup.rating", "live.setup.slope"] {
+      let field = app.textFields[id]
+      XCTAssertTrue(field.exists && !field.isEnabled, "\(id) is locked while the round is held")
+    }
+    XCTAssertFalse(app.buttons["9 holes"].firstMatch.isEnabled, "the holes are locked while held")
+    XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label ==[c] %@", "enter the pars")).firstMatch.isEnabled,
+                   "the pars are locked while held")
     XCTAssertFalse(app.buttons["live.setup.teeOff"].exists, "no Tee off over a held round")
     XCTAssertFalse(app.switches["live.setup.offline"].exists, "no switch to a second, local round")
     let back = app.buttons["live.setup.backToRound"]
