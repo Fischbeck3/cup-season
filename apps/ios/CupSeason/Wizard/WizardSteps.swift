@@ -130,13 +130,13 @@ struct WizardWhoStep: View {
         // moment in the organiser's walk — "that is the moment I stop trusting
         // the labels on this app". They do what they say now, in place, over
         // the wizard, and the wizard is still there behind the sheet.
-        door(WizardCopy.findYourFriends, sub: WizardCopy.findYourFriendsSub, ember: true) { contacts.ask() }
+        door(WizardCopy.findYourFriends, sub: WizardCopy.findYourFriendsSub) { contacts.ask() }
         contactsAnswer
         // The share row IS the door (the crew step's own pattern, L-34): one
         // control for one act. It mints and opens the system share sheet.
         PersonInviteLink(store: store, always: true, trigger: linkTrigger,
                          title: WizardCopy.textThemALink, sub: nil)
-        door(WizardCopy.justMe, sub: WizardCopy.justMeSub, ember: false) { model.step = 1 }
+        door(WizardCopy.justMe, sub: WizardCopy.justMeSub) { model.step = 1 }
       } else {
         Text(WizardCopy.step1Sub).csType(.bodyS).foregroundStyle(cs.mut)
         FlowLayout(spacing: 6) {
@@ -272,7 +272,7 @@ struct WizardWhoStep: View {
     .accessibilityAddTraits(on ? .isSelected : [])
   }
 
-  private func door(_ label: String, sub: String?, ember: Bool, action: @escaping () -> Void) -> some View {
+  private func door(_ label: String, sub: String?, action: @escaping () -> Void) -> some View {
     Button(action: { CSHaptic.selection(); action() }) {
       VStack(alignment: .leading, spacing: 2) {
         // F-12 · L-29: mono is the RECORD — labels, eyebrows, tabular numerals,
@@ -289,12 +289,10 @@ struct WizardWhoStep: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, CSTokens.Space.s3).padding(.vertical, CSTokens.Space.s3)
       .frame(minHeight: 50)
-      // the ONE route the step wants taken keeps its metal as a 3pt rail, not
-      // as a ring round a box: gold and ember never outline a control (§7.1)
+      // root (D359, N4-052's twin) · no ember rail on the route the step
+      // "wants": a pre-selected route in ember read as a choice already made,
+      // and ember is competition only. Both routes take the ground alone.
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(alignment: .leading) {
-        if ember { Rectangle().fill(cs.brand).frame(width: 3) }
-      }
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
