@@ -16,7 +16,10 @@ struct CompeteScoreboard: View {
     VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
       Text(eyebrow).csType(.agate)
       Text(title).csType(.display).fixedSize(horizontal:false,vertical:true)
-      if !story.isEmpty { Text(story).csType(.story).fixedSize(horizontal:false,vertical:true) }
+      // W5 twin · the story carries figures ("34 back from …", "in 7 days"),
+      // and the serif is never a figure's face (§1.4): 17 sans, as the web's
+      // `.cband-scoreboard .cband-note`
+      if !story.isEmpty { Text(story).csType(.body).fixedSize(horizontal:false,vertical:true) }
       if let points {
         ViewThatFits(in:.horizontal) {
           HStack(alignment:.firstTextBaseline,spacing:CSTokens.Space.s5) { figure(points); standingView }

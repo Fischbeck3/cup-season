@@ -64,19 +64,14 @@ struct SocialActivitySheet: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.scenePhase) private var scenePhase
   @Bindable var inbox: SocialInboxStore
+  @Environment(\.openSettings) private var openSettings
   @State private var door: RoundDiscussionDoor?
-  @State private var preferences = false
 
   var body: some View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-          HStack {
-            Text("Activity").csType(.display).foregroundStyle(cs.ink)
-            Spacer()
-            Button { preferences = true } label: { CSGlyph(.gear, size: .row).frame(width: 44, height: 44) }
-              .buttonStyle(.plain).foregroundStyle(cs.mut).accessibilityLabel("Comment notification settings")
-          }
+          Text("Activity").csType(.display).foregroundStyle(cs.ink)
           if inbox.unread > 0 {
             Button("Mark all read") { Task { await inbox.mark() } }.buttonStyle(.csTertiary(.content))
           }
@@ -117,6 +112,12 @@ struct SocialActivitySheet: View {
             Button("Earlier activity") { Task { await inbox.load(more: true) } }
               .buttonStyle(.csSecondary()).disabled(inbox.loading)
           }
+          // TEN / W6 · ONE NOTIFICATIONS SECTION (W2, owner C): the three
+          // conversation switches are Settings' now. The inbox carries a door
+          // to them rather than a second set that could disagree with the first.
+          Button(ConversationPrefs.door) { dismiss(); openSettings() }
+            .buttonStyle(.csTertiary(.content))
+            .padding(.top, CSTokens.Space.s2)
         }
         .padding(CSTokens.Space.gutter)
       }
@@ -129,41 +130,6 @@ struct SocialActivitySheet: View {
     .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await inbox.load() } } }
     .csSheet(item: $door) { target in
       RoundReceiptSheet(roundId: target.roundId, seed: nil, focusComments: true, focusComment: target.commentId)
-    }
-    .csSheet(isPresented: $preferences) { SocialNotificationSettings() }
-  }
-}
-
-private struct SocialNotificationSettings: View {
-  @Environment(\.cs) private var cs
-  @State private var values: [String: Bool] = [:]
-  @State private var busy = false
-  @State private var error: String?
-  private let options = [("own_round", "Comments on my rounds"), ("replies", "Replies to my comments"), ("followed", "Conversations I follow")]
-  var body: some View {
-    SliceSheet(title: "Comment notifications", sub: "Activity in Cup Season") {
-      ForEach(options, id: \.0) { key, label in
-        Toggle(label, isOn: Binding(get: { values[key] ?? true }, set: { on in save(key, on) }))
-          .tint(cs.brand).disabled(busy || values.isEmpty).frame(minHeight: 44)
-      }
-      if let error { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
-      if values.isEmpty { Button("Reload settings") { Task { await load() } }.buttonStyle(.csTertiary(.content)) }
-    }
-    .task { await load() }
-  }
-  private func receive(_ json: JSONValue) {
-    for (key, _) in options { values[key] = json[key]?.bool ?? true }
-  }
-  private func load() async {
-    do { receive(try await RoundSocialService().request("social_notify_prefs")); error = nil }
-    catch { self.error = HumanError.text(error, prefix: "Could not load settings.") }
-  }
-  private func save(_ key: String, _ value: Bool) {
-    Task {
-      busy = true
-      defer { busy = false }
-      do { receive(try await RoundSocialService().request("set_social_notify_prefs", ["p_" + key: .bool(value)])); error = nil }
-      catch { self.error = HumanError.text(error, prefix: "That setting did not save.") }
     }
   }
 }

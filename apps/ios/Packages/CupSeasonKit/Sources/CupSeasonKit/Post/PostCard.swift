@@ -333,9 +333,39 @@ public enum PostCalc {
   /// half-open band edges (≥3, ≥1, >−1, ≥−3), so rounding the pieces
   /// separately puts boundary rounds in the wrong band. `index.html`'s
   /// `pviFor()` is the same line; the two must not drift again.
+  ///
+  /// W1 · EXACTLY: `round(numeric, 1)` is half AWAY from zero, and it runs
+  /// against the STORED differential (`serverDifferential`). A Double can land
+  /// a hair under a tenth, so this works in integers — tenths of the index,
+  /// thousandths of the allowance — as `pviFor()` does.
   public static func pvi(index: Double, differential: Double, allowance: Int?) -> Double {
-    let a = Double(allowance ?? 100)
-    return ((index * a / 100 - differential) * 10).rounded() / 10
+    // the web's NaN carries through to the bottom band; an Int of one traps
+    guard index.isFinite, differential.isFinite else { return .nan }
+    let i10 = Int((index * 10).rounded()), a1000 = (allowance ?? 100) * 1000
+    let d10 = Int((differential * 10).rounded())
+    return Double(roundHalfAway(i10 * a1000 - d10 * 100_000, 100_000)) / 10
+  }
+
+  /// `csRoundHalfAway(num, den)` — num/den rounded half AWAY from zero, which
+  /// is what Postgres's `round()` does to a numeric. Integers throughout.
+  static func roundHalfAway(_ num: Int, _ den: Int) -> Int {
+    let sign = (num < 0) != (den < 0) ? -1 : 1
+    let n = abs(num), d = abs(den)
+    return sign * ((2 * n + d) / (2 * d))
+  }
+
+  /// W1 · THE DIFFERENTIAL THE SERVER STORES (`csServerDiff`). `score_round()`
+  /// writes `round((gross − rating) × 113 / slope, 1)` — and for a nine
+  /// `round(((gross − nine_rating) × 113 / slope) × 2, 1)` — and the band is
+  /// read against that stored figure. The preview subtracted the UNROUNDED
+  /// value, so one card previewed "beat by 1.4" and posted "by 1.5", and at a
+  /// band edge (14.2 at 95%, 82 on 68.9/118: 0.9 raw, 1.0 stored) promised 7
+  /// points where the table pays 9. Hundredths of a stroke over the slope;
+  /// nil when there is no slope to divide by.
+  public static func serverDifferential(gross: Int, rating: Double, slope: Int, nine: Bool) -> Double? {
+    guard slope > 0, rating.isFinite else { return nil }
+    let g100 = gross * 100, r100 = Int((rating * 100).rounded())
+    return Double(roundHalfAway((g100 - r100) * 113 * (nine ? 2 : 1), slope * 10)) / 10
   }
 
   /// `recalc()` at the LEAGUE'S allowance against `myIndex` (D178; nil = 100%,
@@ -346,7 +376,6 @@ public enum PostCalc {
     let idx = myIndex ?? fallbackIndex
     let provisional = myIndex == nil
     let rating = card.ratingValue
-    let slope = card.slopeValue > 0 ? Double(card.slopeValue) : 113
     // IOS-030 · a card with no rating is not a round with a differential of
     // (gross − 0)·113/113. It previewed one, and the number it printed was the
     // one thing on the screen a golfer had no way to know was nonsense.
@@ -354,24 +383,26 @@ public enum PostCalc {
     guard let entry = card.entry else { return nil }
     if entry.holes == 18 {
       let gross = entry.gross
-      let diff = (Double(gross) - rating) * 113 / slope
+      // W1 · the stored figure, not the raw one
+      guard let diff = serverDifferential(gross: gross, rating: rating, slope: card.slopeValue, nine: false) else { return nil }
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let (pts, msg) = CSBands.pointsFor(vs)
       return PostPreview(gross: gross, holes: 18, vs: vs, points: provisional ? 0 : pts,
                          message: provisional ? ReceiptRows.noNumberYet(round: nil) : msg,
-                         label: "\(gross) GROSS", differential: (diff * 10).rounded() / 10, provisional: provisional)
+                         label: "\(gross) GROSS", differential: diff, provisional: provisional)
     }
     do {
       let g9 = entry.gross
-      // D72: (nine gross − 9-hole rating) scaled, doubled to an 18-hole equivalent
+      // D72: (nine gross − 9-hole rating) scaled, doubled to an 18-hole
+      // equivalent — W1 · and rounded as `score_round` stores a nine
       let rating9 = card.rating9 ? rating : rating / 2
-      let diff = ((Double(g9) - rating9) * 113 / slope) * 2
+      guard let diff = serverDifferential(gross: g9, rating: rating9, slope: card.slopeValue, nine: true) else { return nil }
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let base = CSBands.pointsFor(vs)
       let pts = Int((Double(base.points) / 2).rounded(.up))
       return PostPreview(gross: g9, holes: 9, vs: vs, points: provisional ? 0 : pts,
                          message: provisional ? ReceiptRows.noNumberYet(round: nil) : "9-hole round, half value. " + base.line,
-                         label: "\(g9) GROSS · 9 HOLES", differential: (diff * 10).rounded() / 10, provisional: provisional)
+                         label: "\(g9) GROSS · 9 HOLES", differential: diff, provisional: provisional)
     }
   }
 

@@ -47,7 +47,7 @@ import Foundation
     r.countingCap = nil
     let rows = ReceiptRows.build(r, capN: 4, viewerId: nil)
     #expect(rows.contains(.math(label: "This month", value: "BUMPED", sub: false)))
-    #expect(rows.contains(.math(label: "Attested", value: "PLAYED WITH THE GROUP", sub: false)))
+    #expect(rows.contains(.math(label: "Vouched", value: "PLAYED WITH THE GROUP", sub: false)))
     #expect(rows.contains(.playedWith(["Garrett", "Mike"])))
     if case .scorecard = rows.last! {} else { Issue.record("expected the scorecard hand-off last") }
     // unlimited cap: everything counts

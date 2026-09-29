@@ -73,17 +73,17 @@ public struct CSSideRoster: View {
   }
 
   public var body: some View {
-    // §7.5 · **at the accessibility sizes the rail SCROLLS rather than
-    // shrinking the discs.** A 38pt face is already the smallest a marker
-    // reads at, and an AX3 name under it is 26pt tall; squeezing six of those
-    // into 362 points is how a roster becomes a smudge.
+    // §7.5 · the discs never shrink: a 38pt face is already the smallest a
+    // marker reads at, and an AX3 name under it is 26pt tall. Q29 · §16.3 ·
+    // **and nothing scrolls sideways**: at the accessibility sizes the SIDES
+    // STACK, and each side's golfers are rows, face then name. The rail used
+    // to scroll, and the second side was a swipe nobody knew to make.
     if typeSize.isA11y {
-      ScrollView(.horizontal, showsIndicators: true) {
-        HStack(alignment: .top, spacing: CSTokens.Space.s4) {
-          group(left, align: .leading)
-          group(right, align: .leading)
-        }
+      VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+        stacked(left)
+        stacked(right)
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("event.side-roster")
     } else {
@@ -139,6 +139,42 @@ public struct CSSideRoster: View {
             .overlay(Circle().inset(by: -1.5).stroke(s.color, lineWidth: 2.5))
             Text("more").csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyMut)
           }
+        }
+      }
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(spoken(s))
+  }
+
+  /// One side at the accessibility sizes: its name on its colour's rule, then
+  /// a row per golfer — the disc, then the name, which wraps rather than clips.
+  @ViewBuilder private func stacked(_ s: Side) -> some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      Text(s.name).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyMut)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, CSTokens.Space.s2)
+        .overlay(alignment: .top) { Rectangle().fill(s.color).frame(height: 3) }
+      ForEach(Array(s.faces.prefix(Side.seats).enumerated()), id: \.offset) { i, f in
+        HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+          CSFace(f, size: size, sideRing: s.color, over: .ceremony)
+          if i < s.names.count {
+            Text(s.names[i]).csType(.agateS, caps: true)
+              .foregroundStyle(f.isViewer ? CSTokens.dark.ceremonyInk : CSTokens.dark.ceremonyMut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+      }
+      if s.overflow > 0 {
+        HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+          ZStack {
+            Circle().fill(CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a16))
+            Text("+\(s.overflow)").csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyInk)
+              .minimumScaleFactor(0.6).lineLimit(1)
+          }
+          .frame(width: size.rawValue, height: size.rawValue)
+          .overlay(Circle().inset(by: -1.5).stroke(s.color, lineWidth: 2.5))
+          Text("more").csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyMut)
         }
       }
     }

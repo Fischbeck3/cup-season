@@ -171,11 +171,13 @@ final class CompeteGameplayReviewTests: XCTestCase {
     app.launchArguments = ["-cs_dev_open", "ryder", "-cs_dev_event_fixture", "ryder",
                            "-cs_dev_look", "none", "-cs_dev_text_size", "AX3", "-cs_dev_appearance", "dark"]
     app.launch()
-    let roster = app.scrollViews["event.side-roster"]
+    // Q29 · §16.3 · at AX3 the sides STACK: nothing scrolls sideways, and the
+    // second side is reached the way the page is read, downward
+    let roster = app.descendants(matching: .any)["event.side-roster"]
     XCTAssertTrue(roster.waitForExistence(timeout: 30)); settle()
-    XCTAssertTrue(roster.isHittable)
-    roster.swipeLeft()
+    XCTAssertEqual(app.scrollViews.matching(identifier: "event.side-roster").count, 0, "the roster does not scroll sideways")
     let right = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Coyotes:")).firstMatch
+    for _ in 0..<4 where !right.isHittable { app.swipeUp() }
     XCTAssertTrue(right.exists)
     XCTAssertGreaterThanOrEqual(right.frame.minX, app.frame.minX)
     XCTAssertLessThanOrEqual(right.frame.maxX, app.frame.maxX)

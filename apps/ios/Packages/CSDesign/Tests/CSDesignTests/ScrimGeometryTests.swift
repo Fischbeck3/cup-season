@@ -84,6 +84,24 @@ import SwiftUI
     #expect(scrimmed >= 4.5, "the .top scrim leaves the credit at \(scrimmed):1")
   }
 
+  /// N4-070 · the course hero's credit moved from `.top`'s thin end (3.34:1
+  /// measured) to `.title`'s dark end, at the plate's foot. At the worst point
+  /// of its box it clears AA in scrimMut, the ink `.title` gives a caption.
+  @Test func theCreditAtThePlatesFootClearsAAOverABlownSky() {
+    let at = CSPhotoScrim.titleCreditLine
+    let alpha = CSPhotoScrim.alpha(CSPhotoScrim.title, at: at)
+    let ink = CSPhotoScrim.ink(CSPhotoScrim.title, caption: true)
+    #expect(ink == CSTokens.dark.scrimMut)
+    for (name, subject) in Self.subjects {
+      let ratio = Self.contrast(ink, on: CSTokens.dark.ceremony, over: subject, alpha)
+      #expect(ratio >= 4.5, "the credit over \(name) is \(String(format: "%.2f", ratio)):1 at a\(Int(alpha * 100))")
+    }
+    // and the old seat, under the status bar at 58pt, did not
+    let old = CSPhotoScrim.alpha(CSPhotoScrim.top, at: 58.0 / Double(CSPhotoScrim.topHeight))
+    #expect(Self.contrast(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true), on: CSTokens.dark.ceremony,
+                          over: CSTokens.light.leaf, old) < 4.5)
+  }
+
   /// Three geometries, and the directions are part of the contract: `.title`
   /// runs top → bottom, `.band` leading → trailing. The first draft had three
   /// geometries in two directions while claiming there was one.

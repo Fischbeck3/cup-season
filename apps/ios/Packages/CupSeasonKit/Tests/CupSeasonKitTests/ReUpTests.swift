@@ -39,8 +39,9 @@ import Foundation
   }
 
   @Test func theInvitationSaysWhichSeason() {
-    let first = Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "the Fellas", inviter: "Galen", startsOn: nil)
-    #expect(first.title == "League invite" && first.subline == "from Galen")
+    let first = Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "the Fellas", inviter: "Blake", startsOn: nil)
+    // W4 · the invitation is to a season, never "the league" (T §2.3)
+    #expect(first.title == "Season invite" && first.subline == "from Blake")
     let reup = Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "the Fellas", inviter: "Galen", startsOn: nil,
                       seasonNumber: 2, reup: true)
     #expect(reup.isReUp && reup.title == "Season 2 invite")
@@ -49,7 +50,7 @@ import Foundation
                         season_number: 2, reup: true)
     #expect(Invite(row)?.title == "Season 2 invite")
     // a first-season row on the new server is not a re-up
-    #expect(ReUpCopy.inviteTitle(reup: true, seasonNumber: 1) == "League invite")
+    #expect(ReUpCopy.inviteTitle(reup: true, seasonNumber: 1) == "Season invite")
   }
 
   @Test func theCovenantFramesAReUpAndStopsOnARecordedYes() throws {

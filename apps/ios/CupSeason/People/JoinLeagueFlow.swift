@@ -166,11 +166,14 @@ struct CovenantSheet: View {
           // WHO comes before the money — and for a re-up, the season comes
           // before who. The order is the producer's, not this file's —
           // `Covenant.facts` decides it, and a fact with no read is simply
-          // not in the list (L-44).
-          ForEach(covenant.facts(postedRounds: postedRounds), id: \.0) { fact, line in
+          // not in the list (L-44). W4 · today's date passes the clock, so
+          // where the season stands is said after its length.
+          ForEach(covenant.facts(postedRounds: postedRounds, today: CSDate.today()), id: \.0) { fact, line in
             Text(line)
               .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
-              .foregroundStyle(fact == .stake ? cs.gold : cs.ink)
+              // W4 · the stake is money, and money is ink (UI_SYSTEM §2.5):
+              // gold is for the pot or a thing won, and a buy-in is neither (D359)
+              .foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
               .frame(maxWidth: .infinity, alignment: .leading)
               .accessibilityLabel(line)
@@ -216,7 +219,9 @@ struct LeagueWelcomeSheet: View {
           // setup-QA S3-01: the auto-join path reaches this covenant without ever seeing the stake — name the number here.
           // One fact, one place (brand canon §3): the stake line names the number and who tracks it;
           // the ledger sentence belongs to "The pot lives on the books" below and is said once on this sheet.
-          (Text("You're on the pot: $\(welcome.usd) buy-in.").foregroundStyle(cs.gold).bold() + Text(" The Pro tracks who's paid."))
+          // Root's ruling (UI_SYSTEM §2.4): a buy-in is what you owe, so it is
+          // money in ink; gold is only for the pot itself or a thing won (D359)
+          (Text("You're on the pot: $\(welcome.usd) buy-in.").foregroundStyle(cs.ink).bold() + Text(" The Pro tracks who's paid."))
             .csType(.bodyS).foregroundStyle(cs.mut)
         }
         // D205 · "your squad" is a lie in a solo league; "your standing" is

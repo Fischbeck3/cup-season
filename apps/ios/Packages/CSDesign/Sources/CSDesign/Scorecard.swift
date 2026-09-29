@@ -12,11 +12,13 @@
 // do. The shipped `ScorecardSheet` scrolls sideways because it carries a ROW
 // PER PLAYER and cannot fold; a round has one golfer and can.
 //
-// **ONE METAL, NOT A RAINBOW** (§33). A cell under par is `gold` — the
-// system's EARNED metal, the same one the podium rule and the settlement card
-// use. Everything else is ink. A card that paints five results in five colours
-// is a heat map with golf written on it, and covering real golf with
-// decoration is the one thing §33 names outright. The number says the bogey.
+// **NO METAL AT ALL, AND NO RAINBOW** (§33; W1's twin of D267/D368). A card
+// that paints five results in five colours is a heat map with golf written on
+// it. The first build spent GOLD on every hole under par — but gold is the
+// earned metal (D359), and a birdie on a posted card is a fact, not a trophy.
+// The result is said by the scorecard's own marks, drawn in the card's ink:
+// a ring for a birdie, two rings for an eagle, a box for a bogey, two boxes
+// for worse — the marks a golfer already reads on paper (`CSScoreMark`).
 //
 // **L-44 IS THE CALLER'S JOB AND THE COMPONENT HELPS.** A row is drawn only if
 // it is handed to this view; a cell with no answer draws the gap glyph and
@@ -34,9 +36,10 @@ import SwiftUI
 public struct CSScorecardCell: Sendable, Equatable {
   /// Empty = a hole with no answer. Drawn as the gap glyph, never a zero.
   public let text: String
-  /// The one metal. True paints `gold` — under par, and nothing else.
-  public let earned: Bool
-  public init(_ text: String, earned: Bool = false) { self.text = text; self.earned = earned }
+  /// Strokes over par on a SCORE row — the mark drawn round the numeral, in
+  /// ink (ring, double ring, box, double box). nil or 0 draws no mark.
+  public let overPar: Int?
+  public init(_ text: String, overPar: Int? = nil) { self.text = text; self.overPar = overPar }
 }
 
 public struct CSScorecardRow: Sendable, Equatable {
@@ -144,7 +147,6 @@ public struct CSScorecard: View {
 
   private var inkColour: Color { over == .ceremony ? cs.ceremonyInk : cs.leafInk }
   private var mutColour: Color { over == .ceremony ? cs.ceremonyMut : cs.leafMut }
-  private var goldColour: Color { over == .ceremony ? cs.ceremonyGold : cs.leafGold }
 
   // MARK: geometry
   //
@@ -244,8 +246,13 @@ public struct CSScorecard: View {
   private func row(_ r: CSScorecardRow, head: String?) -> some View {
     HStack(spacing: 0) {
       ForEach(Array(r.cells.enumerated()), id: \.offset) { _, c in
-        text(c.text.isEmpty ? Self.gap : c.text, voice: r.voice, earned: c.earned)
+        text(c.text.isEmpty ? Self.gap : c.text, voice: r.voice)
           .frame(minWidth: cellW, minHeight: rowH)
+          .overlay {
+            if let o = c.overPar, o != 0, !c.text.isEmpty {
+              CSScoreMark(o, size: min(cellW, rowH)).foregroundStyle(inkColour)
+            }
+          }
       }
       text(head ?? r.total, voice: head != nil ? .key : r.voice, caps: head != nil)
         .frame(minWidth: totalW, minHeight: rowH, alignment: .trailing)
@@ -259,8 +266,8 @@ public struct CSScorecard: View {
   private static let gap = "\u{00B7}"
 
   @ViewBuilder private func text(_ s: String, voice: CSScorecardRow.Voice,
-                                 earned: Bool = false, caps: Bool = false) -> some View {
-    let ink: Color = earned ? goldColour : (voice == .score ? inkColour : mutColour)
+                                 caps: Bool = false) -> some View {
+    let ink: Color = voice == .score ? inkColour : mutColour
     // `.fixedSize` is the fix for the AX3 ruin: a cell is never truncated, and
     // the `minWidth` floors above keep the columns square when the content is
     // narrower than the column.

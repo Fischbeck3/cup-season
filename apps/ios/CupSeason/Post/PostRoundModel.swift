@@ -23,8 +23,9 @@ final class PostRoundModel {
       if oldValue.date != card.date { loadWorth() }
       // D364 (F3) · a nine and an eighteen have different ceilings, but the
       // counters are the same answer — re-derive the sentences from the
-      // answer already held; nothing goes out.
-      else if oldValue.side != card.side { rederiveWorth() }
+      // answer already held; nothing goes out. W1 · and a scored card's own
+      // points finish the sum, so the line follows the gross too.
+      else { rederiveWorth() }
     }
   }
   /// D362 · what this round can add under each season's own rule, from the
@@ -42,9 +43,18 @@ final class PostRoundModel {
   private var worthServed: JSONValue?
   struct WorthContext: Equatable { let date: String?; let user: UUID? }
 
+  /// W1 · the preview's own points for the worth line ("This 9 replaces your
+  /// lowest, a 6: +3 this month."); none with no number yet (D124 (i)).
+  private var knownPoints: Int? { guard let p = preview, !p.provisional else { return nil }; return p.points }
+
+  private func worth(_ served: JSONValue) -> [String] {
+    RoundWorth.servedLines(served, holes: card.side, known: knownPoints, league: membership?.league_id)
+  }
+
   private func rederiveWorth() {
     guard let served = worthServed, worthContext != nil else { return }
-    worthLines = RoundWorth.servedLines(served, holes: card.side)
+    let lines = worth(served)
+    if lines != worthLines { worthLines = lines }
   }
 
   /// Ask again for a date whose answer may have changed — a round posted, a
@@ -75,7 +85,7 @@ final class PostRoundModel {
       if let stood = PostWorthDev.served {
         guard !Task.isCancelled, self.stillWants(want) else { return }
         self.worthServed = stood
-        self.worthLines = RoundWorth.servedLines(stood, holes: card.side); self.worthContext = want; return
+        self.worthLines = self.worth(stood); self.worthContext = want; return
       }
       #endif
       let served = try? await SupabaseService.shared.call(Rpc.my_month_counters(p_on: on ?? CSDate.today()))
@@ -83,7 +93,7 @@ final class PostRoundModel {
       // new session. An answer for a context nobody is in is dropped.
       guard !Task.isCancelled, self.stillWants(want) else { return }
       self.worthServed = served
-      self.worthLines = served.map { RoundWorth.servedLines($0, holes: card.side) } ?? []
+      self.worthLines = served.map { self.worth($0) } ?? []
       self.worthContext = want
     }
   }

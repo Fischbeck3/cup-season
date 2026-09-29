@@ -470,6 +470,7 @@ struct WizardDialsPane: View {
     VStack(alignment: .leading, spacing: 10) {
       eyebrow(WizardCopy.presetEyebrow, key: "preset", text: WizardCopy.presetHelp)
       ForEach(0..<3, id: \.self) { i in presetCard(i) }
+      if model.dials.isCustom { customCard }
       // W-48 / D201 · no summary line under the cards: the selected card says
       // its one sentence beside it, and a second copy read as a second fact.
       CSFine(WizardCopy.verificationNote)   // M-15: a norm the league holds, not a filter Cup Season applies
@@ -479,14 +480,18 @@ struct WizardDialsPane: View {
                    down: { model.dials.stepStake(-1) }, up: { model.dials.stepStake(1) })
 
       eyebrow(WizardCopy.teamsEyebrow, key: "structure", text: WizardCopy.teamsHelp)
+      // W5 · a squad option larger than the roster says its need in words
+      // under its name ("8+ golfers"); it is never faded
       WizardSeg(options: WizardDials.structures.map { ($0, WizardDials.structLabels[$0] ?? $0) }, selected: model.dials.structure,
-                dimmed: { !WizardDials.fits($0, roster: model.roster) }) { s in
+                sub: { WizardDials.structNeed($0, roster: model.roster) }) { s in
         if let t = WizardDials.structToast(s, roster: model.roster) { toast.show(t) }
         model.dials.structure = s
         model.squadsChosen = (s != "solo")
       }
       CSFine(model.dials.structNote)
-      CSFine(WizardDials.structFitLine(roster: model.roster), tone: cs.brand)
+      // W5 · the fit line says what the CHOSEN squads need, in ink: it is
+      // guidance, and ember is the competition's colour, not a setup note's
+      CSFine(WizardDials.structFitLine(roster: model.roster, structure: model.dials.structure), tone: cs.ink)
 
       eyebrow(WizardCopy.fillEyebrow, key: "draft", text: WizardCopy.fillHelp)
       WizardSeg(options: WizardDials.draftTypes.map { ($0, WizardDials.draftLabels[$0] ?? $0) },
@@ -506,10 +511,12 @@ struct WizardDialsPane: View {
   }
 
   /// Name the starting point and the concrete rules it will replace (D346).
+  /// W5 · checked only while the dials still say what the card says; turned
+  /// away from, the choice is the Custom card below.
   private func presetCard(_ i: Int) -> some View {
     let p = WizardDials.presets[i]
     let minimum = p.floor
-    let on = model.dials.preset == i
+    let on = model.dials.preset == i && !model.dials.isCustom
     return Button {
       CSHaptic.selection()
       model.dials.applyPreset(i)
@@ -533,6 +540,31 @@ struct WizardDialsPane: View {
     .buttonStyle(.plain)
     .accessibilityElement(children: .combine)
     .accessibilityAddTraits(on ? [.isButton, .isSelected] : [.isButton])
+  }
+
+  /// W5 · **CUSTOM, WHEN THE DIALS LEAVE A STARTING POINT.** The Standard card
+  /// stayed checked reading "Your best three" over a "Best 4" dial. Custom is
+  /// the choice the dials made — its sentence painted from them, and the
+  /// starting point whose handicaps, scores and penalty it keeps. A state, not
+  /// a control: nothing new is stored (D346), so there is nothing to tap.
+  /// Twin: `#presetCustom` on the desk.
+  private var customCard: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      HStack(spacing: CSTokens.Space.s2) {
+        Text(WizardDials.customName).csType(.displayS).foregroundStyle(cs.panelInk)
+        CSGlyph(.check, size: .inline).foregroundStyle(cs.panelInk)
+      }
+      Text(model.dials.customLead).csType(.bodyS).foregroundStyle(cs.panelInk)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(model.dials.customBase).csType(.bodyS).foregroundStyle(cs.panelInk)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .padding(CSTokens.Space.s3)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(cs.panel)
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(.isSelected)
+    .accessibilityIdentifier("wizard.preset.custom")
   }
 
   private func eyebrow(_ t: String, key: String, text: String) -> some View {
@@ -604,27 +636,36 @@ struct WizardSetRow: View {
   }
 }
 
-/// `.seg` — one row of options, the chosen one in ink; dimmed ones still tap (guidance, never a block).
+/// `.seg` — one row of options, the chosen one in ink. W5 · an option that
+/// asks more than the roster has says so in WORDS under its name ("8+
+/// golfers", in mut) and is never faded — §16.1: dim is never a word, and 56%
+/// opacity took a chosen option below contrast. It still taps (guidance,
+/// never a block). Twin: the desk's `.cs-seg` `<small>`.
 struct WizardSeg: View {
   @Environment(\.cs) private var cs
   let options: [(key: String, label: String)]
   let selected: String
-  var dimmed: (String) -> Bool = { _ in false }
+  var sub: (String) -> String? = { _ in nil }
   let pick: (String) -> Void
 
   var body: some View {
+    // chips sharing a row keep one top line when any of them carries words
+    let topAligned = options.contains { sub($0.key) != nil }
     // one row of pills; a column at the accessibility sizes, where three labels cannot share the width
     A11yStack(spacing: 6) {
       ForEach(options, id: \.key) { o in
         let on = o.key == selected
+        let need = sub(o.key)
         Button { CSHaptic.selection(); pick(o.key) } label: {
-          CSChip(o.label, selected: on)
-            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
-            .opacity(dimmed(o.key) && !on ? CSTokens.Alpha.a56 : 1)
+          VStack(spacing: 2) {
+            CSChip(o.label, selected: on)
+            if let need { Text(need).csType(.agateS, caps: false).foregroundStyle(cs.mut) }
+          }
+          .frame(maxWidth: .infinity, minHeight: 44, alignment: topAligned ? .top : .center).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? [.isSelected] : [])
-        .accessibilityHint(dimmed(o.key) && !on ? "A stretch for your roster — still yours to pick" : "")
+        .accessibilityHint(need != nil && !on ? "A stretch for your roster — still yours to pick" : "")
       }
     }
   }

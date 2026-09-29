@@ -479,17 +479,34 @@ struct BootFailedView: View {
   }
 }
 
+/// N4-010 · the forced-update wall: a door, a sentence that wraps rather than
+/// clips (it scrolls at the accessibility sizes), and the build as a number.
 struct MustUpdateView: View {
   @Environment(\.cs) private var cs
+  @Environment(\.openURL) private var openURL
   let minBuild: Int
   var body: some View {
-    VStack(spacing: 14) {
-      Text("Update Cup Season").csType(.displayS).foregroundStyle(cs.ink)
-      Text("This build is behind the season. Grab the newest one from TestFlight or the App Store, then come back.")
-        .csType(.body).foregroundStyle(cs.mut).multilineTextAlignment(.center)
-      Text("needs build \(minBuild)").csType(.columnS).foregroundStyle(cs.mut)
+    GeometryReader { geo in
+      ScrollView {
+        VStack(spacing: 14) {
+          Text(MustUpdateCopy.title).csType(.displayS).foregroundStyle(cs.ink)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+          Text(MustUpdateCopy.line)
+            .csType(.body).foregroundStyle(cs.mut).multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+          Button(MustUpdateCopy.door) { openURL(MustUpdateCopy.getURL) }
+            .buttonStyle(.csPrimary())
+            .padding(.top, CSTokens.Space.s2)
+          Text(MustUpdateCopy.needs(minBuild)).csType(.columnS).foregroundStyle(cs.mut)
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+      }
+      .scrollBounceBehavior(.basedOnSize)
     }
-    .padding(28)
+    .background(cs.bg0)
   }
 }
 

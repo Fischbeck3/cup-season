@@ -40,8 +40,39 @@ import Foundation
   @Test func aLiveTieIsSaidAsATie() {
     let rows = LeagueRecord.rows(from: .array([row(season: s1, number: 1, status: "active", place: 1, of: 2, tied: true, points: 48,
                                                    startsOn: "2026-07-01")]), today: "2026-09-24")
-    #expect(rows[0].finish == 1 && !rows[0].won)
-    #expect(rows[0].line == "TIED 1ST OF 2 · 48 PTS")
+    // W2 · the tie is said in the LINE; a live season has no finish to set
+    // it on (it read `finish == 1` until the record stopped ranking live play)
+    #expect(rows[0].finish == nil && !rows[0].won)
+    #expect(rows[0].line == "TIED 1ST OF 2 · 48 PTS · IN SEASON")
+  }
+
+  /// W2 · a season still being played has no finish and no podium mark — a
+  /// place today is not a result. It reads "In play", and its line says where
+  /// it stands (the web's `loadLeagueRecord` / `csRecordLeaf`).
+  @Test func aLiveSeasonIsInPlayNotFinished() {
+    // newest first from the server, oldest first out (as run-it-back reads it)
+    let rows = LeagueRecord.rows(from: .array([
+      row(season: s2, number: 2, status: "active", place: 2, of: 6, points: 41, startsOn: "2026-07-01"),
+      row(season: s1, number: 1, status: "complete", place: 2, of: 6, points: 91)]),
+                                 today: "2026-09-24")
+    let live = rows[1]
+    #expect(live.live && live.finish == nil && live.of == nil && !live.won)
+    #expect(live.finishWord == "In play")
+    #expect(live.line == "2ND OF 6 · 41 PTS · IN SEASON")
+    #expect(live.spoken == "Season 2, in play, 2nd of 6 · 41 pts · in season")
+    // the finished season beside it keeps its finish, and says no "In play"
+    #expect(!rows[0].live && rows[0].finish == 2 && rows[0].finishWord == nil)
+    // the Cup Final is still play; a live row with no place says only that
+    let cup = LeagueRecord.rows(from: .array([row(season: s2, number: 2, status: "cup_final", place: 1, of: 2, points: 60,
+                                                  startsOn: "2026-07-01")]), today: "2026-09-24")[0]
+    #expect(cup.live && cup.finish == nil && cup.line == "CUP FINAL · 1ST OF 2 · 60 PTS · IN SEASON")
+    let unplaced = LeagueRecord.rows(from: .array([row(season: s2, number: 2, status: "active", place: nil, of: nil,
+                                                       startsOn: "2026-07-01")]), today: "2026-09-24")[0]
+    #expect(unplaced.live && unplaced.line == "IN SEASON")
+    // not yet teed off is not in play
+    let early = LeagueRecord.rows(from: .array([row(season: s2, number: 2, status: "active", place: 1, of: 6,
+                                                    startsOn: "2026-10-01")]), today: "2026-09-24")[0]
+    #expect(!early.live && early.finishWord == nil)
   }
 
   @Test func runItBackKeepsSeasonOneAndOpensTheLeague() {

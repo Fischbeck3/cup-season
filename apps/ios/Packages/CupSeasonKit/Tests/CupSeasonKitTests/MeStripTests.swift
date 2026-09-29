@@ -245,10 +245,12 @@ private let today = "2026-09-08"
 @Suite struct MeStripSeasonRowTests {
 
   @Test func theRowNamesTheLeagueTheRankBothGapsAndTheEndgame() {
-    let st = standing(rank: 2, of: 8, points: 27, up: ("Galen", 31), down: ("Jade", 25))
+    let st = standing(rank: 2, of: 8, points: 27, up: ("Blake", 31), down: ("Casey", 25))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "FELLAS · 2ND OF 8 · 4 BACK OF GALEN · 2 CLEAR OF JADE · TOP 2 INTO THE FINAL, OPENS DEC 7")
+    // TEN / W6 · a sentence, in sentence case: the golfers' names as they
+    // typed them, never upper-cased by the string (D165)
+    #expect(s.seasonRow?.text == "Fellas · 2nd of 8 · 4 back of Blake · 2 clear of Casey · Top 2 into the Final, opens Dec 7")
   }
 
   /// QB-03 · **THE CUT LINE IS NEVER THE CLAUSE THAT YIELDS.**
@@ -264,12 +266,12 @@ private let today = "2026-09-08"
   /// and this trade makes it shorter, which is why QB-03 and QB-11 were fixed
   /// together.
   @Test func theEndgameClauseSurvivesAtEveryRank() {
-    let st = standing(rank: 3, of: 8, points: 19, leader: "Tommy", leaderGap: 12,
-                      up: ("Dre", 23), down: ("Jade", 15))
+    let st = standing(rank: 3, of: 8, points: 19, leader: "Devon", leaderGap: 12,
+                      up: ("Sam", 23), down: ("Casey", 15))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(name: "Desert Dogs", standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "DESERT DOGS · 3RD OF 8 · 4 BACK OF DRE · 4 CLEAR OF JADE · TOP 2 INTO THE FINAL, OPENS DEC 7")
-    #expect(s.seasonRow?.text.contains("TOMMY LEADS") == false)
+    #expect(s.seasonRow?.text == "Desert Dogs · 3rd of 8 · 4 back of Sam · 4 clear of Casey · Top 2 into the Final, opens Dec 7")
+    #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("Devon leads") == false)
   }
 
   /// A-5 · a gap is always attached to a name. Without `next_up` (a v2 payload)
@@ -279,38 +281,38 @@ private let today = "2026-09-08"
   /// in which "am I in or out" is the only question left.
   @Test func aGapWithNoNameDoesNotRender() {
     let st = Me.Standing(rank: 3, of: 8, points: 19, prev_rank: nil, leader_squad_id: nil, leader_points: 31,
-                         gap_to_leader: 12, gap_to_next: 4, leader_name: "Tommy")
+                         gap_to_leader: 12, gap_to_next: 4, leader_name: "Devon")
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "FELLAS · 3RD OF 8 · TOP 2 INTO THE FINAL, OPENS DEC 7")
-    #expect(s.seasonRow?.text.contains("BACK OF") == false)
-    #expect(s.seasonRow?.text.contains("TOMMY") == false)
+    #expect(s.seasonRow?.text == "Fellas · 3rd of 8 · Top 2 into the Final, opens Dec 7")
+    #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("back of") == false)
+    #expect(s.seasonRow?.text.contains("Devon") == false)
   }
 
   /// At rank 1 or 2 `next_up` IS the leader, so no leader clause is needed.
   @Test func theLeaderSaysWhatTheyAreClearBy() {
-    let st = standing(rank: 1, of: 8, points: 31, down: ("Jade", 9))
+    let st = standing(rank: 1, of: 8, points: 31, down: ("Casey", 9))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.parts.contains("22 CLEAR OF JADE") == true)
-    #expect(s.seasonRow?.text.contains("LEADS BY") == false)
+    #expect(s.seasonRow?.parts.contains("22 clear of Casey") == true)
+    #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("leads by") == false)
   }
 
   /// SA-3 · at a field of two "the top two seed" is a tautology, and the
   /// shipped long string prints it. The short clause never does.
   @Test func atTwoTheEndgameNeverSaysTheTopTwoSeed() {
-    let st = standing(rank: 2, of: 2, points: 27, up: ("Galen", 31))
+    let st = standing(rank: 2, of: 2, points: 27, up: ("Blake", 31))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "FELLAS · 2ND OF 2 · 4 BACK OF GALEN · A FINAL BETWEEN THE TWO OF YOU, OPENS DEC 7")
-    #expect(s.seasonRow?.text.contains("TOP 2") == false)
+    #expect(s.seasonRow?.text == "Fellas · 2nd of 2 · 4 back of Blake · A Final between the two of you, opens Dec 7")
+    #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("top 2") == false)
   }
 
   @Test func aPointsTableSeasonSaysWhatCrownsIt() {
-    let st = standing(rank: 2, of: 8, points: 27, up: ("Galen", 31))
+    let st = standing(rank: 2, of: 8, points: 27, up: ("Blake", 31))
     let m = membership(finish: "points_table", season: season(finalOpens: nil), standing: st)
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [m]), upcoming: [], today: today)
-    #expect(s.seasonRow?.parts.last == "POINTS TABLE CROWNS IT JAN 3")
+    #expect(s.seasonRow?.parts.last == "Points table crowns it Jan 3")
   }
 
   /// Squads read the squad first. "You 3rd of 16" is a fact this payload does
@@ -320,8 +322,8 @@ private let today = "2026-09-08"
     let m = membership(structure: "squads2", standing: st,
                        squad: Me.Squad(id: UUID(), name: "Mudsharks", color: 2))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [m]), upcoming: [], today: today)
-    #expect(s.seasonRow?.parts[1] == "MUDSHARKS 1ST OF 4")
-    #expect(s.seasonRow?.text.contains("YOU ") == false)
+    #expect(s.seasonRow?.parts[1] == "Mudsharks 1st of 4")
+    #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("you ") == false)
   }
 
   /// With no season the row is ABSENT — not a row of zeroes (L-44).
@@ -343,7 +345,7 @@ private let today = "2026-09-08"
     let near = membership(name: "Near", season: season(weekEnds: "2026-09-09"),
                           standing: standing(rank: 4, of: 9, points: 5))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [far, near]), upcoming: [], today: today)
-    #expect(s.seasonRow?.parts.first == "NEAR")
+    #expect(s.seasonRow?.parts.first == "Near")
     #expect(s.seasonRow?.leagueId == near.league_id)
   }
 }

@@ -81,8 +81,8 @@ public enum MeStripCopy {
   /// deadline, its rank, both gaps WITH NAMES, and the endgame clause.
   public struct SeasonRow: Sendable, Equatable {
     public let leagueId: UUID
-    /// The row as it renders: `FELLAS · 2ND OF 8 · 4 BACK OF GALEN · 2 CLEAR
-    /// OF JADE · TOP 2 INTO THE FINAL, OPENS OCT 6`.
+    /// The row as it renders: `Fellas · 2nd of 8 · 4 back of Blake · 2 clear
+    /// of Casey · Top 2 into the Final, opens Oct 6`.
     public let text: String
     /// The pieces, so a test can argue with one clause rather than a string.
     public let parts: [String]
@@ -418,8 +418,9 @@ public enum MeStripCopy {
 
   // MARK: - The season context row
 
-  /// `FELLAS · 2ND OF 8 · 4 BACK OF GALEN · 2 CLEAR OF JADE · TOP 2 INTO THE
-  /// FINAL, OPENS OCT 6`, for the season with the nearest deadline.
+  /// `Fellas · 2nd of 8 · 4 back of Blake · 2 clear of Casey · Top 2 into the
+  /// Final, opens Oct 6`, for the season with the nearest deadline — in
+  /// sentence case, which the strip sets in the `bodyS` role (the web's `.mesr`).
   ///
   /// **QB-03 · THE ENDGAME CLAUSE IS NEVER DROPPED.** It used to be appended
   /// only `if st.rank < 3`, to make room for the leader's name — so the one
@@ -431,7 +432,7 @@ public enum MeStripCopy {
   /// rules: *"Nothing on Home tells me 3rd is a losing position."*
   ///
   /// So the LEADER'S NAME yields instead, at rank ≥ 3, and the clause stands:
-  /// `RED MOUNTAIN · 3RD OF 8 · 4 BACK OF CAL · TOP 2 INTO THE FINAL`. The
+  /// `Red Mountain · 3rd of 8 · 4 back of Cal · Top 2 into the Final`. The
   /// leader is twelve points and nineteen weeks away; the golfer one rung up
   /// is catchable this weekend, is named by `next_up`, and the cut line is
   /// what decides whether catching him matters. The trade is the one the
@@ -443,19 +444,23 @@ public enum MeStripCopy {
   /// had just paid $50 to play five named golfers got a Home with no season on
   /// it at all, and a wire that told him to add some buddies. For him the
   /// ROSTER is the content, and `SeasonFacts.seasonLine` already writes the
-  /// sentence: `DAWN PATROL · FIRST TEE SAT SEP 5 · 6 ON THE ROSTER`.
+  /// sentence: `Dawn Patrol · First tee Sat Sep 5 · 6 on the roster`.
   ///
   /// With no season at all the row is absent — **not a row of zeroes** (L-44).
   static func seasonRow(_ memberships: [Me.Membership], today: String, calendar: Calendar) -> SeasonRow? {
     guard let m = nearest(memberships, today: today), let st = m.standing else {
       return preseasonRow(memberships, today: today, calendar: calendar)
     }
-    var parts: [String] = [m.name.uppercased()]
+    // TEN / W6 · SENTENCE CASE AT THE PRODUCER (D165, LINT-14: case is a
+    // role's job, never a string's). The row was built in caps with
+    // `uppercased()` on the golfers' own names, and it is a sentence a golfer
+    // reads, not a label — the web's `csMeSeasonRow` is its twin.
+    var parts: [String] = [m.name]
     // Squads read the squad first, then me. `standing` is the SQUAD's row in a
     // squads league, so the squad's name goes on the rank, and "you Nth of N"
     // is a fact this payload does not have and does not invent.
-    let rank = "\(CSCopy.ordinal(st.rank).uppercased()) OF \(st.of)"
-    parts.append(m.isSolo ? rank : [m.squad?.name.uppercased(), rank].compactMap { $0 }.joined(separator: " "))
+    let rank = "\(CSCopy.ordinal(st.rank)) of \(st.of)"
+    parts.append(m.isSolo ? rank : [m.squad?.name, rank].compactMap { $0 }.joined(separator: " "))
 
     // QB-03 · the leader's name is the clause that yields. It only ever
     // rendered at rank ≥ 3, which is precisely the rank at which the endgame
@@ -464,10 +469,10 @@ public enum MeStripCopy {
     _ = st.leader_name
     // A-5 · a gap is always attached to a name.
     if let up = st.next_up, let name = up.name, let gap = gapUp(st, up), gap >= 0 {
-      parts.append("\(CSCopy.points(gap)) BACK OF \(name.uppercased())")
+      parts.append("\(CSCopy.points(gap)) back of \(name)")
     }
     if let down = st.next_down, let name = down.name, let gap = gapDown(st, down), gap >= 0 {
-      parts.append("\(CSCopy.points(gap)) CLEAR OF \(name.uppercased())")
+      parts.append("\(CSCopy.points(gap)) clear of \(name)")
     }
     // The short half of D126(2)'s always-visible endgame. **At every rank.**
     if let clause = endgameClause(m, calendar: calendar) { parts.append(clause) }
@@ -479,9 +484,9 @@ public enum MeStripCopy {
   /// The season with the nearest first tee, named, with its date and its
   /// roster — the two facts that are true about a preseason membership and
   /// interesting to the golfer who just joined it. The sentence is
-  /// `SeasonFacts.seasonLine`'s own preseason branch, upper-cased into the
-  /// strip's register, so Home and Compete cannot say different things about
-  /// the same season. It taps to the season, where the roster is.
+  /// `SeasonFacts.seasonLine`'s own preseason branch, in its own case, so
+  /// Home and Compete cannot say different things about the same season. It
+  /// taps to the season, where the roster is.
   static func preseasonRow(_ memberships: [Me.Membership], today: String, calendar: Calendar) -> SeasonRow? {
     let pre = memberships.filter {
       if case .preseason = SeasonPhase.of($0, today: today) { return true }
@@ -489,8 +494,8 @@ public enum MeStripCopy {
     }
     guard let m = pre.min(by: { ($0.season?.starts_on ?? "9999") < ($1.season?.starts_on ?? "9999") }) else { return nil }
     let line = SeasonFacts.seasonLine(m, today: today, calendar: calendar)
-    let parts = [m.name.uppercased()] + line.split(separator: "\u{00B7}").map {
-      $0.trimmingCharacters(in: .whitespaces).uppercased()
+    let parts = [m.name] + line.split(separator: "\u{00B7}").map {
+      $0.trimmingCharacters(in: .whitespaces)
     }
     return SeasonRow(leagueId: m.league_id, text: parts.joined(separator: " \u{00B7} "), parts: parts)
   }
@@ -540,15 +545,15 @@ public enum MeStripCopy {
     let finish = (m.settings?.finish?.isEmpty == false) ? m.settings!.finish! : "cup_final"
     if finish == "points_table" {
       guard CSDate.local(s.ends_on, calendar: calendar) != nil else { return nil }
-      return "POINTS TABLE CROWNS IT \(LeagueDates.monDay(s.ends_on, calendar: calendar).uppercased())"
+      return "Points table crowns it \(LeagueDates.monDay(s.ends_on, calendar: calendar))"
     }
     guard let opens = LeagueDates.finalOpens(s, finish: finish, calendar: calendar),
           CSDate.local(opens, calendar: calendar) != nil else { return nil }
-    let when = LeagueDates.monDay(opens, calendar: calendar).uppercased()
+    let when = LeagueDates.monDay(opens, calendar: calendar)
     if m.standing?.of == 2 {
-      return m.isSolo ? "A FINAL BETWEEN THE TWO OF YOU, OPENS \(when)" : "BOTH SQUADS PLAY THE FINAL, OPENS \(when)"
+      return m.isSolo ? "A Final between the two of you, opens \(when)" : "Both squads play the Final, opens \(when)"
     }
-    return "TOP 2 INTO THE FINAL, OPENS \(when)"
+    return "Top 2 into the Final, opens \(when)"
   }
 
   // MARK: - Tokens

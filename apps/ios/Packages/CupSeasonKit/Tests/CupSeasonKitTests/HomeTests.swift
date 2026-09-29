@@ -107,7 +107,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
 
   @Test func onlyAKnownEighteenClaimsIt() {
     let id = UUID()
-    let r = row(id, golfer: "Jade", gross: 43, pvi: 1.2, playedOn: "2026-08-27", sub80: true)
+    let r = row(id, golfer: "Casey", gross: 43, pvi: 1.2, playedOn: "2026-08-27", sub80: true)
     #expect(!HomeWireCopy.claimsSub80(r, holes: 9))
     #expect(!HomeWireCopy.claimsSub80(r, holes: nil))
     #expect(HomeWireCopy.claimsSub80(r, holes: 18))
@@ -122,7 +122,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
   @Test func theDigestNeverSaysANineBrokeEighty() {
     let mark = now.addingTimeInterval(-3600)
     let nine = UUID()
-    let rounds = [row(nine, golfer: "Jade", gross: 43, playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600), sub80: true),
+    let rounds = [row(nine, golfer: "Casey", gross: 43, playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600), sub80: true),
                   row(golfer: "Diego", playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600))]
     for holes in [KnownHoles([nine: 9]), .none] {
       let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: holes, now: now)!
@@ -267,5 +267,32 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(HomeWireCopy.commentsDoor(nil) == "Comments")
     #expect(HomeWireCopy.commentsDoor(0) == "Comments")
     #expect(HomeWireCopy.commentsDoor(-1) == "Comments")
+  }
+}
+
+/// W3 twin · the course is the title and the tee after its last ` · ` steps
+/// down, so the club reads first.
+@Suite struct CourseTitleTests {
+  @Test func theTeeStepsDownAfterTheLastSeparator() {
+    let blue = HomeWireCopy.courseTitle("North Grove (fixture) · Blue")
+    #expect(blue.club == "North Grove (fixture)" && blue.tee == "Blue")
+    #expect(HomeWireCopy.courseTitle("North Grove · South · Blue").club == "North Grove · South")
+    let bare = HomeWireCopy.courseTitle("North Grove (fixture)")
+    #expect(bare.club == "North Grove (fixture)" && bare.tee == nil)
+    #expect(HomeWireCopy.courseTitle("  North Grove  ").club == "North Grove")
+  }
+}
+
+/// TEN / W6 · "counting #1 this month" read as a rank (critique-B home P3). The
+/// cap is the count's denominator, as on the receipt; uncapped stays bare, and
+/// past the cap the round is bumped. The web's `homeRoundStory` is the twin.
+@Suite struct RoundStoryCountTests {
+  @Test func theCountSaysWhatItIsOutOf() {
+    let r = row(golfer: "Avery", gross: 84, playedOn: "2026-08-27")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 2, cap: 4) == "9 pts · counting #2 of 4 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 4, cap: 4) == "9 pts · counting #4 of 4 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 5, cap: 4) == "9 pts · bumped — outside the best 4 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 2, cap: nil) == "9 pts · counting #2 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 2, cap: 0) == "9 pts · counting #2 this month")
   }
 }

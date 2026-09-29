@@ -100,19 +100,22 @@ struct HeadToHeadPage: View {
   // MARK: - the record
 
   @ViewBuilder private func record(_ h: HeadToHead) -> some View {
-    // M3/D18 · a christened rivalry wears its name, in gold — **the surface's
-    // one gold object**, and absent when it is unnamed.
-    if let n = h.rivalryName, !n.isEmpty {
-      Text(n).csType(.agate, caps: true).foregroundStyle(cs.gold)
-        .padding(.top, CSTokens.Space.s3)
-        .csBudget(gold: 1)
-    }
-    Text(HeadToHeadCopy.pageTitle(h)).csType(.display, caps: true).foregroundStyle(cs.ink)
-      .lineLimit(2).minimumScaleFactor(0.72)
+    // W3 twin · ONE TITLE (craft H, critique-B P2, UI_SYSTEM §12.2). The page
+    // said the pairing and the rivalry's name as two heads, the name in gold.
+    // A rivalry's name is a thing either golfer types (set_rivalry_name), not
+    // a thing that was won — ink, never gold (D359) — and it IS the title
+    // when there is one; the pairing rides under it as its agate line.
+    let named = h.rivalryName.flatMap { $0.isEmpty ? nil : $0 }
+    Text(named ?? HeadToHeadCopy.pageTitle(h)).csType(.display, caps: true).foregroundStyle(cs.ink)
       .fixedSize(horizontal: false, vertical: true)
-      .padding(.top, CSTokens.Space.s2)
+      .padding(.top, CSTokens.Space.s3)
       .accessibilityAddTraits(.isHeader)
       .csBudget(display: 1)
+    if named != nil {
+      Text(HeadToHeadCopy.pageTitle(h)).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, CSTokens.Space.s1)
+    }
 
     graphic(h).padding(.top, CSTokens.Space.s4)
 
@@ -162,7 +165,14 @@ struct HeadToHeadPage: View {
             rightName: first,
             leftSub: mySub, rightSub: nil) {
       VStack(spacing: CSTokens.Space.s1) {
-        CSFigure(h.record.line, size: .xl, label: nil)
+        // N4-062 · a figure never breaks: "4–5–1" between two faces broke onto
+        // two lines at the default size. It steps DOWN a tier until it fits
+        // whole (the ordinary 6–5 keeps the tournament size).
+        ViewThatFits(in: .horizontal) {
+          CSFigure(h.record.line, size: .xl, label: nil).fixedSize()
+          CSFigure(h.record.line, size: .l, label: nil).fixedSize()
+          CSFigure(h.record.line, size: .m, label: nil).fixedSize()
+        }
         CSRule(.heavy)
         Text(meetingsLine(h)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }

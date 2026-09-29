@@ -232,9 +232,10 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
   @Test func inviteAndPersonCopy() {
     // D356 · the title and the sentence come from the event's OWN kind; a server
     // that has not said what the event is gets "Event invite", never a guess.
-    let i = Invite(id: UUID(), kind: "event", containerId: nil, containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12", eventKind: "ryder")
-    #expect(i.title == "Ryder invite" && i.subline == "from Galen · first tee 2026-09-12")
-    #expect(i.detail == "A Ryder — two teams, one clash each week. Invited by Galen. First tee 2026-09-12.")
+    // a first tee is a date a golfer writes, not the database's ISO string
+    let i = Invite(id: UUID(), kind: "event", containerId: nil, containerName: "Desert Ryder", inviter: "Blake", startsOn: "2026-09-12", eventKind: "ryder")
+    #expect(i.title == "Ryder invite" && i.subline == "from Blake · first tee Sat Sep 12")
+    #expect(i.detail == "A Ryder — two teams, one clash each week. Invited by Blake. First tee Sat Sep 12.")
     let unsaid = Invite(id: UUID(), kind: "event", containerId: nil, containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12")
     #expect(unsaid.title == "Invite" && unsaid.eventTerms.isEmpty, "no kind, no terms, no door")
     let l = Invite(id: UUID(), kind: "league", containerId: nil, containerName: "PIGL", inviter: "a golfer", startsOn: nil)

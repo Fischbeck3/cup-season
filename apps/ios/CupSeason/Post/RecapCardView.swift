@@ -35,8 +35,13 @@ struct RecapCardView: View {
           if !recap.marker.isEmpty { CSMarkerView(key: recap.marker, size: 46, lineWidth: 2) }
           Text(recap.nameLine).csFixed(.name, 40).lineLimit(2).minimumScaleFactor(0.65)
         }
+        // W4 twin · the comparison, in the board face and in INK — a verdict is
+        // not an earning (§2.4), and a figure is never set in the serif (§1.4).
+        // One line that shrinks to fit rather than running through the frame,
+        // as the web's canvas does (46 → 30).
         if let band = recap.bandLine {
-          Text(band).csFixed(.story, 40).lineLimit(2).minimumScaleFactor(0.7)
+          Text(band).csFixed(.name, 46).foregroundStyle(CSTokens.dark.ink)
+            .lineLimit(1).minimumScaleFactor(30.0 / 46.0)
         }
         if let badge = recap.badge {
           Text(badge).csFixed(.columnS, 28).foregroundStyle(CSTokens.dark.gold)

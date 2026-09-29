@@ -89,8 +89,15 @@ struct RoundStoryCard: View {
           // D273 · a round against the playing HCP is not a P&L: the figure
           // carries its own sign and the colour axis goes. `pviChip` is the
           // producer; the chip round it was a bordered tile in pos/neg.
-          Text(CSBands.pviChip(pvi)).csType(.columnM)
-            .foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+          // W3 twin (R-M) · and the margin says what it is measured against,
+          // the way `Pts` beside it does (the web's `<small>vs playing HCP`).
+          VStack(alignment: .trailing, spacing: 0) {
+            Text(CSBands.pviChip(pvi)).csType(.columnM)
+              .foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)
+            Text("vs playing HCP").csType(.agateS, caps: true)
+              .foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+          }
+          .accessibilityElement(children: .combine)
         }
         if let pts = round.points {
           VStack(alignment: .trailing, spacing: 0) {

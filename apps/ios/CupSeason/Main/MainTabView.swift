@@ -257,7 +257,7 @@ enum GolfersRoute: Hashable { case person(UUID), headToHead(UUID) }
 /// focused (Y-30) — the You hero's "add your GHIN" lands on the field, not the screen.
 /// `.people` retired: Golfers is a tab (D222).
 /// `.record` is D232's second head, promoted from a section to a destination.
-enum YouRoute: Hashable { case settings, addGhin, record }
+enum YouRoute: Hashable { case settings, addGhin, record, notifications }
 
 /// Wave 4 · COURSES, on whichever stack asked for it. It is one case rather
 /// than a `Bool` so the path can carry it, and it is not folded into the four
@@ -289,7 +289,16 @@ private struct OpenGolfersKey: EnvironmentKey {
 private struct OpenPersonKey: EnvironmentKey {
   static let defaultValue: @MainActor @Sendable (UUID) -> Void = { _ in }
 }
+/// TEN / W6 · "open Settings at its Notifications", from any screen: the
+/// inbox's one door to the switches it no longer carries (W2, owner C).
+private struct OpenSettingsKey: EnvironmentKey {
+  static let defaultValue: @MainActor @Sendable () -> Void = {}
+}
 extension EnvironmentValues {
+  var openSettings: @MainActor @Sendable () -> Void {
+    get { self[OpenSettingsKey.self] }
+    set { self[OpenSettingsKey.self] = newValue }
+  }
   var openCompetition: @MainActor @Sendable (UUID, SeasonPane) -> Void {
     get { self[OpenCompetitionKey.self] }
     set { self[OpenCompetitionKey.self] = newValue }
@@ -317,6 +326,11 @@ struct MainTabView: View {
   @Environment(\.toast) private var shellToast
   @State private var tab: Tab = .home
   @State private var presenter = Presenter()
+  /// N4-060 · the keyboard is up over the bottom of the screen.
+  @State private var keyboardUp = false
+  /// The claim links already told they are early, this session: the drain
+  /// runs again whenever a sheet closes, and a toast is not a nag.
+  @State private var claimSaid: Set<String> = []
   /// D104: the tapped-notification route waiting to land, and the contextual ask.
   @State private var router = PushRouter.shared
   @State private var ask = PushAsk.shared
@@ -377,12 +391,25 @@ struct MainTabView: View {
       // float over, so there is nothing to guillotine, and the ⊕ is a drawn
       // ember glyph with no fill and no disc rather than the loudest object
       // on every signed-in screen (D269).
-      CSTabBand(bandItems, selection: $tab, onPlay: { openPlay() }, onPlayHold: {
-        // D227 · a LONG PRESS opens the composer with the score focused — the
-        // 90% case in one gesture, without spending L-40's clause.
-        presenter.postOnComposer = true
-        presenter.showPost = true
-      })
+      // N4-060 · **WITH THE KEYBOARD UP THE BAND STANDS DOWN**, as a system tab
+      // bar sits behind the keys. As the stack's last child it rode ~74pt on
+      // top of the keyboard, and at SE3 AX3 a search had no room left for a
+      // single result. Ignoring the keyboard's safe area on the stack instead
+      // would take keyboard avoidance away from every screen inside it.
+      if !keyboardUp {
+        CSTabBand(bandItems, selection: $tab, onPlay: { openPlay() }, onPlayHold: {
+          // D227 · a LONG PRESS opens the composer with the score focused — the
+          // 90% case in one gesture, without spending L-40's clause.
+          presenter.postOnComposer = true
+          presenter.showPost = true
+        })
+      }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { n in
+      keyboardUp = Self.keyboardCovers(n)
+    }
+    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+      keyboardUp = false
     }
     // D175 · the doorbell rings wherever you are. Advertising has followed the
     // app since D168/D170, but the alert that answers it lived only on the tee
@@ -508,6 +535,11 @@ struct MainTabView: View {
               .csScreenMark("settings")
               #endif
             case .addGhin: CardAndSettingsScreen(focus: .ghin)
+            // TEN / W6 · the Settings pane, whose first section is Notifications
+            case .notifications: CardAndSettingsScreen(settings: true)
+              #if DEBUG
+              .csScreenMark("settings")
+              #endif
             // D232 · the record is a DESTINATION, not a section
             // Wave 3 · a name on the record IS a record: the row opens the
             // head-to-head, not the card the golfer just came from.
@@ -551,6 +583,11 @@ struct MainTabView: View {
     .environment(\.openCompetition, { id, pane in openCompetition(id, pane: pane) })
     .environment(\.openGolfers, { openGolfers() })
     .environment(\.openPerson, { openPerson($0) })
+    .environment(\.openSettings, {
+      tab = .you
+      youPath = NavigationPath()
+      youPath.append(YouRoute.notifications)
+    })
     // D155 · tapping the Dynamic Island or the lock-screen card opens the round
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
       presenter.showLive = true
@@ -1069,6 +1106,16 @@ struct MainTabView: View {
      .init(id: .you, glyph: .card, label: NavSlot.you.label)]
   }
 
+  /// N4-060 · does this keyboard frame cover the foot of the screen? A
+  /// hardware keyboard's slim shortcut bar or an undocked keyboard that ends
+  /// short of the bottom edge does not, and leaves the band where it is.
+  static func keyboardCovers(_ n: Notification) -> Bool {
+    guard let end = n.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect, end.height > 100 else { return false }
+    // since iOS 16 the notification's object is the screen the keyboard is on
+    guard let screen = (n.object as? UIScreen)?.bounds else { return true }
+    return end.minY < screen.maxY && end.maxY >= screen.maxY - 1
+  }
+
   /// The ⊕ is a verb, not a place: it presents and nothing is selected.
   ///
   /// D227 · with a round live, the ⊕ OPENS THE ROUND. It used to offer the
@@ -1187,6 +1234,11 @@ struct MainTabView: View {
           if status == "abandoned" {
             ClaimIntent.clear(ifMatching: token)
             shellToast.show(ClaimDoor.unfinishedLine)
+          } else if claimSaid.insert("\(token)").inserted {
+            // W4 · a round not teed off, or still out there, is said — once a
+            // link, not on every sheet that closes — in the web's words
+            // (claimPendingRound / csClaimAct). It said nothing.
+            shellToast.show(status == "setup" ? ClaimDoor.notStartedLine : ClaimFlow.stillLiveToast)
           }
           continue // The live pencil keeps its token until a finished card exists.
         }

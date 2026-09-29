@@ -26,7 +26,7 @@ public enum GolfersRoot {
     public var head: String {
       switch self {
       case .requests:     "REQUESTS"
-      case .board:        "THE BOARD"
+      case .board:        FriendsBoard.head   // W3 twin (A-3): the ranking's own name
       case .playingSoon:  "PLAYING SOON"
       case .buddies:      "YOUR BUDDIES"
       case .youPlayWith:  "YOU PLAY WITH"

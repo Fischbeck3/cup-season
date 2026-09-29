@@ -35,11 +35,13 @@ final class BrandArtifactTests: XCTestCase {
                           course: "North Grove (fixture)", date: "2026-09-20", badge: "PERSONAL BEST")
     let long = PostRecap(name: "Maximilian Placeholder-Worthington", marker: "weebridge", gross: 79, pvi: 2.1, points: 11,
                          course: "North Grove Country Club (fixture) East", date: "2026-09-19", badge: nil)
+    // W4 twin · the card says the COMPARISON (the ceremony's producer, R-M's
+    // noun), not the band's label — so the band is now that line, said once
     let cases: [(String, PostRecap, UIImage?, String)] = [
-      ("played-to-nophoto", short, nil, "PLAYED TO IT"),
-      ("played-to-photo", short, photo, "PLAYED TO IT"),
-      ("beat-long-nophoto", long, nil, "BEAT THEIR NUMBER"),
-      ("beat-long-photo", long, photo, "BEAT THEIR NUMBER"),
+      ("played-to-nophoto", short, nil, "PLAYED TO THEIR PLAYING HCP"),
+      ("played-to-photo", short, photo, "PLAYED TO THEIR PLAYING HCP"),
+      ("beat-long-nophoto", long, nil, "BEAT THEIR PLAYING HCP BY 2.1"),
+      ("beat-long-photo", long, photo, "BEAT THEIR PLAYING HCP BY 2.1"),
     ]
     for (name, recap, image, band) in cases {
       let card = recap.publicRoundCard
@@ -48,7 +50,8 @@ final class BrandArtifactTests: XCTestCase {
       let lines = try recognized(png)
       let joined = lines.joined(separator: " | ").uppercased()
       XCTAssertEqual(lines.filter { $0.uppercased().contains(band) }.count, 1, "\(name): the band once — \(joined)")
-      XCTAssertFalse(joined.contains("PLAYING HCP"), "\(name): the band's sentence is not repeated on the artifact — \(joined)")
+      XCTAssertEqual(lines.filter { $0.uppercased().contains("PLAYING HCP") }.count, 1,
+                     "\(name): the comparison is said once, never a second sentence under it — \(joined)")
       XCTAssertTrue(joined.contains(String(recap.gross)) && joined.contains("GROSS"), "\(name): the gross stays — \(joined)")
       XCTAssertTrue(joined.contains("NORTH GROVE"), "\(name): the course stays — \(joined)")
       let surname = recap.name.split(separator: " ").first.map(String.init)?.uppercased() ?? ""

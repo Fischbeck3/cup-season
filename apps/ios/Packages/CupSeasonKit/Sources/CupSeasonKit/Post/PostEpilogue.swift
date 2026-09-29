@@ -338,16 +338,19 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   public var eyebrow: String { "\((course.isEmpty ? "A round" : course).uppercased()) · \(Self.when(date))" }
   /// The band line — blank when the number is not sane (a rating-less post).
   public var band: String { PostCalc.vsIsSane(vs) ? CSBands.vsPhrase(vs) : "" }
-  /// Champagne = EARNED: gold only for real league points (> 0).
+  /// Real league points (> 0) — the line that says them. Not gold: a round's
+  /// points are not a trophy (W4, §2.4).
   public var earned: Bool { inLeague && (points ?? 0) > 0 }
-  /// `+9 PTS · COUNTS FOR THE PINES` / `+9 PTS · COUNTS THIS SEASON` / `COUNTS TOWARD YOUR NUMBER`
+  /// W4 twin, word for word with the web's `finishCeremony`: a sentence in
+  /// ink, never a mono caps tag. `+9 points · counts for The Pines` ·
+  /// `+1 point · counts this season` · `Counts toward your number`.
   public var pointsLine: String {
     guard earned, let points else {
       /* D122 · say WHY it did not score for the league when we know */
-      if let n = seasonNote, !n.isEmpty { return n.uppercased() }
-      return "COUNTS TOWARD YOUR NUMBER"
+      if let n = seasonNote, !n.isEmpty { return n }
+      return "Counts toward your number"
     }
-    return "+\(points) PTS" + (squad.map { " · COUNTS FOR \($0.uppercased())" } ?? " · COUNTS THIS SEASON")
+    return "+\(points) point\(points == 1 ? "" : "s")" + (squad.map { " · counts for \($0)" } ?? " · counts this season")
   }
   public static let shareLabel = "Share the card"
   public static let backLabel = "Back to the board"
@@ -393,8 +396,13 @@ public struct PostRecap: Sendable, Equatable {
   public var pviSane: Bool { PostCalc.vsIsSane(pvi) }
   /// "A GOLFER" when there is no name.
   public var nameLine: String { (name.isEmpty ? "A golfer" : name).uppercased() }
-  /// Third person on the artifact: "BEAT THEIR NUMBER"
-  public var bandLine: String? { pviSane ? CSBands.theirs(CSBands.bandName(pvi!)).uppercased() : nil }
+  /// Third person on the artifact: "BEAT THEIR PLAYING HCP BY 2.4".
+  ///
+  /// W4 twin · ONE PHRASING (owner C/R). The card said the band's LABEL
+  /// ("BEAT THEIR NUMBER") while the ceremony and the public page said the
+  /// comparison, and a label is an insider word to the friend who receives the
+  /// card. It says the comparison now — R-M's noun, the ceremony's producer.
+  public var bandLine: String? { pviSane ? vsLine?.uppercased() : nil }
   /// "beat their playing HCP by 2.4"
   public var vsLine: String? { pviSane ? CSBands.theirs(CSBands.vsPhrase(pvi)) : nil }
   public var courseLine: String { (course.isEmpty ? "A round" : course).uppercased() }

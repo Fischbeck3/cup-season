@@ -53,8 +53,10 @@ struct RoundCardArtifact: View {
         Text(subhead).csFixed(.columnS, 28).foregroundStyle(mut)
         CSScorecard(RoundCardBlocks.build(card, mine: mine), over: .ceremony, fixed: Self.fixed)
           .frame(width: 936).padding(.vertical, 52)
+        // W4 twin · the comparison in the board face, in ink (see RecapCardView)
         if let band = recap.bandLine {
-          Text(band).csFixed(.story, 42).lineLimit(2).minimumScaleFactor(0.7)
+          Text(band).csFixed(.name, 42).foregroundStyle(CSTokens.dark.ink)
+            .lineLimit(1).minimumScaleFactor(30.0 / 42.0)
         }
       }
     }

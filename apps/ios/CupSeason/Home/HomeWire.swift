@@ -334,7 +334,11 @@ struct HomeWireSlat: View {
       Button(action: open) {
         VStack(alignment: .leading, spacing: 0) {
           A11yStack(alignment: .leading, rowAlignment: .bottom, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-            Text(course).csType(.name).foregroundStyle(cs.ink)
+            // W3 twin · the club in `social`, the tee after it in `mut`
+            let title = HomeWireCopy.courseTitle(course)
+            (Text(title.club).foregroundStyle(cs.ink)
+              + Text(title.tee.map { " · \($0)" } ?? "").foregroundStyle(cs.mut))
+              .csType(.social)
               .fixedSize(horizontal: false, vertical: true)
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(.bottom, CSTokens.Space.s1)
@@ -635,13 +639,18 @@ struct HomeWireTakeover: View {
 /// a word (§16.1). Its quietness comes from size and from the row's own rule.
 struct HomeWireLine: View {
   @Environment(\.cs) private var cs
+  /// W3 twin · the attribution an announce post carries, as on the board
+  static let fromPro = "From the Pro"
   let marker: String?
   let text: String
   let ink: Color?
+  /// An agate attribution over the sentence (`From the Pro`), in `mut` —
+  /// the web's `.hfpro`. nil for every other line.
+  let label: String?
   let act: (() -> Void)?
 
-  init(marker: String?, text: String, ink: Color? = nil, act: (() -> Void)? = nil) {
-    self.marker = marker; self.text = text; self.ink = ink; self.act = act
+  init(marker: String?, text: String, ink: Color? = nil, label: String? = nil, act: (() -> Void)? = nil) {
+    self.marker = marker; self.text = text; self.ink = ink; self.label = label; self.act = act
   }
 
   var body: some View {
@@ -649,7 +658,7 @@ struct HomeWireLine: View {
       Button(action: act) { line.contentShape(Rectangle()) }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([text, marker].compactMap { $0 }.joined(separator: ". "))
+        .accessibilityLabel([label, text, marker].compactMap { $0 }.joined(separator: ". "))
     } else {
       line.accessibilityElement(children: .combine)
     }
@@ -657,9 +666,14 @@ struct HomeWireLine: View {
 
   private var line: some View {
     HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
-      Text(text).csType(.bodyS).foregroundStyle(ink ?? cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
+      VStack(alignment: .leading, spacing: 2) {
+        if let label {
+          Text(label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+        Text(text).csType(.bodyS).foregroundStyle(ink ?? cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
       if let marker {
         Text(marker).csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .fixedSize(horizontal: true, vertical: false)

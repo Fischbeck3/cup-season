@@ -259,6 +259,18 @@ private let full = """
       "record": { "wins": 3, "losses": 0, "ties": 0, "total": 3 }, "lead": "up", "facets": {} }
     """))
     #expect(HeadToHeadCopy.personClause(clean) == "You have taken all three of them.")
+
+    // W3 twin · a level record is said as level, never as a loss
+    let level = HeadToHead.parse(try json("""
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake Sample" },
+      "record": { "wins": 5, "losses": 5, "ties": 0, "total": 10 }, "lead": "even", "facets": {} }
+    """))
+    #expect(HeadToHeadCopy.personClause(level) == "All square between you, 5–5.")
+    let levelTied = HeadToHead.parse(try json("""
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake Sample" },
+      "record": { "wins": 2, "losses": 2, "ties": 1, "total": 5 }, "lead": "even", "facets": {} }
+    """))
+    #expect(HeadToHeadCopy.personClause(levelTied) == "All square between you, 2–2–1.")
   }
 
   // MARK: the gate and the fence

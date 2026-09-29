@@ -53,8 +53,10 @@ public enum ReUpCopy {
   }
 
   /// `csInviteTitle` for a league row: a re-up says which season it is for.
+  /// T §2.3 · league is the crew's standing name, never a thing you join: the
+  /// invitation is to a season (W4, owner C).
   public static func inviteTitle(reup: Bool?, seasonNumber: Int?) -> String {
-    (reup == true && (seasonNumber ?? 0) > 1) ? "Season \(seasonNumber!) invite" : "League invite"
+    (reup == true && (seasonNumber ?? 0) > 1) ? "Season \(seasonNumber!) invite" : "Season invite"
   }
   /// The invitation card's line and the Home item's: what a re-up is, in one sentence.
   public static func reUpLine(seasonNumber: Int, name: String) -> String {

@@ -9,6 +9,10 @@ struct SeasonBookPage: View {
   @Environment(\.csLookAccent) private var livery
   @Environment(\.dynamicTypeSize) private var type
   @Environment(\.dismiss) private var dismiss
+  /// W5 · the payload the app already holds, for the one fact the Book's own
+  /// read does not carry: the crown its season stores. Optional, so a Book
+  /// drawn anywhere without a session still draws.
+  @Environment(SessionStore.self) private var session: SessionStore?
   @State private var store: SeasonBookStore
   @State private var mode = "Weeks"
   @State private var group = "golfer"
@@ -19,6 +23,11 @@ struct SeasonBookPage: View {
   /// F11 · how far a cell's status marks sit above the figure's baseline — a
   /// record note beside the number, never another digit of it.
   @ScaledMetric(relativeTo: .caption2) private var marksLift = 5.0
+  /// W5 · the race's end labels: one label's run per character, and the
+  /// distance between two labels in their column (the desk's 6.8 and 16 at
+  /// 12pt), both growing with the text.
+  @ScaledMetric(relativeTo: .caption) private var raceChar: CGFloat = 6.8
+  @ScaledMetric(relativeTo: .caption) private var raceLine: CGFloat = 16
   let leagueID: UUID
   let seasonID: UUID
   let openRound: @MainActor (UUID) -> Void
@@ -53,7 +62,9 @@ struct SeasonBookPage: View {
       VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
         VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
           CSBackChevron { dismiss() }
-          Text(store.snapshot.map { SeasonBookSnapshot.prominent(fieldSize:$0.field_size,hasSquads:$0.hasSquads) ? "the Book" : "Rounds & points" } ?? "the Book")
+          // W5 · a display title that opened on a lowercase article read as a
+          // typo: the page is "The Book"; running copy keeps "the Book"
+          Text(store.snapshot.map { SeasonBookSnapshot.prominent(fieldSize:$0.field_size,hasSquads:$0.hasSquads) ? "The Book" : "Rounds & points" } ?? "The Book")
             .csType(.display).accessibilityIdentifier("seasonBook.title")
         }.padding(CSTokens.Space.gutter).frame(maxWidth:.infinity,alignment:.leading)
           .background { CSTopoField(.accent,tint:livery.accent).opacity(CSTokens.Alpha.a24) }
@@ -74,6 +85,11 @@ struct SeasonBookPage: View {
       .task(id:seasonID) { if store.snapshot?.season_id != seasonID || store.snapshot?.league_id != leagueID { await load() } }
       .refreshable { await load() }
   }
+  /// The crown the Book's season stores, from the league's own season in the
+  /// payload — nil for any other season, as on the desk (`CS.season`).
+  private func storedSeason(_ book: SeasonBookSnapshot) -> Me.Season? {
+    session?.me?.memberships.first { $0.league_id == book.league_id }?.season
+  }
   private func rows(_ book: SeasonBookSnapshot) -> [SeasonBookSnapshot.Row] {
     if group == "golfer", squad != "all" { return book.rows.filter { $0.kind == "contribution" && $0.squad_id?.uuidString == squad } }
     return book.rows.filter { $0.kind == group }
@@ -86,6 +102,15 @@ struct SeasonBookPage: View {
       Text("Season \(book.number) · \(book.span)").csType(.agateS).foregroundStyle(cs.mut)
       Text(book.rules).csType(.bodyS).foregroundStyle(cs.mut)
       if let note=book.rules_note { Text(note).csType(.bodyS).foregroundStyle(cs.mut) }
+      // W5 · a finished Book names its crown: the champion the season stores
+      // and the rung that settled a level top, else what the D388 ladder does
+      // with a tie. Two "1st · Tied" rows and no champion left it to a guess.
+      if let crown=book.crown(stored:storedSeason(book)) {
+        VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
+          Text(crown.label).csType(.agateS,caps:true).foregroundStyle(cs.mut)
+          Text(crown.text).csType(.bodyS).foregroundStyle(cs.ink).fixedSize(horizontal:false,vertical:true)
+        }.accessibilityElement(children:.combine).accessibilityIdentifier("seasonBook.crown")
+      }
       if book.hasSquads {
         Picker("View",selection:$group) { Text("Squads").tag("squad"); Text("Golfers").tag("golfer") }.pickerStyle(.segmented)
         if group == "golfer" {
@@ -114,7 +139,7 @@ struct SeasonBookPage: View {
     } else if !prominent {
       ForEach(visible) { row in
         NavigationLink { receipts(row.name,row.entries) } label: {
-          HStack { VStack(alignment:.leading) { Text(row.name).csType(.name); Text(row.standing ?? "").csType(.bodyS) }; Spacer(); CSFigure(String(row.points),size:.l,label:"points") }.padding(CSTokens.Space.gutter).contentShape(Rectangle())
+          HStack { VStack(alignment:.leading) { Text(row.name).csType(.name); Text(row.standing ?? "").csType(.bodyS) }; Spacer(); CSFigure(SeasonBookSnapshot.num(row.points),size:.l,label:"points") }.padding(CSTokens.Space.gutter).contentShape(Rectangle())
         }.buttonStyle(.plain)
       }
     } else if mode == "Race" { race(book,visible) }
@@ -135,7 +160,7 @@ struct SeasonBookPage: View {
           NavigationLink { receipts(row.name,row.entries) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
               Text(short(row.name,squad:group == "squad")).csType(.nameS).lineLimit(2)
-              Text("\(row.points) pts").csType(.columnS)
+              Text("\(SeasonBookSnapshot.num(row.points)) pts").csType(.columnS)
             }.frame(maxWidth:.infinity,alignment:.leading).frame(height:rowHeight)
               .padding(.horizontal,CSTokens.Space.s2).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
           }.buttonStyle(.plain).accessibilityIdentifier("seasonBook.name.\(row.id)")
@@ -198,14 +223,19 @@ struct SeasonBookPage: View {
       }
     }.padding(.horizontal,CSTokens.Space.gutter)
   }
+  /// W5 · the race is a printed diagram (§9.10): each line is LABELLED AT ITS
+  /// END, in a gutter the x scale leaves beside the plot, hung from the line's
+  /// last point by a hairline. The legend of box-drawing glyphs (━ ┄ ┈) under
+  /// it had to be matched by eye to three near-identical dashes. The first
+  /// line (the golfer followed, or the leader) is ink, the other two mut, the
+  /// third dashed as a second channel; the y axis reads from the leading edge
+  /// so the labels are the plot's last word. Twin: `csSeasonBookRace`.
   private func race(_ book: SeasonBookSnapshot,_ rows: [SeasonBookSnapshot.Row]) -> some View {
-    let selected=rows.first { $0.id == follow }
-    let leaders=Array(rows.sorted { $0.points > $1.points }.prefix(3))
-    let plotted=selected.map { [$0]+leaders.filter { $0.id != selected?.id }.prefix(2) } ?? leaders
+    let plotted=SeasonBookSnapshot.racePlotted(rows,follow:follow)
     let domain=SeasonBookSnapshot.raceDomain(plotted)
     return VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
       Text("Points counting today").csType(.displayS).accessibilityIdentifier("seasonBook.race.title")
-      Text("Points included today, grouped by week played or assessed. Later drops restate earlier weeks; this is not a historical rank chart.").csType(.bodyS).foregroundStyle(cs.mut)
+      Text("Each golfer’s points as they count today, week by week. A better round later in a month can push an earlier one out, so a past week can change.").csType(.bodyS).foregroundStyle(cs.mut)
       Picker("Follow",selection:$follow) {
         Text("Leading three").tag("leaders")
         ForEach(rows) { Text($0.name).tag($0.id) }
@@ -213,29 +243,82 @@ struct SeasonBookPage: View {
       if plotted.contains(where: { $0.unplaced_points != 0 }) {
         Text("Some adjustments fall outside the season weeks. Open the totals below for the complete record; a weekly curve would omit those points.").csType(.body)
       } else {
-        Chart {
-          ForEach(Array(plotted.enumerated()),id:\.element.id) { index,row in
-            ForEach(row.cells.filter { !$0.future },id:\.week) { cell in
-              if let value=cell.cumulative {
-                LineMark(x:.value("Week",cell.week),y:.value("Points",value),series:.value("Golfer",row.id))
-                  .foregroundStyle(cs.ink).lineStyle(StrokeStyle(lineWidth:index == 0 ? 3 : 2,dash:index == 0 ? [] : [CGFloat(index+2),3]))
+        GeometryReader { geo in
+          let gutter=raceGutter(plotted,width:geo.size.width)
+          Chart {
+            ForEach(Array(plotted.enumerated()),id:\.element.id) { index,row in
+              ForEach(row.cells.filter { !$0.future },id:\.week) { cell in
+                if let value=cell.cumulative {
+                  LineMark(x:.value("Week",cell.week),y:.value("Points",value),series:.value("Golfer",row.id))
+                    .foregroundStyle(index == 0 ? cs.ink : cs.mut)
+                    .lineStyle(StrokeStyle(lineWidth:index == 0 ? 2.5 : 1.75,lineCap:.round,lineJoin:.round,dash:index == 2 ? [5,4] : []))
+                }
               }
             }
+            if book.live { RuleMark(x:.value("Current week",book.current_week)).foregroundStyle(cs.brand) }
           }
-          if book.live { RuleMark(x:.value("Current week",book.current_week)).foregroundStyle(cs.brand) }
-        }.chartXScale(domain:1...max(2,book.weeks.count)).chartYScale(domain:domain)
-          .frame(height:210).padding(CSTokens.Space.s3)
-          .background { CSTopoField(.page,tint:livery.accent.opacity(CSTokens.Alpha.a08)) }
-        ForEach(Array(plotted.enumerated()),id:\.element.id) { i,row in
-          Text("\(i == 0 ? "━" : i == 1 ? "┄" : "┈") \(row.name)").csType(.nameS)
+          .chartXScale(domain:1...max(2,book.weeks.count),range:.plotDimension(endPadding:gutter+10))
+          .chartYScale(domain:domain)
+          .chartYAxis {
+            AxisMarks(position:.leading) { value in
+              AxisGridLine()
+              AxisValueLabel { if let points=value.as(Int.self) { Text(SeasonBookSnapshot.num(points)) } }
+            }
+          }
+          .chartOverlay { proxy in raceLabels(proxy,plotted,gutter:gutter) }
         }
+        .frame(height:210).padding(CSTokens.Space.s3)
+        .background { CSTopoField(.page,tint:livery.accent.opacity(CSTokens.Alpha.a08)) }
       }
       ForEach(rows) { row in
         NavigationLink { receipts(row.name,row.entries) } label: {
-          HStack { Text(row.name); Spacer(); Text("\(row.points) pts") }.csType(.name).frame(minHeight:44).contentShape(Rectangle())
+          HStack { Text(row.name); Spacer(); Text("\(SeasonBookSnapshot.num(row.points)) pts") }.csType(.name).frame(minHeight:44).contentShape(Rectangle())
         }.buttonStyle(.plain)
       }
     }.padding(CSTokens.Space.gutter)
+  }
+  /// One race line's end, placed: which line (0 is the ink one), its label,
+  /// and the point it hangs from, in the overlay's own space.
+  private struct RaceEnd { let line: Int; let label: String; let at: CGPoint }
+  /// The label gutter: the longest label's run, never under 60pt and never
+  /// over 42% of the chart — the desk's own rule, measured the desk's way.
+  private func raceGutter(_ plotted: [SeasonBookSnapshot.Row],width: CGFloat) -> CGFloat {
+    let run=plotted.map { (CGFloat(SeasonBookSnapshot.raceLabel($0).count)*raceChar).rounded(.up)+14 }.max() ?? 0
+    return min(max(run,60),(width*0.42).rounded())
+  }
+  private func raceEnds(_ proxy: ChartProxy,_ plotted: [SeasonBookSnapshot.Row],in frame: CGRect) -> [RaceEnd] {
+    var ends: [RaceEnd]=[]
+    for (i,row) in plotted.enumerated() {
+      guard let end=SeasonBookSnapshot.raceEnd(row),let at=proxy.position(for:(x:end.week,y:end.points)) else { continue }
+      ends.append(RaceEnd(line:i,label:SeasonBookSnapshot.raceLabel(row),at:CGPoint(x:frame.minX+at.x,y:frame.minY+at.y)))
+    }
+    return ends
+  }
+  /// The end labels, in one column that never overlaps itself
+  /// (`SeasonBookSnapshot.raceSlots`), each in its line's own ink or mut. The
+  /// rows under the chart say every name and total, so the drawing is hidden
+  /// from assistive tech rather than read twice.
+  private func raceLabels(_ proxy: ChartProxy,_ plotted: [SeasonBookSnapshot.Row],gutter: CGFloat) -> some View {
+    GeometryReader { geo in
+      if let anchor=proxy.plotFrame {
+        let frame=geo[anchor]
+        let ends=raceEnds(proxy,plotted,in:frame)
+        let slots=SeasonBookSnapshot.raceSlots(ends.map { Double($0.at.y) },gap:Double(raceLine),
+                                               top:Double(frame.minY+raceLine/2),bottom:Double(frame.maxY-raceLine/2))
+        let edge=frame.maxX-gutter-10   // where the season's last week sits
+        ForEach(Array(ends.enumerated()),id:\.offset) { k,end in
+          Path { p in
+            p.move(to:CGPoint(x:end.at.x+3,y:end.at.y))
+            p.addLine(to:CGPoint(x:edge+4,y:CGFloat(slots[k])))
+          }.stroke(cs.rule,lineWidth:1)
+          Text(end.label).csType(.agate,caps:false).foregroundStyle(end.line == 0 ? cs.ink : cs.mut)
+            .lineLimit(1).minimumScaleFactor(0.75)
+            .frame(width:gutter,alignment:.leading)
+            .position(x:edge+8+gutter/2,y:CGFloat(slots[k]))
+        }
+      }
+    }
+    .accessibilityHidden(true)
   }
   private func adjustments(_ book: SeasonBookSnapshot,_ rows: [SeasonBookSnapshot.Row]) -> some View {
     let sources = group == "golfer" && squad != "all"
@@ -250,7 +333,7 @@ struct SeasonBookPage: View {
         let entry=item.entry
         NavigationLink { receipts(item.name + " · Adjustment",[entry]) } label: {
           VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
-            Text("\(item.name) · \(entry.dateLine) · \(entry.contribution) points").csType(.name)
+            Text("\(item.name) · \(entry.dateLine) · \(SeasonBookSnapshot.num(entry.contribution)) points").csType(.name)
             Text(entry.reason).csType(.bodyS).foregroundStyle(cs.mut)
           }.frame(maxWidth:.infinity,alignment:.leading).padding(.vertical,CSTokens.Space.s2).contentShape(Rectangle())
         }.buttonStyle(.plain)
@@ -279,14 +362,14 @@ struct SeasonBookReceipts: View {
         CSBackChevron { dismiss() }
         Text(title).csType(.displayS)
         if entries.isEmpty { Text("No round or adjustment recorded for this selection.").csType(.body) }
-        else { Text("\(entries.reduce(0) { $0+$1.contribution }) points").csType(.figureL).accessibilityIdentifier("seasonBook.receipt.total") }
+        else { Text("\(SeasonBookSnapshot.num(entries.reduce(0) { $0+$1.contribution })) points").csType(.figureL).accessibilityIdentifier("seasonBook.receipt.total") }
         ForEach(entries) { entry in
           VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
             Text([entry.member_id.flatMap { names[$0] },entry.recorded_on.map { CSDate.short($0) }].compactMap { $0 }.joined(separator:" · ")).csType(.name)
             Text(entry.dateLine).csType(.agateS).foregroundStyle(cs.mut)
-            Text("\(entry.points) points · \(entry.count_state == "dropped" ? "dropped" : "\(entry.contribution) included")").csType(.body)
+            Text("\(SeasonBookSnapshot.num(entry.points)) points · \(entry.count_state == "dropped" ? "dropped" : "\(SeasonBookSnapshot.num(entry.contribution)) included")").csType(.body)
             Text(entry.reason).csType(.bodyS).foregroundStyle(cs.mut)
-            if !entry.isRound,let month=entry.affected_month { Text("Applies to \(String(month.prefix(7)))").csType(.agateS).foregroundStyle(cs.mut) }
+            if !entry.isRound,let month=entry.affected_month { Text("Applies to \(SeasonBookSnapshot.month(month))").csType(.agateS).foregroundStyle(cs.mut) }
             if entry.withdrawn == true {
               Text("Round withdrawn. Its recorded points remain in this season’s Book.").csType(.bodyS).foregroundStyle(cs.mut)
             } else if let round=entry.round_id {

@@ -769,25 +769,32 @@ public struct CSTape: View {
     self.spoken = spoken.isEmpty ? key : spoken
   }
 
-  /// **Every meeting gets an equal slot across the whole measure**, and the
-  /// tick sits centred in it. Laying the ticks out at a fixed width with a
-  /// fixed gap instead packs eleven meetings into the left two thirds and
-  /// leaves the rule running on alone — which reads as a tape that stopped
-  /// rather than a rivalry that is still going.
+  /// W3 twin · **ONE SQUARE PER MEETING, WITH A GAP, SPREAD ALONG THE RULE**,
+  /// so the first and last dates sit under the first and last marks. Each
+  /// tick sat at the left of an equal slot, which left four wins abutting as
+  /// one bar and the end date a slot's width past the last mark (owner P,
+  /// critique-B P2; the web's `csTapeHtml`).
   ///
-  /// 17 × 16 is the design's tick; it shrinks inside a crowded slot, never
-  /// below 6, so a long rivalry stays ONE row. Two rows would be two
-  /// chronologies on one page.
-  func tickWidth(_ slot: CGFloat) -> CGFloat {
-    max(6, min(17, slot - CSTokens.Space.s1))
+  /// A square is 16 at the design's own count and shrinks, never below 4, and
+  /// the gap gives way before the row does — a long rivalry stays ONE row, and
+  /// two rows would be two chronologies on one page.
+  func side(_ measure: CGFloat) -> CGFloat {
+    guard !meetings.isEmpty else { return 16 }
+    let n = CGFloat(meetings.count)
+    return max(4, min(16, (measure - (n - 1) * CSTokens.Space.s1) / n))
   }
-
-  /// One meeting's share of the measure — the tests' window onto the two
-  /// lines of arithmetic that decide whether a long rivalry stays one row.
-  func slotWidth(_ measure: CGFloat) -> CGFloat {
-    meetings.isEmpty ? measure : measure / CGFloat(meetings.count)
+  /// The least gap between two squares at this measure: `s1`, or less when a
+  /// long rivalry needs the room. Spread, the gaps are wider than this.
+  func gap(_ measure: CGFloat) -> CGFloat {
+    guard meetings.count > 1 else { return 0 }
+    let n = CGFloat(meetings.count)
+    return max(1, min(CSTokens.Space.s1, (measure - n * side(measure)) / (n - 1)))
   }
-  func tick(_ measure: CGFloat) -> CGFloat { tickWidth(slotWidth(measure)) }
+  /// The tests' window: the square, and whether the row fits the measure.
+  func tick(_ measure: CGFloat) -> CGFloat { side(measure) }
+  func fits(_ measure: CGFloat) -> Bool {
+    CGFloat(meetings.count) * side(measure) + CGFloat(max(0, meetings.count - 1)) * gap(measure) <= measure + 0.5
+  }
   /// What VoiceOver hears — one element for the whole tape.
   var spokenLabel: String { spoken }
 
@@ -797,12 +804,14 @@ public struct CSTape: View {
         GeometryReader { g in
           ZStack(alignment: .leading) {
             Rectangle().fill(cs.ink).frame(height: 2)
-            let slot = meetings.isEmpty ? g.size.width : g.size.width / CGFloat(meetings.count)
+            let s = side(g.size.width), least = gap(g.size.width)
             HStack(alignment: .center, spacing: 0) {
-              ForEach(meetings) { m in
-                tick(m, width: tickWidth(slot)).frame(width: slot, alignment: .leading)
+              ForEach(Array(meetings.enumerated()), id: \.element.id) { i, m in
+                if i > 0 { Spacer(minLength: least) }
+                tick(m, width: s)
               }
             }
+            .frame(width: g.size.width, alignment: .leading)
           }
           .frame(height: 46, alignment: .center)
         }
@@ -830,14 +839,17 @@ public struct CSTape: View {
     .accessibilityLabel(spoken)
   }
 
+  /// A square, `width` on a side, 4pt clear of the rule: above it for the
+  /// viewer's win, below it for the rival's.
   @ViewBuilder private func tick(_ m: Meeting, width: CGFloat) -> some View {
+    let clear = width / 2 + 4
     switch m.viewer {
     case .some(true):
-      Rectangle().fill(cs.ink).frame(width: width, height: 16).offset(y: -12)
+      Rectangle().fill(cs.ink).frame(width: width, height: width).offset(y: -clear)
     case .some(false):
-      Rectangle().fill(Color.clear).frame(width: width, height: 16)
+      Rectangle().fill(Color.clear).frame(width: width, height: width)
         .overlay(Rectangle().stroke(cs.mut, lineWidth: 1.7))
-        .offset(y: 12)
+        .offset(y: clear)
     case .none:
       // halved — centred on the rule, and it belongs to neither row
       Rectangle().fill(cs.mut).frame(width: width, height: 2)

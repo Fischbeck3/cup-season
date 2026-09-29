@@ -31,9 +31,12 @@ public struct LinkConfirmation: Identifiable, Sendable, Equatable {
       let day = Self.day(info["play_on"]?.string)
       return "\(name)’s round at \(course.isEmpty ? "the course" : course)\(day.isEmpty ? "" : " on \(day)") — take a seat?"
     case .claim:
+      // W4 · `csLinkAskClaim`: the question names the CLUB and the course and
+      // tee go to `facts` (a dash-joined triple ran into it); the holes are a
+      // scorecard, "card" is the person (T-01)
       let gross = info["gross"]?.int
-      let course = info["course_label"]?.string ?? "the course"
-      return (gross.map { "Add this \($0) at \(course)" } ?? "Add this card from \(course)") + " to your record?"
+      let club = Self.club(info["course_label"]?.string)
+      return (gross.map { "Add this \($0) at \(club)" } ?? "Add this scorecard from \(club)") + " to your record?"
     }
   }
   public var note: String {
@@ -46,9 +49,21 @@ public struct LinkConfirmation: Identifiable, Sendable, Equatable {
   public var facts: String? {
     if kind == .person { return info["index"]?.double.map { "Index \(String(format: "%.1f", $0))" } }
     if kind == .claim {
-      return [info["guest_name"]?.string.map { "Scored as \($0)" }, Self.day(info["played_on"]?.string)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+      // `csLinkCard('claim')`: who scored it, the course and tee after the club, the day
+      return [info["guest_name"]?.string.flatMap { $0.isEmpty ? nil : "Scored as \($0)" },
+              Self.courseRest(info["course_label"]?.string), Self.day(info["played_on"]?.string)]
+        .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
     }
     return info["tee"]?.string
+  }
+  /// `csLinkClub`: the label's club, before its first " — "; none said is "the course".
+  static func club(_ label: String?) -> String {
+    let c = (label ?? "").components(separatedBy: " — ")[0].trimmingCharacters(in: .whitespacesAndNewlines)
+    return c.isEmpty ? "the course" : c
+  }
+  /// The course and tee after the club ("Mesquite Wash · Black"); "" when the label has none.
+  static func courseRest(_ label: String?) -> String {
+    (label ?? "").components(separatedBy: " — ").dropFirst().joined(separator: " — ")
   }
   private static func day(_ iso: String?) -> String {
     guard let iso, let date = CSDate.local(iso) else { return "" }

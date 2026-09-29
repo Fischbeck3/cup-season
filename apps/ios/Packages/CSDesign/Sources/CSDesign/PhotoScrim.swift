@@ -137,6 +137,13 @@ public extension CSPhotoScrim {
   static let top: [Stop] = [Stop(0.72, 0.00), Stop(0.00, 1.00)]
   static let topHeight: CGFloat = 96
 
+  /// N4-070 · where a plate's CREDIT sets on `.title`: its box's top edge
+  /// in the band's last gutter, right-aligned under the head block, on the
+  /// shortest plate (252) at the largest reading size (agateS ~16pt over the
+  /// 4pt foot). Everything below it is darker, so this is the worst case the
+  /// credit's contrast has to hold at.
+  static let titleCreditLine: Double = 1 - (4.0 + 18.0) / 252.0
+
   /// **A SIXTH ARITHMETIC CONFLICT, FOUND BY TESTING IT.** §10.3 says copy over
   /// a scrim takes `scrimInk` (a name, a headline) or `scrimMut` (a credit, a
   /// caption). That holds on `.title` and `.band`, which reach `a88`. It does
