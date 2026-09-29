@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**, source read from the snapshot `candidate-9d84c483/`. Live probes ran against the pinned server, which served `index.html` sha256 `2ac5c63a…`. |
-| **Status read at** | **`b8a61266`**: `git log cf401dee..b8a61266`, plus `9d84c483..cf401dee`. That covers root's fixes, N2's merge, and lanes W3 (`e8108e59`), W2 (`f46086b4`) and W4 (`b8a61266`). W1, W5 and W6 had not merged. |
+| **Status read at** | **`4a703402`**: `git log cf401dee..4a703402`, plus `9d84c483..cf401dee`. That covers root's fixes, N2's merge, and lanes W3 (`e8108e59`), W2 (`f46086b4`), W4 (`b8a61266`) and W5 (`4a703402`). W1 and W6 had not merged. |
 | **Date** | 2026-09-28 |
 | **Assessors** | **AW**, an independent web audit with Impeccable 4.3.1 `audit`. AW wrote no code. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/audit-web/AUDIT-web.md` and `audit-web.json` · `…/audit-web/raw/` (probe results) · `…/audit-web/shots/` · `…/audit-web/snapshots/` and `…/audit-web/detector/` (sanitised DOMs and detector runs) · `…/audit-web/probe/aw-probe.mjs` |
@@ -55,7 +55,7 @@ AW's integrity verdict: "Pass, with verified drift."
 | P3-24 | P3 | theming | Small colour misuses: `::selection` in the retired hot, the Pro's note in pre-token gold, a pointer on non-Pro payer rows, dim "·" separators on You | index.html:3594, :4248–4262, :1338–1343 | **fixed.** `::selection` is act (69f40d1f); only the Pro's payer rows are buttons with a pointer (735a63ec); the Pro's note is on tokens with no gold, naming AW P3-24 (e8108e59: ffdcd6b4); You's course-fact separators are opaque mut (f46086b4: 35b4f475); whether those are the separators AW measured is verification pending. The phone's gold "From the Pro" goes to N4. |
 | P3-25 | P3 | performance | One 2.05 MB document is parsed by every visitor, and every view's DOM stays resident | index.html (1.64 MB inline JS, 285 KB CSS); render-blocking Google Fonts CSS | **open.** AW calls it "structural, post-launch"; the owner's direction defers nothing, so this is Q12 in OWNER-QUESTIONS. |
 
-**Tally at `b8a61266`:** 25 findings. Every fixed item is verification pending until round 2.
+**Tally at `4a703402`:** 25 findings. Every fixed item is verification pending until round 2.
 - **fixed: 21.** P1-1 to P1-6; P2-7, 8, 9, 10, 12, 14, 15, 16 and 17; P3-18, 19, 20, 21, 22 and 24. P2-10 keeps two controls its commit does not name (the half-star buttons and the calendar arrows); they are open, verification pending.
 - **fixed in part: 3.**
   - P2-11: Home's single render remains.

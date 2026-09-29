@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were critiqued from `9d84c483` captures; every other family from `02636007`, which renders them byte-identically (COVERAGE.md §1.1). |
-| **Status read at** | **`b8a61266`**: `git log cf401dee..b8a61266`, plus `9d84c483..cf401dee`. That covers root's fix commits, N2's merge at `de3eaf35`, and the merges of lanes W3 (`e8108e59`), W2 (`f46086b4`) and W4 (`b8a61266`), which root forwarded on 2026-09-28. W1, W5 and W6 had not merged. |
+| **Status read at** | **`4a703402`**: `git log cf401dee..4a703402`, plus `9d84c483..cf401dee`. That covers root's fix commits, N2's merge at `de3eaf35`, and the merges of lanes W3 (`e8108e59`), W2 (`f46086b4`), W4 (`b8a61266`) and W5 (`4a703402`), which root forwarded on 2026-09-28. W1 and W6 had not merged. |
 | **Date** | 2026-09-28 |
 | **Assessors** | critique **A** and critique **B**. Each ran Impeccable 4.3.1's `critique` independently and never saw the other's work. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/critique-A/` and `…/critique-B/` (one `.md` per target, plus `summary.json`) · the brief `~/cup-season-claude-ten-gallery/evidence/CRITIQUE-PROMPT.md` · captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/` |
@@ -19,7 +19,7 @@ Written by session C (docs). Scores, titles and captures are the assessors'; the
 **Status words:**
 - *fixed (sha)*: the commit message or diff shows the fix; for a lane, the sha is the lane's merge and the lane's own commit names the item. **Every fix is verification pending** until round 2 (session D) re-measures it on the final SHA.
 - *fixed in part (sha)*: the rest is named.
-- *in lane Wn*: the surface belongs to that lane (LEDGER §4f), and no commit at `b8a61266` shows the fix. At `b8a61266`, W1, W5 and W6 have not merged.
+- *in lane Wn*: the surface belongs to that lane (LEDGER §4f), and no commit at `4a703402` shows the fix. At `4a703402`, W1 and W6 have not merged.
 - *decision Xnn*: the question is in OWNER-QUESTIONS.md.
 - *open*: no lane owns the surface and no commit fixes it.
 - *open, verification pending*: when unsure.
@@ -92,7 +92,7 @@ Entries are merged where A and B, or a target and B's desk cross-reference, desc
 | CQ-06 | P1 | The desk Door's "live" season is invented activity. | A door | `door--initial--1280--dark.png` | `aside.ob-wing` (`#obFeed` "Rounds hitting the board", `#obLb` "The season, live") | **fixed (b8a61266)**: the wings read "How a round reads" and "How a season reads", the foot says it is an example season, "every point has a receipt" is gone, and the wings stand down on a link landing (2bc71749). Whether the phone Door shows a specimen too is Q6. |
 | CQ-07 | P1 | The photo round card renders broken on Home, phone and desk. | A home, desk · B home, desk | `home--member--375--dark.png`, `desk--home--1600--dark.png` | `feedRow()` photo branch: `.hsfoot` band across the photo; `.hfr-course` under the image | **fixed (e8108e59)**: the photograph is a plate with the golfer, course and gross on a bottom-anchored scrim; everything else sits under it with one foot row, applause · comment · Receipt (2dce66e6) |
 | CQ-08 | P1 | "MONTH CLOSES" is ember on bg2 at 3.77:1 in the dark printing. | B home, desk | `home--member--1280--dark.png` | `.upchip.hot .k` | **fixed (38471687)** (AW P1-4, DX OB-02) |
-| CQ-09 | P1 | A refused post is a 2.4-second toast that contradicts itself and names a button that isn't there. | A post · B post, desk | `composer--post-failed--402--dark--first.png` | `#toast`: the specific prefix plus `humanError`'s generic line; "press Post again" beside "Add my round" | open · in lane W1 (not merged at `b8a61266`) |
+| CQ-09 | P1 | A refused post is a 2.4-second toast that contradicts itself and names a button that isn't there. | A post · B post, desk | `composer--post-failed--402--dark--first.png` | `#toast`: the specific prefix plus `humanError`'s generic line; "press Post again" beside "Add my round" | open · in lane W1 (not merged at `4a703402`) |
 | CQ-10 | P1 | "+1.4 · YOUR PLAYING HCP": a signed margin under the playing HCP's own name. | B post, desk | `composer--filled--375--dark.png` | `#calcVs`; a second top-level `vsShort` shadowed the words form | **fixed (38471687)**: "beat by 1.4" again, with `vsSigned` for the clash and the receipt row. **Open:** the label is still "your playing HCP", not R-M's "vs your playing HCP" (`index.html:5503` at `de3eaf35`), in lane W1; and no preflight check catches duplicate top-level functions. |
 | CQ-11 | P1 | The unlisted-course hint says the round "won't show in your rounds". | B post, desk | `composer--filled--375--dark.png` | `#inCourseHint` (`paintCourseHint`); D150 affects only course history | open · in lane W1 (not merged) |
 | CQ-12 | P1 | "Include round photo" is offered on rounds with no photo. | B share, desk | `share--recap-no-photo--375--dark.png` | `#finPhoto`: `.finish-photoopt{display:flex}` beats `hidden` | **fixed (38471687)**: `[hidden]` always hides. W4's df111545 then made the photo a switch that states itself. |
@@ -103,20 +103,20 @@ Entries are merged where A and B, or a target and B's desk cross-reference, desc
 | CQ-17 | P1 | The board sheet's header is unreadable in the light printing (2.42:1). | B golfers, desk | `golfers--board--375--light.png` | `#boardFull .bf-hdr` literal charcoal glass | **fixed (38471687)**: the header takes the page's own ground, and the title is ink (DX TP-06) |
 | CQ-18 | P1 | A profile photo is credited as a round photo ("BLAKE'S ROUND · SAT" over Blake's avatar). | B history, desk | `record--photo-credited--375--dark.png` | `csCredentialHtml`: avatar plus a credit from `card.recent[0]` | **fixed (f46086b4)**: a profile photo is no longer credited as a round (35b4f475) |
 | CQ-19 | P1 | The season's title fails contrast in the light printing (2.69:1). | A season · B season, desk | `season--narrative--375--light.png` | `#seasonTitle.seasontitle{color:var(--ink)}` on the ember band | **fixed (38471687)** (AW P1-3, DX TP-01) |
-| CQ-20 | P1 | Step 2 says "Standard = best three" beside a dial reading "Best 4", and carries the contradiction into the review and the covenant. | A wizard · B wizard, desk | `wizard--step-2-rules--375--dark.png`, `links--join-covenant--375--dark.png` | `.preset.sel` lead from the preset's own cap (`csPresetLead`); `#structNote`'s markup default | open · in lane W5 (not merged) |
+| CQ-20 | P1 | Step 2 says "Standard = best three" beside a dial reading "Best 4", and carries the contradiction into the review and the covenant. | A wizard · B wizard, desk | `wizard--step-2-rules--375--dark.png`, `links--join-covenant--375--dark.png` | `.preset.sel` lead from the preset's own cap (`csPresetLead`); `#structNote`'s markup default | **fixed (4a703402)**: a starting point stays checked only while the dials match its card; turned away it reads Custom, painted from the dials, and the review says "Custom, built on Standard"; the squads note follows the chosen squads on every paint (1d6ed619). The covenant's "best four" is correct, since the fixture league is a customised Standard (`counting_cap` 4): root, "resolved, not a defect". |
 | CQ-21 | P1 | At the desk, "Review the rules" shows no rules. | B wizard, desk | `wizard--step-3-review--1280--dark.png` | `#view-wizard #bylawsReview{display:none}` at ≥1100px | **fixed (38471687)** |
 | CQ-22 | P1 | "Start the season" is disabled, and nothing says why. | B wizard, desk | `wizard--step-3-review--375--dark.png` | `#lockBtn` disabled by `csRenderPayNote()`, with the reason only on step 2 | **fixed (38471687)**: `#lockWhy`, with a door to the pay note |
-| CQ-23 | P1 | The squad options are faded to 40%, including the chosen one. | B wizard, desk | `wizard--step-2-dials--1280--dark.png` | `renderStructFit()` sets `opacity:.4` (DX OB-03) | open · in lane W5 (not merged) |
+| CQ-23 | P1 | The squad options are faded to 40%, including the chosen one. | B wizard, desk | `wizard--step-2-dials--1280--dark.png` | `renderStructFit()` sets `opacity:.4` (DX OB-03) | **fixed (4a703402)**: squad options are never faded; one larger than the roster says "4+ golfers" in mut (1d6ed619) |
 | CQ-24 | P1 | "Delete permanently" fails contrast in the default dark theme (2.81:1). | A settings · B settings, desk | `settings--delete-confirm--375--dark.png` | `#phDelYes` inline `background:var(--neg); color:#fff` | **fixed (38471687)** (DX TP-07). W2's 35b4f475 also makes the confirm say what D396 does, word for word with the phone. |
 | CQ-25 | P1 | The score steppers are 36px: the round's most-touched control is below the 44px floor. | B play | `play--scoring--402--dark.png` | `.step button{width:36px;height:36px}` | **fixed (38471687)**: steppers among the 44px targets; the gap between − and + is open, verification pending |
 
-**Tally at `b8a61266`:** 25 distinct defects (4 P0, 21 P1). Every fixed item is verification pending until round 2.
-- **fixed: 18.** CQ-02, 03, 05, 06, 07, 08, 10, 12, 13, 14, 15, 17, 18, 19, 21, 22, 24 and 25. CQ-10 keeps a named residual in W1.
+**Tally at `4a703402`:** 25 distinct defects (4 P0, 21 P1). Every fixed item is verification pending until round 2.
+- **fixed: 20.** CQ-02, 03, 05, 06, 07, 08, 10, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24 and 25. CQ-10 keeps a named residual in W1.
 - **fixed in part: 3.**
   - CQ-01: the web half; X41 and N4 remain.
   - CQ-04: in-app; X42 and N4 remain.
   - CQ-16: the 44px target.
-- **open: 4.** CQ-09 and CQ-11 (W1), CQ-20 and CQ-23 (W5). None of those lanes had merged at `b8a61266`.
+- **open: 2.** CQ-09 and CQ-11, both in lane W1, which had not merged at `4a703402`.
 
 ## 4 · P2 and P3
 

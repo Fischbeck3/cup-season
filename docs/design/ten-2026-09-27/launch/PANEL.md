@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). |
-| **Status read at** | **`b8a61266`** (root's fixes, N2's merge, and lanes W3 `e8108e59`, W2 `f46086b4` and W4 `b8a61266`; W1, W5 and W6 had not merged) |
+| **Status read at** | **`4a703402`** (root's fixes, N2's merge, and lanes W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266` and W5 `4a703402`; W1 and W6 had not merged) |
 | **Date** | 2026-09-28 |
 | **Assessors** | the **category**, **craft** and **owner** judges: three fresh agents that wrote no code. Their calibration stays with root, which runs the same three on the native half and on round 2. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`; the captures they cite are in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/` |
@@ -82,10 +82,10 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 | 11 | owner | P1 | post | The composer prints "+1.4" over "YOUR PLAYING HCP", so a 14.2 golfer reads a plus handicap on every post. A second top-level `vsShort` shadowed the words form. | `composer--filled--375--dark.png` | **fixed (38471687)**: the figure reads "beat by 1.4" again, and the signed form is `vsSigned`, used only on the clash and the receipt row. **Open:** the label still reads "your playing HCP" rather than R-M's "vs your playing HCP" (`index.html:5503` at `de3eaf35`; lane W1, not merged), and no preflight check catches a duplicate top-level function. |
 | 12 | owner | P1 | share | The finish ceremony offers "Include round photo" on rounds with no photograph (`.finish-photoopt{display:flex}` beats `hidden`). | `share--recap-no-photo--375--dark.png` | **fixed (38471687)**: `[hidden]` always hides |
 | 13 | owner | P1 | claim-invite | A join code that resolves to no league tells a stranger "You're invited. Sign in to review the league before you join." | `links--join-unavailable--375--dark.png` | **fixed (38471687)**: "No league with that code. Check with your Pro.", from one producer |
-| 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending (lane W5, not merged). |
+| 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending: W5's merge (`4a703402`) reworked the portrait without naming it. |
 | 15 | owner | P1 | golfers/identity/schedule | The rivalry verdict contradicts itself: "3–4 · THEY LEAD" on You and "leads 4–3" on the plan, but "All square, 5–5" on the person page. | `you--populated--375--dark.png`, `golfers--person--375--dark.png` | **decision X36** (OWNER-QUESTIONS). W3 changed the person page's words ("All square between you, 5–5.", 3324ae89), but which facet each surface shows is still the question. |
 
-**Tally at `b8a61266`:** 15 defects. Every fix is verification pending.
+**Tally at `4a703402`:** 15 defects. Every fix is verification pending.
 - **fixed: 12.** #2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14. #11 and #14 keep residuals.
 - **fixed in part: 2.** #1 and #6, each waiting on a database item (X41, X42) and N4.
 - **decision: 1.** #15 (X36).
