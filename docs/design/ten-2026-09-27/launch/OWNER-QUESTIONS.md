@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. |
-| **Status read at** | **`8aaab412`**. Lanes W1–W5 are merged; W6 (session B) is not. |
+| **Status read at** | **`6c5f251b`**. Lanes W1–W5 are merged; W6 (session B) is not. |
 | **Date** | 2026-09-28 |
 | **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 |
@@ -56,7 +56,7 @@ These block work in flight or define the gate.
 | Q11 | Season context on a public round | decision | No; rule it with X38 | with X38 |
 | Q12 | Structural performance before Oct 1 | decision | Home's single render and the fonts now; code splitting after, as a named exception | freeze |
 | Q13 | An already-claimed card | settled (W4, 5d536f41) | The phone's twin (N4) | — |
-| Q14 | X18, the install nudge | decision + defect (B25) | In the page on league-less Home; fix B25 now | freeze |
+| Q14 | X18, the install nudge | decision (B25 is fixed, 6c5f251b) | In the page on league-less Home | freeze |
 | Q15 | May a lane re-lay a ruled sentence? | decision | Layout yes; one-line D364 amendment; the covenant in three heads | freeze |
 | Q16 | Old test bundles with host-wide simulator logs | decision | Delete, after root checks nothing cites them | any time |
 | Q17 | Tier the wire into slats (against D360) | decision | Keep D360 now; tier upward as the answer to inbox #22 | after launch |
@@ -147,7 +147,7 @@ These block work in flight or define the gate.
     1. `?cs_home_state=<anything>`: the D259 hatch's boot lifts the Door whenever the query key is present. Its own comment says it "cannot exist in production" because its fixture fetch 404s there, but the Door lift does not wait for the fetch.
        - Found by session C, read from the code.
        - Root confirmed it on a prod-like server (no `tests/`): `cf401dee` lifted the Door.
-       - Root's fix lifts the Door only when the fixture is actually served, and otherwise keeps it up with the shell inert. It was not yet committed at `8aaab412`.
+       - **Fixed (45d40eb3):** the hatch now lifts the Door only when its fixture was served, and otherwise keeps it up with the shell inert.
        - **The exposure is live on cupseason.app until the ship.**
     2. The up-to-3s window while a returning session's Door waits hidden (69f40d1f). Unverified.
     3. View-source: `index.html` ships whole.
@@ -182,7 +182,7 @@ These block work in flight or define the gate.
 - **(4) Minimal: fix only what a real user sees.** The placeholders, the feedback line and the wings' courses on both clients; leave the unreachable diorama.
 
 **Two defects under every option:**
-- Gate the `?cs_home_state` hatch so it lifts the Door only when its fixture is served (D259; client only). Root is making this fix (above).
+- Gate the `?cs_home_state` hatch so it lifts the Door only when its fixture is served (D259; client only). **Fixed (45d40eb3).**
 - Replace the pilot golfers' first names wherever a user or a capture can see them (PRODUCT.md).
 
 **Recommendation: (1), with the feedback line left to the owner's taste.**
@@ -191,7 +191,7 @@ These block work in flight or define the gate.
 - The synthetic cast already exists on both clients' harnesses, so this is a data swap, not a design change.
 - Whether feedback "goes straight to" the owner by name is a voice choice, not a privacy defect, since the owner chose to be the product's contact. Keep it if the owner wants it, or name the role ("the founder").
 - Scrubbing git history is out of scope.
-- Root has since taken the handle out of the LEDGER's X37 line. The handle was already public in `index.html` for weeks as the old placeholder, so git history is not being rewritten.
+- Root has since taken the handle out of the LEDGER's X37 line (ba6935a5). The handle was already public in `index.html` for weeks as the old placeholder, so git history is not being rewritten.
 
 **Blocked until ruled:** the diorama's data on the web; the phone's placeholders and fixtures; N2's rule entering canon; the TERMINOLOGY row whose ruled example carries a real surname.
 
@@ -641,7 +641,7 @@ These are the panel's `decision` cells: 32 of the 649 web cells below 9, and the
 **What the source says.**
 - `#installNudge` is `position:fixed` with `z-index:24`, over the header's 20, and its copy leads with D186's reason: "Safari signs you out after a week away. On your home screen, you stay signed in."
 - Three earned moments fire it: the first real round (1.4s later), joining by invite (3.2s), and landing league-less (3.4s, D186's third moment).
-- **Two defects apply under every option.** Code-audit item B25 (`docs/audit/code-2026-08-30/code-audit.md`) is still unfixed:
+- **Two defects under every option, now fixed.** Code-audit item B25 (`docs/audit/code-2026-08-30/code-audit.md`) was still open at `de3eaf35`; root fixed both halves at 6c5f251b, prompted by this memo:
   - `dismiss()` never clears `shown`, so a dismissed banner comes back on the next view switch for the rest of the session;
   - the busy list names `view-record`, not the composer's `view-post`, so the nudge can sit over the composer.
 - The phone has no install nudge (web only by construction).
@@ -656,14 +656,14 @@ These are the panel's `decision` cells: 32 of the 649 web cells below 9, and the
 - **(b) In the page, at the head of league-less Home, drawn at first paint,** so nothing shifts at 3.4s and nothing covers the header. It needs a one-line entry amending D186's presentation and naming the slot for league-less Home only. B25 is fixed as in (a).
 - **(c) Only after the first round.** Remove the league-less trigger. This reverses D186's third moment and loses the cohort Safari's seven-day wipe takes, which D186's own comment names.
 
-**Recommendation: (b), with B25 fixed now whatever the ruling.**
+**Recommendation: (b).** B25 is fixed (6c5f251b), whatever the ruling.
 - It keeps D186's reason and moment.
 - League-less Home is the emptiest page in the product, so a slot there displaces nothing.
 - It removes the only fixed overlay on a page a stranger is reading.
 - Drawing it at first paint avoids the layout-shift class AW measured (Q12).
 - If the owner prefers not to name a slot, (a) is the fallback.
 
-**Blocked until ruled:** X18; league-less Home's first-screen captures. B25 is not blocked.
+**Blocked until ruled:** X18; league-less Home's first-screen captures.
 
 ### Q15 · May a lane re-lay a ruled sentence without a ruling?
 **The question.** Three decision cells ask to present words an owner decision fixed, without changing them. Can the lanes act, or does each need a ruling?
@@ -1025,9 +1025,10 @@ These need the owner's hands, not a ruling.
   - It is CQ-04 and a category P1.
 - **Human proof.** HUMAN.md's gates are NOT RUN: G1–G4 need three people who have never opened Cup Season, on their own phones, and D1–D13 are the owner's device checks, including finishing a live round (D12) and the album's retry (D13). No capture or test can pass them.
 - **Pushes and deploys.** Nothing after `cf401dee` is pushed (SESSIONS §0). Every web push, `db push`, functions deploy and TestFlight upload waits on the owner's yes to root.
-- **Two defects found while writing this memo.**
-  - The `?cs_home_state` hatch lifts the Door on any host (X37). Found by C from the code; root confirmed it on a prod-like server (`cf401dee` lifted the Door). Root's fix keeps the Door up with the shell inert unless the hatch's fixture is served; it was not committed at `8aaab412`. The exposure is live on cupseason.app until the ship. It is client-only.
-  - The LEDGER's X37 line printed the owner's handle. Root has removed it; history is not rewritten, since the handle had been public in `index.html` as the old placeholder.
+- **Three defects found or raised again while writing this memo.**
+  - The `?cs_home_state` hatch lifted the Door on any host (X37). Found by C from the code; root confirmed it on a prod-like server (`cf401dee` lifted the Door). **Fixed (45d40eb3):** the Door stays up, with the shell inert, unless the hatch's fixture is served. The exposure is live on cupseason.app until the ship.
+  - The LEDGER's X37 line printed the owner's handle. **Fixed (ba6935a5):** it names the handle by role. History is not rewritten, since the handle had been public in `index.html` as the old placeholder.
+  - Code-audit B25, the install nudge re-showing after dismiss and sitting over the composer (Q14). **Fixed (6c5f251b).**
 - **B's held migration, `d30f1ecb`.** Home's invitation says "See the terms before you're in", by patching `home_dispatch` in migration `20261211094500_the_terms_before_youre_in.sql`. It is proven on the disposable cluster and held off main. **Owner action:** take `d30f1ecb` from `claude/ten-w6-shared-2026-09-28` and `supabase db push` when you want it.
 - **The clash lead's sentence** (`home_dispatch`, `20261006093000:243`) hides who holds the week. Root lists it as database owed, and it rides with Q10.
 
