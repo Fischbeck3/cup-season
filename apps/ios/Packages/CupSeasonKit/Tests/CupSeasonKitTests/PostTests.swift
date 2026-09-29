@@ -79,6 +79,32 @@ import CSDesign
     #expect(!PostCalc.vsIsSane(-71.6))
     #expect(!PostCalc.vsIsSane(nil))
   }
+
+  /// W1 · the band is read against the differential `score_round` STORES —
+  /// a tenth, halves away from zero — never the raw one. 14.2 at 95%, 82 on
+  /// 68.9/118: 12.545 raw is 0.9 (7 points); 12.5 stored is 1.0, and the
+  /// table pays 9. The preview says 9.
+  @Test func thePreviewScoresTheStoredDifferential() {
+    let p = PostCalc.preview(card(f9: "41", b9: "41", rating: "68.9", slope: "118"), myIndex: 14.2, allowance: 95)!
+    #expect(p.differential == 12.5)
+    #expect(p.vs == 1.0)
+    #expect(p.points == 9)
+    #expect(p.message == "You beat your playing HCP by 1.0. Nice round.")
+  }
+
+  /// `round(numeric)` is half AWAY from zero; `Math.round` is not, and a float
+  /// can land a hair under a tenth — so the arithmetic is integers.
+  @Test func theEngineRoundsHalvesAwayFromZero() {
+    #expect(PostCalc.roundHalfAway(95, 10) == 10)
+    #expect(PostCalc.roundHalfAway(-95, 10) == -10)
+    #expect(PostCalc.roundHalfAway(-94, 10) == -9)
+    #expect(PostCalc.roundHalfAway(0, 10) == 0)
+    // 13.0 at 95% against a stored 13.3 is exactly −0.95: the engine says −1.0
+    #expect(PostCalc.pvi(index: 13.0, differential: 13.3, allowance: 95) == -1.0)
+    // a nine: (41 − 35.65) × 113 / 128 × 2 = 9.446 → 9.4
+    #expect(PostCalc.serverDifferential(gross: 41, rating: 35.65, slope: 128, nine: true) == 9.4)
+    #expect(PostCalc.serverDifferential(gross: 82, rating: 68.9, slope: 0, nine: false) == nil)
+  }
 }
 
 @Suite struct PostPayloadTests {

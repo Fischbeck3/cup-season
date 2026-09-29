@@ -108,6 +108,33 @@ public enum RoundWorth {
     return "\(subject) can score up to \(top)\(nine), and it counts\(whose): your best \(cap) count and you have \(u)."
   }
 
+  /// W1 · **ONCE THE CARD HAS ITS OWN POINTS, THE LINE FINISHES THE
+  /// ARITHMETIC WITH THEM** (`csRoundWorthKnown`). `gain`'s sum with the
+  /// card's points in place of the ceiling: an open counting slot adds them, a
+  /// full month bumps the lowest counter and adds the difference, and nothing
+  /// below the lowest adds. The ceiling sentence ("…so a 12 would add 6")
+  /// stayed under a card that scored 9 and left 9 − 6 to the golfer.
+  ///
+  /// Eighteen holes only — a nine keeps D364's sentence above, because its
+  /// half-round counting is the engine's to say. nil when a full month's
+  /// lowest counter is not known: no difference is ever guessed (L-44).
+  public static func known(points: Double, cap: Int?, used: Int?, worst: Double?,
+                           season: String? = nil) -> String? {
+    guard points.isFinite else { return nil }
+    let p = CSCopy.points(points)
+    let u = used ?? 0
+    let whose = season.map { " in \($0)" } ?? ""
+    guard let cap, cap > 0 else {
+      return "This \(p) counts\(whose): every round you post this month counts, so +\(p)."
+    }
+    if u < cap { return "This \(p) counts\(whose): your best \(cap) count and you have \(u), so +\(p) this month." }
+    guard let worst, worst.isFinite else { return nil }
+    if points > worst {
+      return "This \(p) replaces your lowest\(whose), a \(CSCopy.points(worst)): +\(CSCopy.points(points - worst)) this month."
+    }
+    return "Your best \(cap)\(whose) already count and none is below \(p), so this \(p) can’t add to your total this month. It still builds your number."
+  }
+
   // MARK: - the counters, as they arrive
 
   /// One season's cap and counters for the month a round falls in —
@@ -176,10 +203,23 @@ public extension RoundWorth {
   /// `[]` when the server has none to say — no ceiling is ever guessed.
   /// `holes` is the card's own side (9 or 18), so a nine is never promised an
   /// eighteen-hole ceiling.
-  static func servedLines(_ json: JSONValue, subject: String = "This round", holes: Int = 18) -> [String] {
+  ///
+  /// W1 · `known` is the preview's own points (nil while there are none, or
+  /// while the golfer has no number to score against). With them, an
+  /// eighteen says ONE sentence — `known(points:…)` — for the league the
+  /// preview's figure is scored in (`league`, the membership the date
+  /// derives; or the only season there is). It is unnamed: when there is more
+  /// than one league, the figure's own label already names it. A league the
+  /// answer does not hold falls back to the ceiling sentences.
+  static func servedLines(_ json: JSONValue, subject: String = "This round", holes: Int = 18,
+                          known: Int? = nil, league: UUID? = nil) -> [String] {
     let rows = (json.array ?? []).map { r in
       Counters(leagueId: r["league_id"]?.string.flatMap(UUID.init), leagueName: r["league_name"]?.string,
                cap: r["cap"]?.int, used: r["counters"]?["used"]?.int, worst: r["counters"]?["worst"]?.double)
+    }
+    if let known, holes == 18,
+       let row = rows.first(where: { league != nil && $0.leagueId == league }) ?? (rows.count == 1 ? rows.first : nil) {
+      return RoundWorth.known(points: Double(known), cap: row.cap, used: row.used, worst: row.worst).map { [$0] } ?? []
     }
     return lines(rows, subject: subject, limit: rows.count, holes: holes)
   }
