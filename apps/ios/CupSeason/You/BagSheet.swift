@@ -20,6 +20,7 @@ import CupSeasonKit
 
 struct BagSheet: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Environment(\.dismiss) private var dismiss
   @State private var vm = BagEditor()
   /// The host reloads the You row's summary when the bag is saved.
@@ -107,12 +108,14 @@ struct BagSheet: View {
   @ViewBuilder private func row(_ club: Binding<Bag.Item>, inBag: Bool) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 6) {
-        CSField(BagCopy.slotPlaceholder, text: Binding(
+        // N4-053 · the golfer's own words wrap rather than being cut, and the
+        // slot's 120pt cap lifts at the accessibility sizes ('Driv…' at AX3)
+        CSField(placeholder: BagCopy.slotPlaceholder, text: Binding(
           get: { club.wrappedValue.slot ?? "" },
-          set: { club.wrappedValue.slot = $0 }), font: CSFont.subhead)
-          .frame(maxWidth: 120)
+          set: { club.wrappedValue.slot = $0 }), multiline: true)
+          .frame(maxWidth: typeSize.isA11y ? .infinity : 120)
           .accessibilityLabel("What kind of club")
-        CSField(BagCopy.labelPlaceholder, text: club.label, font: CSFont.subhead)
+        CSField(placeholder: BagCopy.labelPlaceholder, text: club.label, multiline: true)
           .accessibilityLabel("The club, in your own words")
         Menu {
           if inBag {
