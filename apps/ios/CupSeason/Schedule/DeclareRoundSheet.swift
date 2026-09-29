@@ -50,7 +50,10 @@ struct DeclareRoundSheet: View {
           // fact, so it is set in `ink` (the web's twin changes with it)
           if let h = vm.hostName { CSFine("You're in — your own round goes on the schedule alongside \(h).", tone: cs.ink) }
 
-          HStack(alignment: .top, spacing: 10) {
+          // At the accessibility sizes the day and the tee time stack: side by
+          // side at AX3 the tee's label broke inside a word (`OPTIONA / L`)
+          // and its link was clipped to `SET A TEE TI`.
+          A11yStack(alignment: .leading, rowAlignment: .top, spacing: 10, columnSpacing: CSTokens.Space.s3) {
             VStack(alignment: .leading, spacing: 6) {
               Text("Day").csType(.agate, caps: true).foregroundStyle(cs.mut)
               DatePicker("Day", selection: $vm.day, displayedComponents: .date).labelsHidden().tint(cs.act)
