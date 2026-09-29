@@ -8,6 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -30,6 +31,23 @@ async function tapUntil(page, sel, done, tries = 4) {
   return false
 }
 
+/* TEN / W6 · DX2 TP-22 · a row never gets a container (UI_SYSTEM §3.1): no
+   fill, no border on its sides or foot, no corner. The rule between rows is
+   its only line. Every drawn element under `sel` must be a row. */
+const isRow = (sel, what) => async (page) => page.evaluate(({ sel, what }) => {
+  const rows = [...document.querySelectorAll(sel)].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+  if (!rows.length) return `${what}: no ${sel} is drawn`
+  const alpha = (c) => { c = c || ''; const sl = /\/\s*([0-9.]+)\s*\)\s*$/.exec(c); if (sl) return parseFloat(sl[1]); const m = /rgba?\(([^)]+)\)/.exec(c); if (!m) return /^color\(/.test(c) ? 1 : 0; const v = m[1].split(','); return v[3] !== undefined ? parseFloat(v[3]) : 1 }
+  for (const el of rows) {
+    const cs = getComputedStyle(el), bad = []
+    if (alpha(cs.backgroundColor) > 0) bad.push(`a ${cs.backgroundColor} fill`)
+    if (['Left', 'Right', 'Bottom'].some((k) => (parseFloat(cs['border' + k + 'Width']) || 0) > 0)) bad.push('a border on its sides or foot')
+    if ((parseFloat(cs.borderTopLeftRadius) || 0) > 0) bad.push(`a ${cs.borderTopLeftRadius} corner`)
+    if (bad.length) return `${what} is a card, not a row (§3.1): ${bad.join(', ')}`
+  }
+  return true
+}, { sel, what })
+
 /* ------------------------------------------------------ SCHEDULE & PLAN */
 const toSchedule = async (page) => {
   await page.evaluate(() => { window._schedFrom = null; window.switchView('schedule') })
@@ -39,7 +57,10 @@ const toSchedule = async (page) => {
 const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
-    check: has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course') },
+    /* TEN / W6 · AW2-06: the weekday heads and the back link are agate, never mono; the dates stay a column */
+    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'),
+      notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink']),
+      noRetiredGlyph()) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
     drive: toSchedule, expect: { view: 'view-schedule' } },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
@@ -66,15 +87,12 @@ const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } },
-    /* TEN / W6 · delta G6: the Pro row is a card, and "THE PRO" sat flush on
-       its right border (3324ae89 took the tag's own inset for Golfers' slats) */
-    check: async (page) => page.evaluate(() => {
-      const row = document.getElementById('commishChip'), tag = row && row.querySelector('.ptag'), mk = row && row.querySelector('.pmk')
-      if (!row || !tag || !mk) return 'the Pro row is missing'
-      const r = row.getBoundingClientRect(), t = tag.getBoundingClientRect(), m = mk.getBoundingClientRect()
-      const right = Math.round(r.right - t.right), left = Math.round(m.left - r.left)
-      return right >= 8 && left >= 8 ? true : `the Pro row's content touches its border: tag ${right}px from the right, marker ${left}px from the left`
-    }) },
+    /* TEN / W6 · DX2 TP-22: the Pro row is a row, not a card whose content
+       touched its sides (delta G6's inset patched the card; the card is gone) */
+    check: all(isRow('#commishChip', 'the Pro row'),
+    /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
+    async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
+    noRetiredGlyph()) },
   { family: 'wizard', id: 'step-2-rules', variant: 'pro_setup', title: 'Wizard · step 2 of 3, the rules',
     drive: async (page) => { await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 2 of 3' } } },
@@ -114,12 +132,14 @@ const WIZARD = [
     expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
     /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
        narrowed column broke it ("Best / 4", "2 / / mo") */
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
         .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
         .map((v) => JSON.stringify(v.textContent.trim()))
       return broken.length ? `a dial value breaks across lines: ${broken.join(', ')}` : true
-    }) },
+    }),
+    /* TEN / W6 · AW2-15: the pace question is a sentence, in sentence case (§1.3) */
+    readsAsWritten([['#wizPaceK', 'How often will most of you play?']])) },
   { family: 'wizard', id: 'step-3-review', variant: 'pro_setup', title: 'Wizard · step 3 of 3, review and lock',
     drive: async (page) => {
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
@@ -185,10 +205,13 @@ const openHub = async (page) => {
 }
 const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
-    drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } } },
+    drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
+    /* TEN / W6 · AW2-06: a row's label is agateS, never mono; a league's code stays mono */
+    check: all(notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph()) },
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
-    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } } },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
+    check: notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']) },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {
@@ -214,7 +237,9 @@ const SETTINGS = [
       await click(page, '#phDelete')
       await until(page, () => { const c = document.getElementById('phDelConfirm'); return !!c && c.offsetParent !== null })
       await page.locator('#phDelYes').scrollIntoViewIfNeeded().catch(() => {})
-      return back === 'phDelete' ? true : 'Not now did not return focus to the opener: ' + back
+      if (back !== 'phDelete') return 'Not now did not return focus to the opener: ' + back
+      /* TEN / W6 · DX2 OB2-03: the armed delete is §7.1's tier — bg2 fill, neg label */
+      return armedDelete('#phDelYes')(page)
     } },
   /* NOT CAPTURED: the composer's own confirmation ("Post as even par?") is
      reachable only in hole-by-hole mode, and #postMode is display:none --
@@ -229,7 +254,11 @@ const staticPage = (id, url, title, want) => ({
   check: async (page) => page.evaluate((want) => {
     const t = document.body.innerText.replace(/\s+/g, ' ')
     if (!new RegExp(want, 'i').test(t)) return `the page does not read /${want}/: ${JSON.stringify(t.slice(0, 120))}`
-    return document.getElementById('onboard') ? 'the app shell rendered instead of the page' : true
+    if (document.getElementById('onboard')) return 'the app shell rendered instead of the page'
+    /* TEN / W6 · AW2-17: the browser's chrome takes the page's own --bg0, as the app's does */
+    const tc = document.querySelector('meta[name="theme-color"]'), light = document.documentElement.dataset.theme === 'light'
+    if (!tc) return 'the page carries no theme-color'
+    return tc.content.toUpperCase() === (light ? '#F4F1E9' : '#0F1A15') ? true : `theme-color is ${tc.content} on the ${light ? 'light' : 'dark'} printing`
   }, want),
 })
 const STATIC = [
@@ -281,4 +310,45 @@ const DESK = [
     expect: { view: 'view-stats' }, check: deskCheck },
 ]
 
-export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK]
+/* ------------------------------------------------------------ THE DRAW */
+/* TEN / W6 · DX2 TP-16 · the draw room of a real league in the draw, as its
+   Pro: the synthetic world's North Grove is in its "draft" phase (data only,
+   as DX2's draft/formation state set it), then the page's own router. The
+   room's dusk ground takes the gutter on all three sides (UI_SYSTEM §3.4):
+   its last line of text stands at least a gutter above the ground's foot. */
+/* TEN / W6 · DX2 TP-22 · the people picker (Golfers' "Find golfers"): with
+   nothing typed it lists your buddies, each a `.prow` */
+const PICKER = [
+  { family: 'golfers', id: 'find-sheet', variant: 'member', fullPage: false, title: 'Find golfers · the people picker, listing your buddies',
+    drive: async (page) => {
+      await until(page, () => typeof window.openFindGolfers === 'function')
+      await page.evaluate(() => window.openFindGolfers())
+      await until(page, () => { const s = document.getElementById('sheet'); return !!s && s.classList.contains('open') && !!document.querySelector('#ppList .prow') }, null, 10000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-home', sheet: '^Find golfers$', selectors: { '#ppFind': 'visible', '#ppList .prow': 'visible' } },
+    check: isRow('#ppList .prow', "the picker's buddy row") },
+]
+
+const DRAW = [
+  { family: 'draft', id: 'formation', variant: 'pro', title: 'The draw room of a real league in the draw, as its Pro',
+    prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
+    drive: async (page) => { await page.evaluate(() => window.switchView('draft')); await until(page, () => { const c = document.querySelector('#view-draft #clock'); return !!c && c.offsetParent !== null }); await page.waitForTimeout(800) },
+    expect: { view: 'view-draft', selectors: { '#view-draft #clock': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const room = document.getElementById('view-draft'), foot = room.getBoundingClientRect().bottom
+      let low = -Infinity
+      const w = document.createTreeWalker(room, NodeFilter.SHOW_TEXT)
+      for (let t = w.nextNode(); t; t = w.nextNode()) {
+        if (!t.textContent.trim() || !t.parentElement || getComputedStyle(t.parentElement).visibility === 'hidden') continue
+        const rg = document.createRange(); rg.selectNodeContents(t)
+        for (const rc of rg.getClientRects()) if (rc.width > 0 && rc.height > 0) low = Math.max(low, rc.bottom)
+      }
+      if (low === -Infinity) return 'the draw room draws no text'
+      const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 20
+      const inset = Math.round((foot - low) * 10) / 10
+      return inset >= gutter - 0.5 ? true : `the draw room's last line sits ${inset}px above its ground's foot (the gutter is ${gutter})`
+    }) },
+]
+
+export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK, ...DRAW, ...PICKER]

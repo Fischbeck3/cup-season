@@ -15,6 +15,7 @@ const go = (v) => async (page) => { await page.evaluate((v) => window.switchView
 import { readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { notMono, noRetiredGlyph, noRetiredShape } from './ten-mono.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 
 /* Family modules: tests/ten-states.d/<family>.mjs, each `export default [ ...states ]`.
@@ -78,16 +79,23 @@ const CORE = [
     expect: { door: true, selectors: { '#obProfile': 'visible', '#pfSave': 'visible', '#obDoor': 'hidden' } },
     /* TEN / W6 · delta G4 (round 2): stuck, the Save meets the window's edge —
        no strip beneath it where the form shows through, sliced */
-    check: async (page) => page.evaluate(() => {
-      const bar = document.querySelector('#obProfile .pfsave'), sc = document.getElementById('onboard')
-      if (!bar || !sc || getComputedStyle(bar).position !== 'sticky') return true
-      if (sc.scrollHeight <= sc.clientHeight + 1) return true   /* the whole card fits: the bar is in its place */
-      const gap = Math.round(sc.getBoundingClientRect().bottom - bar.getBoundingClientRect().bottom)
-      return gap <= 1 ? true : `the Save bar floats ${gap}px above the window's edge, and the form shows beneath it`
-    }) },
+    check: async (page) => {
+      const save = await page.evaluate(() => {
+        const bar = document.querySelector('#obProfile .pfsave'), sc = document.getElementById('onboard')
+        if (!bar || !sc || getComputedStyle(bar).position !== 'sticky') return true
+        if (sc.scrollHeight <= sc.clientHeight + 1) return true   /* the whole card fits: the bar is in its place */
+        const gap = Math.round(sc.getBoundingClientRect().bottom - bar.getBoundingClientRect().bottom)
+        return gap <= 1 ? true : `the Save bar floats ${gap}px above the window's edge, and the form shows beneath it`
+      })
+      if (save !== true) return save
+      /* TEN / W6 · AW2-06: the gate's SIGNED IN stamp is a label, never mono */
+      const m = await notMono(['#obProfile .lockbadge'], ['#obProfile .lockbadge'])(page)
+      return m !== true ? m : noRetiredGlyph()(page)
+    } },
 
   /* ------------------------------------------------------------ home */
-  { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' } },
+  /* TEN / W6 · AW2-13: the header and the tab bar sit on the page's own ground — no glass */
+  { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' }, check: noRetiredShape() },
   { probe: true, family: 'explore', id: 'stats', variant: 'member', drive: go('stats'), expect: { view: 'view-stats' } },
   { probe: true, family: 'explore', id: 'record', variant: 'member', drive: go('record'), expect: { view: 'view-record' } },
   { probe: true, family: 'explore', id: 'hub', variant: 'member', drive: go('hub'), expect: { view: 'view-hub' } },

@@ -20,6 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -123,6 +124,14 @@ const seasonFacts = (page) => page.evaluate(() => ({ title: (document.getElement
 const onNorthGrove = async (page) => { const f = await seasonFacts(page); return f.league === 'f3000000-0000-4000-8000-000000000001' && f.title === 'North Grove (fixture)' ? true : `the season page is ${JSON.stringify(f)}` }
 
 /* ------------------------------------------------------------ season */
+/* TEN / W6 · AW2-06 + OB-05 · the season page's words that were set in mono */
+/* AW2-04: at the desk the climb draws only its cut, and "What's on it" yields
+   to the pot beside it, so the rungs, the seat line and the line card are
+   words the phone's shape must draw and the desk's must not */
+const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#climbNote', below: 960 }, '#climb .climb-cut', { sel: '#climb .climb-rung .voice', below: 960 },
+  '#scenarioLine', { sel: '#lineSplit', below: 960 }, { sel: '#homeSeason .ontheline .ok', below: 960 }, '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
+  '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
+  { sel: '#seasonJump button', below: 960 }, { sel: '.tabbar .tab', below: 960 }]
 const SEASON = [
   { family: 'season', id: 'narrative', variant: 'member', title: 'The season page, its head: North Grove in week 8 and the story line', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -137,7 +146,58 @@ const SEASON = [
     expect: { view: 'view-hub', selectors: { '#standings': 'visible', '#indTable': 'visible' } },
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
-      async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows')) },
+      async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows'),
+      /* TEN / W6 · AW2-06 + OB-05: every label on the season page is agate and
+         every phrase agate or body — mono keeps the figures (§1.4). The page
+         draws all of these at once, whichever section is in view. */
+      notMono(SEASON_WORDS, SEASON_WORDS),
+      /* TEN / W6 · AW2-07: the story's figures are runs and "What's on it" is the figure role — never the serif */
+      noSerifFigure(['#standingsStory', '#lineAmt'], ['#standingsStory .cfrun', { sel: '#lineAmt', below: 960 }]),
+      /* TEN / W6 · AW2-08: no retired glyph on the season page, and its span is an en dash */
+      noRetiredGlyph(),
+      readsAsWritten([['#hhSpan', ' \u2013 ', true]]),
+      /* TEN / W6 · AW2-13: no pill (the jump chips), no spine, no glass */
+      noRetiredShape(),
+      /* TEN / W6 · AW2-14: the climb's own spark is ink — gold is earned (D359), being you is not. It
+         rides the viewer's rung, which the desk no longer draws (AW2-04), so the phone's shape reads it */
+      async (page) => page.evaluate(() => { const p = document.querySelector('.climb-spark polyline'); if (!p) return innerWidth >= 960 ? true : 'no climb spark to read'; return /--gold/.test(p.getAttribute('stroke') || '') ? 'the climb spark is gold' : true }),
+      /* TEN / W6 · AW2-04 (L-34, D360): the table is the one standings object. At the desk the climb
+         card keeps only its cut line and "What's on it" yields to the pot beside it; at every width
+         the story says the gap once (the fixture's Wrens trail by 34, the viewer's squad) */
+      async (page) => page.evaluate(() => {
+        const shown = (el) => { if (!el) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' }
+        const story = ((document.getElementById('standingsStory') || {}).innerText || '').replace(/\s+/g, ' ').trim()
+        if (story !== 'Fixture Javelinas lead by 34.') return `the story reads ${JSON.stringify(story)}`
+        if (innerWidth < 960) return [...document.querySelectorAll('#climb .climb-rung')].some(shown) ? true : 'the phone lost its ladder'
+        if ([...document.querySelectorAll('#climb .climb-rung, #climb .climb-ellip')].some(shown)) return 'the desk climb still draws the rungs the table draws'
+        const cut = document.querySelector('#climb .climb-cut')
+        if (!shown(cut)) return 'the desk climb does not draw its cut line'
+        const cutTxt = cut.innerText.replace(/\s+/g, ' ').trim()
+        if (cutTxt !== 'TOP SEED · +10 · 34 BACK') return `the cut line reads ${JSON.stringify(cutTxt)}`
+        const note = document.getElementById('climbNote')
+        if (shown(note) && note.innerText.trim()) return `the desk climb still says the seat line: ${JSON.stringify(note.innerText.trim())}`
+        if ([...document.querySelectorAll('#homeSeason .ontheline')].some(shown)) return '"What\'s on it" still prints the pot beside the pot'
+        return true
+      }),
+      onceInView([["the leader's points (171)", '(?<![\\d.,])171(?![\\d.,])', true], ["the second squad's points (137)", '(?<![\\d.,])137(?![\\d.,])', true],
+        ['the pot ($600)', '\\$600(?![\\d.,])']], 960),
+      /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
+         strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
+      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine'])) },
+  /* TEN / W6 · DX2 OB2-02 · the season six days before its first tee, and a
+     league in its draw: the two heroes' lines (#khCount, #draftPoolSub).
+     DX2's own states (season/kickoff, season/draft-phase): the synthetic
+     world's DATA moves (a start date, a phase), then the page's router. */
+  { family: 'season', id: 'kickoff', variant: 'member', title: 'The season page six days before the first tee (#kickoffHero)', fullPage: false,
+    prepare: async (W) => { const L1 = W.ids.lid(1); for (const s of W.tables.seasons || []) if (s.league_id === L1) { s.starts_on = W.iso(6); s.ends_on = W.iso(6 + 13 * 7 - 1) } },
+    drive: async (page) => { await page.evaluate(() => window.switchView('hub')); await until(page, () => { const k = document.getElementById('kickoffHero'); return !!k && k.offsetParent !== null }); await page.waitForTimeout(600) },
+    expect: { view: 'view-hub', selectors: { '#kickoffHero': 'visible', '#khCount': 'text:Kicks off in \\d+ days?' } },
+    check: capsFromRole(['#khCount'], ['#khCount']) },
+  { family: 'season', id: 'draft-phase', variant: 'pro', title: 'The season page of a league in its draw (#homeDraft)', fullPage: false,
+    prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
+    drive: async (page) => { await page.evaluate(() => window.switchView('hub')); await until(page, () => { const d = document.getElementById('homeDraft'); return !!d && d.offsetParent !== null }); await page.waitForTimeout(600) },
+    expect: { view: 'view-hub', selectors: { '#homeDraft': 'visible', '#draftPoolSub': 'visible' } },
+    check: capsFromRole(['#draftPoolSub'], ['#draftPoolSub']) },
   { family: 'season', id: 'story', variant: 'member', title: 'The season page, the story: the arc of weeks and the archive', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: async (page) => {
@@ -163,7 +223,9 @@ const SEASON = [
         if (rows.some((r) => r.tagName === 'BUTTON')) return 'a member sees tappable payer rows'
         if (document.querySelector('#payHow [data-payedit]')) return 'a member sees the Pro’s edit link'
         return rows.filter((r) => r.classList.contains('paid')).length === 7 ? true : 'seven of eight should read paid'
-      })) },
+      }),
+      /* TEN / W6 · AW2-07: the pot is the board `figure`, never the serif */
+      noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt'])) },
   { family: 'season', id: 'pot-pro', variant: 'pro', title: 'The season page, the money, as the Pro: tap a name as money moves', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
     drive: (page) => toRoom(page, 'pot'),
@@ -174,6 +236,20 @@ const SEASON = [
         if (rows.length !== 8) return `${rows.length} payer rows, expected 8`
         return rows.every((r) => r.tagName === 'BUTTON') ? true : 'the Pro’s payer rows are not controls'
       })) },
+  /* TEN / W6 · DX2 OB2-03 · the Pro's "Cancel this season", opened and NOT
+     confirmed: North Grove is under way, so it is the consent flow's sheet,
+     and its armed control is §7.1's destructive tier */
+  { family: 'season', id: 'cancel-confirm', variant: 'pro', fullPage: false, title: 'The season page, as the Pro: Cancel this season, the confirmation (not confirmed)',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => { const a = document.getElementById('hhDelete'); return !!a && a.offsetParent !== null })
+      await click(page, '#hhDelete')
+      await until(page, () => { const s = document.getElementById('sheet'); return !!s && s.classList.contains('open') && !!document.getElementById('cxGo') })
+      await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-hub', sheet: '^Cancel ', selectors: { '#cxGo': 'visible', '#cxNo2': 'visible' } },
+    check: armedDelete('#cxGo') },
   { family: 'season', id: 'rules', variant: 'member', title: 'The season page, the rules in sentences', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: (page) => toRoom(page, 'league'),

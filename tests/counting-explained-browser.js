@@ -71,12 +71,15 @@
       { league_name:'Fellas', season_id:'s1', member_id:'m-me', points:2, month_rank:3, counting_cap:2, month:month },
       { league_name:'Sunday Cup', season_id:'s2', member_id:'m-me2', points:2, month_rank:3, counting_cap:null, month:month } ] }, -3, 4);
     /* TEN / W6 · PAR-31 · the league's name as stored — the row's role sets
-       its case (LINT-14), as the phone's ReceiptSeed lens label does */
-    check(/This month · Fellas<\/span><b>BUMPED · 2 PTS/.test(twoLens) && /This month · Sunday Cup<\/span><b>COUNTING #3 · 2 PTS/.test(twoLens),'two lenses did not name themselves: '+twoLens.replace(/<[^>]+>/g,'|').slice(-260));
+       its case (LINT-14), as the phone's ReceiptSeed lens label does.
+       AW2-06: a value that is words is marked `.mw` by the producer (agateS,
+       never mono), so the clause's <b> carries the class; the words are pinned
+       exactly as before. */
+    check(/This month · Fellas<\/span><b class="mw">BUMPED · 2 PTS/.test(twoLens) && /This month · Sunday Cup<\/span><b class="mw">COUNTING #3 · 2 PTS/.test(twoLens),'two lenses did not name themselves: '+twoLens.replace(/<[^>]+>/g,'|').slice(-260));
     check((twoLens.match(/data-counting-member=/g)||[]).length===2,'two lenses, two doors');
     check(/rounds that count in [A-Z][a-z]+ · Fellas/.test(twoLens),'the door does not name the month and the league');
     const oneLens=roundCardBody({ profile_id:'p-jade', gross:77, contributions:[{ league_name:'Fellas', season_id:'s1', member_id:'m-jade', points:9, month_rank:1, counting_cap:4, month:month }] }, 2.6, 4);
-    check(/This month<\/span><b>COUNTING #1 OF 4<\/b>/.test(oneLens) && !/This month · /.test(oneLens),'one lens was named');
+    check(/This month<\/span><b class="mw">COUNTING #1 OF 4<\/b>/.test(oneLens) && !/This month · /.test(oneLens),'one lens was named');   /* AW2-06: the clause is marked `.mw` */
     const noLens=roundCardBody({ profile_id:'p-me', gross:84, contributions:[] }, 0.4, 4);
     check(!/This month/.test(noLens) && !/data-counting/.test(noLens),'a round with no lens the viewer may see printed one');
     /* the door reads the shared producer and opens the rounds */

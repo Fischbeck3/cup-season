@@ -18,6 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -169,7 +170,10 @@ const HOME_WORLD = [
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
     check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds,
-      onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
+      /* TEN / W6 · AW2-05 (L-34, D360): the eyebrow names the competition only, and the lead says the
+         clock once (the world mirrors 20261211100000, held for the owner's db push) */
+      onScreen('THE FIXTURE DERBY · THE CLASH(?! · CLOSES)', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
+      async (page) => page.evaluate(() => { const t = ((document.getElementById('homeLead') || {}).innerText || '').replace(/\s+/g, ' '); const n = (t.match(/closes in 5 days/gi) || []).length; return n === 1 ? true : `the lead says the clock ${n} times: ${JSON.stringify(t.slice(0, 160))}` }),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
     drive: worldDrive, expect: { view: 'view-home' },
@@ -229,17 +233,30 @@ const GOLFERS = [
        under the search lists only what it does not — it drew Kit twice, with
        two Accepts */
     expect: { view: 'view-golfers', selectors: { '#glfBoard .fbrow.mine': 'visible', '#peopleRequests': 'text:Kit Specimen', '#crBud': 'text:Buddies · 5' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const rows = document.querySelectorAll('#glfBoard .fbrow').length
       if (rows !== 6) return `the board has ${rows} rows, expected 6 (me and five buddies)`
       if (!/Kit Specimen/.test(document.getElementById('peopleRequests').innerText)) return 'Kit’s request is not listed'
       if (/Kit Specimen/.test(document.getElementById('crReq').innerText)) return 'Kit’s request is drawn twice'
       return /Finley Stubbs/.test(document.getElementById('crBud').innerText) ? true : 'the request I sent Finley is not listed'
-    }) },
+    }),
+    /* TEN / W6 · AW2-15: the form lens's note is a phrase, in sentence case (§1.3) */
+    readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']])) },
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },
-    check: async (page) => page.evaluate(() => document.querySelectorAll('#glfBoard .fbrow').length === 0 ? true : 'a board rendered for a golfer with no buddies') },
+    check: all(async (page) => page.evaluate(() => document.querySelectorAll('#glfBoard .fbrow').length === 0 ? true : 'a board rendered for a golfer with no buddies'),
+      /* TEN / W6 · N4-063 (TERMINOLOGY §1 row 7): the sub is the lead, and the definition is said once, under it,
+         word for word the phone's GolfersRoot.buddyDefinition, in the body role (sans, never mono or serif) */
+      async (page) => page.evaluate(() => {
+        const root = document.getElementById('glfRoot'), sub = root && root.querySelector('.emptyroot .sub'), def = root && root.querySelector('.emptyroot .def')
+        if (!sub || sub.textContent !== 'Add the people you actually play with.') return `the sub reads ${JSON.stringify(sub && sub.textContent)}`
+        if (!def || def.textContent !== 'Buddies see each other\u2019s rounds, and either of you can pull the other into a season.') return `the definition reads ${JSON.stringify(def && def.textContent)}`
+        if (sub.compareDocumentPosition(def) !== Node.DOCUMENT_POSITION_FOLLOWING) return 'the definition is not under the sub'
+        const f = getComputedStyle(def).fontFamily.split(',')[0]
+        if (/mono|serif|new york|georgia/i.test(f) && !/sans/i.test(f)) return `the definition is set in ${f}`
+        return (root.innerText.match(/see each other/gi) || []).length === 1 ? true : 'the definition is said more than once'
+      })) },
   /* EXPECTED TO FAIL on current source: the tap lands on the person page,
      which reads "Couldn't pull that card" for everyone (the builder .catch
      defect above). Kept as the real tap path so the capture records what a
@@ -250,10 +267,13 @@ const GOLFERS = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-person', selectors: { '#perName': 'text:^Devon Testwell$', '#perAside .cred': 'visible', '#perOpenH2H': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const t = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
       return /The record between you/i.test(t) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
-    }) },
+    }),
+    /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
+    notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
+    noRetiredGlyph()) },
   /* The person page's only door to the head-to-head is #perOpenH2H, drawn
      after tour_card lands -- and openPerson never gets that far (see the WX
      report: `sb.rpc(...).catch` is not a function on a PostgREST builder, so
@@ -284,7 +304,7 @@ const GOLFERS = [
       await page.waitForTimeout(600)
     },
     expect: { selectors: { '#boardFull.open': 'visible', '#bfSub': 'text:NORTH GROVE' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const t = document.getElementById('boardFull').innerText.replace(/\s+/g, ' ')
       /* a comment lives behind its post's count on the board, not in the row */
       const need = [[/Anyone up for Saguaro Flats on Saturday\?/, 'Casey’s chat'], [/floors close Tuesday/i, 'Blake’s note'], [/\b84\b/, 'my 84']]
@@ -298,7 +318,33 @@ const GOLFERS = [
       const bare = photo.filter((c) => getComputedStyle(c).backgroundColor !== ground(c))
       if (bare.length) return `${bare.length} photo card(s) have no ground: ${getComputedStyle(bare[0]).backgroundColor}`
       return true
-    }) },
+    }),
+    /* TEN / W6 · AW2-06 + OB-05: a round card's course line and its margin's
+       unit are agateS; only the margin's figure keeps mono (the column role) */
+    notMono(['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'], ['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep']),
+    /* TEN / W6 · AW2-08: the report control is a word, not ⚑; no retired glyph on the board */
+    noRetiredGlyph(),
+    /* TEN / W6 · AW2-13: the reaction bar's controls and the tags are not pills, and the system row has no spine */
+    noRetiredShape(),
+    /* TEN / W6 · E's twin (N4-087, root's ruling (b)) · §10.3: the photo card is the wire's case. It has
+       the ONE scrim's `.band` geometry (leading → trailing), the points on the bone panel, the margin in
+       the copy column, and its copy measured on the fixture photo */
+    async (page) => page.evaluate(() => {
+      const c = [...document.querySelectorAll('#boardFull .fcard .round.has-photo')].find((e) => e.getBoundingClientRect().height > 0)
+      if (!c) return 'no photo card on the board to read'
+      const bg = getComputedStyle(c, '::before').backgroundImage
+      if (!/^linear-gradient\((to right|90deg)/.test(bg)) return `the photo card's scrim is not the band (leading → trailing): ${bg.slice(0, 80)}`
+      const tok = (n) => { const i = document.createElement('i'); i.style.color = `var(${n})`; c.appendChild(i); const v = getComputedStyle(i).color; i.remove(); return v }
+      const pts = c.querySelector('.pts')
+      if (pts && getComputedStyle(pts).backgroundColor !== tok('--panel')) return `the points are not on the bone panel: ${getComputedStyle(pts).backgroundColor}`
+      if (c.querySelector(':scope > .pvi')) return 'the margin sits on the band\u2019s clear end'
+      return true
+    }),
+    bandContrast('#boardFull .fcard .round.has-photo', [
+      { name: 'name', sel: '.l1 span' }, { name: 'course', sel: '.l2' }, { name: 'gross', sel: '.rline' },
+      { name: 'counting', sel: '.rline .ok, .rline .dim' }, { name: 'margin', sel: '.pvi-line b, .pvi', own: true },
+      { name: 'margin unit', sel: '.pvi-line small, .pvi small' }, { name: 'points', sel: '.pts', own: true, large: true },
+      { name: 'points unit', sel: '.pts small' }])) },
 ]
 
 export default [...HOME_HATCH, ...HOME_DISPATCH, ...HOME_LEAGUELESS, ...HOME_WORLD, ...GOLFERS]

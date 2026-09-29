@@ -59,6 +59,15 @@
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
   t('bands: the phrase agrees at the edge', /over your playing HCP/.test(vsPhrase(-1.0)), true);
+  /* TEN / W6 · AW2-07 · a number is never the serif: the sentence's figure is
+     marked by the producer (CSBands.vsPhraseMarked, word for word) and set as
+     a board run by csFigRun (CSFigureRun's twin) */
+  t('AW2-07: vsPhraseMarked is the phone\u2019s marked phrase',
+    [vsPhraseMarked(2.4), vsPhraseMarked(0.2), vsPhraseMarked(-3)],
+    ['beat your playing HCP by {2.4}', 'played to your playing HCP', '{3.0} over your playing HCP']);
+  t('AW2-07: csFigRun sets a marked figure as a run and escapes the rest',
+    [csFigRun('Beat your playing HCP by {2.4} & more.'), csFigRun('Par <3')],
+    ['Beat your playing HCP by <span class="cfrun">2.4</span> &amp; more.', 'Par &lt;3']);
   (function(){
     /* the split that shipped was name-vs-points; assert they never diverge */
     const NAME = {12:'Torched it', 9:'Beat your number', 7:'Played to it', 6:'A little loose', 5:'Posted anyway'};
@@ -688,13 +697,36 @@
     const fb = csFallbackItems();
     t('D228: the fallback composes items', fb.length >= 2, true);
     t('D228: the fallback order is CLOSING then CIRCLE', fb.map(x => x.tier), ['closing', 'circle']);
+    /* TEN / W6 · AW2-07: the producer MARKS its figures ({…}); the renderer
+       sets them as runs in the board face and the braces never show */
     t('D228: SA-2 — the subject is the opponent, and the verb is not "post again"',
-      fb[0].headline, 'Galen has 2 days to answer your 89.');
+      fb[0].headline, 'Galen has {2} days to answer your {89}.');
+    t('AW2-07: the circle headline marks its gross, never a digit in the course', fb[1].headline, 'Jade posted {81} at Troon.');
+    t('AW2-07: the lead sets the marked figure as a run', /Jade posted <span class="cfrun">81<\/span> at Troon\./.test(csLeadBlock(fb[1])) && !/[{}]/.test(csLeadBlock(fb[1]).replace(/data-[a-z-]+="[^"]*"/g, '')), true);
     t('D228: the fallback draws NO lead card', csRankDispatch(fb, { useServerRank: false }).lead, null);
     t('D228: ... and every fallback item still has a door', fb.every(x => !!x.route), true);
     /* the producer applies the fence itself: a circle round with no id is not an item */
     window.homeFeedRows = [{ round_id: null, golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Troon', is_me: false }];
     t('D228: a fallback item with no door is never emitted', csFallbackItems().map(x => x.tier), ['closing']);
+    /* TEN / W6 · AW2-05 (L-34, D360): the clash says its clock ONCE. The
+       eyebrow names the competition only ("<RIVALRY> · THE CLASH"), and each
+       of the four branches carries the clock in exactly one sentence */
+    window.homeFeedRows = [];
+    const clashOf = (mine, theirs, days) => { window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: days, closes_today: false,
+      rivalry: 'The Fixture Derby', them_name: 'Galen Ward', mine, theirs }; return csFallbackItems()[0]; };
+    const clocks = it => ((`${it.eyebrow} ${it.headline} ${it.standfirst}`).match(/closes in 5 days|\{5\} days/gi) || []).length;   /* either case: an eyebrow says it in caps */
+    const idleC = clashOf(null, null, 5), theirsC = clashOf(null, { gross: 84 }, 5), mineC = clashOf({ gross: 89, round_id: null }, null, 5),
+          bothC = clashOf({ gross: 89, round_id: null }, { gross: 84 }, 5);
+    t('AW2-05: the eyebrow names the competition only, in every branch', [idleC, theirsC, mineC, bothC].map(x => x.eyebrow),
+      ['THE FIXTURE DERBY · THE CLASH', 'THE FIXTURE DERBY · THE CLASH', 'THE FIXTURE DERBY · THE CLASH', 'THE FIXTURE DERBY · THE CLASH']);
+    t('AW2-05: the idle clash carries the clock in its standfirst', idleC.standfirst, 'Best round of the week takes it. The week closes in 5 days.');
+    t('AW2-05: theirs in, mine not: the standfirst keeps the clock', theirsC.standfirst, 'That is the number, and the week closes in 5 days.');
+    t('AW2-05: mine in, theirs not: the headline keeps the clock', [mineC.headline, mineC.standfirst], ['Galen has {5} days to answer your {89}.', 'Your round is the number to beat.']);
+    t('AW2-05: both in: the standfirst keeps the clock', bothC.standfirst, 'The week closes in 5 days. Best round takes it.');
+    t('AW2-05: the clock is said once in each branch', [idleC, theirsC, mineC, bothC].map(clocks), [1, 1, 1, 1]);
+    window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 5, closes_today: false, rivalry: '', them_name: 'Galen Ward', mine: null, theirs: null };
+    t('AW2-05: with no rivalry the eyebrow is the league’s name, or THE CLASH alone', csFallbackItems()[0].eyebrow,
+      window.CS?.league?.name ? `${window.CS.league.name.toUpperCase()} · THE CLASH` : 'THE CLASH');
     window.homeClash = savedClash; window.homeFeedRows = savedFeed;
   })();
 
@@ -903,6 +935,11 @@
     t('IA §6.1: with buddies it is the code door',
       csEmptyRoot('compete', { buddies: 3 }).doors.map(d => d.k), ['startSomething', 'joinWithCode']);
     t('IA §10.1: Golfers’ empty root, verbatim', csEmptyRoot('golfers', {}).head, 'No buddies yet.');
+    /* TEN / W6 · N4-063 (TERMINOLOGY §1 row 7): the sub is the lead; the definition is said once, beside it,
+       word for word the phone's GolfersRoot.buddyDefinition and GolfersRoot.empty().sub */
+    t('N4-063: the Golfers root’s sub and its one buddy definition',
+      [csEmptyRoot('golfers', {}).sub, csEmptyRoot('golfers', {}).def],
+      ['Add the people you actually play with.', 'Buddies see each other’s rounds, and either of you can pull the other into a season.']);
     /* R-G's contacts door is D251, wave 8 — not sold before it opens */
     t('L-32: Golfers does not sell the contacts door yet',
       csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Find golfers', 'Text someone a link']);
@@ -939,6 +976,14 @@
          csLiveClosesText({ startedAt: T0 }, T0 + 30 * H), csLiveClosesText({}, T0), csLiveClosesText(null, T0)],
         ['closes in 23h', 'closes in 6h', 'closes within the hour', 'past its window', 'past its window', null, null])
     }
+    /* TEN / W6 · the held round's line (18a279bd) agrees with its count: one
+       hole scored STAYS, three holes scored STAY, and none says only that the
+       round is still on. The phone's twin prints the same three. */
+    t('the held round\u2019s line agrees with its count',
+      [csLiveHeldLine({ scores: [[4, null, null]] }), csLiveHeldLine({ scores: [[4, 5, 3], [5, null, 4]] }), csLiveHeldLine({ scores: [[null, null]] })],
+      ['Your round is still on, and its 1 hole scored stays with it. Change the course, the tee or the holes here.',
+       'Your round is still on, and its 3 holes scored stay with it. Change the course, the tee or the holes here.',
+       'Your round is still on. Change the course, the tee or the holes here.'])
     t('D252: one you have not joined says the door is open',
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();
