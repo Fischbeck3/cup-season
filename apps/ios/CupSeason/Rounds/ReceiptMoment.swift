@@ -75,7 +75,7 @@ struct ReceiptMoment: View {
       .padding(CSTokens.Space.s4)
       .frame(maxWidth: .infinity, minHeight: 280, alignment: .topLeading)
     }
-    .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
+    .clipShape(card)
     .overlay(alignment: .topTrailing) {
       // D59 · the marker medallion rides every round photograph
       if onPhoto, let marker { MarkerStamp(marker: marker).padding(CSTokens.Space.s3) }
@@ -86,13 +86,16 @@ struct ReceiptMoment: View {
     // combined element still took the union of its children's frames (the
     // filled photograph at 428pt, the contour's offset), so it ran past the
     // side of an SE. The accessibility shape is the card's own.
-    .contentShape(.accessibility, RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
+    .contentShape(.accessibility, card)
     // the desk's alt: a moment over a photograph says it has one
     .accessibilityValue(onPhoto ? "Round photo" : "")
     .accessibilityIdentifier(onPhoto ? "receipt.moment.photo" : "receipt.moment")
   }
 
   private var ink: Color { onPhoto ? CSTokens.dark.scrimInk : cs.ink }
+  /// The card's one shape: what it is clipped to, and the accessibility
+  /// frame VoiceOver draws round it.
+  private var card: RoundedRectangle { RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous) }
 
   @ViewBuilder private var ground: some View {
     if let picture {
