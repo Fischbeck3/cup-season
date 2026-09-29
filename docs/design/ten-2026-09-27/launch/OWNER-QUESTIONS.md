@@ -1417,6 +1417,13 @@ At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SY
 
 These need the owner's hands, not a ruling.
 
+- **The held migrations: one branch, one `db push` (added 2026-09-29, root).** Every migration written for launch is held off main, so the web pushes never carry a database change. They collect on `claude/ten-held-migrations-2026-09-29` (worktree `/Users/fischbeck3/cup-season-claude-ten-mergeprep`), each with its harness-world mirror and its proof on a disposable PostgreSQL 17 cluster (the full chain, never the linked project).
+  - **On the branch now:** `20261212090000_a_week_both_posted_counts_once.sql` (W7-002, `83545b21`). `head_to_head` counts a week both golfers posted once, however many seasons they share. Control: the chain without it fails "got 4, expected 2"; with it, 8 of 8 pass. This is the "database item behind X36" below; X36 itself stays yours.
+  - **Being written (session B):** X42 / W7-001, the public plan card's "in" (`20261213…`), and the amended AW2-05 (`20261211100000`, B's `fff81912`: an idle clash says its idle words on its last day too).
+  - **Also held, on B's branch:** `d30f1ecb` (`20261211094500`, Home's invitation says "See the terms before you're in").
+  - **Not written:** X41 waits on your X39 ruling (the PB rule rides in it). W7-004, the durable fix for a mid-round setup change, comes after launch; W7-003's lock covers Oct 1 on both clients.
+  - **Your two steps when you want them:** (1) say "ship the held migrations", and root merges the branch into main (the migration files, their fixture mirrors and tests; nothing the web serves changes); (2) run `supabase db push` from a linked checkout of main. Every one keeps its payload's shape, so either order of client and database is safe.
+
 - **X41 · Broke 80 on a nine.**
   - The server half: a new migration is needed (none exists at `7b9c17e4`). It makes `home_feed.is_sub80`, its prior-window check and every other sub-80 producer require `holes_played = 18`. The owner applies it with `supabase db push`.
   - The client half is built on both clients: the web's guard (e8108e59, with "9 HOLES" from 2dce66e6) and the phone's `HomeWireCopy` guard (5404441a, merged in 146401bb).
@@ -1429,7 +1436,7 @@ These need the owner's hands, not a ruling.
 - **Human proof.** HUMAN.md's gates are NOT RUN: G1–G4 need three people who have never opened Cup Season, on their own phones, and D1–D13 are the owner's device checks, including finishing a live round (D12) and the album's retry (D13). No capture or test can pass them.
 - **Pushes and deploys.** Web `7b9c17e4` has been live since 03:53 MST on 2026-09-29, and Owner TestFlight 1335 came from the same SHA at 04:04 (LEDGER §4i, HUMAN §0). Earlier: web `272c2da1`, and TestFlight 1328 from `41cf8050`. No database change has shipped with any of them. Every further push, `db push`, functions deploy and upload waits on the owner's yes to root.
 - **Round 3.** Session D re-measures on the owner's word, at the next candidate: `7b9c17e4` plus sessions B's and E's next sets. Every fix after `ed8e6837` is verification pending until then.
-- **A database item behind X36:** `head_to_head`'s season facet counts a week once per shared season, so two shared seasons count one week twice. The head-to-head's "Ten meetings" comes from that (critique B2). The dedupe to one per calendar week is a migration.
+- **A database item behind X36 (WRITTEN 2026-09-29: W7-002 on the held branch, above):** `head_to_head`'s season facet counts a week once per shared season, so two shared seasons count one week twice. The head-to-head's "Ten meetings" comes from that (critique B2). The dedupe to one per calendar week is a migration.
 - **Three defects found or raised again while writing this memo.**
   - The `?cs_home_state` hatch lifted the Door on any host (X37). Found by C from the code; root confirmed it on a prod-like server (`cf401dee` lifted the Door). **Fixed (45d40eb3):** the Door stays up, with the shell inert, unless the hatch's fixture is served. The exposure is live on cupseason.app until the ship.
   - The LEDGER's X37 line printed the owner's handle. **Fixed (ba6935a5):** it names the handle by role. History is not rewritten, since the handle had been public in `index.html` as the old placeholder.
@@ -1442,7 +1449,7 @@ These need the owner's hands, not a ruling.
   - Its twins, when taken: `HomeFallbackItems.swift:100` and `SyntheticWorld+Home.swift:143` (N4), and the web fixture line.
 - **X42 in round 2.** The public plan link's "are in" was round 2's top item (category P0, owner P1).
   - The client now says "on the plan", which is true whatever the server counts (09beefd3).
-  - The database half still needs its migration written; none exists on integration. It is what lets the card say "in" truthfully again.
+  - The database half still needs its migration written; none exists on integration. It is what lets the card say "in" truthfully again. **Session B is writing it now (W7-001), for the held branch above.**
 - **The clash lead's sentence** (`home_dispatch`, `20261006093000:243`) hides who holds the week. Root lists it as database owed, and it rides with Q10.
 
 ## E · Recorded by root, with no question
