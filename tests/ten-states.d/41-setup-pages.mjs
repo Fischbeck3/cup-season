@@ -382,12 +382,15 @@ const deskScroller = (sel) => async (page) => {
     const kids = [...a.children].filter((c) => c.getBoundingClientRect().height > 0), last = kids[kids.length - 1]
     const tail = !!last && last.getBoundingClientRect().bottom <= a.getBoundingClientRect().bottom + 1
     a.scrollTop = 0; await frame()
-    return { h: Math.round(h), vh: innerHeight, capped, over, atRest, masked, atEnd, tail, back: a.hasAttribute('data-more') }
+    /* a scroll box clips a focus ring (2px, 2px off) drawn at its own edge: the first focusable's ring must fit inside the box */
+    const f = a.querySelector('button, a[href], [tabindex]:not([tabindex="-1"])'), fr = f && f.getBoundingClientRect(), ar = a.getBoundingClientRect()
+    const ring = !f || (fr.left - 4 >= ar.left - 0.5 && fr.top - 4 >= ar.top - 0.5 && fr.right + 4 <= ar.right + 0.5)
+    return { h: Math.round(h), vh: innerHeight, capped, over, atRest, masked, atEnd, tail, ring, back: a.hasAttribute('data-more') }
   }, sel)
   if (r.missing) return `${sel} is not drawn`
   if (!r.capped) return `${sel} is ${r.h}px tall in a ${r.vh}px window: not a scroll box, so its tail is out of reach`
   if (!r.over) return `${sel} fits its box, so its edge cannot be read`
-  return r.atRest && r.masked && !r.atEnd && r.tail && r.back ? true : `${sel}'s edge: ${JSON.stringify(r)}`
+  return r.atRest && r.masked && !r.atEnd && r.tail && r.ring && r.back ? true : `${sel}'s edge: ${JSON.stringify(r)}`
 }
 /* TEN / W8 · W7-022 [B2-desk-8] · the reading measure is the track's and the aside follows the column after the desk gutter: from 1100 up the
    gap between a desk body's reading column and its second column is the gutter (40), not a void */

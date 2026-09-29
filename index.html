@@ -625,6 +625,9 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
      the page's own foot. Both wear the rail's bottom fade while there is more (csBookEdge's data-more, wired for
      every .deskaside and .deskwire below); neither traps the wheel (no overscroll-behavior:contain). */
   .deskaside{max-height:calc(100dvh - 80px); overflow:auto; padding-right:2px;}
+  /* a scroll box clips what is drawn outside it: a focus ring (2px, 2px off) at the column's own edge lost its left and its top.
+     The box takes 4px (s1) of padding on every side and gives it back as a negative margin, so the content stays where it was */
+  .deskaside, .deskwire{padding:var(--s1); margin:calc(-1 * var(--s1));}
   .deskwire[data-more], .deskaside[data-more]{
     -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
     mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
