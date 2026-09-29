@@ -395,6 +395,67 @@ The judges stay with root, so their calibration holds across the native half and
 - database owed: X41, X42, the head-to-head week count, and `d30f1ecb`;
 - counsel on "The pot" in `legal.html`.
 
+## 4j · The morning after the ship: C, B and E merged, root's audit fixes (2026-09-29, 05:00–07:00, nothing pushed)
+
+Nothing here is on main or in a TestFlight build. Main is still `7b9c17e4`, the same tree as Owner TestFlight 1335. Each push or upload needs the owner's new yes.
+
+**Merged into integration:**
+
+| Merge | What | The session's own proof |
+|---|---|---|
+| `fe811bb6` ← C `bb871c73` | Round 2 folded into the six launch docs; Q39 (the record's "+2.4") | preflight 0/0 |
+| `295e837b` ← B `e8cc1b12` | W6 checkpoint: D380's Share (card and link), AW2-09's course row, the tee select, the card gate's Save, the covenant at 375, the rail's foot, the wizard's Pro row, PAR-33's bridge, and three twins (the buy-in in ink, the sync window, the receipt's 3:2 plate) | all 44 suites, app-tests 502/0, preflight 0/0 |
+| `5b352210` ← E `97f9204e` | N4 phase 2 part 1: the six P1s as far as unblocked, the sub-80 twin, the W1–W5 and B copy twins, root's four rulings, Q29, A's first P2s | build; non-UI 1703/1703; UI 43/45 (0 failed, 2 gated); SE3 5/5; preflight 0/0 |
+| `a27fbaf5` | The ratchets lowered to the merged head: LINT-06 1066, LINT-07 102, LINT-14 123 | preflight 0/0 |
+| `c11199d7` ← B `41a71fc6` | D's four round-2 items: a first round's "Add my round" opens the fold and names the field there; "Change setup" holds the round; Delete account takes and returns focus; OB2-01's ground under the board photo. Plus the empty slope, per root's ruling | preflight 0/0; all 44 suites (app-tests 502/0); a full harness run with 0 route failures |
+
+One conflict, in the settings "Ball marker" block: root's group name and B's "Your photo" gloss were both kept.
+
+**Root's fixes from round 2's audit (AW2) and detector (DX2):**
+- `29dfb7b0` AW2-10: the card gate's two questions name their groups, and a marker pick returns focus to its row. It had fallen to `<body>`.
+- `4c2ac97f` AW2-11: a focus ring on the leaf is drawn in the leaf's ink. Dark went from 2.54 to 14.44:1.
+- `70af0c09` AW2-18 part 1:
+  - decorative SVGs carry aria-hidden (home--member went from 28 unnamed to 0);
+  - a failed "Send code" leaves focus on the address, not `<body>`.
+- `7e1d5949` AW2-18 part 2 / TP-17: no page skips a heading level.
+  - 31 of 154 renders skipped a level at `a27fbaf5`; 0 now.
+  - Pixel-identical, except for #msSame below.
+- `f61b96c9` TP2-01: `#msSame` is a sentence in the body role.
+
+**Rulings sent to the lanes:**
+- The empty slope follows the phone's IOS-030 guard. score_round stores no differential without a slope, so the web's `||113` preview goes (B).
+- N4-113's "RIGHT NOW" is not ember. No round is live on the when-fork (D359, L-40).
+- E's credit below the panel stands, for measured contrast.
+- Toolbar Close at ~42.6pt in partial-detent sheets is the platform's scaled detent. It becomes a device check, with no code change.
+- B's receipt plate stays after the verdict, keeping D362/D387's first screen.
+- The board's round story card takes §10.3's `.band` geometry on both clients: a feed story is the wire's case, and §10.3 names the board's three-stop wash as replaced.
+- A2's course-first block is approved on both clients.
+  - The order is noCard, then **noCourse** ("Add the course you played — its tee sets the rating and slope."), then noRating.
+  - B writes the web half and E adds `PostCalc.Blocked.noCourse`.
+  - E also twins B's held round ("Change setup" keeps the same round and its scores).
+- AW2-05 (Home's lead says the clock twice) moves to B. It needs a copy-only home_dispatch patch, held for the owner's `db push` like `d30f1ecb`, plus both fallbacks.
+
+**Verification at the merged head** (root's own simulator, CS-Claude-Root-17Pro `3CA82A3B`, never the owner's):
+- **Native at `a27fbaf5`:**
+  - build green;
+  - package tests: 1374 Swift Testing and 16 XCTest;
+  - app-hosted: 47 XCTest and 131 Swift Testing. The first attempt hit the known "runner hung before establishing connection", and a rerun passed.
+  - **UI 57: 54 passed, 2 env-gated skips, 1 failure.** The failure is `N4ShellUITests` line 41, the test's own cleanup: a keyboard "search" key this simulator does not have. It failed 2 of 2, including on a warmed simulator. Every product assertion passes. E is hardening the cleanup.
+- **Web at `c11199d7`:**
+  - app-tests 503/0.
+  - 42 of 43 browser suites green on the first pass. A run at `f61b96c9`, stopped when B's head landed, had finished 27 suites, all green.
+  - **`round-record-browser.js` flaked under load.** It failed once at 1440 light, with the record 270 tall against its 210 cap. Of three reruns, two passed and one failed at 390 light (272).
+  - A probe then rendered the card 16 times at `c11199d7` and 16 at `41a71fc6`. It measured 180–181 every time, with every font face loaded and identical child heights (id 32, title 43, story 22, foot 52). It did not reproduce.
+  - Nothing root changed renders inside the feed card. It is recorded as a load-dependent flake to watch: both failures came while two other lanes' simulators and suites loaded the machine.
+- **Heading sweep:** 31 of 154 renders skipped a level at `a27fbaf5`; 0 at `f61b96c9`. The same sweep found 0 unnamed decorative SVGs.
+- preflight 0/0 at every commit.
+
+**Still the owner's:**
+- Q31, the Oct 1 look (1335 turns Fall on Oct 1);
+- X36–X40, Q1–Q39;
+- database owed: X41, X42, the head-to-head week count, `d30f1ecb`, and AW2-05's patch once B writes it;
+- counsel on "The pot".
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
