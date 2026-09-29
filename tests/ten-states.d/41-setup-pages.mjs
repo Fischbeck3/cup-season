@@ -408,6 +408,15 @@ const openHub = async (page) => {
   await tapUntil(page, '#youProfile', () => document.getElementById('sheet').classList.contains('open') && /Card & settings/.test(document.getElementById('shTitle').textContent))
   await page.waitForTimeout(500)
 }
+/* TEN / W8 · W7-078 [A2-settings-10] · the 60-day handle rule is said once, from the gate's producer: the field is labelled 'Handle' and the rule ('3–20 letters, numbers or _. It changes once every 60 days.') is the
+   sentence that describes it, not a clause squeezed into the label ('Handle · moves once / 60 days', which wrapped and said it a third way) */
+const handleRule = async (page) => page.evaluate(() => {
+  const lab = document.querySelector('label[for="phHandle"]'), input = document.getElementById('phHandle'), rule = document.getElementById('phHandleRule')
+  if (!lab || lab.textContent.trim() !== 'Handle') return `the field is labelled ${JSON.stringify(lab && lab.textContent.trim())}, not Handle`
+  if (!rule || rule.textContent.trim() !== '3\u201320 letters, numbers or _. It changes once every 60 days.') return `the rule reads ${JSON.stringify(rule && rule.textContent.trim())}`
+  if (input.getAttribute('aria-describedby') !== 'phHandleRule') return 'the handle field is not described by the rule'
+  return /moves once/i.test(document.getElementById('sheet').innerText) ? 'the sheet still says "moves once"' : true
+})
 /* TEN / W8 · W7-042 [A2-settings-3] · what an armed card says when it is left: ONE sentence, in the status line that Save describes itself with, on the
    pane that holds the edits (a golfer on Settings is brought back to it), in view, with focus on Save */
 const CARD_UNSAVED = 'You have unsaved changes. Save them, or do that again to leave without saving.'
@@ -469,7 +478,7 @@ const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
     drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
     /* TEN / W6 · AW2-06: a row's label is agateS, never mono; a league's code stays mono */
-    check: all(notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph(),
+    check: all(handleRule, notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph(),
       /* TEN / W8 · W7-032 [A2-settings-7]: Your card / Settings is the system segment (§7.2), not a boxed pill */
       isSystemSegment('#phSeg', 'Your card')) },
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',

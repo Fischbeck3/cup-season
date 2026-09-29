@@ -31336,7 +31336,8 @@ function openProfileHub(){
       <input type="file" id="phPhotoFile" accept="image/*" style="display:none">
     </div>
     <div class="frow" style="margin-top:10px">
-      <div><label class="f" for="phHandle">Handle · moves once / 60 days</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
+      <!-- W7-078 · the 60-day rule is said ONCE, from the gate's producer (CS_ONBOARDING.handleRule, the phone's OnboardingCopy.handleRule): the label is the field's name, and the rule is the sentence that describes it -->
+      <div><label class="f" for="phHandle">Handle</label><input class="f" id="phHandle" style="font-family:var(--sans)" aria-describedby="phHandleRule"><p class="fine" id="phHandleRule" style="padding-left:0">${typeof CS_ONBOARDING !== 'undefined' ? esc(CS_ONBOARDING.handleRule) : ''}</p></div>
       <div><label class="f" id="phDiscL">Findable by</label><div id="phDisc" role="group" aria-labelledby="phDiscL" style="display:flex; gap:6px; margin-top:6px;">
         <button class="mini" data-disc="everyone" aria-pressed="false">All</button>
         <button class="mini" data-disc="friends" aria-pressed="false">Buddies</button>
