@@ -210,3 +210,13 @@ import Foundation
     #expect(withWeek.hasSuffix(without))
   }
 }
+
+/// N4-063 · the buddy definition is TERMINOLOGY §1 #7 verbatim, said once:
+/// the empty Golfers root's sub is a lead, not the definition again.
+@Suite struct BuddyDefinitionOnceTests {
+  @Test func theDefinitionIsTerminologysAndTheSubDoesNotRepeatIt() {
+    #expect(GolfersRoot.buddyDefinition == "Buddies see each other’s rounds, and either of you can pull the other into a season.")
+    #expect(GolfersRoot.empty().sub == "Add the people you actually play with.")
+    #expect(!GolfersRoot.empty().sub.contains("pull the other into a season"))
+  }
+}
