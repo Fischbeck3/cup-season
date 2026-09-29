@@ -19,7 +19,7 @@
       { id:'m4', role:'player',       league:{ id:D, name:'Forming one', phase:'setup' } }];
     window.homeDispatch={ items:[], lead_suppress:[], me:{ memberships:[
       { league_id:A, name:'Fellas', standing:{ rank:2, points_rank:2, points_tied:false, of:2, points:14, gap_to_leader:3, leader_name:'Jade Park' }, season:{ week_no:8, weeks_total:26, days_left:127 }, clash:{ closes_today:true } },
-      { league_id:B, name:'Who’s the bitch?', standing:{ rank:1, points_rank:1, points_tied:false, of:2, points:21, gap_to_leader:0, leader_name:'Audit' }, season:{ week_no:6, weeks_total:13, days_left:3 }, clash:{ closes_today:false } },
+      { league_id:B, name:'Who’s the bitch?', standing:{ rank:1, points_rank:1, points_tied:false, of:2, points:21, gap_to_leader:0, leader_name:'Audit', runner_up_name:'Casey Placeholder', runner_up_points:12 }, season:{ week_no:6, weeks_total:13, days_left:3 }, clash:{ closes_today:false } },
       /* a stale/error membership row: no standing at all — the row must not invent one */
       { league_id:C, name:'No facts yet', standing:null, season:null } ] } };
     document.querySelector('[data-v="compete"]').click();
@@ -33,12 +33,12 @@
     const btext=sel=>band.querySelector(sel)?.textContent||'';
     check(btext('.cband-fig')==='14points','the band lost the points figure: '+btext('.cband-fig'));
     check(btext('.cband-note')==='2ndYou are 3 back from Jade Park.','MW-03: the band said the rank twice or lost the line: '+btext('.cband-note'));
-    check(btext('.cband-meta')==='In season · Week 8 of 26 · The clash closes today','MW-03: the band lost the week or the closing clash: '+btext('.cband-meta'));
+    check(btext('.cband-meta')==='Week 8 of 26 · The clash closes today','MW-03: the band lost the week or the closing clash: '+btext('.cband-meta'));
     check(btext('.cband-state')==='Live','the band lost its state word');
-    check(text(B,'.ps')==='1st of 2 · 21 pts · leading · you run it','MW-03: the leader’s line is wrong: '+text(B,'.ps'));
+    check(text(B,'.ps')==='1st of 2 · 21 pts · 9 clear of Casey · you run it','PAR-09: the leader’s line is wrong: '+text(B,'.ps'));
     check(text(B,'.pt')==='3 days left','MW-03: the last week is not the status: '+text(B,'.pt'));
-    check(text(C,'.ps')==='You’re in it.' && text(C,'.pe')==='In season' && !row(C).querySelector('.pt'),'MW-03: a row with no facts invented some: '+text(C,'.ps'));
-    check(!/1st|leading/.test(text(C,'.ps')),'MW-03: a missing rank was rendered as first');
+    check(text(C,'.ps')==='You’re in it.' && text(C,'.pe')==='Season live' && !row(C).querySelector('.pt'),'MW-03: a row with no facts invented some: '+text(C,'.ps'));
+    check(!/1st|clear of|leading/.test(text(C,'.ps')),'MW-03: a missing rank was rendered as first');
     check(text(D,'.pe')==='Forming' && text(D,'.ps')==='You’re in it.','a forming league borrowed season facts');
     check(document.querySelectorAll('#cmpList .peerrow').length===3 && document.querySelectorAll('#cmpList .cband').length===1,'the four seasons did not all render (band + three rows)');
     check(Array.from(document.querySelectorAll('#cmpList .peerrow')).every(b=>b.getBoundingClientRect().height>=44),'a row is under the tap target');

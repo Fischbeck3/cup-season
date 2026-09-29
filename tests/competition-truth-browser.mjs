@@ -113,7 +113,7 @@ for (const width of [375, 402, 1280]) for (const theme of ['dark', 'light']) {
     return { up: by('league:l1'), live: by('league:l2'), ev1: by('event:ev1'), ev2: by('event:ev2') }
   })
   check(`${label}: tomorrow's first tee on a Phoenix evening is Upcoming, "${rows.up.eyebrow}"`, rows.up.state === 'Upcoming' && rows.up.eyebrow === 'Before first tee' && !rows.up.figure, rows.up)
-  check(`${label}: a season under way is Live, "${rows.live.eyebrow}"`, rows.live.state === 'Live' && rows.live.eyebrow === 'In season · Week 3 of 12', rows.live)
+  check(`${label}: a season under way is Live, "${rows.live.eyebrow}"`, rows.live.state === 'Live' && rows.live.eyebrow === 'Week 3 of 12', rows.live)
   check(`${label}: a live Ryder with no date says "${rows.ev1.eyebrow}", never Forming; with a date, the day`, rows.ev1.eyebrow === 'Live' && rows.ev2.eyebrow && rows.ev2.eyebrow !== 'Forming', { ev1: rows.ev1, ev2: rows.ev2 })
 
   /* ---- the Cup Final race: no per-golfer cap beside a squad's rounds */

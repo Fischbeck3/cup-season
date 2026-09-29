@@ -216,8 +216,15 @@
     savePostDraft(); await new Promise(r=>setTimeout(r,450));
     check(!!localStorage.getItem(postDraftKey(uid)),'F2: nothing was saved to start over from');
 
+    /* N4-022 · Start over is armed: the first tap says what the second does
+       and clears nothing; the second clears */
     document.getElementById('postReset').click();
     await new Promise(r=>setTimeout(r,60));
+    check(document.getElementById('inGross').value==='84','N4-022: the first tap on Start over cleared the card');
+    check(document.getElementById('postReset').textContent==='Sure? This clears the card','N4-022: the first tap did not say what the second does');
+    document.getElementById('postReset').click();
+    await new Promise(r=>setTimeout(r,60));
+    check(document.getElementById('postReset').textContent==='Start over','N4-022: Start over stayed armed after it cleared');
     check(document.getElementById('inGross').value==='','F2: Start over kept the gross');
     for(const id of ['inF9','inB9','inRating','inSlope','inCourse'])
       check(document.getElementById(id).value==='','F2: Start over kept '+id);
@@ -258,7 +265,7 @@
     /* the frozen request is NOT released by Start over — that is what it is for */
     postRequestWrite(uid,{id:'f0000000-0000-4000-8000-00000000000c',env:null,accepted:null});
     reset(); document.getElementById('inGross').value='91';
-    document.getElementById('postReset').click();
+    document.getElementById('postReset').click(); document.getElementById('postReset').click();   /* armed: two taps (N4-022) */
     await new Promise(r=>setTimeout(r,60));
     const kept=postRequestRead(uid);
     check(kept && kept.id==='f0000000-0000-4000-8000-00000000000c','F2: Start over released a request the server may hold');
