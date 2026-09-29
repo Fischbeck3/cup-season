@@ -148,7 +148,6 @@ struct CSCheckRow<Trailing: View>: View {
   let face: CSFace.Model
   let title: Text
   let sub: Text?
-  var spine: Color? = nil
   @ViewBuilder let trailing: Trailing
 
   var body: some View {
@@ -169,16 +168,14 @@ struct CSCheckRow<Trailing: View>: View {
     }
     .padding(.vertical, CSTokens.Space.s3)
     .frame(minHeight: 56)
-    .overlay(alignment: .leading) {
-      if let spine { Rectangle().fill(spine).frame(width: 3).padding(.vertical, 10).padding(.leading, -8) }
-    }
     .overlay(alignment: .bottom) { CSRule() }
   }
 }
 
 /// The list row (IOS-019 rule 2): a face, a bold line, a small line, a
-/// trailing slot — on ground, parted from the next by a rule. An optional
-/// spine on the leading edge (a request wears ember).
+/// trailing slot — on ground, parted from the next by a rule. N4-094 · no
+/// spine: the retired card spine carried a request's ember; the row's words
+/// carry its state now.
 ///
 /// Y-23 · with `onTap`, the face and the two lines are ONE button (the person),
 /// read as one element with `hint`; the trailing slot keeps its own controls.
@@ -187,7 +184,6 @@ struct RoomLineRow<Trailing: View>: View {
   let face: CSFace.Model
   let title: Text
   let sub: Text?
-  var spine: Color? = nil
   var onTap: (() -> Void)? = nil
   var hint: String? = nil
   /// Y-33 · what the combined element SAYS, when the drawn title carries a
@@ -210,9 +206,6 @@ struct RoomLineRow<Trailing: View>: View {
     }
     .padding(.vertical, CSTokens.Space.s3)
     .frame(minHeight: 56)
-    .overlay(alignment: .leading) {
-      if let spine { Rectangle().fill(spine).frame(width: 3).padding(.vertical, 12).padding(.leading, -8) }
-    }
     .overlay(alignment: .bottom) { CSRule() }
   }
 
