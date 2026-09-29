@@ -113,7 +113,7 @@ struct SeasonRulesPage: View {
         }
       }
       RoomCheckRow("Squads", sub: LeagueCopy.squadsSub(model.clock, solo: model.solo)) {
-        Image(systemName: "person.2").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
+        CSGlyph(.people, size: .row).foregroundStyle(cs.ink)   // N4-095 · the drawn family, not an SF Symbol
       } trail: { RoomMini("View") { links.openDraft() } }
       RoomCheckRow("Share the season", sub: "A public page — the standings so far, no account needed") {
         Text("🔗").font(.system(size: 15))

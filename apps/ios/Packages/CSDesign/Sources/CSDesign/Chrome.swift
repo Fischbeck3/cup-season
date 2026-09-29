@@ -403,8 +403,14 @@ public struct CSTabBand<T: Hashable>: View {
           .modifier(CSPlayHold(on: item.isPlay, act: onPlayHold))
           .accessibilityLabel(item.label)
           .accessibilityAddTraits(on ? [.isSelected] : [])
+          // N4-095 · Play is not a place: it opens the ways to play, and says so
+          .accessibilityHint(item.isPlay ? "Opens the ways to play a round" : "")
         }
       }
+      // N4-095 · the band is the tab bar, and VoiceOver says so, with each
+      // tab's position ("Home, tab, 1 of 5"), as it would of the system bar
+      .accessibilityElement(children: .contain)
+      .accessibilityAddTraits(.isTabBar)
     }
     .background(cs.bg0)
   }
