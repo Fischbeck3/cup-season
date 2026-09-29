@@ -30344,13 +30344,16 @@ function openProfileHub(){
          out was a full-width outlined button, the loudest thing on the pane -->
     <button type="button" class="phlink" id="phOut">Sign out of this browser</button>
     <button type="button" class="phlink phlink-neg" id="phDelete">Delete my account</button>
-    <div id="phDelConfirm" style="display:none; margin-top:8px">
+    <!-- TEN / W6 · critique A2 (P1): a named group; focus lands on what
+         deletion does, which "Delete permanently" is described by, and the
+         decline is the phone's "Not now" (CardAndSettingsScreen) -->
+    <div id="phDelConfirm" role="group" aria-labelledby="phDelete" style="display:none; margin-top:8px">
       <!-- D396 · the confirm says everything deletion does: the words and the
            photos go, every share link is withdrawn, the rounds stay -->
-      <p class="fine" style="padding-left:0">${esc(CS_DELETE_ACCOUNT)}</p>
+      <p class="fine" id="phDelWhat" tabindex="-1" style="padding-left:0">${esc(CS_DELETE_ACCOUNT)}</p>
       <div style="display:flex; gap:8px; margin-top:10px">
-        <button class="btn" id="phDelYes" style="background:var(--neg); color:var(--bg0); box-shadow:none; flex:1">Delete permanently</button>
-        <button class="mini" id="phDelNo">Cancel</button>
+        <button class="btn" id="phDelYes" aria-describedby="phDelWhat" style="background:var(--neg); color:var(--bg0); box-shadow:none; flex:1">Delete permanently</button>
+        <button class="mini" id="phDelNo">Not now</button>
       </div>
     </div>
 
@@ -30515,10 +30518,16 @@ function openProfileHub(){
     e.preventDefault();
     $('#phDelete').style.display = 'none';
     $('#phDelConfirm').style.display = 'block';
+    /* TEN / W6 · critique A2 (P1, WCAG 2.4.3 / 4.1.3): the opener hides
+       itself, so focus fell to the page and a screen reader heard nothing.
+       Focus moves to what deletion does, inside the group the opener names —
+       the confirmation is read as it opens (the phone announces it) */
+    $('#phDelWhat')?.focus();
   });
   $('#phDelNo')?.addEventListener('click', () => {
     $('#phDelConfirm').style.display = 'none';
     $('#phDelete').style.display = '';
+    $('#phDelete')?.focus();   /* and back to the control that opened it */
   });
   $('#phDelYes')?.addEventListener('click', async () => {
     const btn = $('#phDelYes'); btn.disabled = true; btn.textContent = 'Deleting…';

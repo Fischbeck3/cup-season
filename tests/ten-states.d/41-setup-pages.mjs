@@ -199,7 +199,23 @@ const SETTINGS = [
       await page.locator('#phDelYes').scrollIntoViewIfNeeded().catch(() => {})
       await page.waitForTimeout(400)
     },
-    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phDelYes': 'visible', '#phDelNo': 'visible' } } },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phDelYes': 'visible', '#phDelNo': 'visible' } },
+    /* TEN / W6 · critique A2 (P1, WCAG 2.4.3 / 4.1.3): focus goes into the
+       confirmation, which is a named group read as it opens; Not now returns
+       focus to the opener (the check re-opens it for the capture) */
+    check: async (page) => {
+      const open = await page.evaluate(() => {
+        const g = document.getElementById('phDelConfirm'), a = document.activeElement
+        return { focus: a && a.id, role: g.getAttribute('role'), named: g.getAttribute('aria-labelledby'), described: document.getElementById('phDelYes').getAttribute('aria-describedby') }
+      })
+      if (open.focus !== 'phDelWhat' || open.role !== 'group' || open.named !== 'phDelete' || open.described !== 'phDelWhat') return 'the confirmation does not take focus or say what it does: ' + JSON.stringify(open)
+      await click(page, '#phDelNo')
+      const back = await page.evaluate(() => document.activeElement && document.activeElement.id)
+      await click(page, '#phDelete')
+      await until(page, () => { const c = document.getElementById('phDelConfirm'); return !!c && c.offsetParent !== null })
+      await page.locator('#phDelYes').scrollIntoViewIfNeeded().catch(() => {})
+      return back === 'phDelete' ? true : 'Not now did not return focus to the opener: ' + back
+    } },
   /* NOT CAPTURED: the composer's own confirmation ("Post as even par?") is
      reachable only in hole-by-hole mode, and #postMode is display:none --
      the grid is dormant by decision (D34). Not a defect; no path to it. */
