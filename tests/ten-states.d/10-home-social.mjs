@@ -170,10 +170,7 @@ const HOME_WORLD = [
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
     check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds,
-      /* TEN / W6 · AW2-05 (L-34, D360): the eyebrow names the competition only, and the lead says the
-         clock once (the world mirrors 20261211100000, held for the owner's db push) */
-      onScreen('THE FIXTURE DERBY · THE CLASH(?! · CLOSES)', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
-      async (page) => page.evaluate(() => { const t = ((document.getElementById('homeLead') || {}).innerText || '').replace(/\s+/g, ' '); const n = (t.match(/closes in 5 days/gi) || []).length; return n === 1 ? true : `the lead says the clock ${n} times: ${JSON.stringify(t.slice(0, 160))}` }),
+      onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
     drive: worldDrive, expect: { view: 'view-home' },

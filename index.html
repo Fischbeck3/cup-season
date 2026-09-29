@@ -1984,7 +1984,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   color:var(--ceremony-ink); background:var(--ceremony); box-shadow:var(--shadow-lift);}
 /* the plate: a golfer's photograph, or the crest over their home course's
    contour. NEVER a gradient wash - it is not one of the three legal states. */
-/* W7-057 · the plate GIVES UP the pixels a long record needs: 58% of the card
+/* W7-061 [B2-history-10] · the plate GIVES UP the pixels a long record needs: 58% of the card
    while the record half fits in its 42%, less when a best's course wraps to a
    third line (AW2-22's wrap pushed the folio out of the fixed-ratio card and
    clipped it at 375, 402 and 1280). The name and medallion ride its bottom. */
@@ -3644,10 +3644,18 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 /* W1 · the verdict's words beside the points: which league, where in the month */
 .rcpt-figs .lens{flex:1; min-width:0; margin:0 0 1px; font-family:var(--board); font-size:12px; font-weight:600;
   letter-spacing:calc(var(--agate) * 1em); line-height:1.3; color:var(--mut);}
+/* PAR-28 · the Major's pot: the figure and its own caption on one baseline
+   (the phone's MajorRoomView row). Gold while the jug is still to be won, ink
+   once it is, so the jug stays the one gold object (§2.4). */
+.mjpot{display:flex; flex-wrap:wrap; justify-content:center; align-items:baseline; gap:var(--s1) var(--s2); padding:var(--s1) 0 0;}
+.mjpot .cs-fig-s{color:var(--gold);}
+.mjpot.is-done .cs-fig-s{color:var(--ink);}
+.mjpot .cs-agate{color:var(--mut);}
 /* §7.1 · destructive, armed: bg2 fill (the .mini), neg label — 4.58:1 / 4.62:1 */
 .mini.del{color:var(--neg);}
 /* csArmTap's armed state: the label turns neg and says what the next tap does */
 .mini.is-armed{color:var(--neg);}
+.mini.is-armed:active{background:color-mix(in srgb, var(--neg) 16%, transparent);}   /* §7.1 · pressed, the fill is neg at a16 (B's .btn.destructive) */
 /* N4-022 · Start over, under the composer's one primary, armed */
 .postreset{margin:0; padding:var(--s3) 0 0; text-align:center;}
 /* N4-171 · the casual finish: a tertiary link in content (§7.1 — ink on a 2px
@@ -6412,7 +6420,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  one line. The inputs were placeholders only — filled, nothing
                  said which number was the slope, and none had an accessible name. -->
             <fieldset class="teefields">
-              <legend class="f">Tee &amp; rating<span class="f-gloss cs-agate-s is-phrase">Off the scorecard</span></legend>
+              <legend class="f">Tee &amp; rating<span class="f-gloss cs-agate-s is-phrase">From your scorecard</span></legend>
               <div class="teegrid">
                 <label class="teefield"><span class="f">Tee</span><input class="f" id="lrTee" value="Blue" placeholder="—" autocomplete="off"></label>
                 <label class="teefield"><span class="f">Rating</span><input class="f" id="lrRate" type="number" step="0.1" value="70.2" placeholder="—" inputmode="decimal"></label>
@@ -8806,32 +8814,30 @@ window.renderEndgameFoot = renderEndgameFoot;
    "scored fresh" is D126's own wording, and the allowance sentence is
    D128(2)'s. The wizard's review keeps the dials — that is a control panel,
    and this is a page about a season. */
-function csAllowanceWords(n){
-  if(n === 100) return 'the full number';
-  if(n === 95)  return 'ninety-five percent';
-  if(n === 90)  return 'ninety percent';
-  return `${n} percent`;
-}
 function csSeasonRules(){
   const out = [];
   const cap = capDB();
   const counted = cap == null
     ? 'Every round you post counts.'
     : `Your best ${csWord(cap)} round${cap===1?'':'s'} each calendar month count.`;
-  out.push({ head:'How it scores',
+  /* N4-181 · the numbers a golfer scans for are FIGURES — the allowance, the
+     minimum and what a miss costs, the stake, the pot and the split — marked
+     as runs (UI_SYSTEM §1.6) and set by csFigRun; a count the sentence reads
+     stays a word ("your best four", PAR-29). A section that prints a name is
+     never marked. Twin of SeasonStory.sections(marked:). */
+  out.push({ head:'How it scores', marked:true,
              /* PROD-06 / R-M · the playing HCP IS the index under the allowance; "at 95%" applied it twice (L-14) — twin of SeasonStory.sections */
-             body:`Every round you post is scored against your playing HCP — ${ALLOW[state.preset]===100 ? 'your full index' : 'your index at '+csAllowanceWords(ALLOW[state.preset])}. ${counted}` });
+             body:`Every round you post is scored against your playing HCP — ${ALLOW[state.preset]===100 ? 'your full index' : 'your index at {'+ALLOW[state.preset]+'} percent'}. ${counted}` });
   /* L-34 · the minimum is `floorSentence`'s, as Home and the pot say it: this
      page wrote its own and left out the penalty (the owner's panel) */
-  if(Number(state.floor||0) > 0) out.push({ head:'What you owe the season', body: floorSentence() });
+  if(Number(state.floor||0) > 0) out.push({ head:'What you owe the season', body: floorSentence({ marked:true }), marked:true });
   out.push({ head:'How it ends', body: endgameLine({}) });
   if(Number(state.stake||0) > 0){
     const n = state.demo ? state.payers.length : Math.max(1, (window.CS?.members||[]).length);
     const pay = state.payout || [60,25,15];
-    out.push({ head:"What's on it",
-               body:`${fmt$(state.stake)} each, ${fmt$(state.stake*n)} in the pot. `
-                  + `${csCapWord(csWord(pay[0]))} percent to the champion, ${csWord(pay[1])} to the runner-up, `
-                  + `${csWord(pay[2])} to the points king.` });   /* the ledger line is the pot's (D273, said once: it printed twice on the desk) */
+    const split = csSplitWords(pay[0], pay[1], pay[2], true);   /* the covenant's own sentence, not a second one */
+    out.push({ head:"What's on it", marked:true,
+               body:`{${fmt$(state.stake)}} each, {${fmt$(state.stake*n)}} in the pot.` + (split ? ' ' + split + '.' : '') });   /* the ledger line is the pot's (D273, said once: it printed twice on the desk) */
   }
   out.push({ head:'Scores', body: VERIF[state.preset] + '.' });
   const pro = (window.CS?.members||[]).find(m => m.role === 'commissioner')?.profile?.display_name;
@@ -8843,8 +8849,21 @@ function csSeasonRules(){
 }
 function csSeasonRulesHtml(){
   return csSeasonRules().map(r =>
-    `<div class="rulesec"><b>${esc(r.head)}</b><p>${esc(r.body)}</p></div>`).join('');
+    `<div class="rulesec"><b>${esc(r.head)}</b><p>${r.marked ? csFigRun(r.body) : esc(r.body)}</p></div>`).join('');
 }
+/* N4-181 / N4-201 · the split said as the covenant says it (the phone's
+   PotMath.splitWords): "60 percent to the champion, 25 to the runner-up, 15
+   to the points king". The first share says "percent" and the rest are
+   figures; a zero share is left out (L-23); null when nothing pays. `marked`
+   sets each share as a figure run for a page that renders runs (csFigRun). */
+function csSplitWords(champion, runnerUp, pointsKing, marked){
+  const shares = [[champion, 'the champion'], [runnerUp, 'the runner-up'], [pointsKing, 'the points king']]
+    .filter(([p]) => Number(p) > 0);
+  if(!shares.length) return null;
+  const said = shares.map(([p, who], i) => { const n = marked ? '{' + p + '}' : String(p); return (i === 0 ? n + ' percent' : n) + ' to ' + who; });
+  return said.length === 1 ? said[0] : said.slice(0, -1).join(', ') + ', ' + said[said.length - 1];
+}
+window.csSplitWords = csSplitWords;
 window.csSeasonRules = csSeasonRules;
 
 /* ============ D244 · LEAVE THE SEASON — forward-only ============
@@ -11357,10 +11376,11 @@ function floorSentence(o){
   const pre  = o.preset ?? state.preset;
   const str  = o.structure ?? state.structure;
   if(!n) return 'No minimum — every round counts, and nothing is owed.';
-  const rounds = `${n} round${n===1?'':'s'} a month`;
+  const mk = v => o.marked ? '{' + v + '}' : String(v);   /* N4-181 · the rules page sets these as figure runs */
+  const rounds = `${mk(n)} round${n===1?'':'s'} a month`;
   if(str === 'solo')
     return `Post ${rounds}. In a solo league that is a habit, not a penalty — there's no squad to dock.`;
-  const pen = ['', "your squad loses 5 points for every round you're short",
+  const pen = ['', `your squad loses ${mk(5)} points for every round you're short`,
                    "the month's rounds are struck"][pre] || '';
   if(!pen) return `Post ${rounds}. Nothing is docked if you miss — it's a habit, not a penalty.`;
   return `Post ${rounds}. Miss once and your season bye covers it automatically; from the second miss ${pen}. Short months are waived.`;
@@ -19201,7 +19221,7 @@ function renderStats(){
     : partial ? `${curMonth()} is a short month — no minimum to clear. ${counts}`
     : joinedThisMonth ? `You joined this month, so there's no minimum to clear until ${csNextMonthLong()}. ${counts}`
     : rem>0   ? `${fmtN(rem)} more toward ${curMonth()}'s minimum of ${state.floor} — you're at ${fmtN(credits)}.` + half + ` ${counts}` + byeNote
-              : `${curMonth()}'s minimum is met — ${fmtN(credits)} of ${state.floor}.` + half + ` ${counts} ${CS_ANOTHER_CHANCE}`;
+              : `${curMonth()}'s minimum of ${state.floor} is met — you have ${fmtN(credits)}.` + half + ` ${counts} ${CS_ANOTHER_CHANCE}`;   /* N4-106 · the minimum named with its number, then what the golfer has */
 }
 /* D354 · the bye, said only when the payload says it. A season has one. Twin
    of `LeagueCopy.byeNote`; the two may not drift. */
@@ -22501,7 +22521,8 @@ const SeasonBook = {
   },
   domain(rows){const values=rows.flatMap(r=>r.cells.flatMap(c=>c.cumulative==null?[]:[c.cumulative]));return [Math.min(0,...values),Math.max(1,...values)];},
   standing(r){return r.points_rank==null?'':climbOrd(r.points_rank)+(r.tied?' · Tied':'');},
-  rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor);},
+  /* W7-120 [A2-competition-4] · the minimum names its unit, "minimum 2 rounds" (the phone's SeasonBookSnapshot.rules moves with it) */
+  rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor+(b.participation_floor===1?' round':' rounds'));},
 };
 window.SeasonBook=SeasonBook;
 function csSeasonBookReceipt(title,entries,names={},opts={}){
@@ -22619,7 +22640,7 @@ function csSeasonBookBody(b,selection){
     /* F11 · the key sits ABOVE the grid, beside the Display control that changes what a cell holds; below a long table it was out of the first view */
     /* W5 · the key is a legend strip: each mark beside its word, never split
        across a line end, and the one instruction on its own line under it */
-    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span><span class="sb-key-i">• Future week</span><span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
+    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span>'+(b.weeks.some(w=>w.week>b.current_week)?'<span class="sb-key-i">• Future week</span>':'')+'<span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
     h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
     h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td${live&&c.week===b.current_week?' class="sb-now"':''}><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div></div>';
   }
@@ -23039,7 +23060,7 @@ const CS_ONBOARDING = {
   crewTitle:'Who do you play with?',
   crewSub:'Cup Season is a game you play with people you know. Bring one now and your first round already counts for something.',
   crewGo:'Take me in',
-  contactsConsent:"We'll check your contacts against the golfers already here. Your names and numbers never leave the phone \u2014 we send a scrambled version, and we keep nothing that doesn't match.",
+  contactsConsent:"We\u2019ll check your contacts against the golfers already here. Your names and numbers never leave the phone \u2014 we send a scrambled version, and we keep nothing that doesn\u2019t match.",
   contactsAllow:'Check my contacts',
   contactsDecline:'Not now',
   contactsNone:'None of your contacts is here yet. Text one a link.',
@@ -24134,7 +24155,7 @@ function openStakeCreate(){
       ${others.map(m=>`<option value="${m.profile_id}">${esc(m.profile?.display_name||'—')}</option>`).join('')}
     </select>
     <label class="f" style="margin-top:8px" for="stkHangs">${esc(P.decidesLabel)} <span style="color:var(--mut)">(${esc(P.decidesOptional)})</span></label>
-    <input class="f" id="stkHangs" placeholder="Sunday's clash · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
+    <input class="f" id="stkHangs" placeholder="Sunday’s clash · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
     <p class="fine" data-pride-confirm>${esc(P.confirm(null))}</p>
     <p class="fine" style="padding-top:0">${esc(P.points)}</p>
     <p class="fine" style="padding-top:0">${esc(P.whereItShows)}</p>
@@ -27969,6 +27990,23 @@ function mjVs(n){
   if(r===0) return 'LEVEL';
   return Math.abs(r)+(r>0?' UNDER':' OVER');
 }
+/* PAR-28 / N4-212 · THE ROOM'S WORDS FROM ONE PRODUCER — the phone's
+   MajorMath (unofficial, Head, potCaption, windowLine), TERMINOLOGY's Major
+   row: the leaderboard is what it is (D252), and a card that does not count
+   says so in words. The pot is a figure with its own caption (D273): the
+   stake each, then the split in dollars — "$20 each · 48 / 20 / 12". */
+const MJ_UNOFFICIAL = 'doesn\u2019t count this year';
+const MJ_HEAD = { board:'Leaderboard', live:'Live', final:'Final', unofficial:'Doesn\u2019t count this year', noCard:'No card', stillToPost:'Still to post' };
+function mjPotCaption(buyIn, pot, split){
+  if(split === 'wta') return mjMoney(buyIn) + ' each \u00b7 winner takes all';
+  const t = csTrioCents(Math.round(Number(pot || 0) * 100), [60, 25, 15]);
+  const bare = c => csMoney(c).replace(/^\$/, '');
+  return mjMoney(buyIn) + ' each \u00b7 ' + [t.champ, t.runner, t.king].map(bare).join(' / ');
+}
+function mjWindowLine(when, field){
+  const parts = [when || null, field > 0 ? csWord(field) + ' playing' : null].filter(Boolean);
+  return parts.join(' \u00b7 ');
+}
 function mjMoney(n){
   const v=Math.round(Number(n||0)*100)/100;
   return '$'+(v===Math.floor(v)?String(v):v.toFixed(2));
@@ -28014,10 +28052,10 @@ function renderMajorRoom(el, E){
       <div style="text-align:center; padding:4px 0 2px">
         <div style="font-size:34px; line-height:1">🏆</div>
         <div class="cs-agate" style="color:var(--mut); margin-top:6px">A Major · ${days} days</div>
-        <div class="fine" style="padding:4px 0 0">${when} · ${board.length} PLAYING${board.length!==contendersIn?` · ${board.length-contendersIn} NOT COUNTING THIS YEAR`:''}</div>
-        <div class="fine" style="padding:2px 0 0">${buyIn>0
-          ? `BUY-IN ${mjMoney(buyIn)} · POT ${mjMoney(pot)} · ${ev.pot_split==='wta'?'WINNER TAKES ALL':'60 / 25 / 15'}`
-          : 'BRAGGING RIGHTS'}</div>
+        <div class="fine" style="padding:4px 0 0">${esc(mjWindowLine(when, board.length))}</div>
+        ${buyIn>0
+          ? `<div class="mjpot${complete?' is-done':''}"><span class="cs-fig-s">${esc(mjMoney(pot))}</span><span class="cs-agate">${esc(mjPotCaption(buyIn, pot, ev.pot_split))}</span></div>`
+          : `<div class="fine" style="padding:2px 0 0">Bragging rights</div>`}
       </div>
     </div>`;
 
@@ -28063,7 +28101,7 @@ function renderMajorRoom(el, E){
     </div>`;
 
   if(complete && cards.length){
-    html+=`<div class="eyebrow">Final — every card counts</div>`;
+    html+=`<div class="eyebrow">${esc(MJ_HEAD.board)}<span>${esc(MJ_HEAD.final)}</span></div>`;
     const nameOf=c=>byPlayer[c.player_id]||{display_name:'—',marker:'saguaro'};
     cards.filter(c=>c.rank!=null).sort((a,b)=>a.rank-b.rank).forEach(c=>{
       const r={...nameOf(c), pvi:c.pvi};
@@ -28073,13 +28111,13 @@ function renderMajorRoom(el, E){
     });
     const ex=cards.filter(c=>c.rank==null && !c.no_card).sort((a,b)=>Number(b.pvi||-99)-Number(a.pvi||-99));
     if(ex.length){
-      html+=`<div class="eyebrow">Doesn't count this year — official by the next one</div>`;
+      html+=`<div class="eyebrow">${esc(MJ_HEAD.unofficial)}</div>`;
       ex.forEach(c=>{ const r={...nameOf(c), pvi:c.pvi};
-        html+=rowHtml('EX', r, `${c.gross!=null?c.gross+' · ':''}${c.cards||0} card${(c.cards||0)===1?'':'s'}`, c.round_id||''); });
+        html+=rowHtml('', r, `${c.gross!=null?c.gross+' · ':''}${c.cards||0} card${(c.cards||0)===1?'':'s'}`, c.round_id||''); });
     }
     const nc=cards.filter(c=>c.no_card);
     if(nc.length){
-      html+=`<div class="eyebrow">No card</div>`;
+      html+=`<div class="eyebrow">${esc(MJ_HEAD.noCard)}</div>`;
       nc.forEach(c=>{ const r={...nameOf(c), pvi:null};
         /* D357 · "buy-in stays in the pot" asserted that money was collected.
            A Major has no payment record anywhere — `buy_ins` is season-scoped
@@ -28093,17 +28131,18 @@ function renderMajorRoom(el, E){
     /* D61: the rematch tap — the only door into a lineage */
     html+=`<div style="margin-top:8px"><button class="btn dark" style="width:100%" onclick="window.majorRunBack()">Run it back</button></div>`;
   } else {
-    html+=`<div class="eyebrow">Leaderboard${ev.status==='live'?' — live':''}</div>`;
+    html+=`<div class="eyebrow">${esc(MJ_HEAD.board)}${ev.status==='live'?`<span>${esc(MJ_HEAD.live)}</span>`:''}</div>`;
     let pos=0;
     const carded=board.filter(r=>r.pvi!=null), waiting=board.filter(r=>r.pvi==null);
     carded.forEach(r=>{
-      const label = r.exhibition ? 'EX' : ('#'+(++pos));
-      const line=`${r.gross!=null?r.gross+' · ':''}${r.cards||0} card${(r.cards||0)===1?'':'s'}${r.exhibition?" · doesn't count this year":''}`;
+      /* PAR-28 · a card that does not count says so in words, never an "EX" mark in the rank slot */
+      const label = r.exhibition ? '' : ('#'+(++pos));
+      const line=`${r.gross!=null?r.gross+' · ':''}${r.cards||0} card${(r.cards||0)===1?'':'s'}${r.exhibition?' · '+MJ_UNOFFICIAL:''}`;
       html+=rowHtml(label, r, line, r.round_id||'');
     });
     if(!carded.length) html+=`<div class="fine" style="padding:2px 0">No cards yet${ev.status==='live'?' — first one leads':''}.</div>`;
     if(waiting.length){
-      html+=`<div class="eyebrow">Still to post</div>`;
+      html+=`<div class="eyebrow">${esc(MJ_HEAD.stillToPost)}</div>`;
       waiting.forEach(r=>{ html+=rowHtml('—', r, r.exhibition?'Your number is still settling — official by the next one':'The window is open'); });
     }
     if(ev.status==='live' && waiting.length && daysLeft!=null && daysLeft>=0){
@@ -33073,11 +33112,8 @@ function csCovenantFacts(info, postedRounds){
     if(sp){
       /* L-23 · a zero share is not an award: it is left out, and the points king
          is said once in plain words when it pays */
-      const shares = [[sp.champion, 'the champion'], [sp.runner_up, 'the runner-up'], [sp.points_king, 'the points king']]
-        .filter(([p]) => Number(p) > 0);
-      if(shares.length){
-        const said = shares.map(([p, who], i) => (i === 0 ? p + ' percent' : p) + ' to ' + who);
-        const line = said.length === 1 ? said[0] : said.slice(0, -1).join(', ') + ', ' + said[said.length - 1];
+      const line = csSplitWords(sp.champion, sp.runner_up, sp.points_king);   /* one producer: the rules page reads it too (N4-181) */
+      if(line){
         const kingNote = (info.structure && Number(sp.points_king) > 0)
           ? ' The points king is the golfer with the most points of their own, whatever the Final does.' : '';
         out.push({ k:'split', t: 'If you take it: ' + line + '.' + kingNote });
@@ -35665,9 +35701,9 @@ async function openDeclareSheet(prefillISO, opts){
        <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drTee" style="color:var(--ink)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
      </div>
      <label class="f" style="margin-top:10px; display:block">Course</label>
-     <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)" value="${esc(opts.course||'')}">
+     <input class="f" id="drCourse" placeholder="Search a course" style="font-family:var(--sans)" value="${esc(opts.course||'')}">
      <label class="f" style="margin-top:10px; display:block">Call it something · optional</label>
-     <input class="f" id="drName" maxlength="60" placeholder="Saturday at Papago" style="font-family:var(--sans)">
+     <input class="f" id="drName" maxlength="60" placeholder="Give it a name" style="font-family:var(--sans)">
      <label class="f" style="margin-top:10px; display:block">Playing anything?</label>
      <select class="f" id="drGame" style="font-family:var(--sans)">
        <option value="">Just golf</option>
@@ -35676,7 +35712,7 @@ async function openDeclareSheet(prefillISO, opts){
        <option value="wolf">Wolf</option>
      </select>
      <label class="f" style="margin-top:10px; display:block">Note · optional</label>
-     <input class="f" id="drNote" maxlength="140" placeholder="buddies trip, looking for a 4th" style="font-family:var(--sans)">
+     <input class="f" id="drNote" maxlength="140" placeholder="A note for your group" style="font-family:var(--sans)">
      ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">${tagged.size}</span> tagged</label>
      <div style="margin-top:8px">${chips}</div>`
      : `<p class="fine" style="padding-top:10px">No one to tag yet. Add buddies from the Golfers tab, or invite the league.</p>`}

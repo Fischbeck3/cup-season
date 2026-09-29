@@ -84,9 +84,7 @@ export default function install(W) {
     const plan = PLANS.find((p) => p.id === PLAN.taggedMe), past = PLANS.find((p) => p.id === PLAN.past)
     const planCard = (p) => stripNulls({ kind: 'plan', host: firstname(prof(uid(p.host)).display_name) || 'A golfer', marker: prof(uid(p.host)).marker,
       play_on: p.play_on, tee: p.tee_time ? p.tee_time.slice(0, 5) : null, course: planLabel(p),
-      who: p.tagged.filter((n) => (p.rsvp[n] || 'in') !== 'out').map((n) => prof(uid(n)).display_name).sort().map(firstname),
-      /* W7-001 [A2-schedule-1 · X42] · HELD with 20261213090000: who is IN is an explicit yes */
-      who_in: p.tagged.filter((n) => p.rsvp[n] === 'in').map((n) => prof(uid(n)).display_name).sort().map(firstname) })
+      who: p.tagged.filter((n) => (p.rsvp[n] || 'in') !== 'out').map((n) => prof(uid(n)).display_name).sort().map(firstname) })
     return {
       [SHARE.round]: roundCard(devon),
       [SHARE.roundPhoto]: roundCard(blake, { photo: true }),

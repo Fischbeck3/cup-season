@@ -1678,7 +1678,7 @@
     /* D251 · the privacy envelope */
     t('D251: the consent sentence says what travels and what is kept',
       CS_ONBOARDING.contactsConsent,
-      "We'll check your contacts against the golfers already here. Your names and numbers never leave the phone — we send a scrambled version, and we keep nothing that doesn't match.");
+      "We’ll check your contacts against the golfers already here. Your names and numbers never leave the phone — we send a scrambled version, and we keep nothing that doesn’t match.");   /* N4-214 · the typographic apostrophes, as the phone's OnboardingCopy */
     t('D251: declining is a named control', CS_ONBOARDING.contactsDecline, 'Not now');
     t('D251: an empty match ends in a next move',
       CS_ONBOARDING.contactsNone, 'None of your contacts is here yet. Text one a link.');
