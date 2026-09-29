@@ -316,13 +316,18 @@ public struct CSChip: View {
   public var body: some View {
     Text(label)
       .csType(.agateS, caps: true)
-      .lineLimit(1)
-      .fixedSize(horizontal: true, vertical: false)
+      // N4-140 · a name takes a second line rather than running off the edge
+      // ('MAXIMILIAN PLACEHO…'): one line while it fits, two when the row it
+      // sits in is narrower than it. One line is still the 28 it was drawn at.
+      .lineLimit(2)
+      .multilineTextAlignment(.center)
+      .fixedSize(horizontal: false, vertical: true)
       // N4-097 · `dim` is never a word (LINT-29): a disabled chip is mut on
       // bg1, the pair §16.1 names
       .foregroundStyle(enabled ? (selected ? cs.panelInk : cs.mut) : cs.mut)
       .padding(.horizontal, CSTokens.Space.s3)
-      .frame(height: 28)
+      .padding(.vertical, CSTokens.Space.s1)
+      .frame(minHeight: 28)
       .background(enabled ? (selected ? cs.panel : cs.bg2) : cs.bg1,
                   in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
       // **WAVE 10 · THE CHIP CARRIES ITS OWN 44pt TARGET** (§16.2). The drawn
