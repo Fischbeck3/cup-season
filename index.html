@@ -1851,7 +1851,7 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
 }
 .vtog{display:none; width:max-content; margin:10px 0 0 auto; border:.5px solid var(--rule); border-radius:7px; overflow:hidden;}   /* W1 · sized to its two labels, on its own line under the sync line */
 @media(min-width:740px){ .vtog{display:flex;} }
-.vtog button{font-family:var(--mono); font-size:11px; letter-spacing:.1em; padding:0 12px; min-height:44px;   /* §16.2 names this strip: was ~22 */
+.vtog button{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); padding:0 12px; min-height:44px;   /* W1 · a segment label is agate, never mono (§1.4, §7.2) */   /* §16.2 names this strip: was ~22 */
   color:var(--mut); background:none; border:0; cursor:pointer;}
 /* the chosen segment's word is the page's ground on act, in both printings:
    the fixed #0E1512 read 2.37:1 on light's dark act */
@@ -1903,12 +1903,12 @@ table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size
   background:var(--bg1); border-radius:var(--r);
   padding:12px 14px; margin-bottom:12px;
 }
-.scoreboard .sb-hero{font-family:var(--mono); font-size:17px; font-weight:600; letter-spacing:.02em;}
+.scoreboard .sb-hero{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:calc(var(--caps) * 1em);}   /* W1 · the game's state in the board face, not mono */
 .scoreboard .sb-chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
 .scoreboard .sbchip{
   display:flex; align-items:center; gap:6px; background:var(--bg2);
   border:1px solid var(--rule); border-radius:9px; padding:5px 8px;
-  font-family:var(--mono); font-size:11.5px; color:var(--mut);
+  font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut);
   font-variant-numeric:tabular-nums;
 }
 .scoreboard .sbchip b{color:var(--ink); font-weight:600;}
@@ -2021,21 +2021,21 @@ body.guestlive #onboard{display:none !important;}
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
   flex:1; min-width:72px; border:1px solid var(--rule); background:var(--bg2);
-  border-radius:9px; padding:9px 6px; font-family:var(--mono); font-size:12px;
-  font-weight:600; color:var(--mut); cursor:pointer;
+  border-radius:9px; padding:9px 6px; font-family:var(--board); font-size:12px; min-height:44px;   /* W1 · board label, 44 (§16.2) */
+  font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); cursor:pointer;
 }
 .wolfbtns button.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 .wolfbtns button:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
 .wolftally .wt{background:var(--bg2); border:1px solid var(--rule); border-radius:9px; padding:8px 4px; text-align:center;}
-.wolftally .wt b{display:block; font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums;}
-.wolftally .wt span{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.08em;}
+.wolftally .wt b{display:block; font-family:var(--board); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}   /* W1 · a figure in the figure face */
+.wolftally .wt span{font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
 .settle .srow{
-  display:flex; justify-content:space-between; font-family:var(--mono); font-size:13px;
-  color:var(--mut); padding:8px 2px; border-top:1px solid var(--rule);
+  display:flex; justify-content:space-between; gap:12px; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut); padding:8px 2px; border-top:1px solid var(--rule);   /* W1 · names in the board face, not mono */
 }
 .settle .srow:first-child{border-top:none;}
-.settle .srow b{color:var(--ink);}
+.settle .srow b{color:var(--ink); font-size:15px; font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums;}
 .groupchips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .gchip{
   display:flex; align-items:center; gap:7px;
@@ -2054,7 +2054,7 @@ body.guestlive #onboard{display:none !important;}
   letter-spacing:calc(var(--agate) * 1em); color:var(--ink); line-height:1.35;}
 .check .num.mk{color:var(--ink);}
 .gtag{
-  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.1em;
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
   color:var(--bg0); background:var(--mut); border-radius:4px; padding:2.5px 5px; flex:none;
 }
 
@@ -2091,7 +2091,7 @@ body.guestlive #onboard{display:none !important;}
    round that would never leave the device. Quick post is the real path. */
 .optcard.soon{opacity:.6; cursor:default;}
 .optcard.soon:hover{border-color:var(--rule); filter:none;}
-.optcard.soon .go{font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.12em; color:var(--mut);}
+.optcard.soon .go{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);}
 /* course search results — type a course, pick a tee, rating+slope autofill */
 .coursedd{margin:6px 0 2px; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--bg2); max-height:230px; overflow-y:auto;}
 .coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--rule); padding:9px 12px; cursor:pointer; color:var(--ink);}
@@ -2101,7 +2101,7 @@ body.guestlive #onboard{display:none !important;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--sans); font-size:14px; line-height:1.4; color:var(--mut);}   /* W1 · a sentence, so not mono (§1.4) */
-.coursedd .coursedd-back{font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.06em; color:var(--mut); background:var(--bg1); position:sticky; top:0;}
+.coursedd .coursedd-back{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--mut); background:var(--bg1); position:sticky; top:0;}   /* W1 · a button label, never mono */
 .coursedd .coursedd-back:hover{background:var(--bg1); color:var(--ink);}
 /* THE EVENT IS A TITLE CARD (Wave 6; UI_SYSTEM 15.5, 15.5a).
    The bordered scoreboard card, the 12px tracked-mono clinch line, the 9px
