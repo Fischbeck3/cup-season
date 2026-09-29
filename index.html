@@ -28212,9 +28212,18 @@ function renderRosterDoor(){
       :           'The invite link is open.' );
   const act=$('#rosterAct');
   if(!isPro){ act.innerHTML=''; return; }
+  /* TEN / X12 (W7-Q35, root's ruling) · Reopen only before first tee. From
+     first tee the join gate refuses every joiner but the Pro (the gate's own
+     test, v_today < v_starts, in the join-window and roster-door SQL), so
+     Reopen posted "the link works again" over a link that stayed dead. The card's own clock, the same
+     comparison as pastHalf above; the !d.open sub line already says the true
+     thing. (The web never reads the league's timezone: a device west of the
+     league can still show Reopen for a few hours on first-tee day, and
+     close_roster's server-side refusal closes that.) */
+  const firstTee = !!(se && se.starts_on) && isoOf(new Date()) >= String(se.starts_on).slice(0,10);
   act.innerHTML = d.open
     ? `<button class="mini" id="rosterClose">Roster's set</button>`
-    : `<button class="mini" id="rosterOpen">Reopen</button>`;
+    : firstTee ? '' : `<button class="mini" id="rosterOpen">Reopen</button>`;
   const btn = document.getElementById(d.open ? 'rosterClose' : 'rosterOpen');
   btn?.addEventListener('click', async ()=>{
     /* closing turns off a link the Pro has already texted to people —

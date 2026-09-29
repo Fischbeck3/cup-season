@@ -136,6 +136,25 @@ const onNorthGrove = async (page) => { const f = await seasonFacts(page); return
 /* AW2-04: at the desk the climb draws only its cut, and "What's on it" yields
    to the pot beside it, so the rungs, the seat line and the line card are
    words the phone's shape must draw and the desk's must not */
+/* TEN / W6 · X12 · league 1's season starts `off` days from the capture's today, with its roster closed by the Pro */
+const rosterDay = (off) => async (W) => {
+  dropInventedMoment(W)
+  const L1 = W.ids.lid(1)
+  for (const se of W.tables.seasons || []) if (se.league_id === L1) se.starts_on = W.iso(off)
+  for (const st of W.tables.league_settings || []) if (st.league_id === L1) st.roster_closed_at = W.at(-2)
+}
+/* the league room's roster card, by the page's own controls */
+async function toLeagueRoster(page) {
+  await page.evaluate(() => window.switchView('hub'))
+  await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub')
+  if (!(await isDesk(page))) {
+    await until(page, () => !!document.querySelector('#seasonJump [data-jump="league"]'))
+    await click(page, '#seasonJump [data-jump="league"]')
+  } else await click(page, '#deskMenu [data-seg="league"]')
+  await page.waitForTimeout(250)
+  await page.locator('#rosterRow').scrollIntoViewIfNeeded()
+  await page.waitForTimeout(300)
+}
 const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#climbNote', below: 960 }, { sel: '#climb .climb-cut', below: 960 }, { sel: '#climb .climb-rung .voice', below: 960 },
   '#scenarioLine', { sel: '#lineSplit', below: 960 }, { sel: '#homeSeason .ontheline .ok', below: 960 }, '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
   '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
@@ -640,6 +659,17 @@ const SEASON = [
       { sel: '#monthClock .t:not(.played):not(.now)', prop: 'backgroundColor', min: 4.5, what: 'the weeks ahead' },
       { sel: '#monthClock .t.played', prop: 'backgroundColor', min: 12, what: 'the weeks played' },
       { sel: '#monthClock .t.now', prop: 'backgroundColor', min: 3, what: 'the live week' }])) },
+  /* TEN / W6 · X12 (W7-Q35, root's ruling) · the roster card as its Pro, the roster closed. The day before first tee Reopen shows
+     (reopening opens the door); on first tee it is gone (the join gate refuses every joiner but the Pro from starts_on,
+     join_window.sql:69) and the sub line stands alone. The Pro only: a member never has the control. */
+  { family: 'season', id: 'roster-eve', variant: 'pro', title: 'The season page, the roster card as the Pro, closed the day before first tee (Reopen)', fullPage: false,
+    prepare: rosterDay(1), drive: toLeagueRoster,
+    expect: { view: 'view-hub', selectors: { '#rosterRow': 'visible', '#rosterOpen': 'visible' } },
+    check: has('#rosterSub', '^You closed the roster\\. Add anyone yourself until the halfway turn', 'the closed roster’s sub line') },
+  { family: 'season', id: 'roster-first-tee', variant: 'pro', title: 'The season page, the roster card as the Pro, closed on first tee (no Reopen)', fullPage: false,
+    prepare: rosterDay(0), drive: toLeagueRoster,
+    expect: { view: 'view-hub', selectors: { '#rosterRow': 'visible', '#rosterOpen': 'hidden' } },
+    check: has('#rosterSub', '^You closed the roster\\. Add anyone yourself until the halfway turn', 'the closed roster’s sub line') },
   /* TEN / W8 · W7-008 [A2-season-1] · the season link's off switch is a word,
      and armed: the first tap says what the next one does and turns nothing off */
   { family: 'season', id: 'link-off', variant: 'member', title: 'The season page, the rules: the season link row at rest ("Link" and "Turn off")', fullPage: false,
