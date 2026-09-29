@@ -20,7 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -149,7 +149,10 @@ const SEASON = [
          draws all of these at once, whichever section is in view. */
       notMono(SEASON_WORDS, SEASON_WORDS),
       /* TEN / W6 · AW2-07: the story's figures are runs and "What's on it" is the figure role — never the serif */
-      noSerifFigure(['#standingsStory', '#lineAmt'], ['#standingsStory .cfrun', '#lineAmt'])) },
+      noSerifFigure(['#standingsStory', '#lineAmt'], ['#standingsStory .cfrun', '#lineAmt']),
+      /* TEN / W6 · AW2-08: no retired glyph on the season page, and its span is an en dash */
+      noRetiredGlyph(),
+      readsAsWritten([['#hhSpan', ' \u2013 ', true]])) },
   { family: 'season', id: 'story', variant: 'member', title: 'The season page, the story: the arc of weeks and the archive', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: async (page) => {

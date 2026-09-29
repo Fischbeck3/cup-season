@@ -62,3 +62,23 @@ export const readsAsWritten = (pairs) => async (page) => page.evaluate((pairs) =
   }
   return bad.length ? 'a phrase is not in sentence case (§1.3): ' + bad.join('; ') : true
 }, pairs)
+
+/* TEN / W6 · AW2-08 · UI_SYSTEM §5.2: the retired glyphs — typed arrows (a
+ * link's arrow is absorbed into its underline; a span is an en dash) and the
+ * dingbats (⚑ ✦ ◆ ◇ ✕ ✓ ★ ⇄ ⊕ ✉ ☀). `noRetiredGlyph()` fails the capture
+ * when any VISIBLE text on the page carries one. A golfer's own typed text
+ * (a chat's body, `.mtxt`) may, so it is not read. */
+export const noRetiredGlyph = () => async (page) => page.evaluate(() => {
+  const RE = /[→←↗↑↓⇄⚑✦◆◇✕✓★⊕✉☀]/
+  const bad = []
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+  for (let t = w.nextNode(); t; t = w.nextNode()) {
+    if (!RE.test(t.textContent)) continue
+    const el = t.parentElement
+    if (!el || el.closest('.mtxt, script, style, [aria-hidden="true"] svg')) continue
+    const r = el.getBoundingClientRect(), cs = getComputedStyle(el)
+    if (!(r.width > 0 && r.height > 0) || cs.visibility === 'hidden') continue
+    bad.push(JSON.stringify(t.textContent.replace(/\s+/g, ' ').trim().slice(0, 40)))
+  }
+  return bad.length ? 'a retired glyph is on the page (§5.2): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
+})

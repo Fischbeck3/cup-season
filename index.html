@@ -1683,6 +1683,9 @@ button.payer{cursor:pointer;}
   border:1.5px solid var(--rule);
   display:grid; place-items:center; color:transparent; font-size:12px; font-weight:700;
 }
+/* TEN / W6 · AW2-08: the paid mark is the box's own tick, drawn in its border —
+   the ✓ dingbat is retired (§5.2); the box is the Pro's control */
+.payer .tick::after{content:""; width:9px; height:5px; border-left:2px solid currentColor; border-bottom:2px solid currentColor; transform:translateY(-1px) rotate(-45deg);}
 .payer.paid .tick{background:var(--act); border-color:var(--act); color:var(--bg0);}
 .payer .st{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
   text-transform:uppercase; color:var(--mut); flex:none;}
@@ -2609,6 +2612,10 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
 .ic.flip{transform:rotate(180deg);}
+/* TEN / W6 · AW2-08: the sprite's one chevron, turned, is the web's chevron.left and
+   chevron.right (system furniture, UI_SYSTEM §5.1) — no typed arrow, nothing new drawn */
+.ic.l{transform:rotate(90deg);} .ic.r{transform:rotate(-90deg);}
+.holehdr button .ic{width:18px; height:18px;}
 .dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; flex:none; vertical-align:1px;}
 .check{
   display:flex; align-items:center; gap:12px;
@@ -3117,7 +3124,9 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    the report flag. The class keeps its name because renaming it would touch
    the markup for no gain; what it no longer does is open anything. */
 .rxadd{
-  font-family:var(--mono); font-size:15px; font-weight:600; color:var(--mut);
+  /* TEN / W6 · AW2-08: the report control is the WORD, not ⚑ — every flag but the
+     Tracer's pennant becomes a word (UI_SYSTEM §5.2) — and a word is agate */
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);
   background:var(--bg2); border:1px solid var(--rule);
   border-radius:99px; cursor:pointer; line-height:1;
   display:inline-flex; align-items:center; justify-content:center;
@@ -3395,10 +3404,13 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 /* the swap TARGET: exactly one chip lights while you drag (or after a tap-pick)
    — you always see who you're trading with before you let go */
 .crtchip.swaptar{outline:2px solid var(--gold); outline-offset:1px; background:var(--bg1);}
-.crtchip.swaptar::after{content:'⇄'; position:absolute; right:7px; top:50%;
-  transform:translateY(-50%); font-size:14px; color:var(--gold); font-weight:700;}
-.crtchip.cantrade::after{content:'⇄'; position:absolute; right:7px; top:50%;
-  transform:translateY(-50%); font-size:12px; color:var(--mut);}
+/* TEN / W6 · AW2-08: the trade mark is the sprite's own swap (#i-swap), masked
+   in the chip's colour — the ⇄ dingbat is retired (§5.2); nothing new is drawn */
+.crtchip.swaptar::after, .crtchip.cantrade::after{content:""; position:absolute; right:7px; top:50%;
+  transform:translateY(-50%); width:14px; height:14px; background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h13l-3-3'/%3E%3Cpath d='M20 17H7l3 3'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h13l-3-3'/%3E%3Cpath d='M20 17H7l3 3'/%3E%3C/svg%3E") center/contain no-repeat;}
+.crtchip.swaptar::after{color:var(--gold);}
+.crtchip.cantrade::after{width:12px; height:12px; color:var(--mut);}
 .crtghost{position:fixed; z-index:1200; pointer-events:none;
   transform:translate(-50%,-56%) rotate(2deg) scale(1.04);
   box-shadow:0 10px 26px rgba(10,25,15,.30); opacity:.95;}
@@ -5790,7 +5802,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          Shown ONCE, and never to an invited golfer — they are already joining. -->
     <div id="obCrew" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
-        <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">✓ CARD SAVED</div>
+        <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">CARD SAVED</div>
         <h1 style="font-size:30px" id="obCrewTitle"></h1>
         <p style="margin-top:10px" id="obCrewSub"></p>
       </div>
@@ -5808,7 +5820,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     </div>
     <div id="obWelcome" style="display:none">
       <div class="ob-hero" style="margin-bottom:22px">
-        <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">✓ SIGNED IN</div>
+        <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">SIGNED IN</div>
         <h1 style="font-size:30px">You're <em>in.</em></h1>
         <p id="obWelcomeWho" style="margin-top:10px"></p>
       </div>
@@ -6164,12 +6176,12 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <button class="check tap youdoor-row" id="youPeopleGo" style="width:100%; text-align:left">
           <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
           <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
-          <span class="go" aria-hidden="true">→</span>
+          
         </button>
         <button class="check tap youdoor-row" id="youProfile" style="width:100%; text-align:left">
           <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span>
           <div class="tt"><b>Card &amp; settings</b><small>Your card, notifications and your account</small></div>
-          <span class="go" aria-hidden="true">→</span>
+          
         </button>
         <!-- F8 → W2 2026-09-28: "Tell us how it's going" is the app's, not the
              golfer's identity (owner H: "move feedback into Settings"); it
@@ -6253,7 +6265,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
       <!-- EVENT (The Ryder — standalone) -->
       <section class="view" id="view-event">
-        <a href="#" class="backlink" data-go="home">← Home</a>
+        <a href="#" class="backlink" data-go="home"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Home</a>
         <div id="eventBody"></div>
       </section>
 
@@ -6261,7 +6273,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <section class="view room-dusk" id="view-draft">
         <!-- Q-11: the formation screen was a dead end — a member who tapped
              "See the squads" had no way back but the browser. -->
-        <a href="#" class="backlink" data-go="hub">← The season</a>
+        <a href="#" class="backlink" data-go="hub"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>The season</a>
         <div class="draftgrid">
           <div>
             <div class="eyebrow" id="draftEyebrow">In turns · snake</div>
@@ -6291,23 +6303,23 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <span class="liveword"><i class="livedot"></i>LIVE</span>
           <span class="oc-t">Score it live — you and the group, hole by hole</span>
           <p>Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it.</p>
-          <span class="go">→</span>
+          
         </button>
         <button class="optcard" style="--acc:var(--rule)" data-go="post">
           <span class="oc-t">Add a round you played</span>
           <p>Gross + tee, 20 seconds · posts to your rounds and in every league</p>
-          <span class="go">→</span>
+          
         </button>
         <button class="optcard" id="optPlan" style="--acc:var(--rule)">
           <span class="oc-t">Plan a round</span>
           <p>Put a round on the schedule · your buddies and leagues see it the moment you post</p>
-          <span class="go">→</span>
+          
         </button>
       </section>
 
       <!-- PLAY (live round) -->
       <section class="view" id="view-play">
-        <a href="#" class="backlink" data-go="record">← Play</a>
+        <a href="#" class="backlink" data-go="record"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Play</a>
 
         <div id="playSetup" style="display:none">
           <div class="eyebrow">Set up the round</div>
@@ -6404,12 +6416,12 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div class="pgentry">
             <div class="eyebrow"><span id="lrEyebrowTxt">Live round · Encanto GC — Blue · 70.2/123</span> <a href="#" id="backToSetup">Change setup</a></div>
             <div class="holehdr">
-              <button id="holePrev" aria-label="Previous hole">←</button>
+              <button id="holePrev" aria-label="Previous hole"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
               <div style="text-align:center">
                 <div class="hnum" id="holeNum">HOLE 7</div>
                 <div class="hmeta" id="holeMeta">PAR 3 · SI 17</div>
               </div>
-              <button id="holeNext" aria-label="Next hole">→</button>
+              <button id="holeNext" aria-label="Next hole"><svg class="ic r" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
             </div>
             <div class="holedots" id="holeDots" aria-hidden="true"></div>
             <div id="playerRows"></div>
@@ -6463,7 +6475,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
       <!-- POST -->
       <section class="view" id="view-post">
-        <a href="#" class="backlink" data-go="record">← Play</a>
+        <a href="#" class="backlink" data-go="record"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Play</a>
         <div class="postgrid">
           <div>
             <div class="eyebrow" id="postEyebrow">Add my round</div>
@@ -6552,7 +6564,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div id="postHolesWrap" style="margin-top:10px; display:none">
                 <div id="postHoleGridF"></div>
                 <div id="postHoleGridB" style="margin-top:6px"></div>
-                <p class="fine" style="padding-top:6px">Each hole starts on par — tap to adjust only what you didn't. <a href="#" id="postSetPars" style="color:var(--act)">Set the pars →</a></p>
+                <p class="fine" style="padding-top:6px">Each hole starts on par — tap to adjust only what you didn't. <a href="#" id="postSetPars" style="color:var(--act)">Set the pars</a></p>
                 <!-- the scan's escape hatch: a bad read never traps anyone in the
                      grid — one tap back to the two-number card (course/date/photo
                      survive; only the model's numbers are scrapped) -->
@@ -6650,7 +6662,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div style="height:14px"></div>
             <label class="f">Pro — that's you</label>
             <div id="commishChip" class="prow" style="margin-top:6px; cursor:default">
-              <span class="pmk">◆</span>
+              <span class="pmk"></span>
               <span class="pmeta"><b>You</b><small>You run the season</small></span>
               <span class="ptag">THE PRO</span>
             </div>
@@ -6888,7 +6900,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           </div>
         </div>
         <div class="seasondate league-only"><span id="hhSpan"></span><span id="hhPro"></span></div>
-        <a href="#seasonArc" class="seasonmore league-only" id="seasonMore" style="display:none">The season's story →</a>
+        <a href="#seasonArc" class="seasonmore league-only" id="seasonMore" style="display:none">The season's story</a>
         <!-- WAVE 11 / D280 - THE HEADER CARD IS NOT A CARD. Once the name, the
              stage, the span and the Pro moved up into the page's own head, what
              was left inside the box was a code chip and an Add button - a
@@ -6955,7 +6967,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div class="lk"><span class="dot"></span>Live round in progress</div>
           <div class="ln" id="lbStatus">ALL SQUARE</div>
           <div class="lm" id="lbHole">HOLE 7 · ENCANTO GC</div>
-          <span class="go">→</span>
+          
         </button>
         <!-- D223 / L-34 · three of these four figures are said elsewhere on this
              page or in the identity block beside it: the WEEK is the dateline's,
@@ -6990,7 +7002,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="oa heronum" id="lineAmt">$525</div>
           </div>
           <div class="os" id="lineSplit">CHAMPION $315 · RUNNER-UP $131.25 · POINTS KING $78.75</div>
-          <span class="go">→</span>
+          
         </button>
 
         <div class="homegrid">
@@ -7092,7 +7104,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
         <div class="roompane" id="room-board">
         <div class="card league-only" id="boardCard" style="margin-bottom:14px; text-align:left;">
-          <div class="eyebrow" style="margin-top:0">The board <a href="#" id="bfOpen">OPEN ↗</a></div><p class="cs-agate-s is-phrase eb-gloss">Rounds land here automatically</p>
+          <div class="eyebrow" style="margin-top:0">The board <a href="#" id="bfOpen">Open</a></div><p class="cs-agate-s is-phrase eb-gloss">Rounds land here automatically</p>
           <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
           <div class="composer">
             <input class="f" id="chatIn" placeholder="Post to the board…">
@@ -7122,7 +7134,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              what changed is what the renderer writes into it. -->
         <div class="eyebrow league-only" id="rulesHead" style="margin-top:0">The rules</div>
         <div id="bylawsHub" style="margin-bottom:10px; text-align:left"></div>
-        <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
+        <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work</button>
 
         <div class="eyebrow league-only">League</div>
         <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>The roster</b><small id="hubMembersSub">7 golfers</small></div><button class="mini" id="hubMembersBtn">View</button></div>
@@ -7130,7 +7142,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              exactly that — who can still get in with the CODE. The Pro gets the
              handle; a member reads the state. -->
         <div class="check league-only" id="rosterRow"><span class="num" id="rosterIcon"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span><div class="tt"><b id="rosterHead">Roster</b><small id="rosterSub"></small></div><span style="display:flex;gap:6px;flex:none" id="rosterAct"></span></div>
-        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg></span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">✕</button></span></div>
+        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg></span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it" aria-label="Turn off this link"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span></div>
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · squads are set</small></div><button class="mini" data-go="draft">View</button></div>
         </div><!-- /room-league -->
         </div><!-- /room-grid -->
@@ -7246,7 +7258,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
            from every surface that renders another golfer's content, and the
            Guideline 1.2 walk is a list of these two pages plus the sheet. -->
       <section class="view" id="view-person">
-        <a href="#" class="backlink" data-go="golfers">&#8592; Golfers</a>
+        <a href="#" class="backlink" data-go="golfers"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Golfers</a>
         <div class="deskbody wide">
           <div class="deskmain">
             <div class="cmphead"><h2 id="perName">A golfer</h2><span id="perSafety"></span></div>
@@ -7269,7 +7281,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
            own basis, over one summary that is the SUM of the same rows the
            facets counted. The doors and the safety block sit in the aside. -->
       <section class="view" id="view-h2h">
-        <a href="#" class="backlink" data-go="golfers">&#8592; Golfers</a>
+        <a href="#" class="backlink" data-go="golfers"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Golfers</a>
         <div class="deskbody wide">
           <div class="deskmain">
             <div class="cmphead"><h2 id="h2hName">You and them</h2><span id="h2hSafety"></span></div>
@@ -7283,7 +7295,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       </section>
       <!-- SCHEDULE (D93) — a destination, not a segment -->
       <section class="view" id="view-schedule">
-        <a href="#" class="backlink" data-go="home">← Home</a>
+        <a href="#" class="backlink" data-go="home"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Home</a>
         <!-- THE PAGE SAYS WHAT IT IS (owner + craft + critique-B, 2026-09-28).
              It opened on two stacked mono eyebrows — "Yours, your buddies’,
              your seasons’" over "In your crew's plans" — and nothing on the
@@ -7424,7 +7436,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 </script>
 <div class="toast" id="toast" role="status"></div>
 <!-- Batch C: the round posts like a signed scorecard — a stamp + haptic thock -->
-<div id="stamp" aria-hidden="true"><div class="stampInk">POSTED ✓</div></div>
+<div id="stamp" aria-hidden="true"><div class="stampInk">POSTED</div></div>
 
 <!-- the finish screen (2.1): a posted round ends in ceremony, not a toast.
      Dusk-locked full-screen band reveal; dialog role, dismisses to the board. -->
@@ -8213,7 +8225,7 @@ function switchView(v){
     if(back){
       const from = window._schedFrom === 'hub' ? 'hub' : 'home';
       back.dataset.go = from;
-      back.textContent = from === 'hub' ? '\u2190 The season' : '\u2190 Home';
+      back.innerHTML = '<svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>' + (from === 'hub' ? 'The season' : 'Home');   /* AW2-08 · the chevron, not a typed arrow */
     }
     window._schedFrom = null;   /* one trip only — the next entry decides again */
   }
@@ -8356,19 +8368,17 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
    real accounts tee off server-side, league or not (D107). */
 function gateLiveRound(){
   const card=document.getElementById('optLive'); if(!card) return;
-  const h=card.querySelector('.oc-t'), p=card.querySelector('p'), go=card.querySelector('.go');
+  const h=card.querySelector('.oc-t'), p=card.querySelector('p');
   if(state.demo){
     card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
     if(h) h.textContent="Live round — the group's here";
     if(p) p.textContent='Hole-by-hole with the group — it settles up at the end. Friends without the app just play.';
-    if(go) go.textContent='→';
   } else {
     /* D107: the tee sheet is the free door — no league required; every
        complete card posts to its golfer at the finish. */
     card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
     if(h) h.textContent='Score it live — you and the group, hole by hole';
     if(p) p.textContent='Hole-by-hole · match play, Wolf & the settle-up · every complete card posts at the finish. Guests welcome, no account needed.';
-    if(go) go.textContent='→';
   }
 }
 
@@ -9787,7 +9797,7 @@ function socialBar(f, fi, opts){
   return `<div class="social">
     <div class="rxbar">
       ${chips}
-      ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
+      ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">Report</button>`:''}
       ${cmBtn}
     </div>
     ${thread}
@@ -10251,7 +10261,7 @@ function sysWrap(row, f, fi, ns){
 /* fi/ns are supplied by the two board renderers (the wiring key + namespace);
    every other caller draws the row alone. */
 function sysRowHtml(f, fi, ns){
-  const body = `◆ ${esc(easeCaps(f.txt||''))}`;
+  const body = esc(easeCaps(f.txt||''));   /* AW2-08 · the ◆ bullet is retired (§5.2) */
   const row = f && f.lrid
     ? `<div class="sysrow opens" data-card="${esc(f.lrid)}" role="button" tabindex="0"`
        + ` aria-label="${esc(easeCaps(f.txt||''))} — open the scorecard">${body}</div>`
@@ -10897,7 +10907,7 @@ function renderDraft(){
   if(done){
     const go=document.createElement('button');
     go.className='btn'; go.style.marginTop='16px';
-    go.textContent='Start the season →';
+    go.textContent='Start the season';
     go.addEventListener('click',()=>{
       state.phase='season'; renderPhase(); switchView('home');
       feed.push({d:TODAY, sys:true, txt:'Squads are set — the season is live'});
@@ -12471,7 +12481,7 @@ let _finishShare=null;
 let _ceremonyOwnsShare=false;
 function finishCeremony(o){
   const el=document.getElementById('finish');
-  if(!el){ stampPosted('POSTED ✓'); return; }   /* element gone: never fail silent — old stamp */
+  if(!el){ stampPosted('POSTED'); return; }   /* element gone: never fail silent — old stamp */
   const DW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dt=(o.date instanceof Date && !isNaN(o.date)) ? o.date : new Date();
@@ -12774,7 +12784,7 @@ function renderPostWho(){
   wrap.style.display = people.length ? 'block' : 'none';
   const on=new Set(state.post.playedWith||[]);
   host.innerHTML = people.map(p=>
-    `<button type="button" class="whochip${on.has(p.id)?' on':''}" data-pid="${esc(p.id)}" aria-pressed="${on.has(p.id)}">${esc(p.name)}${on.has(p.id)?' \u2713':''}</button>`
+    `<button type="button" class="whochip${on.has(p.id)?' on':''}" data-pid="${esc(p.id)}" aria-pressed="${on.has(p.id)}">${esc(p.name)}</button>`
   ).join('');
   host.querySelectorAll('.whochip').forEach(b=>b.addEventListener('click',()=>{
     const id=b.dataset.pid;
@@ -13580,7 +13590,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           leagueName: leagueName,
           photo: window._lastPostPhoto || null,
           roundId: rrow?.id || null,   /* D380 · the ceremony's Share sends this round's link */
-        }); else { stampPosted('POSTED ✓'); toast(`Round posted: ~${pts} pts pending the league's math`); } }
+        }); else { stampPosted('POSTED'); toast(`Round posted: ~${pts} pts pending the league's math`); } }
       /* the ceremony IS the confirmation — its toast lives only in the stamp fallback (above),
          never firing behind the z-1100 curtain */
       setTimeout(() => window.csEarnInstallNudge?.(), 1400);   /* earned: the first real round hits the board */
@@ -13651,7 +13661,7 @@ $('#postBtn').addEventListener('click', async ()=>{
     marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
     leagueName: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
     photo: state.demo ? null : (window._lastPostPhoto||null),
-  }); else { stampPosted('POSTED ✓'); toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`); }
+  }); else { stampPosted('POSTED'); toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`); }
 });
 
 /* ============ photos arc (#13, D36): photo attach + scorecard scan ============
@@ -13852,7 +13862,7 @@ function scanPartnersSheet(ctx){
         p._token=data;
       }
       await navigator.clipboard?.writeText(`${location.origin}/?claim=${p._token}`);
-      b.textContent='Copied ✓';
+      b.textContent='Copied';
       qaEvent('scan_claim_minted');
       growthEvent('artifact_shared', 'claim', p._token);
     }catch(err){ toast(humanError(err, 'Could not make the link.')); b.disabled=false; }
@@ -14526,7 +14536,7 @@ function renderPot(){
       /* a member reads the state as a WORD (colour is never the only channel);
          the Pro's row keeps its tick, because the Pro's row is the control */
       row.innerHTML = isPro
-        ? `<span>${who}</span><span class="tick" aria-hidden="true">✓</span>`
+        ? `<span>${who}</span><span class="tick" aria-hidden="true"></span>`
         : `<span>${who}</span><span class="st">${paid ? 'Paid' : 'Not yet'}</span>`;
       if(isPro){ row.type='button'; row.setAttribute('aria-pressed', paid ? 'true' : 'false'); }
       if(!isPro){ el.appendChild(row); return; }
@@ -14564,7 +14574,7 @@ function renderPot(){
   state.payers.forEach((p,i)=>{
     const row=document.createElement('button');
     row.className='payer'+(p.paid?' paid':'');
-    row.innerHTML=`<span>${esc(p.name)}</span><span class="tick">✓</span>`;
+    row.innerHTML=`<span>${esc(p.name)}</span><span class="tick" aria-hidden="true"></span>`;
     row.addEventListener('click',()=>{state.payers[i].paid=!state.payers[i].paid;renderPot();});
     el.appendChild(row);
   });
@@ -15535,7 +15545,7 @@ function renderResumeBanner(){
     <div class="lk"><span class="dot"></span>${esc(kicker)}</div>
     <div class="ln">${esc(course.toUpperCase())} · ${esc(gl.toUpperCase())}</div>
     <div class="lm">${esc(meta)}</div>
-    <span class="go">${invite?'JOIN':'→'}</span>
+    ${invite?'<span class="go">JOIN</span>':''}
   </button>`;
   document.getElementById('resumeGo')?.addEventListener('click',()=>switchView('play'));
 }
@@ -16391,7 +16401,7 @@ function settleRows(pts, val){
   const v = val!=null ? val : WOLF_VAL;
   if(!(v>0)) return '<div class="srow"><span>WOLF POINTS — NO MONEY ON IT</span><b>$0</b></div>';
   const rows=settleTransfers(pts, v).map(t=>
-    `<div class="srow"><span>${esc(t.from).toUpperCase()} → ${esc(t.to).toUpperCase()}</span><b>$${t.amt}</b></div>`);
+    `<div class="srow"><span>${esc(t.from).toUpperCase()} PAYS ${esc(t.to).toUpperCase()}</span><b>$${t.amt}</b></div>`);
   return rows.length?rows.join(''):'<div class="srow"><span>ALL SQUARE</span><b>$0</b></div>';
 }
 
@@ -16451,7 +16461,7 @@ function renderPlanBridge(){
   box.innerHTML=`<div class="card" style="border-color:var(--gold); padding:12px">
     <b style="display:block; margin-bottom:2px">Your round today${sr.course_label?' · '+esc(sr.course_label):''}</b>
     <span class="fine" style="padding:0">Load the course and your group into the round${withN}.</span>
-    <button class="mini" id="planLoad" style="margin-top:10px">Load it →</button>
+    <button class="mini" id="planLoad" style="margin-top:10px">Load it</button>
   </div>`;
   $('#planLoad').addEventListener('click',()=>{
     if(sr.course_label) $('#lrCourse').value=sr.course_label;
@@ -17753,7 +17763,7 @@ $('#groupShareBtn')?.addEventListener('click', ()=>{
   document.querySelectorAll('[data-ctok]').forEach(b=>b.addEventListener('click', async ()=>{
     try{
       await navigator.clipboard?.writeText(`${location.origin}/?claim=${b.dataset.ctok}`);
-      b.textContent='Copied ✓';
+      b.textContent='Copied';
       growthEvent('artifact_shared', 'claim', b.dataset.ctok, null, window.CS?.league?.id);
     }catch(_){ toast('Copy failed — try again'); }
   }));
@@ -17810,7 +17820,7 @@ $('#finishBtn').addEventListener('click',()=>{
     const diff=(gross-CRATE)*113/CSLOPE;
     const vs=p.i-diff;
     const pts=pointsFor(vs)[0];
-    feed.push({d:TODAY, sess:true, who:p.n,team:p.team,ci:p.ci,meta:`${gross} GROSS · ${courseUp} · LIVE ROUND ✓ VOUCHED`,pvi:vs,pts,kud:0,mine:false,cm:[]});
+    feed.push({d:TODAY, sess:true, who:p.n,team:p.team,ci:p.ci,meta:`${gross} GROSS · ${courseUp} · LIVE ROUND · VOUCHED`,pvi:vs,pts,kud:0,mine:false,cm:[]});
     const t=teams.find(t=>t.name===p.team); if(t)t.pts+=pts;
     posted++;
   });
@@ -18648,16 +18658,16 @@ function csBagRowRead(it){
        + '<span class="blab">' + esc(it.label || '') + '</span></div>';
 }
 function csBagRowEdit(it, where, i){
-  const swap = where === 'clubs' ? '→ sideline' : '→ bag';
+  const swap = where === 'clubs' ? 'Move to the sideline' : 'Move to the bag';
   return '<div class="bagrow">'
     + '<input class="f bslotin" data-bag="slot" data-w="' + where + '" data-i="' + i + '" value="'
       + esc(it.slot || '') + '" placeholder="' + esc(CS_BAG_COPY.slotPlaceholder) + '" aria-label="What kind of club">'
     + '<input class="f blab" data-bag="label" data-w="' + where + '" data-i="' + i + '" value="'
       + esc(it.label || '') + '" placeholder="' + esc(CS_BAG_COPY.labelPlaceholder) + '" aria-label="The club, in your own words">'
-    + '<button type="button" class="bmove" data-bagup="' + where + ':' + i + '" aria-label="Move up">↑</button>'
-    + '<button type="button" class="bmove" data-bagdn="' + where + ':' + i + '" aria-label="Move down">↓</button>'
-    + '<button type="button" class="bmove" data-bagswap="' + where + ':' + i + '" aria-label="' + swap + '">⇄</button>'
-    + '<button type="button" class="bmove" data-bagdel="' + where + ':' + i + '" aria-label="Remove">✕</button>'
+    + '<button type="button" class="bmove" data-bagup="' + where + ':' + i + '" aria-label="Move up"><svg class="ic flip" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>'
+    + '<button type="button" class="bmove" data-bagdn="' + where + ':' + i + '" aria-label="Move down"><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>'
+    + '<button type="button" class="bmove" data-bagswap="' + where + ':' + i + '" aria-label="' + swap + '"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg></button>'
+    + '<button type="button" class="bmove" data-bagdel="' + where + ':' + i + '" aria-label="Remove"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>'
     + '</div>';
 }
 function renderBag(){
@@ -19097,7 +19107,7 @@ function leaguePhaseLabel(m){
 function hubGroupRow(icon,name,sub,here){
   return `<div class="check" style="${here?'border-color:var(--pos);':''}"><span class="num">${icon}</span>
     <div class="tt"><b>${name}</b><small>${sub}</small></div>
-    ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--mut)">→</span>'}</div>`;
+    ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':''}</div>`;
 }
 /* D219 / D234 · "your next round" is YOURS *or booked WITH you*, and a round
    you have DECLINED is not your plan whoever booked it. Both axes were wrong
@@ -19398,7 +19408,7 @@ function renderHomeHero(){
     }
     seen('complete');
     box.innerHTML = heroCard('earned', `Season complete · ${esc(done?.league?.name||'your league')}`,
-      fig, line, `<span class="tap" data-hrecap style="cursor:pointer">Season recap →</span>`,
+      fig, line, `<span class="tap" data-hrecap style="cursor:pointer">Season recap</span>`,
       `<button class="hh-cta" data-hrunback type="button">${esc(csRunItBackTitle(done?.role === 'commissioner', csProFirstName(done)))}</button>`);
     wire('[data-hrunback]', ()=> window.runItBack?.(done.league, done));
     wire('[data-hrecap]',  ()=> { switchView('hub'); });
@@ -19714,7 +19724,7 @@ function occCard(o, k, h, p, act, mkKey){
   return `<div class="hocc${o&&o.earned?' earned':''}">
     <div class="ho-k">${k}</div>${mk}
     <h2>${h}</h2><p>${p}</p>
-    <button class="ho-act" data-hoccgo type="button"><span>${act}</span><span>→</span></button>
+    <button class="ho-act" data-hoccgo type="button"><span>${act}</span></button>
     <button class="ho-x" data-hoccx type="button" aria-label="Dismiss"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>`;
 }
 function renderOccasion(){
@@ -21845,7 +21855,7 @@ function renderRequestsInto(box, opts){
     try{
       const {error}=await window.sb.rpc('friend_respond',{p_id:id, p_accept:accept});
       if(error) throw error;
-      toast(accept?'Golf buddies ✓':'Request declined');
+      toast(accept?'Golf buddies':'Request declined');
       window.loadHome?.();
       /* D93: refresh whichever copy is on screen, not just Home's */
       window.renderCrewPeople?.();
@@ -22449,7 +22459,7 @@ function csRenderSeasonBookDoor(){
   const league=window.CS?.league?.id,season=window.CS?.season?.id;
   door.hidden=!!state.demo||!window.CS?.user||!league||!season;
   const n=(window.indRows||[]).length, squads=(window.CS?.squads||[]).length>0;
-  door.textContent=(n>=10||squads?'Open the Book':'Rounds & points')+' →';door.onclick=()=>csOpenSeasonBook(league,season);
+  door.textContent=(n>=10||squads?'Open the Book':'Rounds & points');door.onclick=()=>csOpenSeasonBook(league,season);
 }
 /* END D381 BOOK */
 
@@ -23178,7 +23188,7 @@ function renderCompete(){
   const others = list.seasons.filter(r => !lead || r.id !== lead.id);
   const body = list.nothingRunning
     ? csCompeteEmptyHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
-    : (lead ? csCompetitionBandHtml(lead)+(lead.seasonId?`<button type="button" class="sb-door" id="cmpBookDoor">${lead.fieldSize>=10||lead.squads?'Open the Book':'Rounds &amp; points'} →</button>`:'') : '')
+    : (lead ? csCompetitionBandHtml(lead)+(lead.seasonId?`<button type="button" class="sb-door" id="cmpBookDoor">${lead.fieldSize>=10||lead.squads?'Open the Book':'Rounds &amp; points'}</button>`:'') : '')
       + (others.length ? `<div class="eyebrow">Your seasons</div>` + others.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
   /* the moments ride the second column (desk) — and follow the list on the phone */
@@ -23313,7 +23323,7 @@ function renderGolfers(){
     const dayWord = iso => { const t = String(csDayToken(iso)||''); return t === 'TODAY' ? 'today' : t.charAt(0) + t.slice(1).toLowerCase(); };
     soon.innerHTML = rows.length
       ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(dayWord(sr.play_on))} · ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
-      : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one →</a></p>';
+      : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one</a></p>';
     soon.querySelector('#glfSoonPlan')?.addEventListener('click', e=>{ e.preventDefault(); window.openDeclareSheet?.(); });
   }
 }
@@ -23743,7 +23753,7 @@ function renderStakes(){
     return `<div class="check"><span class="num">🤝</span>
       <div class="tt"><b>${esc(s.name)}</b><small>${vs} · ${esc(s.terms)}${s.hangs_on?` · rides on ${esc(s.hangs_on)}`:''}</small></div>
       ${s.status==='open'
-        ? (mine?`<span style="display:flex;gap:6px;flex:none"><button class="mini" data-stset="${s.id}">Settle</button>${s.created_by===meP?`<button class="mini" data-stscrap="${s.id}" aria-label="Scrap">✕</button>`:''}</span>`
+        ? (mine?`<span style="display:flex;gap:6px;flex:none"><button class="mini" data-stset="${s.id}">Settle</button>${s.created_by===meP?`<button class="mini" data-stscrap="${s.id}" aria-label="Scrap"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span>`
               :`<span class="ptag">OPEN</span>`)
         : `<span class="ptag ok">${esc(stakeName(s.winner)).toUpperCase()} TOOK IT</span>`}
     </div>`;
@@ -26244,7 +26254,7 @@ function confirmHandleChange(oldH, newH){
     const finish = v => { if(done) return; done = true; closeSheet(); resolve(v); };
     openSheet('Change your @handle', 'THIS IS HOW GOLFERS FIND YOU', `
       <div class="hchg">
-        <div class="hchg-row"><span class="hchg-was">@${esc(oldH)}</span><span class="hchg-arrow">→</span><b class="hchg-now">@${esc(newH)}</b></div>
+        <div class="hchg-row"><span class="hchg-was">@${esc(oldH)}</span><span class="hchg-arrow">to</span><b class="hchg-now">@${esc(newH)}</b></div>
         <ul class="hchg-list">
           <li><b>Buddies find you by this name.</b> Anyone searching @${esc(oldH)} will not find you.</li>
           <li><b>It is locked for 60 days</b> after this change.</li>
@@ -26410,7 +26420,7 @@ function showPlayer(name){
     const i=(HIST[name]||[]).indexOf(r);
     h+=`<button class="rdrow" data-round="${name}|${i}">
       <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
-      <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your playing HCP${r.live?' · ✓ VOUCHED':''}</small></span>
+      <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your playing HCP${r.live?' · VOUCHED':''}</small></span>
       <span class="rp">${r.pts}</span></button>`;
   });
   if(cut.length){
@@ -26451,7 +26461,7 @@ function showRound(name, idx){
         `<div class="${x.s<x.par?'bird':x.s>x.par?'bog':''}"><b>${x.s}</b>${i+1}</div>`).join('')}</div>
       <div class="holegrid">${holes.slice(9).map((x,i)=>
         `<div class="${x.s<x.par?'bird':x.s>x.par?'bog':''}"><b>${x.s}</b>${i+10}</div>`).join('')}</div>
-      <p class="fine" style="padding-top:12px">✓ Vouched: live round, witnessed by the group.</p>`;
+      <p class="fine" style="padding-top:12px">Vouched: live round, witnessed by the group.</p>`;
   } else {
     h+=`<p class="fine" style="padding-top:12px">Quick post: gross and tee only. The summary is the whole receipt.</p>`;
   }
@@ -26499,7 +26509,7 @@ function seasonSpanText(){
   /* setup-QA S2-01: hardcoded "Sun/Sat" survived the v1.1 flexible-start fix
      here — the review labeled a Saturday first tee "Sun". Real weekdays. */
   const s=seasonS(), e=seasonE();
-  return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} → ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()} · ${totalWeeks()} wks`;
+  return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} \u2013 ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()} · ${totalWeeks()} wks`;   /* AW2-08 · a span is an en dash (LeagueDates.spanText) */
 }
 /* Cup Final = the final four weeks, scored fresh (§14.0/§14.3).
    Start = ends_on − 27 days — four whole weeks, whatever the weekday (D213). */
@@ -27300,7 +27310,7 @@ function csEventBack(showHeader){
   if(!back) return;
   const from = window._evFrom === 'compete' ? 'compete' : 'home';
   back.dataset.go = from;
-  back.textContent = from === 'compete' ? '← Compete' : '← Home';
+  back.innerHTML = '<svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>' + (from === 'compete' ? 'Compete' : 'Home');   /* AW2-08 · the chevron, not a typed arrow */
   back.hidden = !showHeader;
 }
 /* §9.1 · A SURNAME IS NEVER CUT: the given name yields to an initial first,
@@ -27498,8 +27508,8 @@ function renderEvent(){
       main+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
         <div class="tt"><b>${esc(p.name)}</b></div>
         <span style="display:flex;gap:6px;flex:none">
-          <button class="mini" onclick="window.ryderAssign('${p.id}','${A.id}')">→ ${esc(A.name)}</button>
-          <button class="mini" onclick="window.ryderAssign('${p.id}','${B.id}')">→ ${esc(B.name)}</button>
+          <button class="mini" onclick="window.ryderAssign('${p.id}','${A.id}')">${esc(A.name)}</button>
+          <button class="mini" onclick="window.ryderAssign('${p.id}','${B.id}')">${esc(B.name)}</button>
         </span></div>`).join('');
     }
   }
@@ -28838,7 +28848,7 @@ function pfCheckHandle(){
     try {
       const { data } = await sb.rpc('search_golfers', { p_q: hnd });
       const taken = (data||[]).some(r => (r.handle||'').toLowerCase() === hnd && r.profile_id !== CS.user?.id);
-      st.textContent = taken ? `@${hnd} is taken — tap to edit it.` : `@${hnd} is available ✓`;
+      st.textContent = taken ? `@${hnd} is taken — tap to edit it.` : `@${hnd} is available`;
       st.style.color = taken ? 'var(--neg)' : 'var(--pos)';
     } catch(_){ st.textContent = ''; }
   }, 360);
@@ -29087,7 +29097,7 @@ async function renderCrewPeople(){
     box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const acc=b.hasAttribute('data-facc');
       const {error}=await sb.rpc('friend_respond',{p_id:b.dataset.facc||b.dataset.fdec, p_accept:acc});
-      if(error) toast(humanError(error)); else toast(acc?'Golf buddies ✓':'Request declined');
+      if(error) toast(humanError(error)); else toast(acc?'Golf buddies':'Request declined');
       paint(); window.loadHome?.();
     }));
   };
@@ -29103,7 +29113,7 @@ async function renderCrewPeople(){
       b.disabled=true;
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
       if(error){ toast(humanError(error, 'Could not send.')); b.disabled=false; return; }
-      toast(rr==='friend'?'Golf buddies ✓':'Request sent');
+      toast(rr==='friend'?'Golf buddies':'Request sent');
       b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
       paint(); window.loadHome?.();
     }));
@@ -29642,12 +29652,12 @@ async function openTourCard(profileId){
     if(tcRel==='incoming' && tcFid){
       const {error}=await sb.rpc('friend_respond',{p_id:tcFid, p_accept:true});
       if(error){ toast(humanError(error,'Could not accept.')); ab.disabled=false; return; }
-      toast('Golf buddies ✓');
+      toast('Golf buddies');
       ab.outerHTML='<span class="ptag ok">Buddies</span>';
     } else {
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:profileId});
       if(error){ toast(humanError(error,'Could not send.')); ab.disabled=false; return; }
-      toast(rr==='friend'?'Golf buddies ✓':'Request sent');
+      toast(rr==='friend'?'Golf buddies':'Request sent');
       ab.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
     }
     window.renderCrewPeople?.(); window.loadHome?.();
@@ -30297,7 +30307,7 @@ function openPeoplePicker(opts){
   const actionFor=(r)=>{
     if(mode==='invite'){
       if((opts.excludeIds||[]).includes(r.profile_id)) return '<span class="ptag ok">In</span>';
-      if(staged.has(r.profile_id)) return '<span class="ptag ok">Added ✓</span>';
+      if(staged.has(r.profile_id)) return '<span class="ptag ok">Added</span>';
       return `<span class="pact"><button class="mini" data-pick="${r.profile_id}">Add</button></span>`;
     }
     return (r.rel==='none') ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">Add</button></span>`
@@ -30309,12 +30319,12 @@ function openPeoplePicker(opts){
       b.disabled=true;
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
       if(error){ toast(humanError(error, 'Could not send.')); b.disabled=false; return; }
-      toast(rr==='friend'?'Golf buddies ✓':'Request sent');
+      toast(rr==='friend'?'Golf buddies':'Request sent');
       b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
     }));
     listBox.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const r=rowCache.get(b.dataset.pick);
-      try{ if(opts.onPick) await opts.onPick(r); staged.add(b.dataset.pick); b.outerHTML='<span class="ptag ok">Added ✓</span>'; }
+      try{ if(opts.onPick) await opts.onPick(r); staged.add(b.dataset.pick); b.outerHTML='<span class="ptag ok">Added</span>'; }
       catch(e){ toast(humanError(e, 'Could not add.')); b.disabled=false; }
     }));
   };
@@ -30413,7 +30423,7 @@ function openProfileHub(){
       <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px" aria-labelledby="phIdxLab" aria-describedby="phIdxHelp">
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
-    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works →</a></p>
+    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>
 
     <div class="eyebrow" style="margin-top:20px">Your seasons</div>
     ${leagues}
@@ -30452,14 +30462,14 @@ function openProfileHub(){
 
     <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">How it works</div>
     <div id="youGuide" style="text-align:left; margin-bottom:14px">
-      <div class="check tap" data-guide="places" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>The five places</b><small>Home · Compete · Play · Golfers · You</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="games" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Seasons, matches and weekends</b><small>What you can play for</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="posting" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="buddies" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="scoring" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="places" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>The five places</b><small>Home · Compete · Play · Golfers · You</small></div></div>
+      <div class="check tap" data-guide="games" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Seasons, matches and weekends</b><small>What you can play for</small></div></div>
+      <div class="check tap" data-guide="posting" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div></div>
+      <div class="check tap" data-guide="buddies" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div></div>
+      <div class="check tap" data-guide="scoring" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div></div>
       <!-- owner H · "Tell us how it's going" is the app's, not the golfer's
            card: it moved here from the You page -->
-      ${(typeof PILOT !== 'undefined' && PILOT) ? `<button type="button" class="check tap" id="phFeedback" style="width:100%; text-align:left; cursor:pointer"><div class="tt"><b>Tell us how it’s going</b><small>A line to the people who make this</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></button>` : ''}
+      ${(typeof PILOT !== 'undefined' && PILOT) ? `<button type="button" class="check tap" id="phFeedback" style="width:100%; text-align:left; cursor:pointer"><div class="tt"><b>Tell us how it’s going</b><small>A line to the people who make this</small></div></button>` : ''}
     </div>
 
     <!-- D183: free until a thousand golfers. Says what is true and promises
@@ -30553,7 +30563,7 @@ function openProfileHub(){
       window.avatarUrl = window.avatarUrl || {};
       if(s?.signedUrl) window.avatarUrl[CS.user.id] = s.signedUrl;
       if(CS.profile) CS.profile.photo_path = path;
-      phPaint(); refreshWhoChip(); toast('Photo on the card ✓');
+      phPaint(); refreshWhoChip(); toast('Photo on the card');
     }catch(err){ toast(humanError(err, 'Could not add the photo.')); }
     btn.disabled=false; phPaint();
   });
@@ -30605,7 +30615,7 @@ function openProfileHub(){
       refreshWhoChip();
       toast('Card saved');
       /* the sheet stays open, so confirm inside it too (pilot feedback) */
-      $('#phStatus').textContent = 'Card saved ✓'; $('#phStatus').style.color = 'var(--pos)';
+      $('#phStatus').textContent = 'Card saved'; $('#phStatus').style.color = 'var(--pos)';
       btn.classList.remove('armed'); btn.textContent = 'Save card';
     } catch(e){ $('#phStatus').textContent = humanError(e, 'Save failed.'); $('#phStatus').style.color = ''; }
     finally { btn.disabled = false; }
@@ -30882,7 +30892,7 @@ function renderWizardWith(){
   box.hidden = false;
   box.innerHTML = `<p class="fine" style="padding:0; display:flex; gap:8px; align-items:flex-start">
     <span style="flex:1" id="wizWithLine">${esc(W ? W.seasonWith(first) : `Starting this with ${first}. They get an invitation to accept when the season locks.`)}</span>
-    <button class="mini" type="button" id="wizWithDrop" aria-label="Don't invite ${esc(first)}">✕</button></p>`;
+    <button class="mini" type="button" id="wizWithDrop" aria-label="Don't invite ${esc(first)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></p>`;
   document.getElementById('wizWithDrop')?.addEventListener('click', () => { window._seasonWith = null; renderWizardWith(); });
 }
 window.renderWizardWith = renderWizardWith;
@@ -30895,7 +30905,7 @@ function renderProChip(){
   const p = (window.CS && CS.profile) || {};
   const handle = p.handle ? '@'+p.handle : (CS.user?.email || '');
   box.innerHTML =
-    `<span class="pmk">${p.marker ? mkr(p.marker) : '◆'}</span>
+    `<span class="pmk">${mkr(p.marker) || mkr('saguaro')}</span>
      <span class="pmeta"><b>${esc(p.display_name || 'You')}</b>
        <small>${esc(handle)} · you run the season</small></span>
      <span class="ptag">THE PRO</span>`;
@@ -31466,9 +31476,9 @@ async function enterLeague(m, nav=true, opts={}){
   bootStep = 'reveal';
   renderPhase(); renderStats();
   enterApp();
-  bootTrace('reveal \u2713');
+  bootTrace('reveal ok');
   setTimeout(() => { const b=document.getElementById('errbar');
-    if(b && b.textContent==='boot: reveal \u2713') b.style.display='none'; }, 1600);
+    if(b && b.textContent==='boot: reveal ok') b.style.display='none'; }, 1600);
   /* the caller may already have chosen the view (e.g. the Home hub jumps to
      Clubhouse on click) — only auto-navigate when it hasn't (boot, invites) */
   /* only the Pro configures the league in the wizard. A member who enters a
@@ -31933,7 +31943,7 @@ function renderFormation(){
              <div class="fine" style="padding:6px 0 0">${pool.length} in · need ${(CS.squads||[]).length} to cover the squads — share the invite link first.</div>`
           : '<button class="mini" id="fmDraw" style="margin-top:10px">Draw squads</button>') : ''}
     ${isC && !pool.length && CS.squads.length
-      ? '<button class="mini" id="fmStart" style="margin-top:10px">Start the season \u2192</button>' : ''}`;
+      ? '<button class="mini" id="fmStart" style="margin-top:10px">Start the season</button>' : ''}`;
 
   $('#squads').innerHTML = CS.squads.map(q => `
     <div class="card fm-squad tap" data-sq="${q.id}" style="margin-bottom:8px; ${CS.sel ? 'border-color:var(--pos);' : ''}">
@@ -33158,10 +33168,10 @@ function openEventPicker(){
   openSheet('Start something short', 'A few weeks, its own trophy', `
     <div class="check tap" data-evstyle="ryder" role="button" tabindex="0" style="cursor:pointer">
       <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams. Each week you play one opponent, scored against your playing HCP. First team past halfway wins</small></div>
-      <span class="go" aria-hidden="true">→</span></div>
+      </div>
     <div class="check tap" data-evstyle="major" role="button" tabindex="0" style="cursor:pointer">
       <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best round takes the jug</small></div>
-      <span class="go" aria-hidden="true">→</span></div>
+      </div>
     <p class="fine">Every one of these awards a trophy.</p>
   `);
   $('#shBody').querySelectorAll('[data-evstyle]').forEach(b => {
@@ -33316,7 +33326,7 @@ window.openFounderDesk = async function(){
     ${rows(d.feedback, f => `<div class="check"><span class="num">${f.cat==='founder'?'✏️':f.cat==='bug'?'🐞':'💬'}</span>
       <div class="tt"><b>${esc(f.body||'').slice(0,200)}</b><small>${esc(f.cat||'')} · ${esc(f.who||'?')} · ${fdWhen(f.at)}</small></div></div>`)}
     ${Array.isArray(d.reports) && d.reports.length ? `<div class="eyebrow" style="margin-top:14px">Content reports · last 15</div>
-    ${rows(d.reports, r => `<div class="check"><span class="num">${r.resolved?'✓':'🚩'}</span>
+    ${rows(d.reports, r => `<div class="check"><span class="num">${r.resolved?'Resolved':'Open'}</span>
       <div class="tt"><b>${esc(r.kind==='profile_photo'?'Photo':'Post')} — ${esc(r.target||'?')}</b><small>${esc(r.reason||'').slice(0,120)} · by ${esc(r.who||'?')} · ${fdWhen(r.at)}</small></div></div>`)}` : ''}
     <div class="eyebrow" style="margin-top:14px">Open reports · act on them</div>
     <div id="fdMod"><p class="fine" style="padding:4px 0">Pulling the queue…</p></div>
@@ -33348,7 +33358,7 @@ async function renderCronHealth(){
   const jobs = Array.isArray(h.jobs) ? h.jobs : [];
   const bad  = [].concat(Array.isArray(h.recent_job_failures) ? h.recent_job_failures : [],
                          Array.isArray(h.recent_row_failures) ? h.recent_row_failures : []);
-  const jobRow = (j) => `<div class="check"><span class="num">${j.last_status === 'succeeded' ? '\u2713' : j.last_status ? '\u26a0\ufe0f' : '\u00b7'}</span>
+  const jobRow = (j) => `<div class="check"><span class="num">${j.last_status === 'succeeded' ? 'OK' : j.last_status ? 'Failed' : '\u00b7'}</span>
       <div class="tt"><b>${esc(j.job || '?')}</b><small>${esc(j.schedule || '')} · ${j.last_run ? fdWhen(j.last_run) : 'never run'}${j.last_status && j.last_status !== 'succeeded' ? ' · ' + esc(j.last_status) : ''}</small></div></div>`;
   const badRow = (f) => `<div class="check"><span class="num">\u{1F6A8}</span>
       <div class="tt"><b>${esc(String(f.job || '?'))}${f.subject ? ' · ' + esc(f.subject) : ''}</b><small>${esc(String(f.message || '').slice(0,160))} · ${fdWhen(f.at)}</small></div></div>`;
@@ -33384,7 +33394,7 @@ async function renderModerationQueue(){
 
   const modRow = (r) => `
     <div class="check" style="align-items:flex-start">
-      <span class="num">${r.already_hidden ? '\u2713' : '\u{1F6A9}'}</span>
+      <span class="num">${r.already_hidden ? 'Hidden' : 'Open'}</span>
       <div class="tt">
         <b>${esc(r.author || r.reporter || 'Someone')}${r.league ? ' · ' + esc(r.league) : ''}</b>
         <small>${esc(String(r.kind||'post').replace('_',' '))} · ${esc(String(r.reason||'no reason given').slice(0,140))} · reported by ${esc(r.reporter||'?')} · ${fdWhen(r.created_at)}</small>
@@ -33464,7 +33474,7 @@ async function openLeagueSwitcher(){
     <div class="check tap" data-lgsw="${esc(attr)}" style="cursor:pointer; ${accent?'border-color:var(--pos);':''}">
       <span class="num">${esc(icon)}</span>
       <div class="tt"><b>${esc(title)}</b><small>${esc(sub)}</small></div>
-      <span class="fine" style="padding:0; color:var(--mut)">→</span>
+      
     </div>`;
   openSheet('Your seasons', 'EVERYTHING YOU PLAY, AND WHAT TO START NEXT',
     '<div class="eyebrow" style="margin-top:0">Your seasons</div>'
@@ -34523,7 +34533,7 @@ async function openMajorSetup(){
     if(isNaN(end)){ el.textContent=''; return; }
     const start=new Date(end); start.setDate(end.getDate()-(days-1));
     const fmt=dt=>dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    el.textContent=`${fmt(start)} → ${fmt(end)} · best round by ${end.toLocaleDateString('en-US',{weekday:'long'})} night`;
+    el.textContent=`${fmt(start)} \u2013 ${fmt(end)} · best round by ${end.toLocaleDateString('en-US',{weekday:'long'})} night`;
   };
   document.querySelectorAll('#mjDays button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjDays button').forEach(x=>x.classList.remove('on'));b.classList.add('on');days=+b.dataset.n; whenLine();}));
   document.querySelectorAll('#mjSplit button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjSplit button').forEach(x=>x.classList.remove('on'));b.classList.add('on');split=b.dataset.s;}));
@@ -34836,7 +34846,7 @@ window.respondInvite = async (id, accept)=>{
       ? (window.myEvents||[]).some(e => e.id === inv.container_id)
       : (window.CS?.memberships||[]).some(m => m.league && m.league.id === inv.container_id));
     if(landed){
-      toast(wasIn ? csReUpDone(inv.season_number) : 'Joined ✓');
+      toast(wasIn ? csReUpDone(inv.season_number) : 'Joined');
       if(inv.kind !== 'event'){ const m = CS.memberships.find(x => x.league.id === inv.container_id); if(m) await enterLeague(m); }
     }
     else toast('That invitation was already answered — nothing changed');
@@ -35905,7 +35915,7 @@ async function openMembersSheet(){
   openSheet('The roster', `${CS.members.length} GOLFER${CS.members.length===1?'':'S'}${sn > 1 ? ` · ${yesCount} IN FOR SEASON ${sn}` : ''} · CODE ${CS.league.code}`,
     rows
     + (pending.length ? '<div class="eyebrow">Invites out</div>' + pending.map(i =>
-        `<div class="fine" style="padding:3px 0">✉ ${esc(i.email)} · WAITING</div>`).join('') : '')
+        `<div class="fine" style="padding:3px 0">${esc(i.email)} · WAITING</div>`).join('') : '')
     + (isPro ? `<button class="btn" id="msAdd" style="margin-top:14px">Add golfers</button>` : '')
     + `<button class="btn dark" id="msShare" style="margin-top:10px">Share the invite link</button>`);
   document.getElementById('msAdd')?.addEventListener('click', () => { closeSheet(); window.openInvitePicker?.({ league: CS.league.id }); });
@@ -36092,7 +36102,7 @@ function openLeagueWelcome(name){
     <p class="fine" style="padding:0 0 10px"><b>You can't hurt your ${solo===false?'squad':'standing'} by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
     <p class="fine" style="padding:0 0 10px"><b>Rounds score against your playing HCP.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
     <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> ${CS_LEDGER} The settlement card shows who owes what.</p>
-    <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--act)">How scoring works →</a></p>
+    <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--act)">How scoring works</a></p>
     <div style="border-top:1px solid var(--rule); padding-top:12px">
       <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Any member's link works — yours included.</p>
       <button class="btn dark" id="cvShare">Share the invite link</button>
@@ -36250,7 +36260,7 @@ $('#wCreate').addEventListener('click', () => {
     try {
       const nm = document.getElementById('setName'); if(nm) nm.value = name;   /* createLeague reads it */
       await createLeague();
-      bootTrace('league created ✓');
+      bootTrace('league created');
       closeSheet();
       enterApp();
       state.phase = 'setup';
@@ -36303,7 +36313,7 @@ async function boot(){
     const { data:{ session } } = await sb.auth.getSession();
     if(!session){ bootTrace('no session in storage — showing the door'); return; }
     CS.user = session.user;
-    bootTrace('session \u2713');   /* the breadcrumb stays (CLAUDE.md); the golfer's email address does not ride along in every console */
+    bootTrace('session ok');   /* the breadcrumb stays (CLAUDE.md); the golfer's email address does not ride along in every console */
 
     bootStep = 'profile';
     await loadProfile();
@@ -37156,7 +37166,7 @@ async function csClaimAct(tok){
   try{ localStorage.removeItem('cs_claim'); }catch(_){}
   if(data?.already) toast('That round is already in your rounds');
   else if(data?.posted){
-    toast(`Claimed ✓ — your ${data.gross} is in your rounds`);
+    toast(`Claimed — your ${data.gross} is in your rounds`);
     if(window.loadCareer) loadCareer();
   }
   else toast('Round claimed — the card was incomplete, so nothing posted');

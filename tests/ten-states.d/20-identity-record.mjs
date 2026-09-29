@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure, readsAsWritten } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -53,7 +53,9 @@ const YOU = [
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
     check: all(recordState('some'), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
-      readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]])) },
+      readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]]),
+      /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */
+      noRetiredGlyph()) },
   /* the career read fails both ways (the full select and its skew retry):
      the record must say the READ failed, never "no rounds" (F10) */
   { family: 'you', id: 'error', variant: 'member', title: 'You · the rounds read failed',
@@ -184,7 +186,8 @@ const RECEIPT = [
        are agateS; only the figures keep mono, in the column role (§1.4) */
     notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag']),
     /* TEN / W6 · AW2-07: the moment's sentence sets its figure as a run (vsPhraseMarked), never the serif */
-    noSerifFigure(['#rcptHero .rm-say'], ['#rcptHero .rm-say .cfrun'])) },
+    noSerifFigure(['#rcptHero .rm-say'], ['#rcptHero .rm-say .cfrun']),
+    noRetiredGlyph()) },
   /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
      photograph the page cannot open (every signed URL answers 404): the
      moment falls back, and the photo row says it once, beside Replace and

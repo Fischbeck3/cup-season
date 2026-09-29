@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -42,7 +42,8 @@ const SCHEDULE = [
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
     /* TEN / W6 · AW2-06: the weekday heads and the back link are agate, never mono; the dates stay a column */
     check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'),
-      notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink'])) },
+      notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink']),
+      noRetiredGlyph()) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
     drive: toSchedule, expect: { view: 'view-schedule' } },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
@@ -71,13 +72,16 @@ const WIZARD = [
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } },
     /* TEN / W6 · delta G6: the Pro row is a card, and "THE PRO" sat flush on
        its right border (3324ae89 took the tag's own inset for Golfers' slats) */
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const row = document.getElementById('commishChip'), tag = row && row.querySelector('.ptag'), mk = row && row.querySelector('.pmk')
       if (!row || !tag || !mk) return 'the Pro row is missing'
       const r = row.getBoundingClientRect(), t = tag.getBoundingClientRect(), m = mk.getBoundingClientRect()
       const right = Math.round(r.right - t.right), left = Math.round(m.left - r.left)
       return right >= 8 && left >= 8 ? true : `the Pro row's content touches its border: tag ${right}px from the right, marker ${left}px from the left`
-    }) },
+    }),
+    /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
+    async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
+    noRetiredGlyph()) },
   { family: 'wizard', id: 'step-2-rules', variant: 'pro_setup', title: 'Wizard · step 2 of 3, the rules',
     drive: async (page) => { await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 2 of 3' } } },
@@ -192,7 +196,7 @@ const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
     drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
     /* TEN / W6 · AW2-06: a row's label is agateS, never mono; a league's code stays mono */
-    check: notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']) },
+    check: all(notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph()) },
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },

@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -258,7 +258,8 @@ const GOLFERS = [
       return /The record between you/i.test(t) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
     }),
     /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
-    notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span'])) },
+    notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
+    noRetiredGlyph()) },
   /* The person page's only door to the head-to-head is #perOpenH2H, drawn
      after tour_card lands -- and openPerson never gets that far (see the WX
      report: `sb.rpc(...).catch` is not a function on a PostgREST builder, so
@@ -306,7 +307,9 @@ const GOLFERS = [
     }),
     /* TEN / W6 · AW2-06 + OB-05: a round card's course line and its margin's
        unit are agateS; only the margin's figure keeps mono (the column role) */
-    notMono(['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'], ['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'])) },
+    notMono(['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'], ['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep']),
+    /* TEN / W6 · AW2-08: the report control is a word, not ⚑; no retired glyph on the board */
+    noRetiredGlyph()) },
 ]
 
 export default [...HOME_HATCH, ...HOME_DISPATCH, ...HOME_LEAGUELESS, ...HOME_WORLD, ...GOLFERS]

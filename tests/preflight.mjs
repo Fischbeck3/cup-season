@@ -1123,7 +1123,7 @@ let VOCAB_LAWS = null;
     ['Adding a GHIN number? It lives on your card, under You.', 'the profile sense — the card is the person (§4 row 7)'],
     ['Hidden here. It stays on their card.', 'a hidden post stays on its author’s card — the profile sense (§4 row 7)'],
     ['no session in storage — showing the door', 'the auth session (§4 row 10)'],
-    ['session ✓', 'the auth session (§4 row 10)'],
+    ['session ok', 'the auth session (§4 row 10) — AW2-08 took the ✓ off the breadcrumb'],
     ['Iron Man', 'the season award, which keeps the name (§2.1)'],
     /* D297 class 3 · `season_payouts.reason` is a STORED KEY that close_season
        and recompute_season_payouts match by string (D296 left it alone); the
@@ -2605,9 +2605,42 @@ const lint = (id, name, hits, note = '') => {
      shared mark would go back to being a glyph without the check noticing.
      Both paths were verified at zero before the clause came out, and the count
      did not move. */
+  /* TEN / W6 · AW2-08 · THE WEB'S PRODUCED STRINGS. LINT-12 and LINT-13 read
+     Swift only, and the retired glyphs lived on in index.html (AW2-08 counted
+     81 code lines). `webScan(re)` reads index.html line by line with its
+     comments taken out — HTML comments, block comments, and a double slash
+     that is not part of a URL — so a comment that NAMES a retired glyph, as this file's own history
+     does on purpose, is not a produced string. What is left is markup text,
+     attributes, CSS and script: everything the page can show. The web adds the
+     three §5.2 dingbats outside the emoji ranges (◆ ◇ ⊕) to LINT-12, and the
+     link arrow and the swap (↗ ⇄) and the entity arrows to LINT-13. Both
+     read a glyph written as a JS escape (\\u2190, \\u2713, a surrogate pair)
+     as well as a literal one: the schedule's back link hid behind one. */
+  const webScan = (re) => {
+    const out = []; let inBlock = false, inHtml = false;
+    html.split('\n').forEach((raw, i) => {
+      let line = raw, code = '';
+      while (line.length) {
+        if (inBlock) { const e = line.indexOf('*/'); if (e < 0) { line = ''; break; } line = line.slice(e + 2); inBlock = false; continue; }
+        if (inHtml) { const e = line.indexOf('-->'); if (e < 0) { line = ''; break; } line = line.slice(e + 3); inHtml = false; continue; }
+        const b = line.indexOf('/*'), h = line.indexOf('<!--');
+        const m = /(^|[^:'"\\])\/\//.exec(line); const sl = m ? m.index + m[1].length : -1;
+        const c = [[b, 'b'], [h, 'h'], [sl, 'l']].filter(([p]) => p >= 0).sort((x, y) => x[0] - y[0]);
+        if (!c.length) { code += line; break; }
+        const [p, k] = c[0];
+        code += line.slice(0, p);
+        if (k === 'b') { line = line.slice(p + 2); inBlock = true; }
+        else if (k === 'h') { line = line.slice(p + 4); inHtml = true; }
+        else line = '';
+      }
+      if (re.test(code)) out.push(`index.html:${i + 1} ${code.trim().slice(0, 90)}`);
+    });
+    return out;
+  };
   lint('LINT-12', 'no emoji on a shared surface',
-       scan(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u),
-       'AP-5 as amended · a mark others see is drawn · the epilogue and a golfer’s own typed text may be a glyph');
+       [...scan(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u),
+        ...webScan(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}◆◇⊕]|\\u(?:2[67][0-9a-fA-F]{2}|2[bB][0-9a-fA-F]{2}|25[cC][67]|2295|[dD]83[c-eC-E])|\\u\{1[fF][3-9aA][0-9a-fA-F]{2}\}/u)],
+       'AP-5 as amended · a mark others see is drawn · the epilogue and a golfer’s own typed text may be a glyph · both clients');
 
   /* LINT-13 · no typed arrow inside a produced string. The set is the one §17
      names; `−` (minus), `–` (en dash) and `—` (em dash) are
@@ -2619,8 +2652,9 @@ const lint = (id, name, hits, note = '') => {
      are exempt BY FORM rather than by a baseline — a baseline on a
      zero-tolerance check is a hole with a number written on it. */
   lint('LINT-13', 'no typed arrow in a produced string',
-       scan(/"[^"]*[→←▲▼↑↓⇧⇩][^"]*"/).filter(h => !/#Preview\(|NSLog\(|\bprint\(/.test(h)),
-       'movement is a drawn mark; a link’s arrow is absorbed into its underline');
+       [...scan(/"[^"]*[→←▲▼↑↓⇧⇩][^"]*"/).filter(h => !/#Preview\(|NSLog\(|\bprint\(/.test(h)),
+        ...webScan(/[→←▲▼↑↓⇧⇩↗⇄]|&#8592;|&#8594;|&larr;|&rarr;|\\u(?:219[0-3]|2197|21[cC]4|21[eE][79]|25[bB][2cC])/)],
+       'movement is a drawn mark; a link’s arrow is absorbed into its underline · both clients');
 
   /* BRAND-01 · one brand producer, and the static HTML agrees with it. The
      door's brand line and standfirst and the head's description are markup

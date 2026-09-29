@@ -15,7 +15,7 @@ const go = (v) => async (page) => { await page.evaluate((v) => window.switchView
 import { readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { notMono } from './ten-mono.mjs'
+import { notMono, noRetiredGlyph } from './ten-mono.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 
 /* Family modules: tests/ten-states.d/<family>.mjs, each `export default [ ...states ]`.
@@ -89,7 +89,8 @@ const CORE = [
       })
       if (save !== true) return save
       /* TEN / W6 · AW2-06: the gate's SIGNED IN stamp is a label, never mono */
-      return notMono(['#obProfile .lockbadge'], ['#obProfile .lockbadge'])(page)
+      const m = await notMono(['#obProfile .lockbadge'], ['#obProfile .lockbadge'])(page)
+      return m !== true ? m : noRetiredGlyph()(page)
     } },
 
   /* ------------------------------------------------------------ home */
