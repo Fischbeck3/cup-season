@@ -75,7 +75,16 @@ const SCHEDULE = [
   { family: 'schedule', id: 'plan-landing', variant: 'signed_out', url: `/?plan=${SHARE.plan}`, title: 'The /?plan= landing a recipient opens',
     settle: async (page) => { await page.waitForSelector('#shareView', { timeout: 15000 }); await until(page, () => !/Opening the card/.test((document.getElementById('svCard') || {}).textContent || ''), null, 15000); await page.waitForTimeout(400) },
     expect: { overlay: true, selectors: { '#svCard': 'visible' } },
-    check: async (page) => page.evaluate(() => /This link is dead/.test(document.getElementById('svCard').innerText) ? 'the plan link reads dead' : true) },
+    /* TEN / W7-001 [X42] · the who-line says only what the payload supports.
+       Blake's plan tags Avery (no answer) and Devon (in). With the held
+       server half (20261213090000) the world's share_info sends `who_in`,
+       so Devon is in and Avery, who never answered, is not. */
+    check: async (page) => page.evaluate(() => {
+      const card = document.getElementById('svCard')
+      if (/This link is dead/.test(card.innerText)) return 'the plan link reads dead'
+      const who = (card.querySelector('.sv-where') || {}).textContent || ''
+      return who === 'Devon is in.' ? true : `the who-line reads ${JSON.stringify(who)}, not "Devon is in."`
+    }) },
 ]
 
 /* -------------------------------------------------------------- WIZARD */

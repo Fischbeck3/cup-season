@@ -181,8 +181,13 @@ export default [
   /* TEN / W6 · critique A2 (P1): "Change setup" mid-round set the round inactive,
      so nothing led back and Tee off built a new round with blank scores. The
      round is held now: the same live round, its scores and its channel; the
-     setup keeps what changes in place and offers "Back to the round". The
-     check goes back and returns, and the capture is the held setup. */
+     setup offers "Back to the round". The check goes back and returns, and
+     the capture is the held setup.
+     TEN / W7-003 [X02] · the held setup offered a course, tee, rating, slope,
+     holes and pars the server never receives (finish_live_round posts on the
+     tee-off snapshot). Each is disabled while held, shown mut at full
+     strength, the line says why and names the way to change them, and the way
+     back lifts the locks. */
   { family: 'play', id: 'setup-held', variant: 'member', fullPage: false, title: 'Live round · Change setup mid-round: the round is held, and the way back returns to it',
     drive: async (page) => {
       await toSetup(page)
@@ -198,16 +203,30 @@ export default [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-play', selectors: { '#lrHeld': 'text:Your round is still on, and its 3 holes scored stay with it', '#lrBackToRound': 'visible', '#teeOffBtn': 'hidden', '#playSetup .lrgroup': 'hidden', '#playSetup .lrgame': 'hidden' } },
-    check: all(async (page) => {
+    check: all(async (page) => page.evaluate(() => {
+      const setupEls = () => ['lrCourse', 'lrTee', 'lrRate', 'lrSlope', 'editCard'].map(id => document.getElementById(id)).concat([...document.querySelectorAll('#lrHoles button')])
+      const open = setupEls().filter(el => !el || !el.disabled).map(el => el ? (el.id || el.textContent.trim()) : 'missing')
+      if (open.length) return 'the held setup still offers an edit the server never receives: ' + open.join(', ')
+      const line = document.getElementById('lrHeld').textContent
+      if (!/ The course, tee and holes were set at tee-off\. To change them, scrap this round and tee off again\.$/.test(line) || /Change the course/.test(line)) return 'the held line does not say why the setup is locked: ' + JSON.stringify(line)
+      const card = document.querySelector('#playSetup .card'), probe = document.createElement('span')
+      probe.style.color = 'var(--mut)'; card.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+      for (const id of ['lrCourse', 'lrRate']) {
+        const st = getComputedStyle(document.getElementById(id))
+        if (st.color !== mut || st.webkitTextFillColor !== mut || st.opacity !== '1') return `#${id}'s locked value is not mut at full strength: ${st.color} / ${st.webkitTextFillColor} / opacity ${st.opacity}`
+      }
+      return true
+    }), async (page) => {
       const held = await page.evaluate(() => ({ active: state.live.active, lr: state.live.lr, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores }))
       if (!held.active || !held.same) return 'the round was not held: ' + JSON.stringify(held)
       await click(page, '#lrBackToRound')
       await until(page, () => document.getElementById('playLive').offsetParent !== null, null, 6000)
-      const back = await page.evaluate(() => ({ live: document.getElementById('playLive').offsetParent !== null, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores }))
+      const back = await page.evaluate(() => ({ live: document.getElementById('playLive').offsetParent !== null, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores,
+        unlocked: ['lrCourse', 'lrTee', 'lrRate', 'lrSlope', 'editCard'].every(id => !document.getElementById(id).disabled) && [...document.querySelectorAll('#lrHoles button')].every(b => !b.disabled) }))
       await click(page, '#backToSetup')   /* the capture is the held setup */
       await until(page, () => { const h = document.getElementById('lrHeld'); return !!h && !h.hidden }, null, 6000)
       await page.evaluate(() => window.scrollTo(0, 0))
-      return back.live && back.same ? true : 'the way back did not return to the same round: ' + JSON.stringify(back)
+      return back.live && back.same && back.unlocked ? true : 'the way back did not return to the same round, unlocked: ' + JSON.stringify(back)
     },
     /* TEN / W6 · AW2-06: the back link and the tab labels are labels — agate,
        never mono (§1.4) */
