@@ -138,6 +138,19 @@ Each was reproduced on this branch before it changed; WX's line numbers were at 
 | X32 | Native · forced-update gate | the must-update screen shows "needs build N" and no way to update (FX) | open · native lane | a door that does not open is not offered (L-32) |
 | X33 | Native · dev strings | the DEBUG `-cs_dev_bar_waiting` option embeds the owner's real name; `-cs_dev_no_worth` ships in Release | → N2 | FX release-proof otherwise clean: 0 seam strings, 0 synthetic symbols |
 
+## 4d · CI set at d15b5f18 (a `git archive` snapshot, so `dist/` never touched the checkout)
+
+| Step (ci.yml) | Result |
+|---|---|
+| preflight | PASS · 0 failures · 0 warnings |
+| sunningdale | PASS · 27 assertions |
+| unit (homefold, post-request, rating, trophycase) | 4/4 |
+| courses + share consent | 24/24 |
+| edge security (push, courses/scan, share cleanup, season email) | 40/40 |
+| growth report, pilot scorecard, attribution | 37/37 |
+| build (`stamp-version.sh`, COMMIT_REF=d15b5f18) | ok · `v23 · d15b5f1` and `VERSION = 'd15b5f1'`, 0 placeholders left in dist |
+| dist stays untracked · migration names | ok · ok (no migration touched on this branch) |
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
