@@ -80,6 +80,15 @@ import CSDesign
     #expect(!PostCalc.vsIsSane(nil))
   }
 
+  /// An empty slope box is the standard 113, as the web reads it: a card with a
+  /// rating and no slope still previews, and against the same figure.
+  @Test func anEmptySlopeIsTheStandardOneThirteen() {
+    #expect(PostCalc.serverDifferential(gross: 84, rating: 72.0, slope: 113, nine: false) == 12.0)
+    var card = PostCard(); card.f9 = "42"; card.b9 = "42"; card.rating = "72.0"; card.slope = ""
+    let p = PostCalc.preview(card, myIndex: 12.0, allowance: nil)
+    #expect(p?.differential == 12.0)
+  }
+
   /// W1 · the band is read against the differential `score_round` STORES —
   /// a tenth, halves away from zero — never the raw one. 14.2 at 95%, 82 on
   /// 68.9/118: 12.545 raw is 0.9 (7 points); 12.5 stored is 1.0, and the

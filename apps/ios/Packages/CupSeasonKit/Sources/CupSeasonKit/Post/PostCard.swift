@@ -376,6 +376,9 @@ public enum PostCalc {
     let idx = myIndex ?? fallbackIndex
     let provisional = myIndex == nil
     let rating = card.ratingValue
+    // an empty slope box is the standard 113, as the web reads it
+    // (`parseFloat(inSlope)||113`); the stored figure divides by it
+    let slope = card.slopeValue > 0 ? card.slopeValue : 113
     // IOS-030 · a card with no rating is not a round with a differential of
     // (gross − 0)·113/113. It previewed one, and the number it printed was the
     // one thing on the screen a golfer had no way to know was nonsense.
@@ -384,7 +387,7 @@ public enum PostCalc {
     if entry.holes == 18 {
       let gross = entry.gross
       // W1 · the stored figure, not the raw one
-      guard let diff = serverDifferential(gross: gross, rating: rating, slope: card.slopeValue, nine: false) else { return nil }
+      guard let diff = serverDifferential(gross: gross, rating: rating, slope: slope, nine: false) else { return nil }
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let (pts, msg) = CSBands.pointsFor(vs)
       return PostPreview(gross: gross, holes: 18, vs: vs, points: provisional ? 0 : pts,
@@ -396,7 +399,7 @@ public enum PostCalc {
       // D72: (nine gross − 9-hole rating) scaled, doubled to an 18-hole
       // equivalent — W1 · and rounded as `score_round` stores a nine
       let rating9 = card.rating9 ? rating : rating / 2
-      guard let diff = serverDifferential(gross: g9, rating: rating9, slope: card.slopeValue, nine: true) else { return nil }
+      guard let diff = serverDifferential(gross: g9, rating: rating9, slope: slope, nine: true) else { return nil }
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let base = CSBands.pointsFor(vs)
       let pts = Int((Double(base.points) / 2).rounded(.up))
