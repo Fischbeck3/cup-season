@@ -126,10 +126,18 @@
     await loadHomeDispatch(); renderHomeDispatch();
     check(!door(legacy.key) && answers()===0,'R3: a context with no plan id was treated as usable');
 
-    /* a transport failure leaves the ranker unreached, not a bad Home */
+    /* a transport failure leaves the ranker unreached, not a bad Home. W7-036
+       (UI_SYSTEM §13.3, HOME_STATE_MATRIX S18) keeps the last good read under
+       its dateline, so "unreached" is the failed flag over that SAME read, never
+       a new half-answer; a first read that fails leaves no read at all */
+    const keptRead=window.homeDispatch;
     window.sb={rpc:async()=>{throw new Error('offline')}};
     await loadHomeDispatch();
-    check(window.homeDispatch===null,'R3: a transport failure did not read as unreachable');
+    check(window.homeDispatchFailed===true && window.homeDispatch===keptRead,'R3: a transport failure did not read as unreachable');
+    csHomeDispatchClear();
+    await loadHomeDispatch();
+    check(window.homeDispatchFailed===true && window.homeDispatch===null,'R3: a failed first read was not unreachable');
+    csHomeDispatchClear();
 
     /* ── R6 · the question describes THIS card ──────────────────────────── */
     window.sb={rpc:async()=>({data:null,error:null})};
