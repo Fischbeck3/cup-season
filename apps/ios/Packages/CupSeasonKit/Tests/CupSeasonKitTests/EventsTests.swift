@@ -264,3 +264,64 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(EventCopy.switcherSub(EventSummary(id: UUID(), name: "x", kind: "major", status: "setup", mine: true)) == "A Major · Forming")
   }
 }
+
+// MARK: W2 · the holder once, the opponent by name, the legend once
+
+@Suite struct RyderRoomTwinTests {
+  let hawks = UUID(), grove = UUID()
+  let avery = UUID(), blake = UUID(), casey = UUID(), gray = UUID()
+  let a = "Fixture Hawks", b = "North Grove (fixture)"
+
+  /// "Fixture Hawks hold the Ryder 1–0 · Fixture Hawks hold it" was one fact
+  /// twice: the holder and the record ride one clause when they agree.
+  @Test func theHolderIsSaidOnce() {
+    let e1 = UUID(), e2 = UUID(), e3 = UUID()
+    let one = [EventLineageRow(eventId: e1, status: "complete", winnerSlot: 0), EventLineageRow(eventId: evId, status: "live")]
+    #expect(RyderMath.seriesLine(lineage: one, eventId: evId, status: "live", aName: a, bName: b)
+              == "The 2nd Ryder · Fixture Hawks hold it, 1–0")
+    // the holder is not the side leading the series: both are named
+    let turned = [EventLineageRow(eventId: e1, status: "complete", winnerSlot: 0), EventLineageRow(eventId: e2, status: "complete", winnerSlot: 0),
+                  EventLineageRow(eventId: e3, status: "complete", winnerSlot: 1), EventLineageRow(eventId: evId, status: "live")]
+    #expect(RyderMath.seriesLine(lineage: turned, eventId: evId, status: "live", aName: a, bName: b)
+              == "The 4th Ryder · Fixture Hawks hold the Ryder 2–1 · North Grove (fixture) hold it")
+    // a shared cup has no holder to name
+    let shared = [EventLineageRow(eventId: e1, status: "complete", winnerSlot: 0), EventLineageRow(eventId: e2, status: "complete", winnerShared: true),
+                  EventLineageRow(eventId: evId, status: "live")]
+    #expect(RyderMath.seriesLine(lineage: shared, eventId: evId, status: "live", aName: a, bName: b)
+              == "The 3rd Ryder · Fixture Hawks hold the Ryder 1½–½ · the cup is shared")
+  }
+
+  /// The taunt names THIS week's opponent — never "he" — and asks for "my
+  /// opponent" when there is no pairing yet.
+  @Test func theTauntNamesThisWeeksOpponent() {
+    let players = [player(avery, "Avery Fixture", team: hawks), player(gray, "Gray Dummyton", team: grove),
+                   player(blake, "Blake Sample", team: hawks), player(casey, "Casey Placeholder", team: grove)]
+    let r = EventRoom(event: EventRow(id: evId, name: "The Fixture Cup", created_by: nil, status: "live", session_count: 3, winner_team_id: nil),
+                      teams: [team(hawks, slot: 0, a), team(grove, slot: 1, b)], players: players,
+                      sessions: [session(s1, 1, "2026-07-05", "2026-07-11", "closed"), session(s2, 2, "2026-07-12", "2026-07-18", "open")],
+                      duels: [EventDuel(id: UUID(), session_id: s1, a_player: avery, b_player: casey, result: "a"),
+                              EventDuel(id: UUID(), session_id: s2, a_player: gray, b_player: avery)])
+    #expect(RyderMath.thisWeeksOpponent(r, me: players[0]) == "Gray")   // last week's was Casey
+    let ask = RyderMath.taunt(on: false, opponent: RyderMath.thisWeeksOpponent(r, me: players[0]))
+    #expect(ask.label == "Tell me when Gray posts" && ask.gloss == "Nothing pings you until you ask for it.")
+    #expect(RyderMath.thisWeeksOpponent(r, me: players[2]) == nil)
+    #expect(RyderMath.taunt(on: false, opponent: nil).label == "Tell me when my opponent posts")
+    let on = RyderMath.taunt(on: true, opponent: "Gray")
+    #expect(on.label == "Mute the taunts" && on.gloss == "You hear it the moment your opponent posts.")
+    #expect(![ask, on].contains { ($0.label + " " + $0.gloss).contains(" he ") })
+  }
+
+  /// The legend is drawn once a side; each row keeps its figure and says its
+  /// record in words to VoiceOver.
+  @Test func theRosterLegendIsSaidOnce() {
+    let duels = [EventDuel(id: UUID(), session_id: s1, a_player: avery, b_player: casey, result: "a"),
+                 EventDuel(id: UUID(), session_id: s2, a_player: gray, b_player: avery, result: "halve"),
+                 EventDuel(id: UUID(), session_id: s3, a_player: avery, b_player: gray)]   // pending: not counted
+    #expect(RyderMath.record(of: avery, duels: duels) == "1-0-1")
+    #expect(RyderMath.recordLegend == "Won, lost, halved")
+    #expect(RyderMath.rosterSpoken(name: "Avery Fixture", captain: true, of: avery, duels: duels)
+              == "Avery Fixture, captain: 1 won, 0 lost, 1 halved")
+    #expect(RyderMath.rosterSpoken(name: "Casey Placeholder", captain: false, of: casey, duels: duels)
+              == "Casey Placeholder: 0 won, 1 lost, 0 halved")
+  }
+}

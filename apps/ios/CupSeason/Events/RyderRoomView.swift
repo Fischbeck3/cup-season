@@ -315,12 +315,18 @@ struct RyderRoomView: View {
       if roster.isEmpty {
         Text("No one assigned yet.").csType(.bodyS).foregroundStyle(cs.mut).csGutter()
       } else {
+        // W2 · the legend, ONCE a side: every row repeated it after its own
+        // figure. VoiceOver hears each row's record in words instead, so the
+        // legend itself is not read (the web's head row is aria-hidden).
+        Text(RyderMath.recordLegend).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+          .csGutter().padding(.bottom, CSTokens.Space.s1)
+          .accessibilityHidden(true)
         ForEach(roster) { p in
           Button {
             if let pid = p.profileId { links.openTourCard(pid) }
           } label: {
             CSSlat(rank: 0, field: .none, face: face(p), name: p.name,
-                   sub: RyderMath.record(of: p.id, duels: room.duels) + " · won, lost, halved",
+                   sub: RyderMath.record(of: p.id, duels: room.duels),
                    movement: nil, gap: nil, railHidesNumeral: true) {
               if p.isCaptain {
                 Text("Captain").csType(.agateS, caps: true).foregroundStyle(cs.mut)
@@ -329,6 +335,7 @@ struct RyderRoomView: View {
           }
           .buttonStyle(.plain)
           .disabled(p.profileId == nil)
+          .accessibilityLabel(RyderMath.rosterSpoken(name: p.name, captain: p.isCaptain, of: p.id, duels: room.duels))
           .accessibilityHint(p.profileId == nil ? "" : GolfersRoot.CardName.hint())
         }
       }
@@ -366,21 +373,18 @@ struct RyderRoomView: View {
         // ran off the right edge.** It cost this wave a screenshot and a probe
         // to find, and it is Wave 5's own unfinished trap with a name at last.
         //
-        // The producer's string is `head: tail` — a control and its gloss —
-        // and the view splits it there. No copy is invented; the same split
-        // the clash row does to `RyderMath.chip`'s pair.
-        let label = RyderMath.tauntLabel(on: meP.notifyTarget)
-        let cut = label.firstIndex(of: ":")
+        // So the control is the short half and the gloss is its own line. W2 ·
+        // the producer hands the two over separately now, and the ask names
+        // this week's opponent ("Tell me when Gray posts"), never "he".
+        let taunt = RyderMath.taunt(on: meP.notifyTarget, opponent: RyderMath.thisWeeksOpponent(room, me: meP))
         VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          CSDoor(.link(cut.map { String(label[label.startIndex..<$0]) } ?? label, {
+          CSDoor(.link(taunt.label, {
             let on = !meP.notifyTarget
             act(fail: nil, ok: RyderMath.tauntToast(on: on)) { try await model.notify(on: on) }
           }))
-          if let cut {
-            Text(label[label.index(after: cut)...].trimmingCharacters(in: .whitespaces))
-              .csType(.bodyS).foregroundStyle(cs.mut)
-              .fixedSize(horizontal: false, vertical: true)
-          }
+          Text(taunt.gloss)
+            .csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
         }
       }
       if iAmOrg {
