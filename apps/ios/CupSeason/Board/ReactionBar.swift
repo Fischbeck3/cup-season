@@ -44,8 +44,21 @@ struct ReactionBar: View {
         }
         if item.postId != nil {
           // never a flag — `LINT-28` reserves the pennant to the tab band and
-          // the app icon, and this one was a report control wearing it
-          iconButton(.more, label: "Report this post", expanded: false) { reporting = true }
+          // the app icon, and this one was a report control wearing it.
+          // N4-065 · the "···" chip is what it looks like, a More menu, and the
+          // report is an item in it that says so — not a bare grey chip whose
+          // one meaning was hidden until it opened a sheet
+          Menu {
+            Button("Report this post") { reporting = true }
+          } label: {
+            CSGlyph(.more, size: .inline)
+              .frame(minWidth: 36, minHeight: 28)
+              .foregroundStyle(cs.mut)
+              .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+              .frame(minWidth: 44, minHeight: 44)
+              .contentShape(Rectangle())
+          }
+          .accessibilityLabel("More")
         }
         if item.threads {
           Button {
@@ -75,22 +88,6 @@ struct ReactionBar: View {
     }
     .padding(.top, 6)
     .sheet(isPresented: $reporting) { ReportSheet(item: item, store: store) }
-  }
-
-  // MARK: the report control
-
-  private func iconButton(_ glyph: CSGlyph.Name, label: String, expanded: Bool, action: @escaping () -> Void) -> some View {
-    Button(action: action) {
-      CSGlyph(glyph, size: .inline)
-        .frame(minWidth: 36, minHeight: 28)
-        .foregroundStyle(cs.mut)
-        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
-        .frame(minWidth: 44, minHeight: 44)
-        .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .accessibilityLabel(label)
-    .accessibilityAddTraits(expanded ? [.isSelected] : [])
   }
 
   // MARK: thread (`.cthread`)
