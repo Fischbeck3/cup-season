@@ -836,6 +836,8 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
    (§5.2 — no typed arrow after it) */
 .sb-dialog .sb-round{padding:0; font-family:var(--sans); font-size:15px; color:var(--ink); text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
 .sb-dialog .sb-round:hover{text-decoration-color:var(--ink);}
+.sb-dialog [data-book-row][aria-current="true"]{box-shadow:inset 0 0 0 2px var(--ink);}   /* W7-129 · the open receipt's cell: a drawn shape in ink, never ember */
+.sb-dialog .sb-back{min-height:44px; display:block;}
 /* the crown on a finished Book, and what the ladder says when the top is level */
 .sb-crown{font-family:var(--sans);}
 .sb-crown b{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-right:var(--s2);}
@@ -23092,13 +23094,28 @@ async function csOpenSeasonBook(league,season){
       matrix.scrollLeft=need>0?Math.ceil(need/colW)*colW:0;
       csBookEdge(matrix,matrix.parentElement);
     }
+    markChosen();
   }
+  /* W7-129 · the cell (or total, or adjustment) whose receipt is open is MARKED: aria-current plus a drawn shape in ink (never ember), kept across render() so switching Display
+     or View keeps it. Below 900px the receipt stacks under the grid, out of sight of the cell, so it opens with a 44px text link back to it */
+  let chosen=null;
+  const markChosen=()=>{
+    main.querySelectorAll('[data-book-row][aria-current]').forEach(x=>x.removeAttribute('aria-current'));
+    if(!chosen)return;
+    main.querySelector(`[data-book-row="${chosen.row}"]`+(chosen.week!=null?`[data-book-week="${chosen.week}"]`:'')+(chosen.entry!=null?`[data-book-entry="${chosen.entry}"]`:''))?.setAttribute('aria-current','true');
+  };
   main.addEventListener('click',e=>{
     const button=e.target.closest('[data-book-row]');if(!button||!book||!alive())return;
+    chosen={row:button.dataset.bookRow,week:button.dataset.bookWeek,entry:button.dataset.bookEntry};
     const row=book.rows[Number(button.dataset.bookRow)], week=Number(button.dataset.bookWeek), entry=button.dataset.bookEntry;
     const entries=entry!=null?[row.entries[Number(entry)]]:week?SeasonBook.entries(row,week,selection.mode==='Totals'):row.entries;
     receipts.hidden=false;layout.removeAttribute('data-solo');
     receipts.innerHTML=csSeasonBookReceipt(row.name+(week?' · Week '+week:''),entries,Object.fromEntries(book.rows.filter(r=>r.kind==='golfer').map(r=>[r.member_id,r.name])),{week:!!week&&selection.mode!=='Totals'});receipts.querySelector('h2').focus();
+    markChosen();
+    if(matchMedia('(max-width:900px)').matches){
+      receipts.insertAdjacentHTML('afterbegin','<button type="button" class="sb-round sb-back">Back to the grid</button>');
+      receipts.querySelector('.sb-back').onclick=()=>{const c=main.querySelector('[data-book-row][aria-current="true"]');if(c){c.scrollIntoView({block:'center',inline:'nearest'});c.focus();}};
+    }
   });
   receipts.addEventListener('click',e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){dialog.close();window.csOpenPostedRound?.(button.dataset.bookRound);}});
   async function load(){

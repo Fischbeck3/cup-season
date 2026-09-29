@@ -830,7 +830,20 @@ const BOOK = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-receipts h2': 'text:^Fixture Javelinas · Week 12$', '#seasonBookDialog .sb-receipts .sb-total': 'visible' } },
-    check: async (page) => {
+    check: all(async (page) => page.evaluate(() => {
+      /* TEN / W8 · W7-129 [A2-competition-2]: the cell whose receipt is open is MARKED: exactly one, aria-current, and drawn (a 2px inset ring in ink, never ember); below 900px the receipt
+         opens with a 44px 'Back to the grid' link that returns focus to that cell */
+      const marked = [...document.querySelectorAll('#seasonBookDialog [data-book-row][aria-current="true"]')]
+      if (marked.length !== 1) return `${marked.length} cells are marked as the open receipt, expected one`
+      const cs = getComputedStyle(marked[0]), probe = document.createElement('i'); probe.style.color = 'var(--ink)'; document.body.appendChild(probe); const ink = getComputedStyle(probe).color; probe.remove()
+      if (!cs.boxShadow || cs.boxShadow === 'none' || !cs.boxShadow.includes(ink) || !/inset/.test(cs.boxShadow)) return `the marked cell draws no ink ring (${cs.boxShadow})`
+      const back = document.querySelector('#seasonBookDialog .sb-receipts .sb-back')
+      if (innerWidth <= 900) {
+        if (!back || back.textContent.trim() !== 'Back to the grid') return 'the phone\'s receipt has no way back to the grid'
+        return back.getBoundingClientRect().height >= 43.5 ? true : `the way back is ${Math.round(back.getBoundingClientRect().height)}px tall`
+      }
+      return back ? 'the desk shows a way back beside a grid that is in view' : true
+    }), async (page) => {
       const b = readBook('squads')
       const row = b.rows.find((r) => r.id === 'squad:c50b0000-0000-4000-8000-000000000300')
       const es = row.entries.filter((e) => e.week === 12)
@@ -844,7 +857,13 @@ const BOOK = [
         const r = box.getBoundingClientRect()
         return r.top < innerHeight - 40 && r.bottom > 40 ? true : 'the receipt is scrolled out of view'
       }, want)
-    } },
+    }, async (page) => page.evaluate(() => {
+      /* last: the way back scrolls the marked cell into view and focuses it (it moves the page, so it runs after the receipt's own checks) */
+      const back = document.querySelector('#seasonBookDialog .sb-receipts .sb-back'), marked = document.querySelector('#seasonBookDialog [data-book-row][aria-current="true"]')
+      if (!back) return true
+      back.click()
+      return document.activeElement === marked ? true : 'the way back does not focus the marked cell'
+    })) },
 ]
 
 /* ------------------------------------------------------------ events */
