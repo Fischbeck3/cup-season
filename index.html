@@ -27468,17 +27468,12 @@ function wizPortrait(){
     ? `<div class="wizp-row"><span class="k">The pot</span><span class="wizp-gold">${fmt$(pot)}</span>${bar}</div>
        <div class="wizp-sub">${fmt$(stake)} / golfer · ${roster} expected · split ${pay.join(' / ')}</div>`
     : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b></div>`;
-  const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
-  let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--rule)" stroke-width="1.2"/>`;
-  const fx = mo*41;
-  /* W5 · the Final's segment carries no 6px caption under a gold flag (the
-     11px floor, §16.2; gold is earned, D359): the row's own label says it,
-     and the flag is ink */
-  const finalSeg = canCup
-    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="color-mix(in srgb, var(--brand) 20%, transparent)" stroke-width="1.6"/><path d="M${fx+12} 12V3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+12} 3l7 2.4-7 2.4z" fill="var(--ink)"/>`
-    : '';
-  const bandW = fx + (canCup?30:6);
-  const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span class="wizp-v">${durLabel(state.durWeeks)}${canCup?' · the Cup Final is the last 4 weeks':' · points table'}</span></div>`;
+  /* W7-170 · the Season row is the season's own WEEK TICKS, one per week (4 wide on a 6 pitch), the last four in ember when the Cup Final is on (ember marks the
+     competition, D359) and the weeks before it mut: the Final sits INSIDE the season it ends. It drew month blocks with the Final as a fourth block after them, under a
+     caption that says the Final is the last four weeks of the three months: four periods for a 13-week season. */
+  const wk = Math.max(1, Math.min(52, Math.round(Number(state.durWeeks)) || 1));
+  const ticks = Array.from({length:wk},(_,i)=>`<rect x="${i*6}" y="0" width="4" height="8" fill="${canCup && i >= wk-4 ? 'var(--brand)' : 'var(--mut)'}"/>`).join('');
+  const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${wk*6-2} 8" width="${Math.min(210, wk*6)}" aria-hidden="true">${ticks}</svg><span class="wizp-v">${durLabel(state.durWeeks)}${canCup?' · the Cup Final is the last 4 weeks':' · points table'}</span></div>`;
   return `<div class="wizp">
     <div class="wizp-h">
       <svg viewBox="0 0 100 52" width="80" aria-hidden="true">

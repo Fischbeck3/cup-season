@@ -190,6 +190,18 @@ const SCHEDULE = [
 const wizAt = async (page, step) => page.waitForFunction((step) => {
   const on = document.querySelector('.wizstep.on'); return !!on && +on.dataset.step === step
 }, step, { timeout: 8000 })
+/* TEN / W8 · W7-170 [B2-wizard-1] · the portrait's Season row is the season's own week ticks: one 4x8 tick per week (not month blocks with the Final as a fourth block), the last
+   four in ember when the Cup Final is on and the rest mut, so the Final sits inside the season it ends */
+const seasonBand = async (page) => page.evaluate(() => {
+  const row = [...document.querySelectorAll('.wizp-row')].find((r) => /^Season/i.test((r.querySelector('.k') || {}).textContent || ''))
+  if (!row) return 'the portrait has no Season row'
+  const rects = [...row.querySelectorAll('svg rect')], weeks = Number(state.durWeeks), cup = /Cup Final/i.test(row.innerText)
+  if (rects.length !== weeks) return `the Season row draws ${rects.length} blocks for a ${weeks}-week season`
+  if (rects.some((r) => r.getAttribute('stroke') || r.getAttribute('width') !== '4' || r.getAttribute('height') !== '8')) return 'the Season row is not week ticks (4 x 8, no outline)'
+  const ember = rects.map((r, i) => r.getAttribute('fill') === 'var(--brand)' ? i : -1).filter((i) => i >= 0)
+  const want = cup ? [weeks - 4, weeks - 3, weeks - 2, weeks - 1] : []
+  return JSON.stringify(ember) === JSON.stringify(want) ? true : `the ember weeks are ${JSON.stringify(ember)}, expected the last four ${JSON.stringify(want)}`
+})
 const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
@@ -252,7 +264,7 @@ const WIZARD = [
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
       await click(page, '#wizFastPath'); await wizAt(page, 2); await page.waitForTimeout(600)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } } },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: seasonBand },
 ]
 
 /* --------------------------------------------- COURSES & THE COURSE CARD */
