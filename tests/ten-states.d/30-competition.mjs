@@ -155,7 +155,7 @@ const SEASON = [
   { family: 'season', id: 'pot', variant: 'member', title: 'The season page, the money: $600 pot, $525 in, how to pay, a member reads the ledger', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
     drive: (page) => toRoom(page, 'pot'),
-    expect: { view: 'view-hub', selectors: { '#room-pot': 'visible', '#potAmt': 'text:\\$600', '#potK': 'text:^The pot · eight in$', '#potMath': 'text:^\\$75 each · \\$525 collected · 1 still owes$', '#paidCount': 'text:^ ?· seven of eight$', '#payHow': 'text:Cash at the first tee' } },
+    expect: { view: 'view-hub', selectors: { '#room-pot': 'visible', '#potAmt': 'text:\\$600', '#potK': 'text:^The pot · eight in$', '#potMath': 'text:^\\$75 each · \\$525 collected · 1 still owes$', '#paidCount': 'text:^seven of eight$', '#payHow': 'text:Cash at the first tee' } },
     check: all(onNorthGrove, inViewport('#room-pot', 'the money'),
       async (page) => page.evaluate(() => {
         const rows = [...document.querySelectorAll('#payers .payer')]

@@ -7084,8 +7084,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="eyebrow">How to pay</div>
             <p class="fine" id="payHow" style="padding:0 0 12px"></p>
             <!-- N4-103 · this head counts who has PAID; "in" is the pot's own
-                 word, said once, above -->
-            <div class="eyebrow">Who has paid<span id="paidCount"> · five of seven</span></div>
+                 word, said once, above. The count is the head's right-hand
+                 slot (a trailing span), as on the phone's section head. -->
+            <div class="eyebrow">Who has paid<span id="paidCount">five of seven</span></div>
             <div id="payers"></div>
           </div>
         </div>
@@ -14534,7 +14535,7 @@ function renderPot(){
       });
       el.appendChild(row);
     });
-    $('#paidCount').textContent=` · ${csWord(paidN)} of ${csWord(players)}`;   /* SeasonBoardCopy.paid */
+    $('#paidCount').textContent=`${csWord(paidN)} of ${csWord(players)}`;   /* SeasonBoardCopy.paid */
     $('#paidChip').textContent=`${paidN}/${players} buy-ins in`;
     const hps=$('#hubPotSub'); if(hps) hps.textContent='Buy-ins & payouts';
     return;
@@ -14559,7 +14560,7 @@ function renderPot(){
     el.appendChild(row);
   });
   const n=state.payers.filter(p=>p.paid).length;
-  $('#paidCount').textContent=` · ${csWord(n)} of ${csWord(nPay)}`;
+  $('#paidCount').textContent=`${csWord(n)} of ${csWord(nPay)}`;
   $('#paidChip').textContent=`${n}/${nPay} buy-ins in`;
 }
 
