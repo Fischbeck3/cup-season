@@ -131,7 +131,9 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(RyderMath.record(of: p2, duels: duels) == "0-0-0")
   }
   @Test func mid() {
-    #expect(RyderMath.mid("pending") == "vs"); #expect(RyderMath.mid("halve") == "halved"); #expect(RyderMath.mid("b") == "def.")
+    #expect(RyderMath.mid("pending") == "vs"); #expect(RyderMath.mid("halve") == "halved")
+    // A stands left: an A win is "A def. B", a B win is "A lost to B" — never "A def. B"
+    #expect(RyderMath.mid("a") == "def."); #expect(RyderMath.mid("b") == "lost to")
   }
 }
 
@@ -147,7 +149,15 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   @Test func sharedCountsHalfEach() {
     let chain = [EventLineageRow(eventId: e1, status: "complete", winnerShared: true), EventLineageRow(eventId: e2, status: "complete", winnerSlot: 1),
                  EventLineageRow(eventId: evId, status: "complete", winnerSlot: 1)]
-    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "complete", aName: "Red", bName: "Blue") == "The 3rd Ryder · Blue hold the Ryder 1½–½")
+    // the record THROUGH this edition: its own Blue win counts with the two before it
+    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "complete", aName: "Red", bName: "Blue") == "The 3rd Ryder · Blue hold the Ryder 2½–½")
+  }
+  /// A finished first edition counts itself — it read "all square 0–0" beside
+  /// its own result — and a later edition's result never leaks back into it.
+  @Test func aFinishedEditionCountsItselfAndNothingAfterIt() {
+    let later = [EventLineageRow(eventId: evId, status: "complete", winnerSlot: 0), EventLineageRow(eventId: e2, status: "complete", winnerSlot: 1)]
+    #expect(RyderMath.seriesLine(lineage: later, eventId: evId, status: "complete", aName: "Red", bName: "Blue") == "The 1st Ryder · Red hold the Ryder 1–0")
+    #expect(RyderMath.seriesLine(lineage: later, eventId: e2, status: "complete", aName: "Red", bName: "Blue") == "The 2nd Ryder · all square 1–1")
   }
   @Test func quietUntilTheChainHasTwo() {
     #expect(RyderMath.seriesLine(lineage: [EventLineageRow(eventId: evId, status: "live")], eventId: evId, status: "live", aName: "A", bName: "B") == nil)
