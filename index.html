@@ -29839,7 +29839,9 @@ function refreshWhoChip(){
        says Handicap index (`csCredentialHtml`). One print per viewport: the
        desk sidebar yields its copy while You is open. */
     if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Your number']);
-    cells.push([rounds == null ? '\u2014' : String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
+    /* W7-106 · a slot with no figure is ABSENT, as the phone's YouScreen.figures has it: a failed or pending career read printed '— ROUNDS' on the card above a page that says '8 ROUNDS POSTED';
+       the count returns with the read (Try again) */
+    if(rounds != null) cells.push([String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
     figs.innerHTML = cells.map(([v, l]) =>
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
       + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;

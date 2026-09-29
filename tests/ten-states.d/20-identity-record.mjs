@@ -132,6 +132,13 @@ const liveLine = async (page) => page.evaluate(() => {
   if (/in season/i.test(rec.textContent)) return `the record's live line still says 'in season': ${JSON.stringify(rec.textContent.replace(/\s+/g, ' ').trim().slice(0, 140))}`
   return /In play/i.test(rec.textContent) ? true : 'the record has no live season to read'
 })
+/* TEN / W8 · W7-106 [B2-identity-12] · a failed (or pending) career read leaves the card's strip with the figures it knows: a slot with no figure is absent, so the card never prints '— ROUNDS'
+   above a page that says how many were posted */
+const failedYou = async (page) => page.evaluate(() => {
+  const dashed = [...document.querySelectorAll('#youFigs .cfig')].filter((c) => c.querySelector('b').textContent.trim() === '\u2014')
+  if (dashed.length) return `the card prints ${dashed.length} figure(s) as a dash: ${JSON.stringify(dashed.map((c) => c.textContent.replace(/\s+/g, ' ').trim()))}`
+  return true
+})
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
@@ -170,7 +177,7 @@ const YOU = [
     /* W7-101 [A2-identity-12] · the page index stands down on a failed read, so
        "Try again" is not pushed under the tab band at 375x667 */
     drive: youSettled('failed'), expect: { view: 'view-stats', selectors: { '#youRecentRetry': 'visible', '#youJump': 'hidden' } },
-    check: all(recordState('failed'), text('#youRecent', 'didn.t load', 'the failure line')) },
+    check: all(recordState('failed'), text('#youRecent', 'didn.t load', 'the failure line'), failedYou) },
 ]
 
 /* ------------------------------------------------------ THE RECORD (photos) */
