@@ -9,7 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole, destMarked } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -145,7 +145,8 @@ export default [
   { family: 'play', id: 'setup-empty', variant: 'member', title: 'Live setup · before a course is picked',
     drive: toSetup,
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#playLive': 'hidden', '#teeOffBtn': 'visible', '#lrCourse': 'visible' } },
-    check: all(async (page) => page.evaluate(() => {
+    check: all(destMarked('record'),   /* TEN / W8 · W7-108: the live setup is a room of PLAY, so PLAY stays marked */
+      async (page) => page.evaluate(() => {
       /* TEN / W6 · AW2-14: Play's "Score it live" door is an action — its word and dot are act, never ember */
       const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
       const w = document.querySelector('#optLive .liveword'), d = document.querySelector('#optLive .livedot')

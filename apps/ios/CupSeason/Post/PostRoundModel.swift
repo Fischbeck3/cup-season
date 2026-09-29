@@ -321,7 +321,8 @@ final class PostRoundModel {
   private func recalc() {
     // D178 · at the league's allowance, not at 100%. `membership` is the same
     // preferred-league pick the rest of the sheet uses; no league = nil = 100%.
-    preview = PostCalc.preview(card, myIndex: myIndex, allowance: membership?.settings?.handicap_allowance)
+    preview = PostCalc.preview(card, myIndex: myIndex, allowance: membership?.settings?.handicap_allowance,
+                               roundsPosted: profile?.rounds_count)
     if !card.isUntouched(defaultDate: defaultDay) { typedSomething = true }
   }
   var calcMessage: String {

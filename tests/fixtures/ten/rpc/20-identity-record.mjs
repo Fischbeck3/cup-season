@@ -563,5 +563,19 @@ export default function install(W) {
     round_post_status: ({ p_request_id }) => (W.postReceipts || {})[p_request_id] || null,
     /* 20260712010000_social_graph.sql: set_discoverable(p_mode) sets the viewer's own profile and returns void */
     set_discoverable: ({ p_mode }) => { const p = prof(me); if (p) p.discoverable = p_mode; return null },
+    /* 20261010090000_a_photograph_is_not_a_score.sql: set_round_photo / clear_round_photo point (or unpoint) the viewer's OWN round at an uploaded
+       object and touch photo_path and nothing else; each answers the round and its photo_path */
+    set_round_photo: ({ p_round, p_photo_path }) => {
+      const r = round(p_round)
+      if (!r || r.profile_id !== me) return { __error: 'Not your round', status: 400, code: 'P0001' }
+      r.photo_path = p_photo_path
+      return { round: p_round, photo_path: p_photo_path }
+    },
+    clear_round_photo: ({ p_round }) => {
+      const r = round(p_round)
+      if (!r || r.profile_id !== me) return { __error: 'Not your round', status: 400, code: 'P0001' }
+      r.photo_path = null
+      return { round: p_round, photo_path: null }
+    },
   }
 }

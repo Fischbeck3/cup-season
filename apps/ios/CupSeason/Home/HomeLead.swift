@@ -122,7 +122,7 @@ struct HomeLead: View {
         .accessibilityHint(item.action ?? "Opens the competition")
     } else {
     CSStoryCard(eyebrow: item.eyebrow, live: live, tag: tag, credit: credit,
-                headline: item.localHeadline(), standfirst: item.standfirst, door: door) {
+                headline: item.localHeadlineMarked(), standfirst: item.standfirst, door: door) {
       if let chip = HomeLeadChip.make(membership) { chip }
     }
     // §7 · ONE VoiceOver element for the whole block, in the product's voice,

@@ -351,6 +351,9 @@ public struct CSChip: View {
 /// `WizardSeg`, `EventSeg`, `FlowSeg`, `LiveSeg` and `CSTabStrip`.
 public struct CSSegment<T: Hashable>: View {
   @Environment(\.cs) private var cs
+  /// W7-003 · a locked segment reads in mut, and its underline still says
+  /// which is chosen (the held round's 9/18)
+  @Environment(\.isEnabled) private var enabled
   let items: [(T, String)]
   @Binding var selection: T
   public init(_ items: [(T, String)], selection: Binding<T>) {
@@ -366,8 +369,8 @@ public struct CSSegment<T: Hashable>: View {
             CSHaptic.selection()
           } label: {
             VStack(spacing: CSTokens.Space.s2) {
-              Text(label).csType(.agateS, caps: true).foregroundStyle(on ? cs.ink : cs.mut)
-              Rectangle().fill(on ? cs.ink : Color.clear).frame(height: 2)
+              Text(label).csType(.agateS, caps: true).foregroundStyle(on && enabled ? cs.ink : cs.mut)
+              Rectangle().fill(on ? (enabled ? cs.ink : cs.mut) : Color.clear).frame(height: 2)
             }
             .padding(.horizontal, CSTokens.Space.s3)
             .frame(minHeight: 44)

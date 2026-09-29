@@ -38,7 +38,7 @@ struct DraftNightScreen: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
         if let err = room.error, !room.loaded {
-          DraftClockCard(accent: dk.neg, k: "The room did not load", n: err, m: "") {
+          DraftClockCard(k: "The room did not load", n: err, m: "") {
             Button("Try again") { Task { await room.refresh() } }
               .buttonStyle(.csSecondary())
           }
@@ -90,7 +90,7 @@ struct DraftNightScreen: View {
   // MARK: setup — the web bounces to the wizard (4141)
 
   private var setupBounce: some View {
-    DraftClockCard(accent: dk.brand, k: DraftCopy.boardWaitingK, n: DraftCopy.setupBounce, m: LeagueCopy.seatFill(code: room.league?.code, members: room.members.count, min: room.bylaws.structMin)) {
+    DraftClockCard(k: DraftCopy.boardWaitingK, n: DraftCopy.setupBounce, m: LeagueCopy.seatFill(code: room.league?.code, members: room.members.count, min: room.bylaws.structMin)) {
       if room.isPro { Button("Continue") { links.openWizard() }
           .buttonStyle(.csPrimary()) } else { CSFine(DraftCopy.memberReadOnly) }
     }
@@ -106,9 +106,9 @@ struct DraftNightScreen: View {
     return VStack(alignment: .leading, spacing: 14) {
       Text(DraftCopy.eyebrow(room.bylaws.draftType)).csEyebrow()
       if started {
-        DraftClockCard(accent: dk.gold, k: DraftCopy.doneK, n: DraftCopy.doneN, m: DraftCopy.doneM) { EmptyView() }
+        DraftClockCard(k: DraftCopy.doneK, n: DraftCopy.doneN, m: DraftCopy.doneM) { EmptyView() }
       } else {
-        DraftClockCard(accent: dk.pos, k: DraftCopy.formK, n: DraftCopy.formN(pool: pool.count), m: DraftCopy.formM(room.bylaws.draftType)) {
+        DraftClockCard(k: DraftCopy.formK, n: DraftCopy.formN(pool: pool.count), m: DraftCopy.formM(room.bylaws.draftType)) {
           if room.isPro {
             VStack(alignment: .leading, spacing: 8) {
               if !pool.isEmpty && !assign {
@@ -199,21 +199,21 @@ struct DraftNightScreen: View {
       if let d, !done {
         DraftLockBadge(text: mine ? DraftCopy.lockMine : DraftCopy.lockTheirs(captain), mine: mine)
         let lp = DraftSnake.label(pick: d.current_pick, squads: nSq)
-        DraftClockCard(accent: clockSquad.map { dk.squad($0.color ?? 0) } ?? dk.brand, k: DraftCopy.onClockK, n: captain,
+        DraftClockCard(k: DraftCopy.onClockK, n: captain,
                        m: DraftCopy.clockM(round: lp.round, pick: lp.pick, of: nSq, squad: clockSquad?.name ?? "")) {
           DraftSnakeDots(total: DraftSnake.total(squads: nSq, rounds: d.rounds_count), made: d.current_pick)
         }
       } else if d != nil {
-        DraftClockCard(accent: dk.gold, k: DraftCopy.doneK, n: DraftCopy.doneN, m: DraftCopy.doneM) {
+        DraftClockCard(k: DraftCopy.doneK, n: DraftCopy.doneN, m: DraftCopy.doneM) {
           if room.isPro && room.clock.phase == .draft {
             RoomMini(DraftCopy.start, busy: board.busy) { startSeason(blocker: nil) }.padding(.top, 6)
           }
         }
       } else if room.squads.isEmpty {
-        DraftClockCard(accent: dk.pos, k: DraftCopy.boardWaitingK, n: DraftCopy.boardWaitingN, m: DraftCopy.boardWaitingM) { EmptyView() }
+        DraftClockCard(k: DraftCopy.boardWaitingK, n: DraftCopy.boardWaitingN, m: DraftCopy.boardWaitingM) { EmptyView() }
       } else {
         DraftLockBadge(text: DraftCopy.lockIdle, mine: false)
-        DraftClockCard(accent: dk.pos, k: DraftCopy.boardWaitingK, n: DraftCopy.formN(pool: pool.count), m: DraftCopy.boardWaitingM) { EmptyView() }
+        DraftClockCard(k: DraftCopy.boardWaitingK, n: DraftCopy.formN(pool: pool.count), m: DraftCopy.boardWaitingM) { EmptyView() }
       }
       ForEach(Array(room.squads.enumerated()), id: \.element.id) { i, q in
         DraftSnakeSquadCard(squad: q, color: dk.squad(q.color ?? i), onClock: q.id == onClock, rounds: d?.rounds_count ?? 3,

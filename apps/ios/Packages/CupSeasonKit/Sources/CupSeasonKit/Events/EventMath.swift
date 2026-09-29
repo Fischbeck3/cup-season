@@ -581,10 +581,17 @@ public enum MajorMath {
     public static let stillToPost = "Still to post"
   }
 
-  /// The pot figure's caption: the stake each, then the split (D273 — the
-  /// figure carries its own caption). `$20 each · 60/25/15`.
-  public static func potCaption(buyIn: Double, potSplit: String?) -> String {
-    money(buyIn) + " each · " + (potSplit == "wta" ? "winner takes all" : "60/25/15")
+  /// The pot figure's caption (D273 — the figure carries its own caption):
+  /// the stake each, then the split in bare dollars, `$20 each · 48 / 20 /
+  /// 12`. The shares are the settlement's own cents (`PotMath.trioCents`: the
+  /// runner-up and the points king round, the champion absorbs), so the
+  /// caption says what the pot pays; winner-takes-all says so. The web's
+  /// `mjPotCaption` (root's ruling on N4-212).
+  public static func potCaption(buyIn: Double, pot: Double, potSplit: String?) -> String {
+    if potSplit == "wta" { return money(buyIn) + " each · winner takes all" }
+    let t = PotMath.trioCents(potCents: PotMath.jsRound(pot * 100), payout: [60, 25, 15])
+    let bare = { (c: Int) in String(PotMath.money(c).dropFirst()) }
+    return money(buyIn) + " each · " + [t.champ, t.runner, t.king].map(bare).joined(separator: " / ")
   }
 
   /// The dateline's second line: the window, then the field in words —

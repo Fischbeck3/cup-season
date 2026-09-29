@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -54,6 +54,23 @@ const toSchedule = async (page) => {
   await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-schedule')
   await page.waitForTimeout(1200)
 }
+/* TEN / W8 · W7-039 [A2-schedule-2] · ONE primary in a plan's sheet (§7.1, §16A.5): a golfer who owes an answer (asked, or maybe) has 'I'm in' as the filled action and
+   'Tee it up' as the tertiary link beneath the set (a 2px rule, 44 tall); answered (in), or the host, 'Tee it up' is the filled primary and no 'I'm in' is filled act */
+const planSheetPrimary = (owes) => async (page) => page.evaluate((owes) => {
+  const set = document.querySelector('.rsvpset'), tee = document.getElementById('rtTeeUp')
+  if (!set || !tee) return 'the sheet has no RSVP set or no Tee it up'
+  const probe = document.createElement('i'); probe.style.color = 'var(--act)'; document.body.appendChild(probe); const act = getComputedStyle(probe).color; probe.remove()
+  const fill = getComputedStyle(set.querySelector('[data-rsvp="in"]')).backgroundColor, teeBtn = tee.classList.contains('btn')
+  if (set.classList.contains('owes') !== owes) return owes ? 'a golfer who owes an answer does not get the answer as the primary' : 'an answered golfer still has the answer as the primary'
+  if (owes) {
+    if (fill !== act) return `I'm in is not the primary (fill ${fill}, act ${act})`
+    const cs = getComputedStyle(tee)
+    if (teeBtn) return 'Tee it up is still a full-width filled button beneath the unanswered invitation'
+    return /underline/.test(cs.textDecorationLine) && parseFloat(cs.textDecorationThickness) === 2 && tee.getBoundingClientRect().height >= 43.5 ? true : 'Tee it up is not the tertiary link (a 2px rule, 44 tall)'
+  }
+  if (!teeBtn) return 'Tee it up is not the primary once the golfer is in'
+  return fill === act ? "I'm in is filled act as well as Tee it up: two primaries" : true
+}, owes)
 const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
@@ -64,6 +81,42 @@ const SCHEDULE = [
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
     /* TEN / W8 · W7-009: the empty schedule and its own door carry planning, so the sidebar's "Plan one" stands down */
     drive: toSchedule, expect: { view: 'view-schedule' }, check: standsDown(['#sideMe [data-mego="plan_one"]']) },
+  /* TEN / W8 · W7-040 [A2-schedule-3] · a failed schedule read is never an empty schedule (§13.3; the C-10 rule: a failed read is not an empty one). With nothing
+     to show the page says the schedule did not load and offers the retry — not 'Nothing on the schedule yet' and 'Put a round up' over a read it never got;
+     the page's one primary (#calDeclare) stays */
+  { family: 'schedule', id: 'failed', variant: 'member', world: { errors: { rpc: { my_schedule: { __error: 'fixture: the schedule read failed', status: 503, code: 'XX000' } } } },
+    title: 'Schedule · the read failed (the words and the retry, never an empty schedule)',
+    drive: async (page) => { await toSchedule(page); await until(page, () => !!document.getElementById('schRetry'), null, 20000).catch(() => {}); await page.waitForTimeout(400) },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-schedule', selectors: { '#schRetry': 'visible', '#calDeclare': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = (document.getElementById('schNext') || {}).innerText || ''
+      if (/Nothing on the schedule yet|Put a round up|Nothing of yours on the schedule/i.test(t)) return `a failed read reads as an empty schedule: ${JSON.stringify(t.slice(0, 80))}`
+      if (!/The schedule didn.t load/i.test(t)) return `the lead does not say the read failed: ${JSON.stringify(t.slice(0, 80))}`
+      const primaries = [...document.querySelectorAll('#view-schedule .btn')].filter((b) => b.getBoundingClientRect().width > 0)
+      return primaries.length === 1 && primaries[0].id === 'calDeclare' ? true : `the page has ${primaries.length} filled buttons, not #calDeclare alone`
+    }) },
+  /* ...and with rows on screen, a refresh that fails keeps them and says so once, above 'Coming up' */
+  { family: 'schedule', id: 'refresh-failed', variant: 'member', fullPage: false, title: 'Schedule · a refresh failed (the plans stay, one line says so above Coming up)',
+    drive: async (page, ctx) => {
+      await toSchedule(page)
+      await page.evaluate(() => { window.__w8 = { rows: document.querySelectorAll('#calWatch .schrow').length, lead: (document.getElementById('schNext') || {}).innerText || '' } })
+      ctx.world.errors.rpc.my_schedule = { __error: 'fixture: the schedule read failed', status: 503, code: 'XX000' }
+      await page.evaluate(() => Promise.all([window.loadSchedule(), window.loadWatchList()]))
+      await until(page, () => !!document.getElementById('schFail'), null, 15000).catch(() => {})
+      await page.evaluate(() => (document.getElementById('schFail') || document.getElementById('calWatchHead')).scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(500)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-schedule', selectors: { '#schFail': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const w = window.__w8, rows = document.querySelectorAll('#calWatch .schrow').length, line = document.getElementById('schFail')
+      if (!w.rows) return 'the state had no plans to keep'
+      if (rows !== w.rows) return `the list changed from ${w.rows} to ${rows} plans when the refresh failed`
+      if (((document.getElementById('schNext') || {}).innerText || '') !== w.lead) return 'the lead changed when the refresh failed'
+      if (line.nextElementSibling !== document.getElementById('calWatchHead')) return 'the line is not directly above Coming up'
+      return /The schedule didn.t refresh/.test(line.textContent) && line.getAttribute('role') === 'status' && document.getElementById('schRetry') ? true : `the line reads ${JSON.stringify(line.textContent)}`
+    }) },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
     drive: async (page) => {
       await toSchedule(page)
@@ -72,7 +125,60 @@ const SCHEDULE = [
       await page.waitForTimeout(600)
     },
     expect: { view: 'view-schedule', sheet: true },
-    check: has('#sheet', 'Mesquite Wash', 'the plan’s course') },
+    check: all(has('#sheet', 'Mesquite Wash', 'the plan’s course'), planSheetPrimary(true),
+      /* TEN / W8 · W7-035 [B2-schedule-5]: the viewer's own seat reads 'You' in Who's in, as Coming up prints the same person (§9.1); every other seat keeps its name */
+      async (page) => page.evaluate(() => {
+        const seats = [...document.querySelectorAll('.rs-who .check')].map((r) => r.querySelector('.tt b').innerText.replace(/\s+/g, ' ').trim())
+        const yous = seats.filter((t) => /^You\b/.test(t))
+        if (yous.length !== 1) return `Who's in has ${yous.length} seats reading You: ${JSON.stringify(seats)}`
+        return seats.some((t) => /Avery/.test(t)) ? `the viewer is also named: ${JSON.stringify(seats)}` : seats.some((t) => /Blake/.test(t)) ? true : `the host is not named: ${JSON.stringify(seats)}`
+      })) },
+  /* ...answered ('I'm in' tapped through the app's own set_round_rsvp), 'Tee it up' is the primary again and 'I'm in' is the chosen chip, not a second primary */
+  { family: 'schedule', id: 'plan-sheet-in', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday, after I’m in (Tee it up is the primary)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.taggedMe)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.querySelector('.rsvpset.owes') }, null, 10000)
+      await click(page, '.rsvpset [data-rsvp="in"]')
+      await until(page, () => { const set = document.querySelector('.rsvpset'); return !!set && !set.classList.contains('owes') && !!set.querySelector('.rbtn.on.in') }, null, 10000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-schedule', sheet: true, selectors: { '#rtTeeUp': 'visible' } },
+    check: all(planSheetPrimary(false), async (page) => page.evaluate(() => /^You\b/.test(document.querySelector('.rs-who .check .tt b').innerText) || [...document.querySelectorAll('.rs-who .check')].some((r) => /^You\b/.test(r.innerText) && /In/i.test(r.innerText)) ? true : 'the viewer\'s seat does not read You · In')) },
+  /* TEN / W8 · W7-049 [B2-schedule-3] · the host's own plan: Tee it up is the primary, the two harmless acts are 44 boxes, and 'Cancel round' is one named, quiet, ARMED
+     tertiary link beneath them: the first tap asks ('Sure? Cancel for everyone') and cancels nothing */
+  { family: 'schedule', id: 'plan-sheet-host', variant: 'member', fullPage: false, title: 'A plan · Avery’s own Wednesday, Cancel round tapped once (armed, not confirmed)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.mine)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.getElementById('rrScratch') }, null, 10000)
+      await page.locator('#rrScratch').scrollIntoViewIfNeeded()
+      const rest = await tertiaryDoor('#rrScratch')(page)   /* at rest: the armed link is neg by design, so the shape is read before the tap */
+      await page.evaluate((r) => { window.__w8 = { rest: r } }, rest)
+      await click(page, '#rrScratch'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-schedule', sheet: true, selectors: { '#rrScratch': 'text:^Sure\\? Cancel for everyone$' } },
+    check: all(planSheetPrimary(false), async (page) => page.evaluate(() => window.__w8.rest), async (page) => page.evaluate(() => {
+      const b = document.getElementById('rrScratch'), boxes = [...document.querySelectorAll('.managebar2 .mbtn2')]
+      if (!b.classList.contains('is-armed')) return 'the first tap did not arm Cancel round'
+      if (!document.getElementById('sheet').classList.contains('open') || !document.getElementById('rrScratch')) return 'the first tap cancelled the round'
+      if (boxes.length !== 2 || boxes.some((x) => x.getBoundingClientRect().height < 43.5)) return `the manage bar has ${boxes.length} boxes, some under 44px`
+      return b.getBoundingClientRect().top >= boxes[0].getBoundingClientRect().bottom - 1 ? true : 'Cancel round is not apart from (beneath) the two harmless acts'
+    })) },
+  /* ...and in the schedule's own list: your plan's 'Cancel round' is the tertiary link apart from Invite, and its first tap only asks */
+  { family: 'schedule', id: 'cancel-armed', variant: 'member', title: 'Schedule · Cancel round on my own plan tapped once (armed, not confirmed)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.locator('[data-scratch]').first().scrollIntoViewIfNeeded()
+      await click(page, '[data-scratch]'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-schedule', selectors: { '[data-scratch]': 'text:^Sure\\? Cancel for everyone$' } },
+    check: all(async (page) => page.evaluate(() => { const b = document.querySelector('[data-scratch]'), row = b.closest('.schrow'); return b.classList.contains('is-armed') && row ? true : 'the first tap did not arm the cancel' }),
+      async (page) => page.evaluate(() => {
+        const b = document.querySelector('[data-scratch]'), inv = b.parentElement.querySelector('[data-retag]')
+        if (getComputedStyle(b).textDecorationLine.indexOf('underline') < 0 || parseFloat(getComputedStyle(b).textDecorationThickness) !== 2) return 'the row cancel is not the tertiary link'
+        return b.getBoundingClientRect().height >= 43.5 && inv && !inv.classList.contains('lrcasual') ? true : 'the cancel is not 44 tall, or is not a different tier from Invite'
+      })) },
   { family: 'schedule', id: 'plan-landing', variant: 'signed_out', url: `/?plan=${SHARE.plan}`, title: 'The /?plan= landing a recipient opens',
     settle: async (page) => { await page.waitForSelector('#shareView', { timeout: 15000 }); await until(page, () => !/Opening the card/.test((document.getElementById('svCard') || {}).textContent || ''), null, 15000); await page.waitForTimeout(400) },
     expect: { overlay: true, selectors: { '#svCard': 'visible' } },
@@ -84,13 +190,49 @@ const SCHEDULE = [
 const wizAt = async (page, step) => page.waitForFunction((step) => {
   const on = document.querySelector('.wizstep.on'); return !!on && +on.dataset.step === step
 }, step, { timeout: 8000 })
+/* TEN / W8 · W7-170 [B2-wizard-1] · the portrait's Season row is the season's own week ticks: one 4x8 tick per week (not month blocks with the Final as a fourth block), the last
+   four in ember when the Cup Final is on and the rest mut, so the Final sits inside the season it ends */
+const seasonBand = async (page) => page.evaluate(() => {
+  const row = [...document.querySelectorAll('.wizp-row')].find((r) => /^Season/i.test((r.querySelector('.k') || {}).textContent || ''))
+  if (!row) return 'the portrait has no Season row'
+  const rects = [...row.querySelectorAll('svg rect')], weeks = Number(state.durWeeks), cup = /Cup Final/i.test(row.innerText)
+  if (rects.length !== weeks) return `the Season row draws ${rects.length} blocks for a ${weeks}-week season`
+  if (rects.some((r) => r.getAttribute('stroke') || r.getAttribute('width') !== '4' || r.getAttribute('height') !== '8')) return 'the Season row is not week ticks (4 x 8, no outline)'
+  const ember = rects.map((r, i) => r.getAttribute('fill') === 'var(--brand)' ? i : -1).filter((i) => i >= 0)
+  const want = cup ? [weeks - 4, weeks - 3, weeks - 2, weeks - 1] : []
+  return JSON.stringify(ember) === JSON.stringify(want) ? true : `the ember weeks are ${JSON.stringify(ember)}, expected the last four ${JSON.stringify(want)}`
+})
+/* TEN / W8 · W7-165 [A2-wizard-2] · below 1100 the review is the agreement alone (the phone's WizardAgreementView): the league's name in the display-small role and the one reassurance line under the review's head,
+   then the rules; the portrait card that restated the squads, endgame, buy-in and season beside them is gone. From 1100 the sticky aside names the league, so the name and the line stand down. */
+const reviewAlone = async (page) => page.evaluate(() => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  if (document.getElementById('wizReviewPortrait')) return 'the review still draws its own portrait card'
+  const id = document.getElementById('wizRevId'), nm = document.getElementById('wizRevName'), note = document.getElementById('wizRevNote'), rules = document.getElementById('bylawsReview')
+  const h2 = document.querySelector('.wizstep[data-step="2"] h2.wizhead')
+  if (!id || !nm || !note || !rules || !h2) return 'the review lacks its name, its line, its rules or its head'
+  const rows = [...document.querySelectorAll('#view-wizard .wizp-row')].filter(shown)
+  if (innerWidth >= 1100) {
+    if (shown(id)) return 'the aside names the league beside the list, and the review names it again above'
+    return rows.length ? true : 'the desk\'s aside draws no portrait'
+  }
+  if (rows.length) return `the portrait's ${rows.length} rows are drawn beside the rules list`
+  if (!shown(nm) || !shown(note)) return 'the review\'s name or reassurance line is not drawn'
+  const want = (document.getElementById('setName').value || '').trim() || 'Your league'
+  if (nm.textContent !== want) return `the name reads ${JSON.stringify(nm.textContent)}, not ${JSON.stringify(want)}`
+  if (note.textContent !== 'Forming — nothing locks until you start it') return `the line reads ${JSON.stringify(note.textContent)}`
+  const cs = getComputedStyle(nm)
+  if (parseFloat(cs.fontSize) !== 24 || cs.textTransform !== 'uppercase') return `the name is ${cs.fontSize} ${cs.textTransform}, not the display-small role (24px caps)`
+  if (getComputedStyle(note).textTransform !== 'none') return 'the reassurance line is set in caps, not the sentence-case phrase'
+  const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+  return after(h2, nm) && after(nm, note) && after(note, rules) ? true : 'the review does not read head, name, line, rules'
+})
 const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } },
     /* TEN / W6 · DX2 TP-22: the Pro row is a row, not a card whose content
        touched its sides (delta G6's inset patched the card; the card is gone) */
-    check: all(isRow('#commishChip', 'the Pro row'),
+    check: all(destMarked('compete'), isRow('#commishChip', 'the Pro row'),   /* TEN / W8 · W7-108: the wizard is a room of COMPETE, so COMPETE stays marked */
     /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
     async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
     noRetiredGlyph()) },
@@ -146,7 +288,7 @@ const WIZARD = [
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
       await click(page, '#wizFastPath'); await wizAt(page, 2); await page.waitForTimeout(600)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } } },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone) },
 ]
 
 /* --------------------------------------------- COURSES & THE COURSE CARD */
@@ -164,18 +306,51 @@ const toCourses = async (page) => {
   await until(page, () => document.querySelectorAll('#youCourses [data-cslead]').length > 0, null, 12000)
   await page.waitForTimeout(500)
 }
-const courseCard = (id, courseId, title, want) => ({
+/* TEN / W8 · W7-052 [A2-courses-1] · the course record says who of yours has played it: Home's door (overlapping faces, 'Blake and Devon have played here', its gloss and
+   a chevron), under 'You have played here N times', one course_page read per lead; absent, never a dash, when nobody else in the circle has (Dry Creek: only Avery's nine) */
+const courseCircle = (want) => async (page) => page.evaluate((want) => {
+  const door = document.querySelector('#youCourses .cs-course [data-hfcourse]')
+  if (want === false) return door ? 'a course nobody else has played draws the circle door' : true
+  if (!door) return 'the course record draws no door for who of yours has played it'
+  const t = door.innerText.replace(/\s+/g, ' ').trim(), faces = door.querySelectorAll('.hfr-faces .face, .hfr-faces > *').length
+  if (!/ (has|have) played here/.test(t) || !/See their rounds and your circle.s best/.test(t)) return `the door reads ${JSON.stringify(t)}`
+  if (!faces) return 'the door has no faces'
+  if (/Avery/.test(t)) return 'the viewer is named in their own circle door'
+  const hist = document.querySelector('#youCourses .cs-course .cs-body-s'), r = door.getBoundingClientRect()
+  return r.height >= 43.5 ? true : `the door is ${Math.round(r.height)}px tall`
+}, want)
+/* TEN / W8 · W7-133 [B2-courses-1] · the open course book is the LAST child of You's body: at the desk it runs the body's full width, below both columns (it ran down the left column beside a right one that
+   ended at 'Your bag' ~2,500px above), and from 1280 its lead takes the course page's own two-column shape; on the phone it keeps its place in the phone's sequence, above the doors */
+const courseBookWide = async (page) => page.evaluate(() => {
+  const body = document.querySelector('#view-stats .youbody'), book = body && body.querySelector(':scope > .you-courses')
+  if (!book) return 'the course book is not a child of the body'
+  if (body.lastElementChild !== book) return 'something follows the course book in the body'
+  const b = book.getBoundingClientRect(), y = body.getBoundingClientRect()
+  if (innerWidth >= 960) {
+    if (Math.abs(b.left - y.left) > 1 || Math.abs(b.right - y.right) > 1) return `the open book is ${Math.round(b.width)}px of a ${Math.round(y.width)}px body`
+    const foot = Math.max(body.querySelector(':scope > .youmain').getBoundingClientRect().bottom, body.querySelector(':scope > .youaside').getBoundingClientRect().bottom)
+    if (b.top < foot - 1) return `the book starts at ${Math.round(b.top)}px, above the columns' foot at ${Math.round(foot)}px`
+    const lead = book.querySelector('.cs-course')
+    if (innerWidth >= 1280 && lead && getComputedStyle(lead).gridTemplateColumns.split(' ').length !== 2) return `the lead stacks at ${Math.round(b.width)}px wide: ${getComputedStyle(lead).gridTemplateColumns}`
+  } else {
+    const doors = body.querySelector('.you-doors')
+    if (doors && b.bottom > doors.getBoundingClientRect().top + 1) return 'on the phone the course book sits below the doors'
+  }
+  return true
+})
+const courseCard = (id, courseId, title, want, circle = true) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
     await toCourses(page)
     const sel = `#youCourses [data-cslead="${courseId}"]`
     await tapUntil(page, sel, () => true, 1)
     await until(page, (cid) => String(window.CS_COURSE_LEAD) === String(cid), courseId, 6000).catch(() => {})
+    await until(page, () => !!document.querySelector('#youCourses .cs-course [data-hfcourse]'), null, 4000).catch(() => {})   /* the circle read lands after the card */
     await page.waitForTimeout(700)
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card')),
+    has('#youCourses', want, 'the course card'), courseCircle(circle)),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -183,16 +358,16 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: async (page) => page.evaluate(() => {
+    check: all(courseBookWide, async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
       const need = c.measureText(s.options[s.selectedIndex].textContent).width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 24
       const has = s.getBoundingClientRect().width
       return need <= has + 1 ? true : `the tee select clips its value: it needs ${Math.round(need)}px and has ${Math.round(has)}`
-    }) },
+    })) },
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
-  courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek'),
+  courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek', false),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),
 ]
 
@@ -204,6 +379,63 @@ const openHub = async (page) => {
   await tapUntil(page, '#youProfile', () => document.getElementById('sheet').classList.contains('open') && /Card & settings/.test(document.getElementById('shTitle').textContent))
   await page.waitForTimeout(500)
 }
+/* TEN / W8 · W7-042 [A2-settings-3] · what an armed card says when it is left: ONE sentence, in the status line that Save describes itself with, on the
+   pane that holds the edits (a golfer on Settings is brought back to it), in view, with focus on Save */
+const CARD_UNSAVED = 'You have unsaved changes. Save them, or do that again to leave without saving.'
+const unsavedSaid = async (page) => page.evaluate((want) => {
+  const st = document.getElementById('phStatus'), save = document.getElementById('phSave'), seg = document.querySelector('#phSeg [data-ph="card"]')
+  const r = st.getBoundingClientRect()
+  if (!(r.width > 0 && r.height > 0)) return 'the sentence is in a pane that is not drawn'
+  if (!(r.bottom > 0 && r.top < innerHeight)) return 'the sentence is below the fold of the golfer who edited the name'
+  if (seg.getAttribute('aria-pressed') !== 'true') return 'the Card segment is not the chosen one'
+  const a = document.activeElement
+  if (!a || a.id !== 'phSave') return `focus is on ${a && (a.id || a.tagName)}, not Save`
+  if (st.getAttribute('role') !== 'status') return 'the message is not a status'
+  if (save.getAttribute('aria-describedby') !== 'phStatus') return 'Save does not describe itself with the sentence'
+  return st.textContent === want ? true : `the sentence reads ${JSON.stringify(st.textContent)}`
+}, CARD_UNSAVED)
+/* the sheet is still the hub (title, no guide's way back) */
+const stillTheHub = async (page) => page.evaluate(() => document.getElementById('shTitle').textContent === 'Card & settings' && !document.getElementById('guideBack') ? true : `the sheet left the card: ${JSON.stringify(document.getElementById('shTitle').textContent)}`)
+/* TEN / W8 · W7-082 [A2-settings-5] · the Notifications block names its channels: 'On your devices' (This device, Round posts, Chat, with what This device governs), 'By email' (Season email) and 'In Cup Season' (the three
+   conversation switches, with their note), each an agate head at level 4 under 'Notifications'; no two ruled blocks abut (the doubled hairline), every switch stays enabled whatever This device says, and a group whose
+   RPC cannot answer hides with its head. `heads` is the list of groups the state expects to be drawn. */
+const NOTIFY_GROUPS = {
+  'On your devices': ['phPushTog', 'phRoundsTog', 'phChatTog'],
+  'By email': ['phMailTog'],
+  'In Cup Season': ['phTalk_own_round', 'phTalk_replies', 'phTalk_followed'],
+}
+const notifyGroups = (heads) => async (page) => page.evaluate(({ heads, groups }) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const pane = document.getElementById('phPaneSettings'), top = [...pane.querySelectorAll('.eyebrow[role="heading"]')].find((h) => h.textContent.trim() === 'Notifications')
+  if (!top || top.getAttribute('aria-level') !== '3') return 'the Notifications head is missing or not level 3'
+  const seen = [...pane.querySelectorAll('.phgrp-h')].filter(shown)
+  if (JSON.stringify(seen.map((h) => h.textContent.trim())) !== JSON.stringify(heads)) return `the channel heads read ${JSON.stringify(seen.map((h) => h.textContent.trim()))}, expected ${JSON.stringify(heads)}`
+  for (const h of seen) {
+    if (h.getAttribute('role') !== 'heading' || h.getAttribute('aria-level') !== '4') return `${JSON.stringify(h.textContent.trim())} is not a level-4 heading`
+    let rows = h.nextElementSibling; while (rows && !rows.classList.contains('phsws')) rows = rows.nextElementSibling
+    const ids = rows ? [...rows.querySelectorAll('.phsw')].filter(shown).map((b) => b.id) : []
+    const want = groups[h.textContent.trim()]
+    if (JSON.stringify(ids) !== JSON.stringify(want)) return `${JSON.stringify(h.textContent.trim())} holds ${JSON.stringify(ids)}, expected ${JSON.stringify(want)}`
+  }
+  const all = [...pane.querySelectorAll('.phsws')].filter(shown)   /* Scorecard scanning's block included: nothing abuts it either */
+  for (const g of all) if (g.nextElementSibling && g.nextElementSibling.classList.contains('phsws') && shown(g.nextElementSibling)) return 'two ruled switch blocks abut (a doubled hairline)'
+  const off = [...pane.querySelectorAll('.phsw')].filter((b) => shown(b) && b.disabled).map((b) => b.id)
+  if (off.length) return `switches disabled: ${off.join(', ')}`
+  const said = (el) => { let n = el; while ((n = n.nextElementSibling)) if (n.classList.contains('fine')) return n.textContent.trim(); return '' }
+  const devices = pane.querySelector('#phNotify')
+  if (said(devices) !== 'This device switches alerts on for this browser. Round posts and Chat choose which alerts you get, on every device.') return `the devices sentence reads ${JSON.stringify(said(devices))}`
+  if (heads.includes('In Cup Season')) {
+    const note = pane.querySelector('#phTalkGroup > .fine')
+    if (!note || note.textContent.trim() !== 'Muted conversations stay quiet. You won\u2019t be notified of your own comments.') return 'the conversation note is missing or misread'
+  }
+  for (const [name, id] of [['By email', 'phMailGroup'], ['In Cup Season', 'phTalkGroup']]) {
+    if (!heads.includes(name) && !document.getElementById(id).hidden) return `${name} is not drawn, but its group is not hidden`
+  }
+  const last = [...pane.querySelectorAll(':scope > .fine')].find((p) => /^Milestones, results and month closes always come through\.$/.test(p.textContent.trim()))
+  if (!last) return 'the always-come-through line is gone'
+  const lastGroup = [...pane.querySelectorAll('#phNotify, #phMailGroup .phsws, #phTalk')].filter(shown).pop()   /* the channel groups only: Scorecard scanning's switch follows the line */
+  return lastGroup.compareDocumentPosition(last) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the always-come-through line is not after the last group'
+}, { heads, groups: NOTIFY_GROUPS })
 const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
     drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
@@ -214,19 +446,26 @@ const SETTINGS = [
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
-    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings')) },
+    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings'), notifyGroups(['On your devices', 'By email', 'In Cup Season']), ariaWellFormed('#phPaneSettings')) },
+  /* W7-082 · a server that cannot answer the recap or the conversation switches (D68, D391 not deployed): their groups hide with their heads, and the devices group stands alone */
+  { family: 'settings', id: 'notify-skew', variant: 'member', fullPage: false, title: 'Card & settings · Settings when the server has no season email or conversation switches',
+    world: { errors: { rpc: { set_email_recap: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' }, social_notify_prefs: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' } } } },
+    expectConsole: [/status of 404/],
+    drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(600) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phPushTog': 'visible' } },
+    check: all(notifyGroups(['On your devices']), ariaWellFormed('#phPaneSettings')) },
   /* TEN / W8 · W7-043 [A2-settings-4] · the Handicap index block, scrolled to. Once the engine owns the number (index_source 'app') the card draws no
      field and no 'Update index' (the server refuses the edit by design and the golfer learned it from a toast): it says whose the number is, in the
      phone's words (CardAndSettingsScreen, Y-06), and keeps the door. A golfer whose number has not been built keeps the starter field. */
   { family: 'settings', id: 'card-index', variant: 'member', fullPage: false, title: 'Card & settings · the Handicap index, built by the engine (no field, no Update index)',
     drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdxOwned': 'text:^Your number builds itself now . 14\\.2$', '#phScoreHelp': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(ariaWellFormed('#phPaneCard'), async (page) => page.evaluate(() => {
       if (document.getElementById('phIdx') || document.getElementById('phIdxGo')) return 'the engine-owned card still offers a field or Update index'
       const help = document.getElementById('phIdxHelp').textContent.replace(/\s+/g, ' ').trim()
       if (help !== 'It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. How scoring works') return `the note reads ${JSON.stringify(help)}`
       return /[\u2192\u203a]/.test(document.getElementById('phIdxHelp').textContent) ? 'the door carries a typed arrow' : true
-    }) },
+    })) },
   { family: 'settings', id: 'card-starter', variant: 'one_round', fullPage: false, title: 'Card & settings · the Handicap index, still building (the starter field stays)',
     drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdx': 'visible', '#phIdxGo': 'text:^Update index$' } },
@@ -242,15 +481,7 @@ const SETTINGS = [
       await click(page, '#shClose'); await page.waitForTimeout(300)
     },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
-    check: async (page) => page.evaluate(() => {
-      if (window.__w8.armedByFindable) return 'a Findable-by tap armed Save changes for a change it had already saved'
-      const a = document.activeElement, s = document.getElementById('phStatus')
-      if (!a || a.id !== 'phSave') return `focus is on ${a && (a.id || a.tagName)}, not Save`
-      if (s.getAttribute('role') !== 'status') return 'the message is not a status'
-      const r = s.getBoundingClientRect()
-      if (!(r.bottom > 0 && r.top < innerHeight)) return 'the message is below the fold of the golfer who edited the name'
-      return /Save them, or close again to leave without saving/.test(s.textContent) ? true : `the message reads ${JSON.stringify(s.textContent)}`
-    }) },
+    check: all(async (page) => page.evaluate(() => window.__w8.armedByFindable ? 'a Findable-by tap armed Save changes for a change it had already saved' : true), unsavedSaid) },
   /* ...and a second dismissal within four seconds leaves without saving */
   { family: 'settings', id: 'card-unsaved-leave', variant: 'member', fullPage: false, title: 'Card & settings · the second dismissal leaves without saving',
     drive: async (page) => {
@@ -261,6 +492,86 @@ const SETTINGS = [
     },
     expect: { view: 'view-stats' },
     check: async (page) => page.evaluate(() => document.getElementById('sheet').classList.contains('open') ? 'the second dismissal did not close the sheet' : true) },
+  /* TEN / W8 · W7-042 (D's delta at e78d7f22) · (1) the sentence lands where the golfer can SEE it: a dismissal on the SETTINGS pane after a card edit wrote
+     to #phStatus inside #phPaneCard, which is display:none there, so the sheet stayed open with no word. The golfer is brought back to the card, where the
+     edits and Save are, and told. */
+  { family: 'settings', id: 'card-unsaved-settings', variant: 'member', fullPage: false, title: 'Card & settings · a card edit is pending, the golfer is on Settings and dismisses the sheet (brought back to the card, and told)',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(300)
+      await click(page, '#shClose'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, stillTheHub) },
+  /* (3) once per PENDING EDIT (root's ruling, both clients): an edit made after the question is a new pending edit. The line that asked is cleared by the next input, and the
+     next way out asks about it again (the sheet stays, the sentence is back); no stopwatch */
+  { family: 'settings', id: 'card-unsaved-rearm', variant: 'member', fullPage: false, title: 'Card & settings · an edit after the question clears it, and the next dismissal asks again',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#shClose'); await page.waitForTimeout(300)
+      await page.evaluate(() => { window.__w8 = { asked: document.getElementById('phStatus').textContent } })
+      await page.locator('#phName').fill('Avery Fixtured'); await page.waitForTimeout(200)
+      await page.evaluate(() => { window.__w8.cleared = document.getElementById('phStatus').textContent })
+      await page.waitForTimeout(4500)   /* well past the old four-second window: nothing times out */
+      await click(page, '#shClose'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, stillTheHub, async (page) => page.evaluate((want) => {
+      const w = window.__w8
+      if (w.asked !== want) return `the first dismissal said ${JSON.stringify(w.asked)}`
+      return w.cleared === '' ? true : `a new edit did not clear the question: ${JSON.stringify(w.cleared)}`
+    }, CARD_UNSAVED)) },
+  /* (2) every way out of an armed card asks once: a guide row (it REPLACES the sheet, and its way back rebuilds the hub from the saved profile, so the edits
+     are gone), the scoring note under the index, Tell us, Sign out. The first move keeps the sheet and says why; the same move again goes through. */
+  { family: 'settings', id: 'card-unsaved-guide', variant: 'member', fullPage: false, title: 'Card & settings · a card edit is pending and a guide row is tapped from Settings (kept, brought back to the card, and told)',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => { const g = document.getElementById('youGuide'); return !!g && g.offsetParent !== null })
+      await click(page, '#youGuide [data-guide="scoring"]'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, stillTheHub) },
+  { family: 'settings', id: 'card-unsaved-guide-leave', variant: 'member', fullPage: false, title: 'Card & settings · the same guide row tapped again opens the guide (its way back is there)',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => { const g = document.getElementById('youGuide'); return !!g && g.offsetParent !== null })
+      await click(page, '#youGuide [data-guide="scoring"]'); await page.waitForTimeout(300)
+      await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(200)
+      await click(page, '#youGuide [data-guide="scoring"]')
+      await until(page, () => !!document.getElementById('guideBack'), null, 6000); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats' },
+    check: async (page) => page.evaluate(() => document.getElementById('guideBack') && document.getElementById('shTitle').textContent !== 'Card & settings' ? true : 'the second tap did not open the guide') },
+  /* the other doors, each asked once with a fresh edit between them (typing re-arms the ask): the scoring note (card pane), Tell us and Sign out (settings pane).
+     The sheet stays the hub, and neither the feedback sheet nor the sign-out ran. */
+  { family: 'settings', id: 'card-unsaved-doors', variant: 'member', fullPage: false, title: 'Card & settings · the scoring note, Tell us and Sign out each ask first while a card edit is pending',
+    drive: async (page) => {
+      await openHub(page)
+      await page.evaluate(() => { window.__w8 = { fb: 0, out: 0, guide: 0, said: [] }; window.openFeedback = () => { window.__w8.fb++ }; window.csSignOut = async () => { window.__w8.out++ }; window.openScoringHelp = () => { window.__w8.guide++ } })
+      const said = () => page.evaluate(() => ({ text: document.getElementById('phStatus').textContent, title: document.getElementById('shTitle').textContent, card: getComputedStyle(document.getElementById('phPaneCard')).display !== 'none' }))
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phScoreHelp'); await page.waitForTimeout(200)
+      const a = await said()
+      await page.locator('#phName').fill('Avery Fixtured'); await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(200)
+      await click(page, '#phFeedback'); await page.waitForTimeout(200)
+      const b = await said()
+      await page.locator('#phName').fill('Avery Fixturer'); await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(200)
+      await click(page, '#phOut'); await page.waitForTimeout(300)
+      const c = await said()
+      await page.evaluate((r) => { window.__w8.said = r }, [a, b, c])
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, async (page) => page.evaluate((want) => {
+      const w = window.__w8, names = ['the scoring note', 'Tell us', 'Sign out']
+      for (let i = 0; i < 3; i++) { const r = w.said[i]; if (r.text !== want || r.title !== 'Card & settings' || !r.card) return `${names[i]} did not ask first (${JSON.stringify(r)})` }
+      return w.guide === 0 && w.fb === 0 && w.out === 0 ? true : `a door ran while the card was armed: scoring ${w.guide}, feedback ${w.fb}, sign out ${w.out}`
+    }, CARD_UNSAVED)) },
   /* TEN / W8 · W7-033 [A2-settings-8] · the Settings pane's 'How it works' rows, scrolled to: ruled rows (a hairline above, no box, no
      radius, no typed arrow), as the You door rows are, not bordered cards between ruled rows (§3.1, §5.1, §5.2) */
   { family: 'settings', id: 'guide', variant: 'member', fullPage: false, title: 'Card & settings · Settings, scrolled to How it works (ruled rows)',
@@ -271,13 +582,19 @@ const SETTINGS = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#youGuide': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => {
+      /* TEN / W8 · W7-033 (E5's aside): a ruled row does not lift on hover (the global .check:hover moved it 1px) */
+      await page.locator('#youGuide .check').first().hover(); await page.waitForTimeout(300)
+      const lift = await page.evaluate(() => getComputedStyle(document.querySelector('#youGuide .check')).transform)
+      const away = await page.locator('#shTitle').boundingBox(); await page.mouse.move(away.x + 4, away.y + 4)
+      return lift === 'none' ? true : `a ruled guide row lifts on hover (${lift})`
+    }, async (page) => page.evaluate(() => {
       const rows = [...document.querySelectorAll('#youGuide .check')]
       if (rows.length < 5) return `the guide has ${rows.length} rows`
       const bad = rows.filter((r) => { const cs = getComputedStyle(r); return cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(cs.borderTopLeftRadius) > 0 || cs.borderLeftWidth !== '0px' || cs.borderTopWidth !== '1px' })
       if (bad.length) return `${bad.length} guide row(s) are boxed: ${JSON.stringify(bad[0].innerText.slice(0, 30))}`
       return rows.some((r) => /[\u2192\u203a\u2197]/.test(r.textContent)) ? 'a guide row carries a typed arrow' : true
-    }) },
+    })) },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {
@@ -307,6 +624,19 @@ const SETTINGS = [
       if (shape.head !== 'Delete your account?' || shape.role !== 'heading') return 'the confirmation has no head of its own: ' + JSON.stringify(shape)
       if (shape.rule !== '1px') return 'the confirmation is not set off from the sign-out row by a rule: ' + JSON.stringify(shape)
       if (Math.abs(shape.yes - shape.no) > 1) return `the two answers are not equals: Delete ${shape.yes}px, Not now ${shape.no}px`
+      /* TEN / W8 · W7-041 (E5's aside): §7.1 pressed. The destructive answer takes the neg fill at a16 while it is held; .mini.del had none since it left .btn.destructive.
+         The mouse is released away from the button, so nothing is confirmed */
+      const box = await page.locator('#phDelYes').boundingBox()
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.waitForTimeout(200)
+      const pressed = await page.evaluate(() => {
+        const want = document.createElement('i'); want.style.background = 'color-mix(in srgb, var(--neg) 16%, transparent)'; document.body.appendChild(want)
+        const w = getComputedStyle(want).backgroundColor; want.remove()
+        const got = getComputedStyle(document.getElementById('phDelYes')).backgroundColor
+        return got === w ? 'ok' : `${got} (the pressed fill is neg at a16: ${w})`
+      })
+      const away = await page.locator('#shTitle').boundingBox()
+      await page.mouse.move(away.x + 4, away.y + 4); await page.mouse.up()   /* released over the sheet's own title: a release on the scrim would click it and dismiss the sheet */
+      if (pressed !== 'ok') return `the destructive answer's pressed fill is ${pressed}`
       await click(page, '#phDelNo')
       const back = await page.evaluate(() => document.activeElement && document.activeElement.id)
       await click(page, '#phDelete')

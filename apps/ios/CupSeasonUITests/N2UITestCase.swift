@@ -46,17 +46,29 @@ extension XCUIApplication {
     }
   }
 
-  /// A field scrolled up under the navigation bar is out of a finger's
-  /// reach, but XCUITest scrolls an element into view only when something in
-  /// the app covers its centre — and the status bar's strip is not in the
-  /// app's tree, so a centre there reads as hittable and the tap lands on the
-  /// bar (the composer's course field after the rating and slope, on a 17
-  /// Pro). Drag the page down until the element clears the bar.
-  @MainActor func revealUnderBars(_ element: XCUIElement, tries: Int = 4) {
-    let bar = navigationBars.firstMatch
-    guard bar.exists else { return }
-    for _ in 0..<tries where element.exists && element.frame.midY < bar.frame.maxY {
-      swipeDown(velocity: .slow)
+  /// **A field to type into must be clear of the bars and of the keyboard.**
+  /// XCUITest scrolls an element into view only when something in the app's
+  /// own tree covers its centre, and neither the status bar's strip nor the
+  /// keyboard is in that tree: a centre in the strip (the composer's course
+  /// field after the rating and slope, E's 17 Pro) or on the keyboard's top
+  /// edge (root's 17 Pro, software keyboard up) reads as hittable, and the tap
+  /// lands on the bar or on a key. Drag the page until the field sits between
+  /// the two, tap it, and assert the cursor is in it before anything is typed.
+  @MainActor func tapToType(_ field: XCUIElement, tries: Int = 4) {
+    for _ in 0..<tries where field.exists {
+      let bar = navigationBars.firstMatch
+      let top = bar.exists ? bar.frame.maxY : windows.firstMatch.frame.minY + 62
+      let keyboard = keyboards.firstMatch
+      let bottom = keyboard.exists ? keyboard.frame.minY : windows.firstMatch.frame.maxY
+      let f = field.frame
+      if f.minY >= top, f.maxY <= bottom - 8 { break }
+      if f.midY < top { swipeDown(velocity: .slow) } else { swipeUp(velocity: .slow) }
     }
+    field.tap()
+    let focused = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hasKeyboardFocus == true"), object: field)
+    if XCTWaiter().wait(for: [focused], timeout: 3) != .completed { field.tap() }
+    XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hasKeyboardFocus == true"),
+                                                                    object: field)], timeout: 3), .completed,
+                   "the field took the cursor before anything was typed")
   }
 }

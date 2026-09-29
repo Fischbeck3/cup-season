@@ -6,7 +6,9 @@ final class HomeNoPhotoTests: XCTestCase {
     app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_loaded_photo", "-cs_dev_text_size", "large", "-cs_dev_look", "none"]
     app.terminate(); app.launch()
     let photo = app.descendants(matching: .any)["home.round.photo"].firstMatch
-    XCTAssertTrue(photo.waitForExistence(timeout: 20))
+    // the first launch on a freshly booted phone can take most of a minute:
+    // 20s timed out there, the one first-launch flake (root's run and E's)
+    XCTAssertTrue(photo.waitForExistence(timeout: 60))
     XCTAssertEqual(photo.frame.height, 168, accuracy: 1)
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = "Loaded photo control fixture"; shot.lifetime = .keepAlways; add(shot)

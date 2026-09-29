@@ -435,3 +435,48 @@ export const noBoxes = (sels) => async (page) => page.evaluate((sels) => {
   }
   return bad.length ? `a card on the season page (§15.4): ${[...new Set(bad)].slice(0, 5).join('; ')}` : true
 }, sels)
+
+/* TEN / W8 · W7-026 + W7-043 (follow-up) · ARIA that says what the markup is (ARIA 1.2; WCAG 4.1.2). `ariaWellFormed(root)` fails
+ * the capture when, under `root`, a table cell (td/th) is given a role that is not a cell's (role=status on a td took the cell out of
+ * its row, so the row had no cells), or a paragraph, a span or a div with no role of its own is NAMED (aria-label / aria-labelledby:
+ * naming is prohibited on a paragraph and on a generic — a screen reader ignores it, and a checker flags it). */
+export const ariaWellFormed = (root) => async (page) => page.evaluate((root) => {
+  const host = document.querySelector(root); if (!host) return `${root} is not drawn`
+  const cells = new Set(['cell', 'gridcell', 'columnheader', 'rowheader']), bad = []
+  const path = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '')
+  for (const el of host.querySelectorAll('td, th')) { const r = el.getAttribute('role'); if (r && !cells.has(r)) bad.push(`${path(el)} has role=${r}`) }
+  for (const el of host.querySelectorAll('p, span, div')) if (!el.getAttribute('role') && (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby'))) bad.push(`${path(el)} is named with no role`)
+  return bad.length ? 'the markup says one thing to a screen reader and draws another: ' + bad.slice(0, 5).join('; ') : true
+}, root)
+
+/* TEN / W8 · W7-028 [B2-season-24] (E3, D's second reader) · UI_SYSTEM §7.1 and §16.4: a door in content is marked by a 2px mut rule under its label
+ * (never the row's 1px hairline, which is a divider and reads 2.3:1 to 2.7:1) and is a 44 target. `tertiaryDoor(sel)` fails the capture when a drawn
+ * element the selector names has no underline, an underline that is not 2px, an underline that is not the mut colour, or a box under 44px tall. */
+export const tertiaryDoor = (sel) => async (page) => page.evaluate((sel) => {
+  const els = [...document.querySelectorAll(sel)].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+  if (!els.length) return `${sel} is not drawn`
+  const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+  for (const el of els) {
+    const cs = getComputedStyle(el), label = JSON.stringify((el.textContent || '').trim().slice(0, 24))
+    if (!/underline/.test(cs.textDecorationLine)) return `${sel} ${label} has no underline (its affordance is the row's hairline)`
+    if (parseFloat(cs.textDecorationThickness) !== 2) return `${sel} ${label} is underlined ${cs.textDecorationThickness}, not 2px`
+    if (cs.textDecorationColor !== mut) return `${sel} ${label} is underlined ${cs.textDecorationColor}, not mut (${mut})`
+    if (el.getBoundingClientRect().height < 43.5) return `${sel} ${label} is ${Math.round(el.getBoundingClientRect().height)}px tall, not 44`
+  }
+  return true
+}, sel)
+
+/* TEN / W8 · W7-108 [A2-desk-1] · a page that is a room OF a destination keeps that destination marked (the phone's NavSlot.of(route)): the live setup and the composer are PLAY,
+ * a golfer's page and the head-to-head are GOLFERS, the wizard is COMPETE. `destMarked(v)` fails the capture when the visible tab band (or, at the desk, the sidebar's five rows)
+ * does not mark exactly the destination whose data-v is `v`, in BOTH channels (.active and aria-current="page"). */
+export const destMarked = (v) => async (page) => page.evaluate((v) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const bands = [['tab band', [...document.querySelectorAll('.tab')].filter(shown)], ['sidebar', [...document.querySelectorAll('.navitem:not(.sub)')].filter(shown)]].filter(([, l]) => l.length)
+  if (!bands.length) return 'neither the tab band nor the sidebar is drawn'
+  for (const [name, list] of bands) {
+    const on = list.filter((t) => t.classList.contains('active')), cur = list.filter((t) => t.getAttribute('aria-current') === 'page')
+    if (on.length !== 1 || on[0].dataset.v !== v) return `the ${name} marks ${JSON.stringify(on.map((t) => t.dataset.v))}, expected ["${v}"]`
+    if (cur.length !== 1 || cur[0] !== on[0]) return `the ${name}'s aria-current is not on the marked destination alone`
+  }
+  return true
+}, v)

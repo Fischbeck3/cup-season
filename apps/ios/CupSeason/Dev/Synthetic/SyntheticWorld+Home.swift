@@ -140,7 +140,7 @@ extension SyntheticWorld {
       }
       items.append(item("invite:\(fids(9_101))", tier: "closing", rank: 2, subject: person(8).first,
                         eyebrow: "An invitation", headline: "\(person(8).first) put you on \(Self.inviteLeagueName).",
-                        standfirst: "See the terms before you are in.", action: "See the terms",
+                        standfirst: "See the terms before you’re in.", action: "See the terms",
                         route: ["kind": "invite", "id": fids(1_003), "pane": "league"], league: fids(1_003), spine: "ember", at: day(-1)))
     }
     if hasRounds {

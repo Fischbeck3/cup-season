@@ -88,7 +88,14 @@ const PUBLIC_ROUND = [
      settled game and the season table say what the round record says, and a
      dead link's action names the product — "Play this" had nothing on the
      page to refer to. The strip is keyed in words and spoken as one image. */
-  share('dead-link', SHARE.dead, { text: 'This link is dead', cta: 'Open Cup Season' }),
+  /* TEN / W8 · W7-058 [A2-public-round-4]: a dead link says ONE fresh-one sentence for every kind of link (share_info answers the same null for all of them, D57),
+     never 'from the round' */
+  share('dead-link', SHARE.dead, { text: 'This link is dead[\\s\\S]*Whoever sent it can share a fresh one\\.', cta: 'Open Cup Season' },
+    { check: async (page) => {
+      const base = await shareCheck({ text: 'This link is dead[\\s\\S]*Whoever sent it can share a fresh one\\.', cta: 'Open Cup Season' })(page)
+      if (base !== true) return base
+      return page.evaluate(() => /from the round/i.test(document.getElementById('svCard').innerText) ? 'a dead link of any kind says "from the round"' : true)
+    } }),
   share('settlement', SHARE.settlement, { text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play with your people', title: '^MATCH PLAY at ' },
     { check: async (page) => {
       const base = await shareCheck({ text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play with your people', title: '^MATCH PLAY at ' })(page)
@@ -100,10 +107,30 @@ const PUBLIC_ROUND = [
         if (!/Blake & Devon won/.test(key) || !/Casey & Gray won/.test(key) || !/Halved/.test(key)) return 'the key does not name all three kinds: ' + key
         /* TEN / W6 · AW2-14: the sides are told by name and by pattern (full or half height) — never by ember */
         if ([...document.querySelectorAll('.sv-strip span[style]')].some((s) => /var\(--brand\)/.test(s.getAttribute('style')))) return 'the strip paints a side in ember'
+        /* TEN / W8 · W7-057 [A2-public-round-2]: the four scores are a column of bare figures, so it carries a head (§16A.3): Golfers over the names and Gross over the
+           figures, the second right-aligned over them — the recap's table names its Points the same way */
+        const head = document.querySelector('.sv-colhead'), rows = document.querySelector('.sv-rows'), fig = rows && rows.querySelector('.fig')
+        if (!head || !/^GOLFERS\s+GROSS$/i.test(head.innerText.replace(/\s+/g, ' ').trim())) return 'the settlement scores have no head: ' + JSON.stringify(head && head.innerText)
+        if (head.nextElementSibling !== rows) return 'the head is not directly above the rows'
+        const g = head.lastElementChild.getBoundingClientRect(), f = fig.getBoundingClientRect()
+        return Math.abs(g.right - f.right) <= 1.5 ? true : `Gross sits ${Math.round(g.right - f.right)}px off the figures' right edge`
+      })
+    } }),
+  /* TEN / W8 · W7-138 [A2-public-round-7]: the season's state is in the dateline, not an orphan agate label under the rows; when the story already says how long is
+     left ('with N weeks to play') no 'In play' is printed at all */
+  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas', cta: 'Play with your people' },
+    { check: async (page) => {
+      const base = await shareCheck({ text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas', cta: 'Play with your people' })(page)
+      if (base !== true) return base
+      return page.evaluate(() => {
+        const card = document.getElementById('svCard'), dl = (card.querySelector('.sv-eb') || {}).innerText || '', story = (card.querySelector('.sv-story') || {}).innerText || ''
+        if (card.querySelector('.sv-status')) return 'the recap still prints an orphan status label under the rows'
+        const carries = /to play\.?$/.test(story.trim())
+        if (carries && /In play|Final/i.test(dl)) return `the dateline repeats the state the story already says: ${JSON.stringify(dl)} / ${JSON.stringify(story)}`
+        if (!carries && !/In play|Final/i.test(dl)) return `nothing says the season's state: ${JSON.stringify(dl)} / ${JSON.stringify(story)}`
         return true
       })
     } }),
-  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas[\\s\\S]*IN PLAY', cta: 'Play with your people' }),
 ]
 
 /* ------------------------------------------- claim + invite recipients */

@@ -127,6 +127,28 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4, theirGross: 79), today: "2026-09-05")?.tier == .closing)
   }
 
+  /// AW2-05 · the clash says its clock once: the eyebrow names the
+  /// competition, one sentence carries the clock, and an idle clash keeps its
+  /// idle words on its last day (root's ruling) — never "You and Galen are
+  /// both in." when neither has posted.
+  @Test func theClashSaysItsClockOnce() {
+    let idle = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4), today: "2026-09-05")
+    #expect(idle?.eyebrow.hasSuffix(" · THE CLASH") == true && idle?.eyebrow.contains("CLOSES") == false)
+    #expect(idle?.standfirst == "Best round of the week takes it. The week closes in 4 days.")
+    let lastDay = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 1), today: "2026-09-05")
+    #expect(lastDay?.headline == "Your clash with Galen is open.")
+    #expect(lastDay?.standfirst == "Best round of the week takes it. The week closes tomorrow.")
+    #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 0, closesToday: true), today: "2026-09-05")?.standfirst
+            == "Best round of the week takes it. The week closes today.")
+    for m in [clashedMembership(daysLeft: 4), clashedMembership(daysLeft: 1), clashedMembership(daysLeft: 4, theirGross: 79),
+              clashedMembership(daysLeft: 2, mineGross: 89)] {
+      let it = HomeFallbackItems.clashItem(m, today: "2026-09-05")
+      let said = [it?.eyebrow, it?.headline, it?.standfirst].compactMap { $0 }.joined(separator: " | ").lowercased()
+      let clocks = ["in 4 days", "tomorrow", "2 days", "today"].reduce(0) { $0 + said.components(separatedBy: $1).count - 1 }
+      #expect(clocks == 1, "the clock once — \(said)")
+    }
+  }
+
   @Test("SA-2 · I posted and they have not: the subject is the OPPONENT, and the verb is never 'post again'")
   func iPostedTheyHaveNot() {
     let it = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 2, mineGross: 89), today: "2026-09-05")
@@ -137,6 +159,22 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     // one day left reads as a day, not "1 days"
     #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 1, mineGross: 89), today: "2026-09-05")?.headline
               == "Galen has one day to answer your 89.")
+  }
+
+  /// AW2-07 · a figure in the lead's serif is a run the producer marks: the
+  /// fallback marks its gross, its days and its counts, the plain headline
+  /// says the same words, and a server item carries no marks.
+  @Test func theFallbackMarksItsFigures() {
+    let mine = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 2, mineGross: 89), today: "2026-09-05")
+    #expect(mine?.headlineMarked == "Galen has {2} days to answer your {89}.")
+    #expect(mine?.localHeadlineMarked().filter { $0 != "{" && $0 != "}" } == mine?.headline)
+    let theirs = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4, theirGross: 79), today: "2026-09-05")
+    #expect(theirs?.headlineMarked == "Galen posted {79}.")
+    #expect(HomeFallbackItems.movementItem(clashedMembership(rank: 2, prev: 4))?.headlineMarked == "You moved up {2} this week.")
+    let idle = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4), today: "2026-09-05")
+    #expect(idle?.headlineMarked == nil && idle?.localHeadlineMarked() == idle?.headline)
+    let server = HomeDispatch.Item(key: "k", tier: .changed, eyebrow: "E", headline: "Galen posted 81 at Troon.")
+    #expect(server.localHeadlineMarked() == "Galen posted 81 at Troon.")
   }
 
   @Test("A-4 / D378 (vii) · a movement label carries its own clock — 'this week', never a bare 'held' and never a hard-coded Sunday")

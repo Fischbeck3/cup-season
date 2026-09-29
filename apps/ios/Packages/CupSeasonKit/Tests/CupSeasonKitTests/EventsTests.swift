@@ -227,8 +227,11 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   /// N4-212 / PAR-28 · the room's head and section words come from one
   /// producer, and the desk reads the same words (it drops its "EX" mark).
   @Test func theHeadIsOneProducer() {
-    #expect(MajorMath.potCaption(buyIn: 20, potSplit: nil) == "$20 each · 60/25/15")
-    #expect(MajorMath.potCaption(buyIn: 12.5, potSplit: "wta") == "$12.50 each · winner takes all")
+    // D273 (root's ruling on N4-212) · the split in the pot's own dollars, as
+    // the settlement pays it: the champion absorbs the rounding
+    #expect(MajorMath.potCaption(buyIn: 20, pot: 80, potSplit: nil) == "$20 each · 48 / 20 / 12")
+    #expect(MajorMath.potCaption(buyIn: 25, pot: 150, potSplit: "places") == "$25 each · 90 / 37.50 / 22.50")
+    #expect(MajorMath.potCaption(buyIn: 12.5, pot: 50, potSplit: "wta") == "$12.50 each · winner takes all")
     #expect(MajorMath.windowLine(window: "Sep 26 – Sep 29", field: 5) == "Sep 26 – Sep 29 · five playing")
     #expect(MajorMath.windowLine(window: nil, field: 0) == nil)
     #expect(MajorMath.Head.unofficial.lowercased() == MajorMath.unofficial)

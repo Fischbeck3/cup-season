@@ -614,6 +614,32 @@ Their web halves are on integration: W7-003 (the held round's setup is locked, P
 
 **Root's W7 items since:** W7-017, W7-120 and W7-121, the harness world drawing three things production cannot (`44128341`); W7-120's product line, "minimum 2 rounds" (`b2bd5b1f`); W7-061's comment id (`d1d29cf0`). W7-005 needed no commit: B's `d4d7c6f0` had closed it before D's list was cut.
 
+## 4n · Web push 5, C's W8 share, D's first delta (2026-09-29, afternoon)
+
+**Merged:** B's first W7 web halves at `a8c0c0b3`: W7-003 [X02], the held round's setup locked (P1); W7-001 [X42]'s who-line; AW2-05's idle words. Their two server halves were reverted at `28f176aa` and `ea5f19a4` and live on the held branch. C's first W8 checkpoint at `282578eb` (21 items) and its final at `51211947` (W7-027, 053, 047, 043, 020, 022, 019 and W7-029 in four commits), with ratchets at `e78d7f22` (LINT-06 1054).
+
+**Web push 5: `bbd72753`, 13:40 MST.** 42 commits, a fast-forward from `2f6c24dc`; `index.html` the only served file; no migrations net, no generated Swift, no version lines.
+- Verified: `e78d7f22` in full (`ci-local` 11/11; app-tests 520/0 in both themes; 43 of 43 suites; the full harness from a snapshot, 1,310 captures, 0 route failures, 0 errors); then `bbd72753`'s own `ci-local` 11/11, app-tests 520/0 in both themes, the you family 32/32 at `1bb743d7` (its control fails 4 at `e78d7f22`), and the home family 256/256.
+- Live `v23 · bbd7275`; CI green.
+
+**Regressions found and fixed:**
+- **W7-101 [A2-identity-12]** (session D, from C's W7-055): You's section index drew on a failed read and pushed "Try again" wholly under the tab band at 375×667. `1bb743d7` draws it only for a record that holds something; `you/error` pins it.
+- **The desk sidebar's foot** (session B, from C's final set): the empty-record yield hid `#sideMe` with `display:none`, taking the column's `margin-top:auto` pin, so the foot floated 484px up. `d3e96f86` collapses the block in place; `you/empty` checks the foot within 48px of the column's bottom (the control fails 4).
+- **N4-106's sibling** (session D): the Home hero's minimum foot read "Sep minimum 5/2 · cleared" past the minimum; `bbd72753` names the minimum, then what the golfer has.
+- **W7-120's zero minimum** (session D): the Book said "minimum 0 rounds" for a solo league; `0a0e43eb` says a minimum only when there is one (L-23).
+
+**D's first delta at `e78d7f22`** (two independent readers per verdict): 27 records fixed (18 items, 9 debt lines), 25 partly, 1 regression (W7-101, fixed in push 5). **3 of the 32 heuristic cells at 2 have lifted:** desk·B2·H7, identity·B2·H7, season·A2·H8. None of the six tier-0 items is fully closed: W7-001 and W7-002 wait on the owner's push of the held branch, W7-004 is after launch by design, and W7-003, W7-005 and W7-006 have small remainders routed to B. Every partly remainder is routed by source id (B: W7-003, 005, 024, 046, 056, 071, 085, 114, 125, K077; C: W7-009, 014, 015/K102, 025, 026, 028, 034, 042, 072, #boardCard). C's queue also took seven of B's items (W7-035, 039, 040, 049, 052, 057, 058) to balance the two lanes.
+
+## 4o · Web push 6, N4 checkpoint 4, the round-3 plan (2026-09-29, late afternoon)
+
+**Web push 6: `250d2c09`, 16:08 MST.** 66 commits, a fast-forward from `bbd72753`: N4 checkpoint 4 (`3fe30b48`, apps/ios plus the synthetic capture plan), root's revert of its own wrong N4-025 ruling (`a3f7bcad`: the composer keeps "Your index", NW-5 and `57ca5eee`; Q48 owns the form), C's delta remainders (`ac0026b7`), the sidebar-foot fix, the Book's no-zero-minimum rule, and preflight 18b (no top-level function declared twice across the classic blocks, after lane B found two lanes' `csStaleLine` colliding; it flags the real case on a trial merge). `index.html` the only served file; no migrations net.
+- Verified at `250d2c09`: `ci-local` 11/11; app-tests 526/0 in both themes; 43 of 43 suites; the full harness from a snapshot, 1,426 captures, 0 route failures, 0 errors. Live `v23 · 250d2c0`; CI green.
+- **The push's privacy scan flagged two lines, and root's command pushed before gating on it.** Both are the phone's Book fixtures (`SeasonBookFixtureJSON.swift`, `finished.json`), whose viewer row carries the owner's first name. They are not new: the same name has been in the native fixtures on main since 2026-08-27 (`5a172515`), beside two more pilot names in `CompeteFixture` and `ScorecardSheet`. That is X37's recast, the owner's to rule; nothing new was exposed. The push now gates on a zero count.
+
+**Root's native pass at `a3f7bcad`** (root's own 17 Pro, the software keyboard up): build green; 1,416 + 16 unit tests pass; UI 82, 72 passed, 8 environment skips. E's `tapToType` fixed both posting flows. `testSharePreviewCancel` flaked, and E traced it to a product bug: the preview fetched the round's photo before opening, on a 60-second default. It opens at once now (checkpoint 5), with the photo filling in. E also found and fixed, for checkpoint 5, a checkpoint-4 regression (an untouched card read as dirty) and an older one (the card reloaded, and dropped pending edits, every time its page reappeared). Nothing native ships before checkpoint 5 merges.
+
+**The round-3 plan** (the account's 5-hour usage window is shared by every session, and extra usage is off): the lanes checkpoint at 19:15; root merges and verifies the candidate in full and pushes it (about 20:15); session D verifies root's gallery byte for byte and launches A3, B3 (one agent each, round 2's calibration), AW3 and DX3 at the start of the 19:40 window; root's three §29 judges follow A3 and B3 on the same gallery; the lanes run no fan-outs from 19:40 to about 23:00.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:

@@ -415,6 +415,10 @@
     state.structure = 'solo';
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
+    /* W7-093 [A2-rules-2] · the floor sentence names WHICH months are waived (the edge months close_month waives), not 'Short months', which no page defines */
+    t('W7-093: floorSentence ends on the edge months and never says "Short months"',
+      [floorSentence({ floor:2, preset:1, structure:'squads2' }), /Short months/.test(floorSentence({ floor:2, preset:1, structure:'squads2' }))],
+      ['Post 2 rounds a month. Miss once and your season bye covers it automatically; from the second miss your squad loses 5 points for every round you\'re short. A partial first or last month has no minimum.', false]);
     /* TEN / W6 · with a league in hand the minimum is `floorSentence`'s, the
        one producer Home, the pot and the rules print (E's twin: GuideCopy →
        LeagueCopy.floorSentence) — for a solo league, "…a habit, not a penalty". */
@@ -475,7 +479,11 @@
        CredentialCopy.formDate), never csDayToken's TODAY / weekday / month-day mix, and a nine says so; on You the head is
        an eyebrow that carries the window and counts only under five rounds; the person page keeps its rule-and-slot head */
     box.innerHTML = formRowHtml(rec);
-    t('W7-047: the columns print the month and day', [...box.querySelectorAll('.dfcol small')].map(e=>e.textContent), ['Sep 6','Sep 7','Sep 8','Sep 9','Sep 10']);
+    t('W7-047: the columns print the month and day (W7-111: the best says so in words, a second channel beside its hue)', [...box.querySelectorAll('.dfcol small')].map(e=>e.textContent), ['Sep 6','Sep 7 · best','Sep 8','Sep 9','Sep 10']);
+    /* W7-111 · no role=img on the row (it hid every number from a screen reader); each column is named by its own facts, the best 'best of the five', a nine 'nine holes' */
+    t('W7-111: the Form row is not one image, and each column names its own facts',
+      [box.querySelector('.dform').getAttribute('role'), [...box.querySelectorAll('.dfcol')].map(e=>e.getAttribute('aria-label'))],
+      [null, ['85, September 6','79, September 7, best of the five','90, September 8','79, September 9','84, September 10']]);
     const withNine = rec.map((r,i)=> i===0 ? Object.assign({}, r, {holes_played:9}) : r);
     box.innerHTML = formRowHtml(withNine);
     t('W7-047: a nine says so in the column', (box.querySelectorAll('.dfcol small')[4] || {}).textContent, 'Sep 10 · nine');
@@ -1360,6 +1368,10 @@
       t('D241: dead path ' + i + ' answers the same nothing',
         csShareLine('person', d), 'That link has expired. Whoever sent it can share a fresh one.');
     });
+    /* W7-058 · and the PUBLIC PAGE's dead link says the same second sentence, from the one constant: it said 'from the round' for every kind of link that died */
+    t('W7-058: the dead link\'s sentence is one constant for the page and csShareLine, and names no kind of link',
+      [window.CS_LINK_DEAD_SUB, csShareLine('plan', null).endsWith(window.CS_LINK_DEAD_SUB), /round/i.test(window.CS_LINK_DEAD_SUB)],
+      ['Whoever sent it can share a fresh one.', true, false]);
 
     /* D80 · a REQUEST, never a friendship — unless they asked first */
     t('D241: the sentence says request, not friendship',

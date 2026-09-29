@@ -742,7 +742,9 @@ public struct CSStoryCard<Aside: View>: View {
       // AX3 · the serif headline WRAPS. It never truncates and never shrinks
       // below the role's own floor — it is the one sentence the screen slows
       // a golfer down for.
-      Text(headline).csType(.lead).foregroundStyle(cs.ink)
+      // AW2-07 · a figure in it is a run the producer marked (`{89}`, §1.6);
+      // a headline with no marks sets exactly as the role does
+      CSFigureRun(headline, role: .lead).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
       if let standfirst, !standfirst.isEmpty {
         Text(standfirst).csType(.body).foregroundStyle(cs.mut)

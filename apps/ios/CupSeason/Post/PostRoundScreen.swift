@@ -502,7 +502,12 @@ private struct PostRoundBody: View {
       }
       // rating/slope: one mono line that opens into the two fields on "edit" — always editable (D72);
       // an empty card shows "— / —" and stays folded (IOS-022 item 4)
-      Button { CSMotion.run { ratingOpen.toggle() } } label: {
+      // The card closed by its own rule the moment a course and a rating were
+      // both set (`cardIsOpen`), so a golfer typing them by hand, as the
+      // no-match line says, lost the card after the rating's first digit,
+      // before the slope. Opening the fields is the golfer working in the card:
+      // it holds the card open until they close it.
+      Button { CSMotion.run { ratingOpen.toggle(); if cardOpen == nil { cardOpen = true } } } label: {
         // IOS-066 · always draws its hairline now: `Day played` follows it, so
         // it stopped being the section's last row.
         CSRow {
@@ -833,11 +838,15 @@ private struct PostHeroContent: View {
         // fact the sentence does NOT carry, so that is what stays.
         //
         // D124 (i) · with no number yet there is no points total and no signed
-        // figure to show — only what the round was against the course.
-        Text(p.provisional ? p.vsText : pointsText)
-          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
-          .padding(.top, 2)
+        // figure to show. N4-088 · nor a figure against the course: that is the
+        // receipt's arithmetic's alone, and the sentence above is the
+        // receipt's line (root's ruling).
+        if !p.provisional {
+          Text(pointsText)
+            .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 2)
+        }
       }
       // D362 · **WHAT THIS ROUND CAN ADD, WHERE THE DESK PUTS IT** — under the
       // points, in the hero, always on screen. It lived inside the `How points

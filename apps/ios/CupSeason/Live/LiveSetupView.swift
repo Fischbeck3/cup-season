@@ -172,6 +172,11 @@ struct LiveSetupView: View {
         // F8 · the answer arrives under this field, above the keyboard
         .id(CourseSearchReveal.id)
         .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
+        // W7-003 · a held round's course, tee, rating, slope, holes and pars
+        // went to the group at tee-off, and the finish posts from that
+        // snapshot: while held they are shown, never offered (the held line
+        // says why). Nothing carries an edit to the server until live_set_setup.
+        .disabled(store.held)
         // N4-172 · "off the scorecard" read as "switched off"; the numbers come
         // FROM the card (the web's gloss moves with it)
         fieldLabel("Tee & rating — from your scorecard")
@@ -199,10 +204,13 @@ struct LiveSetupView: View {
               .onChange(of: slopeText) { _, v in store.state.course.slope = Int(v) }
           }
         }
+        .disabled(store.held)
         LiveSeg(options: [(18, "18 holes"), (9, "9 holes")], selected: store.state.holes) { store.setHoles($0) }
           .frame(maxWidth: typeSize.isA11y ? .infinity : 220, alignment: .leading)
+          .disabled(store.held)
         CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
         CSMini("Enter the pars") { showCard = true }
+          .disabled(store.held)
         Button("Save courses for offline") { showOfflineCourses = true }
           .buttonStyle(.csTertiary(.content))
           .accessibilityIdentifier("offline.courses.open")
