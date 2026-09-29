@@ -19867,10 +19867,14 @@ function heroFloorFoot(){
      the "· 3d" deadline borrowed urgency from a consequence that does not
      exist. Solo tracks the habit; it does not run a clock. */
   const soloFloor = state.structure==='solo';
+  const crTxt = cr%1?cr.toFixed(1):cr;
   const tail = need
     ? ((need%1?need.toFixed(1):need)+' more'+(soloFloor?'':' · '+closes))
-    : 'cleared';
-  return `<span>${MOS[now.getMonth()]} minimum ${cr%1?cr.toFixed(1):cr}/${floor}</span>
+    : 'met — you have '+crTxt;
+  /* N4-106's sibling (session D's delta) · past the minimum this read "Sep
+     minimum 5/2 · cleared", a fraction over one; it names the minimum and then
+     what the golfer has, as the room's line does */
+  return `<span>${MOS[now.getMonth()]} minimum ${need ? crTxt+'/'+floor : 'of '+floor}</span>
     <span class="hh-bar"><i class="${need?'':'ok'}" style="width:${Math.round(pct*100)}%"></i></span>
     <span>${tail}</span>`;
 }
@@ -24998,7 +25002,10 @@ const CS_YOU_JUMPS = [['Recent rounds', ['#youRecentHead']], ['Trophies', ['#you
   const sync = () => {
     q = 0;
     const on = [...box.querySelectorAll('[data-yj]')].filter(b => { const t = targetOf(Number(b.dataset.yj)); b.hidden = !t; return !!t; }).length;
-    box.hidden = on < 3;
+    /* W7-101 [A2-identity-12] · the index is for a record that HOLDS something:
+       drawn on a loading, failed or empty page it sat above the message and
+       pushed "Try again" wholly under the tab band at 375x667 (§13.2a) */
+    box.hidden = on < 3 || view.dataset.record !== 'some';
     box.dispatchEvent(new Event('scroll'));   /* the edge re-reads after the chips change */
   };
   const again = () => { if(!q) q = requestAnimationFrame(sync); };
