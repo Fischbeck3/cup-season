@@ -282,6 +282,17 @@ const GOLFERS = [
     noRetiredGlyph(),
     /* TEN / W8 · W7-010: at the desk the head says the record in prose and the season row as a figure, so the aside's bold headline stands down */
     standsDown(['#perAside .perhl'])) },
+  /* TEN / W8 · W7-019 · at the desk a click on the scrim closes the board, as the sheet's does (a dialog) */
+  { family: 'golfers', id: 'board-scrim', variant: 'member', desk: true, fullPage: false, title: 'The league board, dismissed by a click on the scrim (desk)',
+    drive: async (page) => {
+      await page.evaluate(() => window.switchView('board'))
+      await until(page, () => document.getElementById('boardFull').classList.contains('open'))
+      await page.waitForTimeout(400)
+      await page.mouse.click(20, 20)
+      await page.waitForTimeout(500)
+    },
+    expect: { selectors: { '#boardFull.open': 'hidden' } },
+    check: async (page) => page.evaluate(() => document.getElementById('boardFull').classList.contains('open') ? 'a click on the scrim did not close the board' : true) },
   /* The person page's only door to the head-to-head is #perOpenH2H, drawn
      after tour_card lands -- and openPerson never gets that far (see the WX
      report: `sb.rpc(...).catch` is not a function on a PostgREST builder, so
@@ -326,6 +337,22 @@ const GOLFERS = [
       const bare = photo.filter((c) => getComputedStyle(c).backgroundColor !== ground(c))
       if (bare.length) return `${bare.length} photo card(s) have no ground: ${getComputedStyle(bare[0]).backgroundColor}`
       return true
+    }),
+    /* TEN / W8 · W7-019 [A2-golfers-3, B2-golfers-4, A2-desk-3, B2-desk-3]: at the desk the board is the sheet's dialog, not the phone's takeover stretched
+       edge to edge: a centred panel of 720 at most on the sheet's scrim, 82dvh at most, its cards inside the measure and a round's photo the
+       2.1:1 band (§6.4); below 960 the panel dissolves and the board is the full screen, as before (D93/D223) */
+    async (page) => page.evaluate(() => {
+      const panel = document.querySelector('#boardFull .bf-panel'), r = panel.getBoundingClientRect()
+      if (innerWidth < 960) return getComputedStyle(panel).display === 'contents' ? true : 'the phone board is not the full-screen takeover (the panel did not dissolve)'
+      if (r.width > 720.5) return `the desk board is ${Math.round(r.width)}px wide, past the 720px reading measure`
+      if (Math.abs(r.left + r.width / 2 - innerWidth / 2) > 2) return 'the desk board is not centred'
+      if (r.height > innerHeight * 0.82 + 1) return `the desk board is ${Math.round(r.height)}px tall in a ${innerHeight}px window`
+      const scrim = getComputedStyle(document.getElementById('boardFull')).backgroundColor
+      if (!/rgba\(/.test(scrim)) return `the board has no scrim behind it: ${scrim}`
+      const wide = [...document.querySelectorAll('#feedListFull .fcard')].filter((c) => c.getBoundingClientRect().width > 720)
+      if (wide.length) return `${wide.length} post(s) are wider than the measure`
+      const ph = document.querySelector('#feedListFull .fcard .round.has-photo'), pr = ph && ph.getBoundingClientRect()
+      return !pr || (pr.width / pr.height > 2.0 && pr.width / pr.height < 2.25) ? true : `a photo card is ${Math.round(pr.width)}x${Math.round(pr.height)}, not the 2.1:1 band`
     }),
     /* TEN / W6 · AW2-06 + OB-05: a round card's course line and its margin's
        unit are agateS; only the margin's figure keeps mono (the column role) */
