@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0B1410">
+<meta name="theme-color" content="#0F1A15">
 <meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -758,7 +758,10 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
    (a season section from setRoomSeg, a focused control) stops below it
    instead of under it — the pot and rules heads used to land behind the bar,
    and a focused field near the top could be covered (WCAG 2.4.11) */
-@media (max-width:959px){ html{scroll-padding-top:calc(60px + env(safe-area-inset-top) + var(--s2));} }
+@media (max-width:959px){ html{scroll-padding-top:calc(60px + env(safe-area-inset-top) + var(--s2));
+  /* ...and the fixed tab bar owns the bottom ~64px: a control focused near the
+     foot of a page was scrolled to sit under it (critique B at 402) */
+  scroll-padding-bottom:calc(64px + env(safe-area-inset-bottom) + var(--s2));} }
 /* header · its ground is the page's own (--bg0 at 86%), so the dark bar reads
    fescue like the page under it, never the retired D76 charcoal it kept after
    the ground changed (the light printing's .hdr/.tabbar mix the same way) */
@@ -771,7 +774,11 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   padding-top:env(safe-area-inset-top);
 }
 .hdr-in{
-  max-width:1120px; margin:0 auto; padding:14px 16px 12px;
+  /* 8 + a 44px control + 7 + the hairline = the 60px bar that scroll-padding
+     and every "lands below the bar" check assume. It was 14/12 around a 33px
+     search; with 44px targets (§16.2) that grew the bar to 71, which the bell
+     had already done whenever it showed. */
+  max-width:1120px; margin:0 auto; padding:8px 16px 7px;
   display:flex; align-items:center; justify-content:space-between; gap:14px;
 }
 /* WAVE 11 / D280 - AT DESK WIDTH THE HEADER IS NOT A BAND. UI_SYSTEM 14.1
@@ -2871,6 +2878,12 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   .sheet .panel{ left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
     width:640px; max-height:82vh; border-radius:var(--rs); border:1px solid var(--rule); }
 }
+/* the inbox, at the desk: under the bell, at the header's own right edge
+   (1264 wide, 40 in), not the centre of the screen */
+@media(min-width:960px){
+  .sheet.is-anchored .panel{ left:auto; top:72px; transform:none; width:420px;
+    right:max(40px, calc((100vw - 1264px) / 2 + 40px)); max-height:calc(100vh - 96px); }
+}
 /* iOS: vh ignores the collapsing Safari toolbar — a 88vh panel overruns the
    VISIBLE viewport, so scrolling collapses the toolbar and the sheet appears
    to slide. Dynamic units track what's actually on screen. */
@@ -2882,7 +2895,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
 /* F03 · a layer's title and the page heading take focus so a screen reader
    starts at the top; they are not controls, so they draw no ring */
-#shTitle:focus, #bfTitle:focus, #finish:focus, h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus{outline:none;}
+#shTitle:focus, #bfTitle:focus, #finish:focus, h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus, .view[tabindex="-1"]:focus{outline:none;}
 .sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
 .sheet .x{position:absolute; top:6px; right:6px; width:44px; height:44px; display:flex; align-items:center; justify-content:center;
   border:none; background:none; color:var(--mut); font-size:20px; cursor:pointer; padding:0;}   /* §16.2 · was 26×31 */
@@ -3098,6 +3111,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   .onboard .ob-hero p{font-size:16.5px;}
 }
 .onboard.hide{opacity:0; visibility:hidden;}
+html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door waits for boot (see the pre-paint script) */
 /* iPhone PWA freeze fix: the splash has an infinite ember pulse (csRing). Once the
    door is dismissed, freeze ALL its animation immediately — belt to enterApp's
    display:none, and a net for any boot that errors before enterApp runs, so a
@@ -3658,7 +3672,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    names as a do-not, and the desk's twin of the accent sky the phone loses in
    the same decision. The ground is the ground. */
 
-::selection{background:rgba(255,90,46,.30);}
+::selection{background:color-mix(in srgb, var(--act) 32%, transparent);}   /* not a pre-token ember: selecting text is not competition (D359) */
 *{scrollbar-width:thin; scrollbar-color:var(--rule) transparent;}
 *::-webkit-scrollbar{width:8px; height:8px;}
 *::-webkit-scrollbar-thumb{background:var(--rule); border-radius:99px;}
@@ -3756,9 +3770,17 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    rgba(233,190,98,.55) — a pre-token gold matching NEITHER theme's --gold —
    and its outline:none beat the fallback, so this was the whole treatment. */
 .mini:focus-visible, .f:focus-visible{
-  /* D359 · focus is the ordinary action's colour, never the competition signal */
-  outline:none; border-color:var(--act);
-  box-shadow:0 0 0 3px color-mix(in srgb, var(--act) 28%, transparent);
+  /* D359 · focus is the ordinary action's colour, never the competition signal.
+     The ring, not a glow: a 28% act halo measured 1.57:1 against the ground,
+     which a keyboard golfer cannot find (WCAG 2.4.7 / 1.4.11). */
+  outline:2px solid var(--act); outline-offset:2px; border-color:var(--act); box-shadow:none;
+}
+/* ONE FOCUS RING. Any control without its own treatment takes the product's
+   (2px act, 2px off), never the browser's blue: the header search, the logo,
+   the back links and the chips were on the user agent's ring. :where() keeps
+   this at zero specificity, so every deliberate rule above still wins. */
+:where(a[href], button, summary, select, [role="button"], [role="switch"], [role="tab"], [tabindex]:not([tabindex="-1"])):focus-visible{
+  outline:2px solid var(--act); outline-offset:2px;
 }
 
 /* header: the chip wears the brand ring.
@@ -4387,6 +4409,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     transition-duration:.001ms !important;
     scroll-behavior:auto !important;
   }
+  /* the one DESIGNED reduced alternative the backstop was erasing: the
+     toast's .15s opacity fade (above) is not motion, and at 1e-6s the
+     message blinked in (the web audit, P3) */
+  .toast{transition-duration:.15s !important;}
 }
 
 /* D359 / D380 · the recipient reads the same round record as the native card.
@@ -4419,6 +4445,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .hdrbell-n{position:absolute; top:0; right:0; min-width:16px; color:var(--act); font:700 11px/16px var(--board); text-align:center;}
 .hdrbell-n[hidden]{display:none;}
 .cs-sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;}
+/* the skip link is hidden until it is the focused stop, then it is the one
+   thing on the page (WCAG 2.4.1) */
+.skiplink{position:absolute; left:var(--s3); top:var(--s3); z-index:60; transform:translateY(-200%);
+  background:var(--act); color:var(--bg0); font-weight:600; padding:0 var(--s4); min-height:44px;
+  display:inline-flex; align-items:center; border-radius:var(--rc); text-decoration:none;}
+.skiplink:focus-visible{transform:none; outline:2px solid var(--ink); outline-offset:2px;}
+#main:focus{outline:none;}
 .cs-talk{margin-top:var(--s5); padding-top:var(--s4); border-top:var(--hair) solid var(--rule);}
 .cs-talk-head{display:flex; align-items:center; justify-content:space-between; gap:var(--s3);}
 .cs-talk-head .cs-agate-s{color:var(--mut);}
@@ -4500,7 +4533,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     document.documentElement.dataset.theme = t;
     document.documentElement.style.colorScheme = t;   /* native controls (date pickers, selects) follow the active theme */
     var m = document.querySelector('meta[name="theme-color"]');
-    if(m) m.content = t === 'light' ? '#EFF2EE' : '#0B1410';
+    if(m) m.content = t === 'light' ? '#F4F1E9' : '#0F1A15';   /* the page's own --bg0, so the browser chrome has no seam (AW P3) */
   };
   window.setTheme = function(mode){
     try { localStorage.setItem('cs_theme', mode); } catch(_){}
@@ -4512,6 +4545,17 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
   } catch(_){}
   /* D339 · the Forge is retired from the door; its once-per-device switch
      (`cs_forge` / html.ob-fast) went with it. The door is static and immediate. */
+  /* A RETURNING GOLFER NEVER SEES THE DOOR FLASH. With a stored session the
+     sign-in Door painted for the ~200–330ms before boot decided, then Home
+     replaced it (the web audit: CLS 0.55 at 375). The Door now waits,
+     hidden, until boot says. safeBoot lifts the wait on any outcome, and so
+     does this 3s floor, so an expired session still reaches the Door. */
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      if (/^sb-[a-z0-9]+-auth-token$/.test(localStorage.key(i) || '')) { document.documentElement.classList.add('cs-returning'); break; }
+    }
+  } catch(_){}
+  setTimeout(function(){ document.documentElement.classList.remove('cs-returning'); }, 3000);
 })();
 </script>
 </head>
@@ -4633,14 +4677,14 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <button class="btn" id="obEmail">Continue with email</button>
     <div class="joinbox" id="emailbox">
       <label class="f" for="obEmailIn">Email</label>
-      <input id="obEmailIn" class="email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email">
+      <input id="obEmailIn" class="email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" aria-describedby="obStatus">
       <button class="btn" id="obEmailGo">Send code</button>
     </div>
     <div class="joinbox" id="codebox">
       <!-- the code field is named the way Email is (F01's twin): a persistent
            label tied to the input, so a typed code never leaves an unnamed box -->
       <label class="f" for="obCodeIn">Sign-in code</label>
-      <input id="obCodeIn" inputmode="numeric" maxlength="10" placeholder="8 digits" autocomplete="one-time-code">
+      <input id="obCodeIn" inputmode="numeric" maxlength="10" placeholder="8 digits" autocomplete="one-time-code" aria-describedby="obStatus">
       <button class="btn" id="obCodeGo">Verify</button>
     </div>
     <div class="ob-status" id="obStatus" role="status" aria-live="polite"></div>
@@ -4649,7 +4693,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <button class="btn quiet" id="obJoin">I have a league code</button>
       <div class="joinbox" id="joinbox">
       <label class="f" for="joinCode">League code</label>
-      <input id="joinCode" maxlength="8" autocomplete="off">
+      <input id="joinCode" maxlength="8" autocomplete="off" aria-describedby="obStatus">
       <button class="btn" id="joinGo">Join</button>
     </div>
 <!-- D83: the demo season retired — the door sells with its own splash -->
@@ -4745,6 +4789,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 </div>
 
 <div class="shell">
+<!-- the first stop on every page: past the sidebar's thirteen stops to the page -->
+<a class="skiplink" href="#main">Skip to the page</a>
 
   <!-- ============ SIDEBAR (desktop) ============ -->
   <aside class="side">
@@ -4870,7 +4916,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       </div>
     </header>
 
-    <div class="wrap">
+    <div class="wrap" id="main" role="main" tabindex="-1">
 
       <!-- HOME -->
       <section class="view active" id="view-home">
@@ -8096,7 +8142,9 @@ function renderStandings(){
   const dhead = deskCols
     ? '<th class="num deskonly">Rds</th><th class="deskonly">Last five</th>'
     : '';
-  let html=`<tr><th class="rk">Pos</th><th>Golfer</th>${dhead}<th class="num">Gap</th><th class="num">Pts</th></tr>`;
+  /* the head names what the rows are: a squads season lists SQUADS ("GOLFER"
+     headed a column of squads, the category panel) */
+  let html=`<tr><th class="rk">Pos</th><th>${solo ? 'Golfer' : 'Squad'}</th>${dhead}<th class="num">Gap</th><th class="num">Pts</th></tr>`;
   /* the five-dot form column, inside the row. `pos` filled = beat your playing
      HCP that round, `rule` = did not - the sign convention `CSBands` ships
      (D276 / Wave 7: a POSITIVE pvi is a round beaten). Oldest to newest, left
@@ -9336,7 +9384,8 @@ const csModal = (() => {
     const door = byId('onboard');
     const page = door && !door.classList.contains('hide') && door.style.display !== 'none'
       ? door : document.querySelector('.view.active');
-    const h = page && [...page.querySelectorAll('h1,h2,h3')].find(usable);
+    /* the page's heading, else the page itself: never <body> */
+    const h = page && ([...page.querySelectorAll('h1,h2,h3')].find(usable) || page);
     if(!h) return null;
     if(!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
     return h;
@@ -9417,6 +9466,28 @@ const csModal = (() => {
   return { opened, closed, top };
 })();
 window.csModal = csModal;
+/* EVERY VIEW HAS ONE h1 (WCAG 1.3.1 / 2.4.6). Home's only heading was an h4,
+   and the composer, Schedule and live play had none, so a screen reader
+   had no page title to land on, and csModal's fallback had nothing to return
+   focus to. A view that draws its own h1 keeps it (the season's title, a
+   room's name); the rest get their name, read but not drawn. */
+const CS_VIEW_TITLES = {
+  'view-home': 'Home', 'view-stats': 'You', 'view-draft': 'The draw', 'view-record': 'Play',
+  'view-play': 'Live round', 'view-post': 'Add my round', 'view-wizard': 'Start a season',
+  'view-compete': 'Compete', 'view-golfers': 'Golfers', 'view-person': 'Golfer',
+  'view-h2h': 'Head to head', 'view-schedule': 'The schedule',
+};
+function csViewHeadings(){
+  for(const [id, name] of Object.entries(CS_VIEW_TITLES)){
+    const v = document.getElementById(id);
+    if(!v || v.querySelector('h1')) continue;
+    const h = document.createElement('h1');
+    h.className = 'cs-sr'; h.textContent = name; h.dataset.viewTitle = '';
+    v.insertBefore(h, v.firstChild);
+  }
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', csViewHeadings, { once: true });
+else csViewHeadings();
 /* iOS: overflow:hidden alone doesn't stop the page BEHIND a fixed overlay from
    scroll-chaining — the sheet "slides around" while you scroll it, and focusing
    a date input scrolls the body and shoves the whole layer off-screen (pilot,
@@ -22052,10 +22123,14 @@ function renderIndStatsReal(){
   /* award tiles are narrow — first names only, so the row never wraps */
   const fn=n=>(n||'—').trim().split(/\s+/)[0];
   const king=rows[0];
+  /* level on points is LEVEL: the list's own order (points, then average) is
+     not a rule, and the Points King ladder is not built (D136). Two golfers on
+     53 were ranked 01/02 and one was crowned by average (critique B, P0). */
+  const kingTied = rows.filter(p => p.pts === king.pts).length;
   const iron=[...rows].sort((a,b)=>b.r-a.r)[0];
   const movers=rows.filter(p=>p.d!=null && p.d<-0.04).sort((a,b)=>a.d-b.d);
-  $('#awKing').textContent=king.pts>0?fn(king.n):'—';
-  $('#awKingS').textContent='Points King'+(king.pts>0?' · '+king.pts+' pts':'');
+  $('#awKing').textContent=king.pts>0?(kingTied>1?'Level':fn(king.n)):'—';
+  $('#awKingS').textContent='Points King'+(king.pts>0?(kingTied>1?` · ${csSpelled(kingTied)} level on ${king.pts}`:' · '+king.pts+' pts'):'');
   if(movers.length){ $('#awImp').textContent=fn(movers[0].n); $('#awImpS').textContent='Most Improved · '+Math.abs(movers[0].d).toFixed(1)+' off the index'; }
   else { $('#awImp').textContent='—'; $('#awImpS').textContent='Most Improved · needs 2+ rounds'; }
   $('#awIron').textContent=iron.r>0?fn(iron.n):'—';
@@ -22065,9 +22140,11 @@ function renderIndStatsReal(){
      its sign or words — a red column for most of the field was D273's retired
      P&L axis, and neg is kept for errors (UI_SYSTEM 2.5) */
   let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="num">Avg vs playing HCP</th><th class="num">Pts</th></tr>`;
+  const rkOf = []; rows.forEach((p,i) => { rkOf[i] = (i > 0 && p.pts === rows[i-1].pts) ? rkOf[i-1] : i + 1; });
+  const tiedAt = (i) => rows.filter(q => q.pts === rows[i].pts).length > 1;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-ri="${i}"${p.me?' style="background:var(--bg2)"':''}>
-      <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
+      <td class="rk mono"${tiedAt(i)?' title="Tied"':''}>${tiedAt(i)?'T':''}${String(rkOf[i]).padStart(2,'0')}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${esc(p.n)}</div><div class="tc">${esc(p.sq||'')}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
       <td class="num dw">${p.r?sgn(p.avg):'—'}</td>
@@ -23296,6 +23373,9 @@ const csInbox = { items:[], next:null, nextId:null, prefs:null };
 async function csOpenInbox(){
   if(state.demo || !window.sb || !window.CS?.user) return;
   openSheet(CS_INBOX.title, 'COMMENTS', `<p class="fine">Loading…</p>`);
+  /* on the desk the inbox hangs from the bell that opened it, not the middle
+     of the screen (the category panel: it floated far from the bell) */
+  document.getElementById('sheet')?.classList.add('is-anchored');
   csInbox.items = []; csInbox.next = null; csInbox.nextId = null;
   try{
     const [a, b] = await Promise.all([
@@ -23703,7 +23783,7 @@ function openSheet(title, sub, bodyHtml){
   if(named){ $('#sheet').setAttribute('aria-labelledby','shTitle'); $('#sheet').removeAttribute('aria-label'); }
   else { $('#sheet').removeAttribute('aria-labelledby'); $('#sheet').setAttribute('aria-label', String(sub||'').trim() || 'Details'); }
   $('#sheet').classList.add('open');
-  $('#sheet').classList.remove('room-dusk');   /* sheets are utility by default; ceremonies re-add after openSheet */
+  $('#sheet').classList.remove('room-dusk', 'is-anchored');   /* sheets are utility and centred by default; ceremonies and the inbox re-add after openSheet */
   lockBody();
   $('#shBody')?.scrollTo?.(0,0);   /* #shBody is the scroll container now — reset it, not the panel */
   $('#sheet .panel')?.scrollTo?.(0,0);   /* legacy no-op safety on the panel itself */
@@ -28702,9 +28782,13 @@ async function loadStandingsAndFeed(requireRoom=false){
     if(r.error && requireRoom) throw r.error;
     posts = (r.data || []).slice().reverse();
   }
+  /* a golfer wears THEIR SQUAD'S colour, resolved the way the squad rows
+     resolve it (`squads.color`, the list position only as a fallback). This
+     read the list position alone, so the Javelinas' captain was drawn in
+     Wrens blue (critique B, P0). */
   const memCi = id => {
     const i = CS.squads.findIndex(q => (q.squad_members||[]).some(x => x.member_id === id));
-    return i >= 0 ? i % 4 : 1;
+    return i >= 0 ? ((CS.squads[i].color ?? i) % 4) : 1;
   };
   feed.length = 0;
   (posts||[]).forEach(p => {
@@ -28811,7 +28895,7 @@ async function loadStandingsAndFeed(requireRoom=false){
       Object.values(by).forEach(a=>a.sort((x,y)=> x.played_on<y.played_on ? -1 : 1));
       const sqOf = id => {
         const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
-        return q ? q.name.slice(0,4).toUpperCase() : '';
+        return q ? q.name : '';   /* the squad's NAME: a four-letter cut read "FIXT" for two different squads */
       };
       window.indRows = (ind||[]).map(i=>{
         const rs=by[i.member_id]||[];
@@ -29431,6 +29515,13 @@ function bootTrace(m){
 }
 function authStatus(msg, kind){
   const el=$('#obStatus');
+  /* the Door's fields name #obStatus as their description; an error marks the
+     field the golfer is in as invalid, so a screen reader hears which one and
+     why (the web audit, P3: errors tied to nothing) */
+  const open = (id) => document.getElementById(id)?.classList.contains('open');
+  const bad = kind !== 'err' ? null : open('codebox') ? 'obCodeIn' : open('emailbox') ? 'obEmailIn' : open('joinbox') ? 'joinCode' : null;
+  ['obEmailIn','obCodeIn','joinCode'].forEach(id => { const f = document.getElementById(id);
+    if(f) f.setAttribute('aria-invalid', id === bad ? 'true' : 'false'); });
   if(el){ el.textContent = msg; el.className = 'ob-status' + (kind ? ' ' + kind : '');
     /* the sentence lands where the golfer can read it: with the keyboard up,
        "Code didn't take…" sat under the fold of a 380px view */
@@ -33905,7 +33996,7 @@ async function safeBoot(force){
   if(booting || CS.league) return;
   if(bootResolved && !force) return;
   booting = true;
-  try { await boot(); } finally { booting = false; bootResolved = true; }
+  try { await boot(); } finally { booting = false; bootResolved = true; document.documentElement.classList.remove('cs-returning'); }
   /* invite link landed while signed out: surface it on the door */
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
