@@ -229,7 +229,7 @@ final class LiveRoundStore {
     // -cs_dev_bar · the D163 top bar with a round in flight, for review
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar"), !state.active {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar_waiting") {
-        awaitingFrom = "Jerecho Fischbeck"; return
+        awaitingFrom = "Blake Sample"; return   // a cast name: no real person in a fixture
       }
       seedDevRound(); return
     }
