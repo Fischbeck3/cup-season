@@ -2855,7 +2855,10 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   position:relative; overflow:hidden;
   min-height:200px; align-items:flex-end;
   padding:11px 13px; border-radius:10px;
-  background-size:cover; background-position:center;
+  /* TEN / W6 · DX2 OB2-01 (P2): the photo had no ground under it, so while it
+     loads or fails the light ink sat on the light page (.l1 at 3.84:1). The
+     ceremony ground is under it now, as W3's .hsplate already sets */
+  background-color:var(--ceremony); background-size:cover; background-position:center;
 }
 .fcard .round.has-photo::before{
   content:""; position:absolute; inset:0; border-radius:inherit;
