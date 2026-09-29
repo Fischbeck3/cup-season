@@ -113,7 +113,7 @@ struct PostScorecardStrip: View {
 
   private func tone(_ i: Int) -> Color {
     switch model.card.result(at: i) {
-    case .eagle: cs.gold
+    case .eagle: cs.pos   // N4-084 · under par is not a thing won: no gold
     case .birdie: cs.pos
     case .bogey: cs.mut
     case .par: cs.ink
