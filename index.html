@@ -7699,7 +7699,14 @@ setInterval(function(){
       lbEl.appendChild(el); lbRows.push(el);
     });
     slotLb();
-    if(!rm){
+    /* crit-A door P1 (round 1, still open in round 2's delta) · AN EXAMPLE DOES
+       NOT TICK. W4 labelled the wings "An example season"; the critique's fix was
+       the label AND a still specimen — invented rounds arriving and a table
+       re-sorting on a sign-in screen read as a live league that does not exist.
+       Every golfer now gets what reduced motion already drew: three cards and
+       four rows, still. The loops stay for a future ruling to switch back on. */
+    const WINGS_STILL = true;
+    if(!rm && !WINGS_STILL){
       setTimeout(start, 2600);
       setTimeout(()=>{ if(!dead && !document.hidden && !gone() && wingMq.matches) lbTick(); }, 3400);
       document.addEventListener('visibilitychange', ()=>{ document.hidden ? stop() : start(); });
