@@ -117,7 +117,7 @@ struct CrewStep: View {
   @ViewBuilder private var contactsRoute: some View {
     let r = OnboardingCopy.CrewRoute.contacts
     VStack(alignment: .leading, spacing: 10) {
-      door(r, ember: true) { consent = true }
+      door(r) { consent = true }
       switch contacts {
       case .idle: EmptyView()
       case .checking: CSFine("Checking…")
@@ -226,7 +226,7 @@ struct CrewStep: View {
   @ViewBuilder private var searchRoute: some View {
     let r = OnboardingCopy.CrewRoute.search
     VStack(alignment: .leading, spacing: 10) {
-      door(r, ember: false) { searching = true; searchFocused = true }
+      door(r) { searching = true; searchFocused = true }
       if searching, let vm {
         CSField("Search by name or @handle", text: Binding(get: { vm.query }, set: { vm.query = $0 }), font: CSFont.body)
           .focused($searchFocused)
@@ -253,7 +253,7 @@ struct CrewStep: View {
   // MARK: 4 · the exit
 
   private var laterRoute: some View {
-    door(OnboardingCopy.CrewRoute.later, ember: false) { leave("skip") }
+    door(OnboardingCopy.CrewRoute.later) { leave("skip") }
   }
 
   private var foot: some View {
@@ -267,7 +267,7 @@ struct CrewStep: View {
 
   // MARK: parts
 
-  private func door(_ r: OnboardingCopy.CrewRoute, ember: Bool, action: @escaping () -> Void) -> some View {
+  private func door(_ r: OnboardingCopy.CrewRoute, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       VStack(alignment: .leading, spacing: 3) {
         Text(r.title).csType(.name).foregroundStyle(cs.ink)
@@ -276,12 +276,9 @@ struct CrewStep: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, 14).padding(.vertical, 12)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      // the route this step WANTS taken keeps its metal as a 3pt rail rather
-      // than as a ring round a control: there is no border token, and ember
-      // never outlines (§7.1). The other three take the ground and nothing else.
-      .overlay(alignment: .leading) {
-        if ember { Rectangle().fill(cs.brand).frame(width: 3) }
-      }
+      // N4-052 · no rail: a pre-selected route in ember read as a choice the
+      // golfer had already made, and ember is competition only (D359/F11).
+      // The four routes take the ground and nothing else.
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
