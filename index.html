@@ -27225,6 +27225,9 @@ function resetToBlank(leagueName){
   state.finish='cup_final';   /* never carry one league's dial into the next */
   state.payout=[60,25,15]; state.fmt=0;
   window.indRows=[]; window.myMonth=null; window.myIndexDelta=null; window.buyIns={};
+  /* W7-026 [X01] (E5) · what a failed read keeps is THIS league's: nothing kept from the league just left survives the switch */
+  window.myRanked=null; window.statsAt=null; window.statsFailed=null; window.standingsAt=null; window.standingsFailed=null;
+  window.seasonStory=null; window.seasonStoryLeague=null; window.seasonStoryFailed=false;
   feed.length=0;
   feed.push({d:TODAY, sys:true, txt:(leagueName||'Your league')+' is live. Say hello on the board'});
   teams.length=0;
@@ -32669,12 +32672,14 @@ async function loadSeasonStory(){
      load and offers the retry (UI_SYSTEM §13.3; the phone's storyRead == .failed).
      A database that has not reached the migration (the function is missing) still
      renders without the story spine, as before (L-44). */
-  const had = window.seasonStory || null;
+  /* and what stays is THIS league's (E5, D's second reader): the kept story is keyed by the league it was read for, so a golfer in two leagues whose read fails
+     on the second never sees the first league's story on its page (resetToBlank clears it on every switch as well) */
+  const had = (CS.league && window.seasonStoryLeague === CS.league.id && window.seasonStory) || null;
   window.seasonStoryFailed = false;
   try {
-    if(!CS.league) { window.seasonStory = null; renderSeasonStory(); return; }
+    if(!CS.league) { window.seasonStory = null; window.seasonStoryLeague = null; renderSeasonStory(); return; }
     const { data, error } = await sb.rpc('season_story', { p_league: CS.league.id });
-    if(!error) window.seasonStory = data || null;
+    if(!error){ window.seasonStory = data || null; window.seasonStoryLeague = CS.league.id; }
     else { window.seasonStory = had; window.seasonStoryFailed = !had && !csMissingFn(error); }
   } catch(_){ window.seasonStory = had; window.seasonStoryFailed = !had; }
   renderSeasonStory();
@@ -37022,6 +37027,8 @@ function showWelcome(){
      demo's season frame must not paint ghost league dates on the calendar */
   state.seasonStart = null; state.seasonEnd = null;
   window.indRows = []; window.myMonth = null; window.myIndexDelta = null;
+  window.myRanked = null; window.statsAt = null; window.statsFailed = null; window.standingsAt = null; window.standingsFailed = null;   /* W7-026 (E5) · nothing kept from a league just left */
+  window.seasonStory = null; window.seasonStoryLeague = null; window.seasonStoryFailed = false;
   loadLeagueRecord();
   loadTrophies();
   loadCareer();

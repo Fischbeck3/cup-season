@@ -109,6 +109,7 @@ const LIGHT_PRINTING = (() => {
 })()
 /* ------------------------------------------------------------ the world */
 const NG = { league: 'f3000000-0000-4000-8000-000000000001', season: 'f4000000-0000-4000-8000-000000000011' }
+const SW = { league: 'f3000000-0000-4000-8000-000000000002' }   /* South Wash Weekday (fixture), the viewer's second league */
 /* the Pro's own instructions (D129): a pot seven of eight have paid into was
    announced somewhere; the core world never said how */
 const payHowSet = (W) => {
@@ -453,6 +454,29 @@ const SEASON = [
       if (/No rounds count yet/i.test(t('msAvgSub') + t('msBestSub'))) return 'a failed read says no rounds count'
       return /Couldn.t load this/.test(t('indTable')) ? true : 'the table does not say the read failed'
     })) },
+  /* (2) what a failed read keeps is THIS league's: a golfer in two leagues whose season_story read fails on the second must not see the first league's story on
+     its page (loadSeasonStory kept window.seasonStory on error, and resetToBlank, run on every switch, never cleared it) */
+  { family: 'season', id: 'story-league-switch', variant: 'member', title: "The season page of the second league, after the story read failed on the switch (not the first league's story)", fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toSeasonViaBand(page)
+      await until(page, () => !!(window.seasonStory && window.seasonStory.season), null, 10000)
+      ctx.world.errors.rpc.season_story = { __error: 'fixture: the story read failed', status: 503, code: 'XX000' }
+      await page.evaluate((id) => window.enterLeagueById(id, false), SW.league)
+      await until(page, () => /South Wash/.test((document.getElementById('seasonTitle') || {}).textContent || '') && !!document.getElementById('seasonStoryRetry'), null, 15000).catch(() => {})
+      await page.waitForTimeout(400)
+      await page.evaluate(() => document.getElementById('seasonArc').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub' },
+    check: async (page) => page.evaluate(() => {
+      const arc = (document.getElementById('seasonArc') || {}).innerText || ''
+      if (!/South Wash/.test((document.getElementById('seasonTitle') || {}).textContent || '')) return 'the season page is not the second league\'s'
+      if (/Fixture (Javelinas|Wrens)/i.test(arc)) return `the second league's page shows the first league's story: ${JSON.stringify(arc.slice(0, 80))}`
+      return /Couldn.t load this/i.test(arc) && document.getElementById('seasonStoryRetry') ?   /* innerText carries the head's caps */
+        true : 'the second league\'s story pane does not say the read failed'
+    }) },
   /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
      the first week closes" (the phone's storyRead == .failed) */
   { family: 'season', id: 'story-failed', variant: 'member', title: 'The season page, the story, when the story read failed', fullPage: false,
