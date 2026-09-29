@@ -365,9 +365,21 @@ const courseBlocked = async (page) => page.evaluate((words) => {
   const w = e.getBoundingClientRect()
   return w.top >= 0 && w.bottom <= innerHeight ? true : 'the words are off screen from the field they name'
 }, NO_COURSE)
+/* TEN / W6 · W7-125 [A2-post-7] · where you are: the composer and live scoring
+   are Play's pages, so Play (router id `record`) is the one destination marked,
+   in the tab band below desk width and the sidebar on the desk, and it is
+   current to a screen reader. Nothing was marked. */
+const playIsWhereYouAre = async (page) => page.evaluate(() => {
+  const shown = (el) => el.offsetParent !== null && getComputedStyle(el).visibility !== 'hidden'
+  const marked = [...document.querySelectorAll('.tab, .navitem')].filter((t) => shown(t) && t.classList.contains('active'))
+  if (marked.length !== 1) return 'destinations marked: ' + JSON.stringify(marked.map((t) => t.dataset.v))
+  if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
+  return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } },
+    check: playIsWhereYouAre },
   /* TEN / W6 · critique A2 (P1), then root's noCourse ruling (2026-09-29): a
      first round's gross, then Add my round, with no course yet. The guidance
      never points at a folded field and never leaves on a toast: the fold

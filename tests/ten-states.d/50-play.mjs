@@ -64,6 +64,17 @@ const nextHoleFoot = async (page) => {
   }, r)
   return out
 }
+/* TEN / W6 · W7-125 [A2-post-7] · where you are: the composer and live scoring
+   are Play's pages, so Play (router id `record`) is the one destination marked,
+   in the tab band below desk width and the sidebar on the desk, and it is
+   current to a screen reader. Nothing was marked. */
+const playIsWhereYouAre = async (page) => page.evaluate(() => {
+  const shown = (el) => el.offsetParent !== null && getComputedStyle(el).visibility !== 'hidden'
+  const marked = [...document.querySelectorAll('.tab, .navitem')].filter((t) => shown(t) && t.classList.contains('active'))
+  if (marked.length !== 1) return 'destinations marked: ' + JSON.stringify(marked.map((t) => t.dataset.v))
+  if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
+  return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -182,7 +193,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {

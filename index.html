@@ -8570,10 +8570,15 @@ function switchView(v){
      Major room is a Compete page — it is reached from Compete and goes back to
      it — so Compete stays selected in the tab band and the sidebar while one is
      open. It selected nothing: no tab and no sidebar row said where you were. */
-  const selected = v === 'event' ? 'compete' : v;
+  /* W7-125 [A2-post-7] · the composer and live scoring are Play's pages the same
+     way: both are reached from Play ("Add a round you played", "Tee off"), and
+     the phone presents them as Play's own cover. So Play stays selected in the
+     tab band and the sidebar while either is open. Nothing was selected. */
+  const owner = v === 'event' ? 'compete' : (v === 'post' || v === 'play') ? 'record' : v;
+  const selected = owner;
   /* W7-020 · the season page is a Compete page too, as the event room is: the tab band keeps COMPETE current
      (the desk's sidebar marks 'The season' instead, so only the tab toggle takes it) */
-  const tabSelected = (v === 'event' || v === 'hub') ? 'compete' : v;
+  const tabSelected = v === 'hub' ? 'compete' : owner;
   /* W7-025 · the current destination is said to a screen reader too (aria-current, WCAG 4.1.2) */
   [...$$('.tab'), ...$$('.navitem')].forEach(t=>{
     const on = t.dataset.v===(t.classList.contains('tab') ? tabSelected : selected);
