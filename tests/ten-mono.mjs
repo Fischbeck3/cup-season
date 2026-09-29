@@ -326,3 +326,20 @@ export const stateContrast = (parts) => async (page) => {
   console.log(`[stateContrast] ${got.filter((r) => !r.missing).map((r) => `${r.what} ${r.ratio.toFixed(2)}`).join(' · ')}`)
   return bad.length ? 'a state is drawn in rule or too faint (§16.1): ' + bad.join('; ') : true
 }
+
+/* TEN / W8 · W7-014 · UI_SYSTEM §4: the gap between two sections is s5 (32px),
+ * and a section head that opens its wrapper still follows a block. `headGap(
+ * sels, min)` fails the capture when a visible head a selector names has less
+ * than `min` px above it, or when none is drawn. The gap is the head's own
+ * margin-top: the rule that pulled it to 4px is what this pins. */
+export const headGap = (sels, min = 32) => async (page) => page.evaluate(([sels, min]) => {
+  const bad = []; let seen = 0
+  for (const sel of sels) for (const el of document.querySelectorAll(sel)) {
+    const r = el.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0)) continue
+    seen++
+    const m = parseFloat(getComputedStyle(el).marginTop)
+    if (m < min) bad.push(`${sel} ${JSON.stringify((el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30))} has ${m}px above it`)
+  }
+  if (!seen) return 'the state draws none of ' + sels.join(', ')
+  return bad.length ? `a section head clings to the block above it (s5 is ${min}px, §4): ` + bad.join('; ') : true
+}, [sels, min])

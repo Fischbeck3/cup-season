@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -190,7 +190,9 @@ const SEASON = [
         ['the pot ($600)', '\\$600(?![\\d.,])']], 960),
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
-      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine'])) },
+      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine']),
+      /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
+      headGap(['#climbEyebrow', '#standingsEyebrow'])) },
   /* TEN / W6 · DX2 OB2-02 · the season six days before its first tee, and a
      league in its draw: the two heroes' lines (#khCount, #draftPoolSub).
      DX2's own states (season/kickoff, season/draft-phase): the synthetic
@@ -232,7 +234,9 @@ const SEASON = [
         return rows.filter((r) => r.classList.contains('paid')).length === 7 ? true : 'seven of eight should read paid'
       }),
       /* TEN / W6 · AW2-07: the pot is the board `figure`, never the serif */
-      noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt'])) },
+      noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt']),
+      /* TEN / W8 · W7-014 [B2-season-6]: 'Season stakes' and 'How to pay' take the section gap */
+      headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
   { family: 'season', id: 'pot-pro', variant: 'pro', title: 'The season page, the money, as the Pro: tap a name as money moves', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
     drive: (page) => toRoom(page, 'pot'),
@@ -249,7 +253,8 @@ const SEASON = [
         const st = [...document.querySelectorAll('#payers .payer .st')].map((e) => e.textContent.trim())
         return st.length === 8 && st.filter((x) => x === 'Paid').length === 7 && st.filter((x) => x === 'Not yet').length === 1 ? true : `the Pro's rows say ${JSON.stringify(st)}`
       }),
-      stateContrast([{ sel: '#payers .payer:not(.paid) .tick', prop: 'borderTopColor', min: 3, what: 'the unpaid box' }])) },
+      stateContrast([{ sel: '#payers .payer:not(.paid) .tick', prop: 'borderTopColor', min: 3, what: 'the unpaid box' }]),
+      headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
   /* TEN / W6 · DX2 OB2-03 · the Pro's "Cancel this season", opened and NOT
      confirmed: North Grove is under way, so it is the consent flow's sheet,
      and its armed control is §7.1's destructive tier */
