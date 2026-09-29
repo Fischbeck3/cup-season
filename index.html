@@ -487,7 +487,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .shell:has(#view-schedule.active) #sideMe [data-mego="plan_one"],
   .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
   .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"],
-  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay){display:none;}
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay),
+  .shell:has(#view-stats.active) #sideMe .mesay{display:none;}   /* W7-053 · You prints the building clause under its card: the sentence once per viewport */
 }
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
@@ -6249,6 +6250,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- the form row and the milestone column live UNDER the object now,
              on the page's own ground, because the card carries only the four
              facts that are permanent -->
+        <!-- W7-053 · while the number is still building: the building clause alone, under the card -->
+        <p class="cstatus" id="youBuilding" hidden></p>
         <div id="youForm"></div>
         <div class="ctros" id="youTros" style="text-align:left; margin:10px 0 14px"></div>
         <!-- W7-055 · the phone's index to this page: one row of links to the heads that are on it (csYouJump) -->
@@ -24807,9 +24810,16 @@ function renderCareer(){
      Y-14 · WITH its denominator, and on BOTH figures: the best and the average
      are read off the same counting set, and with one counting round they are
      the same number. "Rounds posted" above counts a different set entirely. */
-  const clScope = !(c.counting>0) ? 'No rounds count yet' : countingScope(c.counting);
+  /* W7-053 · a golfer who has posted but has no round scored in a season yet is told what the strip is
+     waiting for, not 'No rounds count yet' under a figure that says they have rounds; and a record with
+     no rounds has no scope line to draw. The words are the Kit's YouCopy.noCountingRounds' too. */
+  const clScope = c.counting>0 ? countingScope(c.counting)
+                : c.rounds>0 ? 'Best and average start once a round is scored in a season.' : '';
   set('#clAvgSub', clScope);
   set('#clBestSub', clScope);
+  const clScopeRow = $('#clAvgSub')?.closest('.youscope'); if(clScopeRow) clScopeRow.hidden = !clScope;
+  const clRoundsLabel = $('#clR')?.closest('.youfig')?.querySelector('small');
+  if(clRoundsLabel) clRoundsLabel.textContent = c.rounds === 1 ? 'Round posted' : 'Rounds posted';   /* "1 ROUNDS POSTED" */
   set('#clPlayed', state.demo ? c.played : playedInCount());
   /* a figure with no data is ABSENT, never a dash in a numeral seat (§9.9,
      critique-B P2): a one-round golfer's best and average wait for a round
@@ -29509,6 +29519,14 @@ function refreshWhoChip(){
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
       + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;
   }
+  /* W7-053 · the building clause under the card while the engine is still building the number (one to
+     two rounds posted, no index yet): the strip dropped the index cell and printed nothing in its place */
+  const bld = $('#youBuilding');
+  if(bld){
+    const nRounds = window.career && window.career.rounds != null ? Number(window.career.rounds) : null;
+    const say = p.index_current == null && nRounds != null && nRounds >= 1 && nRounds < 3;
+    bld.hidden = !say; bld.textContent = say ? csBuildingClause(true, nRounds) : '';
+  }
   /* the medallion: the ceremony disc, the gold ring, the marker in gold. One
      slot, one size, one treatment - the same one every other card carries. */
   const mkEl = $('#youMk');
@@ -29941,15 +29959,21 @@ function csStatusSentence(card){
   if(r.played_on) s += ' on ' + esc(csSpokenDay(r.played_on));
   s += '.';
   const rounds = Number((card.career || {}).rounds || 0);
-  if(p.index_current == null && rounds < 3){
-    const left = 3 - rounds;
-    s += left === 1
-      ? ` One more round sets ${p.is_me ? 'your' : 'their'} number.`
-      : ` ${csSpelled(left)} more rounds set ${p.is_me ? 'your' : 'their'} number.`;
-  }
+  if(p.index_current == null && rounds < 3) s += ' ' + csBuildingClause(!!p.is_me, rounds);
   return s;
 }
 window.csStatusSentence = csStatusSentence;
+/* W7-053 · the building clause, said once: what a golfer whose number is still building is waiting for.
+   csStatusSentence ends on it after the round it names (the phone's CredentialCopy.status ends on it too);
+   You prints it alone under the card, so the two are one producer and the round is not said a fifth time
+   beside Form, Recent rounds and the trophies (L-34). */
+function csBuildingClause(mine, rounds){
+  const left = 3 - rounds;
+  return left === 1
+    ? `One more round sets ${mine ? 'your' : 'their'} number.`
+    : `${csCapFirst(csSpelled(left))} more rounds set ${mine ? 'your' : 'their'} number.`;   /* it opens a sentence: csSpelled is small-cased ('two more rounds' followed a full stop) */
+}
+window.csBuildingClause = csBuildingClause;
 
 function csCredentialHtml(profileId, card){
   const p = card.profile || {}, c = card.career || {};
