@@ -408,7 +408,10 @@ struct ScheduledRoundSheet: View {
         if let pid = r.profileId {
           CSFace(CSFace.Model(id: pid, marker: r.marker, initials: Initials.of(r.name)), size: .list)
         }
-        Text(r.name).csType(.social).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
+        // W7-035 · the viewer's own seat reads "You", as the schedule's list
+        // prints the same person; every other seat keeps its name
+        Text(r.profileId != nil && r.profileId == vm.me ? "You" : r.name)
+          .csType(.social).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
         if host {
           Text("Host").csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }

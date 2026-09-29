@@ -318,6 +318,18 @@ final class SyntheticRouteTests: XCTestCase {
     }
   }
 
+  /// W7-035 · the viewer's own seat on a plan reads "You", the host's tag
+  /// beside it: as the host, and as a golfer who was asked.
+  @MainActor func testPlanSheetSeatReadsYou() {
+    for detail in [nil, "asked"] as [String?] {
+      let app = launch("season-live", "plan", detail)
+      XCTAssertTrue(mark(app, "plan").waitForExistence(timeout: 30), "the plan opens")
+      let you = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@ OR label BEGINSWITH %@", "You", "You,")).firstMatch
+      XCTAssertTrue(you.waitForExistence(timeout: 10), "the viewer's seat reads You (\(detail ?? "host"))")
+      app.terminate()
+    }
+  }
+
   /// The share preview opens from the receipt and closes without sharing. It
   /// opens at once, before the round's photograph has come (it waited for
   /// the photograph, and root's run at a3f7bcad saw the tap sit past 10s).
