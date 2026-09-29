@@ -165,7 +165,14 @@ struct HeadToHeadPage: View {
             rightName: first,
             leftSub: mySub, rightSub: nil) {
       VStack(spacing: CSTokens.Space.s1) {
-        CSFigure(h.record.line, size: .xl, label: nil)
+        // N4-062 · a figure never breaks: "4–5–1" between two faces broke onto
+        // two lines at the default size. It steps DOWN a tier until it fits
+        // whole (the ordinary 6–5 keeps the tournament size).
+        ViewThatFits(in: .horizontal) {
+          CSFigure(h.record.line, size: .xl, label: nil).fixedSize()
+          CSFigure(h.record.line, size: .l, label: nil).fixedSize()
+          CSFigure(h.record.line, size: .m, label: nil).fixedSize()
+        }
         CSRule(.heavy)
         Text(meetingsLine(h)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
