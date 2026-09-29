@@ -289,6 +289,14 @@ const GOLFERS = [
       /* a comment lives behind its post's count on the board, not in the row */
       const need = [[/Anyone up for Saguaro Flats on Saturday\?/, 'Casey’s chat'], [/floors close Tuesday/i, 'Blake’s note'], [/\b84\b/, 'my 84']]
       for (const [re, what] of need) if (!re.test(t)) return `${what} is not on the board`
+      /* TEN / W6 · DX2 OB2-01: a photo card has the ceremony ground under its
+         picture, so its light ink never sits on the light page while the
+         photo loads or fails */
+      const photo = [...document.querySelectorAll('#boardFull .fcard .round.has-photo')]
+      if (!photo.length) return 'no photo card on the board to read'
+      const ground = (c) => { const i = document.createElement('i'); i.style.color = 'var(--ceremony)'; c.appendChild(i); const v = getComputedStyle(i).color; i.remove(); return v }
+      const bare = photo.filter((c) => getComputedStyle(c).backgroundColor !== ground(c))
+      if (bare.length) return `${bare.length} photo card(s) have no ground: ${getComputedStyle(bare[0]).backgroundColor}`
       return true
     }) },
 ]

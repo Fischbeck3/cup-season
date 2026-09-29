@@ -242,6 +242,53 @@ async function fillCard(page, { course = 'Saguaro Flats Municipal (fixture) · B
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
     drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } } },
+  /* TEN / W6 · critique A2 (P1): a first round's gross, then Add my round. The
+     guidance named fields inside the shut #postCardFold, focus went to a
+     hidden field and the words left on a 2.4s toast. The fold opens, the
+     field it names takes focus (marked), and the words stand right under it
+     (#postRateErr, which describes the field). */
+  { family: 'composer', id: 'first-round-blocked', variant: 'brand_new', title: 'Composer · a first round’s gross and Add my round, with no course yet (the guidance opens the fold)',
+    drive: async (page) => {
+      await toComposer(page)
+      await page.locator('#inGross').fill('88')
+      await page.waitForTimeout(300)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postRateErr'); return !!e && !e.hidden }, null, 6000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postRateErr': 'text:rating and slope' } },
+    check: async (page) => page.evaluate(() => {
+      const a = document.activeElement
+      if (!a || !['inRating', 'inSlope'].includes(a.id)) return 'focus is not on the field the guidance names: ' + (a && (a.id || a.tagName))
+      if (a.offsetParent === null) return 'the focused field is folded away'
+      if (a.getAttribute('aria-invalid') !== 'true' || a.getAttribute('aria-describedby') !== 'postRateErr') return 'the named field is not marked and described'
+      /* the words stand where the eye is: on screen with the focused field */
+      const w = document.getElementById('postRateErr').getBoundingClientRect()
+      return w.top >= 0 && w.bottom <= innerHeight ? true : 'the words are off screen from the field they name'
+    }) },
+  /* TEN / W6 · root's ruling (the phone's IOS-030 guard): a hand-typed course
+     with the rating in and the slope EMPTY previews nothing — it previewed
+     points at a standard 113 the record never stores — and Post marks the
+     slope, the field the words name */
+  { family: 'composer', id: 'rating-no-slope', variant: 'brand_new', title: 'Composer · a hand-typed course with the rating in and the slope empty (no preview; Post marks the slope)',
+    drive: async (page) => {
+      await toComposer(page)
+      await page.locator('#inGross').fill('88')
+      await page.evaluate(() => { if (typeof togglePostFold === 'function') togglePostFold(true) })
+      await page.locator('#inRating').fill('70.1')
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#calcMsg': 'text:Pick a tee — or type the rating and slope — to see the points\\.' } },
+    check: async (page) => {
+      const preview = await page.evaluate(() => ({ pts: document.getElementById('calcPts').textContent.trim(), blocked: state.postBlocked }))
+      if (preview.pts !== '–' || preview.blocked !== 'rating') return 'an empty slope previewed points: ' + JSON.stringify(preview)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postRateErr'); return !!e && !e.hidden }, null, 6000)
+      return page.evaluate(() => {
+        const a = document.activeElement
+        return a && a.id === 'inSlope' && a.getAttribute('aria-invalid') === 'true' && a.getAttribute('aria-describedby') === 'postRateErr' ? true : 'Post did not mark the slope: ' + (a && a.id)
+      })
+    } },
   { family: 'composer', id: 'member', variant: 'member', short: true, title: 'Composer · a league member (the inherit line holds the last course)',
     drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:your index 14\\.2' } } },
   { family: 'composer', id: 'filled', variant: 'member', title: 'Composer · a full card entered, before Post',
