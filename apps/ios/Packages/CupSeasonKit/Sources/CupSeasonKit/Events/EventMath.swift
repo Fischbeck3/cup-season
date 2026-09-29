@@ -268,7 +268,11 @@ public enum RyderMath {
   public static func mid(_ result: String) -> String {
     switch result {
     case "halve": "halved"
-    case "a", "b": "def."
+    // side A always stands on the left, so a B win read "A def. B" with only
+    // the loser's tone saying otherwise: the sentence is true either way now
+    // (the desk's `renderEvent`, the same fix)
+    case "a": "def."
+    case "b": "lost to"
     default: "vs"
     }
   }
