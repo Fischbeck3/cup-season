@@ -15,7 +15,7 @@ const go = (v) => async (page) => { await page.evaluate((v) => window.switchView
 import { readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { notMono, noRetiredGlyph, noRetiredShape } from './ten-mono.mjs'
+import { notMono, noRetiredGlyph, noRetiredShape, tertiaryDoor } from './ten-mono.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 
 /* Family modules: tests/ten-states.d/<family>.mjs, each `export default [ ...states ]`.
@@ -84,13 +84,28 @@ const CORE = [
         const bar = document.querySelector('#obProfile .pfsave'), sc = document.getElementById('onboard')
         if (!bar || !sc || getComputedStyle(bar).position !== 'sticky') return true
         if (sc.scrollHeight <= sc.clientHeight + 1) return true   /* the whole card fits: the bar is in its place */
+        /* W7-114 · a bar that sits directly above its own tail (the signed-in line, Sign out, the notes) is in its natural place, not stuck: nothing scrolls beneath it, so there is no strip to slice */
+        const tail = bar.nextElementSibling
+        if (tail && Math.abs(tail.getBoundingClientRect().top - (parseFloat(getComputedStyle(tail).marginTop) || 0) - bar.getBoundingClientRect().bottom) <= 1) return true
         const gap = Math.round(sc.getBoundingClientRect().bottom - bar.getBoundingClientRect().bottom)
         return gap <= 1 ? true : `the Save bar floats ${gap}px above the window's edge, and the form shows beneath it`
       })
       if (save !== true) return save
-      /* TEN / W6 · AW2-06: the gate's SIGNED IN stamp is a label, never mono */
-      const m = await notMono(['#obProfile .lockbadge'], ['#obProfile .lockbadge'])(page)
-      return m !== true ? m : noRetiredGlyph()(page)
+      /* TEN / W8 · W7-114 [A2-identity-13, A2-identity-16, B2-identity-16] · the gate's mono 'SIGNED IN' chip is gone: a golfer signed in as the wrong person is told so in one sentence-case line UNDER the Save
+         ('Signed in as <email>. Not you?') with a tertiary 'Sign out' beside it (Save stays the gate's one primary) */
+      const said = await page.evaluate(() => {
+        if (document.querySelector('#obProfile .lockbadge')) return 'the gate still draws the SIGNED IN chip'
+        const line = document.getElementById('pfSignedIn'), out = document.getElementById('pfSignOut'), save = document.getElementById('pfSave'), email = window.CS && window.CS.user && window.CS.user.email
+        if (!email) return 'no signed-in email to say'
+        if (!line || line.textContent.trim() !== `Signed in as ${email}. Not you?`) return `the line reads ${JSON.stringify(line && line.textContent.trim())}`
+        if (!out || out.textContent.trim() !== 'Sign out' || out.hidden) return 'the gate has no Sign out'
+        if (!(save.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the sentence is not under the Save'
+        const prim = [...document.querySelectorAll('#obProfile .btn')].filter((b) => b.getBoundingClientRect().width > 0)
+        return prim.length === 1 && prim[0] === save ? true : `the gate has ${prim.length} filled buttons, expected Save alone`
+      })
+      if (said !== true) return said
+      const tert = await tertiaryDoor('#pfSignOut')(page)
+      return tert !== true ? tert : noRetiredGlyph()(page)
     } },
 
   /* ------------------------------------------------------------ home */

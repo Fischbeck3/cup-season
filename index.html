@@ -6057,9 +6057,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          the desk and the phone cannot word the same question two ways. -->
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
-        <!-- a signed-in state is a fact, not a performance: `mut` on no wash
-             (`pos` is performance-up only, D270), and no typed check mark -->
-        <div class="lockbadge" style="color:var(--mut); border-color:var(--rule); background:none">SIGNED IN</div>
+        <!-- W7-114 · the mono 'SIGNED IN' chip is gone: a signed-in state is a fact the page says in a sentence UNDER the Save ('Signed in as <email>. Not you?'), with a way out beside it -->
         <h1 style="font-size:30px" id="pfTitle"></h1>
         <p style="margin-top:10px" id="pfSubtitle"></p>
       </div>
@@ -6087,6 +6085,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
            below the handle (category M). It rides the foot of the window until
            the form's own end reaches it. -->
       <div class="pfsave"><button class="btn" id="pfSave">Save my card</button></div>
+      <!-- W7-114 · who is signed in, and the way out for the golfer who is signed in as the wrong person: one sentence-case line and a tertiary link (Save stays the gate's one primary); the same act as
+           'Sign out of this browser' in Settings (#phOut) -->
+      <p class="fine" style="margin:12px 2px 0; padding:0; color:var(--mut)" id="pfSignedIn"></p>
+      <div class="lrcasual-row" style="text-align:left; margin-top:0"><button type="button" class="lrcasual" id="pfSignOut"></button></div>
       <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--mut)" id="pfGhinNote"></p>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
     </div>
@@ -23499,6 +23501,10 @@ const CS_ONBOARDING = {
   nameMissing:'Your name goes on the card.',
   handleLabel:'@handle',
   handleRule:'3–20 letters, numbers or _. It changes once every 60 days.',
+  /* W7-114 · the gate says who is signed in and offers the way out (the phone's OnboardingCopy can carry the same words) */
+  signedInAs:'Signed in as',
+  notYou:'Not you?',
+  signOut:'Sign out',
   handleBad:'A handle is 3–20 letters, numbers or underscores.',
   markerLabel:'Ball marker',
   ghinMovedNote:'Adding a GHIN number? It lives on your card, under You.',
@@ -29342,6 +29348,11 @@ function csPaintOnboarding(){
   set('pfHandleLabel', CS_ONBOARDING.handleLabel);
   set('pfHandleRule', CS_ONBOARDING.handleRule);
   set('pfGhinNote', CS_ONBOARDING.ghinMovedNote);
+  /* W7-114 · 'Signed in as <email>. Not you?' and its way out */
+  const who = window.CS?.user?.email || '';
+  set('pfSignedIn', who ? `${CS_ONBOARDING.signedInAs} ${who}. ${CS_ONBOARDING.notYou}` : '');
+  set('pfSignOut', CS_ONBOARDING.signOut);
+  const out = document.getElementById('pfSignOut'); if(out) out.hidden = !who;
   const save = document.getElementById('pfSave'); if(save) save.textContent = CS_ONBOARDING.save;
   set('obCrewTitle', CS_ONBOARDING.crewTitle);
   set('obCrewSub', CS_ONBOARDING.crewSub);
@@ -29455,6 +29466,11 @@ window.showProfileGate = showProfileGate;
 window.csPaintOnboarding = csPaintOnboarding;
 window.csContinueAfterCard = () => continueAfterCard();
 
+/* W7-114 · the way out of the card gate for a golfer signed in as the wrong person: this surface only (scope 'local', as Settings' 'Sign out of this browser'), then a clean reload */
+$('#pfSignOut')?.addEventListener('click', async () => {
+  await csSignOut({ scope: 'local' });
+  location.reload();
+});
 $('#pfSave').addEventListener('click', async () => {
   const name = $('#pfName').value.trim();
   if(!name){ $('#pfStatus').textContent = CS_ONBOARDING.nameMissing; return; }
