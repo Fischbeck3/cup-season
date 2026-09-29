@@ -326,21 +326,18 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     return "The season’s ending will appear here when its rules are set."
   }
 
-  /// 5 · "If you take it: sixty percent to the champion, twenty-five to the
-  /// runner-up, fifteen to the points king." ABOVE $0 ONLY (L-10), and the trio
-  /// is the Pro's own, printed rather than assumed.
+  /// 5 · "If you take it: 60 percent to the champion, 25 to the runner-up, 15
+  /// to the points king." ABOVE $0 ONLY (L-10), and the trio is the Pro's own,
+  /// printed rather than assumed. N4-181 · the words are `PotMath.splitWords`,
+  /// which the rules page reads too.
   ///
   /// N4-201 · the web's sentence word for word (the covenant's `split`): the
   /// first share says "percent", the rest are figures; a zero share is left
   /// out (L-23); and, in a league with a structure, the points king is said
   /// once in plain words when it pays.
   public var splitLine: String? {
-    guard paid, let s = split else { return nil }
-    let shares = [(s.champion, "the champion"), (s.runnerUp, "the runner-up"), (s.pointsKing, "the points king")]
-      .filter { $0.0 > 0 }
-    guard !shares.isEmpty else { return nil }
-    let said = shares.enumerated().map { i, share in (i == 0 ? "\(share.0) percent" : "\(share.0)") + " to " + share.1 }
-    let line = said.count == 1 ? said[0] : said.dropLast().joined(separator: ", ") + ", " + said[said.count - 1]
+    guard paid, let s = split,
+          let line = PotMath.splitWords(champion: s.champion, runnerUp: s.runnerUp, pointsKing: s.pointsKing) else { return nil }
     let kingNote = structure != nil && s.pointsKing > 0
       ? " The points king is the golfer with the most points of their own, whatever the Final does." : ""
     return "If you take it: " + line + "." + kingNote

@@ -568,13 +568,17 @@ public enum LeagueCopy {
   /// floor penalty fires in a solo league and the sentence threatens no squad.
   /// `preset` indexes `Bylaws.penalty`: 0 casual (nothing docked), 1 standard
   /// (5 squad points a round short), 2 cutthroat (the month's rounds struck).
-  public static func floorSentence(floor: Int, preset: Int, structure: String?) -> String {
+  ///
+  /// N4-181 · `marked` sets the round count and the points docked as figure
+  /// runs, for the rules page; the words are the same.
+  public static func floorSentence(floor: Int, preset: Int, structure: String?, marked: Bool = false) -> String {
     guard floor > 0 else { return "No minimum — every round counts, and nothing is owed." }
-    let rounds = "\(floor) round\(floor == 1 ? "" : "s") a month"
+    let mk: (Int) -> String = { marked ? "{\($0)}" : "\($0)" }
+    let rounds = "\(mk(floor)) round\(floor == 1 ? "" : "s") a month"
     if structure == "solo" {
       return "Post \(rounds). In a solo league that is a habit, not a penalty — there's no squad to dock."
     }
-    let pen = ["", "your squad loses 5 points for every round you're short", "the month's rounds are struck"]
+    let pen = ["", "your squad loses \(mk(5)) points for every round you're short", "the month's rounds are struck"]
     let cost = (0..<pen.count).contains(preset) ? pen[preset] : ""
     guard !cost.isEmpty else { return "Post \(rounds). Nothing is docked if you miss — it's a habit, not a penalty." }
     return "Post \(rounds). Miss once and your season bye covers it automatically; from the second miss \(cost). Short months are waived."

@@ -556,8 +556,12 @@ public enum SeasonRules {
   public struct Section: Sendable, Equatable, Identifiable {
     public let head: String
     public let body: String
+    /// N4-181 · the body carries figure runs (`{95}`), so the page sets it
+    /// with `CSFigureRun`. Never true for a section that prints a name: a
+    /// brace a golfer typed would be taken for a mark.
+    public let marked: Bool
     public var id: String { head }
-    public init(head: String, body: String) { self.head = head; self.body = body }
+    public init(head: String, body: String, marked: Bool = false) { self.head = head; self.body = body; self.marked = marked }
   }
 
   /// "The Fellas, season one." — the page's own title.
@@ -581,9 +585,16 @@ public enum SeasonRules {
 
   /// The five sections, in order. Each one is a sentence a golfer would say,
   /// and every number in them is the league's own.
+  ///
+  /// N4-181 · the numbers a golfer scans for are figures — the allowance, the
+  /// minimum and what a miss costs, the stake, the pot and the split — and
+  /// `marked` sets them as figure runs (UI_SYSTEM §1.6). A count the sentence
+  /// reads stays a word: "your best four" is the counting rule's settled form
+  /// (PAR-29).
   public static func sections(_ b: Bylaws, clock: RoomClock, pro: String?, members: Int,
-                              calendar: Calendar = .current) -> [Section] {
+                              calendar: Calendar = .current, marked: Bool = false) -> [Section] {
     var out: [Section] = []
+    let mk: (String) -> String = { marked ? "{\($0)}" : $0 }
 
     // HOW IT SCORES — the allowance and the cap, as one sentence each.
     let allowance = Bylaws.allow[max(0, min(Bylaws.allow.count - 1, b.presetIdx))]
@@ -591,16 +602,18 @@ public enum SeasonRules {
                 ?? "Every round you post counts."
     // PROD-06 / R-M · the playing HCP IS the index under the allowance; "playing
     // HCP at 95%" applied it twice on the page headed How it scores (L-14).
-    let at = allowance == 100 ? "your full index" : "your index at \(percent(allowance))"
+    let at = allowance == 100 ? "your full index" : "your index at \(mk("\(allowance)")) percent"
     out.append(Section(head: "How it scores",
-                       body: "Every round you post is scored against your playing HCP — \(at). \(counted)"))
+                       body: "Every round you post is scored against your playing HCP — \(at). \(counted)", marked: marked))
 
     // WHAT YOU OWE THE SEASON — D14's floor, D140's solo truth, the auto-bye
     // and what the second miss costs, in the one floor sentence (Q-27). This
     // page had its own, and it left out the penalty.
     if b.floor > 0 {
       out.append(Section(head: "What you owe the season",
-                         body: LeagueCopy.floorSentence(floor: b.floor, preset: b.presetIdx, structure: b.structure)))
+                         body: LeagueCopy.floorSentence(floor: b.floor, preset: b.presetIdx, structure: b.structure,
+                                                        marked: marked),
+                         marked: marked))
     }
 
     // HOW IT ENDS — D126's sentence, whole, in the one place the mechanic is.
@@ -612,12 +625,14 @@ public enum SeasonRules {
     // (L-09). A $0 season has no money surface at all (L-10, D70).
     if b.stake > 0 {
       let players = max(members, 1)
-      let split = "\(SeasonStoryCopy.cap(SeasonStoryCopy.word(b.payout[0]))) percent to the champion, "
-                + "\(SeasonStoryCopy.word(b.payout.count > 1 ? b.payout[1] : 0)) to the runner-up, "
-                + "\(SeasonStoryCopy.word(b.payout.count > 2 ? b.payout[2] : 0)) to the points king."
+      // the covenant's own sentence (PotMath.splitWords), not a second one
+      let split = PotMath.splitWords(champion: b.payout.first ?? 0,
+                                     runnerUp: b.payout.count > 1 ? b.payout[1] : 0,
+                                     pointsKing: b.payout.count > 2 ? b.payout[2] : 0, marked: marked)
+                    .map { $0 + ". " } ?? ""
       out.append(Section(head: "What's on it",
-                         body: "\(PotMath.dollars(b.stake)) each, \(PotMath.dollars(b.stake * players)) in the pot. "
-                             + "\(split) \(MoneyCopy.ledger)"))
+                         body: "\(mk(PotMath.dollars(b.stake))) each, \(mk(PotMath.dollars(b.stake * players))) in the pot. "
+                             + "\(split)\(MoneyCopy.ledger)", marked: marked))
     }
 
     // SCORES — M-15's own wording: the norm, not a filter.
@@ -634,15 +649,5 @@ public enum SeasonRules {
     }
     if !close.isEmpty { out.append(Section(head: "Who runs it", body: close)) }
     return out
-  }
-
-  /// "ninety-five percent" — the allowance said, never printed as a dial.
-  static func percent(_ n: Int) -> String {
-    switch n {
-    case 100: return "the full number"
-    case 95:  return "ninety-five percent"
-    case 90:  return "ninety percent"
-    default:  return "\(n) percent"
-    }
   }
 }
