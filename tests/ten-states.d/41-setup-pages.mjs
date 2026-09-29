@@ -251,7 +251,16 @@ const SETTINGS = [
         const g = document.getElementById('phDelConfirm'), a = document.activeElement
         return { focus: a && a.id, role: g.getAttribute('role'), named: g.getAttribute('aria-labelledby'), described: document.getElementById('phDelYes').getAttribute('aria-describedby') }
       })
-      if (open.focus !== 'phDelWhat' || open.role !== 'group' || open.named !== 'phDelete' || open.described !== 'phDelWhat') return 'the confirmation does not take focus or say what it does: ' + JSON.stringify(open)
+      if (open.focus !== 'phDelWhat' || open.role !== 'group' || open.named !== 'phDelHead' || open.described !== 'phDelWhat') return 'the confirmation does not take focus or say what it does: ' + JSON.stringify(open)
+      /* TEN / W8 · W7-041 [A2-settings-2, B2-settings-1, A2-settings-9]: a head of its own (named by it, not by the opener), set off by a
+         rule, and its two answers equal in width (the destructive act is not the loudest control, §16A.5) */
+      const shape = await page.evaluate(() => {
+        const g = document.getElementById('phDelConfirm'), h = document.getElementById('phDelHead'), y = document.getElementById('phDelYes').getBoundingClientRect(), n = document.getElementById('phDelNo').getBoundingClientRect()
+        return { head: h.textContent.trim(), role: h.getAttribute('role'), rule: getComputedStyle(g).borderTopWidth, yes: Math.round(y.width), no: Math.round(n.width) }
+      })
+      if (shape.head !== 'Delete your account?' || shape.role !== 'heading') return 'the confirmation has no head of its own: ' + JSON.stringify(shape)
+      if (shape.rule !== '1px') return 'the confirmation is not set off from the sign-out row by a rule: ' + JSON.stringify(shape)
+      if (Math.abs(shape.yes - shape.no) > 1) return `the two answers are not equals: Delete ${shape.yes}px, Not now ${shape.no}px`
       await click(page, '#phDelNo')
       const back = await page.evaluate(() => document.activeElement && document.activeElement.id)
       await click(page, '#phDelete')

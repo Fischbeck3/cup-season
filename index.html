@@ -31003,13 +31003,18 @@ function openProfileHub(){
     <!-- TEN / W6 · critique A2 (P1): a named group; focus lands on what
          deletion does, which "Delete permanently" is described by, and the
          decline is the phone's "Not now" (CardAndSettingsScreen) -->
-    <div id="phDelConfirm" role="group" aria-labelledby="phDelete" style="display:none; margin-top:8px">
+    <!-- W7-041 · the confirmation is set off from the sign-out row above it by a rule and has a head of its
+         own (a question, so a phrase: §1.3), and its two answers are equals in the armed-destructive tier
+         (§7.1: bg2 fill, neg label; §16A.5: the destructive act is not the loudest control). It named
+         itself by the opener, "Delete my account", which is a control's label, not the question. -->
+    <div id="phDelConfirm" role="group" aria-labelledby="phDelHead" style="display:none; margin-top:var(--s3); padding-top:var(--s3); border-top:1px solid var(--rule)">
+      <div class="eyebrow is-phrase" role="heading" aria-level="3" id="phDelHead" style="margin-top:0">Delete your account?</div>
       <!-- D396 · the confirm says everything deletion does: the words and the
            photos go, every share link is withdrawn, the rounds stay -->
       <p class="fine" id="phDelWhat" tabindex="-1" style="padding-left:0">${esc(CS_DELETE_ACCOUNT)}</p>
       <div style="display:flex; gap:8px; margin-top:10px">
-        <button class="btn destructive" id="phDelYes" aria-describedby="phDelWhat" style="flex:1">Delete permanently</button>
-        <button class="mini" id="phDelNo">Not now</button>
+        <button class="mini del" id="phDelYes" aria-describedby="phDelWhat" style="flex:1">Delete permanently</button>
+        <button class="mini" id="phDelNo" style="flex:1">Not now</button>
       </div>
     </div>
 
