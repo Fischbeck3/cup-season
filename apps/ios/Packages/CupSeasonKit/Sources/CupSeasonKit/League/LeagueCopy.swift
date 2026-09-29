@@ -132,7 +132,7 @@ public enum LeagueCopy {
     var rows: [BylawRow] = [
       BylawRow("FORMAT", Bylaws.structNames[b.structure] ?? b.structure),
       BylawRow("THE DRAW", Bylaws.draftNames[b.draftType] ?? b.draftType),
-      BylawRow("HOUSE RULES", b.presetName),
+      BylawRow("HOUSE RULES", houseRules(b)),
       // D373 · twin of the web's HOW SCORES COUNT byrow
       BylawRow("HOW SCORES COUNT", "Scored against your playing HCP — your index at \(Bylaws.allow[b.presetIdx]) percent"),
       BylawRow("SCORES", Bylaws.verif[b.presetIdx]),
@@ -153,6 +153,17 @@ public enum LeagueCopy {
       rows.append(BylawRow("FINISH", "Points table crowns it · whole season, one race"))
     }
     return rows
+  }
+
+  /// W5 twin (the web's `csPresetMatches` in the review) · the house rules are
+  /// the preset's name only while the league's two dials — the counting cap
+  /// and the monthly minimum — are the preset's. Moved, they are "Custom,
+  /// built on Standard", the web review's House rules row word for word (the
+  /// covenant's head is its own sentence: "Custom rules, built on Standard:").
+  public static func houseRules(_ b: Bylaws) -> String {
+    let presets = WizardDials.presets
+    let pr = presets[max(0, min(presets.count - 1, b.presetIdx))]
+    return pr.cap == b.cap && pr.floor == b.floor ? b.presetName : "Custom, built on \(b.presetName)"
   }
 
   /// The Pro's endgame dial (11912–11926) — until the final window opens.
