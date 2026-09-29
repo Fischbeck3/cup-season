@@ -68,12 +68,15 @@ public enum PendingLink: String, Sendable, Equatable, CaseIterable {
   /// What the DOOR says above the email field when a token is waiting, so a
   /// stranger who tapped a friend's link is told what they are signing in for
   /// rather than meeting a bare email box (IOS-033).
-  public static func doorLine(defaults: UserDefaults = .standard) -> String? {
+  /// `deferringClaim` · N4-040 (root): a golfer who said "Not now" to a
+  /// claim meets the plain door. The claim stays pending — it is only ever
+  /// spent when answered — and its own screen comes back on the next launch.
+  public static func doorLine(defaults: UserDefaults = .standard, deferringClaim: Bool = false) -> String? {
     if let j = JoinIntent.pending(defaults: defaults) {
       return j.name.map { "You're joining \($0). Sign in to review and join." }
         ?? "You're joining a season. Sign in to review and join."
     }
-    if claim.isPending(defaults: defaults) { return "A round is waiting. Sign in to review it." }
+    if !deferringClaim, claim.isPending(defaults: defaults) { return "A round is waiting. Sign in to review it." }
     if person.isPending(defaults: defaults) { return "Someone shared their golfer card. Sign in to view it." }
     if plan.isPending(defaults: defaults) { return "You’ve been invited to a round. Sign in to view the plan." }
     return nil

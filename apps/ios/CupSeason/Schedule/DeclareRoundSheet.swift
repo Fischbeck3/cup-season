@@ -288,16 +288,23 @@ struct FlowLayout: Layout {
     let w = proposal.width ?? 320
     var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0
     for s in subviews {
-      let sz = s.sizeThatFits(.unspecified)
+      let sz = size(s, within: w)
       if x + sz.width > w, x > 0 { x = 0; y += rowH + spacing; rowH = 0 }
       x += sz.width + spacing; rowH = max(rowH, sz.height)
     }
     return CGSize(width: w, height: y + rowH)
   }
+  /// N4-140 · a subview is offered at most the row's width, so a chip longer
+  /// than the row takes a second line instead of running off the edge
+  /// ('CASEY PLACEHOLDEF' on an SE). It was always measured unconstrained.
+  private func size(_ s: LayoutSubview, within w: CGFloat) -> CGSize {
+    let ideal = s.sizeThatFits(.unspecified)
+    return ideal.width <= w ? ideal : s.sizeThatFits(ProposedViewSize(width: w, height: nil))
+  }
   func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
     var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
     for s in subviews {
-      let sz = s.sizeThatFits(.unspecified)
+      let sz = size(s, within: bounds.width)
       if x + sz.width > bounds.maxX, x > bounds.minX { x = bounds.minX; y += rowH + spacing; rowH = 0 }
       s.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(sz))
       x += sz.width + spacing; rowH = max(rowH, sz.height)

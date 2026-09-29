@@ -61,19 +61,43 @@ public enum RosterDoor: Sendable, Equatable {
     return today <= last ? .grace(closesOn: last) : .closedByTime
   }
 
-  /// The Pro's line. States the door, never scolds the Pro for the date they
+  /// The door's line. States the door, never scolds the Pro for the date they
   /// picked — D179 shipped a warning here and it was the wrong instrument.
-  public func line(_ calendar: Calendar = .current) -> String {
+  ///
+  /// N4-207 · **TWO VOICES, THE WEB'S WORDS** (the rules card's `#rosterSub`).
+  /// A member read "Add anyone yourself" and "until you close it" about a
+  /// control only the Pro has; a member reads the door's STATE. And with the
+  /// season's dates the halfway turn is named, and once it has passed the
+  /// roster is set — round 2's P0, the server's own date (starts + half the
+  /// season in whole days). Without them the words are what they were.
+  public func line(isPro: Bool = true, startsOn: String? = nil, endsOn: String? = nil,
+                   today: String = CSDate.today(), calendar: Calendar = .current) -> String {
+    let pretty = { (iso: String) in LeagueDates.dowMonDay(iso, calendar: calendar) }
+    let half: String? = {
+      guard let startsOn, let endsOn, let days = CSDate.days(from: startsOn, to: endsOn, calendar: calendar) else { return nil }
+      return LeagueDates.addDays(startsOn, days / 2, calendar: calendar)
+    }()
+    let pastHalf = half.map { today > $0 } ?? false
+    let untilTurn = half.map { "until the halfway turn, \(pretty($0))" } ?? "until the halfway turn"
+    if isPro {
+      if !isOpen && pastHalf { return "Past the halfway turn — the roster’s set for this season." }
+      switch self {
+      case .closedByPro: return "You closed the roster. Add anyone yourself \(untilTurn)."
+      case .closedByTime: return "The link has closed. Add anyone yourself \(untilTurn)."
+      case .open(let on):
+        guard let on else { return "The invite link works until you close the roster." }
+        return "Works until you close it, or until first tee — \(pretty(on))."
+      case .grace(let on):
+        return "Works until you close it, or until \(pretty(on))."
+      }
+    }
     switch self {
+    case .closedByPro, .closedByTime:
+      return pastHalf ? "The roster’s set for this season." : "The roster is set. The Pro can still add a golfer \(untilTurn)."
     case .open(let on):
-      guard let on else { return "The invite link works until you close the roster." }
-      return "Works until you close it, or until first tee — \(LeagueDates.dowMonDay(on, calendar: calendar))."
+      return on.map { "The invite link is open until \(pretty($0))." } ?? "The invite link is open."
     case .grace(let on):
-      return "Works until you close it, or until \(LeagueDates.dowMonDay(on, calendar: calendar))."
-    case .closedByPro:
-      return "You closed the roster. Add anyone yourself until the halfway turn."
-    case .closedByTime:
-      return "The link has closed. Add anyone yourself until the halfway turn."
+      return "The invite link is open until \(pretty(on))."
     }
   }
 

@@ -214,7 +214,8 @@ import Foundation
   /// $288 / $120 / $72, on every surface.
   @Test func theCaptionIsTheStakeAndTheSettlementsOwnSplit() {
     let trio = PotMath.trioCents(potCents: 48000, payout: [60, 25, 15])
-    #expect(SeasonBoardCopy.potCaption(stake: 60, trio: trio) == "$60 each · 288 / 120 / 72")
+    // N4-103 · the stake alone: the split is printed once, labelled, below
+    #expect(SeasonBoardCopy.potCaption(stake: 60, trio: trio) == "$60 each")
   }
   /// **The sign is a WORD** — never a tick, never opacity, never a hue.
   @Test func theSignIsAWord() {

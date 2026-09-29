@@ -11,6 +11,8 @@ struct RootView: View {
   @State private var pendingJoin: String?
   /// A guest pencil's "keep it" tap: show the door over the pending claim.
   @State private var guestDoor = false
+  /// N4-040 · the golfer said "Not now" to a claim: the plain door this launch
+  @State private var claimDeferred = false
   /// L-06 · bumped when a claim link lands while the app is open, so the
   /// signed-out branch re-reads `ClaimIntent.pending()` (a stored token alone
   /// never re-renders anything).
@@ -61,10 +63,12 @@ struct RootView: View {
           NavigationStack { HomeView(links: CSLinks(), push: { _ in }) }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let t = ClaimIntent.pending(), !guestDoor {
-          GuestPencilScreen(token: t, onDoor: { guestDoor = true })
+          GuestPencilScreen(token: t, onDoor: { guestDoor = true },
+                            notNow: { claimDeferred = true; guestDoor = true })
             .id("\(t)-\(claimTick)")   // L-06 · a new link is a new pencil
         } else {
-          DoorView()
+          DoorView(claimDeferred: claimDeferred)
+            .id(claimDeferred)
         }
       case .cardGate(let me):
         CardGateView(me: me)
@@ -89,6 +93,7 @@ struct RootView: View {
             // the code, so a new golfer never meets the old one's link.
             .task(id: store.me?.profile?.id) {
               guestDoor = false
+              claimDeferred = false
               if pendingJoin == nil, let j = JoinIntent.pending() { pendingJoin = j.code }
               // a claim link that came in signed-out lands the card now (D88)
               await LiveClaimAfterAuth.run(toast: toast)
@@ -124,6 +129,7 @@ struct RootView: View {
     // guest pencil at once (the signed-in half runs in the `.ready` branch)
     .onReceive(NotificationCenter.default.publisher(for: .csClaimTokenPending)) { _ in
       guestDoor = false
+      claimDeferred = false
       claimTick += 1
     }
     // D233: decided once per arrival in `.ready` — after the card, or on a

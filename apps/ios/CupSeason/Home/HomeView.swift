@@ -175,6 +175,11 @@ struct HomeView: View {
     .background(cs.bg0)
     .environment(\.csLook, looks.personalLook())
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
+    // N4-012 · the fade is back, and only where IOS-064's reason does not
+    // reach: it draws while the page continues below the fold, so a resting
+    // first screen ends under a fade rather than on a sheared row, and the
+    // foot of the page, where there is nothing left to scroll to, is whole.
+    .csFoldFade(cs.bg0)
     // **IOS-064 · THE FADE IS GONE, AND ITS REASON WENT FIRST.** §1.6 ended
     // Home in a 28pt fade to `bg0` so a FLOATING tab pill's rule could not
     // guillotine a row mid-glyph (problem 10). Wave 8 stopped the band
@@ -239,7 +244,20 @@ struct HomeView: View {
   @ViewBuilder private func lead(_ page: HomePage, me: Me) -> some View {
     switch page.lead {
     case .none:
-      EmptyView()
+      if page.redacted {
+        // N4-011 · the lead slot while the read is out: its own geometry,
+        // redacted — an eyebrow and a two-line serif sentence — so a loading
+        // Home never reads as a finished one with nothing to say (§13.2)
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          Text("This week in your season").csType(.agate, caps: true)
+          Text("A sentence about where you stand lands here.").csType(.lead)
+        }
+        .foregroundStyle(cs.mut)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, CSTokens.Space.gutter)
+        .padding(.top, CSTokens.Space.s4)
+        .csRedacted(true)
+      }
 
     // A CEREMONY IS A PHYSICAL OBJECT. The night a season ends leads with the
     // takeover band on the pinned `ceremony` ground in BOTH themes — which is
@@ -314,6 +332,13 @@ struct HomeView: View {
           homeCourse: me.profile?.home_course))
           .padding(.horizontal, CSTokens.Space.gutter)
       } else if page.redacted {
+        // N4-011 · the occasion is the calendar's, known without the read, so
+        // it stays; the rows the read will bring are redacted beneath it
+        let occasions = page.rows.filter { if case .occasion = $0.body { true } else { false } }
+        ForEach(occasions) { row in
+          wireRow(row, context: page.wireContext)
+          CSRule()
+        }
         // The destination's own geometry, redacted — never a spinner and never
         // three grey rectangles (H-21).
         ForEach(0..<3, id: \.self) { i in

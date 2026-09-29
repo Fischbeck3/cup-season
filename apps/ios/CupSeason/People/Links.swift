@@ -151,19 +151,24 @@ struct CSCheckRow<Trailing: View>: View {
   @ViewBuilder let trailing: Trailing
 
   var body: some View {
-    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-      // the title names the person; the marker inside the face would name itself too
-      CSFace(face, size: .list).accessibilityHidden(true)
-      VStack(alignment: .leading, spacing: 3) {
-        title.csType(.name).foregroundStyle(cs.ink)
-        if let sub { sub.csType(.agate).foregroundStyle(cs.mut) }
+    // N4-061 · the wave-8 rule: at the accessibility sizes the trailing
+    // control drops under the name, so a name and a handle never break
+    // mid-word beside it ('DEVON / TESTCA / SE' next to ACCEPT and ×)
+    A11yStack(alignment: .leading, rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+        // the title names the person; the marker inside the face would name itself too
+        CSFace(face, size: .list).accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 3) {
+          title.csType(.name).foregroundStyle(cs.ink)
+          if let sub { sub.csType(.agate).foregroundStyle(cs.mut) }
+        }
+        // a leading stack says leading OUT LOUD: these rows sit inside sheet and
+        // picker buttons, and a button label hands its children a centred text
+        // alignment — a name or a sub that wraps would set line 2 centred under a
+        // leading line 1 (the invite row on Buddies did exactly that).
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
-      // a leading stack says leading OUT LOUD: these rows sit inside sheet and
-      // picker buttons, and a button label hands its children a centred text
-      // alignment — a name or a sub that wraps would set line 2 centred under a
-      // leading line 1 (the invite row on Buddies did exactly that).
-      .multilineTextAlignment(.leading)
-      .frame(maxWidth: .infinity, alignment: .leading)
       trailing
     }
     .padding(.vertical, CSTokens.Space.s3)
@@ -193,7 +198,9 @@ struct RoomLineRow<Trailing: View>: View {
   @ViewBuilder let trailing: Trailing
 
   var body: some View {
-    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+    // N4-061 · the wave-8 rule, as CSCheckRow: at the accessibility sizes the
+    // trailing slot drops under the person rather than squeezing the name
+    A11yStack(alignment: .leading, rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
       if let onTap {
         spoken(Button(action: onTap) { lead }
           .buttonStyle(.plain)

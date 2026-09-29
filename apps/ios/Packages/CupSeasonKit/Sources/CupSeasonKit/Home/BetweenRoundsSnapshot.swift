@@ -109,6 +109,18 @@ public struct BetweenRoundsSnapshot: Codable, Sendable, Equatable {
     guard let saved = savedAt(for: kind) else { return "Open to refresh" }
     return DispatchSnapshot(seasonRow: nil, facts: [], savedAt: saved).asOf(now: now)
   }
+
+  /// N4-190 · the as-of line at the accessibility sizes, where a widget cannot
+  /// grow: the time alone ("2:22 PM"), or the stale state's instruction alone
+  /// ("OPEN TO REFRESH"). It truncated as "AS OF MON · OPEN T…".
+  public func asOfShort(_ kind: BetweenRoundsKind, at now: Date) -> String {
+    Self.shortened(asOf(kind, at: now))
+  }
+  static func shortened(_ full: String) -> String {
+    guard full.hasPrefix("AS OF ") else { return full }
+    if let dot = full.range(of: " · ") { return String(full[dot.upperBound...]) }
+    return String(full.dropFirst("AS OF ".count))
+  }
   public func link(for kind: BetweenRoundsKind) -> URL {
     let id: UUID?
     switch kind { case .race: id = race?.value?.league; case .nextTee: id = nextTee?.value?.id

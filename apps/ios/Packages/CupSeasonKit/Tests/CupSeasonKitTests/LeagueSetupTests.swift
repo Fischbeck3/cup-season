@@ -83,22 +83,65 @@ import Testing
     #expect(d.setupMinimumConsequence == "No team penalty in an individual season.")
   }
 
+  /// N4-208 · the agreement is the web's review (`renderBylaws`): the Cup
+  /// Final row carries the monthly-limit disclosure and, for two squads, the
+  /// head start; under six weeks the points table crowns it
   @Test func agreementDisclosesMonthlyFinalEligibilityAndShortSeasons() throws {
     var d = WizardDials()
-    let full = WizardAgreement(d).rows
-    #expect(try #require(full.first { $0.label == "The finish" }).value.contains("monthly counting limit"))
-    #expect(full.contains { $0.label == "Head start" })
+    let full = WizardAgreement(d, today: "2026-09-18").rows
+    let final = try #require(full.first { $0.k == "Cup Final" })
+    #expect(final.v.contains("Final rounds must also fit the monthly counting limit; an earlier round can take a place."))
+    #expect(final.v.hasSuffix(" Leading squad starts with 10 points."))
+    d.structure = "squads3"
+    #expect(try #require(WizardAgreement(d, today: "2026-09-18").rows.first { $0.k == "Cup Final" }).v
+              .hasSuffix("an earlier round can take a place."))
     d.durWeeks = 4
-    let short = WizardAgreement(d).rows
-    #expect(try #require(short.first { $0.label == "The finish" }).value == "The points leader at season end wins.")
-    #expect(!short.contains { $0.label == "Head start" })
+    let short = WizardAgreement(d, today: "2026-09-18").rows
+    #expect(!short.contains { $0.k == "Cup Final" })
+    #expect(short.last == BylawRow("Finish", "Points table crowns it · whole season, one race"))
+  }
+
+  /// N4-208 · the pot's third share is named for its trophy, as the web's
+  /// review names it (TERMINOLOGY §2.1: "individual points winner" was a
+  /// fourth name), and the payment note is the Pro's own words
+  @Test func theSharesNameThePointsKing() throws {
+    var d = WizardDials()
+    d.stake = 50; d.buyInNote = "  Pay Sam Fixture by the first tee "
+    let rows = WizardAgreement(d, today: "2026-09-18").rows
+    #expect(rows.first { $0.k == "Pot split" }?.v == "60 / 25 / 15 · champion / runner-up / Points King")
+    #expect(rows.first { $0.k == "How to pay" }?.v == "Pay Sam Fixture by the first tee")
+    #expect(rows.first { $0.k == "Buy-in" }?.v == "$50 / golfer")
   }
 
   @Test func scoreExpectationsUseTheExistingCrossClientContract() {
     for preset in 0..<3 {
-      let rows = WizardAgreement(WizardDials(preset: preset)).rows
-      #expect(rows.first { $0.label == "Score agreement" }?.value == Bylaws.verif[preset])
+      let rows = WizardAgreement(WizardDials(preset: preset), today: "2026-09-18").rows
+      #expect(rows.first { $0.k == "Scores" }?.v == Bylaws.verif[preset])
     }
+  }
+
+  /// N4-208 · the rows, in the web review's order and words
+  @Test func theAgreementIsTheWebsReviewRowForRow() {
+    var d = WizardDials(name: "Fixture League", preset: 1, durWeeks: 13, startISO: "2026-09-30", structure: "squads2")
+    d.cap = Bylaws.capIndex(3); d.floor = 2
+    let rows = WizardAgreement(d, today: "2026-09-18").rows
+    #expect(rows.map(\.k) == ["Format", "The draw", "House rules", "How scores count", "Scores", "Each month",
+                              "The minimum", "If you miss it", "Buy-in", "Season", "Cup Final"])
+    #expect(rows.map(\.v) == [
+      "2 squads", "Random draw", "Standard",
+      "Scored against your playing HCP — your index at 95 percent",
+      "Post what you'd post to GHIN",
+      "Your best three each month count.",
+      "2 per golfer each month",
+      "One missed minimum is forgiven each season. After that, the team loses 5 points per round short. Partial months are exempt.",
+      "None · bragging rights",
+      "Wed Sep 30 \u{2013} Wed Dec 30 · 13 weeks",
+      "Final 4 weeks · from Thu Dec 3. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Leading squad starts with 10 points.",
+    ])
+    d.structure = "solo"
+    let solo = WizardAgreement(d, today: "2026-09-18").rows
+    #expect(solo.first { $0.k == "The minimum" }?.v == "No team minimum in an individual season")
+    #expect(!solo.contains { $0.k == "If you miss it" })
   }
 
   @Test func partialLedgerNeverPrintsTheAdjustmentTwice() {
@@ -198,8 +241,7 @@ struct StoredCapFidelityTests {
   /// And the agreement a group accepts reads the rule that will be stored.
   @Test func theAgreementQuotesTheStoredRule() {
     let d = WizardDials.from(settings(cap: 5), name: "X")
-    #expect(d.setupCounting == "Each golfer’s best 5 each month")
-    #expect(WizardAgreement(d).rows.contains { $0.value == "Each golfer’s best 5 each month" })
+    #expect(WizardAgreement(d, today: "2026-09-18").rows.first { $0.k == "Each month" }?.v == "Your best five each month count.")
   }
 }
 

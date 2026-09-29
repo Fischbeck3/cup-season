@@ -37,6 +37,8 @@ struct LengthStep: View {
   @State private var shared: UUID? = nil
   /// The second page: "Play a round" asks now-or-schedule.
   @State private var roundFork = false
+  /// N4-114 · the content's own height; the sheet grows to it
+  @State private var fits: CGFloat = 0
 
   private var shareASeason: Bool { shared != nil }
   private var lengths: [CalloutLength] { CalloutLength.offered(liveNow: liveNow, shareASeason: shareASeason) }
@@ -54,9 +56,10 @@ struct LengthStep: View {
     }
     .padding(20)
     .frame(maxWidth: .infinity, alignment: .leading)
+    .csReportsHeight($fits)
     }
     .background(cs.bg0)
-    .csFittedSheet(shareASeason ? 400 : 340)
+    .csFittedSheet(shareASeason ? 400 : 340, fits: fits)
     .accessibilityIdentifier("play.with.sheet")
     .task { shared = await ForfeitService().sharedLeague(with: opponent.id, mine: myLeagues) }
   }
@@ -268,6 +271,8 @@ struct CalloutReplySheet: View {
   let onAnswered: (Bool) -> Void
   @State private var busy = false
   @State private var toasts = CSToastCenter()
+  /// N4-114 · the content's own height; the sheet grows to it
+  @State private var fits: CGFloat = 0
 
   var body: some View {
     // D258 · the reply is two buttons and a sentence, and at AX3 the sentence
@@ -286,10 +291,11 @@ struct CalloutReplySheet: View {
     }
     .padding(20)
     .frame(maxWidth: .infinity, alignment: .leading)
+    .csReportsHeight($fits)
     }
     .background(cs.bg0)
     .csToasts(toasts)
-    .csFittedSheet(320)
+    .csFittedSheet(320, fits: fits)
   }
 
   private func answer(_ accept: Bool) {

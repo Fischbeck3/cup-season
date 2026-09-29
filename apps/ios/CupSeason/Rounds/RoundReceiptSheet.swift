@@ -141,7 +141,12 @@ struct RoundReceiptSheet: View {
           if let courseId {
             NavigationLink { CourseScreen(courseId: courseId, label: r.courseLabel) } label: {
               HStack {
-                Text("View course").csType(.bodyS)
+                // D391 v1.2 · the door says what is behind it, in the web's words
+                VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+                  Text("View course").csType(.bodyS)
+                  Text(TalkCopy.courseSub).csType(.agateS).foregroundStyle(cs.mut)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
                 Spacer()
                 CSGlyph(.chevron, size: .inline)
               }

@@ -79,6 +79,65 @@ final class N4PostUITests: N2UITestCase {
     app.terminate()
   }
 
+  /// N4-022 · Start over wiped the card, the photo and the draft on one tap,
+  /// directly under the primary. It is armed now: the first tap asks and
+  /// keeps the card, and the second clears it.
+  @MainActor func testStartOverAsksBeforeItClearsTheCard() {
+    let app = launch("season-live", "postround")
+    _ = root(app, "composer")
+    let gross = app.textFields["Your gross"].firstMatch
+    XCTAssertTrue(gross.waitForExistence(timeout: 10))
+    if !app.keyboards.firstMatch.exists { gross.tap() }
+    gross.typeText("84")
+    app.swipeDown()
+    let start = app.buttons["post.startOver"].firstMatch
+    XCTAssertTrue(start.waitForExistence(timeout: 5), "Start over is there")
+    for _ in 0..<6 where !start.isHittable { app.swipeUp() }
+    start.tap()
+    let asks = NSPredicate(format: "label ==[c] %@", "Sure? This clears the card")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: asks, evaluatedWith: start)], timeout: 3), .completed,
+                   "the first tap asks — \(start.label)")
+    XCTAssertEqual(gross.value as? String, "84", "and keeps the card")
+    attach(app, "n4-022-armed")
+    start.tap()
+    let cleared = NSPredicate(format: "value != %@", "84")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: cleared, evaluatedWith: gross)], timeout: 5), .completed,
+                   "the second tap clears it")
+    app.terminate()
+  }
+
+  /// N4-020, finished (root): a round with a course and no rating is the
+  /// rating's own error — the sentence under the rating and slope fields, the
+  /// cursor in the first one missing, and the post's answer slot left empty.
+  @MainActor func testARoundWithNoRatingIsTheRatingsOwnError() {
+    let app = launch("season-live", "postround")
+    _ = root(app, "composer")
+    let gross = app.textFields["Your gross"].firstMatch
+    XCTAssertTrue(gross.waitForExistence(timeout: 10))
+    if !app.keyboards.firstMatch.exists { gross.tap() }
+    gross.typeText("84")
+    let course = courseField(app)
+    XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+    course.tap(); course.typeText("Fixture Muni")
+    app.swipeDown()
+    let post = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "add my round")).allElementsBoundByIndex
+      .max { $0.frame.minY < $1.frame.minY }
+    XCTAssertNotNil(post, "Add my round is there")
+    post?.tap()
+    let said = app.staticTexts["post.rating.error"]
+    XCTAssertTrue(said.waitForExistence(timeout: 10), "the rating's own error is said")
+    XCTAssertTrue(said.label.hasPrefix("Type the rating and slope"), said.label)
+    let rating = app.textFields["Rating"].firstMatch
+    XCTAssertTrue(rating.exists, "the fields are open")
+    XCTAssertGreaterThanOrEqual(said.frame.minY, rating.frame.minY + 44, "the sentence stands under the fields")
+    let focused = NSPredicate(format: "hasKeyboardFocus == true")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: focused, evaluatedWith: rating)], timeout: 5), .completed,
+                   "the rating field takes the cursor")
+    XCTAssertFalse(app.staticTexts["post.refusal"].exists, "the post's answer slot is left for the post")
+    attach(app, "n4-020-no-rating")
+    app.terminate()
+  }
+
   @MainActor private func waitGone(_ e: XCUIElement, timeout: TimeInterval) -> Bool {
     XCTWaiter().wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: e)], timeout: timeout) == .completed
   }

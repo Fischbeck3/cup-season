@@ -72,4 +72,16 @@ import Foundation
     #expect(ClashMath.bestSoFar(rounds, member: m, window: win, capN: 2) == nil)
     #expect(ClashMath.bestSoFar(rounds, member: m, window: win, capN: StandingsMath.capN(nil))?.played_on == "2026-08-14")
   }
+
+  /// N4-209 · a settled week says who took it in words, and an idle side says
+  /// it was idle: the web's renderClash, word for word (case aside, which is
+  /// the rider's role)
+  @Test func aSettledWeekSaysWhoTookItInWords() {
+    #expect(ClashCopy.rider(settled: false, winner: nil, through: "Thu") == "through Thu")
+    #expect(ClashCopy.rider(settled: true, winner: "Blake Fixture", through: "Thu") == "Blake took the week")
+    #expect(ClashCopy.rider(settled: true, winner: "Avery Fixture", winnerIsYou: true, through: "Thu") == "You took the week")
+    #expect(ClashCopy.rider(settled: true, winner: nil, through: "Thu") == "All square")
+    #expect(ClashCopy.noRound(settled: true) == "Idle — no round")
+    #expect(ClashCopy.noRound(settled: false) == "No round yet")
+  }
 }

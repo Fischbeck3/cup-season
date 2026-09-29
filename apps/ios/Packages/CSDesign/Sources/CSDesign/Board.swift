@@ -360,9 +360,12 @@ public struct CSSlat<Trailing: View>: View {
               .lineLimit(1).fixedSize(horizontal: true, vertical: false)
           }
         }
+        // N4-102 / N4-120 · the sub-line is a sentence, and it wraps whole at
+        // every size ('Seed 1 · Starts +2 · top seed…', the Major's 'doesn't
+        // c…'); the slat grows (UI_SYSTEM §16.3). The NAME above keeps
+        // "abbreviate first, ellipsis last" (DEC-N4-5 (1)).
         Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
-          .lineLimit(typeSize.isA11y ? 2 : 1).truncationMode(.tail)
-          .fixedSize(horizontal: false, vertical: typeSize.isA11y)
+          .fixedSize(horizontal: false, vertical: true)
       }
       // §16.3 · at AX3 the move, the gap and the points move **under the
       // name** — inside its own block, so they read as this golfer's three
@@ -887,7 +890,8 @@ public struct CSSeasonCalendar: View {
   let weeks: Int
   let played: Int
   /// Zero-based index of the live week. **Negative means nothing is live** —
-  /// a complete season's ticks are all `mut`, because nothing is running.
+  /// a complete season's ticks are all played, and none is `brand`, because
+  /// nothing is running.
   let now: Int
   let months: [Month]
 
@@ -961,19 +965,26 @@ public struct CSSeasonCalendar: View {
     }
   }
 
-  /// The ticks of one month. **Played `mut` · now `brand` and 12pt tall ·
-  /// ahead `rule`** — the live cell grows UPWARD from a shared baseline, so
-  /// the row reads as a clock rather than as a bar with a bite out of it.
+  /// The ticks of one month. **Played `ink` · now `brand` and 12pt tall ·
+  /// ahead `mut`** (N4-104: the fill said `mut` over `rule`, the pair the doc
+  /// above measured at 2.66:1 and 2.30:1) — the live cell grows UPWARD from a
+  /// shared baseline, so the row reads as a clock rather than as a bar with a
+  /// bite out of it.
   private func ticks(from first: Int, count: Int) -> some View {
     HStack(alignment: .bottom, spacing: CSTokens.Space.s1) {
       ForEach(0..<max(0, count), id: \.self) { k in
         let i = first + k
         Rectangle()
-          .fill(i == now ? cs.brand : (i < played ? cs.mut : cs.rule))
+          .fill(CSSeasonCalendar.tick(i, now: now, played: played, in: cs))
           .frame(maxWidth: 20)
           .frame(height: i == now ? 12 : 8)
       }
     }
+  }
+
+  /// one week's tone: played `ink`, the live week `brand`, ahead `mut`
+  static func tick(_ i: Int, now: Int, played: Int, in cs: CSPalette) -> Color {
+    i == now ? cs.brand : (i < played ? cs.ink : cs.mut)
   }
 
   @ViewBuilder private func label(_ m: Month, wraps: Bool = false) -> some View {

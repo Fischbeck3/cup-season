@@ -21,7 +21,13 @@ struct DoorView: View {
   @State private var toasts = CSToastCenter()   // the door sits above the tab host, so it carries its own
   /// QB-08 · what is waiting, said above the email field. Read once on
   /// appearance and again whenever a link lands while the door is up.
-  @State private var pending: String? = PendingLink.doorLine()
+  /// N4-040 · "Not now" on a claim: the plain door, the claim kept pending
+  let claimDeferred: Bool
+  @State private var pending: String?
+  init(claimDeferred: Bool = false) {
+    self.claimDeferred = claimDeferred
+    _pending = State(initialValue: PendingLink.doorLine(deferringClaim: claimDeferred))
+  }
   /// QB-08 · the cold-install answer, typed rather than tapped.
   @State private var codeEntry = false
   @State private var typedCode = ""
@@ -112,7 +118,7 @@ struct DoorView: View {
     .csStatusCap(cs.bg0)
     .csToasts(toasts)
     .onAppear {
-      pending = PendingLink.doorLine()
+      pending = PendingLink.doorLine(deferringClaim: claimDeferred)
       #if DEBUG
       if let line = DoorDev.pendingLine { pending = line }
       #endif
@@ -123,10 +129,10 @@ struct DoorView: View {
       }
     }
     .onReceive(NotificationCenter.default.publisher(for: .csJoinCodePending)) { _ in
-      pending = PendingLink.doorLine()
+      pending = PendingLink.doorLine(deferringClaim: claimDeferred)
     }
     .onReceive(NotificationCenter.default.publisher(for: .csShareTokenPending)) { _ in
-      pending = PendingLink.doorLine()
+      pending = PendingLink.doorLine(deferringClaim: claimDeferred)
     }
     // the flag never blocks the email field: it lands whenever it lands
     .task {
@@ -152,20 +158,48 @@ struct DoorView: View {
         Text(CSBrandCopy.tagline).csType(.lead).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityAddTraits(.isHeader)
+        // N4-003 · the pitch is the one sentence that says what Cup Season
+        // is, and an invite REPLACED it. The invite's own line is printed with
+        // it now, never instead of it.
+        Text("Golf with your people, all season.")
+          .csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityIdentifier(pending == nil ? "door.context" : "door.pitch")
         // The recipient sees why they arrived before choosing a sign-in door.
         // The same producer follows them above the email field; no extra copy.
-        Text(pending ?? "Golf with your people, all season.")
-          .csType(.body).foregroundStyle(pending == nil ? cs.mut : cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
-          .accessibilityIdentifier("door.context")
-        Color.clear.frame(height: pending == nil && !typeSize.isAccessibilitySize ? 120 : CSTokens.Space.s5).accessibilityHidden(true)
-        Button("Get started", action: enter).buttonStyle(.csPrimary())
-        Button("Sign in", action: enter).buttonStyle(.csSecondary())
+        if let pending {
+          Text(pending).csType(.body).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("door.context")
+        }
       }
       .padding(CSTokens.Space.gutter)
       .padding(.top, CSTokens.Space.s6)
       .frame(maxWidth: 440, alignment: .leading)
       .frame(maxWidth: .infinity)
+    }
+    // N4-002 · **THE DOOR'S TWO ACTIONS ARE PINNED.** At SE3 AX3 both fell
+    // below the first screen (a sheared sliver showed), and on the 17 Pro they
+    // floated mid-screen under a 120pt spacer. They sit in the bottom inset
+    // now — whole on the first screen at every size, in the thumb zone — and
+    // the tagline and the sentence scroll above them (UI_SYSTEM §13.2a).
+    .safeAreaInset(edge: .bottom, spacing: 0) {
+      VStack(spacing: CSTokens.Space.s3) {
+        // N4-001 · on an invite both doors ran the same action, and the line
+        // above them named the quiet one ("Sign in to review and join"). The
+        // one door is the one the sentence names.
+        if pending != nil {
+          Button("Sign in", action: enter).buttonStyle(.csPrimary())
+        } else {
+          Button("Get started", action: enter).buttonStyle(.csPrimary())
+          Button("Sign in", action: enter).buttonStyle(.csSecondary())
+        }
+      }
+      .padding(.horizontal, CSTokens.Space.gutter)
+      .padding(.vertical, CSTokens.Space.s3)
+      .frame(maxWidth: 440)
+      .frame(maxWidth: .infinity)
+      .background(cs.bg0)
     }
   }
 
@@ -175,23 +209,7 @@ struct DoorView: View {
     focus = .email
   }
 
-  private var crest: some View {
-    ViewThatFits(in: .horizontal) {
-      HStack(spacing: CSTokens.Space.s3) {
-        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
-        Text("Cup Season").csType(.name)
-      }
-      .fixedSize(horizontal: true, vertical: false)
-      VStack(spacing: CSTokens.Space.s2) {
-        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
-        Text("Cup Season").csType(.name).multilineTextAlignment(.center)
-      }
-    }
-    .foregroundStyle(cs.ink)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Cup Season")
-    .accessibilityIdentifier("door.brand.lockup")
-  }
+  private var crest: some View { DoorCrest() }
 
   /// The door's paragraph — the invited stranger's own sentence when there is
   /// one, the pitch when there is not. Drawn from one place because IOS-064
@@ -396,12 +414,12 @@ struct DoorView: View {
     guard code.count >= 4 else { toasts.show("That does not look like a code."); return }
     JoinIntent.store(code)
     codeEntry = false
-    pending = PendingLink.doorLine()
+    pending = PendingLink.doorLine(deferringClaim: claimDeferred)
     focus = .email
     Task {
       if let n = ((try? await JoinService().leagueName(code)) ?? nil), !n.isEmpty {
         JoinIntent.store(code, name: n)
-        pending = PendingLink.doorLine()
+        pending = PendingLink.doorLine(deferringClaim: claimDeferred)
       }
     }
   }
@@ -561,4 +579,30 @@ enum DoorCopy {
   static let sendCode = "Send code"
   static let sending = "Sending\u{2026}"
   static let noPassword = "No password needed."
+}
+
+/// The door's own name: its mark and "Cup Season". N4-040 (root) · the
+/// signed-out claim wears it too — on the web the claim is a landing card on
+/// the door and wears the door's name, so the phone's claim screen names the
+/// product the same way, and no fifth place carries the lockup.
+struct DoorCrest: View {
+  @Environment(\.cs) private var cs
+  var identifier = "door.brand.lockup"
+  var body: some View {
+    ViewThatFits(in: .horizontal) {
+      HStack(spacing: CSTokens.Space.s3) {
+        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
+        Text("Cup Season").csType(.name)
+      }
+      .fixedSize(horizontal: true, vertical: false)
+      VStack(spacing: CSTokens.Space.s2) {
+        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
+        Text("Cup Season").csType(.name).multilineTextAlignment(.center)
+      }
+    }
+    .foregroundStyle(cs.ink)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Cup Season")
+    .accessibilityIdentifier(identifier)
+  }
 }

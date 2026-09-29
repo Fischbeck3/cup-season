@@ -157,3 +157,28 @@ struct BetweenRoundsWidgetTests {
     }
   }
 }
+
+/// N4-190 · at the accessibility sizes a widget's as-of line is the time
+/// alone, or the stale state's instruction alone — never "AS OF MON · OPEN T…".
+@Suite struct WidgetAsOfShortTests {
+  @Test func theShortAsOfKeepsWhatAGolferActsOn() {
+    #expect(BetweenRoundsSnapshot.shortened("AS OF 2:22 PM") == "2:22 PM")
+    #expect(BetweenRoundsSnapshot.shortened("AS OF MON · OPEN TO REFRESH") == "OPEN TO REFRESH")
+    #expect(BetweenRoundsSnapshot.shortened("Open to refresh") == "Open to refresh")
+  }
+}
+
+/// N4-192 · "Personal best 81" sat beside a record whose best was 79: the
+/// widget's milestone headline says what the best is measured by, with the
+/// trophy case's own fact.
+@Suite struct WidgetMilestoneHeadlineTests {
+  @Test func aPersonalBestSaysItsMeasure() {
+    let pb = Achievement(kind: "personal_best", label: "Personal best", earned_on: "2026-09-20",
+                         meta: .object(["diff": .number(7.8)]))
+    #expect(TrophyMeta.headline(pb) == "Personal best · 7.8 vs course")
+    let bare = Achievement(kind: "personal_best", label: "Personal best", earned_on: "2026-09-20", meta: nil)
+    #expect(TrophyMeta.headline(bare) == "Personal best")
+    let sub80 = Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-09-20", meta: .object(["gross": .number(79)]))
+    #expect(TrophyMeta.headline(sub80) == "Broke 80")
+  }
+}

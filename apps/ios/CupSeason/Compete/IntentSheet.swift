@@ -123,6 +123,8 @@ struct WhenForkSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
   let take: (StartIntent.WhenFork) -> Void
+  /// N4-114 · the content's own height; the sheet grows to it
+  @State private var fits: CGFloat = 0
 
   var body: some View {
     // D258 · a fork with no scroller clipped its second answer at AX3.
@@ -169,9 +171,10 @@ struct WhenForkSheet: View {
       }
       .padding(CSTokens.Space.gutter)
       .frame(maxWidth: .infinity, alignment: .leading)
+      .csReportsHeight($fits)
     }
     .background(cs.bg0)
-    .csFittedSheet(260)
+    .csFittedSheet(260, fits: fits)
     .csBudget(ember: 0)
   }
 }

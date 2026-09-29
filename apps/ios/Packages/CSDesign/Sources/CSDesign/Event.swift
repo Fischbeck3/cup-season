@@ -379,41 +379,37 @@ public struct CSClashRow: View {
     VStack(alignment: .leading, spacing: 0) {
       CSRule()
       if typeSize.isA11y {
-        // §7.5 · the two names stack (yours first), the middle word becomes a
-        // leading agate line, and each figure sits under its own name.
-        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          side(left, leftName, leftFigure, leftInk, .leading)
-          Text(mid).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          side(right, rightName, rightFigure, rightInk, .leading)
-        }
-        .padding(.vertical, CSTokens.Space.s3)
-        .csGutterRow()
+        stacked
       } else {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          HStack(spacing: CSTokens.Space.s2) {
-            CSFace(left, size: .slat)
-            Text(leftName).csType(.name).foregroundStyle(leftInk)
-              .lineLimit(1).truncationMode(.tail)
-              .frame(minWidth: 0, alignment: .leading)
-            Spacer(minLength: CSTokens.Space.s2)
-            Text(mid).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-              .fixedSize(horizontal: true, vertical: false)
-            Spacer(minLength: CSTokens.Space.s2)
-            Text(rightName).csType(.name).foregroundStyle(rightInk)
-              .lineLimit(1).truncationMode(.tail)
-              .frame(minWidth: 0, alignment: .trailing)
-            CSFace(right, size: .slat)
+        // N4-120 · the two names never take an ellipsis ('BLAKE SA… HALVED
+        // HARPER FA…'): one row while both fit whole, and the stacked form —
+        // the accessibility sizes' own — when they do not
+        ViewThatFits(in: .horizontal) {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            HStack(spacing: CSTokens.Space.s2) {
+              CSFace(left, size: .slat)
+              Text(leftName).csType(.name).foregroundStyle(leftInk)
+                .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+              Spacer(minLength: CSTokens.Space.s2)
+              Text(mid).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                .fixedSize(horizontal: true, vertical: false)
+              Spacer(minLength: CSTokens.Space.s2)
+              Text(rightName).csType(.name).foregroundStyle(rightInk)
+                .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+              CSFace(right, size: .slat)
+            }
+            HStack(spacing: 0) {
+              figure(leftFigure, leftInk).frame(maxWidth: .infinity, alignment: .leading)
+              figure(rightFigure, rightInk).frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            // the figures sit under their own face+name columns
+            .padding(.horizontal, CSFace.Size.slat.rawValue + CSTokens.Space.s2)
           }
-          HStack(spacing: 0) {
-            figure(leftFigure, leftInk).frame(maxWidth: .infinity, alignment: .leading)
-            figure(rightFigure, rightInk).frame(maxWidth: .infinity, alignment: .trailing)
-          }
-          // the figures sit under their own face+name columns
-          .padding(.horizontal, CSFace.Size.slat.rawValue + CSTokens.Space.s2)
+          .padding(.top, CSTokens.Space.s3)
+          .padding(.bottom, CSTokens.Space.s2)
+          .csGutterRow()
+          stacked
         }
-        .padding(.top, CSTokens.Space.s3)
-        .padding(.bottom, CSTokens.Space.s2)
-        .csGutterRow()
       }
     }
     .frame(minHeight: 56)
@@ -423,11 +419,24 @@ public struct CSClashRow: View {
     .accessibilityLabel(spoken)
   }
 
+  /// §7.5 · the two names stack (yours first), the middle word becomes a
+  /// leading agate line, and each figure sits under its own name.
+  private var stacked: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      side(left, leftName, leftFigure, leftInk, .leading)
+      Text(mid).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      side(right, rightName, rightFigure, rightInk, .leading)
+    }
+    .padding(.vertical, CSTokens.Space.s3)
+    .csGutterRow()
+  }
+
   @ViewBuilder private func side(_ f: CSFace.Model, _ name: String, _ fig: String?,
                                  _ ink: Color, _ align: HorizontalAlignment) -> some View {
     HStack(spacing: CSTokens.Space.s2) {
       CSFace(f, size: .slat)
-      Text(name).csType(.name).foregroundStyle(ink).lineLimit(1).truncationMode(.tail)
+      // N4-120 · stacked, a name has the row to itself, and it wraps whole
+      Text(name).csType(.name).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
       Spacer(minLength: CSTokens.Space.s2)
       figure(fig, ink)
     }

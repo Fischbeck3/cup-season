@@ -23,13 +23,11 @@ public extension WizardDials {
     return result
   }
 
-  var setupCounting: String {
-    capN.map { "Each golfer’s best \($0) each month" } ?? "All eligible rounds"
-  }
-  var setupMinimum: String {
-    floor == 0 ? "No minimum" : "\(floor) per golfer each month"
-  }
-  var setupMinimumConsequence: String {
+  var setupMinimumConsequence: String { Self.minimumConsequence(solo: solo, floor: floor, preset: preset) }
+
+  /// `csSetupMinimum` · what missing the minimum costs, one producer for the
+  /// wizard's minimum step and the agreement's "If you miss it" row
+  static func minimumConsequence(solo: Bool, floor: Int, preset: Int) -> String {
     guard !solo else { return "No team penalty in an individual season." }
     guard floor > 0 else { return "Play when you can. No points lost for playing less." }
     guard preset != 0 else { return "A target for the group. No points penalty under these rules." }
@@ -40,40 +38,15 @@ public extension WizardDials {
   }
 }
 
+/// The Pro's agreement before Start (D346). **N4-208:** its rows are the one
+/// producer's, `LeagueCopy.bylawsRows` (the web's `renderBylaws`), over the
+/// exact outgoing dials and the day the review was opened on; the wizard's own
+/// rows retired with the second vocabulary they carried.
 public struct WizardAgreement: Sendable, Equatable {
-  public struct Row: Sendable, Equatable, Identifiable {
-    public let label: String
-    public let value: String
-    public var id: String { label }
-    public init(_ label: String, _ value: String) { self.label = label; self.value = value }
-  }
   public let dials: WizardDials
-  public init(_ dials: WizardDials) { self.dials = dials }
-  public var rows: [Row] {
-    let d = dials
-    var result: [Row] = [
-      .init("The people", "\(d.plannedRoster) expected · invitations still need acceptance"),
-      .init("The season", d.spanText()),
-      .init("The competition", d.solo ? "Everyone for themselves" : "\(WizardDials.structLabels[d.structure] ?? d.structure) · \(WizardDials.draftLabels[d.draftType] ?? d.draftType)"),
-      .init("Rounds that count", d.setupCounting),
-      .init("The minimum", d.solo ? "No team minimum in an individual season" : d.setupMinimum),
-      // D373 · R-M: the two handicap nouns distinguished — it is the INDEX the
-      // allowance is applied to, and the playing HCP is the result
-      .init("Handicaps", "Scored against your playing HCP — your index at \(Bylaws.allow[d.preset]) percent · scores turn into league points"),
-      .init("Score agreement", Bylaws.verif[d.preset]),
-      .init("The finish", d.finish == "points_table" || d.durWeeks < 6 ? "The points leader at season end wins." : "Top two reach the final four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.")
-    ]
-    if !d.solo && d.floor > 0 { result.insert(.init("If you miss it", d.setupMinimumConsequence), at: 5) }
-    if d.finish == "cup_final" && d.durWeeks >= 6 && d.structure == "squads2" {
-      result.append(.init("Head start", "The leading squad starts the Final with 10 points."))
-    }
-    result.append(.init("What’s on it", d.stake == 0 ? "Bragging rights" : "\(PotMath.dollars(d.stake)) per golfer"))
-    if d.stake > 0 {
-      result.append(.init("How to pay", d.buyInNote.trimmingCharacters(in: .whitespacesAndNewlines)))
-      result.append(.init("The shares", "Champion \(d.payout[0])% · runner-up \(d.payout[1])% · individual points winner \(d.payout[2])%"))
-    }
-    return result
-  }
+  public let today: String
+  public init(_ dials: WizardDials, today: String = CSDate.today()) { self.dials = dials; self.today = today }
+  public var rows: [BylawRow] { dials.bylawsRows(today: today) }
 }
 
 /// Reconcile the displayed server total without pretending missing ledger rows loaded.

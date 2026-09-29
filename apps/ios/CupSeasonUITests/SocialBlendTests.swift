@@ -113,8 +113,8 @@ final class SocialBlendTests: XCTestCase {
     reveal(app.buttons["18 holes"], in: app)
     app.buttons["18 holes"].tap()
     app.buttons["9 holes"].tap()
-    XCTAssertTrue(app.staticTexts["Nines aren't compared: which nine was played isn't recorded. They stay in each golfer's history."].waitForExistence(timeout: 5))
-    XCTAssertFalse(app.staticTexts["YOUR CIRCLE BEST"].exists)
+    XCTAssertTrue(app.staticTexts["Nines aren\u{2019}t compared: which nine was played isn\u{2019}t recorded. They stay in each golfer\u{2019}s history."].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.staticTexts["YOUR CIRCLE BEST · GROSS"].exists)
     capture(app, "course-nine-empty")
   }
 
@@ -122,13 +122,13 @@ final class SocialBlendTests: XCTestCase {
     let app = launch("comments")
     let actions = app.buttons["Actions for Theo Park’s comment"]
     XCTAssertTrue(actions.waitForExistence(timeout: 15)); actions.tap()
-    app.buttons["Report comment"].tap()
+    app.buttons["Report"].tap()
     let reason = app.buttons["Harassment or abuse"]
     XCTAssertTrue(reason.waitForExistence(timeout: 5)); reason.tap()
     app.buttons["SEND REPORT"].tap()
     XCTAssertTrue(actions.waitForExistence(timeout: 5)); actions.tap()
     app.buttons["Block Theo"].tap()
-    XCTAssertTrue(app.staticTexts["This conversation is no longer available."].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["That round isn\u{2019}t available any more."].waitForExistence(timeout: 5))
     XCTAssertFalse(app.textFields["round.comment.draft"].exists)
   }
 

@@ -27,6 +27,8 @@ import CupSeasonKit
 struct LiveFinishSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
+  /// N4-171 · the casual finish's first tap arms it; left alone it disarms.
+  @State private var casualArmed = false
   @Bindable var store: LiveRoundStore
 
   var body: some View {
@@ -49,9 +51,30 @@ struct LiveFinishSheet: View {
       Button(f.primary) { Task { if await store.finish(casual: false) { dismiss() } } }
         .buttonStyle(.csPrimary(busy: store.busy))
         .accessibilityIdentifier("live.finish.confirm")
-      Button(f.secondary) { Task { if await store.finish(casual: true) { dismiss() } } }
-        .buttonStyle(.csSecondary(busy: store.busy))
-        .accessibilityIdentifier("live.finish.casual")
+      // N4-171 · "post nothing" ended the group's round in one unguarded tap,
+      // full width under the primary. It is a tertiary link now, and armed:
+      // the first tap says what it will do, in neg, and the second — within
+      // four seconds — does it.
+      Button {
+        if casualArmed {
+          casualArmed = false
+          Task { if await store.finish(casual: true) { dismiss() } }
+        } else {
+          casualArmed = true
+          CSHaptic.warning()
+        }
+      } label: {
+        Text(casualArmed ? LiveCopy.finishCasualArmed : f.secondary)
+          .foregroundStyle(casualArmed ? cs.neg : cs.ink)
+      }
+      .buttonStyle(.csTertiary(.content))
+      .disabled(store.busy)
+      .accessibilityIdentifier("live.finish.casual")
+      .task(id: casualArmed) {
+        guard casualArmed else { return }
+        try? await Task.sleep(for: .seconds(4))
+        casualArmed = false
+      }
       }
     }
     .presentationDetents([.medium, .large])
@@ -451,20 +474,22 @@ struct LiveSettlementCard: View {
               if !heroSub.isEmpty {
                 Text(heroSub).csFixed(.agate, 30).textCase(.uppercase).tracking(8).foregroundStyle(d.ceremonyMut)
               }
+              // N4-080 · the shrink floors come up: a side name takes a second
+              // line at 0.7 rather than shrinking to 0.4 (5–7pt on the phone)
               Text(wSide ?? "").csFixed(.display, 52).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
               Text("DEF.").csFixed(.agate, 26).tracking(8).foregroundStyle(d.ceremonyMut)
               Text(lSide ?? "").csFixed(.display, 46).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyMut).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyMut).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
             }
           } else if twoSided {
             VStack(spacing: 10) {
               Text("ALL SQUARE").csFixed(.figureL, 140).textCase(.uppercase)
                 .foregroundStyle(d.ceremonyInk).multilineTextAlignment(.center)
               Text(r.sideA ?? "").csFixed(.display, 46).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
               Text(r.sideB ?? "").csFixed(.display, 46).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
             }
           } else {
             VStack(spacing: 40) {
@@ -504,10 +529,11 @@ struct LiveSettlementCard: View {
         Spacer(minLength: 0)
         Text(money).csFixed(.agate, 30).textCase(.uppercase).tracking(5)
           .foregroundStyle(d.ceremonyGold).multilineTextAlignment(.center)
-          .lineLimit(2).minimumScaleFactor(0.5).padding(.horizontal, 100)
+          .lineLimit(2).minimumScaleFactor(0.8).padding(.horizontal, 100)   // N4-080 · the money line's floor
         Rectangle().fill(d.folioRule).frame(width: 520, height: 1).padding(.top, 40)
+        // N4-080 · the course takes a second line at 0.7 rather than 0.5
         Text(course.isEmpty ? "A round" : course).csFixed(.display, 40).textCase(.uppercase)
-          .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.5)
+          .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
           .padding(.top, 50).padding(.horizontal, 100)
         Text(LiveSettlementCard.dateLine(date)).csFixed(.agate, 27).tracking(4)
           .foregroundStyle(d.ceremonyMut).padding(.top, 24)

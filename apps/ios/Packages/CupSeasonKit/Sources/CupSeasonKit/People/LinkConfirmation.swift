@@ -34,10 +34,17 @@ public struct LinkConfirmation: Identifiable, Sendable, Equatable {
       // W4 · `csLinkAskClaim`: the question names the CLUB and the course and
       // tee go to `facts` (a dash-joined triple ran into it); the holes are a
       // scorecard, "card" is the person (T-01)
-      let gross = info["gross"]?.int
-      let club = Self.club(info["course_label"]?.string)
-      return (gross.map { "Add this \($0) at \(club)" } ?? "Add this scorecard from \(club)") + " to your record?"
+      return claimQuestion(marked: false)
     }
+  }
+  /// N4-045 · the question as the sheet sets it: a claim's gross is marked as
+  /// its figure run (`CSFigureRun`; §1.4, a number is never set in the
+  /// serif). The words are `question`'s, the web's.
+  public var questionMarked: String { kind == .claim ? claimQuestion(marked: true) : question }
+  private func claimQuestion(marked: Bool) -> String {
+    let gross = info["gross"]?.int
+    let club = Self.club(info["course_label"]?.string)
+    return (gross.map { "Add this \(marked ? "{\($0)}" : "\($0)") at \(club)" } ?? "Add this scorecard from \(club)") + " to your record?"
   }
   public var note: String {
     switch kind {

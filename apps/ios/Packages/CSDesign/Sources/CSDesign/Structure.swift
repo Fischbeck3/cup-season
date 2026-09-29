@@ -412,15 +412,15 @@ public struct CSRecordLeaf: View {
       Text(r.year ?? "").csType(.columnS).foregroundStyle(cs.leafMut)
         .frame(width: typeSize.isA11y ? nil : 42, alignment: .leading)
       VStack(alignment: .leading, spacing: 2) {
-        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-          Text(r.competition).csType(.social).foregroundStyle(cs.leafInk)
-            .lineLimit(typeSize.isA11y ? 3 : 1).truncationMode(.tail)
-          if let q = r.qualifier, !typeSize.isA11y {
-            Text(q).csType(.agateS, caps: true).foregroundStyle(cs.leafMut).lineLimit(1)
-          }
-        }
-        if let q = r.qualifier, typeSize.isA11y {
+        // N4-071 · the competition a row records wraps whole, at every size,
+        // and the row grows: "Placeholder Squ…" clipped the one thing the row
+        // is about. The season qualifier sits under it, never beside a
+        // clipped name.
+        Text(r.competition).csType(.social).foregroundStyle(cs.leafInk)
+          .fixedSize(horizontal: false, vertical: true)
+        if let q = r.qualifier {
           Text(q).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+            .fixedSize(horizontal: false, vertical: true)
         }
         if let st = r.standing, !st.isEmpty {
           Text(st).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)

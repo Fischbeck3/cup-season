@@ -513,6 +513,24 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
     #expect(!failed.wireHasDatelines)
   }
 
+  // MARK: - N4-011 · a loading Home looks like a loading Home
+
+  @Test("While the read is out and nothing leads, the calendar's occasion does not finish the page")
+  func theOccasionIsNotContentWhileHomeLoads() throws {
+    let occasion = try #require(Occasion.all.first)
+    let loading = HomePage.make(me: me(rounds: 12), strip: emptyStrip, ranked: HomeRank.arrange([]),
+                                buckets: [], occasion: occasion, loading: true)
+    #expect(loading.rows.count == 1)     // the occasion is still drawn
+    #expect(loading.redacted)            // and the page still says it is loading
+    let landed = HomePage.make(me: me(rounds: 12), strip: emptyStrip, ranked: HomeRank.arrange([]),
+                               buckets: [], occasion: occasion, loading: false)
+    #expect(!landed.redacted)
+    let led = HomePage.make(me: me(rounds: 12), strip: emptyStrip,
+                            ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1, spine: .ember)]),
+                            buckets: [], occasion: occasion, loading: true)
+    #expect(!led.redacted)               // a lead is content
+  }
+
 }
 
 // MARK: - fixtures

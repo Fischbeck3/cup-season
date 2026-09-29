@@ -64,7 +64,8 @@ import Foundation
     let receipt = ReceiptSeed.from(json: try await RoundsRepository(svc).roundCard(id))
     guard receipt.profileId == owner, let gross = receipt.gross, let holes = receipt.holesPlayed else { return nil }
     let card = await RoundScorecardService(svc).load(id, gross: gross, holesPlayed: holes)
-    let headline = milestone.map { TrophyMeta.meta(kind: $0.kind, label: $0.label).title } ?? "Your last round."
+    // N4-192 · the milestone says what it is measured by (TrophyMeta.headline)
+    let headline = milestone.map(TrophyMeta.headline) ?? "Your last round."
     return .init(id: id, headline: headline, course: receipt.courseLabel.map(RoundCopy.course) ?? "Your round",
                  date: receipt.playedOn.map { CSDate.short($0) } ?? "", gross: gross, holes: holes,
                  out: card?.out, inn: card?.inn, earned: milestone != nil, company: receipt.playedWith.isEmpty ? nil : "with " + receipt.playedWith.map { CSBands.fn1($0) }.prefix(3).joined(separator: " · "))

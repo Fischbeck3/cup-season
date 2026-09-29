@@ -264,7 +264,11 @@ public enum HomeFallbackItems {
                  subject: "you", humanSubject: true,
                  eyebrow: "\(LeagueDates.monthsLong[monthIdx - 1].uppercased()) CLOSES \(LeagueDates.dow[closeDay].uppercased())",
                  headline: "You are \(shortText) short of the minimum.",
-                 standfirst: m.squad.map { "The \($0.name) carry the penalty, not you." },
+                 // N4-210 · the penalty clause only where the penalty is real:
+                 // the server docks for `deduct` and `forfeit` alone, and a
+                 // Casual league's minimum is a habit (floorSentence's rule)
+                 standfirst: ["deduct", "forfeit"].contains(m.settings?.floor_penalty ?? "")
+                   ? m.squad.map { "The \($0.name) carry the penalty, not you." } : nil,
                  action: "Add my round", route: .composer,
                  leagueId: m.league_id, spine: .ember)
   }

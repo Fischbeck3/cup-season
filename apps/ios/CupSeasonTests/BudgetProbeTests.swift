@@ -226,7 +226,7 @@ enum CSBudgetHarness {
           name: "Galen Meyer", identity: "@galenm · Mesa, AZ · Papago",
           slot: "FOUNDER",
           figures: [.init("10.2", label: "Handicap index"),
-                    .init("79", label: "Best · Papago")],
+                    .init("79", label: "Best", note: "Papago")],
           club: "The Saguaro"),
         hasPhoto: false
       ) { CSTokens.dark.ceremony }

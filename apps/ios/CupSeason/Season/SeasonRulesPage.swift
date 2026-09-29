@@ -96,7 +96,10 @@ struct SeasonRulesPage: View {
         Image(systemName: "flag").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
       } trail: { RoomMini("View") { router.open(.members) } }
       let door = model.rosterDoor
-      RoomCheckRow(door.eyebrow(members: n), sub: door.line()) {
+      // N4-207 · the Pro's voice to the Pro, a member's to a member, and the
+      // halfway turn by its date
+      RoomCheckRow(door.eyebrow(members: n), sub: door.line(isPro: model.isPro, startsOn: model.season?.starts_on,
+                                                            endsOn: model.season?.ends_on)) {
         Image(systemName: door.isOpen ? "door.left.hand.open" : "door.left.hand.closed")
           .font(.system(size: 15, weight: .regular)).foregroundStyle(door.isOpen ? cs.ink : cs.mut)
       } trail: {

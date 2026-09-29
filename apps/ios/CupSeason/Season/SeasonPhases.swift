@@ -98,8 +98,8 @@ struct ClashRows: View {
           CSSectionHead("This week · the clash", count: through(wc, weekEnd: win.end))
         }
         .padding(.bottom, CSTokens.Space.s1)
-        side(wc.a_member, best: aB, ahead: ahead == 0)
-        side(wc.b_member, best: bB, ahead: ahead == 1)
+        side(wc.a_member, best: aB, ahead: ahead == 0, settled: wc.settled)
+        side(wc.b_member, best: bB, ahead: ahead == 1, settled: wc.settled)
       }
       .csGutter()
     }
@@ -117,15 +117,19 @@ struct ClashRows: View {
     }
   }
 
+  /// N4-209 · a settled week says who took it in words (ClashCopy, the web's)
   private func through(_ wc: LeagueRoom.WeekClash, weekEnd: String) -> String {
-    wc.settled ? "settled" : "through \(ClashMath.dowShort(weekEnd))"
+    let winner = wc.winner_member
+    return ClashCopy.rider(settled: wc.settled, winner: winner.flatMap { model.member($0)?.name },
+                           winnerIsYou: winner != nil && winner == model.myMember?.id,
+                           through: ClashMath.dowShort(weekEnd))
   }
 
-  @ViewBuilder private func side(_ id: UUID, best: LeagueRoom.WeekClash.Best?, ahead: Bool) -> some View {
+  @ViewBuilder private func side(_ id: UUID, best: LeagueRoom.WeekClash.Best?, ahead: Bool, settled: Bool) -> some View {
     let mine = model.myMember?.id == id
     let m = model.member(id)
     let sub: String = {
-      guard let b = best else { return "No round yet" }
+      guard let b = best else { return ClashCopy.noRound(settled: settled) }
       // named bands, never raw differential (D1/D2); they/them for anyone else
       let band = b.band ?? b.pvi.map(CSBands.bandName) ?? ""
       let voiced = mine ? band : CSBands.theirs(band)

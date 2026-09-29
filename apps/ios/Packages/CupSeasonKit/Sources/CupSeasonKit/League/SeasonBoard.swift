@@ -182,10 +182,12 @@ public enum SeasonBoardCopy {
 
   // MARK: - the pot
 
-  /// `$60 EACH · 288 / 120 / 72` — the figure's own caption. The head carries
-  /// the count; the caption carries the stake and the split (§16A.2).
+  /// `$60 EACH` — the figure's own caption. The head carries the count; the
+  /// caption carries the stake (§16A.2). N4-103 · it printed the split too,
+  /// bare ("· 288 / 120 / 72"), directly over the split's own labelled
+  /// figures: one fact, one place (L-34).
   public static func potCaption(stake: Int, trio: (champ: Int, runner: Int, king: Int)) -> String {
-    "\(PotMath.dollars(stake)) each · \(bare(trio.champ)) / \(bare(trio.runner)) / \(bare(trio.king))"
+    "\(PotMath.dollars(stake)) each"
   }
   static func bare(_ cents: Int) -> String {
     let s = PotMath.money(cents)
