@@ -570,6 +570,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .deskmenu[hidden]{display:none;}
 .navitem.sub{
   font-size:11px; padding-top:8px; padding-bottom:8px; color:var(--mut);
+  min-height:44px; display:flex; align-items:center;   /* TEN / W6 · §16.2 · 44 tall (was 29, critique-B desk P3) */
   letter-spacing:calc(var(--agate-s) * 1em);
 }
 .navitem.sub.active{color:var(--ink);}
@@ -868,8 +869,11 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 @media(prefers-reduced-motion:reduce){ .view{animation:none;} }
 
 .eyebrow{
-  font-family:var(--mono); font-size:11.5px; font-weight:500;
-  letter-spacing:.16em; text-transform:uppercase; color:var(--mut);
+  /* TEN / W6 · OB-05 (lanes' needs-root): a section head is a LABEL, and a
+     label is the `agate` role — the board face at 12, caps, agate tracking —
+     not mono (UI_SYSTEM §1.4: mono keeps codes, columns and times). */
+  font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2;
+  letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);
   margin:26px 2px 10px; display:flex; align-items:center; justify-content:space-between;
 }
 .view .eyebrow:first-child{margin-top:4px;}
@@ -1098,7 +1102,7 @@ th.deskonly, td.deskonly{display:none;}
 .cs-tskip:focus-visible, .navitem:focus-visible,
 .sideme .mesr:focus-visible, .setrow .ctl button:focus-visible{color:var(--ink);}
 .peerrow:focus-visible, .rdrow:focus-visible, .sysrow.opens:focus-visible,
-.coursedd button:focus-visible, .mini:focus-visible{background:var(--bg1);}
+.coursedd button:focus-visible{background:var(--bg1);}   /* TEN / W6 · TP-08: `.mini` left this rule — its focus is the ring alone (below) */
 .pool-row:focus-visible, .optcard:focus-visible, .htile:focus-visible,
 .upchip[data-upgo]:focus-visible, .calcell.tap:focus-visible,
 .check:focus-visible{border-color:var(--rule);}
@@ -1250,7 +1254,7 @@ th.deskonly, td.deskonly{display:none;}
 .frow + .frow{margin-top:10px;}
 .frow.one{grid-template-columns:1fr;}
 label.f, legend.f, .teefield > span.f{
-  display:block; font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  display:block; font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate) * 1em);   /* TEN / W6 · OB-05: a field label is agate, not mono */
   text-transform:uppercase; color:var(--mut); margin-bottom:6px;
 }
 /* 16px floor on EVERY .f control — iOS Safari auto-zooms any focused field
@@ -2278,7 +2282,11 @@ body.guestlive #onboard{display:none !important;}
   color:var(--ink); background:var(--bg2); border:0;
   border-radius:var(--rc); padding:0 14px; min-height:44px; min-width:44px; cursor:pointer; flex:none;
 }
-.mini:hover{background:var(--bg1);}   /* TP-08 · the rule fill under mut/pos/dusk labels read 2.31–3.08:1 (§14.4: hover steps to bg1) */
+/* TEN / W6 · TP-08, finished. A hover or focus FILL on a mini reads as a
+   second choice beside the chosen one (W2 fixed the card's three option sets
+   by hand: owner H, category C, critique-B P3). Every mini now answers hover
+   with a ring, only where hover exists, and focus with the product's ring. */
+@media (hover:hover){ .mini:hover{box-shadow:inset 0 0 0 1.5px var(--mut);} }
 .mini:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
@@ -3054,11 +3062,19 @@ body.guestlive #onboard{display:none !important;}
   @media(min-width:760px){ .sheet .panel{ max-height:82dvh; } }
 }
 .sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--rule); margin:0 auto 14px;}
+/* TEN / W6 · ONE WAY TO CLOSE (lanes' needs-root; LINT-25's one dismiss).
+   · The drag pill is a PHONE affordance: the desk opens a sheet as a dialog
+     and nothing there is dragged.
+   · A sheet whose body answers its own question with a decline ("Not now",
+     marked `data-decline`) drew the × as well — two closes for one question.
+     The body's decline is the close; Escape and the backdrop still work. */
+@media(min-width:960px){ .sheet .grab{display:none;} }
+.sheet .panel:has(#shBody [data-decline]) > .x{display:none;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
 /* F03 · a layer's title and the page heading take focus so a screen reader
    starts at the top; they are not controls, so they draw no ring */
 #shTitle:focus, #bfTitle:focus, #finish:focus, h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus, .view[tabindex="-1"]:focus{outline:none;}
-.sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
+.sheet .sub{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:3px;}   /* TEN / W6 · OB-05: the sheet's eyebrow is agate, not mono */
 .sheet .x{position:absolute; top:6px; right:6px; width:44px; height:44px; display:flex; align-items:center; justify-content:center;
   border:none; background:none; color:var(--mut); font-size:20px; cursor:pointer; padding:0;}   /* §16.2 · was 26×31 */
 /* WAVE 7 - THE RECEIPT IS PRINTED ON A LEAF (leaderboard.md 6). A receipt is a
@@ -3244,8 +3260,12 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   background:var(--ink); color:var(--bg0); font-size:13px; font-weight:600;
   padding:11px 18px; border-radius:99px; opacity:0; pointer-events:none;
   /* above the sheets (z 200) — "Card saved" was firing invisibly behind an
-     open sheet (pilot feedback, 2026-07-17) */
-  transition:all .22s ease; max-width:86%; text-align:center; z-index:1000;
+     open sheet (pilot feedback, 2026-07-17). TEN / W6 · and above EVERY layer:
+     at 1000 it sat under the finish ceremony (#finish, 1100), so the share
+     path's "Card downloaded · caption copied" painted behind the card it was
+     about (critique-B share), and under the public covers (99999). A toast is
+     the system talking; nothing sits on top of it. */
+  transition:all .22s ease; max-width:86%; text-align:center; z-index:100000;
 }
 @media(min-width:960px){ .toast{bottom:28px;} }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
@@ -3725,7 +3745,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 #lgRec .csleaf .qual{display:block; margin:2px 0 0;}
 /* the course facts' separators are opaque mut (§16.1: dim/faded is never a
    word) — they were `mut` at .56 opacity, 3.09:1 */
-#view-stats .cs-facts .sep{opacity:1;}
+/* (#view-stats' opacity override retired: every .sep is opaque mut now) */
 /* ── Card & settings (W2 2026-09-28) ─────────────────────────────────────
    Once the card has a change to save, its Save rides the foot of the sheet —
    it sat below fourteen markers, a photo row and the handle at 375 */
@@ -3812,7 +3832,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-panel .cs-unit{color:var(--panel-mut); display:block;}
 .cs-facts{display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--s2); margin-top:var(--s4);}
 .cs-facts .u{color:var(--mut);}
-.cs-facts .sep{color:var(--mut); opacity:var(--a56);}
+.cs-facts .sep{color:var(--mut);}   /* TEN / W6 · opaque `mut` (§16.1): it sat at 56% everywhere but You */
 /* F06 (web half) · THE CARD FOLDS, LIKE A REAL ONE. The leaf printed all
    eighteen holes in one row, 514px, so it scrolled on every phone and even in
    the desk's 340 column, and its HOLE / PAR / HCP key scrolled away from the
@@ -31281,7 +31301,7 @@ async function eventTermsGate(inv){
       facts.map((t,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${(b>0 && /each\.$/.test(t))?';color:var(--ink)':''}">${esc(t)}</p>`).join('')
       + `<p class="fine" style="padding-top:6px">Invited by ${esc(inv.inviter||'a golfer')}.</p>
       <button class="btn" id="evAccept" style="margin-top:12px">${b>0?`Accept — I’m in for $${Math.round(b)}`:'Accept'}</button>
-      <button class="btn dark" id="evNo" style="margin-top:8px">Not now</button>`);
+      <button class="btn dark" id="evNo" data-decline style="margin-top:8px">Not now</button>`);
     let done = false;
     const sheet = document.getElementById('sheet');
     let obs = null;
@@ -31339,7 +31359,7 @@ function showCovenant(info){
     openSheet(csCovenantTitle(info), csCovenantEyebrow(info),
       facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--ink)':''}">${esc(f.t)}</p>`).join('') + `
       <button class="btn" id="covJoin" style="margin-top:12px">${esc(csCovenantButton(info))}</button>
-      <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
+      <button class="btn dark" id="covNo" data-decline style="margin-top:8px">Not now</button>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
        two buttons. The sheet has three other ways out — the X, the backdrop and
        Escape — and none of them touched it. While the gate lived behind a click
@@ -35306,7 +35326,7 @@ async function csLinkAskOnce(card){
         ${card.facts ? `<p class="fine" style="padding-top:4px">${esc(card.facts)}</p>` : ''}
         ${card.note ? `<p class="fine" style="padding-top:4px">${esc(card.note)}</p>` : ''}
         <button class="btn" id="lnkYes" style="margin-top:12px">${esc(card.yes)}</button>
-        <button class="btn dark" id="lnkNo" style="margin-top:8px">${esc(CS_LINK_ASK.no)}</button>
+        <button class="btn dark" id="lnkNo" data-decline style="margin-top:8px">${esc(CS_LINK_ASK.no)}</button>
       </div>`);
       const sheet = document.getElementById('sheet'), body = document.getElementById('shBody');
       const root = document.getElementById('lnkAsk');
