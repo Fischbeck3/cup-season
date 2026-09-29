@@ -1328,7 +1328,12 @@ th.deskonly, td.deskonly{display:none;}
 .snake i.now{background:var(--pos); border-color:transparent;}
 .squads{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
 .squad{background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 13px;}
-.squad.onclock{border-color:var(--rule); box-shadow:inset 3px 0 0 var(--clr,var(--pos));}
+.squad.onclock{border-color:var(--rule);}
+/* TEN / W6 · the on-the-clock squad was marked ONLY by an inset 3px bar in its
+   colour — a spine (§0.3) and a signal carried by colour alone (WCAG 1.4.1).
+   It says so in words now, in the card's own head beside its swatch. */
+.squad h4 .onclockword{margin-left:auto; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--ink);}
 .squad h4{font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:8px;}
 .squad h4 .sw{width:9px; height:9px; border-radius:3px; flex:none;}
 .squad ul{list-style:none; margin-top:8px;}
@@ -3147,12 +3152,14 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .momrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--ink); text-align:left; padding:10px 13px; margin-bottom:8px;
-  /* a live moment keeps its ember rail; the wash behind it (a pre-D270 ember
-     gradient, and a green one in light) is gone — the page's own ground */
-  border:1px solid var(--rule); border-left:3px solid var(--brand);
+  /* TEN / W6 · the 3px ember SPINE is gone (UI_SYSTEM §0.3 retired the spine;
+     session C found this one). A moment on the board is a milestone ("Barrier
+     broken"), not a live competition, so D359 leaves it no ember at all — not
+     a dot, not an eyebrow. The row is the board's own quiet box. */
+  border:1px solid var(--rule);
   border-radius:12px; background:var(--bg1);
 }
-.momrow b{color:var(--brand); font-weight:600; margin-right:6px;}
+.momrow b{color:var(--ink); font-weight:600; margin-right:6px;}   /* ink: gold and ember are not a moment's to spend (D359) */
 .echips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .echip{
   display:flex; align-items:center; gap:7px;
@@ -10032,9 +10039,9 @@ function boardDigestHtml(){
    sysRowHtml is one: an affordance must never appear on one surface only. */
 function momRowHtml(f, fi, ns){
   const bar = (fi==null || !f || !f.post_id) ? '' : socialBar(f, fi, {comments:false, ns});
-  /* WAVE 11 · the `\u2726` is gone. A moment's leading mark is the row's own
-     3px spine (`.momrow` already draws one); a dingbat in a produced string is
-     LINT-12's finding and LINT-13's both. */
+  /* WAVE 11 · the `\u2726` is gone: a dingbat in a produced string is LINT-12's
+     finding and LINT-13's both. TEN / W6 · and the row's 3px spine went too
+     (§0.3): a moment leads with its words. */
   return `<div class="momrow">${esc(easeCaps(f.txt||''))}${bar}</div>`;
 }
 /* D181 · the bar rides OUTSIDE the row, never inside it: a settled-game row is
@@ -10715,7 +10722,7 @@ function renderDraft(){
       lis+= p ? `<li><span>${p.n}</span><em>${p.i.toFixed(1)}</em></li>`
               : `<li class="empty"><span>R${k+1} pick</span><em>—</em></li>`;
     }
-    s.innerHTML=`<h4><span class="sw" style="background:${SQHEX[ti]}"></span>${tn}</h4><ul>${lis}</ul>`;
+    s.innerHTML=`<h4><span class="sw" style="background:${SQHEX[ti]}"></span>${tn}${ti===onClock?'<span class="onclockword">On the clock</span>':''}</h4><ul>${lis}</ul>`;
     sq.appendChild(s);
   });
 
