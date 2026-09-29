@@ -6,16 +6,17 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-/// `.clock` — an accent bar, k / n / m, and whatever sits under it.
+/// `.clock` — k / n / m, and whatever sits under it. Root's ruling · its
+/// accent spine is retired (UI_SYSTEM retires spines; B's twin note): the
+/// eyebrow names the state.
 struct DraftClockCard<Content: View>: View {
   @Environment(\.cs) private var cs
-  let accent: Color
   let k: String
   let n: String
   let m: String
   @ViewBuilder let content: Content
-  init(accent: Color, k: String, n: String, m: String, @ViewBuilder content: () -> Content) {
-    self.accent = accent; self.k = k; self.n = n; self.m = m; self.content = content()
+  init(k: String, n: String, m: String, @ViewBuilder content: () -> Content) {
+    self.k = k; self.n = n; self.m = m; self.content = content()
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
@@ -27,7 +28,6 @@ struct DraftClockCard<Content: View>: View {
     .padding(18)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(accent).frame(width: 3.5).padding(.vertical, 12) }
   }
 }
 
