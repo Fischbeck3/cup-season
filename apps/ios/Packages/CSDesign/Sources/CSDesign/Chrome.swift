@@ -265,10 +265,20 @@ public struct CSMasthead: View {
         wordmark
         slot
       } else {
-        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-          wordmark
-          Spacer(minLength: CSTokens.Space.s2)
-          slot.fixedSize()
+        // N4-013 · one row while the wordmark and the slot fit it WHOLE. On an
+        // SE a stale line ("As of Mon 7:30 AM · offline") left the wordmark
+        // too little and it broke "CUP / SEASON" at the default size; then the
+        // slot takes its own line, as it does at the accessibility sizes.
+        ViewThatFits(in: .horizontal) {
+          HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+            wordmark.fixedSize()
+            Spacer(minLength: CSTokens.Space.s2)
+            slot.fixedSize()
+          }
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            wordmark
+            slot
+          }
         }
       }
       // **D313 · THE TICK, WHICH HAS BEEN DEAD SINCE WAVE 3.**
