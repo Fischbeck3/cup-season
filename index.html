@@ -3649,7 +3649,8 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
      makes overflowed top content unreachable even with overflow:auto; auto
      margins collapse to zero under overflow, so every edge stays scrollable. */
   overflow-y:auto; overflow-x:hidden;
-  padding:24px 22px calc(26px + env(safe-area-inset-bottom));
+  --ob-foot:calc(26px + env(safe-area-inset-bottom));   /* the foot, named once: the card gate's Save sticks through it */
+  padding:24px 22px var(--ob-foot);
   transition:opacity .3s ease, visibility .3s;
 }
 @media(min-width:760px){
@@ -3675,7 +3676,19 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .onboard #obProfile, .onboard #obWelcome, .onboard #obCrew{text-align:left;}
 /* the Save rides the foot only where there is room: in a short window (the
    keyboard up) a pinned bar would sit on the field being typed into */
-@media (min-height:560px){ .onboard #obProfile .pfsave{position:sticky; bottom:0; z-index:2; background:var(--bg0); padding:var(--s2) 0;} }
+/* TEN / W6 · delta G4 (round 2): at bottom:0 the bar stuck at the Door's own
+   bottom padding, 26px above the window's edge, and at 375 the marker
+   sentence showed through that strip — sliced — beneath the button. It
+   sticks at the window's edge now, through the padding (`--ob-foot`), with
+   the safe area kept under the button; and the words passing under it fade
+   at its top edge rather than being cut. Unstuck, the fade lies over the
+   16px spacer above the bar and nothing else. */
+@media (min-height:560px){
+  .onboard #obProfile .pfsave{position:sticky; bottom:calc(-1 * var(--ob-foot)); z-index:2; background:var(--bg0);
+    padding:var(--s2) 0 calc(var(--s2) + env(safe-area-inset-bottom));}
+  .onboard #obProfile .pfsave::before{content:""; position:absolute; left:0; right:0; bottom:100%; height:var(--s3);
+    background:linear-gradient(to bottom, transparent, var(--bg0)); pointer-events:none;}
+}
 /* D247 · these three frames are left-aligned, so their standfirst is too —
    `.ob-hero p` centres itself with `margin:auto` for the DOOR, and under a
    left-aligned title that reads as a stray indent. */
