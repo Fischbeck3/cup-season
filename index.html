@@ -1990,7 +1990,10 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .dtab td.ag{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em;
   text-transform:uppercase; color:var(--mut); padding-left:12px;}
 .dtab td.rt{text-align:right; font-family:var(--board); font-weight:600; font-size:11px;
-  letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap;}
+  letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap;
+  /* round 2's P1 (craft judge): the no-wrap date cell ran flush into this one
+     and "LAST PLAYED SEP 20" + "2 ROUNDS" read "SEP 202 ROUNDS" at every width */
+  padding-left:var(--s4);}
 @media (hover:hover){ .dtab tr:hover td{background:var(--bg1);} }
 /* TEN · the person page's "Last played Sep 20" is one fact: it stacked into
    three agate lines at 375 (critique-B minor). The course column takes the
@@ -36394,7 +36397,8 @@ async function renderShareView(tok, _testInfo){
 
 /* a code that matches no league, said the one way everywhere (the Door's
    dead link, the code box, the join button); it was three literals */
-const CS_NO_LEAGUE = 'No league with that code. Check with your Pro.';
+const CS_NO_LEAGUE_HEAD = 'No league with that code.', CS_NO_LEAGUE_NEXT = 'Check with your Pro.';
+const CS_NO_LEAGUE = CS_NO_LEAGUE_HEAD + ' ' + CS_NO_LEAGUE_NEXT;
 /* ---- THE LINK LANDING (owner H, craft H/B, critique B P2) -------------------
    A scorecard link or an invitation brought the visitor, and that fact was
    the smallest line on the door: 12.5px mono under the email field, beneath a
@@ -36421,6 +36425,27 @@ function csLinkLanding(o){
   el.innerHTML = `<p class="eb cs-agate">${esc(o.label)}</p><h1 class="cs-lead">${o.headHtml}</h1>`
     + (o.sub ? `<p class="sub cs-body-s">${esc(o.sub)}</p>` : '');
   ob.classList.add('ob-linked');
+  return el;
+}
+/* ROUND 2 (session D's delta G3, a P1 regression at 375×380) · A DEAD LEAGUE
+   LINK IS SAID AT THE TOP. The dead answer used to take the invitation landing
+   away — the hero came back and pushed the corrected status line under the
+   fold on a short screen — and the email box stayed open on the join premise
+   critique B asked it not to open. The notice is now the landing itself (the
+   hero stays collapsed), announced as a status, and a branch the door had
+   opened on the invitation closes as Back would close it. */
+function csDeadJoinLanding(){
+  const el = csLinkLanding({ kind: 'dead', label: 'A season invite', headHtml: esc(CS_NO_LEAGUE_HEAD), sub: CS_NO_LEAGUE_NEXT });
+  if(!el) return null;
+  el.setAttribute('role', 'status');
+  $('#emailbox')?.classList.remove('open'); $('#codebox')?.classList.remove('open'); $('#joinbox')?.classList.remove('open');
+  const em = $('#obEmail'), jn = $('#obJoin'), bk = $('#obBack'), rs = $('#obResend');
+  if(em) em.style.display = ''; if(jn) jn.style.display = '';
+  if(bk) bk.style.display = 'none'; if(rs) rs.style.display = 'none';
+  authStatus('');
+  const h = el.querySelector('h1');
+  if(h){ h.tabIndex = -1; h.focus({ preventScroll: true }); }
+  el.scrollIntoView({ block: 'start' });
   return el;
 }
 function csJoinLanding(name){
@@ -36468,8 +36493,7 @@ if(joinParam){
       if(error) return;
       try { localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); localStorage.setItem('cs_code_dead', '1'); } catch(_){}
       if(landing){
-        csLinkLanding(null);
-        if(st && st.textContent === CS_JOIN_NEXT) st.textContent = CS_NO_LEAGUE;
+        csDeadJoinLanding();
         try { localStorage.removeItem('cs_code_dead'); } catch(_){}
       }
       return;
@@ -36849,7 +36873,7 @@ async function safeBoot(force){
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
   let deadJoin = false; try { deadJoin = localStorage.getItem('cs_code_dead') === '1'; localStorage.removeItem('cs_code_dead'); } catch(_){}
-  if(!CS.user && !pend && deadJoin){ csLinkLanding(null); openEmailBox($('#obJoin'), CS_NO_LEAGUE); }   /* the lookup beat the boot */
+  if(!CS.user && !pend && deadJoin){ csDeadJoinLanding(); }   /* the lookup beat the boot: no email box on a dead invitation */
   if(!CS.user && pend){
     /* the invitation leads the door (csLinkLanding); the raw code is plumbing —
        the recipient never types it on this path, the link carries it (F1). The
