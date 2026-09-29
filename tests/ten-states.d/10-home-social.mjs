@@ -455,6 +455,19 @@ const reportOthers = async (page) => page.evaluate(() => {
   if (others.length && !btns.length) return 'no Report anywhere: moderation is unreachable'
   return true
 })
+/* TEN / W7-048 [B2-golfers-13] · one course name, printed one way: the club,
+   and the layout only where the club does not already say it; never the tee */
+const oneCourseName = async (page) => page.evaluate(() => {
+  const bare = (x) => String(x || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+  const names = [...document.querySelectorAll('#perMain .dtab tr td:first-child')].map((td) => td.textContent.trim()).filter(Boolean)
+  if (!names.length) return 'the person page lists no courses'
+  for (const n of names) {
+    const [club, layout] = n.split(' — ')
+    if (layout && bare(club).includes(bare(layout))) return 'a course prints its name twice: ' + JSON.stringify(n)
+    if (/ · /.test(n)) return 'a course prints its tee: ' + JSON.stringify(n)
+  }
+  return true
+})
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -524,7 +537,9 @@ const GOLFERS = [
     /* TEN / W8 · W7-010: at the desk the head says the record in prose and the season row as a figure, so the aside's bold headline stands down */
     standsDown(['#perAside .perhl']),
     /* TEN / W7-045 [A2-golfers-7]: the page's one primary is the way to play, in the aside under the record */
-    playPrimary) },
+    playPrimary,
+    /* TEN / W7-048 [B2-golfers-13]: one course name, printed one way (the club, the layout only where the club does not say it, never the tee) */
+    oneCourseName) },
   /* TEN / W8 · W7-019 · at the desk a click on the scrim closes the board, as the sheet's does (a dialog) */
   { family: 'golfers', id: 'board-scrim', variant: 'member', desk: true, fullPage: false, title: 'The league board, dismissed by a click on the scrim (desk)',
     drive: async (page) => {

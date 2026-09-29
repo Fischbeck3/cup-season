@@ -10626,6 +10626,23 @@ function csCourse(label){
   return out;
 }
 window.csCourse = csCourse;
+/* TEN / W7-048 [B2-golfers-13] · ONE course name, printed one way. A stored
+   label is "club — layout · tee" (csCourseLabel, then the tee picker). The name
+   is the club, plus the layout only when the club does not already contain it
+   (course.md §2.1: the second name shows when the club and the course differ).
+   The tee is the round's fact, never the course's name. It fixed "Mesquite Wash
+   Golf Club — Mesquite Wash" on the person page while Playing soon printed the
+   club alone and the credential kept "· tee". Acronyms as csCourse. */
+function csCourseName(label){
+  const s0 = String(label || '').trim();
+  if(!s0) return '';
+  const parts = s0.split(' \u2014 ');
+  const club = parts[0].split(' \u00b7 ')[0].trim();
+  const layout = (parts[1] || '').split(' \u00b7 ')[0].trim();
+  const bare = x => x.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  return csCourse(layout && !bare(club).includes(bare(layout)) ? `${club} \u2014 ${layout}` : club);
+}
+window.csCourseName = csCourseName;
 
 function digestRoundLine(f){
   if(f.roundpost){
@@ -24125,7 +24142,7 @@ function renderGolfers(){
        not the caps token a rail uses ("TODAY" mid-sentence read as a shout) */
     const dayWord = iso => { const t = String(csDayToken(iso)||''); return t === 'TODAY' ? 'today' : t.charAt(0) + t.slice(1).toLowerCase(); };
     soon.innerHTML = rows.length
-      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(dayWord(sr.play_on))} · ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
+      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(dayWord(sr.play_on))} · ${esc(csCourseName(sr.course_label))}</div>`).join('')
       : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one</a></p>';
     soon.querySelector('#glfSoonPlan')?.addEventListener('click', e=>{ e.preventDefault(); window.openDeclareSheet?.(); });
   }
@@ -30273,7 +30290,7 @@ function csContourSvg(seed, hasCourse){
    `tour_card` since D150 and thrown away by both clients ever since. The
    phone's twin is `CredentialCopy.overlap`. */
 function csBothPlayed(shared){
-  const n = (shared || []).map(x => csCourse(x.name)).filter(Boolean);
+  const n = (shared || []).map(x => csCourseName(x.name)).filter(Boolean);   /* W7-048 · one name */
   if(!n.length) return '';
   if(n.length === 1) return `You’ve both played ${n[0]}.`;
   if(n.length === 2) return `You’ve both played ${n[0]} and ${n[1]}.`;
@@ -30323,7 +30340,7 @@ function csCredentialHtml(profileId, card){
      "BEST · MESQUITE …" put an ellipsis through the only word that said where. */
   if(c.best_round && c.best_round.gross != null){
     figs.push([String(c.best_round.gross), 'Best', '',
-               c.best_round.course_label ? csCourse(c.best_round.course_label) : '']);
+               c.best_round.course_label ? csCourseName(c.best_round.course_label) : '']);   /* W7-048 */
   }
   const n = Math.min(3, figs.length) || 1;
   /* the slot is the surface's ONE gold field, and it is absent when nothing
@@ -31067,7 +31084,7 @@ async function openPerson(profileId){
     ${narrative ? `<p style="font-size:16px; line-height:1.5; margin:0 0 14px">${esc(narrative)}</p>` : ''}
     ${window.formRowHtml ? window.formRowHtml(rec) : ''}
     ${courses.length ? `<div class="dsec"><span>Courses</span><i></i><span>${courses.length} kept</span></div>
-      <table class="dtab"><tbody>${courses.map(x => `<tr><td>${esc(csCourse(x.name))}</td>
+      <table class="dtab"><tbody>${courses.map(x => `<tr><td>${esc(csCourseName(x.name))}</td>
         <td class="ag">${x.last_played ? 'Last played ' + esc(csDayToken(x.last_played)) : ''}</td>
         <td class="rt">${Number(x.rounds || 0)} round${Number(x.rounds || 0) === 1 ? '' : 's'}</td></tr>`).join('')}</tbody></table>` : ''}
     ${caseLine ? `<div class="dsec"><span>The record</span><i></i><span></span></div><p class="fine" style="padding-top:0">${esc(caseLine)}</p>` : ''}
