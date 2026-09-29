@@ -396,6 +396,8 @@ const SEASON = [
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
       /* TEN / W8 · W7-029 [A2-season-3] (3 of 4): the League rows are slats, not cards */
       noBoxes(['#view-hub .check']),
+      /* TEN / W8 · W7-093 [A2-rules-2]: the minimum's sentence says WHICH months carry none (it read 'Post 2 rounds a month.' with no word on the partial first and last month) */
+      has('#bylawsHub', 'A partial first or last month has no minimum\\.', 'the rules say which months carry no minimum'),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
          scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
          scrolled back, the rules again (the scroll-spy, not only the click) */
