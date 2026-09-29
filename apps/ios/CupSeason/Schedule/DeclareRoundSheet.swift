@@ -46,7 +46,9 @@ struct DeclareRoundSheet: View {
         VStack(alignment: .leading, spacing: 12) {
           CSSheetHeader(title: vm.hostName != nil ? "Get in on it" : "Put a round on the schedule",
                         sub: vm.hostName != nil ? "YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY" : "BUDDIES AND YOUR SEASONS SEE IT THE MOMENT YOU POST")
-          if let h = vm.hostName { CSFine("You're in — your own round goes on the schedule alongside \(h).", tone: cs.gold) }
+          // D359 · gold means earned; joining a buddy's plan is an ordinary
+          // fact, so it is set in `ink` (the web's twin changes with it)
+          if let h = vm.hostName { CSFine("You're in — your own round goes on the schedule alongside \(h).", tone: cs.ink) }
 
           HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
