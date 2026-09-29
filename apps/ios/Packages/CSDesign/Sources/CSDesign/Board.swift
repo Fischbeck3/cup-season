@@ -360,9 +360,12 @@ public struct CSSlat<Trailing: View>: View {
               .lineLimit(1).fixedSize(horizontal: true, vertical: false)
           }
         }
+        // N4-102 / N4-120 · the sub-line is a sentence, and it wraps whole at
+        // every size ('Seed 1 · Starts +2 · top seed…', the Major's 'doesn't
+        // c…'); the slat grows (UI_SYSTEM §16.3). The NAME above keeps
+        // "abbreviate first, ellipsis last" (DEC-N4-5 (1)).
         Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
-          .lineLimit(typeSize.isA11y ? 2 : 1).truncationMode(.tail)
-          .fixedSize(horizontal: false, vertical: typeSize.isA11y)
+          .fixedSize(horizontal: false, vertical: true)
       }
       // §16.3 · at AX3 the move, the gap and the points move **under the
       // name** — inside its own block, so they read as this golfer's three
