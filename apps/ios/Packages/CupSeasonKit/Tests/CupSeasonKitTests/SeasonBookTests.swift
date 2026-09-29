@@ -235,3 +235,21 @@ struct SeasonBookTests {
   }
 
 }
+
+/// W5 twin (csSeasonBookReceipt, csRoundDay) · a receipt dates its rounds as
+/// every receipt does, and a week's receipt says its week once.
+@Suite struct SeasonBookReceiptWordsTests {
+  @Test func aRoundsDayIsTheReceiptsForm() {
+    var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "America/Phoenix")!
+    #expect(LeagueDates.roundDay("2026-09-21", today: "2026-09-29", calendar: cal) == "Mon Sep 21")
+    #expect(LeagueDates.roundDay("2025-09-21T10:00:00Z", today: "2026-09-29", calendar: cal) == "Sun Sep 21, 2025")
+  }
+
+  @Test func aWeeksReceiptSaysItsWeekOnce() throws {
+    let url = try #require(Bundle.module.url(forResource: "tie", withExtension: "json"))
+    let book = try JSONDecoder().decode(SeasonBookSnapshot.self, from: Data(contentsOf: url))
+    let entry = try #require(book.rows.flatMap(\.entries).first { $0.week != nil })
+    #expect(entry.place(inWeek: true) == nil, "the week's head already says it")
+    #expect(entry.place(inWeek: false) == "Week \(entry.week!)")
+  }
+}

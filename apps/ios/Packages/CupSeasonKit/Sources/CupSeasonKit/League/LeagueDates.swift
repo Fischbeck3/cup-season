@@ -11,6 +11,15 @@ public enum LeagueDates {
   public static let mos = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   public static let monthsLong = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
+  /// `csRoundDay` · a round's day as every receipt writes it, "Mon Sep 21",
+  /// with ", 2025" only when the year is not this one (W5).
+  public static func roundDay(_ iso: String, today: String = CSDate.today(), calendar: Calendar = .current) -> String {
+    let day = String(iso.prefix(10))
+    let year = day.prefix(4)
+    return dowMonDay(day, calendar: calendar)
+      + (year.count == 4 && Int(year) != nil && year != today.prefix(4) ? ", \(year)" : "")
+  }
+
   /// "Sat Sep 5" — `firstTeeText()`, verbatim shape.
   public static func dowMonDay(_ iso: String, calendar: Calendar = .current) -> String {
     guard let d = CSDate.local(iso, calendar: calendar) else { return iso }

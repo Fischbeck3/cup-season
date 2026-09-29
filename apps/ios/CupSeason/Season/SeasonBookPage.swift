@@ -181,7 +181,7 @@ struct SeasonBookPage: View {
           ForEach(rows) { row in
             HStack(spacing:0) {
               ForEach(row.cells,id:\.week) { cell in
-                NavigationLink { receipts("\(row.name) · Week \(cell.week)",SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:mode == "Totals")) } label: {
+                NavigationLink { receipts("\(row.name) · Week \(cell.week)",SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:mode == "Totals"),week:true) } label: {
                   cellFace(SeasonBookSnapshot.parts(row:row,cell:cell,cumulative:mode == "Totals"))
                     .frame(width:width,height:rowHeight).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(cell.future)
@@ -214,7 +214,7 @@ struct SeasonBookPage: View {
         .accessibilityIdentifier("seasonBook.week")
       ForEach(rows) { row in
         if let cell=row.cells.first(where: { $0.week == week }) {
-          NavigationLink { receipts("\(row.name) · Week \(week)",SeasonBookSnapshot.selectedEntries(row,week:week,cumulative:mode == "Totals")) } label: {
+          NavigationLink { receipts("\(row.name) · Week \(week)",SeasonBookSnapshot.selectedEntries(row,week:week,cumulative:mode == "Totals"),week:true) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
               Text(row.name).csType(.name)
               Text(SeasonBookSnapshot.spoken(row:row,cell:cell,cumulative:mode == "Totals")).csType(.body)
@@ -341,8 +341,8 @@ struct SeasonBookPage: View {
       }
     }.padding(CSTokens.Space.gutter)
   }
-  private func receipts(_ title: String,_ entries: [SeasonBookSnapshot.Entry]) -> some View {
-    SeasonBookReceipts(title:title,entries:entries,names:Dictionary((store.snapshot?.rows ?? []).filter { $0.kind == "golfer" }.compactMap { row in row.member_id.map { ($0,row.name) } },uniquingKeysWith:{ a,_ in a }),openRound:openRound)
+  private func receipts(_ title: String,_ entries: [SeasonBookSnapshot.Entry],week: Bool = false) -> some View {
+    SeasonBookReceipts(title:title,entries:entries,inWeek:week,names:Dictionary((store.snapshot?.rows ?? []).filter { $0.kind == "golfer" }.compactMap { row in row.member_id.map { ($0,row.name) } },uniquingKeysWith:{ a,_ in a }),openRound:openRound)
   }
   private func short(_ name: String,squad: Bool) -> String {
     let parts=name.split(separator:" ")
@@ -355,6 +355,8 @@ struct SeasonBookReceipts: View {
   @Environment(\.dismiss) private var dismiss
   let title: String
   let entries: [SeasonBookSnapshot.Entry]
+  /// W5 · a week's receipt says the week once, in its head
+  var inWeek = false
   let names: [UUID:String]
   let openRound: @MainActor (UUID) -> Void
   var body: some View {
@@ -366,15 +368,16 @@ struct SeasonBookReceipts: View {
         else { Text("\(SeasonBookSnapshot.num(entries.reduce(0) { $0+$1.contribution })) points").csType(.figureL).accessibilityIdentifier("seasonBook.receipt.total") }
         ForEach(entries) { entry in
           VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
-            Text([entry.member_id.flatMap { names[$0] },entry.recorded_on.map { CSDate.short($0) }].compactMap { $0 }.joined(separator:" · ")).csType(.name)
-            Text(entry.dateLine).csType(.agateS).foregroundStyle(cs.mut)
+            // W5 twin · a receipt dates its rounds as every receipt does ("Mon Sep 21")
+            Text([entry.member_id.flatMap { names[$0] },entry.recorded_on.map { LeagueDates.roundDay($0) }].compactMap { $0 }.joined(separator:" · ")).csType(.name)
+            if let place = entry.place(inWeek:inWeek) { Text(place).csType(.agateS).foregroundStyle(cs.mut) }
             Text("\(SeasonBookSnapshot.num(entry.points)) points · \(entry.count_state == "dropped" ? "dropped" : "\(SeasonBookSnapshot.num(entry.contribution)) included")").csType(.body)
             Text(entry.reason).csType(.bodyS).foregroundStyle(cs.mut)
             if !entry.isRound,let month=entry.affected_month { Text("Applies to \(SeasonBookSnapshot.month(month))").csType(.agateS).foregroundStyle(cs.mut) }
             if entry.withdrawn == true {
               Text("Round withdrawn. Its recorded points remain in this season’s Book.").csType(.bodyS).foregroundStyle(cs.mut)
             } else if let round=entry.round_id {
-              CSDoor(.link("Open round receipt") { openRound(round) })
+              CSDoor(.link("Open the round’s receipt") { openRound(round) })   // W5 twin · the web's words
             }
           }.padding(.vertical,CSTokens.Space.s3).frame(maxWidth:.infinity,alignment:.leading).overlay(alignment:.bottom) { CSRule() }
         }

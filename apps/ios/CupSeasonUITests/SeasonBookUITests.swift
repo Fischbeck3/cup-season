@@ -10,7 +10,7 @@ final class SeasonBookUITests: XCTestCase {
     app.buttons["seasonBook.cell."+id+".2"].swipeLeft()
     XCTAssertEqual(name.frame.minX,x,accuracy:1);name.tap()
     XCTAssertTrue(app.staticTexts["seasonBook.receipt.total"].waitForExistence(timeout:5))
-    XCTAssertTrue(app.buttons["Open round receipt"].firstMatch.exists)
+    XCTAssertTrue(app.buttons["Open the round’s receipt"].firstMatch.exists)
   }
   @MainActor func testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead() {
     let app=launch("tie")

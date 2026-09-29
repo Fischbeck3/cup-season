@@ -252,7 +252,7 @@ final class SyntheticRouteTests: XCTestCase {
     cells.firstMatch.tap()
     XCTAssertTrue(app.staticTexts["seasonBook.receipt.total"].waitForExistence(timeout: 10))
     attach(app, "flow__book-cell-receipts")
-    let round = app.buttons["Open round receipt"].firstMatch
+    let round = app.buttons["Open the round’s receipt"].firstMatch
     reveal(round, in: app)
     XCTAssertTrue(round.waitForExistence(timeout: 5))
     round.tap()
