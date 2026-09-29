@@ -480,11 +480,13 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    (so "Plan a round" stands down); an empty record says the first round is
    missing and holds the door (so the sidebar's sentence and its door go).
    The door goes whether or not the strip also holds a season row or dues (a
-   golfer seated in a season with no rounds has both), and its row with it. */
+   golfer seated in a season with no rounds has both), and its row with it.
+   W7-K040 · and the SEASON ROW stands down on the Ryder page: the event does not own the season standing, it competes with it, so a season's row beside its two sides is a rival fact. */
 @media(min-width:960px){
   .shell:has(#view-stats.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-post.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-hub.active) #sideMe [data-mego="season_row"],
+  .shell:has(#view-event.active) #sideMe [data-mego="season_row"],
   .shell:has(#view-schedule.active) #sideMe [data-mego="my_next_round"],
   .shell:has(#view-schedule.active) #sideMe [data-mego="plan_one"],
   .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
