@@ -104,7 +104,7 @@ Each was reproduced on this branch before it changed; WX's line numbers were at 
 
 | ID | Surface | Defect | Status | Evidence |
 |---|---|---|---|---|
-| X01 | Golfers → a golfer | `openPerson` called `.catch` on a PostgREST builder; the throw sent neither read, so **every golfer page** read "A golfer · Couldn't pull that card" (production since 916f35d2) | fixed · verified | 09ead060 · harness golfers/person route ok |
+| X01 | Golfers → a golfer | `openPerson` called `.catch` on a PostgREST builder; the throw sent neither read, so **every golfer page** read "A golfer · Couldn't pull that card" (production since 916f35d2) | **fixed · shipped to production** | 09ead060 on this branch · shipped alone on the owner's yes (2026-09-28) as d7a5a07d on main; cupseason.app serves `v23 · d7a5a07` and `VERSION = 'd7a5a07'`, with the fixed line; before/after: golfers/person failed at every width on 1b5916b2, 40/40 golfer captures pass on d7a5a07d |
 | X02 | Ryder room | a B win read "A def. B" | fixed · verified | 09ead060 · competition-truth 86/86 |
 | X03 | Ryder room | a finished edition's series line counted only other editions ("all square 0–0" beside 7–5) | fixed · verified | 09ead060 |
 | X04 | Compete / Scoreboard | a season a week before its first tee read Live / "Week 1 of 12" (week_no===0 only; UTC date) | fixed · verified | 09ead060 · Phoenix-evening clock in the test |
