@@ -313,6 +313,7 @@ private struct PostRoundBody: View {
       }
     }
     .scrollDismissesKeyboard(.interactively)
+    .csNavBarEdge()
     .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
     .navigationTitle("Add my round")
     .navigationBarTitleDisplayMode(.inline)

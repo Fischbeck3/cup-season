@@ -191,6 +191,18 @@ public extension View {
   func csFoldFade(_ ground: Color) -> some View {
     modifier(CSFoldFade(ground: ground))
   }
+
+  /// N4-024 · the same delineated edge under a transparent navigation bar. A
+  /// page that scrolls under its own title and back button (the composer's
+  /// eyebrow under "Add my round", its gross under the chevron) is cut at the
+  /// bar instead of reading through it at full contrast.
+  @ViewBuilder func csNavBarEdge() -> some View {
+    if #available(iOS 26, *) {
+      scrollEdgeEffectStyle(.hard, for: .top)
+    } else {
+      self
+    }
+  }
 }
 
 #if canImport(UIKit)
