@@ -514,6 +514,13 @@ const SETTINGS = [
       if (shape.head !== 'Delete your account?' || shape.role !== 'heading') return 'the confirmation has no head of its own: ' + JSON.stringify(shape)
       if (shape.rule !== '1px') return 'the confirmation is not set off from the sign-out row by a rule: ' + JSON.stringify(shape)
       if (Math.abs(shape.yes - shape.no) > 1) return `the two answers are not equals: Delete ${shape.yes}px, Not now ${shape.no}px`
+      /* TEN / W8 · W7-041 (E5's aside): §7.1 pressed. The destructive answer takes the neg fill at a16 while it is held; .mini.del had none since it left .btn.destructive.
+         The mouse is released away from the button, so nothing is confirmed */
+      const box = await page.locator('#phDelYes').boundingBox()
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.waitForTimeout(200)
+      const pressed = await page.evaluate(() => getComputedStyle(document.getElementById('phDelYes')).backgroundColor)
+      await page.mouse.move(2, 2); await page.mouse.up()
+      if (pressed === 'rgba(0, 0, 0, 0)' || pressed === 'transparent') return `the destructive answer has no pressed fill (${pressed})`
       await click(page, '#phDelNo')
       const back = await page.evaluate(() => document.activeElement && document.activeElement.id)
       await click(page, '#phDelete')

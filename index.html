@@ -3763,6 +3763,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .mjpot .cs-agate{color:var(--mut);}
 /* §7.1 · destructive, armed: bg2 fill (the .mini), neg label — 4.58:1 / 4.62:1 */
 .mini.del{color:var(--neg);}
+.mini.del:active{background:color-mix(in srgb, var(--neg) 16%, transparent);}   /* W7-041 · §7.1 pressed, as .mini.is-armed:active and B's .btn.destructive had it: the move off .btn.destructive left 'Delete permanently' with no pressed fill */
 /* csArmTap's armed state: the label turns neg and says what the next tap does */
 .mini.is-armed{color:var(--neg);}
 .mini.is-armed:active{background:color-mix(in srgb, var(--neg) 16%, transparent);}   /* §7.1 · pressed, the fill is neg at a16 (B's .btn.destructive) */
