@@ -289,6 +289,54 @@ Brief: `evidence/LANE-BRIEF.md`. Native twins go to N2. So far: LeagueCopy.endga
 
 The judges stay with root, so their calibration holds across the native half and round 2.
 
+## 4h · The web lanes merged, root's fixes, and the ship on the owner's word (2026-09-28/29, night)
+
+**Merged into integration.** Each lane is merged with `--no-ff`, and its report is its lane's record.
+
+| Lane | Merge | What it carries |
+|---|---|---|
+| N2 | `de3eaf35` | the native views (§4g) |
+| W3 | `e8108e59` | Home and Golfers |
+| W2 | `f46086b4` | schedule, the Ryder/Major room, You, settings, the card gate |
+| W4 | `b8a61266` | share, one public shell, links, get/support/legal, the Door's wings |
+| W5 | `4a703402` | Compete, the Book, the wizard |
+| W1 | `1e9eb856` | composer, live scoring, history, S9's web twin |
+| C | `ab7f7c34` | docs: COVERAGE, PANEL (both halves), CRITIQUE, AUDIT, DETECTOR, OWNER-QUESTIONS |
+| B (W6) | `f6cb4760` | shared producers and chrome: one lockup (the Door keeps its serif), the ME strip, one CTA grammar, the lanes' needs-root, ratchets lowered |
+
+**Conflicts, and how they were settled.**
+- **Trial merges before the lanes finished** found three overlaps: the finish ceremony (W1 and W4), the public plan landing (W2 and W4), and the invitation banner (W3 and W4). Root assigned an owner to each, and every lane obeyed before reporting.
+  - The finish ceremony went to W4. Round points are ink, not gold (UI_SYSTEM §2.4).
+  - The public plan landing went to W4, with W2's `fmtTee`.
+  - The invitation banner's logic went to W3, and its look to W4.
+- **One textual conflict:** `csSideWho`. W3's rule was kept.
+
+**Root's own fixes after the merges.**
+- `65a1a11a`: a course row gives a long name the line when the row is under 600px (a container query). W2's two-column You had squeezed it. course-leaf opens You's courses door; it had failed 10 of 122 at `b8a61266`.
+- `8aaab412`: harness state `record--photo-credited` now proves W2's fix: a golfer's own photo carries no credit.
+- `45d40eb3`: **`?cs_home_state` lifts the Door only when its fixture was served.**
+  - This was a live exposure. On `cf401dee`, a prod-like host lifted the Door onto the demo diorama for a signed-out visitor.
+  - Found by session C's code read, and probed before and after.
+- `53129f8f`: the events states tap the Ryder in W5's `#cmpMoments`.
+- `6c5f251b`: the install nudge stays dismissed and never sits over the composer (code-audit B25).
+- `ba6935a5`: the ledger's X37 line names the owner's handle by role.
+- `b82eabd9`: the last retired 3.5px spines leave the Season page: `.purse`, `.pro`, `.phasehero`, `.nextcard` and `.ontheline` (AW P2-13, DX TP-09).
+
+**Held off main (owner's call).** `d30f1ecb` on `claude/ten-w6-shared-2026-09-28` is a migration.
+- It patches `home_dispatch` to say "See the terms before you're in".
+- It is copy only, idempotent, and proven on the disposable cluster.
+- B reverted it on its branch (`d355b115`). Take it, then `db push`, when wanted.
+
+**Counsel.** W4 renamed "Prize Pool Disclaimer" to "The pot" in `legal.html` and `legal/*.md`, following TERMINOLOGY row 144. The disclaimer's text is unchanged. Counsel should read it; a revert is one line.
+
+**The panel's native half** (`4112a3f0` = TestFlight 1180): category **7.04**, craft **7.42**, owner **7.77**; no P0.
+- P1s:
+  - the composer's toast drawn under its cover;
+  - the AX3 gross field;
+  - live seasons shown as FINISH;
+  - the Form row's nine, fixed by N2.
+- All but the Form row are routed to N4. The details are in `PANEL.md` §5.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
