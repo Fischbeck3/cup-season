@@ -330,6 +330,28 @@ final class SyntheticRouteTests: XCTestCase {
     }
   }
 
+  /// W7-040 · a failed schedule read with nothing to show says so (the head,
+  /// the reason, Try again) and is never drawn as an empty schedule; Try
+  /// again reads it again.
+  @MainActor func testScheduleFailureSaysSoAndRetries() {
+    let app = launch("season-live", "schedule", extra: ["-cs_synth_fail", "my_schedule"])
+    XCTAssertTrue(mark(app, "schedule").waitForExistence(timeout: 30))
+    let failed = app.descendants(matching: .any)["schedule.failed"]
+    XCTAssertTrue(failed.waitForExistence(timeout: 15), "the failed read says so")
+    XCTAssertTrue(app.staticTexts["The schedule didn\u{2019}t load"].exists, "in the desk's words")
+    XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Nothing on the schedule")).firstMatch.exists,
+                   "and never as an empty schedule")
+    attach(app, "w7-040-schedule-failed")
+    // the synthetic world answers the golfer's first retry, a second after the
+    // failure and four after boot: a tap that comes sooner is asked again
+    let retry = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Try again")).firstMatch
+    for _ in 0..<3 where failed.exists {
+      if retry.exists { retry.tap() }
+      _ = failed.waitForNonExistence(timeout: 6)
+    }
+    XCTAssertFalse(failed.exists, "Try again reads the schedule again")
+  }
+
   /// The share preview opens from the receipt and closes without sharing. It
   /// opens at once, before the round's photograph has come (it waited for
   /// the photograph, and root's run at a3f7bcad saw the tap sit past 10s).

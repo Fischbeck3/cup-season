@@ -34,6 +34,7 @@ struct ScheduleScreen: View {
         // N4-161 · the page names itself in the page (UI_SYSTEM §12.2)
         CSPageHeader("The schedule") { EmptyView() }
         Text("Yours, your buddies’, your seasons’").csType(.agate, caps: true).foregroundStyle(cs.mut)
+        refreshFailed
         watch
         calendarHeader
         ScheduleMonthGrid(month: vm.month, byDay: vm.byDay, today: vm.today) { d in open(day: d) }
@@ -265,11 +266,41 @@ struct ScheduleScreen: View {
     }
   }
 
+  /// W7-040 · rows on screen and a refresh that failed: the rows stay, and
+  /// one line says so, with the way to ask again (the album's shape).
+  @ViewBuilder private var refreshFailed: some View {
+    if vm.failedWhy != nil, vm.hasRows {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text(ScheduleCopy.refreshFailed).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+        CSDoor(.link(ScheduleCopy.retry) { Task { await vm.reload(me: store.me, current: store.preferredLeague) } })
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("schedule.refreshFailed")
+    }
+  }
+
   // MARK: on the schedule (12134–12153)
 
   @ViewBuilder private var list: some View {
     let rows = vm.listRows
-    if rows.isEmpty {
+    if rows.isEmpty, let why = vm.failedWhy, !vm.hasRows {
+      // W7-040 · a failed read with nothing to show is never an empty one: the
+      // album's failed shape, the head, the reason and Try again. "Put a round
+      // on the schedule" stays the page's one primary (§7.1).
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        Text(ScheduleCopy.failedHead).csType(.lead).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityAddTraits(.isHeader)
+        Text(why).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+        CSMini(ScheduleCopy.retry) { Task { await vm.reload(me: store.me, current: store.preferredLeague) } }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("schedule.failed")
+    } else if rows.isEmpty {
       CSFine("Nothing on the schedule for \(vm.month.monthName). Put one up: buddies and the crews you play with see it the moment you do.")
     } else {
       ForEach(rows) { sr in
@@ -343,6 +374,11 @@ final class ScheduleModel {
   var weekLines: [WeekLine] = []
   var inLeague = false
   var busy = Set<UUID>()
+  /// W7-040 · why the last read failed (the month's or the next fortnight's),
+  /// in the product's words. A failed read is never an empty one: the rows
+  /// the page had stay, and the page says it could not read them.
+  var failedWhy: String?
+  var hasRows: Bool { !watchRows.isEmpty || !listRows.isEmpty }
   /// N4-136 · the first load may move the calendar to the next plan's month
   private var openingSettled = false
   private let toasts: CSToastCenter
@@ -365,8 +401,10 @@ final class ScheduleModel {
     async let m = sched.month(month)
     async let w = sched.watch(today: today)
     async let r = RivalsCache.shared.rivals()
-    if let rows = try? await m { schedule = rows }
-    if let rows = try? await w { watchAll = rows }
+    var why: String?
+    do { schedule = try await m } catch { why = HumanError.text(error) }
+    do { watchAll = try await w } catch { why = why ?? HumanError.text(error) }
+    failedWhy = why
     // N4-136 · on the first load, a month with no plan still ahead opens on
     // the month of the next one instead (September was shown while the
     // plans were in October); paging is the golfer's from then on
@@ -597,4 +635,11 @@ private struct CalendarDayStyle: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label.opacity(configuration.isPressed ? 0.7 : 1)
   }
+}
+
+/// W7-040 · the schedule's failed read, in the desk's words (`csRenderPlanLead`)
+enum ScheduleCopy {
+  static let failedHead = "The schedule didn\u{2019}t load"
+  static let refreshFailed = "The schedule didn\u{2019}t refresh."
+  static let retry = "Try again"
 }
