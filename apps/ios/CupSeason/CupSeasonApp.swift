@@ -220,10 +220,23 @@ extension View {
   /// presentations are wrapped here so no host has to remember which is which.
   func csCover<Item: Identifiable, C: View>(item: Binding<Item?>,
                                             @ViewBuilder content: @escaping (Item) -> C) -> some View {
-    fullScreenCover(item: item) { content($0).csDevTextSize(CSDevHatch.textSize) }
+    fullScreenCover(item: item) { content($0).csDevTextSize(CSDevHatch.textSize).csCoverToasts() }
   }
   func csCover<C: View>(isPresented: Binding<Bool>,
                         @ViewBuilder content: @escaping () -> C) -> some View {
-    fullScreenCover(isPresented: isPresented) { content().csDevTextSize(CSDevHatch.textSize) }
+    fullScreenCover(isPresented: isPresented) { content().csDevTextSize(CSDevHatch.textSize).csCoverToasts() }
   }
+
+  /// **A COVER SHOWS ITS OWN TOASTS** (N4-020). The app's one toast host is at
+  /// its root, and a full-screen cover presents OVER the root: every toast the
+  /// composer or the live round posted drew underneath it, so the golfer saw
+  /// nothing — a refused round most of all. A cover carries a host of its own
+  /// on the same center its content posts to, so a toast shows over whatever
+  /// is up. (The root's copy of it sits under the cover, unseen, as before.)
+  func csCoverToasts() -> some View { modifier(CoverToastHost()) }
+}
+
+private struct CoverToastHost: ViewModifier {
+  @Environment(\.toast) private var toast
+  func body(content: Content) -> some View { content.csToasts(toast) }
 }

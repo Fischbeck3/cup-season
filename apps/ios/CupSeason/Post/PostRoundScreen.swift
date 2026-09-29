@@ -235,6 +235,9 @@ private struct PostRoundBody: View {
         .csPage("composer")
       }
       .onAppear { windowHeight = DoorLayout.windowHeight; scrollProxy = proxy }
+      // W1 · any change to the card is the golfer answering the refusal, so
+      // the line goes with the change
+      .onChange(of: model.card) { _, _ in if model.refusal != nil { model.refusal = nil } }
       // D362 · the sentence arrives from the server AFTER the keypad is up, so
       // on a short phone it can land below the fold on a page the golfer has
       // not scrolled. Bring the hero back into view when it appears — and only
@@ -298,6 +301,9 @@ private struct PostRoundBody: View {
     // the curtain closes fully before the next sheet rises — a sheet presented mid-dismissal is dropped
     .fullScreenCover(item: $model.ceremony, onDismiss: { if !model.afterCeremony() { onDone() } }) { c in
       FinishCeremonyView(ceremony: c, photo: model.recapPhoto, onBack: { model.ceremony = nil }, roundId: model.acceptedRoundId)
+        // a post's after-notes ("Round posted. Couldn't upload the photo…")
+        // land while the ceremony is up; they show over it (N4-020)
+        .csCoverToasts()
     }
     .sheet(item: $model.epilogue, onDismiss: onDone) { show in
       EpilogueSheet(show: show, photo: model.recapPhoto,
@@ -677,8 +683,17 @@ private struct PostRoundBody: View {
           .frame(maxWidth: .infinity).frame(minHeight: 22)
           .lineLimit(typeSize.isAccessibilitySize ? 2 : nil)
           .accessibilityAddTraits(.updatesFrequently)
+        // W1 / N4-020 · the answer to the button, above it, until the golfer
+        // answers it back (see `PostRoundModel.refusal`)
+        if let refusal = model.refusal {
+          Text(refusal).csType(.bodyS).foregroundStyle(cs.neg)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("post.refusal")
+        }
         Button("Add my round") { model.tapPost() }
           .buttonStyle(.csPrimary(busy: model.busy))
+          .accessibilityHint(model.refusal ?? "")
         if !tightFoot { startOver }
       }
       .padding(.horizontal, 20).padding(.top, 6)
