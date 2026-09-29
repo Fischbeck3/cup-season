@@ -416,8 +416,10 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   display:flex; flex-direction:column; justify-content:center; gap:2px; color:var(--ink); min-width:0;
   min-height:44px;   /* §16.2 · was 34 */
 }
-.sideme .mefact b{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.01em; font-variant-numeric:tabular-nums;}
-.sideme .mefact small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase;}
+/* TEN · the figure in the board face, tabular; the unit under it in agate
+   (§1.4: mono sets no label, and the strip's figures are figures) */
+.sideme .mefact b{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:var(--flat); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums;}
+.sideme .mefact small{font-family:var(--board); font-weight:600; font-size:11px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
 /* L-10 - money is `neg`, never gold and never a countdown */
 .sideme .mefact.owed b{color:var(--neg);}
 .sideme .mefact:hover b{color:var(--act);}
@@ -496,6 +498,12 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 }
 .csans-b:disabled{opacity:.5; cursor:default;}
 .csans-b:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
+/* TEN · the quiet doors at Home's foot: text links on a 2px mut rule with a
+   44px target (§2.5: a link that is not the screen's live action) */
+.hstart{display:flex; flex-wrap:wrap; gap:var(--s4); margin:var(--s3) 0 0;}
+.hstart a{display:inline-flex; align-items:center; min-height:44px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.hstart a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* Weight 5 -- minor activity: one 44pt row, a day marker in the leading
    column, one line of prose, a rule on top. The marker is `mut` and never
    `dim`: `dim` is 3.15 / 2.89 and may not carry a word. */
@@ -519,9 +527,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 @media(max-width:959px){
   #homeHub.deskbody{display:flex; flex-direction:column;}
   #homeHub .deskmain{display:contents;}
-  #homeLead{order:1;} #homeMe{order:2;} #homeDeck{order:3;} #homeHero{order:4;}
-  #homeHub .deskwire{order:5;} #homeStart{order:6;} #homeUpNext{order:7;}
-  #homeOccasion{order:8;} #homeTiles{order:9;} #homePulse{order:10;}
+  #homeLead{order:1;} #homeRequests{order:2;} #homeMe{order:3;} #homeDeck{order:4;} #homeHero{order:5;}
+  #homeHub .deskwire{order:6;} #homeUpNext{order:7;} #homeTiles{order:8;}
+  #homeOccasion{order:9;} #homeStart{order:10;} #homePulse{order:11;}
 }
 /* MW-02 · the league's name before a shared sentence, in the agate role */
 .cswire .lc{display:block; color:var(--mut); margin-bottom:2px;}
@@ -1479,6 +1487,15 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .fc.s22{width:22px; height:22px;} .fc.s28{width:28px; height:28px;} .fc.s32{width:32px; height:32px;}
 .fc.s36{width:36px; height:36px;} .fc.s44{width:44px; height:44px;} .fc.s56{width:56px; height:56px;}
 .hffacew{display:flex; flex:none;}
+/* TEN · a buddy request (Home, under the lead; Golfers, the head block) is a
+   row on the page's rule — face, the name in `social`, a sentence-case phrase
+   and two worded answers — not the act-bordered `.check` box. */
+.hreq{display:flex; align-items:center; gap:var(--s3); padding:var(--s2) 0; border-bottom:1px solid var(--rule);}
+.hreq .tt{flex:1; min-width:0;}
+.hreq .tt b{display:block; color:var(--ink); overflow-wrap:anywhere;}
+.hreq .tt small{display:block; color:var(--mut); overflow-wrap:anywhere;}
+.hreq-acts{display:flex; gap:var(--s2); flex:none;}
+#homeRequests:not(:empty){margin-bottom:var(--s4);}
 /* identity-led home feed — A2 scorecard rail + B1 photo-story takeover (owner
    pick off the feed boards, 2026-07-23) */
 /* D288 · THE WIRE IS NOT SIX CARDS. `.hfcard` was `bg1` + a 1px border + a
@@ -1582,6 +1599,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfline .hl{flex:1; min-width:0; color:var(--mut);}
 .hfline .hl i{font-style:normal; color:var(--mut); white-space:nowrap;}   /* the two names wrap as one, never mid-league */
 .hfline .hs{flex:none; color:var(--mut);}
+.hfline .hfpro{display:block; color:var(--mut); margin-bottom:2px;}
 .hfline.opens{cursor:pointer;}
 .hfline.opens:hover{background:var(--bg1);}
 .hfline.opens:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
@@ -2158,9 +2176,15 @@ body.guestlive #onboard{display:none !important;}
 /* the first row under a dateline needs no rule — the head is its edge */
 .feedsec + .hfcard.hfrail, .feedsec + .hfcard.hfrecord, .feedsec + .hfline{border-top:0;}
 .feedmore{margin-top:4px;}
-.feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:14px 12px; min-height:44px; box-sizing:border-box; border:1px solid var(--rule); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
+/* TEN · the expander is a row on the wire's rule, not a bordered pill (§8:
+   there is no pill; critique-B P3): the label in agate, a 44px target */
+.feedmore>summary{list-style:none; cursor:pointer; display:flex; align-items:center; min-height:44px; box-sizing:border-box;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
+  color:var(--mut); padding:var(--s3) 0; border-top:1px solid var(--rule); user-select:none;}
+.feedmore>summary::after{content:"\203A"; margin-left:var(--s2);}
+.feedmore[open]>summary::after{content:none;}
 .feedmore>summary::-webkit-details-marker{display:none;}
-.feedmore>summary:hover{color:var(--ink); border-color:var(--rule);}
+.feedmore>summary:hover{color:var(--ink);}
 .feedmore[open]>summary{margin-bottom:8px; color:var(--mut);}
 .phasehero{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -2399,13 +2423,19 @@ body.guestlive #onboard{display:none !important;}
    black on near black in light. The hero is a surface; the panel is a tile. */
 .hhero{position:relative; overflow:hidden; text-align:left; padding:15px 16px; margin:0 0 12px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);}
-.hhero::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
-.hhero.earned::before{background:var(--gold);}
-.hhero .hh-top{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
-.hhero .hh-fig{display:flex; align-items:baseline; gap:9px; margin-bottom:2px;}
-.hhero .hh-pos{font-family:var(--serif); font-size:44px; font-weight:700; line-height:.9; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums;}
+/* TEN · THE 3.5PT SPINE LEAVES THE CARD EDGE (UI_SYSTEM §0.3; web audit P2-13,
+   TP-09). It meant three things by colour alone — ember live, gold earned,
+   mut calm. Live says it with the lead's own 7px ember dot in the eyebrow;
+   earned already says it with the gold figure; calm says nothing. The eyebrow
+   is agate (§1.4: mono never sets an eyebrow) and the figure is the board face
+   (§1.4: a number is never serif). */
+.hhero .hh-top{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:12px;}
+.hhero:not(.calm):not(.earned) .hh-top::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%;
+  background:var(--brand); margin-right:var(--s2); vertical-align:1px;}
+.hhero .hh-fig{display:flex; align-items:baseline; gap:var(--s2); margin-bottom:2px;}
+.hhero .hh-pos{font-family:var(--board); font-size:40px; font-weight:700; line-height:.94; color:var(--ink); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums;}
 .hhero.earned .hh-pos{color:var(--gold);}
-.hhero .hh-ord{font-family:var(--serif); font-size:19px; font-weight:700; color:var(--mut); align-self:flex-start; margin-top:3px;}
+.hhero .hh-ord{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--ord) * 1em); text-transform:uppercase; color:var(--mut); align-self:baseline;}
 .hhero .hh-move{display:inline-flex; align-items:center; gap:4px; border-radius:99px; padding:3px 9px; margin-left:auto;
   font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; background:rgba(78,197,132,.13); color:var(--pos);}
 .hhero .hh-move.dn{background:rgba(255,95,86,.12); color:var(--neg);}
@@ -2428,7 +2458,6 @@ body.guestlive #onboard{display:none !important;}
 /* D359 · a hero that is not a contest (the league-less ladder, a league still
    forming) spends no ember: the spine is furniture, the emphasis is ink and
    the progress is the action green */
-.hhero.calm::before{background:var(--mut);}
 .hhero.calm .hh-line em{color:var(--ink);}
 .hhero.calm .hh-bar i{background:var(--act);}
 /* D119 · the member's second move: present, but never competing with the hero's
@@ -2445,27 +2474,26 @@ body.guestlive #onboard{display:none !important;}
    voice under the hero. Smaller than the hero, one action, dismissable.
    Champagne spine = a Major window; ember = everything live. The marker
    art carries the wink (famous-golf-wing rule: oblique, never named). */
-.hocc{position:relative; overflow:hidden; text-align:left; padding:13px 14px; margin:0 0 12px;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);}
-.hocc::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--mut);}   /* D359 · a seasonal suggestion is not an active competition; the earned variant keeps its gold */
-.hocc.earned::before{background:var(--gold);}
-.hocc .ho-k{font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--mut); margin-bottom:7px;}
-.hocc.earned .ho-k{color:var(--gold);}
-.hocc h4{font-family:var(--serif); font-size:18px; font-weight:700; margin:0 0 5px; color:var(--ink); line-height:1.2; letter-spacing:-.01em;}
-.hocc p{margin:0; font-size:12.5px; line-height:1.5; color:var(--mut);}
-.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:11px; padding-top:10px; min-height:44px; border-top:1px solid var(--rule);
-  font-size:13px; font-weight:600; color:var(--act); cursor:pointer; width:100%; background:none; border-left:0; border-right:0; border-bottom:0; text-align:left; font-family:var(--sans);}
-.hocc.earned .ho-act{color:var(--act);}
-.hocc .ho-mk{position:absolute; right:34px; top:12px; width:30px; height:30px; opacity:.3; pointer-events:none;}
-.hocc .ho-mk svg{width:100%; height:100%; stroke:var(--gold); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
-.hocc .ho-x{position:absolute; right:0; top:0; width:44px; height:44px; display:grid; place-items:center; border:none; background:none; color:var(--mut); cursor:pointer; border-radius:var(--rs);}
-/* R03 · the glyph stays small; the box is 44px (it was 24px) and its ink is mut
-   (6.21:1 dark / 5.30:1 light on bg1 — dim was 2.77 / 2.61). The text keeps
-   clear of the box, so a tap on the corner is only ever a dismiss. */
+/* TEN · THE OCCASION IS A QUIET BLOCK ON THE RULE, not a fourth container
+   grammar in the foot: no ground, no edge, no radius and no 3px spine (the
+   card spine is retired, TP-09 / OB-04). A seasonal suggestion is not an
+   earning, so nothing on it is gold (D359); its mark is mut. Its headline is
+   sans, because the lead holds the viewport's one serif sentence (§1.4). */
+.hocc{position:relative; text-align:left; padding:var(--s3) 0 0; margin:0; border-top:1px solid var(--rule);}
+.hocc .ho-k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:var(--s2);}
+.hocc h4{font-family:var(--sans); font-size:17px; font-weight:600; margin:0 0 var(--s1); color:var(--ink); line-height:1.3;}
+.hocc p{margin:0; font-size:15px; line-height:1.45; color:var(--mut);}
+.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:var(--s2); min-height:44px;
+  font-size:15px; font-weight:600; color:var(--act); cursor:pointer; width:100%; background:none; border:0; text-align:left; font-family:var(--sans); padding:0;}
+.hocc .ho-mk{position:absolute; right:44px; top:var(--s3); width:28px; height:28px; opacity:.5; pointer-events:none;}
+.hocc .ho-mk svg{width:100%; height:100%; stroke:var(--mut); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
+.hocc .ho-x{position:absolute; right:0; top:0; width:44px; height:44px; display:grid; place-items:center; border:none; background:none; color:var(--mut); cursor:pointer;}
+/* R03 · the glyph stays small; the box is 44px and its ink is mut. The text
+   keeps clear of the box, so a tap on the corner is only ever a dismiss. */
 .hocc .ho-x svg{width:14px; height:14px;}
 .hocc .ho-x:hover{color:var(--ink);}
 .hocc .ho-x:focus-visible{outline:2px solid var(--act); outline-offset:-6px;}
-.hocc .ho-k, .hocc h4{padding-right:36px;}
+.hocc .ho-k, .hocc h4{padding-right:76px;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
 .hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--bg1); border:1px solid var(--rule); border-radius:11px;}   /* a surface, not the figure tile (see .hhero) */
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
@@ -2585,25 +2613,20 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 /* D94 · the tile row: three destinations, one glance each. Deliberately small —
    they are doors, not dashboards. The hero above them carries the loud move;
    these carry the quiet "where do I go". */
-.hometiles{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:8px; margin:10px 0 4px;}   /* as many equal doors as there are, never an empty slot */
-.htile{
-  background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
-  padding:10px 9px; text-align:left; cursor:pointer; position:relative; overflow:hidden;
-  display:flex; flex-direction:column; gap:5px; min-width:0;
-}
-.htile::before{content:""; position:absolute; left:0; top:10px; bottom:10px; width:2px;
-  border-radius:2px; background:var(--acc,var(--dim));}
-.htile .t{font-family:var(--mono); font-size:11px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--mut);}
-.htile .v{font-family:var(--serif); font-size:17px; color:var(--ink); line-height:1;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.htile .s{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut); line-height:1.3;
-  /* R06 · a tile's line is an instruction ("PUT A ROUND ON THE SCHEDULE"); at
-     375 it was cut to "PUT A ROUND O…". It wraps now — the words stay whole
-     and the tile grows, never the other way round */
-  white-space:normal; overflow-wrap:anywhere;}
-.htile:hover{border-color:var(--acc,var(--rule));}
-.htile:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.hometiles{display:block; margin:0;}
+/* TEN · THE FOOT IS ONE LIST — `.upchip` (Up next) and `.htile` (the season,
+   next, the board) are rows of it: the agate key in a fixed column, the value
+   in body and whole, the chevron as furniture, the page's rule between. No
+   ground, no edge, no radius and no coloured bar: four container grammars
+   (bg2 chips, a bordered promo, side-ruled tiles, a paragraph) became one. */
+.upchip,.htile{display:flex; align-items:baseline; gap:var(--s3); width:100%; min-height:44px; margin:0;
+  padding:var(--s3) 0; background:none; border:0; border-top:1px solid var(--rule);
+  text-align:left; cursor:pointer; color:var(--ink); font:inherit;}
+.upchip .k,.htile .t{flex:none; width:104px; color:var(--mut);}
+.upchip b,.htile .v{flex:1; min-width:0; color:var(--ink); font-weight:400; overflow-wrap:anywhere;}
+.upchip .ch,.htile .ch{flex:none; color:var(--mut);}
+.htile:focus-visible,.upchip:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+@media (hover:hover){ .htile:hover .v,.upchip[data-upgo]:hover b{text-decoration:underline; text-underline-offset:3px;} }
 /* D93 · a section head that carries a way through. renderHomeRounds clears the
    head's inline display, so the flex must live in a rule or the link loses its
    right edge the moment the section is shown. */
@@ -3424,25 +3447,12 @@ body.noleague .league-only{display:none !important;}
 .ptag.ok{color:var(--pos);} .ptag.pos{color:var(--act);}   /* "Wants to add you" is a request to answer, not a contest */
 body:not(.noleague) #hubLeagueless{display:none;}
 /* Up Next strip — what's coming, one glance, hides when empty */
-#homeUpNext:not(:empty){display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
-/* a chip holds to the column: a long "Next round" course used to push every
-   populated member Home 154px sideways at 375 (nowrap). The VALUE wraps
-   inside the chip, whole (never an ellipsis: "NEXT truncation" is the
-   residual this closes); the key and the chevron never break. */
-.upchip{display:inline-flex; align-items:center; gap:8px; border:0; max-width:100%;
-  background:var(--bg2); border-radius:var(--p); padding:6px 13px;}
-.upchip .k{font-family:var(--mono); font-size:11px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase; white-space:nowrap; flex:none;}
-.upchip b{font-size:12.5px; font-weight:600; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
-/* D176: a chip is a button now. Min-height keeps the tap target honest on a
-   phone; amber is spent only inside three days, where it means something. */
-.upchip{min-height:44px; cursor:pointer; font-family:var(--sans); text-align:left;}   /* §16.2 · 44, not 36 */
-.upchip[data-upgo]:hover{border-color:var(--rule);}
-.upchip .ch{color:var(--mut); font-size:14px; line-height:1; margin-left:-2px; flex:none;}   /* D359 · a way in is furniture */
-/* a closing window (D359: competition) is an ember RING on the chip, and its
-   words stay ink: ember type on bg2 read 3.81:1 at 11px. (.upchip is border:0,
-   so the old border-color never drew; the ring is an inset shadow.) */
-.upchip.hot{box-shadow:inset 0 0 0 1.5px var(--brand);}
-.upchip.hot .k, .upchip.hot .ch{color:var(--ink);}
+#homeUpNext:not(:empty){display:block; margin:var(--s5) 0 0;}   /* the foot list starts a clear step below the wire */
+/* a closing window (D359: competition) keeps its ember as the lead's own 7px
+   dot before the key — a second channel beside the words, which stay mut and
+   ink (ember type on bg2 read 3.81:1) */
+.upchip.hot .k::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%;
+  background:var(--brand); margin-right:var(--s2); vertical-align:1px;}
 /* D177 · a GROUP head: one level above .eyebrow, for a page that needs a spine
    rather than a list. Brand at rest (a group head is structure, not an accent
    moment), a heavier rule, and real air above so the eye reads a break. Two on
@@ -4318,20 +4328,24 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .purse .amt.heronum{ font-size:52px; }
 
 /* announcements: the Pro's voice sits above the noise */
+/* TEN · THE PRO'S NOTE. It was a pre-token gold wash (rgba(233,190,98,…))
+   with a gold label: gold means EARNED (D359, §2.4's closed list), and a note
+   from the Pro is a note. It reads as a note on the page's own rules now —
+   the label in agate mut, the sentence in body — and the attribution, not a
+   metal, is what sets it apart (web audit P3-24). */
 .annrow{
-  margin:10px 0; padding:11px 14px; border-radius:12px;
-  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,.02));
-  border:1px solid rgba(233,190,98,.35);
-  font-size:13px; line-height:1.5; color:var(--ink);
+  margin:var(--s2) 0; padding:var(--s3) 0;
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  font-size:15px; line-height:1.45; color:var(--ink);
 }
 .annrow b{
-  display:block; font-family:var(--mono); font-size:11px; font-weight:600;
-  letter-spacing:.14em; color:var(--gold); margin-bottom:4px;
+  display:block; font-family:var(--board); font-size:11px; font-weight:600; text-transform:uppercase;
+  letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); margin-bottom:var(--s1);
 }
 /* the latest announcement rides pinned at the top of the board card */
 .annrow.pin{
   position:sticky; top:0; z-index:2; margin-top:0;
-  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,.02)), var(--bg1);
+  background:var(--bg1);
 }
 
 /* the full-screen board: the league's room */
@@ -4876,7 +4890,6 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div id="epiPanel" style="display:none"></div>
         <div id="notifBanner"></div>
         <div id="resumeBanner" style="display:none"></div>
-        <div id="homeRequests"></div>
         <!-- ONE home (IA P1): the same tree serves league-less and member states.
              The quick-post card is gone — the + tab is the only score entry. -->
         <!-- D81: ONE lane, one hero slot. The grid/rail split is gone — the
@@ -4907,6 +4920,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  pressing gets. The ladder that used to pick it is a written
                  desk rule on the server now (`home_dispatch`). -->
             <div id="homeLead"></div>
+            <!-- TEN · a buddy request answered in place sits UNDER the lead,
+                 never above it, and only while the dispatch is not already
+                 carrying it (one owner per fact — the phone's rule). -->
+            <div id="homeRequests"></div>
             <!-- D228 · THE DECK: items 2–5, ranked, each one sentence with one
                  door. A shorter deck is a shorter deck; it is never padded. -->
             <div id="homeDeck"></div>
@@ -4916,10 +4933,12 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  golfer answers the contest that is open before starting a new
                  one. They sat above the lead here, so Start something outranked
                  "you have until Sunday to answer it". -->
-            <div id="homeStart"></div>
+            <!-- TEN · the foot reads as one list (Up next, then the season,
+                 next and board rows), the occasion, then the quiet doors -->
+            <div id="homeUpNext"></div>
             <div id="homeTiles"></div>
             <div id="homeOccasion"></div>
-            <div id="homeUpNext"></div>
+            <div id="homeStart"></div>
             <div id="homePulse"></div>
           </div>
           <aside class="deskwire">
@@ -17280,60 +17299,60 @@ function renderClubGroups(){
 function renderHomeTiles(){
   const box=$('#homeTiles'); if(!box) return;
   if(state.demo || !window.CS?.user){ box.innerHTML=''; return; }
-
-  /* 1 · the league — your rung if the standings are in, else the room itself */
+  /* TEN · THE FOOT IS ONE LIST. The three tiles were bordered boxes with a
+     coloured bar each (gold for "2nd", ember for "Open"), serif values and
+     mono caps — a fourth container grammar beside the chips, the promo and a
+     paragraph. They are rows of the same list as Up next now: agate key,
+     body value, a chevron, the page's rule between. And each says only what
+     nothing else on Home says (L-34 / D360):
+       · the SEASON row is gone whenever the standing is known — the strip's
+         season row (or the lead) already says "Fixture Wrens 2nd of 2", and
+         the tile's bare "LEAGUE 2nd" never said 2nd of what. It stays as the
+         door into the room while no standing exists yet, named for what a
+         golfer joins (a season), never "League · None yet · Join or start";
+       · NEXT is the chip's or the strip's when either prints it (F1), and a
+         golfer with no season is not handed a fourth door;
+       · the BOARD row is the one door to the board on Home (the wire head's
+         "THE BOARD ↗" sat in the count slot, §16A.2) and carries its count. */
   const rung = (typeof heroMyRung==='function') ? heroMyRung() : null;
   const lgName = window.CS.league?.name || '';
-  const league = !lgName
-    ? { t:'League', v:'None yet', s:'JOIN OR START', go:()=>switchView('hub'), acc:'var(--dim)' }
-    : rung
-      ? { t:'League', v:`${rung.pos}${rung.ord}`, s:esc(lgName.toUpperCase()), go:()=>switchView('hub'), acc:'var(--gold)' }
-      : { t:'League', v:esc(lgName), s:'OPEN THE ROOM', go:()=>switchView('hub'), acc:'var(--gold)' };
+  const standingSaid = !!rung || !!window.__standingSaid
+    || (typeof csMeSeasonRow==='function' && !!csMeSeasonRow());
+  const league = (lgName && !standingSaid)
+    ? { t:'Season', v:esc(lgName), go:()=>switchView('hub') } : null;
 
-  /* 2 · next round — the same source the retired Upcoming list read, so the
-     tile is a summary of the calendar rather than a second opinion */
   const today=new Date(); today.setHours(0,0,0,0);
   const src=(window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]);
-  /* D234 · this tile had NO mine filter at all, so `watchAll` — which carries
-     buddies' and league mates' plans — could put a BUDDY'S round under a tile
-     labelled "Next" while the chip below it named a different one. One
-     producer (`isMyPlan`), used by the tile and the chip both. */
+  /* D234 · one producer (`isMyPlan`) for the tile and the chip, so a buddy's
+     plan never sits under a row labelled Next */
   const next=(src||[])
     .filter(sr=>{ if(!isMyPlan(sr)) return false;
                   const d=sr.play_on?localDate(sr.play_on):null; return d && !isNaN(d) && d>=today; })
     .sort((a,b)=>String(a.play_on).localeCompare(String(b.play_on)))[0];
-  /* L-34 / D236 - the ME strip owns NEXT. With the identity block carrying it,
-     this tile said the same plan a second time on the same screen, and the
-     chip below said it a third; the strip's `suppress` set stands both down. */
+  /* L-34 / D236 - the ME strip owns NEXT; the chip claims it where it prints */
   const meOwnsNext = window.__meSuppress && window.__meSuppress.has('my_next_round');
-  const DOWS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-  const nextT = next
-    ? { t:'Next', v:DOWS[localDate(next.play_on).getDay()],
-        s:esc(((next.tee_time?String(next.tee_time).slice(0,5)+' · ':'')+(next.course_label||'')).toUpperCase()),
-        go:()=>switchView('schedule'), acc:'var(--brand)' }
-    /* D176 · "PLAN A ROUND" was the app talking to itself. Say the thing the
-       golfer would actually do: put one on the calendar. */
-    : { t:'Next', v:'Open', s:'PUT A ROUND ON THE SCHEDULE', go:()=>switchView('schedule'), acc:'var(--brand)' };
+  const inSeason = !!lgName;
+  const nextT = meOwnsNext ? null
+    : next ? { t:'Next', v:esc(DOW[localDate(next.play_on).getDay()] + ' · '
+                 + (next.tee_time ? String(next.tee_time).slice(0,5) + ' · ' : '') + (next.course_label||'')),
+               go:()=>switchView('schedule') }
+    /* D176 · say the thing the golfer would do — for a golfer in a season;
+       a golfer with none already has Start something and I have a code */
+    : inSeason ? { t:'Next', v:'Put a round on the schedule', go:()=>switchView('schedule') } : null;
 
-  /* 3 · the board — how much has landed since yesterday, never a fake badge */
+  /* the board — how much has landed since yesterday, never a fake badge */
   const since=Date.now()-24*3600*1000;
   const fresh=(window.homePosts||[]).filter(p=>new Date(p.created_at).getTime()>since).length;
-  const board = !lgName
-    ? { t:'Board', v:'—', s:'LEAGUE ONLY', go:null, acc:'var(--dim)' }
-    : { t:'Board', v: fresh?String(fresh):'Open', s: fresh?'NEW TODAY':'THE LEAGUE',
-        go:()=>switchView('board'), acc:'var(--dim)' };
+  const board = lgName
+    ? { t:'The board', v: fresh ? `${fresh} new today` : 'Where the season talks', go:()=>switchView('board') } : null;
 
-  /* R07 · L-32: a door that does not open is not offered. With no league the
-     board tile was a disabled "— · LEAGUE ONLY" — one more thing on Home that
-     asked for attention and could not be answered. It waits for a league. */
-  const tiles=[league, ...(meOwnsNext ? [] : [nextT]), ...(lgName ? [board] : [])];
-  box.innerHTML=`<div class="hometiles">${tiles.map((x,i)=>
-    `<button class="htile" data-htile="${i}" type="button" style="--acc:${x.acc}"${x.go?'':' disabled'}>
-       <span class="t">${x.t}</span><span class="v">${x.v}</span><span class="s">${x.s}</span>
-     </button>`).join('')}</div>`;
+  const tiles=[league, nextT, board].filter(Boolean);
+  box.innerHTML = tiles.length ? `<div class="hometiles">${tiles.map((x,i)=>
+    `<button class="htile" data-htile="${i}" type="button">`
+    + `<span class="t cs-agate-s">${x.t}</span><span class="v cs-body-s">${x.v}</span><span class="ch" aria-hidden="true">\u203A</span></button>`).join('')}</div>` : '';
   box.querySelectorAll('[data-htile]').forEach(b=>{
     const x=tiles[+b.dataset.htile];
-    if(x.go) b.addEventListener('click', x.go);
+    if(x && x.go) b.addEventListener('click', x.go);
   });
 }
 window.renderHomeTiles = renderHomeTiles;
@@ -17356,10 +17375,9 @@ function renderHomeStart(){
       <button class="btn" data-runback="${esc(done.league.id)}" type="button">${esc(csRunItBackTitle(done.role === 'commissioner', csProFirstName(done)))}</button>
       <div class="rb-sub">${esc(csRunItBackSub(done.role === 'commissioner'))}</div>
     </div>` : '';
-  /* F7: round-first orientation — league-less only (a member already knows
-     rounds fan into their league; this is for someone who hasn't joined one
-     yet and might otherwise read "Start something" as a gate on posting). */
-  const leagueless = !state.demo && !(window.CS?.memberships||[]).length;
+  /* F7's round-first helper ("Add a round — it posts to your rounds…") is
+     retired (TEN): the lead already says it — "Add one you already played" —
+     and a third ask for the same round is the repetition the judges filed. */
   /* D81 R2: the ladder hero absorbed the league-less doors — EVERY account
      gets the quiet three-button row (the hero carries the loud CTA; Join and
      events stay one tap away, never wallpaper). D83: the demo shop-window
@@ -17378,17 +17396,18 @@ function renderHomeStart(){
      object at all. "I have a code" stays as its own quiet door, because a
      golfer holding a code is not choosing anything. */
   const inALeague = (window.CS?.memberships||[]).some(m => m.league?.phase !== 'complete');
+  /* TEN · ONE PRIMARY (§16A.5). A golfer with no season met "Add my round"
+     as the lead's text door UNDER two filled buttons for the alternatives,
+     and a helper that asked for the first round a third time. The lead's
+     door is the one move; the two alternatives are quiet links at the foot,
+     in the same voice as a member's "Start something else…". */
   const doors = inALeague ? `
-    <p class="fine" style="padding:8px 0 0"><a href="#" data-hgmore style="color:var(--mut); text-decoration:underline; text-underline-offset:3px; display:inline-flex; align-items:center; min-height:44px">Start something else…</a></p>`
+    <p class="hstart"><a href="#" data-hgmore>Start something else…</a></p>`
     : `
-    <div class="startgrid" style="grid-template-columns:1fr 1fr">
-      <button class="startjoin" data-hgnew type="button" style="margin:0">Start something</button>
-      <button class="startjoin" data-hgjoin type="button" style="margin:0">I have a code</button>
-    </div>
-    ${leagueless ? '<p class="fine" style="padding:8px 0 0">Add a round — it posts to your rounds. Seasons score it when you join one.</p>' : ''}`;
+    <p class="hstart"><a href="#" data-hgnew>Start something</a><a href="#" data-hgjoin>I have a code</a></p>`;
   box.innerHTML = rb + doors;
-  box.querySelector('[data-hgnew]')?.addEventListener('click', () => window.openIntentSheet?.());
-  box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
+  box.querySelector('[data-hgnew]')?.addEventListener('click', (e) => { e.preventDefault(); window.openIntentSheet?.(); });
+  box.querySelector('[data-hgjoin]')?.addEventListener('click', (e) => { e.preventDefault(); window.openJoinSheet?.(); });
   box.querySelector('[data-hgmore]')?.addEventListener('click', (e) => {
     e.preventDefault();
     window.openIntentSheet?.();
@@ -17819,7 +17838,7 @@ function occInWindow(w, d){
 function occCard(o, k, h, p, act, mkKey){
   const mk = mkKey && typeof MARKERS!=='undefined' && MARKERS[mkKey]
     ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${MARKERS[mkKey].p}"/></svg></span>`
-    : (o && o.key==='teams' ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24" style="stroke:var(--brand)"><path d="M7 21V4M7 4l7 2.3L7 8.6"/><path d="M17 21V7M17 7l-6 2 6 2"/></svg></span>` : '');
+    : (o && o.key==='teams' ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 21V4M7 4l7 2.3L7 8.6"/><path d="M17 21V7M17 7l-6 2 6 2"/></svg></span>` : '');
   return `<div class="hocc${o&&o.earned?' earned':''}">
     <div class="ho-k">${k}</div>${mk}
     <h4>${h}</h4><p>${p}</p>
@@ -18299,8 +18318,12 @@ function momentRow(p, stamp, leagues){
      data-card contract, so the one delegated listener serves both. */
   const card = p.live_round_id
     ? ` data-card="${esc(p.live_round_id)}" role="button" tabindex="0"` : '';
+  /* TEN · the Pro's note says whose it is, as the board does ("FROM THE
+     PRO"): an unattributed imperative read as the app's own voice, beside
+     the app's own month clock (critique-B P3) */
+  const pro = p.kind === 'announce' ? `<span class="hfpro cs-agate-s">From the Pro</span>` : '';
   return `<div class="hfline${p.live_round_id?' opens':''}"${card}>
-    <span class="hl cs-body-s">${esc(csYouVoice(easeCaps(p.body||''), p))}${lg?` <i>${esc(lg)}</i>`:''}</span>
+    <span class="hl cs-body-s">${pro}${esc(csYouVoice(easeCaps(p.body||''), p))}${lg?` <i>${esc(lg)}</i>`:''}</span>
     ${stamp?`<span class="hs cs-agate-s">${esc(csDayToken(stamp))}</span>`:''}</div>`;
 }
 /* ==== D92 · the scorecard =====================================================
@@ -18893,8 +18916,11 @@ function renderHomeFeed(){
    inert. Every chip now names a destination, and the one urgent chip earns
    amber only inside three days — amber that is always on says nothing. */
 function upChip(k,v,go,hot){
+  /* TEN · a row of the foot's ONE list (see `.upchip, .htile`): the key in
+     agate, the value in body, the way in as a chevron. A closing window keeps
+     its ember as the lead's dot, never as the words' colour. */
   return `<button type="button" class="upchip${hot?' hot':''}"${go?` data-upgo="${esc(go)}"`:''}>`
-       + `<span class="k">${k}</span><b>${esc(v)}</b>${go?'<span class="ch">\u203A</span>':''}</button>`;
+       + `<span class="k cs-agate-s">${k}</span><b class="cs-body-s">${esc(v)}</b>${go?'<span class="ch" aria-hidden="true">\u203A</span>':''}</button>`;
 }
 /* ─────────────────────────────────────────────────────────────────────────
    D176 · the lead card. Home ran the same ten slots in the same order every
@@ -19566,6 +19592,10 @@ function renderHomeDispatch(){
     if(typeof renderHomeFeed === 'function') renderHomeFeed();
   }
   if(r.lead){ const h=$('#homeHero'); if(h) h.innerHTML=''; }
+  /* TEN · the in-place request card and invitation banner stand down for
+     what this dispatch carries (csDispatchCarries), so they repaint with it */
+  if(typeof renderHomeRequests === 'function') renderHomeRequests();
+  if(typeof window.renderNotifications === 'function') window.renderNotifications();
   const all = [r.lead, ...r.deck].filter(Boolean);
   document.querySelectorAll('[data-dgo]').forEach(b => b.addEventListener('click', () => {
     const k = b.getAttribute('data-dgo');
@@ -19735,7 +19765,7 @@ function renderUpNext(){
     const meOwnsNext = window.__meSuppress && window.__meSuppress.has('my_next_round');
     const up = (typeof upcomingFromSchedule==='function') ? upcomingFromSchedule() : [];
     if(up.length && !meOwnsNext){
-      chips.push(upChip('Next round', up[0].what + ' \u00b7 ' + up[0].when.toLowerCase()));
+      chips.push(upChip('Next round', up[0].what + ' \u00b7 ' + up[0].when.toLowerCase(), 'schedule'));
       /* F1 · whatever PRINTS the fact owns it. The strip owns the next round on
          the desk; where it does not, this chip does, and the tile below reads
          the same set and stands down. One fact, one place (D201), at both
@@ -19749,7 +19779,7 @@ function renderUpNext(){
       const w = watch[0], d = localDate(w.play_on);
       const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
       const when = n===0?'today':n===1?'tomorrow':DOW[d.getDay()].toLowerCase();
-      chips.push(upChip("Buddy's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when));
+      chips.push(upChip("Buddy's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when, 'schedule'));
     }
     /* D297 / ruling row 30 · no 'Needs you' chip: the invite rows above carry
        Accept themselves; a count of them sent the golfer to a third screen. */
@@ -19837,24 +19867,59 @@ function paintBuddyDoor(){
   const btn=$('#youPeopleGo');
   if(btn) btn.style.borderColor = n ? 'color-mix(in srgb, var(--brand) 55%, transparent)' : '';
 }
-function renderHomeRequests(){ renderRequestsInto($('#homeRequests')); paintBuddyDoor(); }
-function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); }
+/* TEN · ONE OWNER PER FACT, THE PHONE'S RULE. `home_dispatch` carries a buddy
+   request (`friend:<requester>`) and an invitation (`invite:<id>`) as items of
+   its own, with a door, and the phone draws them ONLY there — it deleted its
+   in-place banners (HomeView.swift's header note). The desk drew both: a card
+   above the lead AND the same sentence in the wire, two Accepts for one
+   request. So an item the SERVED dispatch carries is not drawn a second time;
+   the in-place card and banner stay for whatever it does not carry (the
+   declared fallback has no such items, so nothing is ever lost). */
+function csDispatchCarries(prefix){
+  const d = window.homeDispatch;
+  if(!d || !Array.isArray(d.items)) return new Set();
+  return new Set(d.items.map(it => String((it && it.key) || ''))
+    .filter(k => k.startsWith(prefix)).map(k => k.slice(prefix.length)));
+}
+window.csDispatchCarries = csDispatchCarries;
+function renderHomeRequests(){
+  renderRequestsInto($('#homeRequests'), { skip: csDispatchCarries('friend:') });
+  paintBuddyDoor();
+}
+function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); csDedupeCrReq(); }
 window.renderPeopleRequests = renderPeopleRequests;
-function renderRequestsInto(box){
+/* TEN · Golfers draws a request ONCE. The head block (#peopleRequests, D177:
+   a person waiting on you outranks the page) owns it; the REQUESTS section
+   under the search keeps only what the head block does not show. */
+function csDedupeCrReq(){
+  const box = document.getElementById('crReq'); if(!box) return;
+  const shown = new Set([...document.querySelectorAll('#peopleRequests [data-hreqacc]')].map(b => b.getAttribute('data-hreqacc')));
+  if(!shown.size) return;
+  box.querySelectorAll('[data-facc]').forEach(b => { if(shown.has(b.getAttribute('data-facc'))) b.closest('.prow')?.remove(); });
+  if(!box.querySelector('.prow')) box.innerHTML = '';
+}
+function renderRequestsInto(box, opts){
   if(!box) return;
-  const list = state.demo ? DEMO_REQUESTS : (window.homeRequests||[]);
+  const skip = opts && opts.skip instanceof Set ? opts.skip : null;
+  /* `window.homeRequests` is also the #homeRequests element until the read
+     lands (named access), so the rows are an array or nothing */
+  const rows = state.demo ? DEMO_REQUESTS : (Array.isArray(window.homeRequests) ? window.homeRequests : []);
+  const list = rows.filter(f => !skip || !skip.has(String(f.profile_id)));
   if(!list.length){ box.innerHTML=''; return; }
+  /* a ROW on the page's rule, not an act-bordered box (§3.1; act is the
+     action colour, never a border or a label) — and Decline is a word: an ×
+     reads as "not now", and this one rejects a real person */
   box.innerHTML =
-    `<div class="eyebrow" style="margin-top:0; color:var(--act)">Buddy request${list.length>1?'s':''}</div>` +
+    `<div class="eyebrow" style="margin-top:0">Buddy request${list.length>1?'s':''}</div>` +
     list.map(f=>{
       const mk = face(f.profile_id, f.marker, 36);
       const name = esc(f.display_name||'A golfer');
       const h = f.handle ? '@'+esc(f.handle) : '';
-      return `<div class="check" style="border-color:var(--act)">${mk}
-        <div class="tt"><b>${name}${founderTag(f.profile_id, f.display_name)}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
-        <span style="display:flex; gap:6px; flex:none">
+      return `<div class="hreq">${mk}
+        <div class="tt"><b class="cs-social">${name}${founderTag(f.profile_id, f.display_name)}</b><small class="cs-agate-s is-phrase">${h}${h?' · ':''}wants to be golf buddies</small></div>
+        <span class="hreq-acts">
           <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
-          <button class="mini" data-hreqdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+          <button class="mini" data-hreqdec="${f.friendship_id}">Decline</button>
         </span></div>`;
     }).join('');
   box.querySelectorAll('[data-hreqacc],[data-hreqdec]').forEach(b=>b.addEventListener('click', async()=>{
@@ -21075,7 +21140,7 @@ function renderMeStrip(){
      is deliberately NOT fetched here: it is a signed URL, it is async, and a
      disc that pops from a marker to a face on every re-render is worse than
      the marker. */
-  csSideWho();
+  csSideWho(strip);
   /* L-34 - the facts this block has SPENT. Whatever renders below drops them:
      the phone hands the same set down from `MeStripCopy.Strip.suppress`. Set
      BEFORE the rest of Home paints, which is why `renderMeStrip` is the first
@@ -21124,7 +21189,7 @@ window.renderMeStrip = renderMeStrip;
 /* WAVE 11 / D280 - the sidebar's foot. Name, face, number, and nothing else:
    the league's own name moved one step down and one step quieter, because the
    page beside it already says which room this is. */
-function csSideWho(){
+function csSideWho(strip){
   const pr = window.CS?.profile || null;
   const who = document.getElementById('sideWho');
   const idx = document.getElementById('sideIdx');
@@ -21133,8 +21198,13 @@ function csSideWho(){
   if(idx){
     const n = pr && pr.index_current != null ? Number(pr.index_current) : null;
     /* an unestablished index is ABSENT, never a dash: a slot with no figure
-       is not a verb and not a placeholder (home.md 1.3, rule 1). */
-    idx.textContent = (n != null && isFinite(n)) ? n.toFixed(1) + ' index' : '';
+       is not a verb and not a placeholder (home.md 1.3, rule 1).
+       TEN · and a number the strip above already prints as YOUR NUMBER is not
+       printed a second time under another label in the same sidebar (L-34,
+       §16A.4: one fact, one encoding, per viewport — "14.2 YOUR NUMBER" and
+       "14.2 INDEX" were both on every desk page). */
+    const stripSaysIt = !!(strip && Array.isArray(strip.slots) && strip.slots.some(s => s.fact === 'my_number'));
+    idx.textContent = (!stripSaysIt && n != null && isFinite(n)) ? n.toFixed(1) + ' index' : '';
   }
   if(fc){
     fc.style.background = pr?.id ? csPigment(pr.id) : 'var(--bg2)';
@@ -21195,7 +21265,7 @@ function renderHomeHub(){
    role — the Pro sees who's short of the floor, the golfer sees their own line. */
 function pulseCard(top, bodyHtml){
   return `<div class="card" style="text-align:left; padding:12px 14px; margin:0 0 14px">
-    <div class="mono" style="font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:5px">${esc(top)}</div>
+    <div class="cs-agate-s" style="color:var(--mut); margin-bottom:4px">${esc(top)}</div>
     <div style="font-size:13.5px; color:var(--ink); line-height:1.45">${bodyHtml}</div>
   </div>`;
 }
@@ -21207,13 +21277,13 @@ function pulseGauge(credits, floor, top, bodyHtml){
   const cleared = pct >= 1;
   const cx = credits%1 ? credits.toFixed(1) : credits;
   return `<div class="card" style="text-align:left; padding:12px 14px; margin:0 0 14px">
-    <div class="mono" style="font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:8px">${esc(top)}</div>
+    <div class="cs-agate-s" style="color:var(--mut); margin-bottom:8px">${esc(top)}</div>
     <div style="display:flex; align-items:center; gap:14px">
       <svg viewBox="0 0 64 64" width="58" height="58" style="flex:none" aria-hidden="true">
         <circle cx="32" cy="32" r="26" stroke="var(--rule)" stroke-width="6" fill="none"/>
         <circle cx="32" cy="32" r="26" stroke="${cleared?'var(--pos)':'var(--brand)'}" stroke-width="6" fill="none" stroke-linecap="round"
           stroke-dasharray="${(pct*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/>
-        <text x="32" y="36" text-anchor="middle" font-size="15" fill="var(--ink)" style="font-family:var(--serif)" font-weight="700">${cx}/${floor}</text>
+        <text x="32" y="37" text-anchor="middle" font-size="16" fill="var(--ink)" style="font-family:var(--board); font-variant-numeric:tabular-nums" font-weight="700">${cx}/${floor}</text>
       </svg>
       <div style="font-size:13.5px; color:var(--ink); line-height:1.45; min-width:0">${bodyHtml}</div>
     </div>
@@ -21236,7 +21306,12 @@ function renderPulse(){
        lines under a tile reading LEAGUE · None yet — bylaw copy for a squad
        they do not have, on the first screen after signup. state.floor holds
        the wizard's default (2) whether or not a league exists. */
-    box.innerHTML = (CS.league && state.floor>0 && !state.demo)
+    /* TEN · §16A.1: a rule is printed where the count it explains is on
+       screen. With a lead on Home the hero stands down, its floor gauge with
+       it, and this sentence was left orphaned as Home's last words — a
+       penalty clause under nothing. It prints only beside the gauge; the
+       season's rules page carries it always. */
+    box.innerHTML = (CS.league && state.floor>0 && !state.demo && document.querySelector('#homeHero .hh-foot'))
       ? `<p class="fine" style="padding:0 2px 6px; line-height:1.45">Monthly minimum · ${floorSentence()}</p>`
       : '';
     return;
@@ -25149,7 +25224,10 @@ window.shareMajorCard=shareMajorCard;
 /* ---------- notifications banner: pending invites, act in line ---------- */
 function renderNotifications(){
   const el=$('#notifBanner'); if(!el) return;
-  const inv=window.myInvites||[];
+  /* TEN · an invitation the served dispatch carries is ITS item (lead or
+     wire, with "See the terms"), as on the phone; the banner keeps the rest */
+  const carried = typeof csDispatchCarries === 'function' ? csDispatchCarries('invite:') : new Set();
+  const inv=(window.myInvites||[]).filter(i => !carried.has(String(i.id)));
   if(!inv.length || state.demo){ el.innerHTML=''; return; }
   el.innerHTML=inv.map(i=>`
     <div class="notifrow">
@@ -26306,9 +26384,14 @@ async function renderCrewPeople(){
         document.getElementById('crFind')?.focus();
       }));
     }
-    document.getElementById('crReq').innerHTML = reqs.length
-      ? `<div class="eyebrow" style="color:var(--act)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
-         `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>`)).join('') : '';
+    /* TEN · one request block: the head block (#peopleRequests) owns what it
+       shows, and this section lists only what it does not (csDedupeCrReq
+       covers the other arrival order) */
+    const shownReq = new Set([...document.querySelectorAll('#peopleRequests [data-hreqacc]')].map(x => x.getAttribute('data-hreqacc')));
+    const reqsHere = reqs.filter(f => !shownReq.has(String(f.friendship_id)));
+    document.getElementById('crReq').innerHTML = reqsHere.length
+      ? `<div class="eyebrow">Requests · ${reqsHere.length}</div>`+reqsHere.map(f=>psRow(f,
+         `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}">Decline</button></span>`)).join('') : '';
     /* L-34 · one fact, one place. With the destination's empty root on screen
        saying "No buddies yet.", this section said it a second time three rows
        below it. When the root owns the sentence, the section stands down. */
