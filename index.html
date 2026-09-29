@@ -1221,6 +1221,9 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
   padding:4px 8px 10px;
 }
 .tbl th.num, .tbl td.num{text-align:right;}
+/* W7-067 · the open clash's one ember dot (the shape and the fill on their own lines, as .csedn .dot does: a dot is not a container) */
+.tbl .clashdot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:var(--s2); vertical-align:1px;}
+.tbl .clashdot{background:var(--brand);}
 .tbl td{padding:11px 8px; border-top:1px solid var(--rule); vertical-align:middle;}
 /* THE RANK RAIL (Wave 5, UI_SYSTEM 9.1). 44px, radius 0, a two-digit tabular
    numeral with a leading zero, and a FIELD: `gold` when the position was
@@ -9684,18 +9687,18 @@ function renderClash(){
         : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 ALL SQUARE`)
     : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 THROUGH ${DOW[we.getDay()].toUpperCase()}`;
   const side=(id,b,key)=>{
-    const won=settled && wc.winner_member===id;
     const band=b ? (b.band || bandName(Number(b.pvi))) : null;
     const sub=b
       ? `${esc(String(id===meId?band:theirs(band)).toUpperCase())} \u00b7 ${DOW[localDate(String(b.played_on)).getDay()].toUpperCase()}`
       : (settled?'IDLE \u2014 NO ROUND':'NO ROUND YET');
     return `<tr class="${b&&b.round_id?'tap':''}" ${b&&b.round_id?`data-clash="${key}"`:''}>
-      <td class="rk mono">${won?'W':''}</td>
       <td><div class="tn">${esc(nm(id))}</div><div class="tc">${sub}</div></td>
       <td class="num pts">${b?Number(b.points):'\u2014'}</td>
     </tr>`;
   };
-  el.innerHTML=`<tr><th colspan="3" style="text-align:left">${head}</th></tr>`
+  /* W7-067 · the rank column is gone (it held a 'W' only once a week was settled, and the settled head already says who took it), so both rows start at the head's own left edge;
+     and while the week is OPEN the head carries the one restrained ember dot that says it is live (D359), none once it is settled */
+  el.innerHTML=`<tr><th colspan="2" style="text-align:left">${settled?'':'<span class="clashdot" role="img" aria-label="Live"></span>'}${head}</th></tr>`
     + side(wc.a_member,aB,'a') + side(wc.b_member,bB,'b');
   wrap.style.display='';
   /* receipts: every figure taps to the round that produced it (§16). Open with

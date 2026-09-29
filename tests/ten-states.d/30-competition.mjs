@@ -154,6 +154,22 @@ const datelineOk = async (page) => page.evaluate(() => {
   if (innerWidth < 480) return b.top >= a.bottom - 1 && sep === 'none' ? true : `at ${innerWidth}px the dateline is not stacked without a separator (span bottom ${Math.round(a.bottom)}, Pro top ${Math.round(b.top)}, separator ${sep})`
   return sep === 'none' ? 'the separator between the span and the Pro is gone above 480px' : true
 })
+/* TEN / W8 · W7-067 [B2-season-20] · the open clash: its head carries ONE restrained ember dot that says it is live (none once the week is settled), and both rows start at the head's own left edge:
+   the empty rank column (a 'W' only after settling, which the settled head already says) is gone */
+const clashOpen = async (page) => page.evaluate(() => {
+  const t = document.getElementById('clashTbl'), wrap = document.getElementById('clashWrap')
+  if (!t || !wrap || !(wrap.getBoundingClientRect().width > 0)) return 'the clash is not on the page'
+  const th = t.querySelector('th'), dots = t.querySelectorAll('.clashdot'), settled = !!(window.weekClash && window.weekClash.settled_at)
+  if (settled) return dots.length ? 'a settled clash still carries the live dot' : true
+  if (dots.length !== 1) return `the open clash carries ${dots.length} dots, expected one`
+  const dot = dots[0], probe = document.createElement('i'); probe.style.background = 'var(--brand)'; document.body.appendChild(probe); const brand = getComputedStyle(probe).backgroundColor; probe.remove()
+  if (getComputedStyle(dot).backgroundColor !== brand) return `the dot is ${getComputedStyle(dot).backgroundColor}, not ember (${brand})`
+  if (dot.getAttribute('role') !== 'img' || dot.getAttribute('aria-label') !== 'Live') return 'the dot is not named Live'
+  if (t.querySelector('td.rk')) return 'the clash still draws its empty rank column'
+  const left = th.getBoundingClientRect().left + parseFloat(getComputedStyle(th).paddingLeft)
+  for (const tn of t.querySelectorAll('.tn')) if (Math.abs(tn.getBoundingClientRect().left - left) > 1.5) return `a side starts ${Math.round(tn.getBoundingClientRect().left - left)}px from the head's left edge`
+  return true
+})
 const SEASON = [
   { family: 'season', id: 'narrative', variant: 'member', title: 'The season page, its head: North Grove in week 8 and the story line', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -188,7 +204,7 @@ const SEASON = [
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
-      tertiaryDoor('#seasonBookDoor'),
+      tertiaryDoor('#seasonBookDoor'), clashOpen,
       /* TEN / W8 · W7-060 [A2-season-5]: a tied Points King names who is level (never the word 'Level' in the name's slot), wraps rather than clipping, and the sub says 'level on N' */
       async (page) => page.evaluate(() => {
         const k = document.getElementById('awKing'), sub = document.getElementById('awKingS')
