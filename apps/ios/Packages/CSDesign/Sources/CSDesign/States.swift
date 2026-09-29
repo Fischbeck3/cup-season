@@ -116,19 +116,24 @@ public extension View {
 public struct CSStale: View {
   @Environment(\.cs) private var cs
   let asOf: Date
+  let offline: Bool
   let calendar: Calendar
-  public init(asOf: Date, calendar: Calendar = .current) {
-    self.asOf = asOf; self.calendar = calendar
+  public init(asOf: Date, offline: Bool = true, calendar: Calendar = .current) {
+    self.asOf = asOf; self.offline = offline; self.calendar = calendar
   }
 
-  public static func line(_ d: Date, calendar: Calendar = .current) -> String {
-    "As of \(CSDateFormat.string(d, "EEE h:mm a", calendar: calendar)) · offline"
+  /// N4-013 · "offline" only when the transport said there was no network. A
+  /// read the server refused, or one that failed on a working signal,
+  /// "couldn't refresh": telling a golfer on full bars that they are offline
+  /// sends them to the wrong fix.
+  public static func line(_ d: Date, offline: Bool = true, calendar: Calendar = .current) -> String {
+    "As of \(CSDateFormat.string(d, "EEE h:mm a", calendar: calendar)) · \(offline ? "offline" : "couldn’t refresh")"
   }
 
   public var body: some View {
-    Text(Self.line(asOf, calendar: calendar))
+    Text(Self.line(asOf, offline: offline, calendar: calendar))
       .csType(.agate, caps: true)
       .foregroundStyle(cs.mut)
-      .accessibilityLabel(Self.line(asOf, calendar: calendar))
+      .accessibilityLabel(Self.line(asOf, offline: offline, calendar: calendar))
   }
 }

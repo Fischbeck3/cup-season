@@ -89,16 +89,8 @@ final class AlbumModel {
   }
 
   /// A read that failed for want of a signal, as opposed to one the server
-  /// refused. Only the transport's own "no network" answers count; anything
-  /// else is an ordinary failure (never a guess about the golfer's phone).
-  static func isOffline(_ error: Error) -> Bool {
-    let offline: Set<URLError.Code> = [.notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff]
-    if let u = error as? URLError { return offline.contains(u.code) }
-    let ns = error as NSError
-    if ns.domain == NSURLErrorDomain { return offline.contains(URLError.Code(rawValue: ns.code)) }
-    if let under = ns.userInfo[NSUnderlyingErrorKey] as? Error { return isOffline(under) }
-    return false
-  }
+  /// refused — `HumanError.isOffline`, the one rule Home's stale line reads too.
+  static func isOffline(_ error: Error) -> Bool { HumanError.isOffline(error) }
 }
 
 enum AlbumCopy {

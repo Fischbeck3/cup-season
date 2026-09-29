@@ -164,6 +164,8 @@ public struct CSMasthead: View {
   /// OFFLINE` — and nothing else on the page changes and no action is
   /// disabled. It is the one place the product says the read did not land.
   let asOf: Date?
+  /// N4-013 · whether the read behind `asOf` failed for want of a network.
+  let offline: Bool
   /// **THE GOLFER'S OWN NUMBER, WHERE THE DATE USED TO BE** (D318).
   ///
   /// The owner, on the strip that carried it at the foot of the wire:
@@ -183,9 +185,9 @@ public struct CSMasthead: View {
   /// kept since it shipped). nil until there are five.
   let numberLabel: String?
   let trend: CSNumberTrend?
-  public init(date: Date = Date(), calendar: Calendar = .current, asOf: Date? = nil,
+  public init(date: Date = Date(), calendar: Calendar = .current, asOf: Date? = nil, offline: Bool = true,
               number: String? = nil, numberLabel: String? = nil, trend: CSNumberTrend? = nil) {
-    self.date = date; self.calendar = calendar; self.asOf = asOf
+    self.date = date; self.calendar = calendar; self.asOf = asOf; self.offline = offline
     self.number = number; self.numberLabel = numberLabel; self.trend = trend
   }
 
@@ -195,7 +197,7 @@ public struct CSMasthead: View {
   }
 
   private var line: String {
-    if let asOf { return CSStale.line(asOf, calendar: calendar) }
+    if let asOf { return CSStale.line(asOf, offline: offline, calendar: calendar) }
     if let number, !number.isEmpty { return number }
     return Self.dateline(date, calendar: calendar)
   }
