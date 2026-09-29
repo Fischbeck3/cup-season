@@ -2099,10 +2099,9 @@ body.guestlive #onboard{display:none !important;}
    pending invitation is not a live competition, D359), stacked so the title
    wraps whole instead of squeezing to three lines beside two buttons, with
    "See the terms" and a one-tap Decline (D351) — "Details" said nothing the
-   terms do not. A row whose invitation Home's lead already carries stands
-   down (csBannerYield): one invitation, drawn once (L-34/D360). */
+   terms do not. An invitation the served dispatch already carries is not
+   drawn here a second time (renderNotifications, csDispatchCarries). */
 #notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
-#notifBanner.yielded{display:none;}
 .notifrow{display:flex; flex-direction:column; align-items:stretch; gap:var(--s2); padding:var(--s3) 14px;
   border-radius:var(--rc); background:var(--bg1); border:1px solid var(--rule);}
 .notifrow .tt{min-width:0;}
@@ -25327,8 +25326,11 @@ window.shareMajorCard=shareMajorCard;
 /* ---------- notifications banner: pending invites, act in line ---------- */
 function renderNotifications(){
   const el=$('#notifBanner'); if(!el) return;
-  const inv=window.myInvites||[];
-  if(!inv.length || state.demo){ el.innerHTML=''; el.classList.remove('yielded'); return; }
+  /* TEN · an invitation the served dispatch carries is ITS item (lead or
+     wire, with "See the terms"), as on the phone; the banner keeps the rest */
+  const carried = typeof csDispatchCarries === 'function' ? csDispatchCarries('invite:') : new Set();
+  const inv=(window.myInvites||[]).filter(i => !carried.has(String(i.id)));
+  if(!inv.length || state.demo){ el.innerHTML=''; return; }
   /* a first tee is a date a golfer writes, not the database's ISO string */
   const tee = iso => { try{ const d = localDate(String(iso).slice(0,10)); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return String(iso); } };
   el.innerHTML=inv.map(i=>`
@@ -25346,30 +25348,8 @@ function renderNotifications(){
      ungated (D351), on the row itself, where the Details sheet hid it. */
   el.querySelectorAll('[data-ivacc]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivacc,true)));
   el.querySelectorAll('[data-ivdec]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivdec,false)));
-  csBannerYield();
 }
 window.renderNotifications=renderNotifications;
-/* ONE invitation, drawn once (L-34 / D360, critique B P2): a row whose
-   invitation Home's dispatch is already showing — the lead or a wire line,
-   keyed `invite:<id>` by the served dispatch and the fallback alike — stands
-   down, and comes back when the dispatch moves on. The dispatch's own door
-   opens the same terms. The banner is the safety net for an invitation the
-   dispatch does not carry. (The phone does the inverse: HomeModel.ranked
-   drops invite items and its banner answers in place; either way, once.) */
-function csBannerYield(){
-  const el=$('#notifBanner'); if(!el) return;
-  const rows=[...el.querySelectorAll('.notifrow[data-inv]')];
-  const keys=new Set([...document.querySelectorAll('#homeLead [data-dkey], #homeLead [data-dgo], #homeDeck [data-dgo]')]
-    .map(n=>n.getAttribute('data-dkey')||n.getAttribute('data-dgo')));
-  let shown=0;
-  rows.forEach(r=>{ const dup=keys.has('invite:'+r.dataset.inv); r.hidden=dup; if(!dup) shown++; });
-  el.classList.toggle('yielded', rows.length>0 && shown===0);
-}
-(function(){
-  if(typeof MutationObserver!=='function') return;
-  const mo=new MutationObserver(csBannerYield);
-  ['homeLead','homeDeck'].forEach(id=>{ const n=document.getElementById(id); if(n) mo.observe(n, { childList:true, subtree:true }); });
-})();
 /* every league-identity string on screen renders from real state — the
    markup defaults are demo scenery and must never survive a real league */
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -33808,7 +33788,7 @@ async function renderShareView(tok, _testInfo){
                  : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
     card.className = 'sv-short';
     card.innerHTML = `<div class="sv-head">
-        <p class="sv-eb cs-agate">${esc(fmtD(info.play_on))}${info.tee ? ' · ' + esc(info.tee) : ''}</p>
+        <p class="sv-eb cs-agate">${esc(fmtD(info.play_on))}${info.tee ? ` · <span style="text-transform:none">${esc(fmtTee(info.tee))}</span>` : ''}</p>
         <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
         <p class="sv-where cs-body-s">${who.length ? `${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.` : `Just ${esc(info.host)} so far.`}</p>
       </div>` +

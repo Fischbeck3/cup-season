@@ -173,14 +173,24 @@ const LINKS = [
     expect: { view: 'view-home', selectors: { '#toast': 'text:^You’re already in for season 1\\.$' } }, pause: 50 },
   /* in-app invitation (my_invites): drawn ONCE, then its terms. W4 · the banner
      row and Home's lead drew the same invitation twice with two "See the terms"
-     (owner H, critique B P2); the banner row now stands down while the lead
-     carries the invitation (csBannerYield), so the invitation is the lead's
-     and its door opens the terms. The row itself is the safety net for an
-     invitation the dispatch does not carry. */
+     (owner H, critique B P2). An invitation the served dispatch carries is the
+     dispatch's item (lead or wire), and the banner keeps only the rest
+     (renderNotifications' csDispatchCarries filter, lane W3's mechanism; the
+     banner's look — a flat row, the stacked title, See the terms and a one-tap
+     Decline — is W4's). So the invitation is the lead's, drawn once, and its
+     door opens the terms. NOTE: on the W4 branch alone csDispatchCarries does
+     not exist yet, so this state holds only once W3's half is merged. */
   { family: 'links', id: 'invite-banner', variant: 'brand_new', world: { flags: { invite: true } },
-    settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dkey^="invite:"]') && !!document.querySelector('#notifBanner [data-ivacc]'), null, 15000); await page.waitForTimeout(500) },
-    expect: { allowDoor: false, selectors: { '#homeLead': 'text:put you on North Grove \\(fixture\\)', '#notifBanner': 'hidden' } },
-    check: async (page) => page.evaluate(() => /Season invite · North Grove \(fixture\)/.test(document.querySelector('#notifBanner .notifrow b')?.textContent || '') ? true : 'the banner row does not name a Season invite') },
+    settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dkey^="invite:"]'), null, 15000); await page.waitForTimeout(500) },
+    expect: { allowDoor: false, selectors: { '#homeLead': 'text:put you on North Grove \\(fixture\\)' } },
+    check: async (page) => page.evaluate(() => {
+      const key = (document.querySelector('#homeLead [data-dkey^="invite:"]') || {}).getAttribute?.('data-dkey') || ''
+      const id = key.slice(7)
+      const shown = (el) => !!el && el.offsetParent !== null
+      const drawn = [...document.querySelectorAll('#homeLead [data-dkey], #homeDeck [data-dgo]')].filter((n) => (n.getAttribute('data-dkey') || n.getAttribute('data-dgo')) === key && shown(n)).length
+        + [...document.querySelectorAll('#notifBanner [data-inv]')].filter((n) => n.getAttribute('data-inv') === id && shown(n)).length
+      return drawn === 1 ? true : `the invitation is drawn ${drawn} times on Home`
+    }) },
   { family: 'links', id: 'invite-terms', variant: 'brand_new', world: { flags: { invite: true } },
     settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dgo^="invite:"]'), null, 15000); await page.waitForTimeout(300) },
     drive: async (page) => { await click(page, '#homeLead [data-dgo^="invite:"]'); await until(page, () => /Before you join/.test(document.getElementById('shTitle').textContent) && document.getElementById('sheet').classList.contains('open')) },
