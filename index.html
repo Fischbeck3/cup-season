@@ -7612,8 +7612,13 @@ function switchView(v){
     window._schedFrom = null;   /* one trip only — the next entry decides again */
   }
   gateLiveRound();
-  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
-  $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
+  /* TEN / W6 · WHERE YOU ARE (critique-B events, heuristic 1): a Ryder or a
+     Major room is a Compete page — it is reached from Compete and goes back to
+     it — so Compete stays selected in the tab band and the sidebar while one is
+     open. It selected nothing: no tab and no sidebar row said where you were. */
+  const selected = v === 'event' ? 'compete' : v;
+  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===selected));
+  $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===selected));
   window.csDeskReveal?.(v);
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.csHideInstallNudge?.();   /* Q-13: after the swap — busy() reads the view that is now on */
