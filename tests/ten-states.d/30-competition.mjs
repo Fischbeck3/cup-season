@@ -167,6 +167,16 @@ const ptsHead = (tableSel) => async (page) => page.evaluate((tableSel) => {
 }, tableSel)
 /* TEN / W8 · W7-067 [B2-season-20] · the open clash: its head carries ONE restrained ember dot that says it is live (none once the week is settled), and both rows start at the head's own left edge:
    the empty rank column (a 'W' only after settling, which the settled head already says) is gone */
+/* TEN / W8 · W7-123 [A2-competition-13] · the Scoreboard band is Compete's only door to the season, and its accessible name is its facts: it says its action too, as the phone's band does
+   ('Opens the season'), through a hidden line the button is described by; the visible band gains no verb or arrow */
+const bandHint = async (page) => page.evaluate(() => {
+  const b = document.querySelector('#cmpList [data-cband]'); if (!b) return 'no Scoreboard band on Compete'
+  const id = b.getAttribute('aria-describedby'), hint = id && document.getElementById(id)
+  if (!hint) return 'the band is not described by anything: a screen reader hears its facts and no action'
+  if (hint.textContent.trim() !== 'Opens the season') return `the band's hint reads ${JSON.stringify(hint.textContent.trim())}`
+  if (hint.getBoundingClientRect().width > 2) return 'the hint is drawn on the band (it is for a screen reader)'
+  return /[\u2192\u203a]/.test(b.textContent) ? 'the visible band types an arrow' : true
+})
 const clashOpen = async (page) => page.evaluate(() => {
   const t = document.getElementById('clashTbl'), wrap = document.getElementById('clashWrap')
   if (!t || !wrap || !(wrap.getBoundingClientRect().width > 0)) return 'the clash is not on the page'
@@ -701,7 +711,7 @@ const COMPETE = [
        the phone */
     check: all(has('#cmpList [data-cband]', '137[\\s\\S]*Fixture Wrens · 2nd[\\s\\S]*34 back of Fixture Javelinas\\.', 'the band (137 points, Fixture Wrens 2nd, 34 back of, W7-130: the table\'s own noun)'),
       /* TEN / W8 · W7-130 [A2-competition-3]: the sidebar's season row stands down on Compete: the band prints the standing (rank, points, gap) itself */
-      standsDown(['#sideMe [data-mego="season_row"]']),
+      standsDown(['#sideMe [data-mego="season_row"]']), bandHint,
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
       tertiaryDoor('#cmpBookDoor'),
       has('#cmpList', 'South Wash Weekday \\(fixture\\)', 'the second season'),

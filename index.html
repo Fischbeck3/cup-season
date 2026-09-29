@@ -23354,7 +23354,9 @@ function csCompetitionBandHtml(row){
      and the story a sentence in sans: a rank and a gap are numbers, and a
      number is never set in the serif (§1.4); the season's name keeps the
      band's one serif object */
-  return `<button class="cband cband-scoreboard" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?`<span class="cband-standing">${esc(row.standing)}</span>`:''}<span class="cband-story">${esc(row.story||row.sub||'')}</span></span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
+  /* W7-123 · the band is Compete's only door to the season and its accessible name is its facts, so it says its ACTION to a screen reader too, as the phone's band does
+     (.accessibilityHint('Opens the season')): a hidden line the button is described by, and no verb or arrow on the visible band */
+  return `<span class="cs-sr" id="cbandHint">Opens the season</span><button class="cband cband-scoreboard" aria-describedby="cbandHint" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?`<span class="cband-standing">${esc(row.standing)}</span>`:''}<span class="cband-story">${esc(row.story||row.sub||'')}</span></span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
 }
 window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
