@@ -642,7 +642,8 @@ struct RetagSheet: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        CSSheetHeader(title: "Tag your group", sub: ScheduleDates.long(request.iso) + (request.courseLabel.map { " · \($0.uppercased())" } ?? ""))
+        // N4-097 · the header's role sets the case (LINT-14)
+        CSSheetHeader(title: "Tag your group", sub: ScheduleDates.long(request.iso) + (request.courseLabel.map { " · \($0)" } ?? ""))
         if loaded {
           if candidates.isEmpty { CSFine("No one to tag yet. Add buddies from the Golfers tab.") }
           else { TagChips(candidates: candidates, tagged: $tagged, toasts: toasts) }

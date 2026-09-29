@@ -46,8 +46,9 @@ struct CalloutRoomView: View {
 
     EventTitleCard(eyebrow: eyebrow, live: live, title: nil, dateline: [dateline], seed: nil, back: back) {
       if let my, let their {
-        CalloutHead(mine: face(my), myName: my.name.uppercased(),
-                    theirs: face(their), theirName: their.name.uppercased(), live: live)
+        // N4-097 · the names' role (displayS) sets their case (LINT-14)
+        CalloutHead(mine: face(my), myName: my.name,
+                    theirs: face(their), theirName: their.name, live: live)
       }
     }
 

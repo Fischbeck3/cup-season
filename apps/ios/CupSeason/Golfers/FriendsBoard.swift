@@ -288,10 +288,11 @@ struct PlayingSoonSection: View {
   }
 
   /// "GOLD CANYON · 7:10A TEE" — the venue and the time, which is what a
-  /// golfer deciding whether to ask actually needs.
+  /// golfer deciding whether to ask actually needs. N4-097 · the row's sub
+  /// role sets the caps; the string keeps the words' own case.
   private func planSub(_ p: ScheduledRound) -> String {
     [p.courseShort, TeeTime.format(p.tee_time)].compactMap { $0 }
-      .filter { !$0.isEmpty }.joined(separator: " · ").uppercased()
+      .filter { !$0.isEmpty }.joined(separator: " · ")
   }
 
   private func ask(_ p: ScheduledRound) async {

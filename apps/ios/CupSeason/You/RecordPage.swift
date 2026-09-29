@@ -397,8 +397,8 @@ final class RecordModel {
   /// arrives, because an account's creation date is not when somebody started
   /// playing golf, and the slot is then empty rather than wrong.
   var since: String? {
-    guard let c = record?.sinceClause else { return nil }
-    return c.uppercased()
+    // N4-097 · the page header's eyebrow role sets the caps
+    return record?.sinceClause
   }
 
   /// The one serif sentence, with its numeral marked as a figure run — braces

@@ -110,7 +110,8 @@ struct LengthStep: View {
 
   /// "Play a round" → now, or on the schedule. The person rides into either.
   @ViewBuilder private var fork: some View {
-    CSSheetHeader(title: PlayWithCopy.roundHead, sub: "A ROUND WITH \(CSBands.fn1(opponent.name).uppercased())")
+    // N4-097 · the header's role sets the case (LINT-14)
+    CSSheetHeader(title: PlayWithCopy.roundHead, sub: "A round with \(CSBands.fn1(opponent.name))")
     forkRow(PlayWithCopy.nowTitle, PlayWithCopy.nowGloss, id: "play.with.now", rule: true) { dismiss(); take(.liveNow) }
     forkRow(PlayWithCopy.laterTitle, PlayWithCopy.laterGloss, id: "play.with.plan", rule: false) { dismiss(); take(.plan) }
     Button { CSHaptic.selection(); CSMotion.run(CSMotion.tick) { roundFork = false } } label: {
