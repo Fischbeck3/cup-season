@@ -1716,6 +1716,11 @@ button.payer{cursor:pointer;}
 #gameSeg{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;}
 #gameSeg::-webkit-scrollbar{display:none;}
 #gameSeg button{flex:1 0 auto; padding:9px 12px;}
+/* round 2's delta (session D, a P2 regression live since 272c2da1) · at 375 the
+   row showed exactly four games and hid "Sunningdale Rules" behind a clean edge:
+   a scroller that runs past its edge says so, as W5's segments do (data-more,
+   csBookEdge) — the trailing edge fades while there is more to the right */
+#gameSeg[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}
@@ -2010,7 +2015,10 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .dtab td.ag{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em;
   text-transform:uppercase; color:var(--mut); padding-left:12px;}
 .dtab td.rt{text-align:right; font-family:var(--board); font-weight:600; font-size:11px;
-  letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap;}
+  letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap;
+  /* round 2's P1 (craft judge): the no-wrap date cell ran flush into this one
+     and "LAST PLAYED SEP 20" + "2 ROUNDS" read "SEP 202 ROUNDS" at every width */
+  padding-left:var(--s4);}
 @media (hover:hover){ .dtab tr:hover td{background:var(--bg1);} }
 /* TEN · the person page's "Last played Sep 20" is one fact: it stacked into
    three agate lines at 375 (critique-B minor). The course column takes the
@@ -7738,7 +7746,14 @@ setInterval(function(){
       lbEl.appendChild(el); lbRows.push(el);
     });
     slotLb();
-    if(!rm){
+    /* crit-A door P1 (round 1, still open in round 2's delta) · AN EXAMPLE DOES
+       NOT TICK. W4 labelled the wings "An example season"; the critique's fix was
+       the label AND a still specimen — invented rounds arriving and a table
+       re-sorting on a sign-in screen read as a live league that does not exist.
+       Every golfer now gets what reduced motion already drew: three cards and
+       four rows, still. The loops stay for a future ruling to switch back on. */
+    const WINGS_STILL = true;
+    if(!rm && !WINGS_STILL){
       setTimeout(start, 2600);
       setTimeout(()=>{ if(!dead && !document.hidden && !gone() && wingMq.matches) lbTick(); }, 3400);
       document.addEventListener('visibilitychange', ()=>{ document.hidden ? stop() : start(); });
@@ -7870,6 +7885,23 @@ function backToDoor(){ const ob = $('#onboard'); ob.style.display = ''; ob.class
    caller is unchanged — `switchView('pot')` still means "open the season on the
    pot", it just scrolls there now instead of blanking the table. The schedule
    is still a destination (D93), not a section, and still returns here (Q-12). */
+/* round 2 (critique B2, P1) · THE ALBUM RENDERS WHEN IT IS SEEN. The pane was
+   meant to render "lazily on first open" through setRoomSeg('album'), but no
+   chip jumps there, so the season page showed the album's heading over an
+   empty grid. The grid now renders when the pane first scrolls into view, and
+   again only when the league has changed — not on every pass of the scroll. */
+(()=>{
+  let last = null;
+  /* once per league: opening the season page, or the pane coming into view */
+  window.csAlbumOnce = () => {
+    const key = window.CS?.league?.id || null;
+    if(!key || key === last || typeof window.renderAlbum !== 'function') return;
+    last = key; window.renderAlbum();
+  };
+  const pane = document.getElementById('room-album');
+  if(pane && 'IntersectionObserver' in window)
+    new IntersectionObserver(es => { if(es.some(e => e.isIntersecting)) window.csAlbumOnce(); }, { rootMargin: '200px 0px' }).observe(pane);
+})();
 function setRoomSeg(r){
   if(r==='schedule'){ window._schedFrom = 'hub'; switchView('schedule'); return; }
   const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;
@@ -8037,6 +8069,7 @@ function switchView(v){
      shown without a loaded event, render the empty-state ("No event loaded.")
      instead of leaving a blank shell with just the back link. */
   if(v==='event') window.renderEvent?.();
+  if(v==='hub') window.csAlbumOnce?.();   /* the season page's album (critique B2 P1) */
   /* Q-12 · point the schedule's back link at wherever it was opened from
      (setRoomSeg sets 'hub'; every other entry point means Home). */
   if(v==='schedule'){
@@ -15450,10 +15483,14 @@ window.liveSyncBadge = function(){
   if(!L.code){ el.textContent='Scoring it yourself · live on this phone'; return; }
   const n=Math.max(1,(state.livePresence||[]).length);
   const q=window.liveSync?.queued?.()||0;
+  const cells=window.liveSync?.queuedScores?.()||0;
   /* W1 · what is and is not saved, in words: "8 QUEUED" did not say the
-     scores were safe on this phone, or when they would go */
-  el.textContent = q
-    ? `${q} score${q===1?'':'s'} saved on this phone; ${q===1?'it sends':'they send'} when you have signal.`
+     scores were safe on this phone, or when they would go. The count is the
+     scores (distinct golfer-hole cells), not the messages; a wolf pick waiting
+     alone is saved without a number */
+  el.textContent = cells
+    ? `${cells} score${cells===1?'':'s'} saved on this phone; ${cells===1?'it sends':'they send'} when you have signal.`
+    : q ? 'Saved on this phone; it sends when you have signal.'
     : (n>1 ? `${n} phones scoring · every score sent` : 'Every score sent');
   el.classList.toggle('is-queued', q > 0);
 };
@@ -16872,6 +16909,13 @@ function syncTeeInputs(){
   renderMatchPrev();   /* slope moves course handicaps → strokes move too */
 }
 ['lrRate','lrSlope'].forEach(id=>$('#'+id).addEventListener('input',syncTeeInputs));
+/* the picker's edge says when there is a fifth game (see #gameSeg[data-more]);
+   a ResizeObserver re-reads it when the setup view first gets a size */
+(()=>{ const g=document.getElementById('gameSeg'); if(!g) return;
+  csBookEdge(g, g);
+  const again=()=>g.dispatchEvent(new Event('scroll'));
+  try{ new ResizeObserver(again).observe(g); }catch(_){ window.addEventListener('resize', again, {passive:true}); }
+})();
 $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#gameSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
@@ -26639,12 +26683,26 @@ function renderRosterDoor(){
   /* the Pro's handle and a member's state are two voices: a member read "Add
      anyone yourself" and "until you close it" about a control only the Pro
      has (the owner's panel) */
+  /* round 2's P0 (critique B2): in week 8 of 13 the card still said the Pro
+     "can still add a golfer until the halfway turn" — the turn had passed and
+     D161's door was shut. The turn is the server's own date (roster_door.sql:
+     starts + (ends − starts) / 2 in whole days): before it the sentence names
+     it, after it the roster is set, in the server's words. */
+  const se = window.CS?.season || null;
+  const halfISO = (se && se.starts_on && se.ends_on) ? (() => {
+    const a = localDate(String(se.starts_on).slice(0,10)), b = localDate(String(se.ends_on).slice(0,10));
+    const h = new Date(a.getFullYear(), a.getMonth(), a.getDate() + Math.floor(Math.round((b - a) / 864e5) / 2));
+    return isoOf(h); })() : null;
+  const pastHalf = !!halfISO && isoOf(new Date()) > halfISO;
+  const untilTurn = halfISO ? `until the halfway turn, ${pretty(halfISO)}` : 'until the halfway turn';
   $('#rosterSub').textContent = isPro
-    ? ( !d.open && d.by==='pro' ? 'You closed the roster. Add anyone yourself until the halfway turn.'
-      : !d.open                 ? 'The link has closed. Add anyone yourself until the halfway turn.'
+    ? ( !d.open && pastHalf     ? 'Past the halfway turn — the roster’s set for this season.'
+      : !d.open && d.by==='pro' ? `You closed the roster. Add anyone yourself ${untilTurn}.`
+      : !d.open                 ? `The link has closed. Add anyone yourself ${untilTurn}.`
       : d.until                 ? `Works until you close it, or until ${d.grace?'':'first tee — '}${pretty(d.until)}.`
       :                           'The invite link works until you close the roster.' )
-    : ( !d.open ? 'The roster is set. The Pro can still add a golfer until the halfway turn.'
+    : ( !d.open && pastHalf ? 'The roster’s set for this season.'
+      : !d.open ? `The roster is set. The Pro can still add a golfer ${untilTurn}.`
       : d.until ? `The invite link is open until ${pretty(d.until)}.`
       :           'The invite link is open.' );
   const act=$('#rosterAct');
@@ -30053,12 +30111,14 @@ function openProfileHub(){
     <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
     <span class="fine" id="phStatus"></span>
 
-    <div class="eyebrow" style="margin-top:20px">Handicap index</div>
+    <!-- AW2-02 (round 2, WCAG 4.1.2): the field is named by its eyebrow, and
+         the sentence under it describes it -->
+    <div class="eyebrow" id="phIdxLab" style="margin-top:20px">Handicap index</div>
     <div style="display:flex; gap:10px; align-items:center;">
-      <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px">
+      <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px" aria-labelledby="phIdxLab" aria-describedby="phIdxHelp">
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
-    <p class="fine" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works →</a></p>
+    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works →</a></p>
 
     <div class="eyebrow" style="margin-top:20px">Your seasons</div>
     ${leagues}
@@ -31708,6 +31768,10 @@ const liveSync = {
   q(){ try{ return JSON.parse(localStorage.getItem(this.qKey())||'[]'); }catch(_){ return []; } },
   saveQ(q){ try{ localStorage.setItem(this.qKey(), JSON.stringify(q.slice(-300))); }catch(_){} },
   queued(){ return this.lr ? this.q().length : 0; },
+  /* round 2's P0 (critique B2): the badge said "8 scores saved" on a card that
+     held 6 — every stepper tap queues a message, so a hole tapped 4→5→6 was
+     three. The number a golfer reads is the distinct (golfer, hole) cells */
+  queuedScores(){ if(!this.lr) return 0; const c=new Set(); for(const m of this.q()) if(m && m.t==='score') c.add(m.pid+':'+m.h); return c.size; },
   async join(lr, code, guestTok){
     if(!lr || !code) return;
     if(this.chan && this.lr===lr) return;   /* already on this round's channel */
@@ -32339,7 +32403,22 @@ function csCovenantFacts(info, postedRounds){
     /* L-23 · an individual season assesses no minimum, so none is promised */
     if(Number(info.floor) && info.structure !== 'solo') clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
     if(Number(info.handicap_allowance)) clauses.push('scored against your playing HCP — your index at ' + Number(info.handicap_allowance) + ' percent');
-    const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
+    /* crit-A wizard P1 (round 2's delta) · the covenant printed the stored
+       starting point's NAME whatever the dials say — "Standard rules: … best
+       four a month" for a league whose cap moved off Standard's three. The
+       wizard now says "Custom, built on Standard" (W5, csPresetMatches: the
+       cap and the minimum are a starting point's two dials); the joiner reads
+       the same thing about the same league. */
+    const prKey = info.preset ? String(info.preset).toLowerCase() : '';
+    const pr = prKey ? PRESETS.find(p => p.name.toLowerCase() === prKey) : null;
+    const capNow = info.every_round_counts === true ? null : (Number(info.counting_cap) || null);
+    /* an older payload without a dial is not evidence the dial moved */
+    const capKnown = info.every_round_counts === true || info.counting_cap != null;
+    const floorKnown = info.floor != null;
+    const same = !pr || ((!capKnown || CAP_DB[pr.cap] === capNow) && (!floorKnown || Number(info.floor) === pr.floor));
+    const head = !info.preset ? 'The rules: '
+      : same ? csCap(String(info.preset)) + ' rules: '
+      : 'Custom rules, built on ' + csCap(String(info.preset)) + ': ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
   /* the ending, in D126's own sentence rather than a dial name. L-23 · with the
@@ -35780,6 +35859,15 @@ function showWelcome(){
      when installed, still silent on a working surface. */
   setTimeout(() => window.csEarnInstallNudge?.(), 3400);
 }
+/* THE PUBLIC PLAN'S WHO-LINE · round 2's P0 (category judge, 2026-09-29): the
+   link said "Avery and Devon are in." while the plan's own sheet showed Avery
+   ASKED. share_info's `who` is every tagged golfer who has not said no — an
+   unanswered tag counts (the_plan_link.sql, X42; the in-app producer already
+   says ASKED, f46086b4). Until the database half is pushed, the page says only
+   what the payload supports: they are on the plan. When `who` carries only an
+   explicit yes, this is the one line to turn back to "in". */
+function csPlanWhoLine(whoTxt, n){ return whoTxt + (n === 1 ? ' is' : ' are') + ' on the plan.'; }
+
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';
   $('#obDoor').style.display = 'block';
@@ -36383,7 +36471,7 @@ async function renderShareView(tok, _testInfo){
     card.innerHTML = `<div class="sv-head">
         <p class="sv-eb cs-agate">${esc(fmtD(info.play_on))}${info.tee ? ` · <span style="text-transform:none">${esc(fmtTee(info.tee))}</span>` : ''}</p>
         <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
-        <p class="sv-where cs-body-s">${who.length ? `${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.` : `Just ${esc(info.host)} so far.`}</p>
+        <p class="sv-where cs-body-s">${who.length ? esc(csPlanWhoLine(whoTxt, who.length)) : `Just ${esc(info.host)} so far.`}</p>
       </div>` +
       foot({ cta: 'Take the seat', primary: true,
              note: `Sign in and you’ll be asked first. The seat, and a buddy request to ${info.host}, wait for your yes.` });
@@ -36437,7 +36525,8 @@ async function renderShareView(tok, _testInfo){
 
 /* a code that matches no league, said the one way everywhere (the Door's
    dead link, the code box, the join button); it was three literals */
-const CS_NO_LEAGUE = 'No league with that code. Check with your Pro.';
+const CS_NO_LEAGUE_HEAD = 'No league with that code.', CS_NO_LEAGUE_NEXT = 'Check with your Pro.';
+const CS_NO_LEAGUE = CS_NO_LEAGUE_HEAD + ' ' + CS_NO_LEAGUE_NEXT;
 /* ---- THE LINK LANDING (owner H, craft H/B, critique B P2) -------------------
    A scorecard link or an invitation brought the visitor, and that fact was
    the smallest line on the door: 12.5px mono under the email field, beneath a
@@ -36464,6 +36553,27 @@ function csLinkLanding(o){
   el.innerHTML = `<p class="eb cs-agate">${esc(o.label)}</p><h1 class="cs-lead">${o.headHtml}</h1>`
     + (o.sub ? `<p class="sub cs-body-s">${esc(o.sub)}</p>` : '');
   ob.classList.add('ob-linked');
+  return el;
+}
+/* ROUND 2 (session D's delta G3, a P1 regression at 375×380) · A DEAD LEAGUE
+   LINK IS SAID AT THE TOP. The dead answer used to take the invitation landing
+   away — the hero came back and pushed the corrected status line under the
+   fold on a short screen — and the email box stayed open on the join premise
+   critique B asked it not to open. The notice is now the landing itself (the
+   hero stays collapsed), announced as a status, and a branch the door had
+   opened on the invitation closes as Back would close it. */
+function csDeadJoinLanding(){
+  const el = csLinkLanding({ kind: 'dead', label: 'A season invite', headHtml: esc(CS_NO_LEAGUE_HEAD), sub: CS_NO_LEAGUE_NEXT });
+  if(!el) return null;
+  el.setAttribute('role', 'status');
+  $('#emailbox')?.classList.remove('open'); $('#codebox')?.classList.remove('open'); $('#joinbox')?.classList.remove('open');
+  const em = $('#obEmail'), jn = $('#obJoin'), bk = $('#obBack'), rs = $('#obResend');
+  if(em) em.style.display = ''; if(jn) jn.style.display = '';
+  if(bk) bk.style.display = 'none'; if(rs) rs.style.display = 'none';
+  authStatus('');
+  const h = el.querySelector('h1');
+  if(h){ h.tabIndex = -1; h.focus({ preventScroll: true }); }
+  el.scrollIntoView({ block: 'start' });
   return el;
 }
 function csJoinLanding(name){
@@ -36511,8 +36621,7 @@ if(joinParam){
       if(error) return;
       try { localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); localStorage.setItem('cs_code_dead', '1'); } catch(_){}
       if(landing){
-        csLinkLanding(null);
-        if(st && st.textContent === CS_JOIN_NEXT) st.textContent = CS_NO_LEAGUE;
+        csDeadJoinLanding();
         try { localStorage.removeItem('cs_code_dead'); } catch(_){}
       }
       return;
@@ -36632,7 +36741,7 @@ function csLinkCard(kind, info){
     /* the SHORT course name, as the landing card prints it */
     return { title: CS_LINK_ASK.plan.title, yes: CS_LINK_ASK.plan.yes, note: csLinkPlanNote(i.host),
              mark: mkr(i.marker), ask: csLinkAskPlan(i.host, String(i.course || '').split(' — ')[0], csLinkDay(i.play_on)),
-             facts: [tee ? tee + ' tee' : '', who.length ? whoTxt + (who.length === 1 ? ' is in.' : ' are in.') : ''].filter(Boolean).join(' · ') };
+             facts: [tee ? tee + ' tee' : '', who.length ? csPlanWhoLine(whoTxt, who.length) : ''].filter(Boolean).join(' · ') };
   }
   const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
@@ -36892,7 +37001,7 @@ async function safeBoot(force){
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
   let deadJoin = false; try { deadJoin = localStorage.getItem('cs_code_dead') === '1'; localStorage.removeItem('cs_code_dead'); } catch(_){}
-  if(!CS.user && !pend && deadJoin){ csLinkLanding(null); openEmailBox($('#obJoin'), CS_NO_LEAGUE); }   /* the lookup beat the boot */
+  if(!CS.user && !pend && deadJoin){ csDeadJoinLanding(); }   /* the lookup beat the boot: no email box on a dead invitation */
   if(!CS.user && pend){
     /* the invitation leads the door (csLinkLanding); the raw code is plumbing —
        the recipient never types it on this path, the link carries it (F1). The

@@ -337,6 +337,10 @@ struct ScheduledRoundSheet: View {
                  : CSRating.format(mine) + " · \(vm.rating.count) rating\(vm.rating.count == 1 ? "" : "s")")
               .csType(.agateS, caps: true).foregroundStyle(cs.mut)
           }
+          // a picture and its caption, read once as the fact they are — not
+          // an 18pt "four stars" element the audit files as a target (F03)
+          .accessibilityElement(children: .combine)
+          .accessibilityAddTraits(.isStaticText)
         }
       }
     }

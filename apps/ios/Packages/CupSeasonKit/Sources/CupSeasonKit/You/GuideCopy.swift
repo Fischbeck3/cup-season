@@ -95,25 +95,65 @@ public enum GuideCopy {
   /// the engine cannot do. Prefer `scoring(solo:)` wherever a league is known.
   public static var scoring: [ScoringSection] { scoring(solo: nil) }
 
+  /// Q-27 · the three facts `LeagueCopy.floorSentence` reads: a league's
+  /// monthly minimum, what a miss costs there, and its structure. A reader
+  /// with a league in hand gets THAT league's minimum, in the one sentence
+  /// every other place states it with (the rules page, Home's floor).
+  public struct Minimum: Sendable, Equatable {
+    public let floor: Int
+    /// `Bylaws.penalty`'s index: 0 casual, 1 standard, 2 cutthroat.
+    public let preset: Int
+    public let structure: String?
+    public init(floor: Int, preset: Int, structure: String?) {
+      self.floor = floor; self.preset = preset; self.structure = structure
+    }
+    public init(_ b: Bylaws) { self.init(floor: b.floor, preset: b.presetIdx, structure: b.structure) }
+    /// From `native_home`'s membership settings, read the way `Bylaws.from`
+    /// reads the room's. nil when the payload carries no floor: the guide then
+    /// speaks without a number rather than guess one (L-44).
+    public init?(_ s: Me.Settings?) {
+      guard let s, let floor = s.participation_floor else { return nil }
+      let preset = ["casual", "standard", "cutthroat"].firstIndex(of: s.preset ?? "") ?? 1
+      self.init(floor: floor, preset: preset, structure: s.structure)
+    }
+    public var solo: Bool { structure == "solo" }
+  }
+
   /// D205 · the scoring guide for one structure. `solo` true = a solo league
   /// (the floor is a habit — D140: there is no squad to dock); false = squads
   /// (everyone owes the minimum, the bye covers one miss); nil = unknown, and
   /// the floor paragraph says both.
-  public static func scoring(solo: Bool?) -> [ScoringSection] {
+  ///
+  /// Q-27 · **WITH A LEAGUE IN HAND THE MINIMUM IS `floorSentence`.** The
+  /// guide said the rule in its own words — "the penalty bites from the second
+  /// miss" — while the rules page and Home said what the miss COSTS, in the
+  /// league's own numbers, and that short months are waived. With `minimum`
+  /// the paragraph states the league's minimum in the one sentence; without
+  /// one (the league-less reader) there is no number to state and the
+  /// paragraph describes both structures, as it did.
+  public static func scoring(solo: Bool?, minimum: Minimum? = nil) -> [ScoringSection] {
+    let known = minimum.map(\.solo) ?? solo
     let counts: String
-    switch solo {
-    case true:
-      counts = "Your best rounds each month count — a better round always bumps the worst one that counts. In a solo league the monthly minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **The rules**."
-    case false:
-      counts = "Your best rounds each month count for your squad — a better round always bumps the worst one that counts — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your **bye** covers you automatically — life happens; the penalty bites from the second miss. Your league's exact numbers are in **The rules**."
-    default:
-      counts = "Your best rounds each month count — a better round always bumps the worst one that counts. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your **bye** covers you automatically — life happens; the penalty bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **The rules**."
+    if let m = minimum {
+      let lead = m.solo
+        ? "Your best rounds each month count — a better round always bumps the worst one that counts."
+        : "Your best rounds each month count for your squad — a better round always bumps the worst one that counts."
+      counts = "\(lead) \(LeagueCopy.floorSentence(floor: m.floor, preset: m.preset, structure: m.structure)) Your league's exact numbers are in **The rules**."
+    } else {
+      switch known {
+      case true:
+        counts = "Your best rounds each month count — a better round always bumps the worst one that counts. In a solo league the monthly minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **The rules**."
+      case false:
+        counts = "Your best rounds each month count for your squad — a better round always bumps the worst one that counts — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your **bye** covers you automatically — life happens; the penalty bites from the second miss. Your league's exact numbers are in **The rules**."
+      default:
+        counts = "Your best rounds each month count — a better round always bumps the worst one that counts. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your **bye** covers you automatically — life happens; the penalty bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **The rules**."
+      }
     }
     // D3's covenant line; "your squad" is a lie in a solo league and "your
     // standing" is true in BOTH — so only a KNOWN squad league gets the squad
     // wording. nil is the league-less reader in Card & settings, whose "What
     // counts" paragraph two blocks down was written to cover both structures.
-    let covenant = solo == false
+    let covenant = known == false
       ? "**You can't hurt your squad by playing badly — only by not playing.**"
       : "**You can't hurt your standing by playing badly — only by not playing.**"
     return [

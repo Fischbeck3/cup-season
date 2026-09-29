@@ -84,13 +84,27 @@ public enum OrdinaryPost {
 
   public static let readFailed = "Couldn’t read the record of your last post attempt on this phone. Nothing was sent — try again in a moment."
   public static let pointerUnreadable = "The record of your last post attempt on this phone can’t be read, so nothing was sent. Reinstalling would clear it; until then, post from the web."
-  public static let saveFailed = "Couldn’t keep a record of this post on your phone, so it wasn’t sent. Free up some space and press Post again."
+  public static let saveFailed = "Couldn’t keep a record of this post on your phone, so it wasn’t sent. Free up some space and press Add my round again."
   public static let notAvailableCopy = "Posting isn’t available on this server yet. Your round is kept here — try again after the update."
-  public static let ambiguousPrefix = "Couldn’t confirm the post. Press Post again to retry the same round."
-  public static let refusedSuffix = "Fix the card and press Post again — it’s still the same round."
+  // W1 · THE ACTION'S ANSWER IS SAID IN THE ACTION'S OWN NAME, word for word
+  // with the web's `csPostRefused` (index.html). The button is Add my round;
+  // "press Post again" named a button the composer does not have. And a
+  // refusal the server gave no reason for says exactly that, rather than
+  // "Something went wrong" dressed up as a reason.
+  public static let ambiguousCopy = "Couldn’t confirm the post. Press Add my round again to retry the same round — it can’t post twice."
+  public static let refusedUnknown = "The server didn’t accept this card and didn’t say why. Nothing was posted, and your card is kept — press Add my round to try again."
   public static let alreadyPostedCopy = "This round already posted — it’s in your history."
   public static let earlierPostedCopy = "Your earlier card had already posted — here it is. To change it, delete that round from your history and post again."
-  public static let earlierUnknownCopy = "Your earlier card may already have posted. Check your history before changing it — pressing Post again retries the same round."
+  public static let earlierUnknownCopy = "Your earlier card may already have posted. Check your history before changing it — pressing Add my round again retries the same round."
+
+  /// A definite refusal: nothing was written. The server's own sentence when
+  /// it wrote one for a golfer (`HumanError` passes those through), and the
+  /// honest unknown when not. Never used after the server took the round.
+  public static func refusal(_ error: Error) -> String {
+    let why = HumanError.text(error)
+    if why.hasPrefix("Something went wrong") { return refusedUnknown }
+    return "Nothing was posted: " + (why.hasSuffix(".") ? why : why + ".") + " Your card is kept."
+  }
   public static let receiptUnsavedCopy = "Round posted. Couldn’t record that on this phone — don’t post it again."
   public static let photoDroppedCopy = "Couldn’t upload the photo. Posting the round without it."
   public static let wrongGolferCopy = "Sign in as the golfer who started this round to post it."
@@ -159,8 +173,8 @@ public enum OrdinaryPost {
           return .failed(earlierUnknownCopy)
         }
       }
-      if isAmbiguous(error) { return .failed(HumanError.text(error, prefix: ambiguousPrefix)) }
-      return .refused(HumanError.text(error) + " " + refusedSuffix)
+      if isAmbiguous(error) { return .failed(ambiguousCopy) }
+      return .refused(refusal(error))
     }
     envelope.accepted = outcome.roundId
     var receiptUnsaved = false

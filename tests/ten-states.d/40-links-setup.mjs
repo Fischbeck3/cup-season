@@ -155,8 +155,11 @@ const LINKS = [
   /* a code that matches no league says so (owner panel P1: it said "You're
      invited" to a stranger) and is dropped, so signing in tries no join */
   { family: 'links', id: 'join-unavailable', variant: 'signed_out', url: `/?join=${JOIN.dead}`, short: true,
-    settle: doorSettle(() => /^No league with that code/.test((document.getElementById('obStatus') || {}).textContent || '') && (window.__tenNet || []).some((e) => /rpc\/league_by_code/.test(e.url) && e.status === 200)),
-    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obStatus': "text:^No league with that code\\. Check with your Pro\\.$", '#obLink': 'hidden' } },
+    /* ROUND 2 (G3): the dead link is the landing at the top, not a status line
+       under an email box opened on the join premise (critique B's fix; at 375×380
+       the status had fallen below the fold) */
+    settle: doorSettle(() => /No league with that code/.test((document.querySelector('#obLink[data-kind="dead"]') || {}).textContent || '') && (window.__tenNet || []).some((e) => /rpc\/league_by_code/.test(e.url) && e.status === 200)),
+    expect: { door: true, selectors: { '#emailbox.open': 'hidden', '#obLink[data-kind="dead"] h1': "text:^No league with that code\\.$", '#obLink[data-kind="dead"] .sub': "text:^Check with your Pro\\.$" } },
     check: async (page) => ((await page.evaluate(() => localStorage.getItem('cs_code') === null && localStorage.getItem('cs_code_name') === null)) ? true : 'the dead code was kept, or resolved to a name') },
   /* signed in with no league: the covenant gate, before join_league runs */
   { family: 'links', id: 'join-covenant', variant: 'brand_new', url: `/?join=${JOIN.season}`,

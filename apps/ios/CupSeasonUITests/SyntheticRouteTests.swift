@@ -24,13 +24,18 @@ final class SyntheticRouteTests: XCTestCase {
 
   // MARK: launching
 
+  /// The reading size is PINNED, never inherited (as `N2UITestCase` pins
+  /// it): a simulator left at an accessibility size by a capture pass ran
+  /// the default-size flows at AX3, where the live page's Finish sits three
+  /// swipes lower and the recap never came up (N4, 2026-09-28).
   @MainActor private func launch(_ scenario: String, _ route: String? = nil, _ detail: String? = nil,
-                                 theme: String = "dark", size: String? = nil, extra: [String] = []) -> XCUIApplication {
+                                 theme: String = "dark", size: String? = "large", extra: [String] = []) -> XCUIApplication {
     let app = XCUIApplication()
     var args = ["-cs_dev_synthetic", scenario]
     if let route { args += ["-cs_dev_open", route] + (detail.map { [$0] } ?? []) }
     args += ["-cs_dev_appearance", theme] + (extra.contains("-cs_dev_look") ? [] : ["-cs_dev_look", "none"])
-    if let size { args += ["-cs_dev_text_size", size] }
+    // an explicit `-cs_dev_text_size` in `extra` (a dump at AX3) wins over the pin
+    if let size, !extra.contains("-cs_dev_text_size") { args += ["-cs_dev_text_size", size] }
     app.launchArguments = args + extra
     app.launch()
     // Every synthetic launch draws at least one `cs.screen.*` mark (the boot's
@@ -93,8 +98,12 @@ final class SyntheticRouteTests: XCTestCase {
     let extra: [String]?
     let settle: Double?
     /// An optional XCUITest step before the shot: "keyboard" focuses the first
-    /// text field and waits for the keyboard.
+    /// text field and waits for the keyboard; `reveal:<identifier>` (or
+    /// `reveal:~<words in a label>`) scrolls an element outside the fold into
+    /// the shot once the root is up, down the page or back up it.
     let step: String?
+    /// The same reveal, for a row whose `step` is already a tap.
+    let reveal: String?
   }
 
   @MainActor func testCapturePlan() throws {
@@ -122,6 +131,18 @@ final class SyntheticRouteTests: XCTestCase {
           reveal(field, in: app)
           if field.exists { field.tap() }
           _ = app.keyboards.firstMatch.waitForExistence(timeout: 6)
+        }
+        let revealKey = entry.reveal ?? entry.step.flatMap { $0.hasPrefix("reveal:") ? String($0.dropFirst(7)) : nil }
+        if found, let key = revealKey {
+          let target = key.hasPrefix("~")
+            ? app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] %@", String(key.dropFirst()))).firstMatch
+            : app.descendants(matching: .any)[key]
+          if target.waitForExistence(timeout: 10) {
+            // a board opens on its newest line, so what it pins sits ABOVE the fold
+            for _ in 0..<8 where !target.isHittable {
+              if target.frame.maxY < app.windows.firstMatch.frame.midY { app.swipeDown() } else { app.swipeUp() }
+            }
+          }
         }
         Thread.sleep(forTimeInterval: entry.settle ?? 2.0)
         // The counters are the router's, not the screen's: every mark carries
@@ -357,8 +378,11 @@ final class SyntheticRouteTests: XCTestCase {
       .max { $0.frame.minY < $1.frame.minY }
     XCTAssertNotNil(post)
     post?.tap()
-    let why = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Fix the card")).firstMatch
+    // W1 / N4-020 · the refusal is said above the button, in the picture —
+    // it was a toast drawn under the composer's cover
+    let why = app.staticTexts["post.refusal"]
     XCTAssertTrue(why.waitForExistence(timeout: 10))
+    XCTAssertTrue(why.isHittable, "the refusal is on screen, not under the cover")
     attach(app, "flow__post-failed")
     XCTAssertTrue(mark(app, "composer").exists)
     XCTAssertEqual(app.textFields["Your gross"].firstMatch.value as? String, "84")

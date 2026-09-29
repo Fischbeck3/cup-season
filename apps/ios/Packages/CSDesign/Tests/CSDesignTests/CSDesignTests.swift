@@ -65,7 +65,14 @@ import SwiftUI
     // **83 since D359** (2026-09-14): `act`, the ordinary-action green, and
     // `brand-ink`, the type that sits on ember — both generated from
     // `packages/tokens/tokens.json` into both clients.
-    #expect(CSTokens.tokenNames.count == 83)
+    //
+    // **89 since TEN / W6** (02b4cfff, 2026-09-28): `object.ceremony-pig0…5`,
+    // the ceremony ramp's pigments — a face drawn on a ceremony object keeps
+    // the DARK disc in both printings, where the web's `.evcard` had re-typed
+    // the hexes by hand. Like `leaf-gold`, they do not turn over.
+    #expect(CSTokens.tokenNames.count == 89)
+    #expect(CSTokens.dark.ceremonyPig0 == CSTokens.light.ceremonyPig0
+            && CSTokens.dark.ceremonyPig5 == CSTokens.light.ceremonyPig5, "the ceremony's pigments do not turn over")
     #expect(CSTokens.dark.leafGold == CSTokens.light.leafGold, "gold on paper does not turn over")
     #expect(CSTokens.defaultTheme == .dark)
     #expect(CSTokens.Radius.r == 16 && CSTokens.Radius.rc == 10 && CSTokens.Radius.rs == 24)

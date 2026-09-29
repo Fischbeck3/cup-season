@@ -42,6 +42,7 @@ struct LeaguelessDoors: View {
           onCancelled: { wizard = false; links.onCancelled() },
           startEvent: links.startEvent, onJoined: links.onJoined))
       }
+      .csCoverToasts()
     }
     .sheet(isPresented: $join) {
       JoinLeagueFlow(code: nil) { id in join = false; links.onJoined(id) }

@@ -11,7 +11,34 @@
 
 import Foundation
 
+/// W3 twin · **A NINE IS NEVER "BROKE 80".** `home_feed`'s `is_sub80` does not
+/// look at the hole count, so a 43 over nine read as a first sub-80 on the
+/// golfer's own record and to their buddies. The row carries no hole count
+/// either, so the claim is made only when the round is KNOWN to be eighteen
+/// holes, from counts this client already holds (the web's `csRoundHoles`
+/// reads the row, the board's round cache and the golfer's own rows). Unknown
+/// claims nothing (L-44): a missed celebration is recoverable, a false one is
+/// not. The server half (`is_sub80` requiring 18 holes) is owed separately.
+public struct KnownHoles: Sendable, Equatable {
+  public var byRound: [UUID: Int]
+  public init(_ byRound: [UUID: Int] = [:]) { self.byRound = byRound }
+  public static let none = KnownHoles()
+  public func of(_ r: HomeFeedRow) -> Int? { r.round_id.flatMap { byRound[$0] } }
+}
+
 public enum HomeWireCopy {
+
+  /// `csSub80` · the flag, and a round known to be eighteen holes.
+  public static func claimsSub80(_ r: HomeFeedRow, holes: Int?) -> Bool {
+    r.is_sub80 == true && holes == 18
+  }
+
+  /// `csGrossUnit` · a nine says it is a nine, beside its figure, wherever the
+  /// client knows it: `43` over `GROSS · 9 HOLES`.
+  public static func grossUnit(holes: Int?) -> String {
+    if let h = holes, h > 0, h < 18 { return "Gross · \(h) holes" }
+    return "Gross"
+  }
 
   /// `79 at Papago — a personal best.`
   ///
@@ -24,7 +51,7 @@ public enum HomeWireCopy {
   /// The band gloss is `CSBands`' verbatim — *"beat their playing HCP by
   /// 2.4"* — never a re-wording. The five bands and the gloss are a spec
   /// §2.2 contract with a preflight check behind it.
-  public static func roundLine(_ r: HomeFeedRow) -> String {
+  public static func roundLine(_ r: HomeFeedRow, holes: Int? = nil) -> String {
     let course = r.course?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let base: String
     if course.isEmpty {
@@ -32,16 +59,16 @@ public enum HomeWireCopy {
     } else {
       base = r.gross.map { "\($0) at \(course)" } ?? "A round at \(course)"
     }
-    if let detail = roundDetail(r) { return "\(base) — \(detail)" }
+    if let detail = roundDetail(r, holes: holes) { return "\(base) — \(detail)" }
     return "\(base)."
   }
 
   /// The no-photo record already prints course and gross. Keep only the story.
   /// A missing gross is not a milestone or a performance claim.
-  public static func roundDetail(_ r: HomeFeedRow) -> String? {
+  public static func roundDetail(_ r: HomeFeedRow, holes: Int? = nil) -> String? {
     guard r.gross != nil else { return nil }
     if r.is_pr == true { return "a personal best." }
-    if r.is_sub80 == true { return "broke 80 for the first time." }
+    if claimsSub80(r, holes: holes) { return "broke 80 for the first time." }
     if r.is_first == true { return r.is_me == true ? "your first round posted." : "their first round posted." }
     if let p = r.pvi {
       let phrase = r.is_me == true ? CSBands.vsPhrase(p) : CSBands.theirs(CSBands.vsPhrase(p))
@@ -62,7 +89,7 @@ public enum HomeWireCopy {
   /// its board cache for the active league. When the row carries it, both
   /// clients print this same sentence off the same three numbers.
   public static func roundStory(_ r: HomeFeedRow, points: Int? = nil, monthRank: Int? = nil,
-                                cap: Int? = nil) -> String? {
+                                cap: Int? = nil, holes: Int? = nil) -> String? {
     guard r.gross != nil else { return nil }
     if let points, let monthRank {
       let counting: String
@@ -73,7 +100,7 @@ public enum HomeWireCopy {
       }
       return "\(CSCopy.points(Double(points))) pts · \(counting)"
     }
-    guard let d = roundDetail(r) else { return nil }
+    guard let d = roundDetail(r, holes: holes) else { return nil }
     return d.prefix(1).uppercased() + d.dropFirst()
   }
 
@@ -114,6 +141,15 @@ public enum HomeWireCopy {
       return (s.value, s.label)
     }
     return (figure, "\(s.label) · \(day)")
+  }
+
+  /// `2 comments` · `1 comment` · `Comments` — the door to a round's
+  /// conversation, under its reactions. The count is the thread's own; with
+  /// none (or none known yet) the door names what it opens. Home printed
+  /// `1 comments` under a round because the plural was a view's string.
+  public static func commentsDoor(_ n: Int?) -> String {
+    guard let n, n > 0 else { return "Comments" }
+    return n == 1 ? "1 comment" : "\(n) comments"
   }
 
   /// `Of eight` — the lead chip's unit, under the rank and the movement.

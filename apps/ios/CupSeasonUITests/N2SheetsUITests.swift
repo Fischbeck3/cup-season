@@ -46,12 +46,9 @@ final class N2SheetsUITests: N2UITestCase {
       let close = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Close")).firstMatch
       report.append("\(s.place): headers=\(names) close=\(close.exists ? "\(close.frame.size)" : "none")")
       if !s.title.isEmpty {
+        // the tour card's title is the credential's name (CSCredential), a
+        // heading since N4
         let named = names.contains { $0.caseInsensitiveCompare(s.title) == .orderedSame }
-        if s.place == "tourcard" && !named {
-          // the tour card's name is the credential's (CSCredential, CSDesign —
-          // lane N1): reported for N1, recorded here rather than hidden
-          XCTExpectFailure("F03 · the credential's name is not yet a heading (CSDesign, N1)", options: .nonStrict())
-        }
         XCTAssertTrue(named, "\(s.place): the title \(s.title) is the sheet's heading — headers: \(names)")
       }
       XCTAssertFalse(headers.isEmpty, "\(s.place): the sheet names itself with a heading")
@@ -65,12 +62,10 @@ final class N2SheetsUITests: N2UITestCase {
       report.append("  audit: \(issues.count) — " + issues.prefix(8).joined(separator: " | "))
       attach(app, "f03-\(s.place)")
       if close.exists && close.isHittable {
-        if s.place == "intent" && close.frame.height < 43.5 {
-          // IntentSheet draws csTertiary(.toolbar) inline, outside a toolbar
-          // (42pt): reported for its owners, recorded here rather than hidden
-          XCTExpectFailure("F03 · the intent sheet's inline Close is 42pt (csTertiary(.toolbar) outside a toolbar)", options: .nonStrict())
-        }
+        // measured on screen: a fitted sheet is drawn scaled (≈0.96), so the
+        // intent sheet's Close is `.fittedSheet`'s 48 in layout (N4)
         XCTAssertGreaterThanOrEqual(close.frame.height, 43.5, "\(s.place): Close is a 44pt target")
+        XCTAssertGreaterThanOrEqual(close.frame.width, 43.5, "\(s.place): Close is a 44pt target, across too")
         close.tap()
         XCTAssertTrue(root.waitForNonExistence(timeout: 10), "\(s.place): Close takes the sheet down")
         XCTAssertTrue(app.descendants(matching: .any)["cs.screen.\(s.under)"].waitForExistence(timeout: 10),

@@ -83,17 +83,22 @@ struct HomeSectionRule: View {
 /// grant becomes the record. Loading one round's picture cannot touch another's.
 struct HomeWireBand: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let row: HomeFeedRow
   let photo: URL?
   var photos: HomePhotoStore = .shared
   /// the storage refused this path on the last load — the object is gone or not ours
   var denied: Bool = false
+  /// W3 twin · the round's hole count when this client knows it (`KnownHoles`);
+  /// nil claims no sub-80 and prints a plain GROSS
+  var holes: Int? = nil
   let open: () -> Void
   let openPerson: () -> Void
 
-  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared, denied: Bool = false,
+  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared, denied: Bool = false, holes: Int? = nil,
        open: @escaping () -> Void, openPerson: @escaping () -> Void) {
-    self.row = row; self.photo = photo; self.photos = photos; self.denied = denied; self.open = open; self.openPerson = openPerson
+    self.row = row; self.photo = photo; self.photos = photos; self.denied = denied; self.holes = holes
+    self.open = open; self.openPerson = openPerson
   }
   private var credential: HomePhotoStore.Credential {
     if let photo { return .url(photo) }
@@ -101,8 +106,19 @@ struct HomeWireBand: View {
   }
 
   private var name: String { HomeCopy.who(row) }
-  private var line: String { HomeWireCopy.roundLine(row) }
+  private var line: String { HomeWireCopy.roundLine(row, holes: holes) }
   private var state: HomePhotoStore.State { photos.state(for: row.photo_path) }
+
+  /// §16.3 · **AT THE ACCESSIBILITY SIZES THE COPY LEAVES THE PHOTOGRAPH.** A
+  /// 168pt band holds a name, a line and a gross at the reading sizes. At AX3
+  /// the line alone runs five lines, and a long name that wraps whole — as a
+  /// name must — broke INSIDE its words in the column between the face and
+  /// the gross (`Maximili / an`) and printed through the credit at the band's
+  /// head. So the picture keeps its 168 and its credit, and the copy sets
+  /// under it on the page's own ground: the face and the gross on one row,
+  /// then the name and the line at the full measure — the credential's own
+  /// rule for its identity at these sizes (§6.7, §6.8).
+  private var copyLeavesThePicture: Bool { typeSize.isA11y }
 
   var body: some View {
     Group {
@@ -113,9 +129,9 @@ struct HomeWireBand: View {
         if let prior { band(Image(uiImage: prior), loading: true) } else { frame }
       case .failed(let prior):
         if let prior { band(Image(uiImage: prior)) }
-        else { HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter) }
+        else { HomeWireSlat(row: row, open: open, openPerson: openPerson, holes: holes).padding(.horizontal, CSTokens.Space.gutter) }
       case .none, .removed:
-        HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter)
+        HomeWireSlat(row: row, open: open, openPerson: openPerson, holes: holes).padding(.horizontal, CSTokens.Space.gutter)
       }
     }
     .task(id: credential) { photos.load(path: row.photo_path, credential: credential) }
@@ -126,9 +142,18 @@ struct HomeWireBand: View {
   /// The score and the course never wait for the picture.
   private var frame: some View {
     Button(action: open) {
-      ZStack(alignment: .bottomLeading) {
-        cs.bg1.frame(maxWidth: .infinity).frame(height: 168)
-        copyRow(onPhoto: false)
+      Group {
+        if copyLeavesThePicture {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+            cs.bg1.frame(maxWidth: .infinity).frame(height: 168)
+            copyRow(onPhoto: false)
+          }
+        } else {
+          ZStack(alignment: .bottomLeading) {
+            cs.bg1.frame(maxWidth: .infinity).frame(height: 168)
+            copyRow(onPhoto: false)
+          }
+        }
       }
       .frame(maxWidth: .infinity)
       .contentShape(Rectangle())
@@ -142,55 +167,108 @@ struct HomeWireBand: View {
   }
 
   @ViewBuilder private func copyRow(onPhoto: Bool) -> some View {
-    HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
-      CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
-        .frame(width: 44, height: 44)
-        .contentShape(Rectangle())
-        .onTapGesture { openPerson() }
-      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-        // §1.3 · a person in a wire row is never caps.
-        Text(name).csType(.social).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.ink)
-          .lineLimit(1).truncationMode(.tail)
-        Text(line).csType(.bodyS).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
+    if copyLeavesThePicture {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+          face
+          Spacer(minLength: CSTokens.Space.s3)
+          if let g = row.gross { gross(g, onPhoto: false) }
+        }
+        words(onPhoto: false)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      if let g = row.gross {
-        CSPanel(onPhoto ? .overPhoto : .page, unit: "Gross", width: 60, height: 60) {
-          Text("\(g)").csType(.figureM)
-        }
+      .padding(.horizontal, CSTokens.Space.gutter)
+      .padding(.bottom, CSTokens.Space.s3)
+    } else {
+      HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
+        face
+        words(onPhoto: onPhoto)
+          .frame(maxWidth: .infinity, alignment: .leading)
+        if let g = row.gross { gross(g, onPhoto: onPhoto) }
       }
+      .padding(.horizontal, CSTokens.Space.gutter)
+      .padding(.bottom, CSTokens.Space.s3)
     }
-    .padding(.horizontal, CSTokens.Space.gutter)
-    .padding(.bottom, CSTokens.Space.s3)
+  }
+
+  private var face: some View {
+    CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+      .frame(width: 44, height: 44)
+      .contentShape(Rectangle())
+      .onTapGesture { openPerson() }
+  }
+
+  private func words(onPhoto: Bool) -> some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      // §1.3 · a person in a wire row is never caps. A long name WRAPS WHOLE
+      // (never an ellipsis): the band printed `Maximilian Placeholder-Wor…`.
+      Text(name).csType(.social).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(line).csType(.bodyS).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
+  private func gross(_ g: Int, onPhoto: Bool) -> some View {
+    CSPanel(onPhoto ? .overPhoto : .page, unit: HomeWireCopy.grossUnit(holes: holes), width: 60, height: 60) {
+      Text("\(g)").csType(.figureM)
+    }
+  }
+
+  /// The picture alone, at its 168, with the credit riding its head — the
+  /// accessibility sizes' band, whose copy sets under it.
+  private func picture(_ image: Image) -> some View {
+    ZStack(alignment: .top) {
+      image.resizable().scaledToFill()
+        .frame(maxWidth: .infinity)
+        .frame(height: 168)
+        .clipped()
+      CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
+      Text(HomeWireCopy.photoCredit(row)).csType(.agateS, caps: true)
+        .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
+        .multilineTextAlignment(.trailing)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .padding(CSTokens.Space.s3)
+    }
+    .frame(height: 168)
+    .clipped()
   }
 
   func band(_ image: Image, loading: Bool = false) -> some View {
     Button(action: open) {
-      ZStack(alignment: .bottomLeading) {
-        image.resizable().scaledToFill()
-          .frame(maxWidth: .infinity)
-          .frame(height: 168)
-          .clipped()
-        // the two named geometries, used as named: `.band` for the copy at the
-        // leading edge, `.top` for the credit riding the head of the picture
-        CSPhotoScrim.layer(CSPhotoScrim.band, leading: true)
-        CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
-          .frame(maxHeight: .infinity, alignment: .top)
-        VStack(alignment: .trailing) {
-          Text(HomeWireCopy.photoCredit(row)).csType(.agateS, caps: true)
-            // §10.3's sixth conflict: `.top` reaches only a72, so a caption
-            // under it takes `scrimInk` and not `scrimMut`.
-            .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
-          Spacer(minLength: 0)
+      if copyLeavesThePicture {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          picture(image)
+          copyRow(onPhoto: false)
         }
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(CSTokens.Space.s3)
-        copyRow(onPhoto: true)
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+      } else {
+        ZStack(alignment: .bottomLeading) {
+          image.resizable().scaledToFill()
+            .frame(maxWidth: .infinity)
+            .frame(height: 168)
+            .clipped()
+          // the two named geometries, used as named: `.band` for the copy at the
+          // leading edge, `.top` for the credit riding the head of the picture
+          CSPhotoScrim.layer(CSPhotoScrim.band, leading: true)
+          CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
+            .frame(maxHeight: .infinity, alignment: .top)
+          VStack(alignment: .trailing) {
+            Text(HomeWireCopy.photoCredit(row)).csType(.agateS, caps: true)
+              // §10.3's sixth conflict: `.top` reaches only a72, so a caption
+              // under it takes `scrimInk` and not `scrimMut`.
+              .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
+            Spacer(minLength: 0)
+          }
+          .frame(maxWidth: .infinity, alignment: .trailing)
+          .padding(CSTokens.Space.s3)
+          copyRow(onPhoto: true)
+        }
+        .frame(maxWidth: .infinity)
+        .clipped()
+        .contentShape(Rectangle())
       }
-      .frame(maxWidth: .infinity)
-      .clipped()
-      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .ignore)
@@ -222,12 +300,14 @@ struct HomeWireSlat: View {
   var points: Int? = nil
   var monthRank: Int? = nil
   var cap: Int? = nil
+  /// W3 twin · see `HomeWireBand.holes`
+  var holes: Int? = nil
 
   private var name: String { HomeCopy.who(row) }
   private var course: String {
     row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded"
   }
-  private var story: String? { HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap) }
+  private var story: String? { HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes) }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -240,8 +320,9 @@ struct HomeWireSlat: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open golfer card: \(name)")
+        // a long name wraps whole, as on the band above
         Text(name).csType(.social).foregroundStyle(cs.ink)
-          .lineLimit(1).truncationMode(.tail)
+          .fixedSize(horizontal: false, vertical: true)
           .frame(maxWidth: .infinity, alignment: .leading)
         if let day = HomeWireCopy.dayMarker(row.played_on) {
           Text(day).csType(.agateS, caps: true).foregroundStyle(cs.mut)
@@ -260,7 +341,7 @@ struct HomeWireSlat: View {
             if let gross = row.gross {
               HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
                 Text("\(gross)").csType(.figureL).foregroundStyle(cs.ink)
-                Text("Gross").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                Text(HomeWireCopy.grossUnit(holes: holes)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
               }
               .fixedSize()
             }
@@ -293,7 +374,7 @@ struct HomeWireSlat: View {
       .buttonStyle(.plain)
       .accessibilityIdentifier("home.round.no-photo")
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row))")
+      .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row, holes: holes))")
       .accessibilityHint("Opens the round")
     }
     .padding(.top, CSTokens.Space.s2)
@@ -338,10 +419,14 @@ struct HomeWireReactions: View {
         Button(action: openComments) {
           HStack(spacing: CSTokens.Space.s1) {
             CSGlyph(.comment, size: .inline)
-            Text(commentCount.map { $0 > 0 ? "\($0) comments" : "Comments" } ?? "Comments").csType(.bodyS)
+            // `1 comment`, never `1 comments` — the Kit counts, the view prints
+            Text(HomeWireCopy.commentsDoor(commentCount)).csType(.bodyS)
           }
           .foregroundStyle(cs.ink)
-          .frame(minHeight: 44)
+          .frame(minWidth: 44, minHeight: 44)
+          // the frame is not the target until something shapes it (see
+          // `CSTertiaryStyle`): without this the door was its 18pt words
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("home.round.comments")

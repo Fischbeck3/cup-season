@@ -282,9 +282,10 @@ public struct HomeStreamRepository: Sendable {
 // MARK: - copy for a feed row (feedRow 10247–10295)
 
 public enum HomeCopy {
-  public static func milestone(_ r: HomeFeedRow) -> String? {
+  public static func milestone(_ r: HomeFeedRow, holes: Int? = nil) -> String? {
     if r.is_pr == true { return "Personal best" }
-    if r.is_sub80 == true { return "Broke 80 — first time" }
+    // W3 twin · only a round known to be eighteen holes (`KnownHoles`)
+    if HomeWireCopy.claimsSub80(r, holes: holes) { return "Broke 80 — first time" }
     // TERMINOLOGY §4 row 7 · the card is the CREDENTIAL; a round POSTS.
     if r.is_first == true { return "First round posted" }
     return nil
