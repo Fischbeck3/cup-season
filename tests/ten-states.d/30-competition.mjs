@@ -135,7 +135,7 @@ const onNorthGrove = async (page) => { const f = await seasonFacts(page); return
 /* AW2-04: at the desk the climb draws only its cut, and "What's on it" yields
    to the pot beside it, so the rungs, the seat line and the line card are
    words the phone's shape must draw and the desk's must not */
-const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#climbNote', below: 960 }, '#climb .climb-cut', { sel: '#climb .climb-rung .voice', below: 960 },
+const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#climbNote', below: 960 }, { sel: '#climb .climb-cut', below: 960 }, { sel: '#climb .climb-rung .voice', below: 960 },
   '#scenarioLine', { sel: '#lineSplit', below: 960 }, { sel: '#homeSeason .ontheline .ok', below: 960 }, '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
   '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
   { sel: '#seasonJump button', below: 960 }, { sel: '.tabbar .tab', below: 960 }]
@@ -177,10 +177,10 @@ const SEASON = [
         if (story !== 'Fixture Javelinas lead by 34.') return `the story reads ${JSON.stringify(story)}`
         if (innerWidth < 960) return [...document.querySelectorAll('#climb .climb-rung')].some(shown) ? true : 'the phone lost its ladder'
         if ([...document.querySelectorAll('#climb .climb-rung, #climb .climb-ellip')].some(shown)) return 'the desk climb still draws the rungs the table draws'
-        const cut = document.querySelector('#climb .climb-cut')
-        if (!shown(cut)) return 'the desk climb does not draw its cut line'
-        const cutTxt = cut.innerText.replace(/\s+/g, ' ').trim()
-        if (cutTxt !== 'TOP SEED · +10 · 34 BACK') return `the cut line reads ${JSON.stringify(cutTxt)}`
+        /* W7-021: a two-squad season's cut is the seed line, which the table's cut row and its GAP column already print
+           (the fixture is two squads), so the whole climb column yields at the desk */
+        if (![...document.querySelectorAll('#homeSeason .homegrid > [data-desk-yields]')].length) return 'the desk climb column does not yield for a two-squad season'
+        if (['#climbEyebrow', '#climb', '#climb .climb-cut'].some((s) => shown(document.querySelector(s)))) return 'the desk still draws the climb card (its line is the table\'s cut row and GAP)'
         const note = document.getElementById('climbNote')
         if (shown(note) && note.innerText.trim()) return `the desk climb still says the seat line: ${JSON.stringify(note.innerText.trim())}`
         if ([...document.querySelectorAll('#homeSeason .ontheline')].some(shown)) return '"What\'s on it" still prints the pot beside the pot'

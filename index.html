@@ -9149,10 +9149,14 @@ function renderClimb(){
      its seat line (D127's hollow Final is said nowhere else), and a settled
      season's climb IS the final table, so the whole card yields to the table
      (`data-desk-yields`). Below 960 the ladder is unchanged: the phone's table
-     and climb are not one viewport, and the climb is how a phone reads the race. */
+     and climb are not one viewport, and the climb is how a phone reads the race.
+     W7-021 · and a two-squad season's cut IS the seed line, which the table's
+     cut row prints beside its GAP column and the story says ('TOP SEED · +10 ·
+     34 BACK' was the gap and the +10 a third and a fourth time in one
+     viewport), so the desk's card has no line left to draw and yields whole. */
   const deskOnly = csDeskClimb() && !settled;
   const block = box.closest('.homegrid > div');
-  if(block) block.toggleAttribute('data-desk-yields', settled);
+  if(block) block.toggleAttribute('data-desk-yields', settled || (deskOnly && !!cut.seed));
   if(deskOnly){
     if(K<n) html=`<div class="climb-cut" data-cid="cut"><span class="ln" aria-hidden="true"></span><span class="lb">${esc(cutLabel())}</span><span class="ln" aria-hidden="true"></span></div>`;
   } else idxs.forEach(i=>{
