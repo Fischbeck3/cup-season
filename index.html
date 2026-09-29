@@ -2125,7 +2125,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    rather than looking pasted in */
 .cstatus{font-size:15px; line-height:1.5; color:var(--mut); margin:20px 0 0;}
 /* W7-026 · the dateline a kept table wears once its refresh failed (§13.3: agate, at mut) */
-#standingsStale{color:var(--mut); margin:var(--s2) 0 0;}
+#standingsStale, #indStale{color:var(--mut); margin:var(--s2) 0 0;}
 .cstatus .cfrun{font-family:var(--board); font-weight:700; color:var(--mut);}
 .crow{margin-top:12px;}
 .cred .cfolio{border-top:1px solid rgba(241,244,239,.16); padding-top:8px; display:flex;
@@ -9742,6 +9742,18 @@ function csStandingsStale(){
   if(!(f && f.kept && at && at.at)){ if(p) p.remove(); return; }
   if(!p){
     p = document.createElement('p'); p.id = 'standingsStale'; p.className = 'cs-agate-s'; p.setAttribute('role', 'status');
+    wrap.insertAdjacentElement('afterend', p);
+  }
+  p.textContent = csStaleLine(at.at, f.offline);
+}
+/* W7-026 [X01] (E5) · the same dateline under Every golfer, when the stats' refresh failed and the last figures are what is on screen */
+function csIndStale(){
+  const wrap = document.getElementById('indTable')?.closest('.tblwrap'); if(!wrap) return;
+  let p = document.getElementById('indStale');
+  const f = window.statsFailed, at = window.statsAt;
+  if(!(f && f.kept && at && at.at)){ if(p) p.remove(); return; }
+  if(!p){
+    p = document.createElement('p'); p.id = 'indStale'; p.className = 'cs-agate-s'; p.setAttribute('role', 'status');
     wrap.insertAdjacentElement('afterend', p);
   }
   p.textContent = csStaleLine(at.at, f.offline);
@@ -25154,14 +25166,25 @@ function renderIndStats(){
 function renderIndStatsReal(){
   const rows=window.indRows||[];
   const dash=id=>{ const el=$(id); if(el) el.textContent='—'; };
+  csIndStale();
   if(!rows.length){
     ['#msR','#msAvg','#msBest','#msDelta','#awKing','#awImp','#awIron'].forEach(dash);
-    $('#msAvgSub').textContent='No rounds count yet';
-    $('#msBestSub').textContent='No rounds count yet';
-    $('#msDeltaSub').textContent='Needs 2 rounds this season';
+    /* W7-026 [X01] (E5) · a read that failed is never 'No rounds count yet' / 'The race fills in once your league season is live': the words are
+       the phone's failedRead (csEmptyRoot), with the one move that helps, and the tiles say nothing rather than a false zero */
+    const failed = !!window.statsFailed;
+    $('#msAvgSub').textContent = failed ? '' : 'No rounds count yet';
+    $('#msBestSub').textContent = failed ? '' : 'No rounds count yet';
+    $('#msDeltaSub').textContent = failed ? '' : 'Needs 2 rounds this season';
     $('#awKingS').textContent='Points King';
     $('#awImpS').textContent='Most Improved';
     $('#awIronS').textContent='Iron Man';
+    if(failed){
+      const e = csEmptyRoot('stats', { failed:true });
+      $('#indTable').innerHTML='<tr><td style="padding:var(--s4) var(--s1)"><div role="status"><b class="cs-body" style="display:block;color:var(--ink);font-weight:600">'+esc(e.head)+'</b>'
+        + '<span class="cs-body-s" style="display:block;color:var(--mut)">'+esc(e.sub)+'</span>'
+        + '<button type="button" class="mini" id="indRetry" style="margin-top:var(--s2)">Try again</button></div></td></tr>';
+      $('#indRetry')?.addEventListener('click', () => { const b=$('#indRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadStandingsAndFeed?.(); });
+    } else
     $('#indTable').innerHTML='<tr><td class="fine" style="padding:12px 4px">The race fills in once your league season is live and rounds land.</td></tr>';
     csYouStripsDedupe();
     return;
@@ -32558,7 +32581,7 @@ async function loadStandingsAndFeed(requireRoom=false){
   if(CS.season){
     try {
       const capN=capNum();
-      const [{ data: rr }, { data: ind }] = await Promise.all([
+      const [{ data: rr, error: rrErr }, { data: ind, error: indErr }] = await Promise.all([
         sb.from('v_rounds_ranked')
           .select('member_id, round_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played')
           .eq('season_id', CS.season.id),
@@ -32566,38 +32589,49 @@ async function loadStandingsAndFeed(requireRoom=false){
           .select('member_id, points, rounds_posted')
           .eq('season_id', CS.season.id),
       ]);
-      const by={};
-      (rr||[]).forEach(r=>{ (by[r.member_id] ||= []).push(r); });
-      Object.values(by).forEach(a=>a.sort((x,y)=> x.played_on<y.played_on ? -1 : 1));
-      const sqOf = id => {
-        const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
-        return q ? q.name : '';   /* the squad's NAME: a four-letter cut read "FIXT" for two different squads */
-      };
-      window.indRows = (ind||[]).map(i=>{
-        const rs=by[i.member_id]||[];
-        const d = rs.length>1 ? Number(rs[rs.length-1].index_at_post)-Number(rs[0].index_at_post) : null;
-        return {
-          n: memName(i.member_id), ci: memCi(i.member_id), sq: sqOf(i.member_id),
-          mid: i.member_id, r: Number(i.rounds_posted),
-          avg: rs.length ? rs.reduce((a,r)=>a+Number(r.pvi),0)/rs.length : 0,
-          best: rs.length ? Math.max(...rs.map(r=>Number(r.pvi))) : null,
-          pts: Number(i.points), d, me: i.member_id===CS.member?.id,
-          hist: rs.map(r=>({ ...r, counting: r.month_rank<=capN })).reverse(),
+      /* W7-026 [X01] (E5, D's second reader) · the standings' law, for the stats below them: a failed read is not an empty season. Either view failing
+         overwrote indRows with [] and myMonth with {credits:0, counting:0}, and on the same page Every golfer read 'The race fills in once your league
+         season is live', the month tile '0 / 4' and Up next '2 more toward September's minimum of 2 — you're at 0' to a golfer who had met it. The last
+         figures stay (an 'As of … · couldn't refresh' line under Every golfer says so, csIndStale); with nothing to keep, Every golfer says the read failed. */
+      if(rrErr || indErr){
+        window.statsFailed = { offline: navigator.onLine === false,
+          kept: window.statsAt?.season === CS.season.id && (window.indRows||[]).length > 0 };
+        console.warn('[stats]', rrErr || indErr);
+      } else {
+        window.statsFailed = null; window.statsAt = { season: CS.season.id, at: new Date() };
+        const by={};
+        (rr||[]).forEach(r=>{ (by[r.member_id] ||= []).push(r); });
+        Object.values(by).forEach(a=>a.sort((x,y)=> x.played_on<y.played_on ? -1 : 1));
+        const sqOf = id => {
+          const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
+          return q ? q.name : '';   /* the squad's NAME: a four-letter cut read "FIXT" for two different squads */
         };
-      }).sort((a,b)=>b.pts-a.pts || b.avg-a.avg);
-      const mine=by[CS.member?.id]||[];
-      /* D362 · the composer reads these to say what a round can add this month */
-      window.myRanked = mine;
-      const now=new Date();
-      const mkey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-      const mm=mine.filter(r=>String(r.played_on).startsWith(mkey));
-      window.myMonth={
-        credits: mm.reduce((a,r)=>a+Number(r.floor_credit),0),
-        counting: mm.filter(r=>r.month_rank<=capN).length,
-      };
-      window.myIndexDelta = mine.length>1
-        ? Number(CS.profile?.index_current ?? mine[mine.length-1].index_at_post) - Number(mine[0].index_at_post)
-        : null;
+        window.indRows = (ind||[]).map(i=>{
+          const rs=by[i.member_id]||[];
+          const d = rs.length>1 ? Number(rs[rs.length-1].index_at_post)-Number(rs[0].index_at_post) : null;
+          return {
+            n: memName(i.member_id), ci: memCi(i.member_id), sq: sqOf(i.member_id),
+            mid: i.member_id, r: Number(i.rounds_posted),
+            avg: rs.length ? rs.reduce((a,r)=>a+Number(r.pvi),0)/rs.length : 0,
+            best: rs.length ? Math.max(...rs.map(r=>Number(r.pvi))) : null,
+            pts: Number(i.points), d, me: i.member_id===CS.member?.id,
+            hist: rs.map(r=>({ ...r, counting: r.month_rank<=capN })).reverse(),
+          };
+        }).sort((a,b)=>b.pts-a.pts || b.avg-a.avg);
+        const mine=by[CS.member?.id]||[];
+        /* D362 · the composer reads these to say what a round can add this month */
+        window.myRanked = mine;
+        const now=new Date();
+        const mkey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        const mm=mine.filter(r=>String(r.played_on).startsWith(mkey));
+        window.myMonth={
+          credits: mm.reduce((a,r)=>a+Number(r.floor_credit),0),
+          counting: mm.filter(r=>r.month_rank<=capN).length,
+        };
+        window.myIndexDelta = mine.length>1
+          ? Number(CS.profile?.index_current ?? mine[mine.length-1].index_at_post) - Number(mine[0].index_at_post)
+          : null;
+      }
     } catch(e){ console.warn('[stats]', e); }
   }
 

@@ -407,6 +407,52 @@ const SEASON = [
         if (!box.contains(document.getElementById('standingsRetry'))) return 'the retry is outside the live region'
         return /No rounds yet/i.test(document.getElementById('standings').innerText) ? 'a failed standings read says there are no rounds' : true
       })) },
+  /* TEN / W8 · W7-026 [X01] (E5, D's second reader) · (1) the stats below the standings obey the same law: when the refresh of v_rounds_ranked and
+     v_individual_standings fails, the last figures stay (Every golfer, the month tile, Up next) under an 'As of … · couldn't refresh' line — they used to be
+     overwritten with [] and zeros, and the page said 'The race fills in once your league season is live' and '2 more toward September's minimum' */
+  { family: 'season', id: 'stats-stale', variant: 'member', title: 'The season page, Every golfer, after a refresh of the stats failed (the last figures stay, under their dateline)', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toRoom(page, 'standings')
+      await page.evaluate(() => { const t = (id) => (document.getElementById(id) || {}).innerText || ''; window.__w8 = { ind: t('indTable'), count: t('statCount'), next: t('nextTxt'), rows: document.querySelectorAll('#indTable tr').length } })
+      ctx.world.errors.table.v_individual_standings = { __error: 'fixture: the individual standings failed', status: 503 }
+      ctx.world.errors.table.v_rounds_ranked = { __error: 'fixture: the ranked rounds failed', status: 503 }
+      await page.evaluate(() => window.loadStandingsAndFeed())
+      await until(page, () => !!document.getElementById('indStale'), null, 6000).catch(() => {})   /* the parent never draws it: the pins say what it drew instead */
+      await page.evaluate(() => (document.getElementById('indStale') || document.getElementById('indTable')).scrollIntoView({ block: 'end' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#indStale': 'text:^As of .* couldn.t refresh$' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const w = window.__w8, t = (id) => (document.getElementById(id) || {}).innerText || ''
+      if (w.rows < 8) return `the every-golfer table had ${w.rows} rows before the failure (the state is not the one it claims)`
+      if (t('indTable') !== w.ind) return 'the every-golfer table changed when the refresh failed'
+      if (/race fills in/i.test(t('indTable'))) return 'a failed refresh reads as an early season'
+      if (t('statCount') !== w.count) return `the month tile changed from ${JSON.stringify(w.count)} to ${JSON.stringify(t('statCount'))}`
+      if (t('nextTxt') !== w.next) return `Up next changed from ${JSON.stringify(w.next)} to ${JSON.stringify(t('nextTxt'))}`
+      const stale = document.getElementById('indStale'), tbl = document.getElementById('indTable').closest('.tblwrap')
+      return stale.getBoundingClientRect().top >= tbl.getBoundingClientRect().bottom - 2 ? true : 'the dateline is not under the table'
+    })) },
+  /* ...and (1b) a FIRST read that fails has nothing to keep: Every golfer says the read failed and offers the retry, never the early-season sentence */
+  { family: 'season', id: 'stats-failed', variant: 'member', title: 'The season page, Every golfer, when the first read of the stats failed (the words and the retry)', fullPage: false,
+    world: { errors: { table: { v_individual_standings: { __error: 'fixture: the individual standings failed', status: 503 }, v_rounds_ranked: { __error: 'fixture: the ranked rounds failed', status: 503 } } } },
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toRoom(page, 'standings')
+      await until(page, () => !!document.getElementById('indRetry'), null, 8000).catch(() => {})   /* the parent never draws it: the pins say what it drew instead */
+      await page.waitForTimeout(400)
+      await page.evaluate(() => document.getElementById('indTable').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#indRetry': 'visible' } },
+    check: all(onNorthGrove, ariaWellFormed('#indTable'), async (page) => page.evaluate(() => {
+      const t = (id) => (document.getElementById(id) || {}).innerText || ''
+      if (/race fills in/i.test(t('indTable'))) return 'a failed read says the race fills in once the season is live'
+      if (/No rounds count yet/i.test(t('msAvgSub') + t('msBestSub'))) return 'a failed read says no rounds count'
+      return /Couldn.t load this/.test(t('indTable')) ? true : 'the table does not say the read failed'
+    })) },
   /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
      the first week closes" (the phone's storyRead == .failed) */
   { family: 'season', id: 'story-failed', variant: 'member', title: 'The season page, the story, when the story read failed', fullPage: false,
