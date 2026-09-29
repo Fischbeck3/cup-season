@@ -75,7 +75,7 @@ struct MajorRoomView: View {
       if let pot = potFigure(f) {
         A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s2, columnSpacing: CSTokens.Space.s1) {
           Text(pot).csType(.figureS).foregroundStyle(f.complete ? cs.ink : cs.gold)
-          Text(MajorMath.potCaption(buyIn: f.buyIn, potSplit: ev.pot_split))
+          Text(MajorMath.potCaption(buyIn: f.buyIn, pot: f.pot, potSplit: ev.pot_split))
             .csType(.agate, caps: true).foregroundStyle(cs.mut)
             .fixedSize(horizontal: false, vertical: true)
         }
