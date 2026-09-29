@@ -443,3 +443,18 @@ export const tertiaryDoor = (sel) => async (page) => page.evaluate((sel) => {
   }
   return true
 }, sel)
+
+/* TEN / W8 · W7-108 [A2-desk-1] · a page that is a room OF a destination keeps that destination marked (the phone's NavSlot.of(route)): the live setup and the composer are PLAY,
+ * a golfer's page and the head-to-head are GOLFERS, the wizard is COMPETE. `destMarked(v)` fails the capture when the visible tab band (or, at the desk, the sidebar's five rows)
+ * does not mark exactly the destination whose data-v is `v`, in BOTH channels (.active and aria-current="page"). */
+export const destMarked = (v) => async (page) => page.evaluate((v) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const bands = [['tab band', [...document.querySelectorAll('.tab')].filter(shown)], ['sidebar', [...document.querySelectorAll('.navitem:not(.sub)')].filter(shown)]].filter(([, l]) => l.length)
+  if (!bands.length) return 'neither the tab band nor the sidebar is drawn'
+  for (const [name, list] of bands) {
+    const on = list.filter((t) => t.classList.contains('active')), cur = list.filter((t) => t.getAttribute('aria-current') === 'page')
+    if (on.length !== 1 || on[0].dataset.v !== v) return `the ${name} marks ${JSON.stringify(on.map((t) => t.dataset.v))}, expected ["${v}"]`
+    if (cur.length !== 1 || cur[0] !== on[0]) return `the ${name}'s aria-current is not on the marked destination alone`
+  }
+  return true
+}, v)

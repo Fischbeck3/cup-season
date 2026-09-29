@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast, standsDown } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast, standsDown, destMarked } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -273,7 +273,8 @@ const GOLFERS = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-person', selectors: { '#perName': 'text:^Devon Testwell$', '#perAside .cred': 'visible', '#perOpenH2H': 'visible' } },
-    check: all(async (page) => page.evaluate(() => {
+    check: all(destMarked('golfers'),   /* TEN / W8 · W7-108: a golfer's page is a room of GOLFERS, so GOLFERS stays marked */
+      async (page) => page.evaluate(() => {
       /* the verdict is the head's sentence at the desk (W7-010 stands the aside's headline down there) and the aside's headline on the phone */
       const aside = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
       const t = document.getElementById('view-person').innerText.replace(/\s+/g, ' ')

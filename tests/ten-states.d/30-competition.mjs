@@ -189,6 +189,16 @@ const SEASON = [
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
       tertiaryDoor('#seasonBookDoor'),
+      /* TEN / W8 · W7-060 [A2-season-5]: a tied Points King names who is level (never the word 'Level' in the name's slot), wraps rather than clipping, and the sub says 'level on N' */
+      async (page) => page.evaluate(() => {
+        const k = document.getElementById('awKing'), sub = document.getElementById('awKingS')
+        if (!k || !(k.getBoundingClientRect().width > 0)) return true
+        const t = k.textContent.trim()
+        if (/^level$/i.test(t)) return 'the tied Points King tile says Level in the name\'s slot'
+        if (!/ and /.test(t)) return `the Points King tile does not name two golfers: ${JSON.stringify(t)}`
+        if (k.scrollWidth > k.clientWidth + 1) return `the Points King tile clips ${JSON.stringify(t)}`
+        return /^Points King · level on \d+$/.test(sub.textContent.trim()) ? true : `the tile's sub reads ${JSON.stringify(sub.textContent)}`
+      }),
       async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows'),
       /* TEN / W6 · AW2-06 + OB-05: every label on the season page is agate and
          every phrase agate or body — mono keeps the figures (§1.4). The page
@@ -321,6 +331,38 @@ const SEASON = [
       }),
       stateContrast([{ sel: '#payers .payer:not(.paid) .tick', prop: 'borderTopColor', min: 3, what: 'the unpaid box' }]),
       headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
+  /* TEN / W8 · W7-090 [A2-desk-7] · 'g t' jumps to the table: on the season page focus lands on the standings' first row, not on body (the first .tbl in the document is the
+     Cup Final race table inside a display:none wrap, and the clash table precedes the standings when it shows) */
+  { family: 'season', id: 'keys-table', variant: 'member', desk: true, fullPage: false, title: 'The season page (desk): g then t lands on the standings\' first row',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await page.evaluate(() => { window.scrollTo(0, 0); if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur() }); await page.waitForTimeout(300)
+      await page.keyboard.press('g'); await page.keyboard.press('t'); await page.waitForTimeout(700); await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#standings': 'visible' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const a = document.activeElement, first = document.querySelector('#standings tr.tap')
+      return a && a === first ? true : `focus is on ${a && (a.id || a.tagName + '.' + a.className)}, not the standings' first row`
+    })) },
+  /* TEN / W8 · W7-062 [B2-season-11] · the Pro's 'Cancel this season' is the page's FOOT, beside Leave the season: not a red link in the season's head between it and the
+     week clock. A tertiary link in content (2px mut rule, 44 tall), not neg: the consent sheet it opens is where the act is armed in neg */
+  { family: 'season', id: 'pro-foot', variant: 'pro', fullPage: false, title: 'The season page, as the Pro: the foot (Leave the season, and Cancel this season as a quiet link)',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => { const a = document.getElementById('hhDelete'); return !!a && a.offsetParent !== null })
+      await page.evaluate(() => document.getElementById('hhDanger').scrollIntoView({ block: 'center' })); await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#hhDelete': 'visible' } },
+    check: all(onNorthGrove, tertiaryDoor('#hhDelete'), async (page) => page.evaluate(() => {
+      const dz = document.getElementById('hhDanger'), head = document.getElementById('hubHeader'), clock = document.getElementById('monthClock'), leave = document.getElementById('leaveSeason')
+      if (head.contains(dz)) return "the cancel link is still in the season's head"
+      if (clock && dz.getBoundingClientRect().top < clock.getBoundingClientRect().bottom) return 'the cancel link is above the week clock'
+      if (leave && dz.getBoundingClientRect().top < leave.getBoundingClientRect().top) return 'the cancel link is not at the foot, beside Leave the season'
+      const p = document.createElement('i'); p.style.color = 'var(--neg)'; document.body.appendChild(p); const neg = getComputedStyle(p).color; p.remove()
+      return getComputedStyle(document.getElementById('hhDelete')).color === neg ? 'the cancel link is drawn in neg before the consent sheet arms it' : true
+    })) },
   /* TEN / W6 · DX2 OB2-03 · the Pro's "Cancel this season", opened and NOT
      confirmed: North Grove is under way, so it is the consent flow's sheet,
      and its armed control is §7.1's destructive tier */
@@ -354,6 +396,8 @@ const SEASON = [
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
       /* TEN / W8 · W7-029 [A2-season-3] (3 of 4): the League rows are slats, not cards */
       noBoxes(['#view-hub .check']),
+      /* TEN / W8 · W7-093 [A2-rules-2]: the minimum's sentence says WHICH months carry none (it read 'Post 2 rounds a month.' with no word on the partial first and last month) */
+      has('#bylawsHub', 'A partial first or last month has no minimum\\.', 'the rules say which months carry no minimum'),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
          scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
          scrolled back, the rules again (the scroll-spy, not only the click) */
@@ -667,6 +711,54 @@ const bandSays = (re, what) => async (page) => page.evaluate(({ re, what }) => {
 const adopt = (name, opts) => async (W) => { adoptBook(W, readBook(name), opts) }
 const BOOK_LS = (name) => ({ cs_last_league: readBook(name).league_id })
 
+/* TEN / W8 · W7-070 [A2-competition-1] · the Book's start edge: while earlier weeks sit behind the pinned name column (it opens on the live week) the mirror of the end fade says so
+   (data-more-start, drawn from the name column's right edge), and from 1440 the dialog is wide enough for a 15-week season to show whole */
+const bookStartEdge = async (page) => page.evaluate(() => {
+  const dlg = document.getElementById('seasonBookDialog'), wrap = dlg && dlg.querySelector('.sb-matrix-wrap'), m = wrap && wrap.querySelector('.sb-matrix')
+  if (!wrap || !m) return true
+  const scrolled = m.scrollLeft > 2
+  if (scrolled !== wrap.hasAttribute('data-more-start')) return `data-more-start is ${wrap.hasAttribute('data-more-start')} with scrollLeft ${Math.round(m.scrollLeft)}`
+  if (scrolled && parseFloat(getComputedStyle(wrap, '::before').opacity) < 1) return 'earlier weeks sit behind the name column and the start edge draws nothing'
+  if (innerWidth >= 1440 && dlg.getBoundingClientRect().width < 1500) return `the Book is ${Math.round(dlg.getBoundingClientRect().width)}px wide at ${innerWidth}px`
+  return true
+})
+/* the Cup Final's race of the golfers, from the season page (W5: the Book's controls are segments, one component, UI_SYSTEM §7.2, each chosen by its button) */
+async function raceDrive(page) {
+  await toSeasonViaBand(page)
+  await until(page, () => { const w = document.getElementById('cupRaceWrap'); return !!w && w.style.display !== 'none' && document.querySelectorAll('#cupRace tr').length >= 2 }, null, 10000)
+  await bookFromSeason(page)
+  await click(page, '#seasonBookDialog #sb-group [data-v="golfer"]')
+  await until(page, () => !!document.querySelector('#seasonBookDialog #sb-mode'))
+  await click(page, '#seasonBookDialog #sb-mode [data-v="Race"]')
+  await until(page, () => !!document.querySelector('#seasonBookDialog svg.sb-race'))
+  await page.waitForTimeout(300)
+}
+/* TEN / W8 · W7-131 [A2-competition-5] · the Race display reads heading, CHART, sentence (the four-line paragraph stood between the controls and the chart), and Follow (up to 17 names) is one
+   closed disclosure, so the chart's first half is in the first screen at every width */
+const raceOrder = async (page) => page.evaluate(() => {
+  const main = document.querySelector('#seasonBookDialog .sb-main'), h2 = main.querySelector('h2'), svg = main.querySelector('svg.sb-race')
+  const said = [...main.querySelectorAll('p')].find((p) => /^Each golfer’s points as they count today/.test(p.textContent))
+  if (!h2 || !svg || !said) return 'the Race lacks its heading, chart or sentence'
+  const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+  if (!after(h2, svg) || !after(svg, said)) return 'the Race does not read heading, chart, sentence'
+  const f = main.querySelector('details.sb-follow')
+  if (!f) return 'Follow is not a disclosure'
+  if (f.open) return 'the Follow disclosure opens already open'
+  const top = svg.getBoundingClientRect().top, half = svg.getBoundingClientRect().height / 2
+  if (top + half > innerHeight) return `the chart starts ${Math.round(top)}px down a ${innerHeight}px screen: its first half is not in view`
+  return true
+})
+/* the pick: Follow closes, its summary names the golfer and holds the focus, and the chart's first line is theirs */
+const followPicked = async (page) => page.evaluate(() => {
+  const f = document.querySelector('#seasonBookDialog details.sb-follow'), sum = f && f.querySelector('summary'), pick = window.__followPick
+  if (!f || !pick) return 'no Follow pick was made'
+  if (f.open) return 'the Follow disclosure stayed open after a pick'
+  if (sum.textContent.trim() !== `Follow · ${pick}`) return `the summary reads ${JSON.stringify(sum.textContent.trim())}, not Follow · ${pick}`
+  if (document.activeElement !== sum) return `the focus is on ${document.activeElement && (document.activeElement.id || document.activeElement.tagName)}, not on the Follow summary`
+  const lead = document.querySelector('#seasonBookDialog .sb-race-lab.is-lead')
+  if (!lead || !lead.textContent.startsWith(pick)) return `the chart's first line reads ${JSON.stringify(lead && lead.textContent)}, not ${pick}`
+  return true
+})
 const BOOK = [
   { family: 'book', id: 'upcoming', variant: 'rounds_no_league', title: 'The Book before the first tee (The Autumn Fixture Cup, week 0 of 15), from the Scoreboard', fullPage: false,
     prepare: adopt('upcoming'), localStorage: BOOK_LS('upcoming'),
@@ -680,7 +772,7 @@ const BOOK = [
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-matrix': 'visible', '#seasonBookDialog #sb-group': 'visible', '#seasonBookDialog .sb-matrix th.sb-current': 'text:W13' } },
     check: all(bookIs({ title: 'The Book', head: 'North Grove (fixture) · Season 1 · Jul 6 – Oct 18, 2026' }),
-      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'),
+      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'), bookStartEdge,
       async (page) => page.evaluate(() => {
         const rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')]
         if (rows.length !== 4) return `${rows.length} squad rows, expected 4`
@@ -716,20 +808,9 @@ const BOOK = [
      outside the season weeks, and the Book says so rather than drop it) */
   { family: 'book', id: 'race', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race of the golfers, from the season page (cup_final_race behind)', fullPage: false,
     prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
-    drive: async (page) => {
-      await toSeasonViaBand(page)
-      await until(page, () => { const w = document.getElementById('cupRaceWrap'); return !!w && w.style.display !== 'none' && document.querySelectorAll('#cupRace tr').length >= 2 }, null, 10000)
-      await bookFromSeason(page)
-      /* W5 · the Book's controls are segments (one component, UI_SYSTEM
-         §7.2), not native selects: each is chosen by its button */
-      await click(page, '#seasonBookDialog #sb-group [data-v="golfer"]')
-      await until(page, () => !!document.querySelector('#seasonBookDialog #sb-mode'))
-      await click(page, '#seasonBookDialog #sb-mode [data-v="Race"]')
-      await until(page, () => !!document.querySelector('#seasonBookDialog svg.sb-race'))
-      await page.waitForTimeout(300)
-    },
-    expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog #sb-follow': 'visible' } },
-    check: all(bookIs({ title: 'The Book' }),
+    drive: raceDrive,
+    expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog .sb-follow > summary': 'text:^Follow · Leading three$' } },
+    check: all(bookIs({ title: 'The Book' }), raceOrder, tertiaryDoor('#seasonBookDialog .sb-follow > summary'),
       has('#cupRace', 'Fixture Quail[\\s\\S]*Fixture Wrens|Fixture Wrens[\\s\\S]*Fixture Quail', 'the Cup Final race behind the Book'),
       async (page) => page.evaluate(() => {
         const svg = document.querySelector('#seasonBookDialog svg.sb-race')
@@ -737,6 +818,20 @@ const BOOK = [
         if (!svg.querySelector('.sb-current-line')) return 'no current-week line in the Cup Final'
         return window.CS && window.CS.season && window.CS.season.status === 'cup_final' ? true : 'the season is not in its Cup Final'
       })) },
+  /* W7-131 · the same race after a pick: Follow is opened, the second golfer chosen, and the disclosure closes on their name with the focus on its summary */
+  { family: 'book', id: 'race-follow', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race following one golfer (Follow opened, a golfer picked)', fullPage: false,
+    prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
+    drive: async (page) => {
+      await raceDrive(page)
+      await click(page, '#seasonBookDialog .sb-follow > summary')
+      await until(page, () => document.querySelector('#seasonBookDialog details.sb-follow').open)
+      await page.evaluate(() => { window.__followPick = document.querySelectorAll('#seasonBookDialog #sb-follow [data-v]')[2].textContent.trim() })
+      await click(page, '#seasonBookDialog #sb-follow [data-v]:nth-of-type(3)')
+      await until(page, () => !document.querySelector('#seasonBookDialog details.sb-follow').open && !!document.querySelector('#seasonBookDialog svg.sb-race'))
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog .sb-follow > summary': 'visible' } },
+    check: all(bookIs({ title: 'The Book' }), followPicked, tertiaryDoor('#seasonBookDialog .sb-follow > summary')) },
   { family: 'book', id: 'tie', variant: 'rounds_no_league', title: 'Rounds & points, two golfers level at the top (The Saturday Fixture Cup), from the Scoreboard', fullPage: false,
     prepare: adopt('tie'), localStorage: BOOK_LS('tie'),
     drive: bookFromCompete,
@@ -788,7 +883,20 @@ const BOOK = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-receipts h2': 'text:^Fixture Javelinas · Week 12$', '#seasonBookDialog .sb-receipts .sb-total': 'visible' } },
-    check: async (page) => {
+    check: all(async (page) => page.evaluate(() => {
+      /* TEN / W8 · W7-129 [A2-competition-2]: the cell whose receipt is open is MARKED: exactly one, aria-current, and drawn (a 2px inset ring in ink, never ember); below 900px the receipt
+         opens with a 44px 'Back to the grid' link that returns focus to that cell */
+      const marked = [...document.querySelectorAll('#seasonBookDialog [data-book-row][aria-current="true"]')]
+      if (marked.length !== 1) return `${marked.length} cells are marked as the open receipt, expected one`
+      const cs = getComputedStyle(marked[0]), probe = document.createElement('i'); probe.style.color = 'var(--ink)'; document.body.appendChild(probe); const ink = getComputedStyle(probe).color; probe.remove()
+      if (!cs.boxShadow || cs.boxShadow === 'none' || !cs.boxShadow.includes(ink) || !/inset/.test(cs.boxShadow)) return `the marked cell draws no ink ring (${cs.boxShadow})`
+      const back = document.querySelector('#seasonBookDialog .sb-receipts .sb-back')
+      if (innerWidth <= 900) {
+        if (!back || back.textContent.trim() !== 'Back to the grid') return 'the phone\'s receipt has no way back to the grid'
+        return back.getBoundingClientRect().height >= 43.5 ? true : `the way back is ${Math.round(back.getBoundingClientRect().height)}px tall`
+      }
+      return back ? 'the desk shows a way back beside a grid that is in view' : true
+    }), async (page) => {
       const b = readBook('squads')
       const row = b.rows.find((r) => r.id === 'squad:c50b0000-0000-4000-8000-000000000300')
       const es = row.entries.filter((e) => e.week === 12)
@@ -802,7 +910,13 @@ const BOOK = [
         const r = box.getBoundingClientRect()
         return r.top < innerHeight - 40 && r.bottom > 40 ? true : 'the receipt is scrolled out of view'
       }, want)
-    } },
+    }, async (page) => page.evaluate(() => {
+      /* last: the way back scrolls the marked cell into view and focuses it (it moves the page, so it runs after the receipt's own checks) */
+      const back = document.querySelector('#seasonBookDialog .sb-receipts .sb-back'), marked = document.querySelector('#seasonBookDialog [data-book-row][aria-current="true"]')
+      if (!back) return true
+      back.click()
+      return document.activeElement === marked ? true : 'the way back does not focus the marked cell'
+    })) },
 ]
 
 /* ------------------------------------------------------------ events */
@@ -814,6 +928,26 @@ async function eventFromCompete(page, sel, id) {
   await until(page, () => (document.getElementById('eventBody') || {}).innerText.trim().length > 0)
   await page.waitForTimeout(400)
 }
+/* TEN / W8 · W7-156 [A2-events-1] · the Ryder room: the golfer's own clash is FIRST in its week and reads 'You' (in the row and in its spoken sentence), and the rules paragraph,
+   the taunt and the organiser's controls come AFTER the weeks (they stood a screen and a half above the clash on a phone) */
+const ryderOrder = async (page) => page.evaluate(() => {
+  const weeks = [...document.querySelectorAll('#eventBody .evsess')]
+  if (!weeks.length) return 'the room draws no week'
+  const rules = [...document.querySelectorAll('#eventBody p.fine')].find((p) => /Each week pairs everyone/.test(p.textContent))
+  if (!rules) return 'the rules paragraph is missing'
+  if (weeks.some((w) => w.compareDocumentPosition(rules) & Node.DOCUMENT_POSITION_PRECEDING)) return 'the rules paragraph is still above a week'
+  let mineWeeks = 0
+  for (const w of weeks) {
+    const clashes = [...w.querySelectorAll('.evclash')], mine = clashes.filter((c) => /(^| )You( |$)/.test(c.getAttribute('aria-label') || ''))
+    if (!mine.length) continue
+    mineWeeks++
+    if (clashes[0] !== mine[0]) return `the viewer's clash is not first in its week: ${JSON.stringify((clashes[0].getAttribute('aria-label') || '').slice(0, 60))}`
+    /* textContent, not innerText: a finished week is a closed <details>, whose rows have no box and so no innerText at all (and the role's caps would say YOU) */
+    const sides = ['.nm.a', '.nm.b'].map((q) => (mine[0].querySelector(q).textContent || '').trim())
+    if (!sides.includes('You')) return `the viewer's side does not read You in the row: ${JSON.stringify(sides)}`
+  }
+  return mineWeeks ? true : 'no week holds the viewer\'s clash (the state is not the one it claims)'
+})
 const EVENTS = [
   /* W5 (4a703402) moved Compete's moments into their own column, #cmpMoments;
      the events states tap the row where it now lives */
@@ -830,7 +964,7 @@ const EVENTS = [
       has('#eventBody', 'The 2nd Ryder · Fixture Hawks hold it, 1–0', 'the series line (event_lineage)'),
       has('#eventBody', 'Fixture Hawks lead 5½–2½ after week 2\\.', 'the board’s week-2 line'),
       /* TEN / W8 · W7-K040 [B2-events-10]: the Ryder page does not own the season standing, it competes with it: the sidebar's season row stands down beside its two sides */
-      standsDown(['#sideMe [data-mego="season_row"]']),
+      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder,
       async (page) => page.evaluate(() => Object.keys((window.CS_EVENT || {}).targets || {}).length === 4 ? true : 'event_session_targets did not reach the four open duels')) },
   { family: 'events', id: 'finished', variant: 'member', title: 'The event room · a finished Ryder (Fixture Hawks 7–5), from Compete’s finished shelf',
     prepare: async (W) => { ryderWorld(W) },

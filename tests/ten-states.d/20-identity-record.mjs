@@ -88,8 +88,17 @@ const youFormGrammar = (slot) => async (page) => page.evaluate((slot) => {
   const t = head.innerText.replace(/\s+/g, ' ').trim()
   if (t !== (slot ? `FORM · LAST FIVE ${slot}` : 'FORM · LAST FIVE')) return `You's Form head reads ${JSON.stringify(t)}`
   const days = [...document.querySelectorAll('#youForm .dfcol small')].map((e) => e.innerText.trim())
-  const bad = days.filter((d) => !/^[A-Z]{3} \d{1,2}( · NINE)?$/.test(d))
-  return days.length && !bad.length ? true : `the Form columns mix day forms: ${JSON.stringify(days)}`
+  const bad = days.filter((d) => !/^[A-Z]{3} \d{1,2}( · NINE)?( · BEST)?$/.test(d))
+  if (!days.length || bad.length) return `the Form columns mix day forms: ${JSON.stringify(days)}`
+  /* TEN / W8 · W7-111 [A2-identity-7]: the row is not one role=img (a screen reader lost every number in it); each column is named by its own facts, and the best has a word as well as a hue */
+  const row = document.querySelector('#youForm .dform'), cols = [...document.querySelectorAll('#youForm .dfcol')], won = cols.filter((c) => c.classList.contains('won'))
+  if (row.getAttribute('role') === 'img') return 'the Form row is still one image'
+  const unnamed = cols.filter((c) => !/^\d+, [A-Z][a-z]+ \d{1,2}/.test(c.getAttribute('aria-label') || ''))
+  if (unnamed.length) return `${unnamed.length} Form column(s) are not named by their own facts: ${JSON.stringify(unnamed[0].getAttribute('aria-label'))}`
+  if (won.length && !won.every((c) => /best of the five/.test(c.getAttribute('aria-label')) && /BEST/.test(c.querySelector('small').innerText))) return 'the best is marked by hue alone'
+  const rows = [...document.querySelectorAll('#youRecent .yrow')].filter((r) => r.getBoundingClientRect().width > 0)
+  const thin = rows.filter((r) => !/, \d+, [A-Z][a-z]{2} \d{1,2}/.test(r.getAttribute('aria-label') || ''))
+  return thin.length ? `a Recent rounds row is named 'course, gross' only: ${JSON.stringify(thin[0].getAttribute('aria-label'))}` : true
 }, slot)
 
 /* the sidebar's foot stays pinned to the column's bottom when its block stands down: display:none took #sideMe's margin-top:auto with it
@@ -100,6 +109,21 @@ const footStays = async (page) => page.evaluate(() => {
   if (!col || !foot) return 'no sidebar foot at the desk'
   const gap = col.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom
   return gap <= 48 ? true : `the sidebar's foot floats ${Math.round(gap)}px above the column's bottom`
+})
+/* TEN / W8 · W7-157 [A2-history-3] · the receipt's actions are not five equal buttons: Share is the sheet's ONE primary (a full-width `.btn`), turning the link off, replacing and removing the
+   photo are quiet links (`.cs-tskip`), and deleting the round is the foot of the sheet, under a rule, after the conversation (its 'Delete' still a `.mini del`, armed) */
+const receiptActions = async (page) => page.evaluate(() => {
+  const sheet = document.getElementById('shBody'), share = document.getElementById('rcptCardShare'), del = document.getElementById('rcptDelete'), talk = document.getElementById('rcptTalk'), row = document.getElementById('rcptDelRow')
+  if (!share) return 'the receipt has no Share'
+  /* the conversation's own Send is a form control, not one of the receipt's actions */
+  const filled = [...sheet.querySelectorAll('.btn')].filter((b) => b.getBoundingClientRect().width > 0 && !b.closest('#rcptTalk'))
+  if (filled.length !== 1 || filled[0] !== share) return `the receipt has ${filled.length} filled buttons, expected Share alone: ${JSON.stringify(filled.map((b) => (b.id || b.textContent || '').trim().slice(0, 24)))}`
+  if (share.getBoundingClientRect().width < sheet.getBoundingClientRect().width * 0.8) return 'Share is not the full-width primary'
+  for (const id of ['rcptCardRevoke', 'rcptPhotoBtn', 'rcptPhotoClear']) { const b = document.getElementById(id); if (b && b.getBoundingClientRect().width > 0 && !b.classList.contains('cs-tskip')) return `#${id} is not a quiet link`; if (b && b.classList.contains('mini')) return `#${id} is still a mini button` }
+  if (!del || !row) return 'the receipt has no delete row'
+  if (!(talk.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the delete row is not after the conversation'
+  if (getComputedStyle(row).borderTopWidth !== '1px') return 'the delete row is not under a rule'
+  return del.classList.contains('del') ? true : 'the delete button lost its destructive class'
 })
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
@@ -246,7 +270,7 @@ const RECEIPT = [
       await page.waitForTimeout(700)
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
-    check: all(heroState('photo'),
+    check: all(heroState('photo'), receiptActions,
       /* S9 · a picture that is showing says nothing */
       async (page) => page.evaluate(() => { const g = document.getElementById('rcptPhotoGone'); return !g || g.hidden ? true : 'the photo-unavailable line shows over a photo that loaded' }),
       async (page) => page.evaluate(() => {
