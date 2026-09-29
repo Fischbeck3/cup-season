@@ -31,7 +31,9 @@ struct BetweenRoundsWidgetView: View {
           if typeSize.isAccessibilitySize { accessibleContent } else { content }
           Spacer(minLength: 0)
           if let snapshot {
-            Text(snapshot.asOf(kind, at: date)).csType(.agateS).foregroundStyle(cs.mut)
+            // N4-190 · at the accessibility sizes the as-of is the time alone
+            Text(typeSize.isAccessibilitySize ? snapshot.asOfShort(kind, at: date) : snapshot.asOf(kind, at: date))
+              .csType(.agateS).foregroundStyle(cs.mut)
               .lineLimit(1).minimumScaleFactor(0.85)
           }
         }
@@ -69,16 +71,16 @@ struct BetweenRoundsWidgetView: View {
       switch kind {
       case .race:
         if let race = snapshot?.race?.value {
+          // N4-190 · a small tile keeps its two primary facts at AX
           accessibleLabel(race.name)
           accessibleFigure(race.standing)
-          accessibleLabel(race.story)
+          if !small { accessibleLabel(race.story) }
         } else { accessibleEmpty }
       case .nextTee:
         if let tee = snapshot?.nextTee?.value, date < tee.closesAt {
           if small {
             accessibleLabel(tee.dateLine)
             accessibleFigure(tee.time)
-            accessibleLabel(tee.course)
           } else {
             accessibleLabel(tee.course)
             HStack {
@@ -99,11 +101,11 @@ struct BetweenRoundsWidgetView: View {
         if let record = snapshot?.record?.value {
           accessibleLabel(record.headline)
           accessibleFigure("\(record.gross) · \(record.holes) holes")
-          accessibleLabel(record.course)
+          if !small { accessibleLabel(record.course) }
         } else { accessibleEmpty }
       case .rivalry:
         if let rival = snapshot?.rivalry?.value {
-          accessibleLabel("Weekly clashes")
+          if !small { accessibleLabel("Weekly clashes") }
           accessibleFigure("\(rival.wins)–\(rival.losses)" + (rival.ties > 0 ? "–\(rival.ties)" : ""))
             .accessibilityLabel("\(rival.wins) wins, \(rival.losses) losses, \(rival.ties) ties")
           accessibleLabel("You and \(rival.name)")
@@ -117,8 +119,10 @@ struct BetweenRoundsWidgetView: View {
       accessibleLabel("Open Cup Season to catch up.")
     }
   }
+  /// N4-190 · two lines, not one: a fact that needs a second line takes it
+  /// rather than an ellipsis (fewer facts above make the room)
   private func accessibleLabel(_ value: String) -> some View {
-    Text(value).csType(.agateS).lineLimit(1).minimumScaleFactor(0.75)
+    Text(value).csType(.agateS).lineLimit(2).minimumScaleFactor(0.75)
   }
   private func accessibleFigure(_ value: String) -> some View {
     Text(value).csType(.figureM).lineLimit(1).minimumScaleFactor(0.75)

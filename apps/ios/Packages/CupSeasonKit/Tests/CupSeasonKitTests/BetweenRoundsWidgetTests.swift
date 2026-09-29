@@ -157,3 +157,13 @@ struct BetweenRoundsWidgetTests {
     }
   }
 }
+
+/// N4-190 · at the accessibility sizes a widget's as-of line is the time
+/// alone, or the stale state's instruction alone — never "AS OF MON · OPEN T…".
+@Suite struct WidgetAsOfShortTests {
+  @Test func theShortAsOfKeepsWhatAGolferActsOn() {
+    #expect(BetweenRoundsSnapshot.shortened("AS OF 2:22 PM") == "2:22 PM")
+    #expect(BetweenRoundsSnapshot.shortened("AS OF MON · OPEN TO REFRESH") == "OPEN TO REFRESH")
+    #expect(BetweenRoundsSnapshot.shortened("Open to refresh") == "Open to refresh")
+  }
+}
