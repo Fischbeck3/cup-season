@@ -331,6 +331,20 @@ const SEASON = [
       }),
       stateContrast([{ sel: '#payers .payer:not(.paid) .tick', prop: 'borderTopColor', min: 3, what: 'the unpaid box' }]),
       headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
+  /* TEN / W8 · W7-090 [A2-desk-7] · 'g t' jumps to the table: on the season page focus lands on the standings' first row, not on body (the first .tbl in the document is the
+     Cup Final race table inside a display:none wrap, and the clash table precedes the standings when it shows) */
+  { family: 'season', id: 'keys-table', variant: 'member', desk: true, fullPage: false, title: 'The season page (desk): g then t lands on the standings\' first row',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await page.evaluate(() => { window.scrollTo(0, 0); if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur() }); await page.waitForTimeout(300)
+      await page.keyboard.press('g'); await page.keyboard.press('t'); await page.waitForTimeout(700); await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#standings': 'visible' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const a = document.activeElement, first = document.querySelector('#standings tr.tap')
+      return a && a === first ? true : `focus is on ${a && (a.id || a.tagName + '.' + a.className)}, not the standings' first row`
+    })) },
   /* TEN / W8 · W7-062 [B2-season-11] · the Pro's 'Cancel this season' is the page's FOOT, beside Leave the season: not a red link in the season's head between it and the
      week clock. A tertiary link in content (2px mut rule, 44 tall), not neg: the consent sheet it opens is where the act is armed in neg */
   { family: 'season', id: 'pro-foot', variant: 'pro', fullPage: false, title: 'The season page, as the Pro: the foot (Leave the season, and Cancel this season as a quiet link)',

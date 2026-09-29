@@ -10809,12 +10809,15 @@ document.addEventListener('keydown', e=>{
     const next = list[Math.min(list.length - 1, Math.max(0, i + by))];
     if(next && next !== el) next.focus();
   }
-  /* the table, wherever it is on this page, and its first row */
+  /* the table, wherever it is on this page, and its first row. W7-090 · it starts from the SLATS that are drawn, not from the first .tbl in the document: the season
+     page's first .tbl is the Cup Final race table inside a display:none wrap (no tr.tap: focus() on a table does nothing, and focus stayed on body), and the clash
+     table also precedes #standings when it shows; on Golfers the ranking is .fbrow slats, not a table. The standings' first row leads on the season page; otherwise the
+     first visible slat (Golfers' first ranking row, Compete's first list row) */
   function jumpToTable(){
-    const t = document.querySelector('#standings, .tbl');
-    if(!t) return;
-    t.scrollIntoView({block:'start', behavior:'smooth'});
-    const first = t.querySelector('tr.tap') || t;
+    const std = document.querySelector('#standings tr.tap');
+    const first = (std && std.offsetParent !== null) ? std : Array.from(document.querySelectorAll(SLAT)).find(n => n.offsetParent !== null);
+    if(!first) return;
+    (first.closest('table, #friendsBoard, .fbwrap') || first).scrollIntoView({block:'start', behavior:'smooth'});
     if(first.focus) first.focus();
     first.classList.add('cs-kbd-jump');
     setTimeout(()=>first.classList.remove('cs-kbd-jump'), 900);
