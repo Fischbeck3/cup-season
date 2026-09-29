@@ -21240,7 +21240,12 @@ function csFallbackItems(){
     const them = ((c.them_name||'').split(' ')[0]) || 'your opponent';
     const when = c.closes_today ? 'today' : c.days_left===1 ? 'tomorrow' : `in ${c.days_left} days`;
     let hl, sf, act, route;
-    if(yields){ hl=`Your clash with ${them} is open.`; sf='Best round of the week takes it.'; act='Add my round'; route={kind:'composer'}; }
+    /* TEN / W6 · AW2-05 (L-34, D360) · Home says the clock once. The eyebrow
+       names the competition and nothing else; each branch says the clock in
+       exactly one sentence. The idle branch had none once the eyebrow let go
+       of it, so its standfirst carries it now. The server's clash item is the
+       same move (20261211100000, held for the owner's db push). */
+    if(yields){ hl=`Your clash with ${them} is open.`; sf=`Best round of the week takes it. The week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
     else if(theirs && !mine){ hl=`${them} posted ${theirs.gross!=null?'{'+theirs.gross+'}':'a round'}.`; sf=`That is the number, and the week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
     else if(mine && !theirs){ hl=`${them} has ${c.closes_today?'today':c.days_left===1?'one day':'{'+c.days_left+'} days'} to answer your ${mine.gross!=null?'{'+mine.gross+'}':'round'}.`;
                               sf='Your round is the number to beat.'; act='See the receipt';
@@ -21248,7 +21253,10 @@ function csFallbackItems(){
     else { hl=`You and ${them} are both in.`; sf=`The week closes ${when}. Best round takes it.`; act='See the receipt';
            route= (mine&&mine.round_id) ? {kind:'receipt', id:mine.round_id} : {kind:'composer'}; }
     push({ key:`clash:${c.week_no}`, tier: yields?'coming':'closing', spine:'ember',
-           eyebrow:`${((c.rivalry||'').trim()||'The clash').toUpperCase()} · CLOSES ${when.toUpperCase()}`,
+           /* the competition only: the rivalry's name or the league's, then THE
+              CLASH — the server's and the phone's eyebrow, word for word */
+           eyebrow: (() => { const comp = ((c.rivalry||'').trim() || String(window.CS?.league?.name||'').trim()).toUpperCase();
+                             return comp ? `${comp} · THE CLASH` : 'THE CLASH'; })(),
            headline:hl, standfirst:sf, action:act, route, at:c.ends_on,
            suppress: mine ? ['my_last_round'] : [] });
   }

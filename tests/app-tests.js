@@ -708,6 +708,25 @@
     /* the producer applies the fence itself: a circle round with no id is not an item */
     window.homeFeedRows = [{ round_id: null, golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Troon', is_me: false }];
     t('D228: a fallback item with no door is never emitted', csFallbackItems().map(x => x.tier), ['closing']);
+    /* TEN / W6 · AW2-05 (L-34, D360): the clash says its clock ONCE. The
+       eyebrow names the competition only ("<RIVALRY> · THE CLASH"), and each
+       of the four branches carries the clock in exactly one sentence */
+    window.homeFeedRows = [];
+    const clashOf = (mine, theirs, days) => { window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: days, closes_today: false,
+      rivalry: 'The Fixture Derby', them_name: 'Galen Ward', mine, theirs }; return csFallbackItems()[0]; };
+    const clocks = it => ((`${it.eyebrow} ${it.headline} ${it.standfirst}`).match(/closes in 5 days|\{5\} days/gi) || []).length;   /* either case: an eyebrow says it in caps */
+    const idleC = clashOf(null, null, 5), theirsC = clashOf(null, { gross: 84 }, 5), mineC = clashOf({ gross: 89, round_id: null }, null, 5),
+          bothC = clashOf({ gross: 89, round_id: null }, { gross: 84 }, 5);
+    t('AW2-05: the eyebrow names the competition only, in every branch', [idleC, theirsC, mineC, bothC].map(x => x.eyebrow),
+      ['THE FIXTURE DERBY · THE CLASH', 'THE FIXTURE DERBY · THE CLASH', 'THE FIXTURE DERBY · THE CLASH', 'THE FIXTURE DERBY · THE CLASH']);
+    t('AW2-05: the idle clash carries the clock in its standfirst', idleC.standfirst, 'Best round of the week takes it. The week closes in 5 days.');
+    t('AW2-05: theirs in, mine not: the standfirst keeps the clock', theirsC.standfirst, 'That is the number, and the week closes in 5 days.');
+    t('AW2-05: mine in, theirs not: the headline keeps the clock', [mineC.headline, mineC.standfirst], ['Galen has {5} days to answer your {89}.', 'Your round is the number to beat.']);
+    t('AW2-05: both in: the standfirst keeps the clock', bothC.standfirst, 'The week closes in 5 days. Best round takes it.');
+    t('AW2-05: the clock is said once in each branch', [idleC, theirsC, mineC, bothC].map(clocks), [1, 1, 1, 1]);
+    window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 5, closes_today: false, rivalry: '', them_name: 'Galen Ward', mine: null, theirs: null };
+    t('AW2-05: with no rivalry the eyebrow is the league’s name, or THE CLASH alone', csFallbackItems()[0].eyebrow,
+      window.CS?.league?.name ? `${window.CS.league.name.toUpperCase()} · THE CLASH` : 'THE CLASH');
     window.homeClash = savedClash; window.homeFeedRows = savedFeed;
   })();
 
