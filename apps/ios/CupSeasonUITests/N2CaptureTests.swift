@@ -53,14 +53,16 @@ final class N2CaptureTests: XCTestCase {
         let mark: XCUIElement = e.root.hasPrefix("button:")
           ? app.buttons[String(e.root.dropFirst("button:".count))].firstMatch
           : app.descendants(matching: .any)["cs.screen.\(e.root)"]
-        var found = mark.waitForExistence(timeout: 30)
+        // a root the steps lead to (a receipt opened from Home) is checked
+        // after them; any other root is checked before and must still be up
+        let steps = e.steps ?? []
+        let leadsThere = !steps.isEmpty && e.root != e.route && !e.root.hasPrefix("button:")
+        var found = leadsThere ? true : mark.waitForExistence(timeout: 30)
         Thread.sleep(forTimeInterval: e.settle ?? 2.5)
         var stepLog: [String] = []
-        for s in e.steps ?? [] { stepLog.append(perform(s, in: app)) }
-        if !(e.steps ?? []).isEmpty { Thread.sleep(forTimeInterval: 1.2) }
-        // the root must STILL be up after the steps (a step may push a page
-        // that carries its own mark; the plan then names that root)
-        found = found && mark.exists
+        for s in steps { stepLog.append(perform(s, in: app)) }
+        if !steps.isEmpty { Thread.sleep(forTimeInterval: 1.2) }
+        found = found && mark.waitForExistence(timeout: leadsThere ? 15 : 2)
         let value = found ? (e.root.hasPrefix("button:") ? "misses=0 fails=0 (review fixture)" : ((mark.value as? String) ?? "")) : ""
         let verdict = found ? "PASS" : "FAIL"
         let counters = value.replacingOccurrences(of: " ", with: "_").replacingOccurrences(of: "=", with: "-")
@@ -110,9 +112,22 @@ final class N2CaptureTests: XCTestCase {
       el.tap(); el.typeText(text); return "type \(t): ok"
     case "typeField":
       guard let t = s.target, let text = s.text else { return "typeField: no target" }
+      // the last field's keyboard can cover this one: put it away first
+      let close = app.buttons["Close keyboard"].firstMatch
+      if close.exists && close.isHittable { close.tap(); Thread.sleep(forTimeInterval: 0.5) }
       let el = app.textFields[t].firstMatch
       guard el.waitForExistence(timeout: 8) else { return "typeField \(t): MISSING" }
-      el.tap(); el.typeText(text); return "typeField \(t): ok"
+      for _ in 0..<4 where !el.isHittable { app.swipeUp() }
+      el.tap()
+      // a tap that did not take the keyboard types into nothing — and a failed
+      // synthesized event would end the whole run — so it is logged instead
+      var focused = false
+      for _ in 0..<10 {
+        if (el.value(forKey: "hasKeyboardFocus") as? Bool) == true { focused = true; break }
+        Thread.sleep(forTimeInterval: 0.2)
+      }
+      guard focused else { return "typeField \(t): NO FOCUS" }
+      el.typeText(text); return "typeField \(t): ok"
     case "swipeUp":
       for _ in 0..<(s.count ?? 1) { app.swipeUp() }; return "swipeUp \(s.count ?? 1)"
     case "swipeDown":
