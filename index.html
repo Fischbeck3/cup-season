@@ -2443,6 +2443,12 @@ body.guestlive #onboard{display:none !important;}
 .evsesshd{display:flex; align-items:center; gap:10px; font-family:var(--board); font-size:12px; font-weight:600;
           letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin:0 0 4px;}
 .evsesshd i{flex:1; height:1px; background:var(--rule); font-style:normal;}
+/* TEN / W6 · PAR-16 · the unpaired week's empty state, and the closed week's score line */
+.evunpaired{padding:var(--s2) 0 var(--s1);}
+.evunpaired .cs-body{margin:0 0 var(--s1);}
+.evunpaired .fine{padding:0; margin:0 0 var(--s1);}
+.evunpaired .evpair{width:auto; margin-top:var(--s2); padding:0 var(--s4);}
+p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 /* the clash - 2 lines, one rule on its top edge, NO RAIL (D-4: a pairing has
    no rank, and a rail painted with a half-point would mean two things) */
 .evclash{border-top:1px solid var(--rule); padding:12px 0 8px;}
@@ -27125,8 +27131,22 @@ function renderEvent(){
       : wa===wb ? `Halved ${evHalf(wa)}–${evHalf(wb)}`
       : `${esc(wa>wb?A.name:B.name)} ${evHalf(Math.max(wa,wb))}–${evHalf(Math.min(wa,wb))}`;
     let body='';
-    if(!ds.length){ body+=`<div class="fine" style="padding:2px 0">Pairings not set.</div>`; }
+    /* TEN / W6 · PAR-16 · the unpaired week is the phone's empty state, word
+       for word, and its door (LINT-21; RyderRoomView.session): a CLOSED week
+       offers no pairing — a control on a thing that is over — and names where
+       the rosters are; an open one gives the organiser the primary and tells
+       everyone else who draws them. */
+    if(!ds.length){
+      body+=`<div class="evunpaired"><p class="cs-body">${closed ? "The week wasn't paired." : "The week hasn't been paired."}</p>`
+        + `<p class="fine">${closed ? 'It closed with nobody drawn against anybody.' : 'Both teams need golfers before pairings can be drawn.'}</p>`
+        + (closed ? `<p class="fine">The two rosters are at the foot of this page.</p>`
+           : iAmOrg ? `<button class="btn evpair" type="button" onclick="window.ryderPair('${s.id}')">Generate pairings</button>`
+           : `<p class="fine">The organiser draws them.</p>`) + `</div>`;
+    }
     else {
+      /* a closed week's score opens its body: the head's slot is the week's
+         state now (below), as the phone sets it */
+      if(closed) body+=`<p class="evwk-res cs-agate-s">${result}</p>`;
       /* §16A.3 · the figures under each pairing are the round against each
          golfer's playing HCP, higher winning — said once over the column */
       body+=`<div class="evfighd cs-agate-s">Round vs playing HCP · higher wins</div>`;
@@ -27185,15 +27205,16 @@ function renderEvent(){
       const days=Math.max(0, Math.round((d1b-new Date().setHours(0,0,0,0))/864e5));
       body+=`<div class="fine" style="padding:4px 0 0">Still to post: <b>${waiting.map(esc).join(', ')}</b> · ${days===0?'closes tonight':days+(days===1?' day':' days')+' left'}.</div>`;
     }
-    if(iAmOrg){
-      if(!ds.length) body+=`<button class="mini" onclick="window.ryderPair('${s.id}')" style="margin-top:4px">Generate pairings</button>`;
-      else if(s.status!=='closed') body+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this week</button>`;
+    if(iAmOrg && ds.length && s.status!=='closed'){
+      body+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this week</button>`;
     }
-    /* a section names its count ONCE, in the slot beside the rule (16A.2) — and
-       a state is not a count, so "open" rides the label */
+    /* TEN / W6 · PAR-16 · the head's right-hand slot is the week's state —
+       Open · Closed · Ahead — as the phone's RyderMath.sessionSlot prints it;
+       the label is the week and its dates (RyderMath.sessionHeader) */
+    const slot = s.status==='open' ? 'Open' : closed ? 'Closed' : 'Ahead';
     main += closed
-      ? `<details class="evsess evweek"><summary class="evsesshd"><span>Week ${s.session_no} · ${when}</span><i></i><span class="evwk-res">${result}</span></summary>${body}</details>`
-      : `<div class="evsess"><div class="evsesshd"><span>Week ${s.session_no} · ${when}${s.status==='open'?' · open':''}</span><i></i></div>${body}</div>`;
+      ? `<details class="evsess evweek"><summary class="evsesshd"><span>Week ${s.session_no} · ${when}</span><i></i><span class="evwk-slot">${slot}</span></summary>${body}</details>`
+      : `<div class="evsess"><div class="evsesshd"><span>Week ${s.session_no} · ${when}</span><i></i><span class="evwk-slot">${slot}</span></div>${body}</div>`;
   });
 
   /* THE ROSTERS: one ruled table a side, its W–L–H head said once (owner P,
