@@ -429,6 +429,10 @@ struct ScheduledRoundSheet: View {
       .contentShape(Rectangle())
       .onTapGesture { if let p = r.profileId { links.openTourCard?(p) } }
       .accessibilityElement(children: .combine)
+      // N4-133 · a seat with a golfer behind it opens their card, and says so
+      // to VoiceOver: a button, whose action is the tap's
+      .accessibilityAddTraits(r.profileId == nil ? [] : .isButton)
+      .accessibilityAction { if let p = r.profileId { links.openTourCard?(p) } }
     }
   }
 

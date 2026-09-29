@@ -50,6 +50,18 @@ final class N4ShellUITests: N2UITestCase {
     }
   }
 
+  /// N4-133 · the schedule's plan rows opened on a tap gesture and were not
+  /// buttons to VoiceOver. The person is each row's one button now (as
+  /// PersonRow's is), labelled with the row's words, and it opens the plan.
+  @MainActor func testAPlanRowIsAButton() {
+    let app = launch("season-live", "schedule")
+    _ = root(app, "schedule")
+    let row = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "fixture")).firstMatch
+    XCTAssertTrue(row.waitForExistence(timeout: 15), "a plan row is a button, with the row's words for its label")
+    attach(app, "n4-133-schedule")
+    app.terminate()
+  }
+
   @MainActor private func waitGone(_ e: XCUIElement, timeout: TimeInterval) -> Bool {
     let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: e)
     return XCTWaiter().wait(for: [gone], timeout: timeout) == .completed

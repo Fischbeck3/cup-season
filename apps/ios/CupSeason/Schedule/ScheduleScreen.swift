@@ -79,8 +79,10 @@ struct ScheduleScreen: View {
         // the case, so the words go in as the web says them.
         let name = Text(sr.display_name ?? "A golfer")
         let title = relTag(sr).map { name + Text("  \($0)").font(CSType.font(.agateS)).foregroundStyle(cs.mut) } ?? name
+        // N4-133 · the person is the row's one button, as PersonRow's is: it
+        // opened on a tap gesture and was never a button to VoiceOver
         RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name), title: title,
-                    sub: watchBits(sr)) {
+                    sub: watchBits(sr), onTap: { if let id = sr.id { open(id) } }, hint: "Opens the plan") {
           // W2 · the slot holds the ANSWER when there is one (in, out) and the
           // act when there is not — never a tag read as a yes (`csPlanRowHtml`)
           if let a = answer(sr), a.settled {
@@ -98,8 +100,6 @@ struct ScheduleScreen: View {
             }
           }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { if let id = sr.id { open(id) } }
       }
     }
   }
@@ -196,11 +196,11 @@ struct ScheduleScreen: View {
         ForEach(Array(d.items.enumerated()), id: \.offset) { _, it in
           switch it {
           case .round(let sr):
-            CSCheckRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(dayBits(sr))) {
+            // N4-133 · the person is the row's one button (it was a tap gesture)
+            RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(dayBits(sr)),
+                        onTap: { if let id = sr.id { day = nil; open(id) } }, hint: "Opens the plan") {
               if sr.isMine, let id = sr.id { ownerActions(sr, id: id) }
             }
-            .contentShape(Rectangle())
-            .onTapGesture { if let id = sr.id { day = nil; open(id) } }
           case .league(let text, let gold):
             HStack(spacing: CSTokens.Space.s3) {
               CSGlyph(.calendar, size: .row).foregroundStyle(cs.mut)
@@ -264,7 +264,9 @@ struct ScheduleScreen: View {
       CSFine("Nothing on the schedule for \(vm.month.monthName). Put one up: buddies and the crews you play with see it the moment you do.")
     } else {
       ForEach(rows) { sr in
-        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(listBits(sr))) {
+        // N4-133 · the person is the row's one button (it was a tap gesture)
+        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(listBits(sr)),
+                    onTap: { if let id = sr.id { open(id) } }, hint: "Opens the plan") {
           HStack(spacing: CSTokens.Space.s2) {
             Text(sr.play_on.map { ScheduleDates.whenDays($0, today: vm.today) } ?? "").csType(.agateS, caps: true).foregroundStyle(cs.mut)
             if sr.isMine, let id = sr.id {
@@ -275,8 +277,6 @@ struct ScheduleScreen: View {
             }
           }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { if let id = sr.id { open(id) } }
       }
     }
   }
