@@ -467,6 +467,10 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
   @Environment(\.dynamicTypeSize) private var typeSize
 
   let eyebrow: String?
+  /// N4-154 · a PHRASE about the course, under the eyebrow's label and in
+  /// sentence case (§1.3): *Four of yours have played it*. In the label's
+  /// caps it lost its word shape, and a tracked line never mixes case.
+  let gloss: String?
   let name: String
   /// `DINOSAUR MOUNTAIN` — the course, when the club is the headline.
   let course: String?
@@ -485,11 +489,11 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
   let panel: Panel
   let plate: Plate
 
-  public init(eyebrow: String? = nil, name: String, course: String? = nil, place: String? = nil,
+  public init(eyebrow: String? = nil, gloss: String? = nil, name: String, course: String? = nil, place: String? = nil,
               credit: String? = nil, height: CGFloat = 252, reserve: CGFloat = 0,
               @ViewBuilder panel: () -> Panel = { EmptyView() },
               @ViewBuilder plate: () -> Plate) {
-    self.eyebrow = eyebrow; self.name = name; self.course = course; self.place = place
+    self.eyebrow = eyebrow; self.gloss = gloss; self.name = name; self.course = course; self.place = place
     self.credit = credit; self.height = height; self.reserve = reserve
     self.panel = panel(); self.plate = plate()
   }
@@ -582,9 +586,15 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
     let mut = scrim ? CSTokens.dark.scrimMut : cs.mut
     Group {
       VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-        if let eyebrow {
-          Text(eyebrow).csType(.agate, caps: true).foregroundStyle(mut)
-            .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 2) {
+          if let eyebrow {
+            Text(eyebrow).csType(.agate, caps: true).foregroundStyle(mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          if let gloss, !gloss.isEmpty {
+            Text(gloss).csType(.agate, caps: false).foregroundStyle(mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
         }
         VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
           // a course headline WRAPS; the tail-ellipsis policy is for rows

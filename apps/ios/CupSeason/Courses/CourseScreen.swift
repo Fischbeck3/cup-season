@@ -192,7 +192,8 @@ struct CourseScreen: View {
   }
 
   @ViewBuilder private func coursePlate(_ book: CourseBook) -> some View {
-    CSCoursePlate(eyebrow: vm.book == nil ? nil : vm.eyebrow(book), name: vm.headline(book),
+    CSCoursePlate(eyebrow: vm.book == nil ? nil : vm.eyebrow(book),
+                  gloss: vm.book == nil ? nil : vm.playedIt, name: vm.headline(book),
                   course: vm.secondLine(book), place: book.place,
                   credit: vm.page.hero?.credit,
                   reserve: vm.rung(book) == .card ? Self.barsTop + Self.barsHeight : 0) {
@@ -554,22 +555,20 @@ final class CourseModel {
 
   // MARK: the copy
 
-  /// `KEPT · FOUR OF YOURS HAVE PLAYED IT` · `ON YOUR SCHEDULE · SATURDAY`.
-  /// Never invented: every clause is a fact the page can prove.
+  /// `KEPT` · `ON YOUR SCHEDULE · SAT OCT 3` — the label, and only the label
+  /// (N4-154: the phrase sets under it, `playedIt`). Never invented: every
+  /// clause is a fact the page can prove.
   func eyebrow(_ book: CourseBook) -> String? {
-    var parts: [String] = []
-    if let next = book.nextPlayOn {
-      parts.append("On your schedule · \(LeagueDates.dowMonDay(next))")
-    } else if book.played || page.myBest != nil {
-      parts.append("Kept")
-    } else if book.planned {
-      parts.append("On your plan")
-    } else {
-      parts.append("Kept")
-    }
+    if let next = book.nextPlayOn { return "On your schedule · \(LeagueDates.dowMonDay(next))" }
+    if book.played || page.myBest != nil { return "Kept" }
+    return book.planned ? "On your plan" : "Kept"
+  }
+
+  /// N4-154 · who of yours has played here — a phrase, so it sets under the
+  /// eyebrow in sentence case rather than as the label's third clause.
+  var playedIt: String? {
     let n = page.others.count
-    if n > 0 { parts.append("\(CSCopy.spelled(n)) of yours \(n == 1 ? "has" : "have") played it") }
-    return parts.joined(separator: " · ")
+    return n > 0 ? "\(CSCopy.spelled(n)) of yours \(n == 1 ? "has" : "have") played it" : nil
   }
 
   /// The club is the headline; the course is the second line when they differ
