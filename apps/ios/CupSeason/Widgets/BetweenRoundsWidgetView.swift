@@ -92,7 +92,8 @@ struct BetweenRoundsWidgetView: View {
             else if !stale, tee.allowsReply(at: date), let owner = snapshot?.owner {
               HStack(spacing: CSTokens.Space.s2) {
                 reply(tee.status == "in" ? "You’re in" : "I’m in", status: "in", tee: tee, owner: owner, primary: tee.status != "in")
-                reply(tee.status == "out" ? "You’re out" : "Can’t", status: "out", tee: tee, owner: owner, primary: false)
+                // N4-191 · a whole short answer, never "Can’t" alone
+                reply(tee.status == "out" ? "You’re out" : "Can’t go", status: "out", tee: tee, owner: owner, primary: false)
               }
             }
           }
@@ -205,7 +206,7 @@ struct BetweenRoundsWidgetView: View {
         } else {
           HStack(spacing: CSTokens.Space.s2) {
             reply("I’m in", status: "in", tee: tee, owner: owner, primary: true)
-            reply(small ? "Can’t" : "Can’t make it", status: "out", tee: tee, owner: owner, primary: false)
+            reply(small ? "Can’t go" : "Can’t make it", status: "out", tee: tee, owner: owner, primary: false)
           }
         }
       }
