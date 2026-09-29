@@ -28389,7 +28389,10 @@ function renderEvent(){
     const myDuel = openS ? duels.find(d=>d.session_id===openS.id && (d.a_player===meP.id || d.b_player===meP.id)) : null;
     const opp = myDuel ? pById(myDuel.a_player===meP.id ? myDuel.b_player : myDuel.a_player) : null;
     const oppFirst = opp && opp.name && opp.name!=='—' ? String(opp.name).trim().split(/\s+/)[0] : null;
-    const ask = oppFirst ? `Tell me when ${esc(oppFirst)} posts` : 'Tell me when my opponent posts';
+    /* W7-152 · once the opponent's side already holds a figure this week (the row above prints it), the ask is for the NEXT one: 'Tell me when Gray posts again' (E.targets is the read the figures use) */
+    const tgt = myDuel ? (E.targets||{})[myDuel.id] : null;
+    const oppPosted = !!tgt && (myDuel.a_player===meP.id ? tgt.b : tgt.a) != null;
+    const ask = (oppFirst ? `Tell me when ${esc(oppFirst)} posts` : 'Tell me when my opponent posts') + (oppPosted ? ' again' : '');
     tail+=`<div style="margin:10px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">${meP.notify_target?'Mute the taunts':ask}</button>
       <p class="fine" style="padding:4px 0 0">${meP.notify_target?'You hear it the moment your opponent posts.':'Nothing pings you until you ask for it.'}</p></div>`;
   }

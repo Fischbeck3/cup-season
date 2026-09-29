@@ -995,6 +995,18 @@ async function eventFromCompete(page, sel, id) {
    the taunt and the organiser's controls come AFTER the weeks (they stood a screen and a half above the clash on a phone) */
 /* TEN / W8 · W7-153 [A2-events-9, B2-events-7] · the roster's record columns are headed with words, 'Won', 'Lost', 'Halved' (the phone's recordLegend), in sentence case, each on its figures' edge and none clipped
    ('W L H' was never spelled: 'H' least of all) */
+/* TEN / W8 · W7-152 [A2-events-5, B2-events-3] · 'Tell me when <opponent> posts' is offered while the opponent has NOT posted this week; once their figure is on the board the ask is for the next one, 'Tell me when
+   <opponent> posts again' (it read as a promise about a post already made, a few rows above the figure that said so) */
+const tauntAsk = async (page) => page.evaluate(() => {
+  const E = window.CS_EVENT || {}, meU = window.CS.user.id, me = (E.players || []).find((p) => p.profile_id === meU)
+  const btn = [...document.querySelectorAll('#eventBody button.mini')].find((b) => /^(Tell me when|Mute the taunts)/.test(b.textContent.trim()))
+  if (!me || !btn) return 'the room draws no taunt button for the viewer'
+  if (/^Mute/.test(btn.textContent.trim())) return true
+  const open = (E.sessions || []).find((s) => s.status === 'open'), duel = open && (E.duels || []).find((d) => d.session_id === open.id && (d.a_player === me.id || d.b_player === me.id))
+  const t = duel && (E.targets || {})[duel.id], posted = !!t && (duel.a_player === me.id ? t.b : t.a) != null
+  const again = / posts again$/.test(btn.textContent.trim())
+  return posted === again ? true : `the opponent ${posted ? 'has' : 'has not'} posted and the button reads ${JSON.stringify(btn.textContent.trim())}`
+})
 const rosterHeads = async (page) => page.evaluate(() => {
   const heads = [...document.querySelectorAll('#eventBody .evrrow-hd')].filter((h) => h.getBoundingClientRect().width > 0)
   if (!heads.length) return 'no roster head is drawn'
@@ -1045,7 +1057,7 @@ const EVENTS = [
       has('#eventBody', 'The 2nd Ryder · Fixture Hawks hold it, 1–0', 'the series line (event_lineage)'),
       has('#eventBody', 'Fixture Hawks lead 5½–2½ after week 2\\.', 'the board’s week-2 line'),
       /* TEN / W8 · W7-K040 [B2-events-10]: the Ryder page does not own the season standing, it competes with it: the sidebar's season row stands down beside its two sides */
-      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder, rosterHeads,
+      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder, rosterHeads, tauntAsk,
       async (page) => page.evaluate(() => Object.keys((window.CS_EVENT || {}).targets || {}).length === 4 ? true : 'event_session_targets did not reach the four open duels')) },
   { family: 'events', id: 'finished', variant: 'member', title: 'The event room · a finished Ryder (Fixture Hawks 7–5), from Compete’s finished shelf',
     prepare: async (W) => { ryderWorld(W) },
