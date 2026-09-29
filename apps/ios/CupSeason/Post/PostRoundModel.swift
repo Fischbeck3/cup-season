@@ -65,8 +65,11 @@ final class PostRoundModel {
     worthContext = nil
     let on = card.date
     worthTask = Task { [weak self] in
-      guard let self, store.session != nil, !ProcessInfo.processInfo.arguments.contains("-cs_dev_no_worth") else { return }
+      guard let self, store.session != nil else { return }
       #if DEBUG
+      // `-cs_dev_no_worth` · no worth read at all (DEBUG only: the flag's
+      // string must not ship in the Release binary)
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_no_worth") { return }
       // `-cs_dev_worth <room|full|capped|open|two>` · the server's answer stood
       // in, so the sentence can be photographed before the migration lands.
       if let stood = PostWorthDev.served {
