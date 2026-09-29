@@ -36830,8 +36830,9 @@ function renderRoundSheet(id, d){
   $('#rrScratch')?.addEventListener('click', async(e)=>{ const b=e.currentTarget;
     if(!csArmTap(b, 'Cancel round', 'Sure? Cancel for everyone')) return;   /* W7-049 · §7.1: the first tap asks, the second does it */
     b.disabled=true;
-    try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
-    catch(err){ toast(humanError(err, 'Scratch failed.')); b.disabled=false; }
+    /* W7-079 · the words are the list's own ('Round cancelled', 'That did not cancel.'): a host who cancels from the sheet and one who cancels from the row read the same toast */
+    try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round cancelled'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
+    catch(err){ toast(humanError(err, 'That did not cancel.')); b.disabled=false; }
   });
 }
 /* weather rides in async; if there's no location or it's out of range, the chip

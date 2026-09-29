@@ -288,6 +288,8 @@ export default function install(W) {
     const before = prev('round_detail')
     out.round_detail = (a, w) => { const p = byId(String(a.p_round || '')); return p ? detail(p) : (before ? before(a, w) : undefined) }
   }
+  /* scratch_round · returns void: the host cancels a plan for everyone (W7-079 taps it from the plan sheet's manage bar, armed and then confirmed) */
+  out.scratch_round = ({ p_id }) => { const p = byId(String(p_id || '')); if (p) p.cancelled = true; return null }
   /* set_round_rsvp · returns void (20261012090000): the viewer's own answer on a plan they are tagged in (W7-039 taps it: 'I'm in') */
   out.set_round_rsvp = ({ p_round, p_status }) => { const p = byId(String(p_round || '')); if (p && ['in', 'maybe', 'out'].includes(p_status)) p.rsvp[1] = p_status; return null }
 

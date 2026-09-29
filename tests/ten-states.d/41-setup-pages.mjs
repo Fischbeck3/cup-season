@@ -165,6 +165,23 @@ const SCHEDULE = [
       if (boxes.length !== 2 || boxes.some((x) => x.getBoundingClientRect().height < 43.5)) return `the manage bar has ${boxes.length} boxes, some under 44px`
       return b.getBoundingClientRect().top >= boxes[0].getBoundingClientRect().bottom - 1 ? true : 'Cancel round is not apart from (beneath) the two harmless acts'
     })) },
+  /* TEN / W8 · W7-079 [X03] · confirmed from the plan sheet, the toast says what the list's cancel says ('Round cancelled', not 'Round scratched'), and the sheet closes */
+  { family: 'schedule', id: 'plan-sheet-cancelled', variant: 'member', fullPage: false, title: 'A plan · Avery’s own Wednesday, Cancel round confirmed from the sheet (the toast)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.mine)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.getElementById('rrScratch') }, null, 10000)
+      await page.locator('#rrScratch').scrollIntoViewIfNeeded()
+      await click(page, '#rrScratch'); await page.waitForTimeout(300)
+      await click(page, '#rrScratch')
+      await until(page, () => document.getElementById('toast').classList.contains('show'), null, 6000)
+    },
+    expect: { view: 'view-schedule', selectors: { '#toast.show': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = document.getElementById('toast').textContent.trim()
+      if (t !== 'Round cancelled') return `the toast reads ${JSON.stringify(t)}, not the list's 'Round cancelled'`
+      return document.getElementById('sheet').classList.contains('open') ? 'the sheet stayed open after the round was cancelled' : true
+    }) },
   /* ...and in the schedule's own list: your plan's 'Cancel round' is the tertiary link apart from Invite, and its first tap only asks */
   { family: 'schedule', id: 'cancel-armed', variant: 'member', title: 'Schedule · Cancel round on my own plan tapped once (armed, not confirmed)',
     drive: async (page) => {
