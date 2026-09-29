@@ -12767,7 +12767,11 @@ function finishDismiss(){
       csShareRoundText(card.gross, card.course), m => { if(fs) fs.textContent = m || ''; });
   });
   $('#finBack')?.addEventListener('click',finishDismiss);
-  el.addEventListener('click',e=>{ if(e.target===el) finishDismiss(); });   /* backdrop */
+  /* TEN / W7-140 [A2-share-5] · no backdrop dismissal. The ceremony is a
+     full-screen moment, not a sheet, and a stray tap on its empty field ended
+     it for good, the one way left to lose the share moment by accident once
+     the epilogue's second Share went (W7-006). Its two exits are the ones it
+     draws: #finBack, and Escape below. The phone's cover has no backdrop. */
   /* capture-phase Escape: the curtain eats it before the global sheet-closer,
      so one keypress can't collapse the ceremony AND the epilogue at once */
   document.addEventListener('keydown',e=>{

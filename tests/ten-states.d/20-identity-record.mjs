@@ -449,6 +449,15 @@ function shareState(id, title, card, extra = {}) {
           if (getComputedStyle(ff).color !== mut) return 'the fine print is not ceremony-mut: ' + getComputedStyle(ff).color
         } else if (!ff.hidden) return 'fine print with no switch to explain'
         return true
+      }).then(async (r) => {
+        if (r !== true) return r
+        /* TEN / W7-140 [A2-share-5] · a tap on the ceremony's empty field leaves
+           it open: its exits are "Back to the board" and Escape, as it draws them */
+        const hit = await page.evaluate(() => (document.elementFromPoint(6, 6) || {}).id)
+        if (hit !== 'finish') return `the backdrop probe did not land on the ceremony's field: ${hit}`
+        await page.mouse.click(6, 6)
+        await page.waitForTimeout(300)
+        return page.evaluate(() => document.getElementById('finish').classList.contains('open') ? true : 'a tap on the empty field ended the ceremony')
       })
     },
     ...extra,
