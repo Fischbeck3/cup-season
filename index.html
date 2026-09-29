@@ -921,6 +921,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .emptyroot h3{font-family:var(--serif); font-size:22px; margin:0 0 8px; font-weight:700;}
 .emptyroot .fact{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--ink); margin:0 0 var(--s2);}
 .emptyroot .sub{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut); margin:0 0 var(--s4); max-width:46ch;}
+.emptyroot .def{color:var(--mut); margin:calc(var(--s2) - var(--s4)) 0 var(--s4); max-width:46ch;}   /* N4-063 · the definition, a gap (s2) under the sub it belongs to */
 /* TEN / W6 · W5's needs-root 2: the empty root had equal mono doors, so the
    page had no action. It takes the shape W5 gave the empty Compete: ONE primary
    (the first door, the ordinary act button) and the rest as quiet links
@@ -23225,6 +23226,9 @@ const CS_RUNBACK_ASK_ALREADY = "You've already asked. It's on the board.";
 /* L-32, both halves. `failed` wins over everything: an error is the one fact
    the screen knows for certain, and dressing it as "nothing running" is the
    failure the law names. */
+/* N4-063 · TERMINOLOGY §1 row 7, verbatim (GolfersRoot.buddyDefinition): what
+   a buddy IS, said once, at first contact, which is the empty Golfers root */
+const CS_BUDDY_DEFINITION = 'Buddies see each other\u2019s rounds, and either of you can pull the other into a season.';
 function csEmptyRoot(which, opts){
   const o = opts || {};
   if(o.failed) return { state:'failed', head:'Couldn’t load this.', fact:null,
@@ -23232,8 +23236,11 @@ function csEmptyRoot(which, opts){
     doors:[{k:'retry', t:'Try again'}] };
   if(o.loaded === false) return { state:'loading', head:'', fact:null, sub:'', doors:[] };
   if(which === 'golfers'){
+    /* TEN / W6 · N4-063 (E's twin): the sub is a lead about the world, and
+       the definition is said once, under it, in the body role. The sub said
+       it a second time in its own words. */
     return { state:'empty', head:'No buddies yet.', fact:null,
-      sub:'Add the people you actually play with. They see your rounds, you see theirs, and either of you can pull the other into a season.',
+      sub:'Add the people you actually play with.', def: CS_BUDDY_DEFINITION,
       /* R-G's contacts door is D251, wave 8. A door that does not open is the
          one thing not permitted (L-32/L-44). */
       doors:[{k:'findGolfers', t:'Find golfers'}, {k:'personLink', t:'Text someone a link'}] };
@@ -23254,6 +23261,7 @@ function csEmptyRootHtml(root){
   return `<div class="emptyroot"><h3>${esc(root.head)}</h3>`
     + (root.fact ? `<p class="fact">${esc(root.fact)}</p>` : '')
     + `<p class="sub">${esc(root.sub)}</p>`
+    + (root.def ? `<p class="def cs-body-s">${esc(root.def)}</p>` : '')
     /* TEN / W6 · one primary, the rest quiet links (W5's empty-Compete shape) */
     + `<div class="doors">${root.doors.map((d, i)=>`<button type="button" class="${i===0?'btn':'alt'}" data-erdoor="${esc(d.k)}">${esc(d.t)}</button>`).join('')}</div></div>`;
 }

@@ -245,7 +245,18 @@ const GOLFERS = [
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },
-    check: async (page) => page.evaluate(() => document.querySelectorAll('#glfBoard .fbrow').length === 0 ? true : 'a board rendered for a golfer with no buddies') },
+    check: all(async (page) => page.evaluate(() => document.querySelectorAll('#glfBoard .fbrow').length === 0 ? true : 'a board rendered for a golfer with no buddies'),
+      /* TEN / W6 · N4-063 (TERMINOLOGY §1 row 7): the sub is the lead, and the definition is said once, under it,
+         word for word the phone's GolfersRoot.buddyDefinition, in the body role (sans, never mono or serif) */
+      async (page) => page.evaluate(() => {
+        const root = document.getElementById('glfRoot'), sub = root && root.querySelector('.emptyroot .sub'), def = root && root.querySelector('.emptyroot .def')
+        if (!sub || sub.textContent !== 'Add the people you actually play with.') return `the sub reads ${JSON.stringify(sub && sub.textContent)}`
+        if (!def || def.textContent !== 'Buddies see each other\u2019s rounds, and either of you can pull the other into a season.') return `the definition reads ${JSON.stringify(def && def.textContent)}`
+        if (sub.compareDocumentPosition(def) !== Node.DOCUMENT_POSITION_FOLLOWING) return 'the definition is not under the sub'
+        const f = getComputedStyle(def).fontFamily.split(',')[0]
+        if (/mono|serif|new york|georgia/i.test(f) && !/sans/i.test(f)) return `the definition is set in ${f}`
+        return (root.innerText.match(/see each other/gi) || []).length === 1 ? true : 'the definition is said more than once'
+      })) },
   /* EXPECTED TO FAIL on current source: the tap lands on the person page,
      which reads "Couldn't pull that card" for everyone (the builder .catch
      defect above). Kept as the real tap path so the capture records what a

@@ -935,6 +935,11 @@
     t('IA §6.1: with buddies it is the code door',
       csEmptyRoot('compete', { buddies: 3 }).doors.map(d => d.k), ['startSomething', 'joinWithCode']);
     t('IA §10.1: Golfers’ empty root, verbatim', csEmptyRoot('golfers', {}).head, 'No buddies yet.');
+    /* TEN / W6 · N4-063 (TERMINOLOGY §1 row 7): the sub is the lead; the definition is said once, beside it,
+       word for word the phone's GolfersRoot.buddyDefinition and GolfersRoot.empty().sub */
+    t('N4-063: the Golfers root’s sub and its one buddy definition',
+      [csEmptyRoot('golfers', {}).sub, csEmptyRoot('golfers', {}).def],
+      ['Add the people you actually play with.', 'Buddies see each other’s rounds, and either of you can pull the other into a season.']);
     /* R-G's contacts door is D251, wave 8 — not sold before it opens */
     t('L-32: Golfers does not sell the contacts door yet',
       csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Find golfers', 'Text someone a link']);
