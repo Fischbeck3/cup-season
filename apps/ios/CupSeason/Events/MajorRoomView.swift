@@ -195,6 +195,7 @@ struct MajorRoomView: View {
     if f.complete && !room.majorCards.isEmpty {
       let ranked = room.majorCards.filter { $0.rank != nil }.sorted { ($0.rank ?? 0) < ($1.rank ?? 0) }
       CSSectionHead("Final", count: "\(ranked.count)", trailing: nil).csGutter()
+      columnNote
       boardHead
       ForEach(ranked) { c in
         let r = byPlayer[c.player_id]
@@ -236,6 +237,7 @@ struct MajorRoomView: View {
                                         : .elsewhere("The window opens when the organiser says so."))
           .csGutter()
       } else {
+        columnNote
         boardHead
         ForEach(carded) { r in
           let pos = r.exhibition ? 0 : (contenders.firstIndex { $0.playerId == r.playerId } ?? 0) + 1
@@ -261,6 +263,20 @@ struct MajorRoomView: View {
 
   /// The header row at EVERY field size — the single most confusing element a
   /// blind reviewer named was an unlabelled trailing column.
+  /// N4-122 · the trailing column's meaning, in the friends board's words
+  /// (`FriendsBoard.columnNote`): it wraps at the accessibility sizes rather
+  /// than losing "plus is better", the half that says which way is good.
+  private var columnNote: some View {
+    Text("Vs playing HCP · plus is better")
+      .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      .fixedSize(horizontal: false, vertical: true)
+      .multilineTextAlignment(.trailing)
+      .frame(maxWidth: .infinity, alignment: .trailing)
+      .padding(.trailing, CSTokens.Space.gutter)
+      .padding(.bottom, CSTokens.Space.s1)
+      .accessibilityLabel("The last column is each golfer against their own playing handicap. A plus is better.")
+  }
+
   private var boardHead: some View {
     HStack(spacing: 0) {
       Text("Pos").csType(.agateS, caps: true).foregroundStyle(cs.mut)
@@ -281,7 +297,10 @@ struct MajorRoomView: View {
       // name.
       Text("Cards").csType(.agateS, caps: true).foregroundStyle(cs.mut)
         .frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing)
-      Text("Net").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      // N4-122 · not "Net": the column is each golfer against their own
+      // playing handicap (R-M/D260), and the note above the head says which
+      // way is good
+      Text("Vs HCP").csType(.agateS, caps: true).foregroundStyle(cs.mut)
         .frame(width: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
     }
     .padding(.trailing, CSTokens.Space.gutter)
