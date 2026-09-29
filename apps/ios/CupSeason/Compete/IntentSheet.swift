@@ -40,7 +40,9 @@ struct IntentSheet: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         HStack {
           Spacer(minLength: 0)
-          Button("Close") { dismiss() }.buttonStyle(.csTertiary(.toolbar))
+          // F03 · a fitted sheet is drawn scaled; `.fittedSheet` keeps the
+          // dismiss a 44pt target on the glass, not only in layout
+          Button("Close") { dismiss() }.buttonStyle(.csTertiary(.fittedSheet))
         }
         Text(StartIntent.title).csType(.lead).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
@@ -128,7 +130,7 @@ struct WhenForkSheet: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         HStack {
           Spacer(minLength: 0)
-          Button("Close") { dismiss() }.buttonStyle(.csTertiary(.toolbar))
+          Button("Close") { dismiss() }.buttonStyle(.csTertiary(.fittedSheet))
         }
         Text(StartIntent.WhenFork.title).csType(.lead).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)

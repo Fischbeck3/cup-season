@@ -625,7 +625,7 @@ public struct CSHoleStrip: View {
         ForEach(holes) { h in
           Rectangle().fill(h.id == current ? cs.brand : Color.clear)
             .frame(height: 2)
-            .frame(minWidth: 20, maxWidth: .infinity)
+            .frame(minWidth: Self.cellFloor, maxWidth: .infinity)
         }
       }
       if key || trailing != nil { legend }
@@ -635,10 +635,20 @@ public struct CSHoleStrip: View {
     .accessibilityLabel(spokenLine)
   }
 
+  /// **A CELL MAY NARROW TO 16, BECAUSE EIGHTEEN OF THEM MUST FIT AN SE.**
+  /// The floor was 20: 18 × 20 = 360pt against an SE's 335pt measure (375
+  /// less two 20pt gutters), so the strip was 25pt wider than the page, the
+  /// live page's `ScrollView` centred the wider column, and every block on it
+  /// sat at a 7.5pt inset instead of 20 — on the SE only; a 17 Pro's 362
+  /// holds 360. The widest mark the strip draws is a 14.4pt ring
+  /// (`CSScoreMark` clamps to one ring or one square), so 16 keeps a gap
+  /// between neighbours, and 18 × 16 = 288 fits any iPhone.
+  static let cellFloor: CGFloat = 16
+
   private var cells: some View {
     HStack(spacing: 0) {
       ForEach(holes) { h in
-        mark(h.overPar).frame(minWidth: 20, maxWidth: .infinity, minHeight: 22)
+        mark(h.overPar).frame(minWidth: Self.cellFloor, maxWidth: .infinity, minHeight: 22)
       }
     }
   }

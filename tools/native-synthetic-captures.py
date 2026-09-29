@@ -150,6 +150,9 @@ for phone, udid in devices.items():
                 counters=rec.get('value', counters), identity='synthetic: Dev/Synthetic invented world (@example.invalid, fixture ids)',
                 capturedAt=time.strftime('%Y-%m-%dT%H:%M:%S%z')))
         manifest_path.write_text(json.dumps(rows, indent=2) + '\n')
+    # the simulator goes back to the default reading size: a later test that
+    # does not pin its size would otherwise inherit the last pass's AX3
+    sim('ui', udid, 'content_size', 'large')
     if not a.keep_booted:
         sim('shutdown', udid)
 
