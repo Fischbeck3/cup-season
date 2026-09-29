@@ -474,20 +474,22 @@ struct LiveSettlementCard: View {
               if !heroSub.isEmpty {
                 Text(heroSub).csFixed(.agate, 30).textCase(.uppercase).tracking(8).foregroundStyle(d.ceremonyMut)
               }
+              // N4-080 · the shrink floors come up: a side name takes a second
+              // line at 0.7 rather than shrinking to 0.4 (5–7pt on the phone)
               Text(wSide ?? "").csFixed(.display, 52).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
               Text("DEF.").csFixed(.agate, 26).tracking(8).foregroundStyle(d.ceremonyMut)
               Text(lSide ?? "").csFixed(.display, 46).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyMut).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyMut).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
             }
           } else if twoSided {
             VStack(spacing: 10) {
               Text("ALL SQUARE").csFixed(.figureL, 140).textCase(.uppercase)
                 .foregroundStyle(d.ceremonyInk).multilineTextAlignment(.center)
               Text(r.sideA ?? "").csFixed(.display, 46).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
               Text(r.sideB ?? "").csFixed(.display, 46).textCase(.uppercase)
-                .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.4)
+                .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
             }
           } else {
             VStack(spacing: 40) {
@@ -527,10 +529,11 @@ struct LiveSettlementCard: View {
         Spacer(minLength: 0)
         Text(money).csFixed(.agate, 30).textCase(.uppercase).tracking(5)
           .foregroundStyle(d.ceremonyGold).multilineTextAlignment(.center)
-          .lineLimit(2).minimumScaleFactor(0.5).padding(.horizontal, 100)
+          .lineLimit(2).minimumScaleFactor(0.8).padding(.horizontal, 100)   // N4-080 · the money line's floor
         Rectangle().fill(d.folioRule).frame(width: 520, height: 1).padding(.top, 40)
+        // N4-080 · the course takes a second line at 0.7 rather than 0.5
         Text(course.isEmpty ? "A round" : course).csFixed(.display, 40).textCase(.uppercase)
-          .foregroundStyle(d.ceremonyInk).lineLimit(1).minimumScaleFactor(0.5)
+          .foregroundStyle(d.ceremonyInk).lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
           .padding(.top, 50).padding(.horizontal, 100)
         Text(LiveSettlementCard.dateLine(date)).csFixed(.agate, 27).tracking(4)
           .foregroundStyle(d.ceremonyMut).padding(.top, 24)
