@@ -194,3 +194,91 @@ export const capsFromRole = (sels, need = []) => async (page) => page.evaluate((
   }
   return bad.length ? 'capitals typed into the string, not set by the role (§1.3): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
 }, [sels, need])
+
+/* TEN / W6 · E's twin (N4-087) · UI_SYSTEM §10.3: copy over a photograph is
+ * measured on the photograph. `bandContrast(card, parts)` scrolls the first
+ * visible `card` into view, paints each part's own text transparent (and any
+ * ring drawn in it), and screenshots the card. What is left under each line
+ * is exactly its ground: photo, scrim, panel. It then measures each line's
+ * colour against the WORST pixel of that ground inside the line's own box
+ * (the brightest for light type, the darkest for dark). A part fails under
+ * 4.5:1, or 3:1 when `large` (a figure at 18.66px bold or more). The scroll
+ * is put back, so the capture frames as it did. Every part's number goes to
+ * the log (`[bandContrast]`). The PNG is decoded with node:zlib; no
+ * dependency. */
+import { inflateSync } from 'node:zlib'
+function decodePNG(buf) {
+  let off = 8, w = 0, h = 0, ct = 0, bd = 0, il = 0; const idat = []
+  while (off < buf.length) {
+    const len = buf.readUInt32BE(off), type = buf.toString('ascii', off + 4, off + 8), data = buf.subarray(off + 8, off + 8 + len)
+    if (type === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); bd = data[8]; ct = data[9]; il = data[12] }
+    else if (type === 'IDAT') idat.push(data)
+    else if (type === 'IEND') break
+    off += 12 + len
+  }
+  if (bd !== 8 || (ct !== 6 && ct !== 2) || il) throw new Error(`png: depth ${bd}, colour type ${ct}, interlace ${il}`)
+  const bpp = ct === 6 ? 4 : 3, stride = w * bpp, raw = inflateSync(Buffer.concat(idat)), px = Buffer.alloc(h * stride)
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)], line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1))
+    const out = px.subarray(y * stride, (y + 1) * stride), prev = y ? px.subarray((y - 1) * stride, y * stride) : null
+    for (let i = 0; i < stride; i++) {
+      const a = i >= bpp ? out[i - bpp] : 0, b = prev ? prev[i] : 0, c = prev && i >= bpp ? prev[i - bpp] : 0
+      let v = line[i]
+      if (f === 1) v += a; else if (f === 2) v += b; else if (f === 3) v += (a + b) >> 1
+      else if (f === 4) { const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); v += (pa <= pb && pa <= pc) ? a : (pb <= pc ? b : c) }
+      out[i] = v & 255
+    }
+  }
+  return { w, h, bpp, px }
+}
+const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+export const bandContrast = (card, parts) => async (page) => {
+  const got = await page.evaluate(({ card, parts }) => {
+    const el = [...document.querySelectorAll(card)].find((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+    if (!el) return { err: `no ${card} is drawn` }
+    const scrolled = []; for (let p = el.parentElement; p; p = p.parentElement) if (p.scrollTop) scrolled.push([p, p.scrollTop])
+    window.__bcRestore = { y: scrollY, scrolled }
+    el.scrollIntoView({ block: 'center' })
+    const r = el.getBoundingClientRect()
+    const out = []
+    for (const part of parts) {
+      const t = [...el.querySelectorAll(part.sel)].find((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 })
+      if (!t) { out.push({ name: part.name, missing: true }); continue }
+      const nodes = part.own ? [...t.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim()) : [t]
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
+      for (const n of nodes) { const rg = document.createRange(); rg.selectNodeContents(n); for (const b of rg.getClientRects()) { if (!b.width) continue; x0 = Math.min(x0, b.left); y0 = Math.min(y0, b.top); x1 = Math.max(x1, b.right); y1 = Math.max(y1, b.bottom) } }
+      t.setAttribute('data-bc-hide', '')
+      out.push({ name: part.name, large: !!part.large, color: getComputedStyle(t).color, box: [x0 - r.left, y0 - r.top, x1 - r.left, y1 - r.top] })
+    }
+    const st = document.createElement('style'); st.id = 'bc-hide'
+    st.textContent = '[data-bc-hide], [data-bc-hide] *{color:transparent !important; text-shadow:none !important; border-color:transparent !important}'
+    document.head.appendChild(st)
+    return { clip: { x: r.left, y: r.top, width: r.width, height: r.height }, parts: out }
+  }, { card, parts })
+  if (got.err) return got.err
+  let png
+  try { png = decodePNG(await page.screenshot({ clip: got.clip })) }
+  finally {
+    await page.evaluate(() => {
+      document.getElementById('bc-hide')?.remove(); document.querySelectorAll('[data-bc-hide]').forEach((e) => e.removeAttribute('data-bc-hide'))
+      const s = window.__bcRestore; if (s) { s.scrolled.forEach(([p, t]) => { p.scrollTop = t }); scrollTo(0, s.y) }
+    })
+  }
+  const k = png.w / got.clip.width, bad = [], log = []
+  for (const p of got.parts) {
+    if (p.missing) { bad.push(`${p.name} is not drawn`); continue }
+    const fg = (p.color.match(/[\d.]+/g) || []).slice(0, 3).map(Number), lf = lum(fg)
+    const [bx0, by0, bx1, by1] = p.box.map((v) => Math.round(v * k))
+    let hi = 0, lo = 1
+    for (let y = Math.max(0, by0); y < Math.min(png.h, by1); y++) for (let x = Math.max(0, bx0); x < Math.min(png.w, bx1); x++) {
+      const i = (y * png.w + x) * png.bpp, l = lum([png.px[i], png.px[i + 1], png.px[i + 2]]); if (l > hi) hi = l; if (l < lo) lo = l
+    }
+    const worst = lf > (hi + lo) / 2 ? hi : lo   /* light type fails on the brightest ground, dark type on the darkest */
+    const ratio = (Math.max(lf, worst) + 0.05) / (Math.min(lf, worst) + 0.05)
+    log.push(`${p.name} ${ratio.toFixed(2)}`)
+    if (ratio < (p.large ? 3 : 4.5)) bad.push(`${p.name} ${ratio.toFixed(2)}:1 on its worst ground`)
+  }
+  console.log(`[bandContrast] ${card} @${Math.round(got.clip.width)}w · ${log.join(' · ')}`)
+  return bad.length ? 'copy over the photograph under AA (§10.3): ' + bad.join('; ') : true
+}

@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -325,7 +325,26 @@ const GOLFERS = [
     /* TEN / W6 · AW2-08: the report control is a word, not ⚑; no retired glyph on the board */
     noRetiredGlyph(),
     /* TEN / W6 · AW2-13: the reaction bar's controls and the tags are not pills, and the system row has no spine */
-    noRetiredShape()) },
+    noRetiredShape(),
+    /* TEN / W6 · E's twin (N4-087, root's ruling (b)) · §10.3: the photo card is the wire's case. It has
+       the ONE scrim's `.band` geometry (leading → trailing), the points on the bone panel, the margin in
+       the copy column, and its copy measured on the fixture photo */
+    async (page) => page.evaluate(() => {
+      const c = [...document.querySelectorAll('#boardFull .fcard .round.has-photo')].find((e) => e.getBoundingClientRect().height > 0)
+      if (!c) return 'no photo card on the board to read'
+      const bg = getComputedStyle(c, '::before').backgroundImage
+      if (!/^linear-gradient\((to right|90deg)/.test(bg)) return `the photo card's scrim is not the band (leading → trailing): ${bg.slice(0, 80)}`
+      const tok = (n) => { const i = document.createElement('i'); i.style.color = `var(${n})`; c.appendChild(i); const v = getComputedStyle(i).color; i.remove(); return v }
+      const pts = c.querySelector('.pts')
+      if (pts && getComputedStyle(pts).backgroundColor !== tok('--panel')) return `the points are not on the bone panel: ${getComputedStyle(pts).backgroundColor}`
+      if (c.querySelector(':scope > .pvi')) return 'the margin sits on the band\u2019s clear end'
+      return true
+    }),
+    bandContrast('#boardFull .fcard .round.has-photo', [
+      { name: 'name', sel: '.l1 span' }, { name: 'course', sel: '.l2' }, { name: 'gross', sel: '.rline' },
+      { name: 'counting', sel: '.rline .ok, .rline .dim' }, { name: 'margin', sel: '.pvi-line b, .pvi', own: true },
+      { name: 'margin unit', sel: '.pvi-line small, .pvi small' }, { name: 'points', sel: '.pts', own: true, large: true },
+      { name: 'points unit', sel: '.pts small' }])) },
 ]
 
 export default [...HOME_HATCH, ...HOME_DISPATCH, ...HOME_LEAGUELESS, ...HOME_WORLD, ...GOLFERS]

@@ -1342,7 +1342,6 @@ th.deskonly, td.deskonly{display:none;}
   letter-spacing:calc(var(--tight) * 1em); font-variant-numeric:tabular-nums;}
 .round .pvi small{display:block; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; line-height:1.2; margin-top:2px;}
-.fcard .round.has-photo .pvi{color:var(--scrim-mut);}
 
 /* ============ draft ============ */
 .draftgrid{display:block;}
@@ -2906,42 +2905,52 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   background-color:var(--ceremony); background-size:cover; background-position:center;
 }
 .fcard .round.has-photo::before{
-  content:""; position:absolute; inset:0; border-radius:inherit;
-  background:linear-gradient(180deg, rgba(10,14,12,.35) 0%, rgba(10,14,12,.65) 55%, rgba(10,14,12,.85) 100%);
-  pointer-events:none;
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  /* TEN / W6 · E's twin (N4-087, root's ruling (b)) · UI_SYSTEM §10.3's ONE
+     scrim, its `.band` geometry. A feed story is the wire's case, with the
+     copy at the leading edge: leading → trailing, 0% ceremony a88 · 46%
+     ceremony a56 · 100% clear. It replaces the board's own three-stop dusk
+     wash (rgba(10,14,12, .35 → .65 → .85), top to bottom), which §10.3 names
+     among the washes CSPhotoScrim replaces. */
+  background:linear-gradient(to right,
+    color-mix(in srgb, var(--ceremony) 88%, transparent) 0%,
+    color-mix(in srgb, var(--ceremony) 56%, transparent) 46%,
+    transparent 100%);
 }
 .fcard .round.has-photo>*{position:relative; z-index:1;}
 /* ...except the marker stamp, which rides the photo's top corner, out of the
    row: made relative by the rule above, it took a flex slot (and its own
    right/bottom offsets) and squeezed the golfer's lines to ~115px at 375 */
 .fcard .round.has-photo>.mkstamp{position:absolute; top:var(--s3); right:var(--s3); bottom:auto;}
-/* 3.2 follow-up: every line that reads DIRECTLY on the photo (no opaque chip
-   behind it — unlike .pvi, which sits on its own solid --bg2 chip and was
-   already safe) is forced to one of two fixed light shades. .room-dusk's
-   dusk --mut/--dim tokens are NOT light enough on their own here — measured
-   ~3.8:1 (--mut) and worse (--dim) against a bright photo even at the
-   scrim's darkest stop, both under the 4.5:1 floor. --pos/--neg (used by the
-   counting-line spans) are semantic and saturated but can dip too depending
-   on the gradient position, so they're folded into the same fixed secondary
-   shade here — the words themselves ("COUNTING…", "BUMPED…") still carry the
-   meaning. Text-shadow is belt-and-braces on top of the (already-passing)
-   forced colors, not a substitute for them. */
+/* TEN / W6 · E's twin (N4-087) · the copy reads on the band's dark end, in
+   the two constants §2.1 names for type over a photograph. The name and the
+   streak are scrimInk; the course, the gross and the counting lines are
+   scrimMut, as the phone's RoundStoryCard sets them. The typed near-white
+   (rgba(236,238,242,.92)) and the pos/neg dips it papered over are gone. So
+   is the text-shadow: the measured scrim does the work, and §10.3 allows "no
+   filters … no gradient beyond the measured scrim". */
 .fcard .round.has-photo .l1,
-.fcard .round.has-photo .pts{ color:var(--scrim-ink); }
 .fcard .round.has-photo .l1 span,
+.fcard .round.has-photo .streaktag{ color:var(--scrim-ink); }
 .fcard .round.has-photo .l2,
 .fcard .round.has-photo .rline,
 .fcard .round.has-photo .rline .ok,
-.fcard .round.has-photo .rline .dim,
-.fcard .round.has-photo .pts small{ color:rgba(236,238,242,.92); }
-.fcard .round.has-photo .l1,
-.fcard .round.has-photo .l1 span,
-.fcard .round.has-photo .l2,
-.fcard .round.has-photo .rline,
-.fcard .round.has-photo .pts,
-.fcard .round.has-photo .pts small{
-  text-shadow:0 1px 2px rgba(0,0,0,.45);
-}
+.fcard .round.has-photo .rline .dim{ color:var(--scrim-mut); }
+/* the margin rides the band's dark end with the copy. Nothing sits on the
+   band's clear end, and a phrase ("vs playing HCP") is never a panel
+   (LINT-19): the figure in the column face, scrimInk, its unit agateS,
+   scrimMut */
+.fcard .round.has-photo .pvi-line{display:flex; align-items:baseline; flex-wrap:wrap; gap:0 var(--s1); margin-top:2px;}
+.fcard .round.has-photo .pvi-line b{font-family:var(--mono); font-size:14px; font-weight:500; letter-spacing:calc(var(--tight) * 1em);
+  font-variant-numeric:tabular-nums; color:var(--scrim-ink);}
+.fcard .round.has-photo .pvi-line small{font-family:var(--board); font-weight:600; font-size:11px; line-height:1.2;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--scrim-mut);}
+/* the points on the BONE panel, in both themes. §10.3: "the panel over a
+   photograph is always the bone panel", and .room-dusk's --panel IS the bone.
+   An opaque figure, never type on the band's clear end (CSPanel(.overPhoto)) */
+.fcard .round.has-photo .pts{background:var(--panel); color:var(--panel-ink);
+  border-radius:var(--p); padding:var(--s2) var(--s3); text-align:center;}
+.fcard .round.has-photo .pts small{color:var(--panel-mut);}
 /* 3.2 follow-up: offscreen photo cards skip paint (the containment the old
    loading="lazy" <img> got natively) — genuine lazy-FETCH parity would need
    an IntersectionObserver to delay setting the background-image itself;
@@ -10595,8 +10604,9 @@ function renderFeedFull(force){
             <div class="rline">${sfNew?sfWrap(String(r.gross)):r.gross} GROSS${r.pvi!=null?` · ${(r.profile_id && r.profile_id===window.CS?.user?.id ? bandName(Number(r.pvi)) : theirs(bandName(Number(r.pvi)))).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
             ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} STRAIGHT UNDER</span></div>`:''}
+            ${r.photo_url && r.pvi!=null?`<div class="pvi-line"><b>${up?'+':''}${Number(r.pvi).toFixed(1)}</b><small>vs playing HCP</small></div>`:''}
           </div>
-          ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}<small>vs playing HCP</small></span>`:''}
+          ${!r.photo_url && r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}<small>vs playing HCP</small></span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
           ${r.photo_url && r.profile_id && window.mkr ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : ''}
         </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
