@@ -606,48 +606,129 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sb-terrain .cs-topohead .t-edge{opacity:1; stroke-width:1;}
 .sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;}
 .sb-door[hidden]{display:none;}
-.sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; margin:auto; width:min(1280px,96vw); max-width:96vw; height:90vh; max-height:90vh;}   /* margin:auto — the reset's `*{margin:0}` cancelled the modal's own centring and pinned the Book top-left on the desk */
+/* W5 · the Book is as tall as what it holds (a two-line "no standing yet"
+   or an error sat in a 90vh frame, ~70% empty) and never taller than 90vh.
+   `fit-content`, not `auto`: a modal dialog is fixed to both insets, and
+   `auto` would stretch it to them and undo the centring. */
+.sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; margin:auto; width:min(1280px,96vw); max-width:96vw; height:fit-content; max-height:90vh;}   /* margin:auto — the reset's `*{margin:0}` cancelled the modal's own centring and pinned the Book top-left on the desk */
 .sb-dialog::backdrop{background:var(--bg0); opacity:.8;}
 .sb-dialog header{position:relative; isolation:isolate; overflow:hidden; padding:var(--s4); border-bottom:1px solid var(--rule);}
-.sb-dialog header h1{position:relative; padding-right:96px;}
-.sb-dialog h1{font-family:var(--serif); font-size:42px; margin:0;}
-.sb-dialog h2{font-family:var(--serif); font-size:24px; margin:var(--s3) 0;}
+.sb-dialog header h1{position:relative; padding-right:56px;}
+/* W5 · the Book names itself in the DISPLAY role, like every page (D280): the
+   board face in caps — "the Book" in a lowercase serif read as a typo, and the
+   serif is the one object a viewport slows down for, not a title */
+.sb-dialog h1{font-family:var(--board); font-weight:700; font-size:42px; line-height:.98; text-transform:uppercase; letter-spacing:calc(var(--d1) * 1em); margin:0; text-wrap:balance;}
+/* the Book's heads carry numbers ("Fixture Javelinas · Week 12"), and a
+   number is never set in the serif (§1.4): displayS, the board face */
+.sb-dialog h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.05; text-transform:uppercase; letter-spacing:calc(var(--d2) * 1em); margin:var(--s3) 0; text-wrap:balance;}
 .sb-dialog h3{font-family:var(--sans); font-size:16px;}
 .sb-dialog p{line-height:1.5; margin:var(--s2) 0 var(--s3);}
-.sb-dialog button,.sb-dialog select{color:var(--ink); background:var(--bg1); border:1px solid var(--rule); min-height:44px; padding:var(--s2); font:inherit; cursor:pointer;}
-.sb-dialog button:focus-visible,.sb-dialog select:focus-visible,.sb-matrix:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+.sb-dialog button{color:var(--ink); min-height:44px; padding:var(--s2); font:inherit; cursor:pointer; background:none; border:0;}
+.sb-dialog button:focus-visible,.sb-matrix:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 .sb-dialog button:disabled{cursor:default; color:var(--mut);}
-.sb-close{position:absolute; right:var(--s4); top:var(--s3);}
+/* W5 · the sheet grammar the web's sheets use (`.sheet .x`): a 44px x in mut,
+   never a bordered "Close" box beside the title */
+.sb-dialog .sb-close{position:absolute; right:var(--s2); top:var(--s2); width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; color:var(--mut); z-index:1;}
+.sb-dialog .sb-close:hover{color:var(--ink);}
+.sb-dialog .sb-close .ic{width:18px; height:18px;}
 .sb-layout{display:grid; grid-template-columns:minmax(0,1fr) 320px;}
+/* the receipts column stands down while there is nothing to select in the
+   body (before the first tee, a failed read): "Select a cell…" beside an
+   error, with no cells, asked for something that is not there */
+.sb-layout[data-solo]{grid-template-columns:minmax(0,1fr);}
+.sb-receipts[hidden]{display:none;}
 .sb-main{padding:var(--s4); min-width:0;}
 .sb-receipts{padding:var(--s4); background:var(--bg1); border-left:1px solid var(--rule);}
-.sb-controls{display:flex; flex-wrap:wrap; gap:var(--s3); margin:var(--s3) 0;}
-.sb-controls label{display:flex; flex-direction:column; gap:var(--s1); font-family:var(--board); font-size:12px;}
-.sb-matrix{overflow:auto; max-height:60vh; border-block:1px solid var(--rule);}
+.sb-receipts .sb-hint{font-family:var(--sans); color:var(--mut);}
+/* the loading geometry (§13.2): the head's lines and a redacted grid */
+.sb-skel{padding:var(--s1) 0 var(--s3);}
+.sb-skel-row{display:flex; gap:var(--s3); align-items:center; margin-top:var(--s4);}
+.sb-skel-name{display:block; flex:none; width:120px; height:30px;}
+.sb-skel-cell{display:block; flex:none; width:44px; height:30px;}
+.sb-loading-t{position:absolute; width:1px; height:1px; margin:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap;}
+/* the one action of a failed read is the act primary, at its own width */
+.sb-dialog .sb-retry{width:auto; padding:0 var(--s4);}
+.sb-controls{display:flex; flex-wrap:wrap; gap:var(--s3) var(--s5); margin:var(--s3) 0;}
+.sb-ctl{display:flex; flex-direction:column; gap:var(--s1); min-width:0; max-width:100%;}
+.sb-ctl.is-wide{flex:1 1 100%;}
+.sb-ctl-k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
+/* W5 · ONE segment component (UI_SYSTEM §7.2) — the Book's four controls and
+   the wizard's dials wear it: a 44px row with no pill, agate labels in mut on
+   a 2px underline that is transparent at rest and INK when chosen (never
+   ember: a control is not a live competition, D359). A set too long for its
+   row scrolls in one line under an edge fade (`.is-scroll`); the wizard's
+   short sets share the row (`.is-fill`). */
+.cs-seg{display:flex; gap:var(--s4); min-width:0; border-bottom:1px solid var(--rule); overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;}
+.cs-seg::-webkit-scrollbar{display:none;}
+.cs-seg > button{flex:none; min-height:44px; margin:0 0 -1px; padding:0; background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
+  font-family:var(--board); font-weight:600; font-size:12px; line-height:1.2; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
+  color:var(--mut); white-space:nowrap; cursor:pointer; text-align:center;}
+.cs-seg > button:hover{color:var(--ink);}
+.cs-seg > button[aria-pressed="true"], .cs-seg > button.on{color:var(--ink); border-bottom-color:var(--ink);}
+.cs-seg > button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
+.cs-seg > button small{display:block; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:none; color:var(--mut); font-weight:600;}
+.cs-seg.is-fill{gap:0;}
+.cs-seg.is-fill > button{flex:1 1 0; min-width:0; padding:0 var(--s1); white-space:normal;}
+.cs-seg.is-scroll[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
+/* W5 · the grid: the name column is pinned (narrower on a phone so a third
+   week shows whole), columns snap to the pinned column's edge, and a fade
+   over the right edge says the season goes on while it does. */
+.sb-matrix-wrap{position:relative; --sb-name-w:170px;}
+.sb-matrix-wrap::after{content:""; position:absolute; top:1px; right:0; bottom:1px; width:44px; pointer-events:none; opacity:0;
+  background:linear-gradient(to right, color-mix(in srgb, var(--bg0) 0%, transparent), var(--bg0)); transition:opacity .15s ease;}
+.sb-matrix-wrap[data-more]::after{opacity:1;}
+.sb-matrix{overflow:auto; max-height:60vh; border-block:1px solid var(--rule); scroll-snap-type:x proximity; scroll-padding-left:var(--sb-name-w);}
 .sb-matrix table{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-variant-numeric:tabular-nums;}
 .sb-matrix th,.sb-matrix td{padding:0; border-bottom:1px solid var(--rule); background:var(--bg0); text-align:center;}
+.sb-matrix td,.sb-matrix thead th:not(:first-child){scroll-snap-align:start;}
 .sb-matrix thead th{position:sticky; top:0; z-index:2; height:56px; background:var(--bg1); font:12px var(--board); padding:var(--s2);}
 .sb-matrix small{display:block; font:11px var(--board); padding-top:var(--s1);}
-.sb-matrix tr>th:first-child{position:sticky; left:0; z-index:1; width:170px; min-width:170px; max-width:170px; text-align:left; background:var(--bg1);}
+.sb-matrix tr>th:first-child{position:sticky; left:0; z-index:1; width:var(--sb-name-w); min-width:var(--sb-name-w); max-width:var(--sb-name-w); text-align:left; background:var(--bg1);}
 .sb-matrix thead tr>th:first-child{z-index:3;}
 .sb-matrix .sb-current{background:var(--brand); color:var(--brand-ink);}
+/* the live week reads down its whole column, not only in the header */
+.sb-matrix td.sb-now{background:color-mix(in srgb, var(--brand) 12%, var(--bg0)); box-shadow:inset 1px 0 0 color-mix(in srgb, var(--brand) 40%, transparent), inset -1px 0 0 color-mix(in srgb, var(--brand) 40%, transparent);}
 .sb-matrix button{border:0; background:transparent; width:100%; min-width:64px; min-height:64px; font:24px var(--board); white-space:nowrap;}
 /* F11 · the status marks are a record note beside the figure, not digits of it */
 .sb-matrix .sb-marks{display:inline-block; margin-left:var(--s1); font:600 11px/1 var(--board); letter-spacing:.06em; color:var(--mut); transform:translateY(-.7em);}
 .sb-key{margin:var(--s2) 0 var(--s2);}
+/* a mark and its meaning never part at a line end */
+.sb-key .sb-key-i{white-space:nowrap;}
 .sb-matrix th button{text-align:left; white-space:normal; font:14px var(--sans);}
 .sb-matrix strong{display:block; font:20px var(--board); padding-top:var(--s1);}
+/* the leader's total is the one gold figure (§9.1: gold for the leader, the
+   position earned); the reader's own row says so in words, never by colour */
+.sb-matrix strong.sb-lead,.sb-totals strong.sb-lead{color:var(--gold);}
+.sb-you{font-weight:700; color:var(--ink);}
 .sb-totals button,.sb-adjustment{display:block; text-align:left; width:100%; border:0!important; border-bottom:1px solid var(--rule)!important; background:none!important;}
 .sb-totals strong{float:right; font:32px var(--board);}
 .sb-totals small,.sb-adjustment small{display:block; color:var(--mut);}
 .sb-total{font:48px var(--board);}
 .sb-total small{font:12px var(--board);}
 .sb-entry{border-bottom:1px solid var(--rule); padding:var(--s3) 0;}
-.sb-race{width:100%; color:var(--ink); fill:var(--ink); font:12px var(--board);}
-.sb-race-path{fill:none; stroke:currentColor; stroke-width:2;}
+/* the round's receipt is a link in content: its underline is the affordance
+   (§5.2 — no typed arrow after it) */
+.sb-dialog .sb-round{padding:0; font-family:var(--sans); font-size:15px; color:var(--ink); text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+.sb-dialog .sb-round:hover{text-decoration-color:var(--ink);}
+/* the crown on a finished Book, and what the ladder says when the top is level */
+.sb-crown{font-family:var(--sans);}
+.sb-crown b{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-right:var(--s2);}
+/* W5 · the race draws one printed diagram: each line LABELLED AT ITS END (no
+   legend, §9.10), the first line in ink and the other two in mut, the third
+   dashed as a second channel; the live week is an ember rule named "Now" */
+.sb-race{display:block; width:100%; height:auto; color:var(--ink); fill:var(--ink); font:12px var(--board);}
+.sb-race-path{fill:none; stroke:var(--mut); stroke-width:1.75; stroke-linejoin:round; stroke-linecap:round;}
+.sb-race-path.is-lead{stroke:var(--ink); stroke-width:2.5;}
+.sb-race-lab{fill:var(--mut); font-weight:600;}
+.sb-race-lab.is-lead{fill:var(--ink);}
+.sb-race-tie{stroke:var(--rule); stroke-width:1;}
+.sb-race-axis{fill:var(--mut);}
 .sb-current-line{stroke:var(--brand); stroke-width:2;}
+.sb-race-now{fill:var(--brand); font-weight:600; letter-spacing:.06em;}
 @media(max-width:900px){.sb-layout{grid-template-columns:minmax(0,1fr);} .sb-receipts{border-left:0; border-top:1px solid var(--rule);} .sb-dialog{width:100vw; max-width:100vw; height:96vh; max-height:96vh;}}
-@media(max-width:600px){.sb-race text{font-size:30px;}}
+/* a phone shows three whole weeks and half of the next under a narrower fade
+   (§13.2a: whole, or clearly half-scrolled under the fade — never sheared) */
+@media(max-width:600px){.sb-dialog h1{font-size:34px;} .sb-matrix-wrap{--sb-name-w:110px;} .sb-matrix-wrap::after{width:24px;} .sb-matrix th button{font-size:13px;}}
 /* END D381 BOOK CSS */
 
 .cband{display:block; width:100%; text-align:left; border:0; cursor:pointer;
@@ -20120,6 +20201,11 @@ function csDaysBetween(fromISO, toISO){
    weeks_total, days_left}. Joined by league id. A missing rank stays missing —
    the row keeps its plain sentence — and nothing here computes a point. */
 /* D381 · the Book. A read model and receipts, never a client scoring engine. */
+/* W5 · a signed figure as a golfer reads it: a true minus, never a hyphen
+   ("−3 points", not "-3 points"). Twin: the phone's Book receipt and cells. */
+const csBookNum = n => Number(n) < 0 ? '−' + Math.abs(Number(n)) : String(n);
+/* W5 · an assessed month ("2026-08-01" → "Aug 2026"), never the raw "2026-08" */
+const csBookMonth = iso => { const d = localDate(String(iso||'').slice(0,10)); return isNaN(d) ? String(iso||'') : `${MOS[d.getMonth()]} ${d.getFullYear()}`; };
 const SeasonBook = {
   prominent: b => b.field_size >= 10 || b.rows.some(r=>r.kind==='squad'),
   entries: (r,w,cumulative=false) => r.entries.filter(e=>e.week!=null && (cumulative?e.week<=w:e.week===w)),
@@ -20146,7 +20232,7 @@ const SeasonBook = {
     if(pts==null)return { fig:'—', marks:'' };
     if(!cumulative && es.length && es.every(e=>e.count_state==='bye'))return { fig:'B', marks:'' };
     if(!cumulative && es.length && es.every(e=>e.count_state==='dropped'))return { fig:'D', marks:'' };
-    return { fig:String(pts), marks: cumulative?'':(es.some(e=>!e.round_id)?'*':'')+(es.some(e=>e.count_state==='dropped')?'D':'') };
+    return { fig:csBookNum(pts), marks: cumulative?'':(es.some(e=>!e.round_id)?'*':'')+(es.some(e=>e.count_state==='dropped')?'D':'') };
   },
   label(r,c,cumulative=false){ const p=this.parts(r,c,cumulative); return p.fig+p.marks; },
   /* F11 · what a cell SAYS to a screen reader — the phone's sentence verbatim
@@ -20165,83 +20251,203 @@ const SeasonBook = {
   rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor);},
 };
 window.SeasonBook=SeasonBook;
-function csSeasonBookReceipt(title,entries,names={}){
-  return `<h2 tabindex="-1">${esc(title)}</h2><div class="sb-total">${entries.reduce((n,e)=>n+e.contribution,0)} <small>points</small></div>`+
-    (entries.length?entries.map(e=>`<section class="sb-entry"><h3>${esc([names[e.member_id],e.recorded_on].filter(Boolean).join(' · '))}</h3><p class="fine">${esc(e.week==null?(e.recorded_on?'Recorded '+e.recorded_on+' · outside the season weeks':'Assessment date unavailable'):'Week '+e.week)}</p><p>${e.points} points · ${e.count_state==='dropped'?'dropped':e.contribution+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(e.affected_month.slice(0,7))}</p>`:''}${e.round_id&&!e.withdrawn?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open round receipt →</button>`:''}</section>`).join(''):'<p>No round or adjustment recorded for this selection.</p>');
+function csSeasonBookReceipt(title,entries,names={},opts={}){
+  /* W5 · a receipt dates its rounds the way every receipt does ("Mon Sep 21",
+     csRoundDay) — it printed the raw 2026-09-21 beside a head that already read
+     "Jul 6" — and a WEEK's receipt does not repeat "Week 12" under every entry
+     (its head says the week once). Signed figures take a true minus. */
+  const total=entries.reduce((n,e)=>n+e.contribution,0);
+  return `<h2 tabindex="-1">${esc(title)}</h2><div class="sb-total">${csBookNum(total)} <small>points</small></div>`+
+    (entries.length?entries.map(e=>{
+      const when=e.recorded_on?csRoundDay(e.recorded_on):null;
+      const place=e.week==null?(when?'Recorded '+when+' · outside the season weeks':'Assessment date unavailable'):(opts.week?'':'Week '+e.week);
+      return `<section class="sb-entry"><h3>${esc([names[e.member_id],when].filter(Boolean).join(' · '))}</h3>${place?`<p class="fine">${esc(place)}</p>`:''}<p>${csBookNum(e.points)} points · ${e.count_state==='dropped'?'dropped':csBookNum(e.contribution)+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(csBookMonth(e.affected_month))}</p>`:''}${e.round_id&&!e.withdrawn?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open the round’s receipt</button>`:''}</section>`;
+    }).join(''):'<p>No round or adjustment recorded for this selection.</p>');
 }
-function csSeasonBookRace(b,rows,follow){
-  const leaders=rows.slice().sort((a,b)=>b.points-a.points).slice(0,3), chosen=rows.find(r=>r.id===follow);
+/* W5 · the race is a printed diagram (§9.10): every line is LABELLED AT ITS
+   END, in a right-hand gutter beside the plot, with a hairline from the
+   line's last point to its name — no legend of box-drawing glyphs that a
+   golfer had to match to three near-identical dotted lines. The first line
+   (the golfer followed, or the leader) is ink; the other two are mut, the
+   third dashed as a second channel. The live week is an ember rule named
+   "Now". `width` is the column the chart is drawn into, so one unit is one
+   pixel and the labels keep the body's 12px on a phone as on the desk. */
+function csSeasonBookRace(b,rows,follow,width){
+  const leaders=rows.slice().sort((a,b)=>b.points-a.points||String(a.name).localeCompare(String(b.name))).slice(0,3), chosen=rows.find(r=>r.id===follow);
   const plotted=chosen?[chosen,...leaders.filter(r=>r.id!==chosen.id).slice(0,2)]:leaders;
-  let h='<h2>Points counting today</h2><p>Points included today, grouped by week played or assessed. Later drops restate earlier weeks; this is not a historical rank chart.</p>';
+  let h='<h2>Points counting today</h2><p>Each golfer’s points as they count today, week by week. A better round later in a month can push an earlier one out, so a past week can change.</p>';
   if(plotted.some(r=>r.unplaced_points!==0))return h+'<p>Some adjustments fall outside the season weeks. Open the totals below for the complete record; a weekly curve would omit those points.</p>';
-  const [lo,hi]=SeasonBook.domain(plotted), x=w=>40+(w-1)/Math.max(1,b.weeks.length-1)*700,y=p=>240-(p-lo)/(hi-lo)*210;
-  h+=`<svg class="sb-race" viewBox="0 0 780 285" role="img" aria-label="Points counting today by week. Exact totals and receipts follow."><text x="0" y="30">${hi}</text><text x="0" y="240">${lo}</text>`;
-  if(['active','cup_final'].includes(b.status))h+=`<path class="sb-current-line" d="M${x(b.current_week)} 20V240"/>`;
-  plotted.forEach((r,i)=>{let started=false;const d=r.cells.map(c=>{if(c.future||c.cumulative==null){started=false;return '';}const segment=(started?'L':'M')+x(c.week)+' '+y(c.cumulative);started=true;return segment;}).join(' ');h+=`<path class="sb-race-path" stroke-dasharray="${i===0?'none':i===1?'4 3':'2 3'}" d="${d}"/>`;});
-  h+='<text x="40" y="275">Week 1</text><text x="740" y="275" text-anchor="end">Week '+b.weeks.length+'</text></svg><p>';
-  return h+plotted.map((r,i)=>esc(['━ ','┄ ','┈ '][i]+r.name)).join(' · ')+'</p>';
+  const W=Math.max(280,Math.min(1200,Math.round(Number(width)||780))), H=W<520?232:280;
+  const [lo,hi]=SeasonBook.domain(plotted), n=b.weeks.length;
+  const est=t=>Math.ceil(String(t).length*6.8)+14;                     /* the label's run at 12px, board face */
+  const labText=r=>`${r.name} ${csBookNum((r.cells.filter(c=>!c.future&&c.cumulative!=null).pop()||{}).cumulative??0)}`;
+  const R=Math.min(Math.max(...plotted.map(r=>est(labText(r))),60),Math.round(W*0.42)), L=34, T=26, B=30, X1=W-R-10;
+  const x=w=>L+(n<=1?0:(w-1)/(n-1)*(X1-L)), y=p=>T+(hi===lo?0:(hi-p)/(hi-lo)*(H-T-B));
+  h+=`<svg class="sb-race" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Points counting today by week, for ${esc(plotted.map(r=>r.name).join(', '))}. Exact totals and receipts follow.">`;
+  h+=`<text class="sb-race-axis" x="0" y="${T+4}">${csBookNum(hi)}</text><text class="sb-race-axis" x="0" y="${H-B}">${csBookNum(lo)}</text>`;
+  if(['active','cup_final'].includes(b.status)&&b.current_week>0){const cx=x(b.current_week);h+=`<path class="sb-current-line" d="M${cx} ${T-4}V${H-B}"/><text class="sb-race-now" x="${cx}" y="${T-10}" text-anchor="middle">Now · W${b.current_week}</text>`;}
+  const labs=[];
+  plotted.forEach((r,i)=>{
+    let started=false,last=null;
+    const d=r.cells.map(c=>{if(c.future||c.cumulative==null){started=false;return '';}const seg=(started?'L':'M')+x(c.week).toFixed(1)+' '+y(c.cumulative).toFixed(1);started=true;last=c;return seg;}).join(' ');
+    h+=`<path class="sb-race-path${i===0?' is-lead':''}"${i===2?' stroke-dasharray="5 4"':''} d="${d}"/>`;
+    if(last)labs.push({i,x:x(last.week),y:y(last.cumulative),t:labText(r)});
+  });
+  /* one label per line, in a column, never on top of another */
+  labs.sort((a,b)=>a.y-b.y).forEach((l,k,a)=>{l.ly=Math.max(l.y+4,k?a[k-1].ly+16:T+4);});
+  const over=labs.length?labs[labs.length-1].ly-(H-B):0; if(over>0)labs.forEach(l=>{l.ly-=over;});
+  labs.forEach(l=>{h+=`<path class="sb-race-tie" d="M${(l.x+3).toFixed(1)} ${l.y.toFixed(1)}L${X1+4} ${(l.ly-4).toFixed(1)}"/><text class="sb-race-lab${l.i===0?' is-lead':''}" x="${X1+8}" y="${l.ly.toFixed(1)}">${esc(l.t)}</text>`;});
+  h+=`<text class="sb-race-axis" x="${L}" y="${H-8}">Week 1</text><text class="sb-race-axis" x="${X1}" y="${H-8}" text-anchor="end">Week ${n}</text></svg>`;
+  return h;
+}
+/* W5 · the crown on a finished Book. The read carries no champion, so it is
+   named only from the stored crown the season itself holds (CS.season, when
+   the Book is this season's): the champion's row, and the rung that decided a
+   level finish. Nothing here decides anything. */
+function csBookChampion(b){
+  const S=window.CS&&window.CS.season;
+  if(!S||S.id!==b.season_id||S.status!=='complete')return null;
+  const squads=b.rows.some(r=>r.kind==='squad');
+  const id=squads?S.champion_squad_id:S.champion_member_id;
+  if(!id)return null;
+  const row=b.rows.find(r=>squads?(r.kind==='squad'&&r.squad_id===id):(r.kind==='golfer'&&r.member_id===id));
+  return row?{name:row.name,rung:S.tiebreak_rung||null}:null;
 }
 function csSeasonBookBody(b,selection){
   const {group,squad,mode,follow}=selection;
-  const rows=b.rows.filter(r=>group==='golfer'&&squad!=='all'?r.kind==='contribution'&&r.squad_id===squad:r.kind===group);
-  const squads=b.rows.filter(r=>r.kind==='squad'), prominent=SeasonBook.prominent(b), cumulative=mode==='Totals';
-  const option=(v,t,on)=>`<option value="${esc(v)}"${on?' selected':''}>${esc(t)}</option>`;
-  let controls=squads.length?`<label>View <select id="sb-group" aria-label="View">${['squad','golfer'].map(g=>option(g,g==='squad'?'Squads':'Golfers',g===group)).join('')}</select></label>`:'';
-  if(group==='golfer'&&squads.length)controls+=`<label>Squad contributions <select id="sb-squad" aria-label="Squad contributions">${option('all','Every golfer',squad==='all')}${squads.map(s=>option(s.squad_id,s.name,squad===s.squad_id)).join('')}</select></label>`;
-  if(prominent)controls+=`<label>Display <select id="sb-mode" aria-label="Display">${['Weeks','Totals','Race'].map(m=>option(m,m,m===mode)).join('')}</select></label>`;
-  if(mode==='Race')controls+=`<label>Follow <select id="sb-follow" aria-label="Follow">${option('leaders','Leading three',follow==='leaders')}${rows.map(r=>option(r.id,r.name,r.id===follow)).join('')}</select></label>`;
+  /* W5 · equal points share a rank and read in alphabetical order (D381);
+     the envelope's order is the server's, and the page keeps to that rule */
+  const byStanding=(a,c)=>c.points-a.points||String(a.name).localeCompare(String(c.name));
+  const rows=b.rows.filter(r=>group==='golfer'&&squad!=='all'?r.kind==='contribution'&&r.squad_id===squad:r.kind===group).slice().sort(byStanding);
+  const squads=b.rows.filter(r=>r.kind==='squad').slice().sort(byStanding), prominent=SeasonBook.prominent(b), cumulative=mode==='Totals';
+  /* W5 · one segment component for every control (UI_SYSTEM §7.2) — the four
+     native selects spoke the system's face and chrome inside the Book */
+  const seg=(id,label,opts,on,wide)=>`<div class="sb-ctl${wide?' is-wide':''}"><span class="sb-ctl-k" id="${esc(id)}-k">${esc(label)}</span><div class="cs-seg${opts.length>4?' is-scroll':''}" id="${esc(id)}" role="group" aria-labelledby="${esc(id)}-k">${opts.map(([v,t])=>`<button type="button" data-v="${esc(v)}" aria-pressed="${v===on}">${esc(t)}</button>`).join('')}</div></div>`;
+  /* the two short sets first, so a phone sets them on one line; the long
+     lists (a squad, a golfer to follow) take a line each under them */
+  let controls=squads.length?seg('sb-group','View',[['squad','Squads'],['golfer','Golfers']],group):'';
+  if(prominent)controls+=seg('sb-mode','Display',[['Weeks','Weeks'],['Totals','Totals'],['Race','Race']],mode);
+  if(group==='golfer'&&squads.length)controls+=seg('sb-squad','Squad',[['all','Every golfer'],...squads.map(s=>[s.squad_id,s.name])],squad,true);
+  if(mode==='Race')controls+=seg('sb-follow','Follow',[['leaders','Leading three'],...rows.map(r=>[r.id,r.name])],follow,true);
   /* dates as a golfer reads them, local (never toISOString's UTC day): "Jul 6"
      — the Book printed raw 2026-07-06 in its head and on every week column */
   const day = iso => { const d = localDate(String(iso||'').slice(0,10)); return isNaN(d) ? String(iso||'') : `${MOS[d.getMonth()]} ${d.getDate()}`; };
   const yr = iso => String(iso||'').slice(0,4);
-  let h=`<p>${esc(b.name)} · Season ${b.number} · ${esc(day(b.starts_on))} – ${esc(day(b.ends_on))}${yr(b.ends_on) ? ', ' + esc(yr(b.ends_on)) : ''}</p><p>${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}<div class="sb-controls">${controls}</div>`;
+  let h=`<p>${esc(b.name)} · Season ${b.number} · ${esc(day(b.starts_on))} – ${esc(day(b.ends_on))}${yr(b.ends_on) ? ', ' + esc(yr(b.ends_on)) : ''}</p><p>${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}`;
+  /* W5 · a finished Book names its crown. Two "1st · Tied" and no champion
+     left the reader to guess; the champion comes from the season's stored
+     crown, and when the page does not hold it, the Book says what §14.3's
+     ladder (D388) does with a level top — it never picks one itself. */
+  if(b.status==='complete'&&b.current_week){
+    const champ=csBookChampion(b), top=b.rows.filter(r=>r.kind===(squads.length?'squad':'golfer')&&r.points_rank===1);
+    const rung={'months won':'head-to-head months won','best single month':'the best single month','fewest rounds used':'the fewest rounds used','coin flip':'a coin flip'};
+    if(champ)h+=`<p class="sb-crown"><b>Champion</b>${esc(champ.name)}${champ.rung?` · level at the top, decided on ${esc(rung[champ.rung]||champ.rung)}`:''}</p>`;
+    else if(top.length>1)h+=`<p class="sb-crown"><b>Level at the top</b>A tie at the top goes to head-to-head months won, then the best single month, then the fewest rounds used, then a coin flip.</p>`;
+  }
+  /* nothing to choose before the first tee: the controls wait for a week */
+  if(b.current_week)h+=`<div class="sb-controls">${controls}</div>`;
   if(group==='golfer'&&squad!=='all')h+='<p>Round contributions. Squad adjustments follow below.</p>';
   if(!b.current_week)return h+'<p>No standing yet. Weeks begin at first tee.</p>';
-  const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${esc(r.name)}<small>${esc(SeasonBook.standing(r))}</small><strong>${r.points} pts</strong></button>`;
+  const live=['active','cup_final'].includes(b.status);
+  /* W5 · the leader's total is the one gold figure (§9.1), and the reader's
+     own row says "You" — a mark in words, never colour alone (§16.4) */
+  const standingOf=r=>[r.mine?'You':null,SeasonBook.standing(r)].filter(Boolean).join(' · ');
+  const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${esc(r.name)}<small${r.mine?' class="sb-you"':''}>${esc(standingOf(r))}</small><strong${r.points_rank===1?' class="sb-lead"':''}>${csBookNum(r.points)} pts</strong></button>`;
   if(!prominent || mode==='Race'){
-    if(mode==='Race')h+=csSeasonBookRace(b,rows,follow);
+    if(mode==='Race')h+=csSeasonBookRace(b,rows,follow,selection.width);
     h+='<div class="sb-totals">'+rows.map(rowButton).join('')+'</div>';
   }else{
     /* F11 · the key sits ABOVE the grid, beside the Display control that changes what a cell holds; below a long table it was out of the first view */
-    if(!cumulative) h+='<p class="sb-key fine">— No round · <b>D</b> Dropped · <b>B</b> Bye · <b>*</b> Adjustment · • Future week. Select a cell for its rounds and adjustments.</p>';
-    h+=`<div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}" class="${['active','cup_final'].includes(b.status)&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
-    h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div>';
+    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span> · <span class="sb-key-i"><b>D</b> Dropped</span> · <span class="sb-key-i"><b>B</b> Bye</span> · <span class="sb-key-i"><b>*</b> Adjustment</span> · <span class="sb-key-i">• Future week</span>. Select a cell for its rounds and adjustments.</p>';
+    h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
+    h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td${live&&c.week===b.current_week?' class="sb-now"':''}><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div></div>';
   }
   const adjustmentRows=group==='golfer'&&squad!=='all'?squads.filter(r=>r.squad_id===squad):rows;
   if(prominent){h+='<h2>Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
-    let count=0;adjustmentRows.forEach(r=>r.entries.forEach((e,i)=>{if(e.round_id)return;count++;h+=`<button type="button" class="sb-adjustment" data-book-row="${b.rows.indexOf(r)}" data-book-entry="${i}">${esc(r.name)} · ${e.week==null?'Outside season weeks':'Week '+e.week} · ${e.contribution} points<small>${esc(e.reason)}</small></button>`;}));
+    let count=0;adjustmentRows.forEach(r=>r.entries.forEach((e,i)=>{if(e.round_id)return;count++;h+=`<button type="button" class="sb-adjustment" data-book-row="${b.rows.indexOf(r)}" data-book-entry="${i}">${esc(r.name)} · ${e.week==null?'Outside season weeks':'Week '+e.week} · ${csBookNum(e.contribution)} points<small>${esc(e.reason)}</small></button>`;}));
     if(!count)h+='<p>No adjustments recorded for this selection.</p>';
   }
   return h+'<p class="fine">Points counting today</p>';
 }
 function csCloseSeasonBook(){document.getElementById('seasonBookDialog')?.close();}
 window.csCloseSeasonBook=csCloseSeasonBook;
+/* W5 · the Book loads as its own geometry, redacted — the head's two lines and
+   a grid of rows — never the word alone (§13.2); the sentence stays for a
+   screen reader, off the page */
+const CS_BOOK_LOADING = '<div class="sb-skel" aria-hidden="true"><span class="skb" style="display:block;height:14px;width:64%"></span><span class="skb" style="display:block;height:12px;width:38%;margin-top:12px"></span>'
+  + Array.from({length:4},()=>'<div class="sb-skel-row"><span class="skb sb-skel-name"></span>'+'<span class="skb sb-skel-cell"></span>'.repeat(5)+'</div>').join('')
+  + '</div><p class="sb-loading-t">Loading the whole season…</p>';
+/* W5 · a scroller that runs past its edge says so: `data-more` on its host
+   while there is more to the right (the grid's fade, a long segment set's) */
+function csBookEdge(scroller,host){
+  if(!scroller||!host)return;
+  const upd=()=>host.toggleAttribute('data-more',scroller.scrollLeft+scroller.clientWidth<scroller.scrollWidth-2);
+  scroller.addEventListener('scroll',upd,{passive:true});upd();
+}
 async function csOpenSeasonBook(league,season){
   if(!window.CS?.user || !window.sb || state.demo)return;
   csCloseSeasonBook();
   const user=window.CS.user.id, dialog=document.createElement('dialog');dialog.id='seasonBookDialog';dialog.className='sb-dialog';
   dialog.setAttribute('aria-labelledby','sb-title');
-  dialog.innerHTML='<header><div class="sb-terrain" aria-hidden="true"></div><button class="sb-close" type="button" aria-label="Close the Book">Close</button><h1 id="sb-title">the Book</h1></header><div class="sb-layout"><div class="sb-main" aria-live="polite"><p>Loading the whole season…</p></div><aside class="sb-receipts" aria-label="Rounds and adjustments"><h2>Behind the points</h2><p>Select a cell or a total to open its rounds and adjustments.</p></aside></div>';
+  /* W5 · the title reads "The Book" (a display title that opened on a
+     lowercase article read as a typo; running copy keeps "the Book"), the
+     close is the sheet grammar's 44px x, and the receipts column waits until
+     the body has something in it to select */
+  dialog.innerHTML='<header><div class="sb-terrain" aria-hidden="true"></div><h1 id="sb-title">The Book</h1><button class="sb-close" type="button" aria-label="Close the Book"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></header><div class="sb-layout" data-solo><div class="sb-main" aria-live="polite">'+CS_BOOK_LOADING+'</div><aside class="sb-receipts" aria-label="Rounds and adjustments" hidden></aside></div>';
   document.body.appendChild(dialog);dialog.querySelector('.sb-close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();window.csTopoHead?.(dialog.querySelector('.sb-terrain'));
-  const main=dialog.querySelector('.sb-main'), receipts=dialog.querySelector('.sb-receipts');
+  const main=dialog.querySelector('.sb-main'), receipts=dialog.querySelector('.sb-receipts'), layout=dialog.querySelector('.sb-layout');
   const selection={group:'golfer',squad:'all',mode:'Weeks',follow:'leaders'};let book;
   const alive=()=>dialog.open&&window.CS?.user?.id===user;
+  /* the receipts column: shown, with a prompt that names what there is to
+     select, only while the body holds cells or totals */
+  const settleReceipts=(show,cells)=>{
+    receipts.hidden=!show; layout.toggleAttribute('data-solo',!show);
+    if(show&&!receipts.querySelector('.sb-total'))receipts.innerHTML=`<h2>Behind the points</h2><p class="sb-hint">${cells?'Select a cell or a total to open its rounds and adjustments.':'Select a total to open its rounds and adjustments.'}</p>`;
+  };
   function render(){
-    const focused=document.activeElement?.id;main.innerHTML=csSeasonBookBody(book,selection);
-    ['group','squad','mode','follow'].forEach(key=>{const el=main.querySelector('#sb-'+key);if(el)el.onchange=()=>{selection[key]=el.value;if(key==='group'||key==='squad')selection.follow='leaders';render();};});
-    if(focused)main.querySelector('#'+focused)?.focus();
+    const on=document.activeElement, focusKey=on&&on.closest&&on.closest('.cs-seg')?{seg:on.closest('.cs-seg').id,v:on.dataset.v}:null, focused=on?.id;
+    selection.width=Math.max(0,main.clientWidth-40);
+    main.innerHTML=csSeasonBookBody(book,selection);
+    const keyOf={'sb-group':'group','sb-squad':'squad','sb-mode':'mode','sb-follow':'follow'};
+    main.querySelectorAll('.cs-seg').forEach(g=>{
+      const key=keyOf[g.id];if(!key)return;
+      g.querySelectorAll('button[data-v]').forEach(btn=>btn.onclick=()=>{if(selection[key]===btn.dataset.v)return;selection[key]=btn.dataset.v;if(key==='group'||key==='squad')selection.follow='leaders';render();});
+      if(g.classList.contains('is-scroll'))csBookEdge(g,g);
+    });
+    if(focusKey)main.querySelector(`#${focusKey.seg} [data-v="${CSS.escape(focusKey.v||'')}"]`)?.focus();
+    else if(focused)main.querySelector('#'+CSS.escape(focused))?.focus();
+    const matrix=main.querySelector('.sb-matrix');
+    /* the receipts column settles FIRST: it narrows the grid, and a scroll
+       measured before it arrives is measured against the wrong width */
+    settleReceipts(!!(matrix||main.querySelector('.sb-totals button')),!!matrix);
+    if(matrix){
+      /* W5 · the Book opens on the week the record has reached: the live week
+         (or a finished season's last recorded one) is the last whole column
+         in view, with the season behind it to the left — it opened on week 1
+         with the live week off-screen */
+      const at=matrix.querySelector(`thead th[data-week="${book.current_week}"]`);
+      /* rounded UP to a whole column: the columns snap to the pinned name
+         column's edge every column-width, and a scroll that is not on a snap
+         point is pulled back to the one before it — which cut the very week
+         it was scrolling to */
+      const fade=parseFloat(getComputedStyle(matrix.parentElement,'::after').width)||0;   /* the week stays clear of the edge fade */
+      const need=at?at.offsetLeft+at.offsetWidth-(matrix.clientWidth-fade)+2:0, colW=at?at.offsetWidth:1;
+      matrix.scrollLeft=need>0?Math.ceil(need/colW)*colW:0;
+      csBookEdge(matrix,matrix.parentElement);
+    }
   }
   main.addEventListener('click',e=>{
     const button=e.target.closest('[data-book-row]');if(!button||!book||!alive())return;
     const row=book.rows[Number(button.dataset.bookRow)], week=Number(button.dataset.bookWeek), entry=button.dataset.bookEntry;
     const entries=entry!=null?[row.entries[Number(entry)]]:week?SeasonBook.entries(row,week,selection.mode==='Totals'):row.entries;
-    receipts.innerHTML=csSeasonBookReceipt(row.name+(week?' · Week '+week:''),entries,Object.fromEntries(book.rows.filter(r=>r.kind==='golfer').map(r=>[r.member_id,r.name])));receipts.querySelector('h2').focus();
+    receipts.hidden=false;layout.removeAttribute('data-solo');
+    receipts.innerHTML=csSeasonBookReceipt(row.name+(week?' · Week '+week:''),entries,Object.fromEntries(book.rows.filter(r=>r.kind==='golfer').map(r=>[r.member_id,r.name])),{week:!!week&&selection.mode!=='Totals'});receipts.querySelector('h2').focus();
   });
   receipts.addEventListener('click',e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){dialog.close();window.csOpenPostedRound?.(button.dataset.bookRound);}});
   async function load(){
-    main.innerHTML='<p>Loading the whole season…</p>';
-    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'the Book':'Rounds & points';render();}
-    catch(error){if(!alive())return;main.innerHTML=`<p role="alert">${esc(error.message||'The Book did not load. Try again.')}</p><button type="button" id="sb-retry">Try again</button>`;main.querySelector('#sb-retry').onclick=load;}
+    main.innerHTML=CS_BOOK_LOADING;settleReceipts(false);
+    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'The Book':'Rounds & points';render();}
+    catch(error){if(!alive())return;settleReceipts(false);main.innerHTML=`<p role="alert">${esc(error.message||'The Book did not load. Try again.')}</p><button type="button" id="sb-retry" class="btn sb-retry">Try again</button>`;main.querySelector('#sb-retry').onclick=load;}
   }
   await load();
 }
