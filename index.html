@@ -4170,6 +4170,11 @@ body:not(.noleague) #hubLeagueless{display:none;}
    the rail cannot share a line at a readable width, the rail goes under it. */
 .cs-krow-head > div:first-child{flex:1 1 240px; min-width:0;}
 .cs-krow-rate{display:flex; align-items:center; gap:var(--s2); flex:0 0 auto; white-space:nowrap;}
+/* the ROW decides, not the viewport: You's desk column (W2, f46086b4) is 584px
+   at 1280, where the rail sat beside a long name and left it 401px, three
+   lines. Under 600px of row the rail goes beneath and the name takes the line. */
+.cs-krow{container-type:inline-size;}
+@container (max-width: 599px){ .cs-krow-head > div:first-child{flex-basis:100%;} }
 /* D290 · the plan's own course block. No card and no box: a rule at the top,
    the drawing, and three figures on a rule of their own (§9.2, §32). */
 .cs-plan-course{border-top:1px solid var(--rule); margin-top:var(--s4); padding-top:var(--s3);}
