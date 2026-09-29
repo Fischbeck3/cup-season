@@ -241,6 +241,54 @@ Brief: `evidence/LANE-BRIEF.md`. Native twins go to N2. So far: LeagueCopy.endga
 - **X41:** `home_feed.is_sub80` has no 18-hole guard (`20261020090000`), so a nine-hole 43 is "Broke 80". The client guard is lane W3's.
 - **X42:** `the_plan_link.sql` counts an unanswered tag as "in" on the public plan landing. The in-app producer is lane W2's.
 
+## 4g · N2 merged, and the work split into sessions (2026-09-28, night)
+
+**N2 merged: `de3eaf35`.** The merge was clean, and preflight passes with 0 failures and 0 warnings.
+- **Closed:** F03, F07, F08, F09 (check only), F10, F11, F12, F13, F16, R02, S8 and S9.
+- **X34 (live finish → recap).** The finish sheet now carries identifiers, and the flow passed 6 of 6, three on each phone. The earlier failures were a widget crash after the recap and a dev round that never came up. Finishing itself works.
+- **X35 (the album's retry).** The seam now counts only reads that fail after the route's `cs.screen` mark. The test asserts the failure, Try again, and the retry landing, both on time and when the album is opened late. It passed 3 of 3 on each phone.
+- **The Form row.** A nine never takes the gold, and a nine says so.
+- **The live recap.** The settlement card was drawn off screen on the SE3 and clipped on the 17 Pro. It is fixed, and each part is now one VoiceOver element.
+- **Copy twins:** the two-squad endgame line, the rules page's minimum (`LeagueCopy.floorSentence`), and the ME strip's two-squad clause.
+- **Other parity:** the two-squad climb, "A lost to B", the Ryder series count, the Book's dates, the owner's real name replaced by a cast golfer, and `-cs_dev_no_worth` moved into DEBUG.
+- **N2's evidence:** 31 synthetic images plus `MANIFEST.json`, under `launch/n2/`.
+- **Tests on N2's own tree.**
+  - Non-UI: 1609 of 1609 passed.
+  - UI: 27 passed, 1 failed as expected (the N1 items), and 3 skipped behind an environment gate. One share-sheet test timed out, then passed 2 of 2 on a re-run.
+- **Not yet verified: the merged native tree.** N2's tree lacked integration's N1, N3 and FX native changes. Lane N4's phase 0 builds and tests the merged tree before any archive.
+
+**Open from N2.**
+- **Decision (D360).** Now that the recap's card shows, the recap draws the hole strip twice. N2 suggests keeping the card's strip and moving "Hole strip, thru N" into its spoken label. This goes to the owner memo.
+- **Routed to N4:**
+  - DeclareRoundSheet prints "You're in —" in gold.
+  - Home says "1 comments", truncates a long name in its photo band, and sets "From the Pro" in gold.
+  - The live rows sit at an 8pt inset.
+  - The join covenant says "between the top two" for two squads.
+  - GuideCopy states the minimum in its own words.
+  - N1's items: CSCredential's heading, a 42pt Close, IntentSheet's inaccessible text, and the plan sheet's hit areas.
+- **Web twin owed:** the web has no twin of S9's photo-unavailable line.
+- **FX gaps (coverage, open):**
+  - There is no synthetic live round. F07's test still asserts a real course name from the morning-review fixture, so its evidence is not committed.
+  - There is no single-round You scenario.
+  - The album's refresh-failure and offline routes are unit-tested only.
+- **Gallery hygiene, outside git.** Some older result bundles in the gallery contain xcodebuild's automatic diagnostics, which include host-wide simulator logs:
+  - `results/t5`–`t9`, `ui1`–`ui4` and `unit1`;
+  - the `UI-se3-*.xcresult` bundles under `before/` and `after/`.
+
+  Every run since `t10` uses `-collect-test-diagnostics never`. Deleting the old bundles is the owner's call.
+
+**Split sessions** (on the owner's word, "keep going on the reviews and fixes - split into new sessions"). Every session is bound by the same rules and reports to root; root still integrates. Their shared brief, with one section each, is `evidence/SESSIONS.md` in the gallery.
+
+| Session | Job | Starts |
+|---|---|---|
+| A | Native review: coverage, `failed.json`, critiques A and B, the native audit, a detector sweep, parity, and the N4 work list | now |
+| B | W6 web lane: shared producers and chrome ([WM], the CTA grammar, the desk ME strip, the lanes' "needs root" items, ratchets) | on GO, after W1–W5 merge |
+| C | The launch write-up (COVERAGE, PANEL, CRITIQUE, AUDIT, DETECTOR) and the owner-questions memo | now |
+| D | Web re-assessment, round 2: a fresh gallery, critiques A2 and B2, audit AW2, detector DX2, and a delta table | on GO |
+| E | N4 native lane: phase 0 verifies the merged tree, phase 1 the known items, phase 2 the native findings | phase 0 when the phone matrix finishes |
+
+The judges stay with root, so their calibration holds across the native half and round 2.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
