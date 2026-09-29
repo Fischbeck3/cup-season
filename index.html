@@ -4069,6 +4069,15 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
    `.ob-hero p` centres itself with `margin:auto` for the DOOR, and under a
    left-aligned title that reads as a stray indent. */
 .onboard #obProfile .ob-hero p, .onboard #obCrew .ob-hero p{margin-left:0; margin-right:0;}
+/* TEN / W7-114 · the gate's foot line: the sentence in body-s, mut; the email
+   wraps whole; "Sign out" is the in-content tertiary link, ink on a 2px mut
+   rule, 44 tall (the .hstart door's shape) */
+.onboard #obProfile .pfwho{margin:var(--s4) 0 0; color:var(--mut);}
+.onboard #obProfile .pfwho[hidden]{display:none;}
+.pfwho .pfwho-em{overflow-wrap:anywhere;}
+.pfwho a{display:inline-flex; align-items:center; min-height:44px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.pfwho a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* the fold: the door owns the first viewport; the story scrolls in below */
 .ob-fold{position:relative; display:flex; flex-direction:column; min-height:calc(100svh - 54px - env(safe-area-inset-bottom, 0px));}
 .ob-fgrid{flex:1; display:flex; flex-direction:column; width:100%; max-width:1360px; margin:0 auto;}
@@ -6146,6 +6155,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <div class="pfsave"><button class="btn" id="pfSave">Save my card</button></div>
       <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--mut)" id="pfGhinNote"></p>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
+      <!-- TEN / W7-114 [A2-identity-13] · root's ruling: one quiet line at the
+           gate's foot says which account this card is for, and offers the way
+           out of the wrong one ("Signed in as <email> · Not you? Sign out") -->
+      <p class="cs-body-s pfwho" id="pfWho" hidden></p>
     </div>
     <!-- D151 · the crew step. Signup used to end on a menu whose first tile was
          "Start a league", and the measured result was a league of one: 20 of 23
@@ -23779,6 +23792,12 @@ const CS_ONBOARDING = {
   crewTitle:'Who do you play with?',
   crewSub:'Cup Season is a game you play with people you know. Bring one now and your first round already counts for something.',
   crewGo:'Take me in',
+  /* TEN / W7-114 [A2-identity-13] · root's ruling: the gate names the account
+     it is for, and the wrong account has a way out. The phone's CardGateView
+     says the same words. */
+  whoLead:'Signed in as',
+  whoNot:'Not you?',
+  whoOut:'Sign out',
   contactsConsent:"We\u2019ll check your contacts against the golfers already here. Your names and numbers never leave the phone \u2014 we send a scrambled version, and we keep nothing that doesn\u2019t match.",
   contactsAllow:'Check my contacts',
   contactsDecline:'Not now',
@@ -29655,6 +29674,22 @@ function showProfileGate(){
     el.style.animation='none'; el.style.opacity='1'; el.style.transform='none';
   });
   csPaintOnboarding();
+  /* TEN / W7-114 · the account this card is for, and the way out of the wrong
+     one: Sign out leaves THIS device only (scope local, as #phOut and #wOut
+     do) and the reload returns to the door */
+  { const w = $('#pfWho'), em = CS.user?.email || '';
+    if(w){
+      w.hidden = !em;
+      if(em){
+        w.innerHTML = `${esc(CS_ONBOARDING.whoLead)} <span class="pfwho-em">${esc(em)}</span> \u00b7 ${esc(CS_ONBOARDING.whoNot)} <a href="#" id="pfWhoOut">${esc(CS_ONBOARDING.whoOut)}</a>`;
+        w.querySelector('#pfWhoOut').addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.currentTarget.setAttribute('aria-disabled', 'true');
+          await csSignOut({ scope: 'local' });
+          location.reload();
+        });
+      }
+    } }
   /* S7-02: the claim context survives the card gate — the door promised
      "claiming X's round"; the save screen keeps that thread visible */
   try{
