@@ -1999,9 +1999,9 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred .cfigs{display:flex; align-items:flex-start; position:relative;}
 .cred .cfigs .cfig{flex:0 0 33.333%; min-width:0; padding-right:var(--s3); box-sizing:border-box;}   /* two labels at the SE width ran together, "HANDICAP INDEX ROUNDS" (critique-B P3) */
 /* three figures take MEASURED columns, the phone's columnWidths: a column is as
-   wide as its own label, so "BEST · MESQUITE WASH" has the room "ROUNDS" does
-   not use, and only the last yields — the ellipsis fires when the three
-   genuinely exceed the card, never a word early */
+   wide as its own label, so the best's course line has the room "ROUNDS" does
+   not use, and only the last yields — by wrapping its words (AW2-22), never by
+   an ellipsis */
 .cred .cfigs:has(> .cfig:nth-of-type(3)) .cfig{flex:0 0 auto; padding-right:var(--s4);}
 .cred .cfigs:has(> .cfig:nth-of-type(3)) .cfig:nth-of-type(3){flex:0 1 auto; padding-right:0;}
 .cred .cfigs .cfig b{display:block; font-family:var(--board); font-weight:700; font-size:27px; line-height:1;
@@ -2009,7 +2009,8 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred .cfigs .cfig b i{font-style:normal; font-size:12px; letter-spacing:.05em; text-transform:uppercase;}
 .cred .cfigs .cfig small{display:block; margin-top:8px; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:.08em; text-transform:uppercase; color:var(--ceremony-mut);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  overflow-wrap:break-word;}   /* AW2-22 / N4-050 · a label wraps; it is never cut to an ellipsis */
+.cred .cfigs .cfig small.cwhere{margin-top:var(--s1);}   /* the best's course, under its label */
 .cred .cfigs .crule{position:absolute; left:0; top:31px; height:2px; background:var(--ceremony-ink);}
 /* the milestone column, out of the object and onto the page (YRS-03) */
 .ctros{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:.06em;
@@ -29295,9 +29296,12 @@ function csCredentialHtml(profileId, card){
   figs.push([String(Number(c.rounds || 0)), 'Rounds', '']);
   /* the position figure needs a STANDING, and `tour_card` carries none - see
      IOS-047. It falls to the best round, which the card already holds. */
+  /* AW2-22 · the phone's N4-050, the same shape: the cell's label is BEST, and
+     the course is its own agate line under it, which wraps and is never cut.
+     "BEST · MESQUITE …" put an ellipsis through the only word that said where. */
   if(c.best_round && c.best_round.gross != null){
-    figs.push([String(c.best_round.gross),
-               'Best' + (c.best_round.course_label ? ' · ' + csCourse(c.best_round.course_label) : ''), '']);
+    figs.push([String(c.best_round.gross), 'Best', '',
+               c.best_round.course_label ? csCourse(c.best_round.course_label) : '']);
   }
   const n = Math.min(3, figs.length) || 1;
   /* the slot is the surface's ONE gold field, and it is absent when nothing
@@ -29332,8 +29336,8 @@ function csCredentialHtml(profileId, card){
     </div>
     <div class="cfoot">
       <div class="cfigs">
-        ${figs.slice(0, 3).map(([v, l, o]) =>
-          `<div class="cfig"><b>${esc(v)}${o ? `<i>${esc(o)}</i>` : ''}</b><small>${esc(l)}</small></div>`).join('')}
+        ${figs.slice(0, 3).map(([v, l, o, w]) =>
+          `<div class="cfig"><b>${esc(v)}${o ? `<i>${esc(o)}</i>` : ''}</b><small>${esc(l)}</small>${w ? `<small class="cwhere">${esc(w)}</small>` : ''}</div>`).join('')}
         <span class="crule" style="width:${(n * 33.333).toFixed(2)}%"></span>
       </div>
       <div class="cfolio">
