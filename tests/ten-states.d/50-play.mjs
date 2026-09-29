@@ -158,8 +158,18 @@ export default [
       await until(page, () => /saved on this phone/.test((document.getElementById('sbSub') || {}).textContent || ''), null, 8000)
       await page.waitForTimeout(300)
     },
-    expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#sbSub': 'text:saved on this phone; they send when you have signal' } },
-    check: all(scoredCheck(3), async (page) => { const f = await liveFacts(page); return f.queued > 0 ? true : 'nothing is queued' }) },
+    /* TEN / W6 · and WHEN, in the phone's words (LiveCopy.closesText): the
+       round just teed off, so it closes in 23h; past its window the line
+       drops "they send when you have signal", which is no longer true */
+    expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#sbSub': 'text:saved on this phone; they send when you have signal · closes in 2[34]h' } },
+    check: all(scoredCheck(3), async (page) => { const f = await liveFacts(page); return f.queued > 0 ? true : 'nothing is queued' },
+      async (page) => page.evaluate(() => {
+        const L = state.live, was = L.startedAt, el = document.getElementById('sbSub')
+        L.startedAt = Date.now() - 25 * 3600000; window.liveSyncBadge()
+        const past = el.textContent
+        L.startedAt = was; window.liveSyncBadge()
+        return /saved on this phone · past its window$/.test(past) && !/when you have signal/.test(past) ? true : `past its window the line says ${JSON.stringify(past)}`
+      })) },
 
   /* a Match Play single, $5 a side, through four */
   { family: 'play', id: 'match-scoring', variant: 'member', title: 'Live round · Match Play singles with Devon, $5, through four',

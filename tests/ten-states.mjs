@@ -75,7 +75,16 @@ const CORE = [
   /* ---------------------------------------------------- onboarding gate */
   { family: 'onboarding', id: 'card-gate', variant: 'no_card', short: true,
     /* the gate lives on the door overlay (#obProfile inside #onboard) */
-    expect: { door: true, selectors: { '#obProfile': 'visible', '#pfSave': 'visible', '#obDoor': 'hidden' } } },
+    expect: { door: true, selectors: { '#obProfile': 'visible', '#pfSave': 'visible', '#obDoor': 'hidden' } },
+    /* TEN / W6 · delta G4 (round 2): stuck, the Save meets the window's edge —
+       no strip beneath it where the form shows through, sliced */
+    check: async (page) => page.evaluate(() => {
+      const bar = document.querySelector('#obProfile .pfsave'), sc = document.getElementById('onboard')
+      if (!bar || !sc || getComputedStyle(bar).position !== 'sticky') return true
+      if (sc.scrollHeight <= sc.clientHeight + 1) return true   /* the whole card fits: the bar is in its place */
+      const gap = Math.round(sc.getBoundingClientRect().bottom - bar.getBoundingClientRect().bottom)
+      return gap <= 1 ? true : `the Save bar floats ${gap}px above the window's edge, and the form shows beneath it`
+    }) },
 
   /* ------------------------------------------------------------ home */
   { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' } },

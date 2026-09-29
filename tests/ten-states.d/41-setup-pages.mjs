@@ -65,7 +65,16 @@ const wizAt = async (page, step) => page.waitForFunction((step) => {
 const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } } },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } },
+    /* TEN / W6 · delta G6: the Pro row is a card, and "THE PRO" sat flush on
+       its right border (3324ae89 took the tag's own inset for Golfers' slats) */
+    check: async (page) => page.evaluate(() => {
+      const row = document.getElementById('commishChip'), tag = row && row.querySelector('.ptag'), mk = row && row.querySelector('.pmk')
+      if (!row || !tag || !mk) return 'the Pro row is missing'
+      const r = row.getBoundingClientRect(), t = tag.getBoundingClientRect(), m = mk.getBoundingClientRect()
+      const right = Math.round(r.right - t.right), left = Math.round(m.left - r.left)
+      return right >= 8 && left >= 8 ? true : `the Pro row's content touches its border: tag ${right}px from the right, marker ${left}px from the left`
+    }) },
   { family: 'wizard', id: 'step-2-rules', variant: 'pro_setup', title: 'Wizard · step 2 of 3, the rules',
     drive: async (page) => { await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 2 of 3' } } },
@@ -102,7 +111,15 @@ const WIZARD = [
       await until(page, () => [...document.querySelectorAll('#wizDials .wizgrp-b')].every((b) => !b.hidden))
       await page.waitForTimeout(400)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } } },
+    expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
+    /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
+       narrowed column broke it ("Best / 4", "2 / / mo") */
+    check: async (page) => page.evaluate(() => {
+      const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
+        .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
+        .map((v) => JSON.stringify(v.textContent.trim()))
+      return broken.length ? `a dial value breaks across lines: ${broken.join(', ')}` : true
+    }) },
   { family: 'wizard', id: 'step-3-review', variant: 'pro_setup', title: 'Wizard · step 3 of 3, review and lock',
     drive: async (page) => {
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
@@ -141,7 +158,18 @@ const courseCard = (id, courseId, title, want) => ({
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
-    drive: toCourses, expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } } },
+    drive: toCourses, expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
+    /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
+       the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
+       select's whole value (plus its arrow) fits at every width. */
+    check: async (page) => page.evaluate(() => {
+      const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
+      const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
+      c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+      const need = c.measureText(s.options[s.selectedIndex].textContent).width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 24
+      const has = s.getBoundingClientRect().width
+      return need <= has + 1 ? true : `the tee select clips its value: it needs ${Math.round(need)}px and has ${Math.round(has)}`
+    }) },
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
   courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek'),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),
@@ -200,8 +228,29 @@ const deskCheck = async (page) => page.evaluate(() => {
   const side = [...document.querySelectorAll('.navitem')].filter((n) => n.offsetParent !== null)
   return side.length >= 3 ? true : 'the desk sidebar is not showing'
 })
+/* TEN / W6 · AW2 (P3): the rail scrolls in its own height and says so at rest
+   — its foot fades while there is more below (data-more), and not at its end.
+   At 1000px tall the member's rail just fits, so the check reads it at 800
+   (a laptop screen) and puts the viewport back before the capture. */
+const deskRailEdge = async (page) => {
+  const vp = page.viewportSize()
+  await page.setViewportSize({ width: vp.width, height: 800 }); await page.waitForTimeout(300)
+  const r = await page.evaluate(async () => {
+    const s = document.querySelector('aside.side'), frame = () => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+    const over = s.scrollHeight > s.clientHeight + 2, cs = getComputedStyle(s)
+    const atRest = s.hasAttribute('data-more'), masked = (cs.webkitMaskImage || cs.maskImage || 'none') !== 'none'
+    s.scrollTop = s.scrollHeight; await frame()
+    const atEnd = s.hasAttribute('data-more')
+    s.scrollTop = 0; await frame()
+    return { over, atRest, masked, atEnd, back: s.hasAttribute('data-more') }
+  })
+  await page.setViewportSize(vp); await page.waitForTimeout(300)
+  if (!r.over) return `the rail does not overflow at ${vp.width}×800, so its edge cannot be read`
+  return r.atRest && r.masked && !r.atEnd && r.back ? true : `the rail's edge at ${vp.width}×800: ${JSON.stringify(r)}`
+}
 const DESK = [
-  { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' }, check: deskCheck },
+  { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
+    check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskRailEdge(page) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
     expect: { view: 'view-hub' }, check: deskCheck },

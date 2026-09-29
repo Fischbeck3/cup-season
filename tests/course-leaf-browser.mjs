@@ -173,6 +173,51 @@ for (const width of [320, 375, 402, 1280]) for (const theme of ['dark', 'light']
   check(`${label}: a long course name gets the measure (${row.nameW} of ${row.rowW}px, ${row.lines} lines${row.railBelow ? ', rating beneath' : ''})`,
     row.nameW >= Math.min(240, row.rowW) && (row.rowW >= 600 || row.railBelow), row)
 
+  /* ---- TEN / W6 · AW2-09 (WCAG 4.1.2): a row is not a button. A button's
+     children are presentational, so the row's own card disclosure fell out of
+     the accessibility tree while it stayed in the Tab order. The course NAME
+     is the row's one button; the disclosure is exposed and works from the
+     keyboard, and opening it never moves the lead. (This moves the lead, so
+     it runs after every check that reads the lead.) */
+  const rows = await page.evaluate(() => [...document.querySelectorAll('#youCourses .cs-krow[data-cslead]')].map(k => {
+    const sm = k.querySelector('details.cs-cardleaf > summary')
+    return { id: k.dataset.cslead, role: k.getAttribute('role'), tabindex: k.getAttribute('tabindex'), label: k.getAttribute('aria-label'),
+      buttons: [...k.querySelectorAll('button')].map(b => b.textContent.replace(/\s+/g, ' ').trim()),
+      name: (k.querySelector('h4')?.textContent || '').replace(/\s+/g, ' ').trim(),
+      summary: sm ? sm.textContent.replace(/\s+/g, ' ').trim() : null, summaryInButton: !!(sm && sm.parentElement.closest('button,[role=button]')) }
+  }))
+  check(`${label}: no course row is a button; each names its course once, on its own button (${rows.length} rows)`,
+    rows.length >= 2 && rows.every(r => !r.role && r.tabindex == null && !r.label && r.buttons.length === 1 && r.buttons[0] === r.name && !r.summaryInButton), rows)
+  {
+    const cdp = await ctx.newCDPSession(page)
+    await cdp.send('Accessibility.enable')
+    const { nodes } = await cdp.send('Accessibility.getFullAXTree')
+    await cdp.detach().catch(() => {})
+    /* the tree carries a caps role's text-transform into the name, so the
+       names are compared without case */
+    const named = (n) => (n.name && n.name.value || '').replace(/\s+/g, ' ').trim().toLowerCase()
+    const live = nodes.filter(n => !n.ignored)
+    const ax = rows.map(r => ({ id: r.id,
+      nameButtons: live.filter(n => n.role && n.role.value === 'button' && named(n) === r.name.toLowerCase()).length,
+      card: r.summary == null ? 'none' : live.filter(n => named(n) === r.summary.toLowerCase()).map(n => n.role && n.role.value).join(',') || 'MISSING' }))
+    check(`${label}: the accessibility tree has each row's name button once and each row's card disclosure`,
+      ax.every(a => a.nameButtons === 1 && a.card !== 'MISSING'), ax)
+  }
+  {
+    const target = rows[0].id
+    const named = await page.focus(`#youCourses .cs-krow[data-cslead="${target}"] .cs-krow-open`).then(() => true, () => false)
+    if (named) { await page.keyboard.press('Enter'); await page.waitForTimeout(350) }
+    const lead1 = await page.evaluate(() => String(window.CS_COURSE_LEAD))
+    check(`${label}: Enter on a course's name makes it the lead`, lead1 === String(target), lead1)
+    const other = await page.evaluate(() => { const s = document.querySelector('#youCourses .cs-krow[data-cslead] details.cs-cardleaf > summary'); return s ? s.closest('.cs-krow').dataset.cslead : null })
+    if (other) {
+      await page.focus(`#youCourses .cs-krow[data-cslead="${other}"] details.cs-cardleaf > summary`).catch(() => {})
+      await page.keyboard.press('Enter'); await page.waitForTimeout(250)
+      const after = await page.evaluate((id) => ({ open: !!document.querySelector(`#youCourses .cs-krow[data-cslead="${id}"] details.cs-cardleaf`)?.open, lead: String(window.CS_COURSE_LEAD) }), other)
+      check(`${label}: Enter on a row's card opens the card and leaves the lead`, after.open && after.lead === String(target), after)
+    } else check(`${label}: a row carries a card to open`, false, rows)
+  }
+
   /* ---- the page */
   const page0 = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)
   check(`${label}: the page does not scroll sideways`, page0 <= 0, page0)

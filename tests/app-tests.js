@@ -928,6 +928,17 @@
 
     /* D252 · the moment row's noun and state — never a countdown (L-22) */
     t('D252: a moment names the noun and the state', csMomentLine('major', 'live', true), 'A Major · Live');
+    /* TEN / W6 · root's ruling (2026-09-29): the live sync line says WHEN, in
+       the phone's words (LiveCopy.closesText, 7b9c17e4) — the server abandons
+       an unfinished round 24 hours after tee-off */
+    {
+      const T0 = Date.UTC(2026, 8, 27, 15, 0, 0), H = 3600000
+      t('the live window clause is the phone\u2019s, word for word',
+        [csLiveClosesText({ startedAt: T0 }, T0 + H), csLiveClosesText({ startedAt: T0 }, T0 + 18 * H),
+         csLiveClosesText({ startedAt: T0 }, T0 + 23.5 * H), csLiveClosesText({ startedAt: T0 }, T0 + 24 * H),
+         csLiveClosesText({ startedAt: T0 }, T0 + 30 * H), csLiveClosesText({}, T0), csLiveClosesText(null, T0)],
+        ['closes in 23h', 'closes in 6h', 'closes within the hour', 'past its window', 'past its window', null, null])
+    }
     t('D252: one you have not joined says the door is open',
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();
@@ -1316,7 +1327,9 @@
      contain an engine object noun. */
   (function () {
     t('D225: the sheet is four peers and one modifier',
-      [CS_INTENTS.length, typeof csIntentStrings, csIntentStrings().length], [4, 'function', 12]);
+      [CS_INTENTS.length, typeof csIntentStrings, csIntentStrings().length], [4, 'function', 13]);   /* TEN / W6 · PAR-33: + the code door's gloss */
+    t('PAR-33: the code door is a row with the phone\u2019s gloss (StartIntent.codeDoor / codeDoorGloss)',
+      [CS_INTENT_CODE_DOOR, CS_INTENT_CODE_DOOR_GLOSS], ['I have a code', 'someone already started one']);
     t('D234: the lines are the phone\u2019s, verbatim',
       CS_INTENTS.map(i => i.line),
       ['Play with my friends', 'Run a season', "We're playing this weekend", 'Go head to head']);
@@ -1480,6 +1493,12 @@
       [F({ ...full, structure: 'solo' }).ledger, F({ ...full, structure: 'squads4' }).ledger], [CS_LEDGER, CS_LEDGER]);
     t('D225: the fact ORDER is a value both clients hold',
       CS_COVENANT_FACTS, ['season', 'who', 'length', 'structure', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);   /* TEN / W6 · JoinLeague.Fact, `structure` included */
+    /* TEN / W6 · root's ruling (UI_SYSTEM §2.4's money row): the welcome's
+       "You're on the pot: $X buy-in." is what you OWE, so it is ink — gold is
+       the pot itself or a thing won. Read off the producer's source, since
+       the line waits on the league's settings. */
+    t('§2.4: the league welcome sets its buy-in in ink, never gold',
+      [typeof window.openLeagueWelcome, /on the pot/.test(String(window.openLeagueWelcome)), /var\(--gold\)/.test(String(window.openLeagueWelcome))], ['function', true, false]);
     /* D375 · season two is a re-up: the season is the first fact; the finish is the golfer's own (L-44) */
     t('D375: a re-up covenant says the season first, with the golfer\'s own finish',
       [csCovenantFacts({ ...today, season_number: 2, reup: true, last_season: { number: 1, my_rank: 3, of: 8, my_points: 41 } })[0],
