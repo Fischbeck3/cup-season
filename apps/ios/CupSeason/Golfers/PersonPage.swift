@@ -313,7 +313,8 @@ struct PersonPage: View {
     } label: {
       VStack(spacing: 2) {
         CSGlyph(.bag, size: .tab)
-        Text("\(bag.clubs.count)").csType(.agateS, caps: true)
+        // N4-054 · the count says its unit (§16A.3): a bare "9" under a glyph
+        Text("\(bag.clubs.count) club\(bag.clubs.count == 1 ? "" : "s")").csType(.agateS, caps: true)
       }
       .foregroundStyle(cs.scrimInk)
       .frame(minWidth: 44, minHeight: 44)
