@@ -559,6 +559,9 @@ struct PersonPage: View {
         Text("Share")
       }
       .buttonStyle(.csTertiary(.toolbar))
+      // N4-051 · beside Close the toolbar proposed too little and the verb
+      // printed "SHA…" at every size; a toolbar item takes its own width
+      .fixedSize()
     }
   }
 
