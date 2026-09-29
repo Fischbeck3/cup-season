@@ -24882,7 +24882,10 @@ const CS_YOU_JUMPS = [['Recent rounds', ['#youRecentHead']], ['Trophies', ['#you
   const sync = () => {
     q = 0;
     const on = [...box.querySelectorAll('[data-yj]')].filter(b => { const t = targetOf(Number(b.dataset.yj)); b.hidden = !t; return !!t; }).length;
-    box.hidden = on < 3;
+    /* W7-101 [A2-identity-12] · the index is for a record that HOLDS something:
+       drawn on a loading, failed or empty page it sat above the message and
+       pushed "Try again" wholly under the tab band at 375x667 (§13.2a) */
+    box.hidden = on < 3 || view.dataset.record !== 'some';
     box.dispatchEvent(new Event('scroll'));   /* the edge re-reads after the chips change */
   };
   const again = () => { if(!q) q = requestAnimationFrame(sync); };

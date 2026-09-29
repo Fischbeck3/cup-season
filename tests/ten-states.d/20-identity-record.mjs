@@ -88,7 +88,9 @@ const YOU = [
        retries 5xx reads with backoff, a refusal it does not */
     prepare: async (W) => { W.errors.when = [{ table: 'rounds', match: (q) => /profile_id=eq\./.test(q) && /limit=400/.test(q), error: { __error: 'permission denied for table rounds', status: 403, code: '42501' } }] },
     expectConsole: [/status of 403/, /\[career\]|\[loadCareer\]/],
-    drive: youSettled('failed'), expect: { view: 'view-stats', selectors: { '#youRecentRetry': 'visible' } },
+    /* W7-101 [A2-identity-12] · the page index stands down on a failed read, so
+       "Try again" is not pushed under the tab band at 375x667 */
+    drive: youSettled('failed'), expect: { view: 'view-stats', selectors: { '#youRecentRetry': 'visible', '#youJump': 'hidden' } },
     check: all(recordState('failed'), text('#youRecent', 'didn.t load', 'the failure line')) },
 ]
 
