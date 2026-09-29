@@ -26,7 +26,9 @@ struct LiveNowBar: View {
 
   @State private var breathe = false
 
-  private var live: Bool { store.state.active && store.state.stage == .live }
+  /// A held round (Change setup mid-play) is still a round, and the bar is
+  /// its door back (TEN / W6).
+  private var live: Bool { store.inRound }
   private var waiting: String? { store.awaitingFrom }
 
   var body: some View {

@@ -794,6 +794,7 @@ final class LiveRoundStore {
 
   func teeOff() async {
     guard !busy, !state.active else { return }
+    holding = false
     #if DEBUG
     if MorningReviewFixture.on { return }
     #endif
@@ -939,10 +940,36 @@ final class LiveRoundStore {
     }
   }
 
+  /// TEN / W6 (critique A2, P1) · **"CHANGE SETUP" HOLDS THE ROUND.** This set
+  /// the round inactive, ended its Live Activity and left its channel, so
+  /// nothing led back to it — and Tee off then built a NEW round with blank
+  /// scores and no `lr` while the old one stayed live on the server. The round
+  /// is held instead: the same round (`lr`), the same scores, the same channel,
+  /// until "Back to the round". The setup keeps what changes in place — the
+  /// course, the tee, the rating and slope, the holes and the pars, which the
+  /// finish carries in each card — and the group and the game, seated on the
+  /// server at tee-off, are not offered. The web's `#backToSetup`, 18a279bd.
   func backToSetup() {
-    state.stage = .setup; state.active = false
-    Task { await LiveActivityHost.end(); await session.leave() }
+    holding = true
+    state.stage = .setup
   }
+
+  /// The way back to the held round: the same round, where it was left.
+  func backToRound() {
+    holding = false
+    state.stage = .live
+  }
+
+  /// Set by "Change setup". It only counts while the round it was set on is
+  /// still up and in its setup (`held`), so a round finished, scrapped or
+  /// retired from anywhere never leaves a stale hold behind.
+  private var holding = false
+  /// A live round opened in its setup mid-play.
+  var held: Bool { holding && state.active && state.stage == .setup }
+  /// A round is up: live, or held in its setup. What the re-reads and the bar
+  /// ask, so a held round is never read over from the server or left without a
+  /// door back.
+  var inRound: Bool { state.active && (state.stage == .live || held) }
 
   // MARK: - scoring (8433–8441, 7751–7757)
 
@@ -1147,7 +1174,7 @@ final class LiveRoundStore {
       // landed on the empty tee sheet. The starter never noticed because their
       // own phone resumes from its LOCAL snapshot; only the invited golfer,
       // who has no snapshot and depends entirely on the server, saw nothing.
-      if !(state.active && state.stage == .live) { await refreshLive() }
+      if !inRound { await refreshLive() }
       if await session.isJoined { await session.flush(); await session.reconcile() }
       else { await joinSync() }
       queued = await session.queued()
@@ -1159,7 +1186,7 @@ final class LiveRoundStore {
   /// and `LiveRehydrator` prefers a local snapshot over the network anyway.
   func refreshLive() async {
     guard !scoreOnPhone, myPid != nil else { return }
-    guard !(state.active && state.stage == .live) else { return }
+    guard !inRound else { return }
     await rehydrate()
     if state.active, state.stage == .live { LiveActivityHost.start(state) }
   }
@@ -1277,7 +1304,7 @@ final class LiveRoundStore {
       // start, and the rehydrator returns empty-handed without it. Try, and if
       // identity was not ready yet, try once more after it is.
       await refreshLive()
-      if !(state.active && state.stage == .live) {
+      if !inRound {
         try? await Task.sleep(for: .milliseconds(600))
         await refreshLive()
       }
