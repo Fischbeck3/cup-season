@@ -31,6 +31,14 @@ sorting.
 ---
 
 
+### 2026-09-29 · `home_dispatch`'s sentences carry figures nobody can mark (N4-082's named exceptions)
+
+Verified 2026-09-29 at integration `3864e43a`. **Lane:** UX (both clients) + database. **Size:** one migration, two client halves. **After launch.**
+
+The Home lead's and wire's headlines, and the phone's offline door's cached lead, are `home_dispatch`'s own prose ("… starts in 3 days.", "… posted 84 at …"), so their figures cannot be set as figure runs (§1.4: a number is never set in the serif). The phone's `CSFigureRun` law is "the producer marks the run — there is no regex", and the web prints `esc(it.headline)` as plain text (the lead and the wire). The callout reply's date is the same case: the Pro's own terms share its sentence, and a typed brace there would be eaten. For launch they stay plain on both clients (root's ruling to N4, 2026-09-29).
+
+The fix, in this order, so no build ever shows a raw marker: (1) both clients learn a marker in the dispatch's strings (render it as a run; strip it where they cannot); (2) the TestFlight and web builds carrying (1) ship; (3) a new migration has `home_dispatch` mark its own runs. **First question:** which marker survives every surface that prints these strings, including push bodies and the widget, without a client that predates it printing it raw?
+
 ### 2026-09-24 · Audit implementation integrated locally; release and device proof remain
 
 The S3, S7, S11, S12/S5b and L-08 implementation notes immediately below are historical audit findings. Both agent branches are now combined on `codex/audit-integrated-2026-09-24`; their view/database work is built, including the covenant variants, handle edit tracking, guest orientation, code door, LAST dedupe, final states, roster seat control, renewal states and original saved live-card resume. InvitesBanner's empty-state load and Decline were already on main. Integration fixes preserve the Book v1 contract, confirm native cleanup, retain web cleanup retries and honor server backoff. D390 implementation is covered by the owner's build instruction (decision-log clarification).
