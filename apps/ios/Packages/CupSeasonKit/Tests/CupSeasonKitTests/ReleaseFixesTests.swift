@@ -188,3 +188,29 @@ import Foundation
     #expect(HomeDispatch.HomeInviteKey.inviteId(from: "invite:not-a-uuid") == nil)
   }
 }
+
+/// W5 twin (root; the web's csCovenantFacts at 3d3b9e55) · a covenant whose
+/// dials moved off its preset says "Custom rules, built on <Preset>". A dial
+/// missing from the payload counts as unchanged.
+@Suite struct CovenantCustomRulesTests {
+  @Test func aMovedDialIsCustomBuiltOnItsPreset() {
+    let four = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: nil, countingCap: 4)
+    #expect(four.rulesLine == "Custom rules, built on Standard: honest scores, best four a month count, two a month keeps you in.")
+    let three = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: nil, countingCap: 3)
+    #expect(three.rulesLine == "Standard rules: honest scores, best three a month count, two a month keeps you in.")
+    let minimum = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 3, finish: nil, countingCap: 3)
+    #expect(minimum.rulesLine?.hasPrefix("Custom rules, built on Standard: ") == true)
+    let unlimited = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: nil, everyRoundCounts: true)
+    #expect(unlimited.rulesLine?.hasPrefix("Custom rules, built on Standard: ") == true)
+  }
+
+  @Test func aMissingDialIsNotEvidenceItMoved() throws {
+    // an older payload with no cap and no floor: Standard is taken at its word
+    let old = try #require(Covenant(.object(["name": .string("x"), "preset": .string("standard")])))
+    #expect(old.floorKnown == false)
+    #expect(old.rulesLine == "Standard rules: honest scores.")
+    // the floor present and moved is custom, with the cap absent
+    let moved = try #require(Covenant(.object(["name": .string("x"), "preset": .string("standard"), "floor": .number(1)])))
+    #expect(moved.rulesLine == "Custom rules, built on Standard: honest scores, one a month keeps you in.")
+  }
+}

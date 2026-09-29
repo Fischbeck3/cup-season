@@ -87,6 +87,9 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public let buyinCents: Int
   public let preset: String?
   public let floor: Int
+  /// Whether the payload carried `floor` at all: an older payload without a
+  /// dial is not evidence the dial moved (the web's `floorKnown`).
+  public let floorKnown: Bool
   public let finish: String?
   public let structure: String?
 
@@ -139,8 +142,9 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               startsOn: String? = nil, weeks: Int? = nil, countingCap: Int? = nil,
               split: Split? = nil, hasPayNote: Bool? = nil, buyInDueOn: String? = nil, phase: String? = nil,
               handicapAllowance: Int? = nil, everyRoundCounts: Bool? = nil, endsOn: String? = nil,
-              seasonNumber: Int? = nil, reup: Bool? = nil, agreed: Bool? = nil, lastSeason: LastSeason? = nil, structure: String? = nil) {
-    self.structure = structure
+              seasonNumber: Int? = nil, reup: Bool? = nil, agreed: Bool? = nil, lastSeason: LastSeason? = nil, structure: String? = nil,
+              floorKnown: Bool = true) {
+    self.structure = structure; self.floorKnown = floorKnown
     self.name = name; self.buyinCents = buyinCents; self.preset = preset; self.floor = floor; self.finish = finish
     self.proName = proName; self.rosterCount = rosterCount; self.rosterNames = rosterNames
     self.startsOn = startsOn; self.weeks = weeks; self.countingCap = countingCap
@@ -180,7 +184,8 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               lastSeason: v["last_season"].flatMap { ls in
                 guard case .object = ls else { return nil }
                 return LastSeason(myRank: ls["my_rank"]?.int, of: ls["of"]?.int, myPoints: ls["my_points"]?.double)
-              }, structure: v["structure"]?.string)
+              }, structure: v["structure"]?.string,
+              floorKnown: v["floor"].map { $0 != .null } ?? false)
   }
 
   /// `Math.round(buyin_cents/100)`
@@ -283,8 +288,26 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     // D373 · the clause says what the allowance does, in R-M's shape — verbatim
     // with the web's `csCovenantFacts` rules clause (tests/app-tests.js "D373")
     if let a = handicapAllowance { clauses.append("scored against your playing HCP — your index at \(a) percent") }
-    let head = presetLine.map { "\($0) rules: " } ?? "The rules: "
+    // W5 twin (root, the web's csCovenantFacts at 3d3b9e55) · a league whose
+    // dials moved off its starting point is CUSTOM, "built on" it: the
+    // covenant printed "Standard rules: … best four a month" for a league
+    // whose cap had left Standard's three.
+    let head = presetLine.map { presetDialsMatch ? "\($0) rules: " : "Custom rules, built on \($0): " } ?? "The rules: "
     return head + clauses.joined(separator: ", ") + "."
+  }
+
+  /// W5's two-dial test, applied to the payload: the counting cap and the
+  /// monthly minimum against the named preset's (`WizardDials.presets`). A
+  /// dial missing from the payload counts as unchanged; a preset this build
+  /// does not know is taken at its word.
+  public var presetDialsMatch: Bool {
+    guard let key = preset?.lowercased(),
+          let pr = WizardDials.presets.first(where: { $0.name.lowercased() == key }) else { return true }
+    let capKnown = everyRoundCounts == true || countingCap != nil
+    let capNow: Int? = everyRoundCounts == true ? nil : countingCap.flatMap { $0 == 0 ? nil : $0 }
+    let capSame = !capKnown || pr.cap == capNow
+    let floorSame = !floorKnown || floor == pr.floor
+    return capSame && floorSame
   }
 
   /// The ending, in D126's own words rather than a dial name.
