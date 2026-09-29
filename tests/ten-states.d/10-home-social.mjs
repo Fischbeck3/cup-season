@@ -230,7 +230,14 @@ const GOLFERS = [
        under the search lists only what it does not — it drew Kit twice, with
        two Accepts */
     expect: { view: 'view-golfers', selectors: { '#glfBoard .fbrow.mine': 'visible', '#peopleRequests': 'text:Kit Specimen', '#crBud': 'text:Buddies · 5' } },
-    check: all(async (page) => page.evaluate(() => {
+    check: all(
+      /* TEN / W8 · W7-023 [B2-desk-9]: from 1100 up the ranking's rows sit inside one reading measure (760), not the whole track */
+      async (page) => page.evaluate(() => {
+        if (innerWidth < 1100) return true
+        const w = Math.max(...[...document.querySelectorAll('#glfBoard .fbrow')].map((r) => r.getBoundingClientRect().width))
+        return w <= 762 ? true : `a ranking row is ${Math.round(w)}px wide, past the 760px reading measure`
+      }),
+      async (page) => page.evaluate(() => {
       const rows = document.querySelectorAll('#glfBoard .fbrow').length
       if (rows !== 6) return `the board has ${rows} rows, expected 6 (me and five buddies)`
       if (!/Kit Specimen/.test(document.getElementById('peopleRequests').innerText)) return 'Kit’s request is not listed'

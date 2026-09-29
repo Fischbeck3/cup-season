@@ -2846,6 +2846,11 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    half render at ~200px and text escapes its pills (pilot, 2026-07-20). */
 @media(min-width:1100px){
   #seasonBody .deskmain{max-width:760px;}
+  /* W7-023 · and Golfers' ranking: each row set its name about 700px from its
+     figure at 1600. The measure is the TRACK's (the aside follows the column
+     after the desk gutter, as UI_SYSTEM §14.1 draws it), not a cap on the
+     content with a void beside it. */
+  #glfHub.deskbody.wide{grid-template-columns:minmax(0,760px) 340px; justify-content:start;}
 }
 @media(min-width:960px){
   #seasonBody .homegrid{display:block;}
@@ -9476,6 +9481,24 @@ function renderMonthClock(hide){
 }
 window.renderMonthClock = renderMonthClock;
 
+/* the five-dot form column (D280, UI_SYSTEM §14.3), one producer for the two
+   desk boards: the solo standings and the individual table (W7-023). `pos`
+   filled = beat your playing HCP that round, `rule` = did not - the sign
+   convention `CSBands` ships (D276 / Wave 7: a POSITIVE pvi is a round beaten).
+   `hist` is newest first; the dots read oldest to newest, left to right, and a
+   golfer with fewer than five rounds gets unfilled slots rather than a shorter
+   row, so the column stays a column. */
+function csFormFive(hist){
+  const five = (hist || []).slice(0, 5).reverse();
+  let out = '';
+  for(let k = 0; k < 5; k++){
+    const r = five[k - (5 - five.length)];
+    out += r ? `<i class="${Number(r.pvi) >= 0 ? 'on' : ''}"></i>` : '<i></i>';
+  }
+  return `<span class="form5">${out}</span>`;
+}
+window.csFormFive = csFormFive;
+
 function renderStandings(){
   csRenderSeasonBookDoor();
   renderClash();               /* D108: the clash chip rides the standings column */
@@ -9598,16 +9621,7 @@ function renderStandings(){
      (D276 / Wave 7: a POSITIVE pvi is a round beaten). Oldest to newest, left
      to right, and a golfer with fewer than five rounds gets unfilled slots
      rather than a shorter row, so the column stays a column. */
-  const formOf = id => {
-    const h = ((window.indRows||[]).find(x => x.mid === id) || {}).hist || [];
-    const five = h.slice(0, 5).reverse();
-    let out = '';
-    for(let k = 0; k < 5; k++){
-      const r = five[k - (5 - five.length)];
-      out += r ? `<i class="${Number(r.pvi) >= 0 ? 'on' : ''}"></i>` : '<i></i>';
-    }
-    return `<span class="form5">${out}</span>`;
-  };
+  const formOf = id => csFormFive(((window.indRows||[]).find(x => x.mid === id) || {}).hist);
   const leadPts = teams[0] ? teams[0].pts : 0;
   /* WAVE 7 - COMPETITION RANK, WITH TIES SHARED: 04, 04, 06. Both renderers
      indexed the sorted array, so two golfers on 86 points read `04` and `05` -
@@ -24834,7 +24848,9 @@ function renderIndStatsReal(){
   /* every golfer's row, so the head is nobody's "your"; the figure is INK with
      its sign or words — a red column for most of the field was D273's retired
      P&L axis, and neg is kept for errors (UI_SYSTEM 2.5) */
-  let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="num">Avg vs playing HCP</th><th class="num">Pts</th></tr>`;
+  /* W7-023 · the desk's Last five, inside the row (D280): the standings of a solo
+     season carry it, and the individual board of a squads season had none */
+  let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="deskonly">Last five</th><th class="num">Avg vs playing HCP</th><th class="num">Pts</th></tr>`;
   const rkOf = []; rows.forEach((p,i) => { rkOf[i] = (i > 0 && p.pts === rows[i-1].pts) ? rkOf[i-1] : i + 1; });
   const tiedAt = (i) => rows.filter(q => q.pts === rows[i].pts).length > 1;
   rows.forEach((p,i)=>{
@@ -24842,6 +24858,7 @@ function renderIndStatsReal(){
       <td class="rk mono"${tiedAt(i)?' title="Tied"':''}>${tiedAt(i)?'T':''}${String(rkOf[i]).padStart(2,'0')}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${esc(p.n)}</div><div class="tc">${esc(p.sq||'')}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
+      <td class="deskonly">${csFormFive(p.hist)}</td>
       <td class="num dw">${p.r?sgn(p.avg):'—'}</td>
       <td class="num pts">${p.pts}</td></tr>`;
   });

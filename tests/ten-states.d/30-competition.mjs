@@ -192,7 +192,17 @@ const SEASON = [
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
       capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine']),
       /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
-      headGap(['#climbEyebrow', '#standingsEyebrow'])) },
+      headGap(['#climbEyebrow', '#standingsEyebrow']),
+      /* TEN / W8 · W7-023 [B2-desk-9]: the individual board carries Last five inside the row at the desk (D280), and not below it */
+      async (page) => page.evaluate(() => {
+        const th = document.querySelector('#indTable th.deskonly'), rows = [...document.querySelectorAll('#indTable tr[data-ri]')]
+        const shown = (el) => !!el && el.getBoundingClientRect().width > 0
+        if (!th || !rows.length) return 'the individual table has no Last five head or no rows'
+        if (innerWidth < 960) return shown(th) ? 'Last five is drawn below the desk' : true
+        if (!shown(th) || th.textContent.trim() !== 'Last five') return 'the desk individual table draws no Last five column'
+        const bad = rows.filter((r) => r.querySelectorAll('td.deskonly .form5 i').length !== 5).length
+        return bad ? `${bad} of ${rows.length} rows lack the five dots` : true
+      })) },
   /* TEN / W6 · DX2 OB2-02 · the season six days before its first tee, and a
      league in its draw: the two heroes' lines (#khCount, #draftPoolSub).
      DX2's own states (season/kickoff, season/draft-phase): the synthetic
