@@ -21,6 +21,21 @@ const has = (sel, re, what) => async (page) => page.evaluate(({ sel, re, what })
   return new RegExp(re, 'i').test(t) ? true : `${what}: ${sel} reads ${JSON.stringify(t.slice(0, 160))}`
 }, { sel, re, what })
 
+/* TEN / W7-054 [A2-play-4] · the desk sets up on two columns: the group beside the course, Tee off at
+   its own width under the first; below 960 course, group, game read down */
+const setupColumns = async (page) => page.evaluate(() => {
+  const q = (s) => document.querySelector(s), box = (el) => el.getBoundingClientRect()
+  const course = q('#playSetup > .card:not(.lrgroup):not(.lrgame)'), group = q('#playSetup > .lrgroup'), game = q('#playSetup > .lrgame'), tee = q('#teeOffBtn')
+  if (!course || !group || !game || !tee) return 'the setup lost a card'
+  const c = box(course), g = box(group), m = box(game), t = box(tee)
+  if (innerWidth >= 960) {
+    if (!(g.left >= c.right - 1 && Math.abs(g.top - c.top) < 2)) return 'the group card is not beside the course card'
+    if (!(Math.abs(m.left - c.left) < 1 && m.top >= c.bottom - 1)) return 'the game card is not under the course card'
+    if (t.width >= c.width - 1 || t.left > c.left + 1) return 'Tee off still spans the column'
+    return true
+  }
+  return c.top < g.top && g.top < m.top ? true : 'below 960 the order is not course, group, game'
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -118,7 +133,9 @@ export default [
         const [c, t, r, s] = ['lrCourse', 'lrTee', 'lrRate', 'lrSlope'].map((id) => document.getElementById(id).value)
         return /Saguaro Flats/.test(c) && t === 'Blue' && r === '70.1' && s === '121' ? true : `the fields read ${JSON.stringify([c, t, r, s])}`
       }),
-      has('#fourSlots', 'Devon Testwell[\\s\\S]*Blake Sample|Blake Sample[\\s\\S]*Devon Testwell', 'the group')) },
+      has('#fourSlots', 'Devon Testwell[\\s\\S]*Blake Sample|Blake Sample[\\s\\S]*Devon Testwell', 'the group'),
+      /* TEN / W7-054 [A2-play-4]: the desk sets up on two columns; below 960 course, group, game read down */
+      setupColumns) },
 
   /* five holes in, on the sixth tee; scrolled so the scoreboard sticks */
   { family: 'play', id: 'scoring', variant: 'member', fullPage: false, title: 'Live round · just score, three golfers, through five, the scoreboard stuck (phone widths; the desk fits one screen)',

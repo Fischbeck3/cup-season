@@ -2215,6 +2215,25 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 
 /* ============ live round (play) ============ */
 .playgrid{display:block;}
+/* TEN / W7-054 [A2-play-4] · THE DESK SETS UP ON TWO COLUMNS, as the live
+   round plays on two (.playgrid). It was the phone form stretched: three
+   full-width cards and a Tee off across the body. The eyebrow, the held line,
+   the way back and the plan bridge span both columns; the course, then the
+   game, read down the wide one; the group takes the second column for the full
+   height; Tee off sits under the first at its own width. A held round (group,
+   game and Tee off hidden) gives the course the whole width. Below 960 the
+   order stays course, group, game. No new content. */
+@media(min-width:960px){
+  #playSetup{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); column-gap:22px; row-gap:0; align-items:start;
+    grid-template-areas:"eb eb" "held held" "back back" "bridge bridge" "course group" "game group" "tee group";}
+  #playSetup > .eyebrow{grid-area:eb;}
+  #playSetup > #lrHeld{grid-area:held;} #playSetup > #lrBackToRound{grid-area:back;} #playSetup > #planBridge{grid-area:bridge;}
+  #playSetup > .card:not(.lrgroup):not(.lrgame){grid-area:course;}
+  #playSetup > .lrgroup{grid-area:group;}
+  #playSetup > .lrgame{grid-area:game;}
+  #playSetup > #teeOffBtn{grid-area:tee; width:auto; min-width:240px; justify-self:start;}
+  #playSetup.is-held{grid-template-areas:"eb eb" "held held" "back back" "bridge bridge" "course course";}
+}
 /* D152 · 960 was a laptop breakpoint. A phone in landscape is 844-932px wide, so
    rotating gave you the STACKED layout crushed into a 390px-tall window — worse
    than not rotating at all. At 740 the two-up engages on a landscape phone and
@@ -17048,7 +17067,7 @@ function renderPlanBridge(){
 function renderPlay(){
   const setup = state.live.stage==='setup';
   if(setup && document.body.classList.contains('cardview')) setCardView(false);
-  $('#playSetup').style.display = setup ? 'block':'none';
+  $('#playSetup').style.display = setup ? '':'none';   /* W7-054 · '' lets the desk's grid apply */
   $('#playLive').style.display  = setup ? 'none':'block';
   /* TEN / W6 · a held round (Change setup mid-play) says so and offers the way
      back instead of Tee off; a plan is never re-applied over it.
