@@ -21884,13 +21884,16 @@ function csSeasonBookReceipt(title,entries,names={},opts={}){
   /* W5 · a receipt dates its rounds the way every receipt does ("Mon Sep 21",
      csRoundDay) — it printed the raw 2026-09-21 beside a head that already read
      "Jul 6" — and a WEEK's receipt does not repeat "Week 12" under every entry
-     (its head says the week once). Signed figures take a true minus. */
+     (its head says the week once). Signed figures take a true minus.
+     TEN / W6 · PAR-30 · a WITHDRAWN round said nothing: its door stood down and
+     the entry just stopped. It says the phone's sentence (SeasonBookPage
+     .SeasonBookReceipt), because the points it recorded stay in the Book. */
   const total=entries.reduce((n,e)=>n+e.contribution,0);
   return `<h2 tabindex="-1">${esc(title)}</h2><div class="sb-total">${csBookNum(total)} <small>points</small></div>`+
     (entries.length?entries.map(e=>{
       const when=e.recorded_on?csRoundDay(e.recorded_on):null;
       const place=e.week==null?(when?'Recorded '+when+' · outside the season weeks':'Assessment date unavailable'):(opts.week?'':'Week '+e.week);
-      return `<section class="sb-entry"><h3>${esc([names[e.member_id],when].filter(Boolean).join(' · '))}</h3>${place?`<p class="fine">${esc(place)}</p>`:''}<p>${csBookNum(e.points)} points · ${e.count_state==='dropped'?'dropped':csBookNum(e.contribution)+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(csBookMonth(e.affected_month))}</p>`:''}${e.round_id&&!e.withdrawn?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open the round’s receipt</button>`:''}</section>`;
+      return `<section class="sb-entry"><h3>${esc([names[e.member_id],when].filter(Boolean).join(' · '))}</h3>${place?`<p class="fine">${esc(place)}</p>`:''}<p>${csBookNum(e.points)} points · ${e.count_state==='dropped'?'dropped':csBookNum(e.contribution)+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(csBookMonth(e.affected_month))}</p>`:''}${e.withdrawn?`<p class="fine">Round withdrawn. Its recorded points remain in this season’s Book.</p>`:''}${e.round_id&&!e.withdrawn?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open the round’s receipt</button>`:''}</section>`;
     }).join(''):'<p>No round or adjustment recorded for this selection.</p>');
 }
 /* W5 · the race is a printed diagram (§9.10): every line is LABELLED AT ITS
