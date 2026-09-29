@@ -4982,6 +4982,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .finish-share:hover{filter:brightness(1.06);}
 .finish-share:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
 .finish-status{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut); overflow-wrap:anywhere;}
+.finish-fine{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut);}   /* TEN / W7-006 · the switch's fine print, the status line's voice */
 .finish-status:empty{display:none;}
 .finish-back{align-self:flex-start; min-height:44px; padding:0; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
@@ -7551,7 +7552,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              sentence on both clients (RoundCopy.photoInclude), a switch on
              both now, and the preview beside it changes when it flips.
              Hidden when the round has no photograph. -->
-        <button class="finish-photoopt" id="finPhoto" type="button" aria-pressed="true" hidden></button>
+        <button class="finish-photoopt" id="finPhoto" type="button" aria-pressed="true" aria-describedby="finFine" hidden></button>
+        <!-- TEN / W7-006 · what a yes publishes, under the switch that asks
+             (D380; RoundCopy.photoIncludeFine under the phone's toggle) -->
+        <p class="finish-fine" id="finFine" hidden></p>
         <button class="finish-share" id="finShare" type="button">Share the card</button>
         <p class="finish-status" id="finStatus" role="status" aria-live="polite"></p>
         <button class="finish-back" id="finBack" type="button">Back to the board</button>
@@ -12552,8 +12556,15 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
      is the moment's) */
   /* W2 (D380) · ONE share: the card and the link leave together. The photo
      rides only on a yes — the row asks when there is one to ask about. Demo
-     shares the card alone (the diorama publishes nothing). */
-  if(epi.gross!=null){
+     shares the card alone (the diorama publishes nothing).
+     TEN / W7-006 [B2-share-1] · and ONE share per posted round. When the
+     ceremony owned the share for this post (_ceremonyOwnsShare), its Share
+     sent the card and the link, and its switch was the photo answer: the
+     epilogue behind the curtain draws neither a second Share nor a second,
+     ticked photo question (2ec14a02 dropped this guard; the phone's
+     EpilogueSheet keeps it, !show.ceremonyOwnsShare). A fallback post, with no
+     ceremony, keeps this row, and the receipt's Share stays the later door. */
+  if(epi.gross!=null && !_ceremonyOwnsShare){
     const photoRow = (!state.demo && roundId && window._lastPostPhoto)
       ? `<label class="fine" style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer">
            <input type="checkbox" id="epiPhotoOk" checked style="margin-top:3px;flex:none">
@@ -12686,6 +12697,15 @@ function finishCeremony(o){
        NOT on `window` — the landmine that reads a missing bridge as demo mode
        reads a missing const as the fallback string. `typeof` is the test. */
     po.textContent = (typeof CS_PHOTO!=='undefined' ? CS_PHOTO.include : 'Include round photo');
+  }
+  /* TEN / W7-006 [B2-share-1] · D380: the switch is on by default, and a yes
+     publishes the photograph to the round's public page and its link preview.
+     The fine print says so, under the switch, whenever the switch is drawn
+     and the round has a link to carry it; the demo publishes nothing. */
+  const ff=$('#finFine');
+  if(ff){
+    const says = !!(_finishShare.photo && _finishShare.roundId && !state.demo);
+    ff.hidden = !says; ff.textContent = says ? CS_SHARE_PHOTO_FINE : '';
   }
   const fs=$('#finStatus'); if(fs) fs.textContent='';
   finishPreview();

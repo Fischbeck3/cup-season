@@ -426,11 +426,31 @@ function shareState(id, title, card, extra = {}) {
        link, and says so under its own button (a toast or a sheet would paint
        beneath the curtain). The card-only path says "Card downloaded" and never
        "link", so a status line naming the link is the proof the link left. */
-    check: async (page) => page.evaluate(() => {
-      if (!window.__tenArtifact) return 'the card was not downloaded'
-      const said = (document.getElementById('finStatus')?.textContent || '').trim()
-      return /link/i.test(said) ? true : 'the ceremony shared no link (D380): ' + JSON.stringify(said)
-    }),
+    check: async (page) => {
+      /* the epilogue renders behind the curtain once the post settles */
+      await until(page, () => !!document.getElementById('epiRevokeWrap'), null, 10000).catch(() => {})
+      return page.evaluate(() => {
+        if (!window.__tenArtifact) return 'the card was not downloaded'
+        const said = (document.getElementById('finStatus')?.textContent || '').trim()
+        if (!/link/i.test(said)) return 'the ceremony shared no link (D380): ' + JSON.stringify(said)
+        /* TEN / W7-006 [B2-share-1] · ONE Share per posted round: the epilogue
+           behind the curtain offers no second Share and no second, ticked
+           photo question; and the ceremony's switch says what a yes
+           publishes, directly under it, in the ceremony's quiet voice */
+        if (!document.getElementById('epiRevokeWrap')) return 'the epilogue never rendered behind the ceremony'
+        if (document.getElementById('epiShare') || document.getElementById('epiPhotoOk')) return 'the epilogue offers a second Share (and photo question) behind the ceremony'
+        const po = document.getElementById('finPhoto'), ff = document.getElementById('finFine')
+        if (!ff) return 'the ceremony draws no fine print'
+        if (po && !po.hidden) {
+          if (ff.hidden || ff.textContent !== window.CS_SHARE_PHOTO_FINE) return 'the photo switch prints no fine print: ' + JSON.stringify(ff.hidden ? null : ff.textContent)
+          if (po.nextElementSibling !== ff || po.getAttribute('aria-describedby') !== 'finFine') return 'the fine print is not directly under, and describing, the switch'
+          const probe = document.createElement('span'); probe.style.color = 'var(--ceremony-mut)'; ff.parentElement.appendChild(probe)
+          const mut = getComputedStyle(probe).color; probe.remove()
+          if (getComputedStyle(ff).color !== mut) return 'the fine print is not ceremony-mut: ' + getComputedStyle(ff).color
+        } else if (!ff.hidden) return 'fine print with no switch to explain'
+        return true
+      })
+    },
     ...extra,
   }
 }
