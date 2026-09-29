@@ -32267,7 +32267,22 @@ function csCovenantFacts(info, postedRounds){
     /* L-23 · an individual season assesses no minimum, so none is promised */
     if(Number(info.floor) && info.structure !== 'solo') clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
     if(Number(info.handicap_allowance)) clauses.push('scored against your playing HCP — your index at ' + Number(info.handicap_allowance) + ' percent');
-    const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
+    /* crit-A wizard P1 (round 2's delta) · the covenant printed the stored
+       starting point's NAME whatever the dials say — "Standard rules: … best
+       four a month" for a league whose cap moved off Standard's three. The
+       wizard now says "Custom, built on Standard" (W5, csPresetMatches: the
+       cap and the minimum are a starting point's two dials); the joiner reads
+       the same thing about the same league. */
+    const prKey = info.preset ? String(info.preset).toLowerCase() : '';
+    const pr = prKey ? PRESETS.find(p => p.name.toLowerCase() === prKey) : null;
+    const capNow = info.every_round_counts === true ? null : (Number(info.counting_cap) || null);
+    /* an older payload without a dial is not evidence the dial moved */
+    const capKnown = info.every_round_counts === true || info.counting_cap != null;
+    const floorKnown = info.floor != null;
+    const same = !pr || ((!capKnown || CAP_DB[pr.cap] === capNow) && (!floorKnown || Number(info.floor) === pr.floor));
+    const head = !info.preset ? 'The rules: '
+      : same ? csCap(String(info.preset)) + ' rules: '
+      : 'Custom rules, built on ' + csCap(String(info.preset)) + ': ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
   /* the ending, in D126's own sentence rather than a dial name. L-23 · with the
