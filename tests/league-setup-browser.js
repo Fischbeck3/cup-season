@@ -14,13 +14,17 @@
   renderSetup(); renderWizard();
   check(!document.getElementById('wizNext').getClientRects().length, 'Setup shows a second primary action beside Review');
   const frequency=document.getElementById('wizardFrequency');
-  frequency.value='1'; frequency.dispatchEvent(new Event('change'));
+  /* W5 · the pace is a segment (the wizard's one native select is gone): a
+     pace is chosen by pressing its button, and pressing the chosen one again
+     un-says it — so this presses only a pace that is not already chosen */
+  const pace=v=>{ if(frequency.dataset.value!==v) frequency.querySelector('[data-pace="'+v+'"]').click(); };
+  pace('1');
   check(state.cap===3 && state.floor===1, 'Pace silently overwrote custom rules');
   check(!document.getElementById('busyFriendsSuggestion').hidden, 'Suggestion unavailable');
   document.getElementById('useBusyFriends').click();
   check(state.cap===0 && state.floor===0, 'Suggestion did not apply best 2 / no minimum');
   check(state.preset===2 && state.structure==='squads4' && state.startISO==='2026-10-03', 'Suggestion changed unrelated settings');
-  frequency.value='2'; frequency.dispatchEvent(new Event('change'));
+  pace('2');
   check(state.cap===0 && state.floor===0, 'Second pace overwrote the accepted suggestion');
   document.getElementById('capUp').click(); document.getElementById('floorUp').click();
   check(state.cap===1 && state.floor===1, 'Suggested choices are not editable');
@@ -52,7 +56,7 @@
   document.getElementById('wizBack').click();
   check(state.wiz===1 && state.cap===1 && state.floor===1, 'Back lost custom choices');
   // Leave the supported busy-group setup visible for visual inspection.
-  state.stake=0; state.preset=1; csUseBusyFriends(state); frequency.value='1'; renderSetup();
+  state.stake=0; state.preset=1; csUseBusyFriends(state); pace('1'); renderSetup();
   if(new URLSearchParams(location.search).has('review')) document.getElementById('wizFastPath').click();
   await new Promise(resolve=>setTimeout(resolve,600));
   return {checks, width:innerWidth, view:state.wiz===2?'agreement':'choices'};

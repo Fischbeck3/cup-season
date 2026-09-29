@@ -2313,20 +2313,87 @@ body.guestlive #onboard{display:none !important;}
    the right that fills in as the Pro turns the dials. Mobile is untouched: the
    aside hides and the bylaws live in step 3's review as before. */
 .wiz-aside{display:none;}
-.wiz-aside-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
+.wiz-aside-h{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
 /* Stage 3d: the wizard aside is a drawn PORTRAIT of the league, live from the
    dials. flex-wrap on rows so a long value never pushes text out of its box. */
 .wizp{display:flex; flex-direction:column; gap:12px;}
 .wizp-h{display:flex; align-items:center; gap:11px;}
 .wizp-h b{font-family:var(--serif); font-size:19px; font-weight:700; line-height:1.12; display:block;}
-.wizp-h small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.13em; color:var(--mut); text-transform:uppercase; margin-top:3px;}
+/* W5 · the portrait's words are agate labels in the board face (caps by the
+   role, §1.3) — never mono (§1.4) — and the pot's figure is the board face,
+   never the serif: a number is never set in the serif */
+.wizp-h small{display:block; font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); text-transform:uppercase; margin-top:3px;}
 .wizp-row{display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;}
-.wizp-row .k{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--mut); text-transform:uppercase; width:62px; flex:none;}
+.wizp-row .k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); text-transform:uppercase; width:62px; flex:none;}
+.wizp-row .wizp-v{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); color:var(--ink); text-transform:uppercase; min-width:0;}
 .wizp-dot{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none;}
-.wizp-chip{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:0 9px; min-height:24px; display:inline-flex; align-items:center; border-radius:var(--p); border:0; background:var(--bg2); color:var(--mut); white-space:nowrap;}
-.wizp-chip.on{color:var(--panel-ink); background:var(--panel);}
-.wizp-gold{font-family:var(--serif); color:var(--gold); font-weight:700; font-size:24px; font-variant-numeric:tabular-nums;}
-.wizp-sub{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mut); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
+.wizp-gold{font-family:var(--board); color:var(--gold); font-weight:700; font-size:27px; line-height:1; font-variant-numeric:tabular-nums;}
+.wizp-sub{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
+/* ─────────────────────────────────────────────────────────────────────────
+   W5 · THE WIZARD'S TYPE AND CONTROLS, scoped to #view-wizard (`.byrow`,
+   `.eyebrow`, `label.f`, `.setrow` and `.ihelp` are shared with settings
+   and the season page, which keep their own).
+   ───────────────────────────────────────────────────────────────────────── */
+/* the promise and the review's heading are sentences: sans, sentence case */
+#view-wizard .wizlede{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut); margin:0 0 var(--s2);}
+#view-wizard .wizhead{font-family:var(--sans); font-size:17px; font-weight:600; line-height:1.3; color:var(--ink); margin:0 0 var(--s3); text-wrap:balance;}
+/* section labels and field labels are agate labels, never mono (§1.4) */
+#view-wizard .eyebrow{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
+#view-wizard label.f{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
+#view-wizard .ptag{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);}
+/* a question takes a section's space above it — it sat 4px under the
+   sentence before it */
+#view-wizard .eyebrow.wizq{margin-top:var(--s4);}
+#view-wizard .wizfoot{padding-top:var(--s2);}
+/* the second line of a dial and the help under a question are sentences a
+   golfer reads: sans (they were mono) */
+#view-wizard .setrow .lab small{font-family:var(--sans); font-size:13px; line-height:1.35;}
+/* a dial's − and + are 44px targets (§16.2 — they were 36×34), and on a
+   phone the value column narrows so a label keeps its (i) on its line */
+#view-wizard .setrow .ctl button{width:44px; height:44px;}
+@media(max-width:600px){ #view-wizard .setrow .val{min-width:52px;} #view-wizard .setrow{gap:var(--s2);} }
+#view-wizard .ihelp{font-family:var(--sans); font-size:14px; line-height:1.55;}
+/* a chosen starting point is its check and a 1px action edge — the 3px side
+   stripe was the retired spine */
+#view-wizard .preset.sel{box-shadow:none; border-color:var(--act);}
+/* one of three is a single choice: its mark is a disc, not a checkbox */
+#view-wizard .preset .ok{border-radius:50%;}
+#view-wizard .preset .ok svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round;}
+#view-wizard .preset-custom{cursor:default;}
+#view-wizard .preset-custom[hidden]{display:none;}
+#view-wizard .preset .presetbase{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut); margin-top:var(--s1);}
+#view-wizard .cs-seg{margin-bottom:var(--s2);}
+/* the three dial groups: a 56px head naming the group and what its dials
+   say, a chevron, and the dials under it */
+#view-wizard #wizDials{margin-top:var(--s4); border-top:1px solid var(--rule);}
+#view-wizard .wizgrp{border-bottom:1px solid var(--rule);}
+#view-wizard .wizgrp-h{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"k ic" "sum ic"; align-items:center; column-gap:var(--s3);
+  width:100%; min-height:56px; padding:var(--s2) 0; margin:0; background:none; border:0; text-align:left; color:var(--ink); cursor:pointer;}
+#view-wizard .wizgrp-k{grid-area:k; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
+#view-wizard .wizgrp-sum{grid-area:sum; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ink); margin-top:2px; min-width:0;}
+#view-wizard .wizgrp-h .ic{grid-area:ic; width:18px; height:18px; color:var(--mut); transition:transform .15s ease;}
+#view-wizard .wizgrp[data-open] .wizgrp-h .ic{transform:rotate(180deg);}
+#view-wizard .wizgrp-h:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+#view-wizard .wizgrp-need{color:var(--neg);}
+#view-wizard .wizgrp-b{padding:var(--s1) 0 var(--s4);}
+#view-wizard .wizgrp-b[hidden]{display:none;}
+/* the review: agate labels over left-aligned sans values (the table was all
+   mono caps with its values pushed right) */
+#view-wizard .byrow{display:block; font-family:var(--sans); letter-spacing:0; padding:var(--s2) 0; color:var(--ink);}
+#view-wizard .byrow > :first-child{display:block; max-width:none; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
+#view-wizard .byrow b{display:block; text-align:left; font-family:var(--sans); font-size:15px; font-weight:500; line-height:1.4; color:var(--ink); margin-top:2px;}
+#view-wizard .byrow .byneed{font-style:normal; color:var(--neg);}
+/* the phone's review opens on the portrait; the desk keeps it in its aside */
+#view-wizard .wizp-phone{margin-bottom:var(--s3);}
+@media(min-width:1100px){ #view-wizard .wizp-phone{display:none;} }
+/* Back and Cancel are the alternative, so they are links, never a second
+   button beside the one primary (§16A.5) */
+#view-wizard .wiznav .btn.dark{flex:0 0 auto; width:auto; min-height:44px; padding:0 var(--s2); background:none; border:0; box-shadow:none;
+  font-family:var(--sans); font-size:15px; font-weight:500; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+#view-wizard .wiznav .btn.dark:hover{filter:none; text-decoration-color:var(--ink);}
+#view-wizard #lockBtn:disabled{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}
 /* Stage 3d-2: Start something as schema-art doors, competition-forward */
 .startgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--rule); border-radius:14px; cursor:pointer; color:var(--ink);}
@@ -5602,19 +5669,24 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <section class="view" id="view-wizard">
         <div class="wiz-grid">
         <div class="wiz-main">
-        <div class="eyebrow">Set the rules once, then start the season</div>
+        <!-- W5 · the wizard's promise is a sentence, so it is set in sans in
+             sentence case (UI_SYSTEM §1.3/§1.4: mono never sets a sentence and
+             never an eyebrow); the step's name is the agate label under it -->
+        <p class="wizlede">Set the rules once, then start the season.</p>
         <div class="wizstepname cs-agate-s" id="wizStepName" aria-live="polite"></div>
         <div class="wizdots" role="presentation"><i class="on"></i><i></i><i></i></div>
 
         <div class="wizstep on" data-step="0">
           <div class="card">
             <label class="f" for="setName">League name</label>
-            <input class="f" id="setName" placeholder="The Big Slice, The Sunday Cup, Dew Sweepers…" style="font-family:var(--sans); font-size:16px;">
+            <!-- W5 · a placeholder that fits a 375 field whole (three names
+                 ran past its edge, "Dew S…") -->
+            <input class="f" id="setName" placeholder="The Sunday Cup" style="font-family:var(--sans); font-size:16px;">
             <div style="height:14px"></div>
             <label class="f">Pro — that's you</label>
             <div id="commishChip" class="prow" style="margin-top:6px; cursor:default">
               <span class="pmk">◆</span>
-              <span class="pmeta"><b>You</b><small>You run this league</small></span>
+              <span class="pmeta"><b>You</b><small>You run the season</small></span>
               <span class="ptag">THE PRO</span>
             </div>
             <!-- D363 · the person "Start a season" was tapped from: an invitation
@@ -5630,37 +5702,59 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                and the wording is the phone's own (WizardDials.presets.lead) so
                a reword on one client fails the other (D234). Every dial is
                still here, verbatim, further down (P-6). -->
-          <button class="preset" data-p="0">
-            <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
+          <button class="preset" data-p="0" aria-pressed="false">
+            <h4>Casual <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
             <!-- MW-06 · the lead is PAINTED from the preset's own two dials
                  (`csPresetLead`), never typed here: "light guardrails" and
                  "the screws in" named a mood, and an organiser could not tell
                  what either would do to their season. -->
             <p class="lead" data-preset-lead="0"></p>
           </button>
-          <button class="preset sel" data-p="1">
-            <h4>Standard <span class="ok" aria-hidden="true">✓</span></h4>
+          <button class="preset sel" data-p="1" aria-pressed="true">
+            <h4>Standard <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
             <p class="lead" data-preset-lead="1"></p>
           </button>
-          <button class="preset" data-p="2">
-            <h4>Cutthroat <span class="ok" aria-hidden="true">✓</span></h4>
+          <button class="preset" data-p="2" aria-pressed="false">
+            <h4>Cutthroat <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
             <p class="lead" data-preset-lead="2"></p>
           </button>
+          <!-- W5 · a starting point stays chosen only while the dials still say
+               what its card says. Turn one and the choice reads "Custom", its
+               sentence painted from the dials themselves, and it names the
+               starting point whose handicaps, scores and penalty it keeps — a
+               UI state (D346's "an agreement from the exact outgoing
+               settings"), not a new rule: nothing new is stored. -->
+          <div class="preset sel preset-custom" id="presetCustom" hidden>
+            <h4>Custom <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
+            <p class="lead" id="presetCustomLead"></p>
+            <p class="presetbase" id="presetCustomBase"></p>
+          </div>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
-          <p class="fine" style="padding-top:0; color:var(--mut)">Verification is a norm the league holds, not a filter Cup Season applies.</p>
-          <label class="f" for="wizardFrequency">How often will most of you play?</label>
-          <select class="f" id="wizardFrequency">
-            <option value="0">Choose a pace</option>
-            <option value="1">About once a month</option>
-            <option value="2">About twice a month</option>
-            <option value="3">Most weeks</option>
-          </select>
+          <p class="fine wizfoot">Verification is a norm the league holds, not a filter Cup Season applies.</p>
+          <!-- W5 · the pace is the one segment component every dial wears
+               (it was the page's only native select, in mono) -->
+          <div class="eyebrow wizq" id="wizPaceK">How often will most of you play?</div>
+          <div class="cs-seg is-fill" id="wizardFrequency" role="group" aria-labelledby="wizPaceK" data-value="0">
+            <button type="button" data-pace="1" aria-pressed="false">About once a month</button>
+            <button type="button" data-pace="2" aria-pressed="false">About twice a month</button>
+            <button type="button" data-pace="3" aria-pressed="false">Most weeks</button>
+          </div>
           <div id="busyFriendsSuggestion" hidden>
             <p class="fine">For a busy group, try best 2 and no minimum.</p>
             <button class="mini" id="useBusyFriends">Use best 2, no minimum</button>
           </div>
+          <p class="fine" id="setupPaceWarning" hidden>This asks for more rounds than your group expects to play.</p>
+          <!-- W5 · every dial, under three heads that each say where they stand:
+               the scoring, the money, the calendar. One scroll of presets,
+               pace, dials, money and dates ran 2,355px at 375; each group now
+               opens on its own and its head carries its settings in words.
+               Nothing is hidden that the head does not state (P-6). -->
+          <div id="wizDials">
+          <section class="wizgrp" id="wizGrpScoring">
+            <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpScoringB"><span class="wizgrp-k">Scoring</span><span class="wizgrp-sum" id="wizSumScoring"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <div class="wizgrp-b" id="wizGrpScoringB" hidden>
           <div class="setrow">
-            <div class="lab">Rounds that count <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About the rounds that count">i</button><small>Your best N each month score</small></div>
+            <div class="lab">Rounds that count <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About the rounds that count">i</button><small>Your best rounds each month score</small></div>
             <div class="val" id="capVal">Best 3</div>
             <div class="ctl"><button id="capDown" aria-label="Fewer rounds count">−</button><button id="capUp" aria-label="More rounds count">+</button></div>
           </div>
@@ -5672,9 +5766,28 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           </div>
           <div class="ihelp" id="ih-floor">An 18-hole round meets one round of the minimum; a 9-hole round meets half. One missed minimum is forgiven automatically each season. Partial season months and the month you join are exempt. The selected rules determine any later team penalty.</div>
           <p class="fine" id="setupMinimumConsequence" aria-live="polite"></p>
-          <p class="fine" id="setupPaceWarning" hidden>This asks for more rounds than your group expects to play.</p>
-          <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
-          <div id="wizDials" style="display:none; margin-top:12px">
+          <div class="eyebrow">Squads <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About squads">i</button></div>
+          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into squads the Pro picks or draws; more squads want more golfers (4 squads plays best at 8+).</div>
+          <div class="cs-seg is-fill" id="structSeg">
+            <button data-s="solo">Solo</button>
+            <button data-s="squads2">2 Squads</button>
+            <button data-s="squads3">3 Squads</button>
+            <button data-s="squads4" class="on">4 Squads</button>
+          </div>
+          <p class="fine" id="structNote">4 squads · best with 8 or more.</p>
+          <p class="fine" id="structFit" style="padding-top:0; color:var(--ink)"></p>
+          <div class="eyebrow">How squads fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how squads fill">i</button></div>
+          <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place golfers yourself, for groups who picked teams in the group chat.</div>
+          <div class="cs-seg is-fill" id="draftSeg">
+            <button data-d="random" class="on">Random draw</button>
+            <button data-d="assign">Assign</button>
+          </div>
+          <p class="fine" id="draftNote">Random draw: everyone who joined is shuffled into squads and the reveal is posted. Argument-proof.</p>
+            </div>
+          </section>
+          <section class="wizgrp" id="wizGrpMoney">
+            <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpMoneyB"><span class="wizgrp-k">Money</span><span class="wizgrp-sum" id="wizSumMoney"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <div class="wizgrp-b" id="wizGrpMoneyB" hidden>
           <div class="setrow">
             <div class="lab">Buy-in<small>Per golfer · $0 is bragging rights</small></div>
             <div class="val" id="stakeVal">None</div>
@@ -5695,6 +5808,19 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <input class="f" id="payNote" placeholder="Venmo @your-handle" style="font-family:var(--sans); font-size:16px;">
             <p class="fine" id="payNoteFine" style="padding-top:4px">Everyone who owes will see this. It's the only place they can look.</p>
           </div>
+          <div class="eyebrow">The pot split <button class="ibtn" data-i="payout" aria-expanded="false" aria-label="About the pot split">i</button></div>
+          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). <span data-ledger></span></div>
+          <div class="cs-seg is-fill" id="paySeg">
+            <button data-pay="60,25,15" class="on">Balanced</button>
+            <button data-pay="70,20,10">Winner-heavy</button>
+            <button data-pay="50,30,20">Spread it</button>
+          </div>
+          <p class="fine" id="payoutNote">Balanced: champion 60% · runner-up 25% · Points King 15%.</p>
+            </div>
+          </section>
+          <section class="wizgrp" id="wizGrpCalendar">
+            <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpCalendarB"><span class="wizgrp-k">Calendar</span><span class="wizgrp-sum" id="wizSumCalendar"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <div class="wizgrp-b" id="wizGrpCalendarB" hidden>
           <div class="setrow">
             <div class="lab">Season length<small>Weeks or months · ends the same weekday</small></div>
             <div class="val" id="lenVal">6 mo</div>
@@ -5705,44 +5831,25 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="lab">First tee<small id="seasonSpan">Pick any day</small></div>
             <input class="f" id="startDate" type="date" style="max-width:160px; padding:9px 11px; font-family:var(--sans);">
           </div>
-          <div class="eyebrow">Squads <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About squads">i</button></div>
-          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into squads the Pro picks or draws; more squads want more golfers (4 squads plays best at 8+).</div>
-          <div class="seg" id="structSeg">
-            <button data-s="solo">Solo</button>
-            <button data-s="squads2">2 Squads</button>
-            <button data-s="squads3">3 Squads</button>
-            <button data-s="squads4" class="on">4 Squads</button>
-          </div>
-          <p class="fine" id="structNote">4 squads · best with 8 or more.</p>
-          <p class="fine" id="structFit" style="padding-top:0; color:var(--ink)"></p>
-          <div class="eyebrow">How squads fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how squads fill">i</button></div>
-          <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place golfers yourself, for groups who picked teams in the group chat.</div>
-          <div class="seg" id="draftSeg">
-            <button data-d="random" class="on">Random draw</button>
-            <button data-d="assign">Assign</button>
-          </div>
-          <p class="fine" id="draftNote">Random draw: everyone who joined is shuffled into squads and the reveal is posted. Argument-proof.</p>
           <div class="eyebrow">How it ends <button class="ibtn" data-i="finish" aria-expanded="false" aria-label="About how it ends">i</button></div>
           <div class="ihelp" id="ih-finish"><b>Cup Final</b>: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Seasons shorter than six weeks use the points table. <b>Points table</b>: the points leader at season end wins.</div>
-          <div class="seg" id="finishSeg">
+          <div class="cs-seg is-fill" id="finishSeg">
             <button data-e="cup_final" class="on">Cup Final</button>
             <button data-e="points_table">Points table</button>
           </div>
           <p class="fine" id="finishNote">Cup Final: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.</p>
-          <div class="eyebrow">The pot split <button class="ibtn" data-i="payout" aria-expanded="false" aria-label="About the pot split">i</button></div>
-          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). <span data-ledger></span></div>
-          <div class="seg" id="paySeg">
-            <button data-pay="60,25,15" class="on">Balanced</button>
-            <button data-pay="70,20,10">Winner-heavy</button>
-            <button data-pay="50,30,20">Spread it</button>
-          </div>
-          <p class="fine" id="payoutNote">Balanced: champion 60% · runner-up 25% · Points King 15%.</p>
+            </div>
+          </section>
           </div><!-- /wizDials -->
           <button class="btn" id="wizFastPath" style="margin-top:10px">Review your league</button>
         </div>
 
         <div class="wizstep" data-step="2">
-          <div class="eyebrow" style="margin-top:0">Review the rules, then start the season</div>
+          <h3 class="wizhead">Review the rules, then start the season</h3>
+          <!-- W5 · the phone's twin of the desk's "Your league so far": the
+               same portrait heads the review below the desk width, where the
+               sticky aside is not drawn (the desk keeps it in its aside) -->
+          <div class="card wizp-phone" id="wizReviewPortrait"></div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <p class="fine" id="inviteNote" style="padding-bottom:10px"></p>
           <button class="btn" id="lockBtn" aria-describedby="lockWhy">Start the season</button>
@@ -5761,7 +5868,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <aside class="wiz-aside" aria-label="Your league so far">
           <div class="wiz-aside-h">Your league so far</div>
           <div class="card" id="wizAside"></div>
-          <p class="fine" id="wizAsideHint">Turn the dials and watch the rules fill in. When you start the season, these become its rules — set once, so there is nothing to argue about in October.</p>
+          <p class="fine" id="wizAsideHint">Turn the dials and watch the rules fill in. When you start the season, these become its rules — set once, so there is nothing to argue about later.</p>
         </aside>
         </div><!-- /wiz-grid -->
       </section>
@@ -13160,7 +13267,27 @@ function syncWizSegs(){
   const payKey=(state.payout||[60,25,15]).join(',');
   $$('#paySeg button').forEach(b=>b.classList.toggle('on',b.dataset.pay===payKey));
   $$('#structSeg button').forEach(b=>b.classList.toggle('on',b.dataset.s===state.structure));
-  $$('.preset').forEach(b=>b.classList.toggle('sel',+b.dataset.p===state.preset));
+  if(['random','assign'].includes(state.draftType||'random')) $$('#draftSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===(state.draftType||'random')));
+  /* W5 · the segments say which is chosen to a screen reader too */
+  $$('#view-wizard .cs-seg > button').forEach(b=>b.setAttribute('aria-pressed',String(b.classList.contains('on'))));
+  /* W5 · a starting point stays checked only while the dials still say what
+     its card says ("Your best three" over a "Best 4" dial, and a review that
+     printed "Standard" over "Best 4"). Turned away, the choice reads Custom,
+     its sentence painted from the dials, naming the starting point it keeps
+     the rest from. A UI state — the stored preset key is unchanged. */
+  const custom=!csPresetMatches(state.preset);
+  $$('.preset[data-p]').forEach(b=>{ const on=+b.dataset.p===state.preset && !custom; b.classList.toggle('sel',on); b.setAttribute('aria-pressed',String(on)); });
+  const cc=document.getElementById('presetCustom');
+  if(cc){
+    cc.hidden=!custom;
+    if(custom){
+      $('#presetCustomLead').textContent=csRulesLead(capDB(), state.floor);
+      $('#presetCustomBase').textContent=`Built on ${(PRESETS[state.preset]||PRESETS[1]).name}: its handicaps, scores and penalty stay.`;
+    }
+  }
+  /* W5 · the squads note follows the chosen squads on every paint — it kept
+     its markup default ("4 squads · best with 8 or more.") under 2 Squads */
+  const sn=$('#structNote'); if(sn) sn.textContent=STRUCT_NOTES[state.structure]||'';
   const fn=$('#finishNote'); if(fn) fn.textContent=FINISH_NOTES[state.finish||'cup_final'];
   const pn=$('#payoutNote'); if(pn) pn.textContent=PAY_NOTES[payKey]||PAY_NOTES['60,25,15'];
   /* W-48 / D201 · #presetSummary stays SILENT: the selected card above it
@@ -13181,13 +13308,13 @@ function csSetupMinimum(settings){
 function csRenderSetupMinimum(){
   const consequence=document.getElementById('setupMinimumConsequence');
   if(consequence) consequence.textContent=csSetupMinimum(state);
-  const pace=Number(document.getElementById('wizardFrequency')?.value || 0);
+  /* W5 · the pace is a segment now; its choice rides on data-value (0 = not said) */
+  const pace=Number(document.getElementById('wizardFrequency')?.dataset.value || 0);
   const suggestion=document.getElementById('busyFriendsSuggestion');
   if(suggestion) suggestion.hidden=pace!==1;
   const warning=document.getElementById('setupPaceWarning');
   if(warning) warning.hidden=state.structure==='solo' || !pace || state.floor<=(pace===3 ? 4 : pace);
 }
-document.getElementById('wizardFrequency')?.addEventListener('change', csRenderSetupMinimum);
 document.getElementById('useBusyFriends')?.addEventListener('click', ()=>{
   csUseBusyFriends(state); renderSetup();
 });
@@ -13319,30 +13446,48 @@ $$('#paySeg button').forEach(b=>b.addEventListener('click',()=>{
   $('#payoutNote').textContent=PAY_NOTES[b.dataset.pay];
   renderBylaws();
 }));
-/* D8 → A-W3: every wizard dial (buy-in … the monthly minimum) now lives behind
-   ONE disclosure. The preset carries the load; the Pro who wants to tune opens
-   this. Supersedes the old cap/floor-only "fine print" toggle. */
-document.getElementById('wizCustomize')?.addEventListener('click',()=>{
-  const d=$('#wizDials'), t=$('#wizCustomize');
-  if(!d||!t) return;
-  const open = d.style.display==='none';
-  d.style.display = open ? 'block':'none';
-  t.setAttribute('aria-expanded', open?'true':'false');
-  t.innerHTML = (open ? 'Hide options ' : 'Customize ')
-    + `<svg class="ic${open?' flip':''}" aria-hidden="true"><use href="#i-chevron-down"/></svg>`;
-});
+/* D8 → A-W3 → W5: every wizard dial lives behind a disclosure — now THREE,
+   by what a Pro is deciding (the scoring, the money, the calendar), each head
+   carrying its settings in words so a closed group hides nothing it does not
+   say. One "Customize" opened all nine at once, and step 2 ran 2,355px. */
+function csWizGroup(id, open){
+  const sec=document.getElementById(id); if(!sec) return;
+  const h=sec.querySelector('.wizgrp-h'), b=sec.querySelector('.wizgrp-b');
+  const on = open==null ? b.hidden : !!open;
+  b.hidden=!on; h.setAttribute('aria-expanded', on?'true':'false');
+  sec.toggleAttribute('data-open', on);
+}
+window.csWizGroup = csWizGroup;
+$$('#wizDials .wizgrp-h').forEach(h=>h.addEventListener('click',()=>csWizGroup(h.closest('.wizgrp').id)));
+/* the pace: one segment, nothing chosen until the Pro says (0 = not said) */
+$$('#wizardFrequency [data-pace]').forEach(b=>b.addEventListener('click',()=>{
+  const seg=document.getElementById('wizardFrequency');
+  seg.dataset.value = seg.dataset.value===b.dataset.pace ? '0' : b.dataset.pace;
+  seg.querySelectorAll('[data-pace]').forEach(x=>{ const on=x.dataset.pace===seg.dataset.value; x.classList.toggle('on',on); x.setAttribute('aria-pressed',String(on)); });
+  csRenderSetupMinimum();
+}));
 
 const PRESETS=[
   {cap:4, floor:0, name:'Casual'},      /* every round counts */
   {cap:1, floor:2, name:'Standard'},    /* best 3 a month */
   {cap:0, floor:3, name:'Cutthroat'},   /* best 2 — the tightest quality filter */
 ];
-$$('.preset').forEach(p=>{
+/* W5 · does the league's rule still say what starting point `i` says? The
+   exact stored cap (D347's capDB) and the minimum are its two dials; every
+   other rule a starting point carries (the handicap percentage, what a score
+   must be, the penalty) is not a dial and stays the starting point's. */
+function csPresetMatches(i){
+  const pr=PRESETS[i]; if(!pr) return false;
+  return capDB()===CAP_DB[pr.cap] && Number(state.floor)===pr.floor;
+}
+window.csPresetMatches = csPresetMatches;
+$$('.preset[data-p]').forEach(p=>{
   p.addEventListener('click',()=>{
-    $$('.preset').forEach(x=>x.classList.remove('sel'));
-    p.classList.add('sel');
     state.preset=+p.dataset.p;
     const pr=PRESETS[state.preset];
+    /* D347 · choosing a starting point moves the picker, so a stored
+       off-ladder cap gives way to the starting point's own */
+    state.capExact=null;
     state.cap=pr.cap; state.floor=pr.floor; renderSetup(); renderBylaws();
     toast(pr.name+' rules set for the season');
   });
@@ -24349,14 +24494,24 @@ function renderStructFit(){
   $$('#structSeg button').forEach(b=>{
     const min=STRUCT_MIN[b.dataset.s]||2;
     const ok=n>=min;
-    /* solo always fits — it's the fallback; only squad options dim */
-    b.style.opacity = (ok || b.dataset.s==='solo') ? '' : '.4';
+    /* W5 · a squad option bigger than the roster so far is guidance, not a
+       block, so it is never FADED: 40% opacity took the chosen "2 Squads" to
+       2.52:1 (§16.1 — dim is never a word). It says its need in words, in mut,
+       under its name; solo always fits. Twin: WizardSeg(dimmed:) on the phone. */
+    b.style.opacity='';
+    const name=b.dataset.label || (b.dataset.label=b.textContent.trim());
+    b.innerHTML=esc(name)+(ok || b.dataset.s==='solo' ? '' : `<small>${min}+ golfers</small>`);
     if(ok && b.dataset.s!=='solo') fits.push(STRUCT_NAMES[b.dataset.s].replace(/ .*/,''));
   });
   const el=$('#structFit');
-  if(el) el.textContent = `${n} golfer${n===1?'':'s'} staged — `
-    + (fits.length ? `solo or up to ${fits[fits.length-1]} squads fit` : 'solo fits')
-    + '. Bigger squads open up as more join, by code or invite.';
+  const need=STRUCT_MIN[state.structure]||2;
+  /* the chosen squads are the fact that matters: when they need more golfers
+     than are staged, the line says how many, and how many so far */
+  if(el) el.textContent = state.structure!=='solo' && n<need
+    ? `${STRUCT_NAMES[state.structure]} tee off at ${need} — ${n} golfer${n===1?'':'s'} so far. More join by code or invite.`
+    : `${n} golfer${n===1?'':'s'} staged — `
+      + (fits.length ? `solo or up to ${fits[fits.length-1]} squads fit` : 'solo fits')
+      + '. Bigger squads open up as more join, by code or invite.';
 }
 $$('#structSeg button').forEach(b=>b.addEventListener('click',()=>{
   const min=STRUCT_MIN[b.dataset.s]||2;
@@ -24387,61 +24542,96 @@ function wizPortrait(){
   const dots = sqN
     ? Array.from({length:sqN},(_,i)=>`<span class="wizp-dot" style="background:var(--sq${i})"></span>`).join('')
     : `<span class="wizp-dot" style="background:var(--mut)"></span>`;
-  const structLine = sqN ? `${sqN} SQUADS · ${draft.toUpperCase()}` : 'SOLO · EVERY GOLFER';
+  /* W5 · the portrait's words are agate labels (the role sets the caps, §1.3),
+     never mono; the pot is ONE metal — its figure and its split bar are both
+     gold (the bar was ember beside a gold figure) — and the figure is set in
+     the board face, never the serif (a number is never serif, §1.4) */
+  const structLine = sqN ? `${sqN} squads · ${draft}` : 'Solo · every golfer';
+  /* the endgame is a FACT of the portrait, said in words — never two chips
+     that read as a segmented control nobody can press */
   const bw = pay.map(p=>Math.max(5, p*1.36));
-  const bar = `<svg viewBox="0 0 150 10" width="150" height="10" aria-hidden="true"><rect x="0" y="1" width="${bw[0]}" height="8" rx="4" fill="var(--brand)"/><rect x="${bw[0]+3}" y="1" width="${bw[1]}" height="8" rx="4" fill="var(--brand)" opacity=".55"/><rect x="${bw[0]+bw[1]+6}" y="1" width="${bw[2]}" height="8" rx="4" fill="var(--brand)" opacity=".3"/></svg>`;
+  const bar = `<svg viewBox="0 0 150 10" width="150" height="10" aria-hidden="true"><rect x="0" y="1" width="${bw[0]}" height="8" rx="4" fill="var(--gold)"/><rect x="${bw[0]+3}" y="1" width="${bw[1]}" height="8" rx="4" fill="var(--gold)" opacity=".55"/><rect x="${bw[0]+bw[1]+6}" y="1" width="${bw[2]}" height="8" rx="4" fill="var(--gold)" opacity=".3"/></svg>`;
   const potRow = stake>0
     ? `<div class="wizp-row"><span class="k">The pot</span><span class="wizp-gold">${fmt$(pot)}</span>${bar}</div>
-       <div class="wizp-sub">${fmt$(stake)} / golfer · ${roster} expected · ${pay.join('/')}</div>`
+       <div class="wizp-sub">${fmt$(stake)} / golfer · ${roster} expected · split ${pay.join(' / ')}</div>`
     : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b></div>`;
   const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
   let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--rule)" stroke-width="1.2"/>`;
   const fx = mo*41;
+  /* W5 · the Final's segment carries no 6px caption under a gold flag (the
+     11px floor, §16.2; gold is earned, D359): the row's own label says it,
+     and the flag is ink */
   const finalSeg = canCup
-    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="color-mix(in srgb, var(--brand) 20%, transparent)" stroke-width="1.6"/><text x="${fx+12}" y="8" font-size="6" letter-spacing="1" text-anchor="middle" fill="var(--brand)" style="font-family:var(--mono)">CUP FINAL</text><path d="M${fx+22} 12V4" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+22} 4l7 2.4-7 2.4z" fill="var(--gold)"/>`
+    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="color-mix(in srgb, var(--brand) 20%, transparent)" stroke-width="1.6"/><path d="M${fx+12} 12V3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+12} 3l7 2.4-7 2.4z" fill="var(--ink)"/>`
     : '';
   const bandW = fx + (canCup?30:6);
-  const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span style="font-family:var(--mono);font-size:11px;color:var(--mut)">${durLabel(state.durWeeks)}${canCup?'':' · POINTS TABLE'}</span></div>`;
+  const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span class="wizp-v">${durLabel(state.durWeeks)}${canCup?' · the Cup Final is the last 4 weeks':' · points table'}</span></div>`;
   return `<div class="wizp">
     <div class="wizp-h">
       <svg viewBox="0 0 100 52" width="80" aria-hidden="true">
         <path d="M4 10 C 30 18, 42 30, 48 42" stroke="var(--sq0)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
         <path d="M96 10 C 70 18, 58 30, 52 42" stroke="var(--sq1)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-        <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="#0A0B0D" stroke="#332018" stroke-width="1.4"/>
-        <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--gold)"/>
+        <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="var(--bg2)" stroke="var(--rule)" stroke-width="1.4"/>
+        <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--ink)"/>
       </svg>
       <div><b>${esc(name)}</b><small>Forming — nothing locks until you start it</small></div>
     </div>
-    <div class="wizp-row"><span class="k">Squads</span>${dots}<span style="font-family:var(--mono);font-size:11px;color:var(--mut)">${structLine}</span></div>
-    <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-chip ${cup?'on':''}">Cup Final</span><span class="wizp-chip ${cup?'':'on'}">Points table</span></div>
+    <div class="wizp-row"><span class="k">Squads</span>${dots}<span class="wizp-v">${esc(structLine)}</span></div>
+    <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-v">${canCup ? 'Cup Final' : 'Points table'}</span></div>
     ${potRow}
     ${seasonRow}
   </div>`;
 }
+/* W5 · each dial group's head says where its dials stand, in words, so a
+   closed group hides nothing it does not state (P-6). Painted with the
+   review on every change. */
+function csWizSummaries(){
+  const put=(id,html)=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; };
+  const draft=({random:'random draw',assign:'the Pro picks',snake:'in turns',live:'live picks'})[state.draftType]||'random draw';
+  const counts=capLabel()==='Unlimited' ? 'Every round counts' : capLabel()+' a month';
+  const minimum=state.structure==='solo' ? 'no team minimum' : state.floor ? state.floor+'-round minimum' : 'no minimum';
+  const squads=state.structure==='solo' ? 'solo' : STRUCT_NAMES[state.structure]+', '+draft;
+  put('wizSumScoring', esc([counts, minimum, squads].join(' · ')));
+  const stake=Number(state.stake)||0;
+  put('wizSumMoney', stake
+    ? esc(fmt$(stake)+' a golfer · split '+(state.payout||[60,25,15]).join(' / '))
+      + (typeof csPayNoteMissing==='function' && csPayNoteMissing() ? ' · <span class="wizgrp-need">add how they pay you</span>' : '')
+    : 'No buy-in · bragging rights');
+  const st=seasonStartDate(), en=seasonEndDate();
+  const fin=(state.finish||'cup_final')==='cup_final' && state.durWeeks>=6 ? 'Cup Final' : 'points table';
+  put('wizSumCalendar', esc(`${state.durWeeks} weeks · ${WD[st.getDay()]} ${MOS[st.getMonth()]} ${st.getDate()} – ${WD[en.getDay()]} ${MOS[en.getMonth()]} ${en.getDate()} · ${fin}`));
+}
+window.csWizSummaries = csWizSummaries;
 function renderBylaws(){
   const pr=PRESETS[state.preset];
   // The agreement describes the wizard's outgoing dates, never the last viewed season.
   const starts=seasonStartDate(), ends=seasonEndDate(), weeks=state.durWeeks;
-  const span=`${WD[starts.getDay()]} ${MOS[starts.getMonth()]} ${starts.getDate()} → ${WD[ends.getDay()]} ${MOS[ends.getMonth()]} ${ends.getDate()} · ${weeks} wks`;
+  /* a date range is set with an en dash, never an arrow (§5.2) */
+  const span=`${WD[starts.getDay()]} ${MOS[starts.getMonth()]} ${starts.getDate()} – ${WD[ends.getDay()]} ${MOS[ends.getMonth()]} ${ends.getDate()} · ${weeks} weeks`;
   const finalStarts=new Date(ends); finalStarts.setDate(finalStarts.getDate()-27);
+  /* W5 · the review's labels are agate LABELS (their caps are the role's,
+     §1.3) and its values read as sentences in sans, left-aligned under them
+     (#view-wizard .byrow) — the table was all mono caps, right-aligned.
+     A starting point turned away from reads Custom here as on its card. */
+  const house = csPresetMatches(state.preset) ? pr.name : `Custom, built on ${pr.name}`;
   const rows=`
-    <div class="byrow"><span>FORMAT</span><b>${STRUCT_NAMES[state.structure]}</b></div>
-    <div class="byrow"><span>THE DRAW</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
-    <div class="byrow"><span>HOUSE RULES</span><b>${pr.name}</b></div>
-    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
-    <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
-    <div class="byrow"><span>EACH MONTH</span><b>${capLabel()==='Unlimited' ? 'Every round counts' : capLabel()+' a month count'}</b></div>
-    <div class="byrow"><span>THE MINIMUM</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
-    ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>IF YOU MISS IT</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
+    <div class="byrow"><span>Format</span><b>${STRUCT_NAMES[state.structure]}</b></div>
+    <div class="byrow"><span>The draw</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
+    <div class="byrow"><span>House rules</span><b>${esc(house)}</b></div>
+    <div class="byrow"><span>How scores count</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
+    <div class="byrow"><span>Scores</span><b>${VERIF[state.preset]}</b></div>
+    <div class="byrow"><span>Each month</span><b>${esc(csCountingRule(capDB()))}</b></div>
+    <div class="byrow"><span>The minimum</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
+    ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>If you miss it</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
     ${state.stake===0
-      ? `<div class="byrow"><span>BUY-IN</span><b>None · bragging rights</b></div>`
-      : `<div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / golfer</b></div>
-    <div class="byrow"><span>HOW TO PAY</span><b>${esc(csPayNote())}</b></div>
-    <div class="byrow"><span>POT SPLIT</span><b>${(state.payout||[60,25,15]).join(' / ')} · champion / runner-up / points king</b></div>`}
-    <div class="byrow"><span>SEASON</span><b>${span}</b></div>
+      ? `<div class="byrow"><span>Buy-in</span><b>None · bragging rights</b></div>`
+      : `<div class="byrow"><span>Buy-in</span><b>${fmt$(state.stake)} / golfer</b></div>
+    <div class="byrow"><span>How to pay</span><b>${csPayNote() ? esc(csPayNote()) : '<i class="byneed">Not set yet</i>'}</b></div>
+    <div class="byrow"><span>Pot split</span><b>${(state.payout||[60,25,15]).join(' / ')} · champion / runner-up / Points King</b></div>`}
+    <div class="byrow"><span>Season</span><b>${span}</b></div>
     ${(state.finish||'cup_final')==='cup_final' && weeks>=6
-      ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[finalStarts.getDay()]} ${MOS[finalStarts.getMonth()]} ${finalStarts.getDate()}. Final rounds must also fit the monthly counting limit; an earlier round can take a place.${state.structure==='squads2' ? ' Leading squad starts with 10 points.' : ''}</b></div>`
-      : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
+      ? `<div class="byrow"><span>Cup Final</span><b>Final 4 weeks · from ${WD[finalStarts.getDay()]} ${MOS[finalStarts.getMonth()]} ${finalStarts.getDate()}. Final rounds must also fit the monthly counting limit; an earlier round can take a place.${state.structure==='squads2' ? ' Leading squad starts with 10 points.' : ''}</b></div>`
+      : `<div class="byrow"><span>Finish</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   /* D223 §7.4 · the season page reads SENTENCES; the wizard's review keeps the
      dials, because that is where a Pro is setting them and the engine's nouns
      are the right nouns for a control. Same facts, two grains, one producer
@@ -24450,6 +24640,10 @@ function renderBylaws(){
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
   paintInviteNote();   /* D180: say when the invite link expires */
   const asd=$('#wizAside'); if(asd) asd.innerHTML=wizPortrait();   /* Stage 3d: the desktop live portrait */
+  /* W5 · the same portrait heads the phone's review (the desk shows it in its
+     aside), and the three dial heads restate their settings in words */
+  const rpp=$('#wizReviewPortrait'); if(rpp) rpp.innerHTML=wizPortrait();
+  if(typeof csWizSummaries==='function') csWizSummaries();
   /* the endgame dial (migration 008): the Pro can flip the finish until the
      final window opens — after that it's settled, argue never */
   if(hub && !state.demo && window.CS?.member?.role==='commissioner'
@@ -25579,12 +25773,18 @@ function renderLeagueMeta(){
    stops at what is SET: the penalty for missing the minimum belongs to the
    floor sentence (`csSetupMinimum`, Q-27 — there is one of those and this is
    not a fourth). Every dial stays editable underneath (P-6). */
+/* W5 · the sentence is the RULE's (a cap and a minimum), so the preset cards
+   and the Custom card say it with one producer: the cards from the preset's
+   own values in PRESETS, the Custom card from the dials (capDB — the exact
+   stored cap, D347). One best round is a singular sentence. */
+function csRulesLead(cap, floor){
+  const counts = cap == null ? 'Every round counts' : Number(cap) === 1 ? 'Your best round each month counts' : `Your best ${csWord(cap)} each month count`;
+  const minimum = floor ? `${csWord(floor)}-round monthly minimum` : 'no monthly minimum';
+  return `${counts} \u00b7 ${minimum}.`;
+}
 function csPresetLead(i){
   const pr = PRESETS[i]; if(!pr) return '';
-  const cap = CAP_DB[pr.cap];
-  const counts = cap == null ? 'Every round counts' : `Your best ${csWord(cap)} each month count`;
-  const minimum = pr.floor ? `${csWord(pr.floor)}-round monthly minimum` : 'no monthly minimum';
-  return `${counts} \u00b7 ${minimum}.`;
+  return csRulesLead(CAP_DB[pr.cap], pr.floor);
 }
 window.csPresetLead = csPresetLead;
 /* MW-06 · the rail says WHICH step, not only how far. Three bars named
@@ -25632,8 +25832,12 @@ function csRenderPayNote(){
     fine.style.color = csPayNoteMissing() ? 'var(--neg)' : '';   /* a missing field is a validation state (neg, as .ob-status.err), never the competition ember */
   }
   const btn = document.getElementById('lockBtn');
-  if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = csPayNoteMissing() ? 0.5 : ''; }
+  /* W5 · the disabled tier is bg1 with a mut label (§7.1), never the action
+     green at half strength (#view-wizard #lockBtn:disabled); the reason sits
+     under it (#lockWhy) */
+  if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = ''; }
   const why = document.getElementById('lockWhy'); if(why) why.hidden = !csPayNoteMissing();
+  if(typeof csWizSummaries==='function') csWizSummaries();
   const other = document.getElementById('stakeOther');
   if(other && document.activeElement !== other){
     other.value = (Number(state.stake) && !STAKES.includes(Number(state.stake))) ? String(state.stake) : '';
@@ -25663,6 +25867,8 @@ $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);re
 /* the review's "Add how to pay": back to the dials, on the field itself */
 $('#lockWhyGo')?.addEventListener('click', e => {
   e.preventDefault(); state.wiz = 1; renderWizard();
+  /* the field lives in the money group: open it before reaching for it */
+  window.csWizGroup?.('wizGrpMoney', true);
   const f = document.getElementById('payNote');
   if(f){ f.scrollIntoView({ block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); f.focus({ preventScroll:true }); }
 });
@@ -28303,7 +28509,9 @@ function renderWizardWith(){
 }
 window.renderWizardWith = renderWizardWith;
 /* the Pro is always the creator — show it as a fixed identity, not a dead
-   email field (pilot feedback: "Pro-you won't let me type"). */
+   email field (pilot feedback: "Pro-you won't let me type"). W5 · the Pro
+   "runs the season" (TERMINOLOGY row 1, D132) — never "runs this league".
+   Twin: WizardCopy.proSub. */
 function renderProChip(){
   const box = $('#commishChip'); if(!box) return;
   const p = (window.CS && CS.profile) || {};
@@ -28311,7 +28519,7 @@ function renderProChip(){
   box.innerHTML =
     `<span class="pmk">${p.marker ? mkr(p.marker) : '◆'}</span>
      <span class="pmeta"><b>${esc(p.display_name || 'You')}</b>
-       <small>${esc(handle)} · you run this league</small></span>
+       <small>${esc(handle)} · you run the season</small></span>
      <span class="ptag">THE PRO</span>`;
 }
 window.renderProChip = renderProChip;
