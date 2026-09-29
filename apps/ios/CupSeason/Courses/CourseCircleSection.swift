@@ -24,7 +24,7 @@ struct CourseCircleSection: View {
           if !page.people.isEmpty {
             selection(page)
             best(page)
-            CSSectionHead("Who’s played here")
+            CSSectionHead(CircleCopy.head, count: "\(page.json["people_total"]?.int ?? page.people.count)")
             Picker("Golfers", selection: $friendsOnly) {
               Text("Friends · \(page.people.filter { $0.relation == "friend" }.count)").tag(true)
               Text("Your circle · \(page.people.count)").tag(false)
@@ -39,8 +39,11 @@ struct CourseCircleSection: View {
                 HStack(spacing: CSTokens.Space.s3) {
                   CSFace(.init(id: golfer.id, marker: golfer.person.marker, isViewer: golfer.relation == "me"), size: .slat, name: golfer.person.name)
                   VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-                    Text(golfer.relation == "me" ? "You" : golfer.person.name).csType(.social).foregroundStyle(cs.ink)
-                    Text(golferDetail(golfer))
+                    // N4-203 · the name, then who they are to you: your own
+                    // row says "You" in its line, as the web's does
+                    Text(golfer.person.name).csType(.social).foregroundStyle(cs.ink)
+                    Text(CircleCopy.golferLine(relation: golfer.relation, rounds: golfer.count,
+                                               latest: golfer.latest.map { LeagueDates.monDay($0) }))
                       .csType(.agateS).foregroundStyle(cs.mut)
                   }.frame(maxWidth: .infinity, alignment: .leading)
                   if let score = golfer.best {
@@ -56,17 +59,14 @@ struct CourseCircleSection: View {
               .buttonStyle(.plain)
               .accessibilityIdentifier("course.golfer.\(golfer.id.uuidString)")
             }
-            Text(page.json["scope"]?["note"]?.string ?? "From the rounds visible to you.")
-              .csType(.bodyS).foregroundStyle(cs.mut)
-            if let unknown = page.json["unknown_tee_rounds"]?.int, unknown > 0 {
-              Text("\(unknown) \(unknown == 1 ? "round has" : "rounds have") no confirmed tee. Those scores stay in the history and do not set a best.")
-                .csType(.bodyS).foregroundStyle(cs.mut)
+            if !page.noteLine.isEmpty {
+              Text(page.noteLine).csType(.bodyS).foregroundStyle(cs.mut)
             }
           } else {
-            Text("No rounds from your circle here yet.").csType(.body).foregroundStyle(cs.mut)
+            Text(CircleCopy.nobody).csType(.body).foregroundStyle(cs.mut)
           }
         }
-        if loading { Text("Loading rounds…").csType(.bodyS).foregroundStyle(cs.mut) }
+        if loading { Text(CircleCopy.loading).csType(.bodyS).foregroundStyle(cs.mut) }
         if let error {
           Text(error).csType(.bodyS).foregroundStyle(cs.neg)
           Button("Try again") { Task { await load(tee: page?.tee, holes: page?.holes) } }.buttonStyle(.csTertiary(.content))
@@ -109,7 +109,7 @@ struct CourseCircleSection: View {
   @ViewBuilder private func best(_ page: CourseCirclePage) -> some View {
     if let gross = page.best {
       CSRule()
-      Text(page.json["scope"]?["best_label"]?.string ?? "Your circle best")
+      Text(CircleCopy.bestEyebrow(page.json["scope"]?["best_label"]?.string))
         .csType(.agate, caps: true).foregroundStyle(cs.mut)
       HStack(alignment: .top, spacing: CSTokens.Space.s4) {
         Text("\(gross)").csType(.figureL).foregroundStyle(cs.ink)
@@ -131,33 +131,25 @@ struct CourseCircleSection: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
       }
       Text(page.selectionLine).csType(.agateS).foregroundStyle(cs.mut)
-      if page.json["best"]?["tied"]?.bool == true {
-        Text("Shared best").csType(.bodyS).foregroundStyle(cs.mut)
-      }
+      if let compared = page.comparedLine { Text(compared).csType(.agateS).foregroundStyle(cs.mut) }
       if let mine = page.myBest, let round = page.json["my_best"]?["round_id"]?.string.flatMap(UUID.init) {
         CSRule()
         Button { presenter.receipt = round } label: {
           HStack(spacing: CSTokens.Space.s3) {
-            Text("Your best here").csType(.social).frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+              Text(CircleCopy.yourBest).csType(.social)
+              if let n = page.json["my_best"]?["rounds"]?.int {
+                Text(CircleCopy.onTheseTees(n)).csType(.agateS).foregroundStyle(cs.mut)
+              }
+            }.frame(maxWidth: .infinity, alignment: .leading)
             Text("\(mine)").csType(.figureM)
             CSGlyph(.chevron, size: .inline)
           }.foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityHint("Opens your round")
       }
     } else {
-      Text(page.json["best_unavailable"]?.string == "nine_side_unrecorded"
-        ? "Nines aren't compared: which nine was played isn't recorded. They stay in each golfer's history."
-        : "No comparable score from these tees yet.").csType(.bodyS).foregroundStyle(cs.mut)
+      Text(page.noBestLine).csType(.bodyS).foregroundStyle(cs.mut)
     }
-  }
-  private func golferDetail(_ golfer: CourseCircleGolfer) -> String {
-    var parts = ["\(golfer.count) \(golfer.count == 1 ? "round" : "rounds")"]
-    if let latest = golfer.latest { parts.append("last \(LeagueDates.monDay(latest))") }
-    else { parts.append(relation(golfer.relation)) }
-    return parts.joined(separator: " · ")
-  }
-  private func relation(_ value: String) -> String {
-    switch value { case "me": "Your rounds"; case "friend": "Friend"; case "event": "In your Ryders and Majors"; default: "In your seasons" }
   }
   private func load(tee: String? = nil, holes: Int? = nil) async {
     generation += 1; let stamp = generation
@@ -168,7 +160,7 @@ struct CourseCircleSection: View {
       let json = try await RoundSocialService().request("course_page", ["p_course_id": .string(courseId),
         "p_tee": tee.map(JSONValue.string) ?? .null, "p_holes": holes.map { .number(Double($0)) } ?? .null])
       guard stamp == generation, account == session.session?.user.id else { return }
-      guard json["ok"]?.bool == true else { page = nil; error = "This course’s rounds are not available."; return }
+      guard json["ok"]?.bool == true else { page = nil; error = CircleCopy.nothing; return }
       let first = page == nil
       let answer = CourseCirclePage(json)
       page = answer; error = nil
@@ -177,7 +169,7 @@ struct CourseCircleSection: View {
     } catch {
       guard stamp == generation else { return }
       if (error as? RpcError)?.isMissingFunction == true { missing = true; unavailable() }
-      else { self.error = HumanError.text(error, prefix: "Could not load the rounds here.") }
+      else { self.error = HumanError.text(error, prefix: CircleCopy.readFailed) }
     }
   }
 }
@@ -204,7 +196,7 @@ private struct CourseGolferHistory: View {
             .accessibilityIdentifier("course.round.\(round.id.uuidString)")
         }
         if golfer.count > golfer.rounds.count {
-          Text("Latest \(golfer.rounds.count) of \(golfer.count) rounds. Best scores include the full history.").csType(.bodyS).foregroundStyle(cs.mut)
+          Text(CircleCopy.mostRecent(golfer.rounds.count, of: golfer.count)).csType(.bodyS).foregroundStyle(cs.mut)
         }
       }.padding(CSTokens.Space.gutter)
     }

@@ -113,8 +113,8 @@ final class SocialBlendTests: XCTestCase {
     reveal(app.buttons["18 holes"], in: app)
     app.buttons["18 holes"].tap()
     app.buttons["9 holes"].tap()
-    XCTAssertTrue(app.staticTexts["Nines aren't compared: which nine was played isn't recorded. They stay in each golfer's history."].waitForExistence(timeout: 5))
-    XCTAssertFalse(app.staticTexts["YOUR CIRCLE BEST"].exists)
+    XCTAssertTrue(app.staticTexts["Nines aren\u{2019}t compared: which nine was played isn\u{2019}t recorded. They stay in each golfer\u{2019}s history."].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.staticTexts["YOUR CIRCLE BEST · GROSS"].exists)
     capture(app, "course-nine-empty")
   }
 
