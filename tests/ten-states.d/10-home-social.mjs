@@ -237,13 +237,20 @@ const readingOrder = async (page) => {
   const moved = await page.evaluate(() => { const a = document.activeElement; const ok = a && a !== window.__slat0 && a.matches('.cswire, .hfcard'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return ok })
   return moved ? true : '↓ on a deck line does not move to the next slat'
 }
+/* TEN / W7-051 [B2-home-3] · a course's circle is printed once per wire, on its newest round */
+const circleOnce = async (page) => page.evaluate(() => {
+  const ids = [...document.querySelectorAll('#homeFeed .hfr-course[data-hfcourse]')].map((b) => b.dataset.hfcourse)
+  if (!ids.length) return 'no course circle in this wire'
+  const dup = ids.find((id, i) => ids.indexOf(id) !== i)
+  return dup ? 'one course’s circle prints twice in the wire: ' + dup : true
+})
 const HOME_WORLD = [
   /* North Grove week 8 of 13, the Fixture Wrens 2nd of 2 and 34 back; the
      week-8 clash with Devon ("The Fixture Derby"), both in; Kit's buddy
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, nextOnce, readingOrder,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, nextOnce, readingOrder, circleOnce,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

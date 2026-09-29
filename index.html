@@ -21419,10 +21419,13 @@ function renderHomeFeed(){
      hidden row never earns a whole "show 1 more" button. */
   const CAP=8;
   let html='';
+  /* L-34 · one course's circle per course, on its newest round (the fold
+     orders newest first). TEN / W7-051 [B2-home-3] · per WIRE, not per
+     section: declared inside the loop, the same sentence landed once under
+     THIS WEEK and again under EARLIER. The receipt and the course page keep it
+     for every round. */
+  const seenCourse=new Set();
   fold.buckets.forEach(b=>{
-    /* L-34 · one course's circle per course per section, on its newest round
-       (the fold already orders each section newest first) */
-    const seenCourse=new Set();
     /* D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE (the phone's
        `HomePage.headedPeriods`): a period holding ONE row gets no displayS
        head, and the lone row keeps its own date and joins the run behind its
