@@ -417,6 +417,9 @@ struct PersonPage: View {
             .frame(width: 74, alignment: .trailing)
           }
           .frame(minHeight: 52)
+          // N4-056 · the rule bleeds; the record's column keeps the gutter
+          // (RivalSlat's inset), so its figure never meets the screen's edge
+          .padding(.trailing, CSTokens.Space.gutter)
         }
       }
       .buttonStyle(.plain)
