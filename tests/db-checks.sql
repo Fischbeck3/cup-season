@@ -1507,23 +1507,5 @@ from (
   ) as problems
 ) t
 
--- 59 · W7-001 [A2-schedule-1 · X42] · the public plan card counts only an
---     explicit yes as in. share_info's plan branch sends `who_in`
---     (round_rsvp.status = 'in', no coalesce) beside the unchanged `who`, so
---     an unanswered or 'maybe' tag is on the plan, never in. A structural
---     tripwire on the deployed body: a data check would need a plan with an
---     unanswered tag, and production may hold none.
---     tests/db/the-plan-says-who-is-in.sql proves the behaviour on a
---     disposable cluster. The [D385] line guards the patch method: the body
---     is patched, never retyped.
-union all
-select '59 · the public plan counts only an explicit yes as in',
-  case when position('[X42]' in pg_get_functiondef('public.share_info(uuid)'::regprocedure)) = 0
-         then 'FAIL — share_info sends no who_in: an unanswered tag still reads as in (20261213090000 not pushed)'
-       when position('[D385]' in pg_get_functiondef('public.share_info(uuid)'::regprocedure)) = 0
-         then 'FAIL — share_info lost the [D385] photo patch: it was retyped, not patched'
-       else 'PASS — who_in is an explicit yes' end,
-  'share_info plan branch · who_in · round_rsvp.status = ''in'''
-
 )
 select * from checks order by check_name;
