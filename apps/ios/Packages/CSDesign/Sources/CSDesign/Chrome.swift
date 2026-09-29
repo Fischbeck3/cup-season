@@ -191,9 +191,7 @@ public struct CSMasthead: View {
 
   /// `SUN · SEP 6`.
   public static func dateline(_ d: Date, calendar: Calendar = .current) -> String {
-    let f = DateFormatter(); f.calendar = calendar; f.locale = Locale(identifier: "en_US_POSIX")
-    f.dateFormat = "EEE · MMM d"
-    return f.string(from: d).uppercased()
+    CSDateFormat.string(d, "EEE · MMM d", calendar: calendar).uppercased()
   }
 
   private var line: String {

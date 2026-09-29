@@ -122,9 +122,7 @@ public struct CSStale: View {
   }
 
   public static func line(_ d: Date, calendar: Calendar = .current) -> String {
-    let f = DateFormatter(); f.calendar = calendar; f.locale = Locale(identifier: "en_US_POSIX")
-    f.dateFormat = "EEE h:mm a"
-    return "As of \(f.string(from: d)) · offline"
+    "As of \(CSDateFormat.string(d, "EEE h:mm a", calendar: calendar)) · offline"
   }
 
   public var body: some View {
