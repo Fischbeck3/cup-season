@@ -268,18 +268,32 @@ const toCourses = async (page) => {
   await until(page, () => document.querySelectorAll('#youCourses [data-cslead]').length > 0, null, 12000)
   await page.waitForTimeout(500)
 }
-const courseCard = (id, courseId, title, want) => ({
+/* TEN / W8 · W7-052 [A2-courses-1] · the course record says who of yours has played it: Home's door (overlapping faces, 'Blake and Devon have played here', its gloss and
+   a chevron), under 'You have played here N times', one course_page read per lead; absent, never a dash, when nobody else in the circle has (Dry Creek: only Avery's nine) */
+const courseCircle = (want) => async (page) => page.evaluate((want) => {
+  const door = document.querySelector('#youCourses .cs-course [data-hfcourse]')
+  if (want === false) return door ? 'a course nobody else has played draws the circle door' : true
+  if (!door) return 'the course record draws no door for who of yours has played it'
+  const t = door.innerText.replace(/\s+/g, ' ').trim(), faces = door.querySelectorAll('.hfr-faces .face, .hfr-faces > *').length
+  if (!/ (has|have) played here/.test(t) || !/See their rounds and your circle.s best/.test(t)) return `the door reads ${JSON.stringify(t)}`
+  if (!faces) return 'the door has no faces'
+  if (/Avery/.test(t)) return 'the viewer is named in their own circle door'
+  const hist = document.querySelector('#youCourses .cs-course .cs-body-s'), r = door.getBoundingClientRect()
+  return r.height >= 43.5 ? true : `the door is ${Math.round(r.height)}px tall`
+}, want)
+const courseCard = (id, courseId, title, want, circle = true) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
     await toCourses(page)
     const sel = `#youCourses [data-cslead="${courseId}"]`
     await tapUntil(page, sel, () => true, 1)
     await until(page, (cid) => String(window.CS_COURSE_LEAD) === String(cid), courseId, 6000).catch(() => {})
+    await until(page, () => !!document.querySelector('#youCourses .cs-course [data-hfcourse]'), null, 4000).catch(() => {})   /* the circle read lands after the card */
     await page.waitForTimeout(700)
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card')),
+    has('#youCourses', want, 'the course card'), courseCircle(circle)),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -296,7 +310,7 @@ const COURSES = [
       return need <= has + 1 ? true : `the tee select clips its value: it needs ${Math.round(need)}px and has ${Math.round(has)}`
     }) },
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
-  courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek'),
+  courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek', false),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),
 ]
 

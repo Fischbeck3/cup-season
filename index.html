@@ -18475,6 +18475,8 @@ function csDrawnCardSvg(holes, opts){
    device had, which is not the same as zero (L-44). */
 const CS_RATING_KEY = 'cs.ratings.v1';
 const CS_RATINGS = { by: Object.create(null), loaded: false, notesFor: Object.create(null) };
+/* W7-052 · who of yours has played each lead course (csCourseCircleFill): the first three other golfers, per course id, and which ids have been asked */
+const CS_COURSE_CIRCLE = { by:{}, asked:{} };
 function csRatingsLoad(){
   if(CS_RATINGS.loaded) return;
   CS_RATINGS.loaded = true;
@@ -18885,6 +18887,7 @@ function renderCourseBooks(){
         <p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
+        ${csCourseDoorHtml(String(b.id), CS_COURSE_CIRCLE.by[String(b.id)])}
       </div>
       <div>${csRatingBlock(b.id)}${leaf}</div>
     </section>`;
@@ -18912,6 +18915,7 @@ function renderCourseBooks(){
     + (rest.length ? head('Also kept', rest.length) + rest.map(b=>row(b,false)).join('') : '');
   csCourseBooksWire(box);
   csRatingsFillNotes([lead].concat(liked).filter(Boolean).slice(0, 6).map(b=>String(b.id)));
+  csCourseCircleFill(lead ? [String(lead.id)] : []);   /* W7-052 · who of yours has played the course on show */
 }
 
 /* "You have played Papago 4 times · best 78 · last Aug 24" — the fact §4 and
@@ -18965,6 +18969,8 @@ function csRatingsFillNotes(ids){
    The rail moves IN PLACE — the list is not re-sorted under the thumb — and
    §22's sweep is the width transition, with nothing else on the page moving. */
 function csCourseBooksWire(box){
+  /* W7-052 · the circle's door opens the same sheet Home's does */
+  box.querySelectorAll('[data-hfcourse]').forEach(b=>b.addEventListener('click',()=>csOpenCoursePeople(b.dataset.hfcourse)));
   /* D364 (F1) · changing tees changes the facts and the card together */
   box.querySelectorAll('select[data-cstee]').forEach(sel=>sel.addEventListener('change',()=>{
     window.CS_COURSE_TEE = window.CS_COURSE_TEE || {};
@@ -20714,7 +20720,7 @@ function feedRow(r, idx, stamp, opts){
      the receipt and the course page keep it for every round. The gloss is a
      door's phrase, so it reads in sentence case (§1.3, is-phrase). */
   const showCourse = !(opts && opts.course === false);
-  const courseDoor = showCourse && cf.length ? `<button type="button" class="hfr-course" data-hfcourse="${esc(tk.course.api_course_id)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s is-phrase">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>` : '';
+  const courseDoor = showCourse && cf.length ? csCourseDoorHtml(String(tk.course.api_course_id), cf) : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
@@ -26700,6 +26706,31 @@ function csOpenNotification(n){
 document.getElementById('hdrBell')?.addEventListener('click', ()=>csOpenInbox());
 
 /* ---- the course's circle -------------------------------------------------- */
+/* W7-052 [A2-courses-1] · THE COURSE'S DOOR, ONE PRODUCER (D234, UI_SYSTEM 15.3: 'who of yours has played it' is an overlapping disc row and a sentence that names the friends).
+   Home's wire drew it under a round; the course record itself, where a golfer goes to read a course, drew none. Both call this, so the door is one component. */
+function csCourseDoorHtml(courseId, faces){
+  const cf = Array.isArray(faces) ? faces : [];
+  if(!courseId || !cf.length) return '';
+  return `<button type="button" class="hfr-course" data-hfcourse="${esc(courseId)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s is-phrase">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>`;
+}
+window.csCourseDoorHtml = csCourseDoorHtml;
+/* ...and the course record's own read: ONE course_page per lead, cached the way csRatingsFillNotes caches notes, the first three OTHER golfers of the circle
+   (course_page lists the viewer too, best first; the viewer's own record is the line above). Absent, never a dash, when nobody else has played (L-44). */
+function csCourseCircleFill(ids){
+  const want = (ids||[]).filter(id => id && !CS_COURSE_CIRCLE.asked[id]);
+  if(!want.length || state.demo || !window.sb || !window.CS?.user) return;
+  want.forEach(id => { CS_COURSE_CIRCLE.asked[id] = true; });
+  Promise.all(want.map(async id => {
+    try{
+      const { data, error } = await window.sb.rpc('course_page', { p_course_id: String(id), p_tee: null, p_holes: null });
+      if(error || !data || !data.ok){ delete CS_COURSE_CIRCLE.asked[id]; return false; }
+      const me = window.CS.user.id;
+      CS_COURSE_CIRCLE.by[id] = (data.people||[]).filter(p => p.person && p.person.id && p.person.id !== me).slice(0, 3)
+        .map(p => ({ id:p.person.id, name:p.person.name, marker:p.person.marker }));
+      return true;
+    }catch(_){ delete CS_COURSE_CIRCLE.asked[id]; return false; }
+  })).then(rs => { if(rs.some(Boolean)) renderCourseBooks(); }).catch(()=>{});
+}
 function csCpTee(t){ return (t && t.name ? t.name : 'Tee') + (t && t.gender==='female' ? ' · Women’s' : ''); }
 async function csOpenCoursePeople(courseId, tee, holes){
   if(!courseId || state.demo || !window.sb || !window.CS?.user) return;
