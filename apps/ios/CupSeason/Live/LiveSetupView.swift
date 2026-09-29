@@ -166,7 +166,9 @@ struct LiveSetupView: View {
         // F8 · the answer arrives under this field, above the keyboard
         .id(CourseSearchReveal.id)
         .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
-        fieldLabel("Tee & rating — off the scorecard")
+        // N4-172 · "off the scorecard" read as "switched off"; the numbers come
+        // FROM the card (the web's gloss moves with it)
+        fieldLabel("Tee & rating — from your scorecard")
         // three fields across; stacked (and the tee field full-width) at the accessibility sizes.
         // F08 · each field keeps its OWN visible label once it is filled: a
         // placeholder is gone the moment the tee fills, and "Blue · 70.2 ·
