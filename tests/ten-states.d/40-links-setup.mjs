@@ -116,7 +116,21 @@ const PUBLIC_ROUND = [
         return Math.abs(g.right - f.right) <= 1.5 ? true : `Gross sits ${Math.round(g.right - f.right)}px off the figures' right edge`
       })
     } }),
-  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas[\\s\\S]*IN PLAY', cta: 'Play with your people' }),
+  /* TEN / W8 · W7-138 [A2-public-round-7]: the season's state is in the dateline, not an orphan agate label under the rows; when the story already says how long is
+     left ('with N weeks to play') no 'In play' is printed at all */
+  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas', cta: 'Play with your people' },
+    { check: async (page) => {
+      const base = await shareCheck({ text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas', cta: 'Play with your people' })(page)
+      if (base !== true) return base
+      return page.evaluate(() => {
+        const card = document.getElementById('svCard'), dl = (card.querySelector('.sv-eb') || {}).innerText || '', story = (card.querySelector('.sv-story') || {}).innerText || ''
+        if (card.querySelector('.sv-status')) return 'the recap still prints an orphan status label under the rows'
+        const carries = /to play\.?$/.test(story.trim())
+        if (carries && /In play|Final/i.test(dl)) return `the dateline repeats the state the story already says: ${JSON.stringify(dl)} / ${JSON.stringify(story)}`
+        if (!carries && !/In play|Final/i.test(dl)) return `nothing says the season's state: ${JSON.stringify(dl)} / ${JSON.stringify(story)}`
+        return true
+      })
+    } }),
 ]
 
 /* ------------------------------------------- claim + invite recipients */

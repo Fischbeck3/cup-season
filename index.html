@@ -5734,7 +5734,6 @@ html[data-theme="light"] .room-dusk .stat{
 .sv .sv-row.is-lead .fig { color:var(--gold); }
 .sv .sv-colhead { display:flex; justify-content:space-between; color:var(--mut); margin-top:var(--s4); }
 .sv .sv-colhead + .sv-rows { margin-top:var(--s2); }
-.sv .sv-status { color:var(--mut); margin-top:var(--s3); }
 .sv .sv-marker { width:64px; height:64px; margin:0 0 var(--s4); border:var(--hair) solid var(--rule); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--ink); }
 .sv .sv-marker svg { width:36px; height:36px; }
 .sv .sv-strip .sv-highs { color:var(--mut); margin-top:var(--s3); }
@@ -37783,11 +37782,11 @@ async function renderShareView(tok, _testInfo){
        P/E: the recap was two rows and "IN PLAY"): who is on top, by how much,
        and how long is left — verbless, because a squad and a golfer take
        different verbs. Nothing is said that the rows and dates do not carry. */
-    let story = '';
+    let story = '', left = 0;
     if(!info.champion && rows.length >= 2){
       const gap = Number(rows[0].points) - Number(rows[1].points);
       const end = dayOf(info.ends_on), now = new Date(new Date().setHours(0,0,0,0));
-      const left = (!done && end) ? Math.ceil((end - now) / (7 * 864e5)) : 0;
+      left = (!done && end) ? Math.ceil((end - now) / (7 * 864e5)) : 0;
       story = gap > 0
         ? `${nw(rows[0].name)}, ${run(gap)} point${gap === 1 ? '' : 's'} clear${left > 0 ? `, with ${run(left)} week${left === 1 ? '' : 's'} to play` : ''}.`
         : `Level at the top: ${nw(rows[0].name)} and ${nw(rows[1].name)}.`;
@@ -37800,7 +37799,10 @@ async function renderShareView(tok, _testInfo){
          <div class="sv-rows">${rows.map((q, i) => `<div class="sv-row${i === 0 && leadGold ? ' is-lead' : ''}">
            <span class="rk cs-agate">${i + 1}</span><span class="nm cs-social">${esc(q.name)}</span><span class="fig">${esc(String(q.points))}</span></div>`).join('')}</div>`
       : `<p class="sv-where cs-body-s">Nobody has posted a round yet.</p>`;
-    const span = [fmtD(info.starts_on), fmtD(info.ends_on)].filter(Boolean).join(' — ');
+    /* W7-138 · the season's state lives in the DATELINE, never as an orphan agate line under the rows (it stood alone above the foot, repeating the story's
+       'with 6 weeks to play'): 'Final' when it is over; 'In play' only when the story does not already say how long is left */
+    const state = done ? 'Final' : (story && left > 0 ? '' : 'In play');
+    const span = [[fmtD(info.starts_on), fmtD(info.ends_on)].filter(Boolean).join(' — '), state].filter(Boolean).join(' · ');
     card.className = '';
     card.innerHTML = `<div class="sv-head">
         ${span ? `<p class="sv-eb cs-agate">${esc(span)}</p>` : ''}
@@ -37811,7 +37813,6 @@ async function renderShareView(tok, _testInfo){
       </div>
       <div class="sv-second">
         ${table}
-        <p class="sv-status cs-agate">${done ? 'Final' : 'In play'}</p>
       </div>` + foot({ cta: 'Play with your people', primary: true });
   }
 }
