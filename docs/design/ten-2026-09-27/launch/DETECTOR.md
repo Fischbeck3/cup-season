@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`f88f538d`** (`index.html`, `get.html`, `support.html`, `legal.html`), the branch head when DX started. It is an ancestor of the candidate `9d84c483`. The baseline is the 214 candidates in `docs/design/ten-2026-09-27/detector-ledger.json`, taken at `5fabf861`. |
-| **Status read at** | **`fd27ace4`**, the web ship candidate: `git log cf401dee..fd27ace4`, plus `f88f538d..cf401dee`. That covers root's fixes, N2's merge, every lane (W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856`, W6 `f6cb4760`), and root's `b82eabd9` and `253e20d7`. |
+| **Status read at** | **`144ee0b0`** on integration: every web lane, root's fixes through `7141516f`, and E's native phase 1 (`6716b0ed`). The web shipped as `272c2da1`, serving `ed8e6837`'s files. |
 | **Date** | 2026-09-28 |
 | **Assessors** | **DX**, independent: Impeccable 4.3.1's detector (CLI 0.1.5) with three engines (static HTML, in-page, CLI URL). DX wrote no code. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/detector/DETECTOR.md` · `…/detector/detector-resolution.json` (37,919 entries: `meta`, `counts`, `true_positives`, `observations_beyond_detector`, `groups`) · `…/detector/proposals/` (TP-01 to TP-22: 18 diffs and 4 notes, none applied) · `…/detector/measure/`, `…/raw/`, `…/snapshots/` (92 sanitised DOMs), `…/scripts/` |
@@ -81,7 +81,7 @@ Each is DX's element, rule, measurement and minimal fix at `f88f538d`, with its 
 | TP-06 | P2 | `.bf-hdr`, the full-screen board | low-contrast · 40 | The title on a literal near-black band in light: 2.42:1 | the header ground from the theme | **fixed (38471687)**: `color-mix(in srgb, var(--bg0) 90%, transparent)`, title in ink (CQ-17) |
 | TP-07 | P2 | `#phDelYes`, the delete-account confirm | low-contrast · 2 | White on the dark-printing neg fill: 2.81:1 | §7.1 destructive armed (4.58 / 4.62) | **fixed (38471687)** (CQ-24) |
 | TP-08 | P3 | `.mini:hover` | low-contrast (hover) · 177 | The rule fill under mut, pos and dusk labels: 2.31–3.08:1 | hover steps to bg1 (§14.4) | **fixed (b263fd74, f6cb4760)**: hover steps to bg1; W6 then made hover and focus ring-only (71d9b41d) |
-| TP-09 | P3 | 13 spine rules (`.squad.onclock`, `.purse`, `.preset.sel`, `.gamecard`, `.optcard`, `.phasehero`, `.nextcard`, `.ontheline`, `.hhero`, `.hocc`, `.sysrow`, `.momrow`, `.livebanner`, `.ob-pcard`; plus `.digest` and the dead `.pro`) | side-tab · 1,698 | The retired 3–3.5px card spine | delete the stripes | **fixed in part.** Gone: Home's hero, digest and occasion (e8108e59); the Door wings (b8a61266); Play's option cards, the live game cards and the banner (1e9eb856); the wizard's chosen preset, overridden in the wizard (4a703402: 1d6ed619); and the Season page's `.purse`, `.pro`, `.phasehero`, `.nextcard` and `.ontheline` (b82eabd9). **Open at `fd27ace4`:** `.squad.onclock`, the draw room's `inset 3px` squad stripe, and `.momrow`, the board moment row's 3px ember `border-left`, which a comment keeps as "its ember rail". Three other 3.5px bars (`.round .bar`, `.msgrow .bar`, `.clock .accent`) are on no list; DX2 will say whether they are spines. |
+| TP-09 | P3 | 13 spine rules (`.squad.onclock`, `.purse`, `.preset.sel`, `.gamecard`, `.optcard`, `.phasehero`, `.nextcard`, `.ontheline`, `.hhero`, `.hocc`, `.sysrow`, `.momrow`, `.livebanner`, `.ob-pcard`; plus `.digest` and the dead `.pro`) | side-tab · 1,698 | The retired 3–3.5px card spine | delete the stripes | **fixed in part.** Gone: Home's hero, digest and occasion (e8108e59); the Door wings (b8a61266); Play's option cards, the live game cards and the banner (1e9eb856); the wizard's chosen preset, overridden in the wizard (4a703402: 1d6ed619); and the Season page's `.purse`, `.pro`, `.phasehero`, `.nextcard` and `.ontheline` (b82eabd9). **Open at `fd27ace4`:** `.squad.onclock`, the draw room's `inset 3px` squad stripe, and `.momrow`, the board moment row's 3px ember `border-left`, which a comment keeps as "its ember rail"; whether a moment keeps a rail is Q36 (the phone's twin is TPN-19). Three other 3.5px bars (`.round .bar`, `.msgrow .bar`, `.clock .accent`) are on no list; DX2 will say whether they are spines. |
 | TP-10 | P3 | `.optcard .livedot` | pulsing-dot · 161 | An infinite opacity pulse (it stops under Reduce Motion) | a steady ember dot | **fixed (1e9eb856)**: "the Play landing's live dot is steady ember" (ab687232, naming TP-10) |
 | TP-11 | P3 | 23 caps producers (the table in `TP-11-phrase-caps.md`) | all-caps-body · 6,477 | Phrases and sentences set in caps | `is-phrase`, split the label from the gloss, or sentence case (§1.3) | **fixed in part.** Row 18, `#rulesHead`, is now "The rules" (735a63ec). Row 1, the Home feed's course-circle gloss, is sentence case (e8108e59: 2dce66e6, "TP-11 #1"). **Open, verification pending:** the other 21 producers, across courses, You, the draw room, live setup, the wizard, the Season rooms, the form lens and the settings sheet. Lanes W2–W5 swept their own surfaces' type without naming these rows (W5 moved the wizard's step heads and sentences out of mono, 1d6ed619); the shared `.eyebrow` and `label.f` roles are W6's (session B). |
 | TP-12 | P3 | `get.html` `.status` | all-caps-body · 9 | A status clause in caps | drop the uppercase and the caps tracking | **fixed (b8a61266)**: "the status clause is sentence case (TP-12)" (0fca89d5) |
@@ -123,5 +123,71 @@ These are DX's "observations beyond the detector". They are not candidates and n
 - **States never reached live:** no render reached the live-scoring round, the draw room, the full-screen board or the delete-account confirm. TP-05, 06, 07 and 15, part of TP-08, and some spines were judged from computed styles in the hidden DOM.
 - **Widths:** only 375 and 1280, dark and light.
 - **Photographs:** text over a photo was judged from live renders with and without the fixture photograph.
-- **The native app** is out of DX's scope. Session A's detector sweep DXN covers `apps/ios` at `4112a3f0`: `~/cup-season-claude-ten-gallery/evidence/native/detector/`. **Pending (session A).**
+- **The native app** is out of DX's scope; session A's DXN covers it (§5).
 - **Round 2:** DX2 (session D) re-runs at the round-2 SHA with this resolution as its baseline, and resolves every new candidate.
+
+
+## 5 · Native detector DXN (session A, `apps/ios` at `4112a3f0`, located at `de3eaf35`)
+
+Session A scanned the native source for the native forms of the canon lints:
+- mono used for a sentence; serif numerals; `dim` as a word;
+- gold on an unearned fact; ember outside competition;
+- text under 11pt; targets under 44pt; clamps on names;
+- colours outside Tokens;
+- banned words.
+
+Files: `~/cup-season-claude-ten-gallery/evidence/native/detector/DETECTOR-native.{md,json}`.
+
+| Verdict | Candidates |
+|---|---:|
+| false positive | 1,482 |
+| accepted by canon | 300 |
+| true positive | 259, which are **36 distinct defects** (9 P2, 27 P3) |
+| fixed | 0 |
+| **total** | **2,041**, all resolved |
+
+| TPN | Sev | Rule | Defect | Status at `144ee0b0` |
+|---|---|---|---|---|
+| TPN-01 | P2 | R6 | The in-app settlement, recap and round-record cards print their small type at 5-10pt | open · N4 (not in E's phase 1) |
+| TPN-02 | P2 | R7 | A 44pt frame that is not the target: 31 controls tap only on their drawn words, glyph or pill | open · N4 (not in E's phase 1) |
+| TPN-03 | P2 | R2 | Numerals set in the serif inside lead and story sentences | open · N4 (not in E's phase 1) |
+| TPN-04 | P2 | R2 | Numerals set in the serif on the shared cards | open · N4 (not in E's phase 1) |
+| TPN-05 | P2 | R2 | The retired Charter serif still sets live copy, numerals included | open · N4 (not in E's phase 1) |
+| TPN-06 | P2 | R3 · R9 | The drawn course card's hole numerals are a dimmer grey (mut at a56) - below AA | open · N4 (not in E's phase 1) |
+| TPN-07 | P2 | R4 | Gold paints scorecard cells: under-par holes, birdies, eagles and holes won | open · N4 (not in E's phase 1) |
+| TPN-08 | P2 | R8 | The golfer's own card clamps and cuts names | open · N4 (not in E's phase 1) |
+| TPN-09 | P2 | R8 | The record leaf cuts the competition's name at the default size | open · N4 (not in E's phase 1) |
+| TPN-10 | P3 | R1 | Questions and sentences set as mono eyebrows | open · N4 (not in E's phase 1) |
+| TPN-11 | P3 | R1 | Sentences set in the mono record face (columnS / CSFont.label) | open · N4 (not in E's phase 1) |
+| TPN-12 | P3 | R3 · R9 | The receipt moment dims its words with invented opacities | open · N4 (not in E's phase 1) |
+| TPN-13 | P3 | R3 | A disabled chip's label is `dim` | open · N4 (not in E's phase 1) |
+| TPN-14 | P3 | R4 | Gold on a buy-in - money put in, not won | open · N4 (not in E's phase 1) |
+| TPN-15 | P3 | R4 | A rivalry's typed name wears gold | open · N4 (not in E's phase 1) |
+| TPN-16 | P3 | R4 | Gold on facts nobody won | open · N4 (not in E's phase 1) |
+| TPN-17 | P3 | R5 | Ember on ordinary actions and selected states | open. Its when-fork "Right now" waits on **Q33** (DEC-N4-3); the other sites are N4's. |
+| TPN-18 | P3 | R5 | Ember on status words, notes and notification counts | open · N4 (not in E's phase 1) |
+| TPN-19 | P3 | R5 | Every board moment and buddy request wears an ember spine | **decision Q36**: does a moment keep an ember rail? The web's twin is `.momrow`, which TP-09 leaves open. |
+| TPN-20 | P3 | R6 | The plan sheet's game chips shrink under 11pt | open · N4 (not in E's phase 1) |
+| TPN-21 | P3 | R6 | Initials in a small face drop to 9.6pt | open · N4 (not in E's phase 1) |
+| TPN-22 | P3 | R7 | A 12pt line with the default hit slop is a ~40pt target | open · N4 (not in E's phase 1) |
+| TPN-23 | P3 | R7 | Controls with no target sizing at all | open · N4 (not in E's phase 1) |
+| TPN-24 | P3 | R7 | System segmented pickers at 32pt where CSSegment exists | open · N4 (not in E's phase 1) |
+| TPN-25 | P3 | R7 | Shaped targets drawn under 44pt | open · N4 (not in E's phase 1) |
+| TPN-26 | P3 | R8 | Clash rows and score rails cut golfer and side names | open · N4 (not in E's phase 1) |
+| TPN-27 | P3 | R8 | The live round cuts names and the course place | **fixed in part (6716b0ed: d27d3b6e, b9e42723)**: a live row wraps its name and breaks its facts on their separator. **Open:** the other live surfaces listed. |
+| TPN-28 | P3 | R8 | Name rows cut long names | open · N4 (not in E's phase 1) |
+| TPN-29 | P3 | R8 | Course names cut or clamped | open · N4 (not in E's phase 1) |
+| TPN-30 | P3 | R8 | Two-line clamps on names at the accessibility sizes | open · N4 (not in E's phase 1) |
+| TPN-31 | P3 | R8 | Names that can never wrap push past the measure | open · N4 (not in E's phase 1) |
+| TPN-32 | P3 | R9 | Hand-rolled photo scrims with invented alphas | open · N4 (not in E's phase 1) |
+| TPN-33 | P3 | R9 | Invented alphas standing in for the disabled and busy states | open · N4 (not in E's phase 1) |
+| TPN-34 | P3 | R9 | Invented alphas and a material on tokens | open · N4 (not in E's phase 1) |
+| TPN-35 | P3 | R10 | "vs course" in the composer | **decision X40** |
+| TPN-36 | P3 | R10 | "vs course" on a trophy line | **decision X40** |
+
+**Tally at `144ee0b0`:** 36 true positives.
+- **fixed in part: 1.** TPN-27, by E's phase 1.
+- **waiting on a decision: 4.** TPN-19 (Q36) and TPN-35/36 (X40) wait on one outright; TPN-17 waits on Q33 for its when-fork site.
+- **open for N4 phase 2: 31.**
+
+Session A also records three canon tensions the detector surfaced (DEC-N4-5, Q34 in OWNER-QUESTIONS).

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**: 886 captures taken at `02636007`, whose web client renders those families byte-identically, and 256 taken at `9d84c483`. Native **`4112a3f0`**, the same native tree as `cf401dee` and Owner TestFlight 1.0.0 (1180). |
-| **Status read at** | **`fd27ace4`**, the web ship candidate: `git log cf401dee..fd27ace4` covers root's fixes, N2's merge at `de3eaf35`, and every lane's merge (W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856`, W6 `f6cb4760`); `9d84c483..cf401dee` adds the three client fixes that shipped between them |
+| **Status read at** | **`144ee0b0`** on integration: every web lane, root's fixes through `7141516f`, and E's native phase 1 (`6716b0ed`). The web shipped as `272c2da1`, serving `ed8e6837`'s files. Round 2's gallery is `root/harness-fd27ace4/` (1,126 captures), plus `root/harness-ed8e6837/` (356 rows) for home, compete, desk, courses and you. |
 | **Date** | 2026-09-28 |
 | **Assessors** | No assessor scored coverage. The captures came from WX's web harness (`tests/ten-capture.mjs`) and FX's native capture tool (`tools/native-synthetic-captures.py`). The gaps in §1.5 are quoted from the assessors' own scope notes: judges **category**, **craft** and **owner**, critiques **A** and **B**, audit **AW** and detector **DX**. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/root/harness-9d84c483/manifest.json` (and its PNGs, `--first.png` crops, `artifacts/`, `merge.log`) · `~/cup-season-claude-ten-gallery/native-4112/manifest.json`, `failed.json`, `logs/summary.txt`, `logs/matrix.log`, `flows/README.md` · the assessors' scope fields in `~/cup-season-claude-ten-gallery/evidence/{panel,critique-A,critique-B}/` |
@@ -20,7 +20,7 @@ Written by session C (docs), which re-captured nothing and changed no product co
 | Half | Assessed SHA | Captures | States | Matrix | Open |
 |---|---|---:|---:|---|---|
 | Web | `9d84c483` | 1,142, plus 482 first-screen crops and 24 exported share artifacts | 141 in 22 families | 375, 402, 1280, 1600 × dark, light, plus a 375×380 keyboard proxy for 16 states | 320 CSS, `auto` theme, tablet widths; about 150 named states (§1.5); 4 captures that prove less than their names (§1.4) |
-| Native | `4112a3f0` | 752 (all four passes) plus 14 flow screenshots | 77 family states (94 capture names) in 18 families | iPhone 17 Pro (402pt) and SE 3 (375pt) × large and AX3 × dark and light | the Door, wizard steps 2–3 and live scoring are not captured; 48 flagged rows (`story`'s runner check on 8, unanswered requests on 40), all read as rendering correctly by the panel's judges, with session A's verdict pending; 4 byte-identical pairs (§2.4) |
+| Native | `4112a3f0` | 752 (all four passes) plus 14 flow screenshots | 77 family states (94 capture names) in 18 families | iPhone 17 Pro (402pt) and SE 3 (375pt) × large and AX3 × dark and light | the Door, wizard steps 2–3 and live scoring are not captured; 48 flagged rows (`story`'s runner check on 8, unread counters on 40), all rendering by session A's verdicts and the judges'; one real defect among them (N4-114); 4 byte-identical pairs (§2.4) |
 
 ---
 
@@ -166,19 +166,22 @@ A ✓ means both themes are captured for that pass. Every captured state below h
 | native/widgets | home widgets (empty; Rivalry, Record, Next tee, Season), Live Activity (closed, missed, long) | ✓ | ✓ | ✓ | ✓ | — |
 
 ### 2.3 `failed.json`: 48 rows (six routes × two themes × four passes)
-The formal **verdict** on each row belongs to session A. This table records what the manifest says, and what the panel's three judges read in the captures (PANEL.md §5): **all 48 render correctly.**
-- `story`'s FAIL is the runner's case-sensitive check: the page prints "THE STORY".
-- Two `rules` frames on the 17 Pro at large text were captured mid-push.
-- The other flags are unanswered requests, over pages that render whole.
+Session A's formal verdicts (`~/cup-season-claude-ten-gallery/evidence/native/FAILED-VERDICTS.md`) agree with the panel's three judges (PANEL.md §5): **every flagged route renders.**
+- `story`'s FAIL is the runner's case-sensitive locator: the page prints "THE STORY".
+- The 40 "unanswered requests" rows are **unread counters**, not unanswered reads: `SyntheticRouteTests.swift:130` stops its fallback at an empty string. NATIVE-BRIEF needs that correction.
+- **Three exceptions:**
+  - `rules` at 17 Pro large (2 rows) was captured mid-push;
+  - `course-wholecard` at AX3 (4 rows) has the card below the fold;
+  - `whenfork` at SE3 large (2 rows) shows **a real defect**: the fixed 260pt detent cuts the second answer (N4-114, open at `de3eaf35`).
 
 | Route (capture) | State | Manifest | Coverage status |
 |---|---|---|---|
-| `story` | season / season-story | **FAIL**, root not found ("text:The story"), 8 of 8 cells | captured: the judges read it as rendering correctly (the check is case-sensitive). Session A's verdict pending. |
-| `course-wholecard` | courses / whole-card | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
-| `whenfork` | competition / when-fork | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
-| `invite-signedin` | claim-invite / invite-covenant | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
-| `rules` | rules / populated | PASS, root found, unanswered requests, 8 of 8 | captured; six cells whole, two 17 Pro large frames mid-push (judges) · verdict pending (A) |
-| `season-ceremony` | season / ceremony | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
+| `story` | season / season-story | **FAIL**, root not found ("text:The story"), 8 of 8 cells | renders (session A and the judges); the locator is case-sensitive |
+| `course-wholecard` | courses / whole-card | PASS, root found, unread counters, 8 of 8 | renders; at AX3 (4 rows) the card is below the fold (A) |
+| `whenfork` | competition / when-fork | PASS, root found, unread counters, 8 of 8 | renders; at SE3 large (2 rows) the 260pt detent cuts the second answer, **a defect**: N4-114 (A) |
+| `invite-signedin` | claim-invite / invite-covenant | PASS, root found, unread counters, 8 of 8 | renders (A) |
+| `rules` | rules / populated | PASS, root found, unread counters, 8 of 8 | renders; the two 17 Pro large frames were caught mid-push (A and the judges) |
+| `season-ceremony` | season / ceremony | PASS, root found, unread counters, 8 of 8 | renders (A) |
 
 The failures world's read counters (for example `home-failed` "fails=21" and `you-failed` "fails=39") are the intended failed reads, not flags.
 

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were critiqued from `9d84c483` captures; every other family from `02636007`, which renders them byte-identically (COVERAGE.md §1.1). |
-| **Status read at** | **`fd27ace4`**, the web ship candidate: `git log cf401dee..fd27ace4`, plus `9d84c483..cf401dee`. That covers root's fix commits, N2's merge at `de3eaf35`, and every lane's merge: W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856` and W6 `f6cb4760`. |
+| **Status read at** | **`144ee0b0`** on integration: every web lane (W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856`, W6 `f6cb4760`), E's native phase 1 (`6716b0ed`) and root's fixes through `7141516f`. The web shipped as `272c2da1`, serving `ed8e6837`'s files. Plus `9d84c483..cf401dee`. |
 | **Date** | 2026-09-28 |
 | **Assessors** | critique **A** and critique **B**. Each ran Impeccable 4.3.1's `critique` independently and never saw the other's work. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/critique-A/` and `…/critique-B/` (one `.md` per target, plus `summary.json`) · the brief `~/cup-season-claude-ten-gallery/evidence/CRITIQUE-PROMPT.md` · captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/` |
@@ -89,7 +89,7 @@ Entries are merged where A and B, or a target and B's desk cross-reference, desc
 | CQ-03 | **P0** | A 53–53 tie is ranked 01/02, and one Points King is picked by average vs playing HCP. | B season, desk | `desk--season--1280--dark.png` | `#indTable` rank, `#awKing = rows[0]` | **fixed (69f40d1f)**: tied golfers share a rank (T01), and no Points King is crowned by average (D136) |
 | CQ-04 | **P0** | "YOU'RE IN" / "Avery and Devon are in." for a golfer who hasn't answered. | B schedule, desk | `schedule--populated--1280--dark.png`, `schedule--plan-landing--375--dark.png` | `renderWatchList` on `tagged_me`; `the_plan_link.sql` `coalesce(rsvp,'in')` | **fixed in part (f46086b4).** There is one producer for "in" (`csPlanMe`, 57325028): an unanswered tag reads ASKED and offers I'm in. **Open:** the public card is `share_info`'s plan `who` (X42, `20260921100000_the_plan_link.sql:222`, owner's `db push`); the phone's `ScheduleScreen` still keys YOU'RE IN on `tagged_me` (N4). |
 | CQ-05 | P1 | Keyboard focus walks into the hidden app behind the Door. | B door, desk | `door--initial--375--dark.png` | `#onboard` over a focusable shell | **fixed (38471687)**: covers make the app inert; Tab presses landing on the app behind the Door went from 16 of 30 at 375 to 0 |
-| CQ-06 | P1 | The desk Door's "live" season is invented activity. | A door | `door--initial--1280--dark.png` | `aside.ob-wing` (`#obFeed` "Rounds hitting the board", `#obLb` "The season, live") | **fixed (b8a61266)**: the wings read "How a round reads" and "How a season reads", the foot says it is an example season, "every point has a receipt" is gone, and the wings stand down on a link landing (2bc71749). Whether the phone Door shows a specimen too is Q6. |
+| CQ-06 | P1 | The desk Door's "live" season is invented activity. | A door | `door--initial--1280--dark.png` | `aside.ob-wing` (`#obFeed` "Rounds hitting the board", `#obLb` "The season, live"), ticking | **fixed (b8a61266, 7141516f)**, in two steps. First, the wings read "How a round reads" and "How a season reads", the foot says it is an example season, and the wings stand down on a link landing (2bc71749). **Correction:** this file called that the whole fix at `b8a61266`, but A's fix also asked the ticking to stop. Round 2 (session D) found `feedTick`/`lbTick` still running. Root stilled the example at `7141516f`. Whether the phone Door shows a specimen too is Q6. |
 | CQ-07 | P1 | The photo round card renders broken on Home, phone and desk. | A home, desk · B home, desk | `home--member--375--dark.png`, `desk--home--1600--dark.png` | `feedRow()` photo branch: `.hsfoot` band across the photo; `.hfr-course` under the image | **fixed (e8108e59)**: the photograph is a plate with the golfer, course and gross on a bottom-anchored scrim; everything else sits under it with one foot row, applause · comment · Receipt (2dce66e6) |
 | CQ-08 | P1 | "MONTH CLOSES" is ember on bg2 at 3.77:1 in the dark printing. | B home, desk | `home--member--1280--dark.png` | `.upchip.hot .k` | **fixed (38471687)** (AW P1-4, DX OB-02) |
 | CQ-09 | P1 | A refused post is a 2.4-second toast that contradicts itself and names a button that isn't there. | A post · B post, desk | `composer--post-failed--402--dark--first.png` | `#toast`: the specific prefix plus `humanError`'s generic line; "press Post again" beside "Add my round" | **fixed (1e9eb856)**: the refusal stays inline above the button (`#postErr`, role=alert), the button is described by it and keeps focus, it uses the button's own verb, and a reasonless refusal says so honestly (84983c4c). The phone's twin (N-3 in PANEL §5) is N4's. |
@@ -121,6 +121,53 @@ Entries are merged where A and B, or a target and B's desk cross-reference, desc
 
 A raised 66 P2 and 60 P3; B raised 132 P2 and 136 P3, including its desk cross-references. They are listed with captures, elements and fixes in each target's `.md` and in `summary.json`, and LANE-BRIEF points every lane at them. Their status is taken in round 2 (session D's delta table), which re-reads every round-1 P0 and P1 against new captures.
 
-## 5 · Native
+## 5 · Native (session A, measured at `4112a3f0`, TestFlight 1180)
 
-**Pending (session A).** Session A runs critiques A and B on every native row at `4112a3f0` (COVERAGE.md §2), writing to `~/cup-season-claude-ten-gallery/evidence/native/critique-{A,B}/`. Rows that are not captured (the Door, wizard steps 2–3, live scoring) are scored "not captured".
+Session A ran critiques A and B on every native row with Impeccable's critique method and `reference/ios.md`, blind to each other. Files: `~/cup-season-claude-ten-gallery/evidence/native/critique-A/`, `…/critique-B/`, and A's report `…/sessions/A-report.md`.
+
+**No native row meets the gate** (90% of its maximum, no heuristic below 3, no P0 or P1). The maximum falls where heuristics are "not captured", usually H9, error recovery, whose failure states were not captured.
+
+| Row | Mode | A score | A lowest | A P0·P1·P2·P3 | B score | B lowest | B P0·P1·P2·P3 |
+|---|---|---|---|---|---|---|---|
+| door | Persuade | 21/28 | 3 | 0·0·2·2 | 15/20 | 3 | 0·0·2·2 |
+| home | Operate | 29/40 | 2 (H4) | 0·1·4·4 | 30/40 | 3 | 0·0·3·5 |
+| post | Operate | 29/40 | 2 (H1, H4) | 0·0·4·3 | 28/40 | 2 (H1, H9) | 0·2·1·2 |
+| share | Persuade | 23/28 | 3 | 0·0·0·3 | 21/28 | 3 | 0·0·0·3 |
+| claim-invite | Persuade | 21/28 | 2 (H4) | 0·0·4·2 | 22/28 | 3 | 0·0·2·3 |
+| identity | Operate | 31/40 | 2 (H4) | 0·1·3·4 | 31/40 | 2 (H2) | 1·0·4·2 |
+| golfers | Operate | 25/36 | 2 (H4, H8) | 0·0·6·3 | 26/36 | 2 (H4) | 0·1·2·2 |
+| history | Operate | 29/40 | 2 (H4) | 0·0·2·5 | 30/40 | 3 | 0·0·3·2 |
+| season | Operate | 29/40 | 2 (H4) | 0·0·3·5 | 30/40 | 3 | 0·0·5·2 |
+| competition | Operate | 30/40 | 2 (H4) | 0·0·4·4 | 30/40 | 2 (H4) | 0·0·3·4 |
+| events | Operate | 30/40 | 2 (H4) | 0·0·3·3 | 30/40 | 3 | 0·0·3·2 |
+| schedule | Operate | 25/36 | 2 (H4, H5) | 0·0·4·4 | 27/36 | 3 | 0·0·3·4 |
+| wizard | Operate | 29/36 | 2 (H8) | 0·0·1·2 | 27/36 | 3 | 0·0·1·2 |
+| courses | Operate | 27/36 | 3 | 0·0·1·4 | 27/36 | 3 | 0·0·1·3 |
+| settings | Operate | 29/36 | 3 | 0·0·0·3 | 27/36 | 3 | 0·0·0·2 |
+| play | Operate | 25/36 | 2 (H2, H5) | 0·0·2·2 | 27/36 | 3 | 0·0·0·3 |
+| rules | Read | 27/32 | 3 | 0·0·0·4 | 29/36 | 3 | 0·0·0·3 |
+| widgets | Operate | 29/36 | 3 | 0·0·1·2 | 28/36 | 3 | 0·0·1·4 |
+
+As on the web, **H4, consistency, is the commonest low**: 10 of A's 18 rows sit at 2 on it, and B's lows at 2 include H4 on golfers and competition.
+
+### The native P0 and P1, with status
+These are A's list, which folds in its audit (AN) and parity (PX) passes. Each carries its N4 work-list id.
+
+| Sev (by) | Defect | Captures | Element | Status at `144ee0b0` |
+|---|---|---|---|---|
+| P0 (B) / P1 (A) | The Form row gilds a nine-hole 43 as the best of the last five, and does not say it is a nine | `17pro/tourcard-dark-large.png` | `ProfileFormRow` (`ProfileBlocks.swift:130` at 4112) | **fixed (74997409, in de3eaf35)**; in TestFlight 1324 |
+| P1 (A) | The forced-update wall has no door, clips its instruction at SE3 AX3, and prints the build as "999,999" | `se3/boot-mustupdate-light-AX3.png` | `MustUpdateView` (`RootView.swift:481-489`) | open · N4-010 (not in E's phase 1) |
+| P1 (B) | A refused post shows the golfer nothing: the failure toast draws behind the composer's full-screen cover | `flows/flow__post-failed.png` | the app-root toast host; the composer cover has none (`MainTabView.swift:1047`) | open · N4-020. The web twin is fixed (CQ-09). |
+| P1 (AN, B) | At AX3 the composer scrolls the gross field off the top while the keypad types into it | `17pro/composer-light-AX3.png` | `scrollTo("worth", anchor: .bottom)` (`PostRoundScreen.swift:251`) | open · N4-021 |
+| P1 (B) | With the keyboard up, the tab band rides on it; at SE3 AX3 no search result fits | `se3/golfers-search-dark-AX3.png` | `CSTabBand` with no keyboard exclusion (`MainTabView.swift:363`) | open · N4-060 |
+| P1 (AN) | Text over round photographs fails AA in both themes (2.0:1 to 3.4:1) | `17pro/course-dark-large.png`, `17pro/receipt-photo-dark-large.png` | the course eyebrow and credit (`Course.swift:573`, `:519`); the receipt dateline at 86% opacity (`ReceiptMoment.swift:46`) | open · N4-070 |
+| P1 (PX) | The join covenant's structure and ending sentences differ from the web in every structured branch | `17pro/invite-signedin-dark-large.png` | `JoinLeague.endingLine` vs the web's covenant | **fixed in part (f6cb4760: 8b87a90d)**: the web now prints the phone's ending word for word, with the structure as its own fact. **Open:** D384's short season on the phone (N4-200), and the Final's words (DEC-01, Q35). |
+| P1 (PX) | The ME strip's season row at rank 3 or lower: the web drops the endgame clause and adds "X LEADS BY n" | `17pro/home-loading-dark-large.png` | web `csMeSeasonRow` vs `MeStripCopy.swift:464` | open, verification pending (a web move; W6's `57ca5eee` reworked the row without naming it) |
+| P1 (PX) | Compete's row during the Cup Final: the web never says Cup Final, and draws the table's rank | `17pro/compete-final-dark-large.png` | web `csCompeteList` vs `CompeteRoot.swift:201` | open, verification pending (a web move) |
+
+**Tally:** 9 P0/P1.
+- **fixed: 1.**
+- **fixed in part: 1.**
+- **open: 7.** Five are N4's; two are web moves awaiting round 2's read.
+
+E's phase 1 (`6716b0ed`) fixed N1's accessibility items and N2's leftovers, not these. They are N4 phase 2's.
