@@ -270,17 +270,23 @@ final class PostRoundModel {
     PostSeasonRule.membership(playedOn: card.date, memberships: store.me?.memberships ?? [])
   }
   var myIndex: Double? { profile?.index_current }
-  /// "Your number 12.4" — the REAL number (landmine 7.12).
+  /// "Your index 12.4" — the REAL number (landmine 7.12).
   /// No minted number = say "building", not a dash (web 14242, setup-QA S6-03).
   ///
+  /// NW-5 · it says **index**, not "your number". R-M's accepted cost is that
+  /// two handicap nouns now coexist — your *index* (the figure on your card)
+  /// and your *playing HCP* (that index under this league's allowance) — and
+  /// that they be "distinguished once, at first contact, and never used
+  /// interchangeably". THIS IS THE SCREEN THAT SHOWS BOTH: the preview chip a
+  /// few rows below reads "2.4 vs your playing HCP", and under a Standard
+  /// league's 95% the two figures differ by about half a shot. "Your number"
+  /// above "your playing HCP" made them look like one figure printed twice.
+  ///
   /// N4-025 · the eyebrow keeps its fact: "Add my round" is the screen's title
-  /// and its button already, and a third printing names nothing. The label is
-  /// the one W6 item 3 settled (root): `CredentialCopy.indexLabel`, "Your
-  /// number" for the golfer's own, as the person page and the live seats say
-  /// it (N4-205). NW-5 had kept "index" here beside "your playing HCP".
+  /// and its button already, and a third printing names nothing. The label
+  /// stays "your index" until W6 item 3 settles the one word.
   var eyebrow: String {
-    let label = CredentialCopy.indexLabel(isMe: true)
-    return myIndex == nil ? label + " builds at 3 rounds" : label + " " + CSCopy.index(myIndex)
+    myIndex == nil ? "Your index builds at 3 rounds" : "Your index " + CSCopy.index(myIndex)
   }
 
   // MARK: - open (`switchView('post')`, 4159)
