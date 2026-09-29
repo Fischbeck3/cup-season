@@ -532,6 +532,39 @@ On the owner's standing "push items as needed" (git push of verified heads to ma
 - N4-040: the phone's claim screen takes the Door's serif name, because the web's claim is a card on the Door, not a fifth lockup place. "Not now" goes to the plain Door; the claim stays pending and shows again on the next launch.
 - The star-rail twin goes to N4 as a P3 with RateCourseSheet's pair.
 
+## 4l · The second web push, N4 checkpoint 2, and its web halves (2026-09-29, late morning)
+
+**Web push 2: `937a3df9`, 09:39 MST.**
+- 47 commits, a fast-forward from `1131a4b0`: root's AW2 batch (§4k), N4 checkpoint 1 (`7afd9aeb`), the ratchets, and the ledger. `index.html` is the only served file that changed; no migrations, no generated Swift, no version lines.
+- Verified first, at `937a3df9`: `ci-local` 11 of 11; harness families play 72, season 48 and desk 20, all with 0 route failures, 0 errors, 0 fixture gaps and 0 page errors (play--scoring--402 included, the capture `2fcca6d1` fixed); a 9-suite subset (tee-off plan, hole moment, live setup labels, play with, nav band, competition truth 86/86, post hierarchy, course leaf 154/154, you credential), all exit 0. The full 43 suites ran at `ba16d19d` (42 of 43; the load flake you-record-states reran 44/44 twice).
+- Live: `sw.js` VERSION `937a3df`, caption `v23 · 937a3df`. CI green on the push (CI, Client invariants, Migration hygiene, Supabase Preview).
+
+**N4 checkpoint 2 merged at `962f028f`** (`a891eb8a..0975aeb7`, 51 commits, 90 files, all under `apps/ios`).
+- E's proof: build 23; preflight 0/0 at HEAD; non-UI 1740/1740 at build 21; 26 UI suites at build 21, 78/83 on each phone with the one failure fixed (`5b9c87d0`, `0975aeb7`), N4Shell 4/4 on both phones at build 23.
+- Ratchets banked at `8c1da1c1`, measured at the merge: LINT-05 87, LINT-06 1062, LINT-10 225.
+- Root's native run on its own simulator (CS-Claude-Root-17Pro): build green; non-UI 1403 of 1403; UI 81 tests, 72 passed on the first run, 8 environment skips (the route suite's capture plan and accessibility dump, TabPersonality's two and SettingsReachable's four, which need a signed-in simulator), and one failure: HomeNoPhotoTests' loaded-photo test on the fresh first launch, E's known first-launch flake, which passed 5 of 5 rerun alone. E's phones were idle for the run, and root's simulator was shut down after it.
+
+**Root's answer to E on `home_dispatch`'s figures (N4-082):** the Home lead's and wire's headlines, the offline door's cached lead and the callout reply's date stay as they are, on both clients. The regex route is forbidden by CSFigureRun's own law ("The producer marks the run"). The producer route is a `home_dispatch` migration, a production database change outside this brief, with a skew hazard: the live web prints `esc(it.headline)` as plain text (the lead and the wire), and so does TestFlight 1335, so either would show raw markers until both clients learned them. Filed for after launch in that order: both clients learn the markers, then the migration ships.
+
+**N4 checkpoint 2's web halves (root), `3864e43a`, with `27a9f56c` (the paid count is the head's own count slot) and `11052c49` (a test fixture name).**
+- **N4-022:** the composer's Start over is armed (§7.1): a `.mini`, the first tap reads "Sure? This clears the card" in neg and clears nothing, a second within four seconds clears, and left alone it disarms. `csArmTap()` is the web's `CSArmedButton`.
+- **N4-171:** the live finish's "This one was casual — post nothing" is a tertiary link in content (ink on a 2px mut rule, 44 tall), no longer a full-width button under the primary, and armed: "Sure? Nobody’s round posts".
+- **N4-003 (PAR-11):** a link landing collapsed the hero, and the hero held the one sentence that says what Cup Season is. Every landing now closes with `CS_BRAND.standfirst` in the quiet ink.
+- **N4-001:** no web change. The web already has one door on an invite: the landing opens the email box and hides the other doors, and its line names that step.
+- **N4-103:** the pot says its stake once: "The pot · eight in" over "$75 each · $525 collected · 1 still owes", and the paid head reads "Who has paid · seven of eight" (SeasonBoardCopy.potIn / paid / potCaption).
+- **N4-204 (PAR-09):** Compete's season row says "10 back of Blake" (D26) and a leader's "9 clear of Casey" (D130) by name, never the bare "leading"; the eyebrow is the week, or the stage word, never "In season" (not one of TERMINOLOGY §2.3's six). "· you run it" was already the web's.
+- **N4-205:** a live seat reads "12.4 · Your number" or "12.4 · Handicap index" (CredentialCopy.indexLabel), and an estimated seat "No number — playing off 18", in the agate role; the typed "EST … NUMBER" caps are gone (LINT-07 100→99 with the court chip's mono tracking).
+- **N4-210 (PAR-22):** Home's fallback minimum item says "The {squad} carry the penalty, not you." only where the league's penalty is real (`deduct` or `forfeit`).
+- **N4-122 and N4-192:** no web change. The web's Major rows print the figure in the producer's own words ("3.4 UNDER", `mjVs` ↔ `MajorMath.vs`) with no column head to rename, and its fine print is `MajorMath.finePrint` word for word (PAR-18 closed). The web's milestone surfaces never set a personal best's title over a gross: the shelf reads "4.1 vs course · Papago", the credential chips carry no figure.
+- Proof: preflight 0/0; eight browser suites that touch these surfaces (after-golf repairs, compete rows, competition truth 86/86, brand door, live setup labels, play with, tee-off plan, post hierarchy), all exit 0; harness families links 152, season 48, play 72, compete 16, composer 52 and home 256 at `3864e43a`, and season 48 again at `27a9f56c`, all with 0 route failures, 0 errors, 0 fixture gaps and 0 page errors; `ci-local` 11 of 11 at `11052c49`.
+
+**Web push 3: `11052c49`, 10:24 MST.**
+- 57 commits, a fast-forward from `937a3df9`: N4 checkpoint 2 (apps/ios only), its ratchets, the web halves above, the inbox entry. `index.html` is the only served file that changed; no migrations, no generated Swift, no version lines, and the added lines scan clean for real names and addresses.
+- Live: `sw.js` VERSION `11052c4`, caption `v23 · 11052c4`. CI green on the push (CI, Client invariants, Migration hygiene).
+- The full 43 browser suites last ran at `ba16d19d`; they run again on the next head, with B's final checkpoint merged.
+
+**Next wave (dispatched 10:20):** critique A2 and B2's open web P2s (77 and 70) had never been dispatched, and they are what keeps every target under 36/40 and several heuristics at 2. D builds W7, one ranked web work list (re-verified at `27a9f56c`, deduplicated, ranked by gate impact: every heuristic at 2 first), with the native P3 cut's rule applied to the P3s. B and root build from it before the freeze.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
