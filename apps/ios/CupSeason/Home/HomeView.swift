@@ -175,6 +175,11 @@ struct HomeView: View {
     .background(cs.bg0)
     .environment(\.csLook, looks.personalLook())
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
+    // N4-012 · the fade is back, and only where IOS-064's reason does not
+    // reach: it draws while the page continues below the fold, so a resting
+    // first screen ends under a fade rather than on a sheared row, and the
+    // foot of the page, where there is nothing left to scroll to, is whole.
+    .csFoldFade(cs.bg0)
     // **IOS-064 · THE FADE IS GONE, AND ITS REASON WENT FIRST.** §1.6 ended
     // Home in a 28pt fade to `bg0` so a FLOATING tab pill's rule could not
     // guillotine a row mid-glyph (problem 10). Wave 8 stopped the band
