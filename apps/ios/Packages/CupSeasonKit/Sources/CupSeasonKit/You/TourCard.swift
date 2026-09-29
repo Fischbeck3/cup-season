@@ -126,6 +126,8 @@ public struct TourCard: Sendable {
     public let holesPlayed: Int?
     public let beat: Bool?
     public var id: String { "\(playedOn)|\(gross ?? 0)|\(courseLabel ?? "")" }
+    /// Nine holes — half a round, so never the FORM row's best (§9.7).
+    public var isNine: Bool { holesPlayed == 9 }
   }
   /// D150 · a course this golfer has played, and how often. Returned by
   /// `tour_card` since D150 and DISCARDED by the phone ever since; IOS-032

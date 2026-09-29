@@ -128,8 +128,9 @@ struct ProfileFormRow: View {
   var body: some View {
     // oldest → newest, left to right, which is how a form line is read
     let shown = Array(rounds.prefix(5).reversed())
-    let best = shown.compactMap(\.gross).min()
-    let bestAt = best.flatMap { b in shown.firstIndex { $0.gross == b } }
+    // the lowest 18-hole gross: a nine never takes the gold (§9.7, the web's
+    // csFormNine at 38471687)
+    let bestAt = CredentialCopy.formBest(shown)
     if typeSize.isA11y {
       // §16.3 · at the accessibility sizes the row becomes five rows, each
       // `date · gross` on its own rule.
@@ -140,14 +141,14 @@ struct ProfileFormRow: View {
               CSFigure(r.gross.map(String.init) ?? "—", size: .s,
                        metal: i == bestAt ? .earned : .ink, label: nil)
               Spacer()
-              Text(RivalryCopy.monthDay(r.playedOn)).csType(.agateS, caps: true)
+              Text(CredentialCopy.formDate(r)).csType(.agateS, caps: true)
                 .foregroundStyle(i == bestAt ? cs.gold : cs.mut)
             }
             CSRule(.heavy, metal: i == bestAt ? .earned : .ink)
           }
           .padding(.vertical, CSTokens.Space.s2)
           .accessibilityElement(children: .ignore)
-          .accessibilityLabel(spoken(r, best: i == bestAt))
+          .accessibilityLabel(CredentialCopy.formSpoken(r, best: i == bestAt))
         }
       }
       .padding(.top, CSTokens.Space.s3)
@@ -175,14 +176,15 @@ struct ProfileFormRow: View {
       Text(RivalryCopy.monthDay(r.playedOn)).csType(.agateS, caps: true)
         .foregroundStyle(best ? cs.gold : cs.mut)
         .padding(.top, CSTokens.Space.s1)
+      // a nine says so under its date, on its own line: the column is a fifth
+      // of the measure, and "SEP 13 · NINE" in one line would break at its dot
+      if r.isNine {
+        Text(CredentialCopy.formNine).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(spoken(r, best: best))
-  }
-
-  private func spoken(_ r: TourCard.Recent, best: Bool) -> String {
-    "\(r.gross.map(String.init) ?? "no round"), \(RivalryCopy.monthDaySpoken(r.playedOn))\(best ? ", their best" : "")"
+    .accessibilityLabel(CredentialCopy.formSpoken(r, best: best))
   }
 }
 
