@@ -380,10 +380,14 @@ const EVENTS = [
   { family: 'events', id: 'live', variant: 'member', title: 'The event room · a live Ryder, week 3 of 3, from Compete’s moments',
     prepare: async (W) => { ryderWorld(W) },
     drive: (page) => eventFromCompete(page, `#cmpList [data-peer="event:${E_LIVE}"]`, E_LIVE),
-    expect: { view: 'view-event', selectors: { '#eventBody h1': 'text:^The North Grove Ryder \\(fixture\\)$', '#eventBody .evbrow': 'text:Live · week 3 of 3 · 2 days left', '#eventBody .evrail': 'visible' } },
+    /* W2 2026-09-28 · the side scores ride the plate now (owner H: the score
+       was under the fold at 375), so the rail below it is gone; and the
+       series line says the holder once — "hold the Ryder 1–0 · Fixture Hawks
+       hold it" was one fact twice (owner C, category C, critique-B P3). */
+    expect: { view: 'view-event', selectors: { '#eventBody h1': 'text:^The North Grove Ryder \\(fixture\\)$', '#eventBody .evbrow': 'text:Live · week 3 of 3 · 2 days left', '#eventBody .evside .fig': 'visible' } },
     check: all(has('#eventBody .evclinch', 'First to 6½\\. Fixture Hawks need 1, Fixture Bobcats need 4\\.', 'the clinch line'),
       has('#eventBody', 'Still to post: [^.]*Emery[^.]*Harper|Still to post: [^.]*Harper[^.]*Emery', 'the open week’s still-to-post line'),
-      has('#eventBody', 'The 2nd Ryder · Fixture Hawks hold the Ryder 1–0 · Fixture Hawks hold it', 'the series line (event_lineage)'),
+      has('#eventBody', 'The 2nd Ryder · Fixture Hawks hold it, 1–0', 'the series line (event_lineage)'),
       has('#eventBody', 'Fixture Hawks lead 5½–2½ after week 2\\.', 'the board’s week-2 line'),
       async (page) => page.evaluate(() => Object.keys((window.CS_EVENT || {}).targets || {}).length === 4 ? true : 'event_session_targets did not reach the four open duels')) },
   { family: 'events', id: 'finished', variant: 'member', title: 'The event room · a finished Ryder (Fixture Hawks 7–5), from Compete’s finished shelf',
