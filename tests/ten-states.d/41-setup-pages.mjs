@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -221,12 +221,12 @@ const SETTINGS = [
   { family: 'settings', id: 'card-index', variant: 'member', fullPage: false, title: 'Card & settings · the Handicap index, built by the engine (no field, no Update index)',
     drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdxOwned': 'text:^Your number builds itself now . 14\\.2$', '#phScoreHelp': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(ariaWellFormed('#phPaneCard'), async (page) => page.evaluate(() => {
       if (document.getElementById('phIdx') || document.getElementById('phIdxGo')) return 'the engine-owned card still offers a field or Update index'
       const help = document.getElementById('phIdxHelp').textContent.replace(/\s+/g, ' ').trim()
       if (help !== 'It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. How scoring works') return `the note reads ${JSON.stringify(help)}`
       return /[\u2192\u203a]/.test(document.getElementById('phIdxHelp').textContent) ? 'the door carries a typed arrow' : true
-    }) },
+    })) },
   { family: 'settings', id: 'card-starter', variant: 'one_round', fullPage: false, title: 'Card & settings · the Handicap index, still building (the starter field stays)',
     drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdx': 'visible', '#phIdxGo': 'text:^Update index$' } },

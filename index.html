@@ -31121,7 +31121,7 @@ function openProfileHub(){
     <!-- W7-043 · once the engine owns the number the server refuses an edit by design (set_index: 'Your number comes from
          your scores now'), so the card does not offer one: it says whose the number is and where to read why, in the
          phone's own words (CardAndSettingsScreen, Y-06). D395: the card never sets a scored number. -->
-    <p class="cs-body" id="phIdxOwned" aria-labelledby="phIdxLab" style="margin:0">Your number builds itself now · ${p.index_current != null ? esc(Number(p.index_current).toFixed(1)) : '\u2014'}</p>
+    <p class="cs-body" id="phIdxOwned" style="margin:0">Your number builds itself now · ${p.index_current != null ? esc(Number(p.index_current).toFixed(1)) : '\u2014'}</p>
     <p class="fine" id="phIdxHelp" style="padding-left:0">It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>` : `
     <div style="display:flex; gap:10px; align-items:center;">
       <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px" aria-labelledby="phIdxLab" aria-describedby="phIdxHelp">
