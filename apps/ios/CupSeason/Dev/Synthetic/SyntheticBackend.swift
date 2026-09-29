@@ -149,6 +149,26 @@ final class SyntheticBackend: @unchecked Sendable {
 
   init(world: SyntheticWorld) { self.world = world }
 
+  /// X35 · when the ROUTE's own screen first appeared: the first
+  /// `cs.screen.<root>` mark whose root the `-cs_dev_open` place names
+  /// (`album` → album, `receipt-broken` → receipt). Set once, by the mark.
+  private static let shownLock = NSLock()
+  nonisolated(unsafe) private static var routeShownAt: Date?
+
+  /// Called by `SyntheticScreenMark` as a marked screen appears.
+  static func screenShown(_ name: String) {
+    guard let route = SyntheticBoot.route, route == name || route.hasPrefix(name + "-") else { return }
+    shownLock.lock(); defer { shownLock.unlock() }
+    guard routeShownAt == nil else { return }
+    routeShownAt = Date()
+    SyntheticSeam.log("SHOWN \(name) · the route's screen; its reads fail until the golfer's retry")
+  }
+
+  private static var shownAt: Date? {
+    shownLock.lock(); defer { shownLock.unlock() }
+    return routeShownAt
+  }
+
   private static let args = ProcessInfo.processInfo.arguments
   private static func arg(_ name: String) -> String? {
     guard let i = args.firstIndex(of: name), i + 1 < args.count else { return nil }
@@ -228,13 +248,29 @@ final class SyntheticBackend: @unchecked Sendable {
     lock.lock(); defer { lock.unlock() }
     if recovered { return false }
     let now = Date()
-    if let last = lastFail[name], now.timeIntervalSince(last) >= 1.0, now.timeIntervalSince(booted) >= 4.0 {
+    if let last = lastFail[name], now.timeIntervalSince(last) >= 1.0, now.timeIntervalSince(booted) >= 4.0,
+       failedOnTheRoute(last, now: now) {
       recovered = true
       SyntheticSeam.log("RECOVERED on retry of \(name)")
       return false
     }
     lastFail[name] = now
     return true
+  }
+
+  /// X35 · a retry is the golfer's only when the read being retried failed on
+  /// the route's own screen. Home reads `league_members` at boot and the
+  /// Album reads it again as it opens; on a loaded machine that second read
+  /// came more than a second after the first and four after boot, counted as
+  /// the retry, and the Album opened on its photographs — the failed state it
+  /// exists to show was never drawn. So a launch that names a route recovers
+  /// only from a read that failed after that route's screen appeared (a
+  /// quarter-second early, for a read sent in the same pass as the mark). A
+  /// route whose screen no mark names falls back to the plain rule, late.
+  private func failedOnTheRoute(_ last: Date, now: Date) -> Bool {
+    guard SyntheticBoot.route != nil else { return true }
+    if let shown = Self.shownAt { return last >= shown.addingTimeInterval(-0.25) }
+    return now.timeIntervalSince(booted) >= 12
   }
 }
 #endif

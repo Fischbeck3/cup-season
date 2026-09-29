@@ -6,6 +6,7 @@
 //   -cs_dev_synthetic brand-new | solo | season-live | season-final | ceremony
 //                     | event-live | failures | offline | card-gate | signed-out
 //   -cs_dev_open <place>            lands on a screen (MainTabView's hatch)
+//   -cs_synth_open_after <seconds>  open that place late (default 1.5s after boot)
 //   -cs_synth_fail <rpc,rpc|all>    which reads fail until the first retry
 //   -cs_synth_delay <seconds>       hold every read (the loading geometry)
 //   -cs_synth_reconnect_after <s>   offline, then back (offline scenario)
