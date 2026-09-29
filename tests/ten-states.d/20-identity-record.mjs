@@ -252,7 +252,18 @@ const RECEIPT = [
     expect: { view: 'view-hub', sheet: 'Fixture (Wrens|Javelinas)' },
     check: all(async (page) => page.evaluate(() => /\d+\s*(pts|points)/i.test(document.getElementById('sheet').innerText) ? true : 'the squad receipt shows no points figure'),
       /* TEN / W6 · AW2-06: the squad math's labels are body, never mono */
-      notMono(['#shBody .mathrow > span'], ['#shBody .mathrow > span'])) },
+      notMono(['#shBody .mathrow > span'], ['#shBody .mathrow > span']),
+      /* TEN / W8 · W7-031 [B2-history-3]: the first row is points, not a count of rounds, and every term of the foot's formula
+         (rounds that count + bonuses & penalties) is on the sheet: with an empty ledger the second is a row at 0 */
+      async (page) => page.evaluate(() => {
+        const rows = [...document.querySelectorAll('#shBody .mathrow')].map((r) => [r.children[0].textContent.trim(), r.children[1].textContent.trim()])
+        if (rows.length < 3) return `the squad math has ${rows.length} rows`
+        if (rows[0][0] !== 'Points from rounds that count') return `the first row is ${JSON.stringify(rows[0][0])}`
+        if (rows[rows.length - 1][0] !== 'Total') return 'the last row is not the Total'
+        const middle = rows.slice(1, -1)
+        if (!middle.length) return 'nothing stands between the rounds and the Total, though the foot names bonuses & penalties'
+        return true
+      })) },
 ]
 
 /* ------------------------------------------------------------ COMPOSER */

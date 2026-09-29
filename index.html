@@ -26806,7 +26806,9 @@ function showSquad(name){
   const pen=adjs.filter(a=>a.pts<0).reduce((a,b)=>a+b.pts,0);
   const fromRounds=t.pts-bonus-pen;
 
-  let h=`<div class="mathrow"><span>Rounds that count</span><b>${fromRounds}</b></div>`;
+  /* W7-031 · 'Rounds that count' is a RULE's name (the wizard's counting-cap dial), so a points figure under
+     it read as a count of rounds; the row is the points those rounds are worth */
+  let h=`<div class="mathrow"><span>Points from rounds that count</span><b>${fromRounds}</b></div>`;
   adjs.filter(a=>a.pts>0).forEach(a=>{
     h+=`<div class="mathrow pos"><span>${a.month} · ${esc(a.why)}</span><b>+${a.pts}</b></div>`;
   });
@@ -26858,7 +26860,12 @@ function showSquadReal(t){
   const fromRounds=rows.reduce((a,r)=>a+r.pts-ovr(r.mid),0);
   const known = (led||[]).reduce((a,r)=>a+Number(r.points||0),0);
   const rest = Math.round((t.pts - fromRounds - known) * 1e6) / 1e6;
-  let h=`<div class="mathrow"><span>Rounds that count</span><b>${fromRounds}</b></div>`;
+  /* W7-031 [B2-history-3] · the first row is the points those rounds are worth, not a count of rounds ('Rounds
+     that count' is the counting-cap dial's name), and with a ledger that answered EMPTY the formula in the foot
+     ('rounds that count + bonuses & penalties') has its second term on the sheet, at 0 — 'Total' no longer repeats
+     the first row over a foot that names rows that are not there (spec §16). The phone's twin is ReceiptSheets. */
+  let h=`<div class="mathrow"><span>Points from rounds that count</span><b>${fromRounds}</b></div>`;
+  if(led && !led.length && !rest) h+=`<div class="mathrow"><span>Bonuses & penalties</span><b>0</b></div>`;
   (led||[]).forEach(a=>{
     const when = a.month ? String(a.month).slice(0,10) : '';
     const who  = a.member_id ? memName(a.member_id) : '';
