@@ -230,7 +230,7 @@
             "subject": "you",
             "human_subject": true,
             "eyebrow": "@eyebrow+6",
-            "headline": "Desert Mountain is on your sheet.",
+            "headline": "Desert Mountain is on your schedule.",
             "standfirst": "Six in, two teams. You are on Blue with Galen and Jade.",
             "action": "See the plan",
             "route": {
@@ -719,7 +719,7 @@
             "human_subject": true,
             "eyebrow": "AN INVITATION",
             "headline": "Galen put you on the Fellas.",
-            "standfirst": "Six golfers, thirteen weeks from Saturday, $50 in. He runs it.",
+            "standfirst": "See the terms before you’re in.",
             "action": "See the terms",
             "route": {
               "kind": "invite",
@@ -982,7 +982,7 @@
             "human_subject": true,
             "eyebrow": "TODAY · 7:10",
             "headline": "Gold Canyon at 7:10. Galen is in.",
-            "standfirst": "You said you were in on Monday. Two of you on the sheet.",
+            "standfirst": "You said you were in on Monday. Two of you on the schedule.",
             "action": "See the plan",
             "route": {
               "kind": "plan",
