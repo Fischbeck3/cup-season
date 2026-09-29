@@ -26482,7 +26482,10 @@ async function openPerson(profileId){
   try{
     const [cr, hr] = await Promise.all([
       sb.rpc('tour_card', { p_profile: profileId }),
-      sb.rpc('head_to_head', { p_opponent: profileId }).catch(() => ({ data: null })),
+      /* a PostgREST builder is a thenable with no .catch — calling it threw
+         while this array was being built, so NEITHER read was ever sent and
+         every golfer's page read "A golfer · Couldn't pull that card" */
+      sb.rpc('head_to_head', { p_opponent: profileId }).then(r => r, () => ({ data: null })),
     ]);
     card = cr.data;
     h2h = hr && hr.data ? csH2HParse(hr.data) : null;
