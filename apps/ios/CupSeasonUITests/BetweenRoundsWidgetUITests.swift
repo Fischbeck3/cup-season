@@ -13,11 +13,12 @@ final class BetweenRoundsWidgetUITests: XCTestCase {
       ("CSNextTeeWidget", "long", "light"),
       ("CSSeasonWidget", "long", "dark"), ("CSRecordWidget", "long", "dark")
     ]
-    for (kind, state, appearance) in cases {
+    for (i, (kind, state, appearance)) in cases.enumerated() {
       app.launchArguments = ["-cs_dev_widgets", "-cs_widget_kind", kind, "-cs_widget_state", state, "-cs_dev_appearance", appearance]
       if state == "long" { app.launchArguments += ["-cs_dev_text_size", "AX3"] }
       app.launch()
-      XCTAssertTrue(app.scrollViews["widgetReview"].waitForExistence(timeout: 10))
+      // the first launch on a freshly booted phone can take most of a minute
+      XCTAssertTrue(app.scrollViews["widgetReview"].waitForExistence(timeout: i == 0 ? 60 : 10))
       if state == "stale" { XCTAssertEqual(app.buttons.count, 0, "Expired tee time still has a reply") }
       if state == "error" { XCTAssertTrue(app.staticTexts["Couldn’t confirm. Open the plan."].firstMatch.exists) }
       let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "\(kind)-\(appearance)-\(state)"; shot.lifetime = .keepAlways; add(shot)
@@ -27,10 +28,10 @@ final class BetweenRoundsWidgetUITests: XCTestCase {
 
   func testNativeWidgetGallery() {
     let app = XCUIApplication()
-    for (kind, word) in [("CSSeasonWidget", "The Race"), ("CSNextTeeWidget", "Next Tee"), ("CSRecordWidget", "The Record"), ("CSRivalryWidget", "The Rivalry")] {
+    for (i, (kind, word)) in [("CSSeasonWidget", "The Race"), ("CSNextTeeWidget", "Next Tee"), ("CSRecordWidget", "The Record"), ("CSRivalryWidget", "The Rivalry")].enumerated() {
       app.launchArguments = ["-cs_dev_widgets", "-cs_widget_kind", kind, "-cs_dev_appearance", "dark"]
       app.launch()
-      XCTAssertTrue(app.scrollViews["widgetReview"].waitForExistence(timeout: 10))
+      XCTAssertTrue(app.scrollViews["widgetReview"].waitForExistence(timeout: i == 0 ? 60 : 10))
       XCTAssertTrue(app.staticTexts[word].firstMatch.exists)
       let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = kind; shot.lifetime = .keepAlways; add(shot)
       app.terminate()

@@ -114,6 +114,12 @@ struct CompeteStandingTests {
     #expect(row?.sub.hasSuffix("left") == true, "the clock stays — got: \(row?.sub ?? "")")
     // the other grain, for a surface whose eyebrow does not say the stage
     #expect(SeasonFacts.seasonLine(m, today: "2026-09-07", calendar: cal).hasPrefix("Cup Final · "))
+    // root's ruling (PAR-03) · the Pro's row is the Final's clock and that they
+    // run it, and nothing ranks it: the Final is scored fresh (D138)
+    let pro = rows(membership(role: "commissioner", season: season("cup_final", starts: "2026-05-01", ends: "2026-09-28")),
+                   today: "2026-09-07").seasons.first
+    #expect(pro?.sub.hasSuffix(" left · you run it") == true, "got: \(pro?.sub ?? "")")
+    #expect(pro?.rank == nil && pro?.points == nil && pro?.pointsStanding == nil && pro?.competitionLine == nil)
   }
 
   /// A wrapped season's finish comes from `last_season` — the payload's own

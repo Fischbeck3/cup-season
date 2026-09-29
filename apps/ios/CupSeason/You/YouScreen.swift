@@ -383,7 +383,9 @@ struct YouScreen: View {
   @ViewBuilder private var form: some View {
     let recent = model.card?.recent ?? []
     if !recent.isEmpty {
-      ProfileHead("Form", count: CredentialCopy.formCount(min(recent.count, 5)))
+      // W7-047 · the head names its window; the slot counts only a short one
+      // ("three of five"), as the web's You does (the person page keeps its head)
+      ProfileHead("Form · last five", count: recent.count < 5 ? CredentialCopy.formCount(recent.count) : nil)
       ProfileFormRow(rounds: recent).id("you-form")
     } else if noRounds {
       // §11 · nothing on the card yet: ONE empty state, not three sections

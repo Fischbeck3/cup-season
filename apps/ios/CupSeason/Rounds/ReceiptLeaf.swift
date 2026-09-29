@@ -121,10 +121,25 @@ struct ReceiptLeaf: View {
         VStack(alignment: .trailing, spacing: 1) {
           if total {
             Text(parts[0]).csType(.figureM).foregroundStyle(cs.leafInk)
-          } else {
+          } else if tail || parts.count > 1 {
+            // a tail row is agate throughout; a verdict's first part is its
+            // figure slot, with the band word hanging under it
             Text(parts[0]).csType(tail ? .agateS : .columnM, caps: tail)
               .foregroundStyle(tail || sub ? cs.leafMut : cs.leafInk)
               .multilineTextAlignment(.trailing)
+          } else {
+            // AW2-06 · the figure keeps the column face and its words hang
+            // under it in agate, as the band word does; words alone are agate
+            let fw = ReceiptRows.figureAndWords(parts[0])
+            if let f = fw.figure {
+              Text(f).csType(.columnM).foregroundStyle(sub ? cs.leafMut : cs.leafInk)
+                .multilineTextAlignment(.trailing)
+            }
+            if let w = fw.words {
+              Text(w).csType(.agateS, caps: true)
+                .foregroundStyle(fw.figure != nil || sub ? cs.leafMut : cs.leafInk)
+                .multilineTextAlignment(.trailing)
+            }
           }
           if parts.count > 1 {
             Text(parts[1]).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)

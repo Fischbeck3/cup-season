@@ -107,8 +107,9 @@ struct FriendsBoardSection: View {
   /// on the board that the best round on it was the worst.
   @ViewBuilder private var columnNote: some View {
     if lens == .form {
+      // AW2-15 · a phrase is sentence case (§1.3), as the desk's note reads
       Text("Vs playing HCP · plus is better")
-        .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        .csType(.agateS, caps: false).foregroundStyle(cs.mut)
         // At the accessibility sizes it WRAPS rather than shrinking: a line
         // that reads `PLUS IS BET…` has lost the half of it that matters, and
         // this is the one line on the board that says which way is good.

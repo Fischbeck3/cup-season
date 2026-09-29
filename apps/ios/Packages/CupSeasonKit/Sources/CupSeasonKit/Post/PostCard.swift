@@ -262,7 +262,7 @@ public struct PostPreview: Sendable, Equatable {
   public let differential: Double
   /// D124 (i) · no number yet. There is nothing to score the round against, so
   /// the preview stops asserting a signed figure and a points total it cannot
-  /// know: it shows the round vs the course, and says the round starts the number.
+  /// know, and says the receipt's line: the round starts the number (N4-088).
   public let provisional: Bool
   public init(gross: Int, holes: Int, vs: Double, points: Int, message: String, label: String,
               differential: Double, provisional: Bool) {
@@ -271,8 +271,10 @@ public struct PostPreview: Sendable, Equatable {
   }
   /// `#postGrossLine`: "Gross 84 · 18 holes" / "Gross 41 · 9 holes · half value"
   public var grossLine: String { "Gross \(gross) · " + (holes == 9 ? "9 holes · half value" : "18 holes") }
-  /// `#calcVs`: "+2.4" / "-1.3" — or "21.5 vs course", with no number yet.
-  public var vsText: String { provisional ? RoundCopy.f1(differential) + " vs course" : (vs >= 0 ? "+" : "") + RoundCopy.f1(vs) }
+  /// `#calcVs`: "+2.4" / "-1.3". N4-088 · nothing with no number yet: "vs the
+  /// course" is the receipt's arithmetic's alone (TERMINOLOGY §2), and the
+  /// composer says the receipt's line instead (root's ruling).
+  public var vsText: String { provisional ? "" : (vs >= 0 ? "+" : "") + RoundCopy.f1(vs) }
 }
 
 public enum PostCalc {
@@ -391,9 +393,13 @@ public enum PostCalc {
   /// which is what a league-less round is scored at). nil return = nothing to
   /// score. Points follow the server rule (`CSBands.cupPoints`) so the preview
   /// never disagrees with what lands; the sentence is the web's.
-  public static func preview(_ card: PostCard, myIndex: Double?, allowance: Int? = nil) -> PostPreview? {
+  /// `roundsPosted` (the profile's `rounds_count`) counts the round in the
+  /// receipt's line while it is one of the first three: "(2 of 3)".
+  public static func preview(_ card: PostCard, myIndex: Double?, allowance: Int? = nil,
+                             roundsPosted: Int? = nil) -> PostPreview? {
     let idx = myIndex ?? fallbackIndex
     let provisional = myIndex == nil
+    let starts = ReceiptRows.noNumberYet(round: roundsPosted.flatMap { $0 >= 0 && $0 < 3 ? $0 + 1 : nil })
     let rating = card.ratingValue
     // IOS-030 · a card with no rating is not a round with a differential of
     // (gross − 0)·113/113. It previewed one, and the number it printed was the
@@ -411,7 +417,7 @@ public enum PostCalc {
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let (pts, msg) = CSBands.pointsFor(vs)
       return PostPreview(gross: gross, holes: 18, vs: vs, points: provisional ? 0 : pts,
-                         message: provisional ? ReceiptRows.noNumberYet(round: nil) : msg,
+                         message: provisional ? starts : msg,
                          label: "\(gross) GROSS", differential: diff, provisional: provisional)
     }
     do {
@@ -424,7 +430,7 @@ public enum PostCalc {
       let base = CSBands.pointsFor(vs)
       let pts = Int((Double(base.points) / 2).rounded(.up))
       return PostPreview(gross: g9, holes: 9, vs: vs, points: provisional ? 0 : pts,
-                         message: provisional ? ReceiptRows.noNumberYet(round: nil) : "9-hole round, half value. " + base.line,
+                         message: provisional ? starts : "9-hole round, half value. " + base.line,
                          label: "\(g9) GROSS · 9 HOLES", differential: diff, provisional: provisional)
     }
   }

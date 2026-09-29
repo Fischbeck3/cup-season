@@ -56,7 +56,9 @@ final class CompeteExplorationSeason {
   var cap: Int { kind == "tie" ? 4 : 3 }
   var rules: String {
     let cap = model.settings?.counting_cap.map { "Best \($0)" } ?? "All rounds"
-    return "\(cap) per calendar month · minimum \(model.settings?.participation_floor ?? 0)"
+    let floor = model.settings?.participation_floor ?? 0
+    // W7-120 · the unit, and only a minimum that exists (L-23)
+    return "\(cap) per calendar month" + (floor > 0 ? " · minimum \(floor) round\(floor == 1 ? "" : "s")" : "")
   }
   var bookAvailable: Bool { squads || names.count >= 10 }
   var story: String {

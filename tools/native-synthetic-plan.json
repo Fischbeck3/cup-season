@@ -281,7 +281,7 @@
   "state": "season-story",
   "scenario": "season-live",
   "route": "story",
-  "root": "text:The story",
+  "root": "story",
   "settle": 2
  },
  {
@@ -290,7 +290,7 @@
   "state": "populated",
   "scenario": "season-live",
   "route": "rules",
-  "root": "text:The rules",
+  "root": "rules",
   "settle": 2
  },
  {

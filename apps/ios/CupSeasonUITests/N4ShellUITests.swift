@@ -114,4 +114,35 @@ final class N4ShellUITests: N2UITestCase {
     attach(app, "n4-claim-not-now-door")
     app.terminate()
   }
+
+  /// W7-042 · an edited card is not dropped on the way out: the first way
+  /// out, the back gesture here, keeps the page and says why under Save. A
+  /// new edit takes the line with it and is asked about in turn; the way out
+  /// after that leaves without saving (once per pending edit, no stopwatch).
+  @MainActor func testAnEditedCardAsksBeforeBackDropsIt() {
+    let app = launch("season-live", "settings")
+    let page = root(app, "settings")
+    let city = app.textFields["City"].firstMatch
+    XCTAssertTrue(city.waitForExistence(timeout: 10), "the card pane's City field")
+    app.tapToType(city)
+    city.typeText("x")
+    let back = app.buttons["settings.back"]
+    XCTAssertTrue(back.waitForExistence(timeout: 5), "an edited card's Back is the page's own")
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.55))
+      .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.55)))
+    let said = app.staticTexts["You have unsaved changes. Save them, or do that again to leave without saving."]
+    XCTAssertTrue(said.waitForExistence(timeout: 5), "the back gesture says why")
+    XCTAssertTrue(page.exists, "and keeps the page")
+    attach(app, "w7-042-unsaved")
+    app.tapToType(city)
+    city.typeText("y")
+    let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: said)
+    XCTAssertEqual(XCTWaiter().wait(for: [cleared], timeout: 5), .completed, "a new edit takes the question's line with it")
+    back.tap()
+    XCTAssertTrue(said.waitForExistence(timeout: 5), "Back asks about the new edit")
+    XCTAssertTrue(page.exists, "and keeps the page")
+    back.tap()
+    let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: page)
+    XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "the next Back leaves without saving")
+  }
 }

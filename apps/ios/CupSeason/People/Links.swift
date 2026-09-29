@@ -77,6 +77,9 @@ struct CSSheetHeader: View {
 /// CHOICE instead, and a choice is a chip that inverts to the panel.
 struct CSMini: View {
   @Environment(\.cs) private var cs
+  /// W7-003 · the PARENT's state (read here, outside the button's own
+  /// `.disabled(busy)`): a locked mini reads in mut, and a busy one keeps its look
+  @Environment(\.isEnabled) private var enabled
   let label: String
   /// One family (D277): the drawn glyph, never an SF Symbol beside it.
   var glyph: CSGlyph.Name? = nil
@@ -117,7 +120,7 @@ struct CSMini: View {
           .fixedSize(horizontal: true, vertical: false)
         }
       }
-      .foregroundStyle(destructive ? cs.neg : cs.ink)
+      .foregroundStyle(destructive ? cs.neg : (enabled ? cs.ink : cs.mut))
       .opacity(busy ? CSTokens.Alpha.a56 : 1)
       .frame(minWidth: 44, minHeight: 44)
       .contentShape(Rectangle())

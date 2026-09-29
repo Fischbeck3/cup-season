@@ -270,23 +270,17 @@ final class PostRoundModel {
     PostSeasonRule.membership(playedOn: card.date, memberships: store.me?.memberships ?? [])
   }
   var myIndex: Double? { profile?.index_current }
-  /// "Your index 12.4" — the REAL number (landmine 7.12).
+  /// "Your number 12.4" — the REAL number (landmine 7.12).
   /// No minted number = say "building", not a dash (web 14242, setup-QA S6-03).
   ///
-  /// NW-5 · it says **index**, not "your number". R-M's accepted cost is that
-  /// two handicap nouns now coexist — your *index* (the figure on your card)
-  /// and your *playing HCP* (that index under this league's allowance) — and
-  /// that they be "distinguished once, at first contact, and never used
-  /// interchangeably". THIS IS THE SCREEN THAT SHOWS BOTH: the preview chip a
-  /// few rows below reads "2.4 vs your playing HCP", and under a Standard
-  /// league's 95% the two figures differ by about half a shot. "Your number"
-  /// above "your playing HCP" made them look like one figure printed twice.
-  ///
   /// N4-025 · the eyebrow keeps its fact: "Add my round" is the screen's title
-  /// and its button already, and a third printing names nothing. The label
-  /// stays "your index" until W6 item 3 settles the one word.
+  /// and its button already, and a third printing names nothing. The label is
+  /// the one W6 item 3 settled (root): `CredentialCopy.indexLabel`, "Your
+  /// number" for the golfer's own, as the person page and the live seats say
+  /// it (N4-205). NW-5 had kept "index" here beside "your playing HCP".
   var eyebrow: String {
-    myIndex == nil ? "Your index builds at 3 rounds" : "Your index " + CSCopy.index(myIndex)
+    let label = CredentialCopy.indexLabel(isMe: true)
+    return myIndex == nil ? label + " builds at 3 rounds" : label + " " + CSCopy.index(myIndex)
   }
 
   // MARK: - open (`switchView('post')`, 4159)
@@ -321,7 +315,8 @@ final class PostRoundModel {
   private func recalc() {
     // D178 · at the league's allowance, not at 100%. `membership` is the same
     // preferred-league pick the rest of the sheet uses; no league = nil = 100%.
-    preview = PostCalc.preview(card, myIndex: myIndex, allowance: membership?.settings?.handicap_allowance)
+    preview = PostCalc.preview(card, myIndex: myIndex, allowance: membership?.settings?.handicap_allowance,
+                               roundsPosted: profile?.rounds_count)
     if !card.isUntouched(defaultDate: defaultDay) { typedSomething = true }
   }
   var calcMessage: String {

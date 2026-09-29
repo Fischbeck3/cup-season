@@ -74,8 +74,10 @@ struct RoundStoryCard: View {
           // N4-086 · a course's name wraps whole, at every size
           Text(BoardLogic.courseLine(round)).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
             .fixedSize(horizontal: false, vertical: true)
-          Text(BoardLogic.grossLine(round, viewer: store.profileId)).csType(.columnS).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
-          Text(counting.text).csType(.columnS)
+          // AW2-06 · phrases are agate, never mono (UI_SYSTEM §1.4); the margin
+          // stays the one figure in the column face
+          Text(BoardLogic.grossLine(round, viewer: store.profileId)).csType(.agateS).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+          Text(counting.text).csType(.agateS)
             .foregroundStyle(hasPhoto ? onPhotoMut : (counting.ok ? cs.pos : cs.mut))
           if streak >= 2 {
             // a streak is a fact, not a control: agate in ink, no ring
