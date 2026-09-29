@@ -17969,6 +17969,8 @@ function csStarsWidth(value){
 function csStarsSvg(value, unrated, opts){
   const o = opts || {};
   const size = o.size || 22;
+  /* a number is pixels; a string is a CSS length (the rate control's fit, AW2-19) */
+  const starLen = typeof size === 'number' ? size + 'px' : String(size);
   const one = fill => `<svg aria-hidden="true" viewBox="0 0 24 24">`
     + (fill ? `<path d="${CS_STAR_PATH}" fill="var(--ink)"/>`
             : `<path d="${CS_STAR_PATH}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`)
@@ -17981,7 +17983,7 @@ function csStarsSvg(value, unrated, opts){
       + ` style="left:${left}" aria-label="${val} star${val===1?'':'s'}"></button>`;
   }).join('') : '';
   return `<span class="cs-stars${o.rate?' is-rate':''}${unrated?' is-unrated':''}"`
-    + ` style="--star:${size}px"${o.rate?` role="group" aria-label="Your rating"`:' aria-hidden="true"'}>`
+    + ` style="--star:${starLen}"${o.rate?` role="group" aria-label="Your rating"`:' aria-hidden="true"'}>`
     + `<span class="csr-base">${five(false)}</span>`
     + `<span class="csr-fill" style="width:${csStarsWidth(value)}"><span class="csr-inner">${five(true)}</span></span>`
     + taps + `</span>`;
@@ -17991,6 +17993,10 @@ function csStarsSvg(value, unrated, opts){
    ½ and has nothing to take from an unrated course; + stops at 5. At a bound
    the button says so with aria-disabled and keeps its focus — `disabled`
    dropped a keyboard golfer's focus to <body> on the step that reached it. */
+/* the rate control's star: the sheet's 40, and never wider than the pair and
+   the rail can share a phone column — 5 stars + 4 gaps + 2 × 44 + 2 × 12 = 5s + 128,
+   inside the 16px gutters, so 40 at 375 and on the desk, 32 at 320 (AW2-19) */
+const CS_RATE_STAR = 'min(40px, calc((100vw - 160px) / 5))';
 function csStepOff(mine, dir){
   return dir < 0 ? !(mine != null && mine > 0.5) : (mine != null && mine >= 5);
 }
@@ -18025,7 +18031,7 @@ function csRatingBlock(id, opts){
   const step = dir => `<button type="button" class="cs-step cs-fig-s" data-csstep="${esc(String(id))}" data-csdir="${dir}"`
     + ` aria-label="${dir < 0 ? 'Half a star less' : 'Half a star more'}" aria-disabled="${csStepOff(mine, dir)}">${dir < 0 ? '−' : '+'}</button>`;
   const rail = `<div class="cs-rate-ctl">${step(-1)}`
-    + csStarsSvg(mine || 0, mine == null, { size: o.size || 40, rate: id }) + `${step(1)}</div>`;
+    + csStarsSvg(mine || 0, mine == null, { size: o.size || CS_RATE_STAR, rate: id }) + `${step(1)}</div>`;
   const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
   /* the phone's own words for the field (RateCourseSheet: label, placeholder,
      caption), so the label stays when the placeholder has gone and the golfer
@@ -18263,7 +18269,7 @@ function renderCourseBooks(){
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
       </div>
-      <div>${csRatingBlock(b.id, { size:40 })}${leaf}</div>
+      <div>${csRatingBlock(b.id)}${leaf}</div>
     </section>`;
   };
 
