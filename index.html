@@ -4278,7 +4278,9 @@ body:not(.noleague) #hubLeagueless{display:none;}
    inside a card (§32), and the unrated are quieter by being SMALLER, not by
    being a dashed box. */
 .cs-krow{border-top:1px solid var(--rule); padding:var(--s4) 0 var(--s5); cursor:pointer;}
-.cs-krow:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
+.cs-krow-open{font:inherit; color:inherit; letter-spacing:inherit; text-transform:inherit; text-align:left;
+  background:none; border:0; padding:0; margin:0; cursor:pointer; overflow-wrap:anywhere;}
+.cs-krow-open:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}   /* AW2-09 · the ring moves to the row's one button */
 .cs-krow.is-quiet{padding:var(--s3) 0 var(--s4);}
 .cs-krow-head{display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:var(--s3);}
 /* a phone gives the NAME the measure: the rail sat beside it and took 170 of
@@ -17981,11 +17983,15 @@ function renderCourseBooks(){
     const said = (mine != null && r && r.note)
       ? `<p class="cs-story" style="padding-top:8px">“${esc(r.note)}”</p>` : '';
 
-    return `<section class="cs-krow${liked?'':' is-quiet'}" role="button" tabindex="0"
-        data-cslead="${esc(String(b.id))}" aria-label="${esc(csCourseLabel(b))}">
+    /* TEN / W6 · AW2-09 (WCAG 4.1.2) · the ROW is not a button: a button's
+       children are presentational, so the card's own disclosure fell out of
+       the accessibility tree while staying in the Tab order. The course NAME
+       is the button, inside its heading; the row keeps the pointer's large
+       target through the same click, and the disclosure is its own control. */
+    return `<section class="cs-krow${liked?'':' is-quiet'}" data-cslead="${esc(String(b.id))}">
       <div class="cs-krow-head">
         <div style="min-width:0">
-          <h4 class="${liked?'cs-display-s':'cs-name'}" style="margin:0">${esc(csCourseLabel(b))}</h4>
+          <h4 class="${liked?'cs-display-s':'cs-name'}" style="margin:0"><button type="button" class="cs-krow-open">${esc(csCourseLabel(b))}</button></h4>
           ${history?`<p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:4px">${esc(history)}</p>`:''}
         </div>
         ${trail}
@@ -18145,8 +18151,10 @@ function csCourseBooksWire(box){
       renderCourseBooks();
       box.scrollIntoView({ block:'start', behavior:'smooth' });
     };
+    /* the name's own <button> gives the keyboard Enter and Space; its click
+       bubbles here. A row-level keydown would also swallow the disclosure's
+       Enter (AW2-09), so there is none. */
     row.addEventListener('click', go);
-    row.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(e); } });
   });
   box.querySelectorAll('button[data-csrate]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
