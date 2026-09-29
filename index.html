@@ -431,13 +431,34 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .sideme .mefact.owed b{color:var(--neg);}
 .sideme .mefact:hover b{color:var(--act);}
 .sideme .mefact:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
+/* TEN / W6 · the season row is a SENTENCE in sentence case now (D165), so it
+   takes the sans `body-s` role (`.cs-body-s` in the markup), in `mut` — the
+   owner's desk T: "column-size sans in the sidebar", not 11px caps */
 .sideme .mesr{
-  display:block; width:100%; margin-top:12px; padding:0; border:0; background:none; cursor:pointer;
-  font-family:var(--sans); font-size:11.5px; line-height:1.5; color:var(--mut); text-align:left;
-  letter-spacing:.02em;
+  display:block; width:100%; margin-top:var(--s3); padding:0; border:0; background:none; cursor:pointer;
+  color:var(--mut); text-align:left; min-height:44px;
 }
 .sideme .mesr:hover{color:var(--ink);}
 .sideme .mesr:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
+/* TEN / W6 · LAST and NEXT as dated rows, the wire's weight-5 row (`.cswire`) */
+.sideme .medays{margin-top:var(--s2);}
+.sideme .medays .cswire:first-child{border-top:var(--hair) solid var(--rule);}
+.sideme .medays .cswire .ln{color:var(--ink);}
+.sideme .mesay{margin:0; color:var(--ink);}
+.sideme .medoors{margin-top:var(--s1);}
+/* TEN / W6 · THE SIDEBAR YIELDS A FACT TO THE PAGE THAT OWNS IT (L-34, §16A.4:
+   one fact, one encoding, per viewport). You's card prints the number (it
+   was "14.2 YOUR NUMBER" beside "14.2 HANDICAP INDEX"); the composer's eyebrow
+   prints it (NW-5); the season page's table owns the standings (the gap was
+   drawn four times in one window); the schedule and the record list the next
+   and the last round. The page's print is the object; the chrome stands down. */
+@media(min-width:960px){
+  .shell:has(#view-stats.active) #sideMe [data-mego="my_number"],
+  .shell:has(#view-post.active) #sideMe [data-mego="my_number"],
+  .shell:has(#view-hub.active) #sideMe [data-mego="season_row"],
+  .shell:has(#view-schedule.active) #sideMe [data-mego="my_next_round"],
+  .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"]{display:none;}
+}
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
    two shapes (D234, R-C as revised): the dispatch reads down the left, the
@@ -5536,7 +5557,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           </div>
           <div class="cfoot">
             <div class="cfigs" id="youFigs">
-              <div class="cfig"><b id="youIdx">&#8212;</b><small>Handicap index</small></div>
+              <div class="cfig"><b id="youIdx">&#8212;</b><small>Your number</small></div>
               <div class="cfig"><b id="youRds">&#8212;</b><small>Rounds</small></div>
               <span class="crule" style="width:66.67%"></span>
             </div>
@@ -18521,8 +18542,8 @@ function renderHomeHero(){
   if(force==='rung7' || (!force && rounds===0)){
     seen('rung7');
     box.innerHTML = heroCard('calm', 'Your card',
-      '', `Three rounds and your index goes live. <em>Nothing else needed.</em>`,
-      `<span>Index</span><span class="hh-bar"><i style="width:3%"></i></span><span>0 of 3</span>`,
+      '', `Three rounds and your number goes live. <em>Nothing else needed.</em>`,
+      `<span>Your number</span><span class="hh-bar"><i style="width:3%"></i></span><span>0 of 3</span>`,
       `<button class="hh-cta" data-hpost type="button">Post your first round</button>`);
     wire('[data-hpost]', ()=> switchView('record'));
     return;
@@ -18531,10 +18552,10 @@ function renderHomeHero(){
     const est = idx!=null;
     seen('rung6');
     box.innerHTML = heroCard('calm', `Your card · ${rounds} round${rounds===1?'':'s'}`,
-      est?`<div class="hh-fig"><span class="hh-pos">${fmtIdx(idx)}</span><span class="hh-ord">index</span></div>`:'',
+      est?`<div class="hh-fig"><span class="hh-pos">${fmtIdx(idx)}</span><span class="hh-ord">your number</span></div>`:'',
       est ? `Established. <em>Nobody's seen it</em> — you haven't added a buddy yet.`
-          : `${3-Math.min(rounds,2)} more and your index is live. <em>Play anywhere.</em>`,
-      est?'':`<span>Index</span><span class="hh-bar"><i style="width:${Math.round(Math.min(rounds,3)/3*100)}%"></i></span><span>${Math.min(rounds,3)} of 3</span>`,
+          : `${3-Math.min(rounds,2)} more and your number is live. <em>Play anywhere.</em>`,
+      est?'':`<span>Your number</span><span class="hh-bar"><i style="width:${Math.round(Math.min(rounds,3)/3*100)}%"></i></span><span>${Math.min(rounds,3)} of 3</span>`,
       `<button class="hh-cta${est?'':' q'}" data-hbud type="button">${est?'Find your buddies':'Add my round'}</button>`);
     wire('[data-hbud]', ()=> est ? (window.goCrewPeople?window.goCrewPeople():switchView('stats')) : switchView('record'));
     return;
@@ -20800,7 +20821,10 @@ function csMeStrip(){
       slots.push({ fact:'my_number', label:'STARTER', value: csStarterText(starter), go:'card' });
     } else if(window.career && window.career.rounds != null){
       const n = Math.min(Number(window.career.rounds)||0, 3);
-      slots.push({ fact:'my_number', label:'BUILDING', value: n<=0 ? '—' : `${n} OF 3`, go:'card' });
+      /* TEN / W6 · a PLACEHOLDER, as `MeStripCopy.numberSlot` marks it
+         (`isPlaceholder: true`): the phone's rail never draws one, and the
+         value slot never renders a dash (§9.9, L-44) — at zero it is empty. */
+      slots.push({ fact:'my_number', label:'BUILDING', value: n<=0 ? '' : `${n} OF 3`, go:'card', ph:true });
     }
     /* no index AND no round count = nothing is known, so nothing is said */
   }
@@ -20814,10 +20838,14 @@ function csMeStrip(){
   const feedLeadsWithIt = !!(lastR && feedLead && feedLead.is_me && feedLead.round_id === lastR.id);
   if(feedLeadsWithIt){ /* said by the feed card */ }
   else if(lastR && lastR.gross != null && lastR.played_on){
+    /* TEN / W6 · the parts ride with the value (`fig`, `on`), so the desk's
+       dated row never re-splits a string; `csRailCell` still splits `value`
+       for the phone's rail, as `HomeWireCopy.railCell` does. */
     slots.push({ fact:'my_last_round', label:'LAST',
-                 value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id });
+                 value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id,
+                 fig:String(lastR.gross), on:String(lastR.played_on) });
   } else if(window.career && Number(window.career.rounds) === 0){
-    slots.push({ fact:'my_last_round', label:'LAST', value:'NO ROUNDS YET', go:'post' });
+    slots.push({ fact:'my_last_round', label:'LAST', value:'NO ROUNDS YET', go:'post', ph:true });
   }
 
   /* 3 - NEXT. `isMyPlan` is the ONE plan predicate on this client (D219); the
@@ -20842,9 +20870,9 @@ function csMeStrip(){
       const course = csShortCourse(up.course_label);
       slots.push({ fact:'my_next_round', label:'NEXT',
                    value: tee ? `${day} ${tee}` : (course ? `${day} · ${course}` : day),
-                   go:'plan', id:up.id });
+                   go:'plan', id:up.id, on:String(up.play_on), tee: tee || '', course: course || '' });
     } else {
-      slots.push({ fact:'my_next_round', label:'NEXT', value:'PLAN ONE', go:'declare' });
+      slots.push({ fact:'my_next_round', label:'NEXT', value:'PLAN ONE', go:'declare', ph:true });
     }
   }
 
@@ -20902,25 +20930,29 @@ function csMeSeasonRow(){
   if(i<0) return null;
   /* L-03 / L-16 · a finished season says where it FINISHED, from the stored
      crown, and chases nobody: no "leads by", no "back of", no Final clause. */
+  /* TEN / W6 · SENTENCE CASE AT THE PRODUCER (D165, LINT-14: case is a
+     role's job, never a string's). The row was built in caps with
+     `toUpperCase()` on the golfers' own names, and it is a sentence a golfer
+     reads, not a label. `MeStripCopy.seasonRow` is the phone's twin. */
   if(CS.season?.status === 'complete'){
     const cId = solo ? CS.season.champion_member_id : CS.season.champion_squad_id;
     const rId = solo ? CS.season.runnerup_member_id : CS.season.runnerup_squad_id;
-    const who = solo ? null : teams[i].name.toUpperCase();
-    const place = myId === cId ? 'CHAMPION' : myId === rId ? 'RUNNER-UP' : 'FINISHED';
-    const parts = [String(CS.league.name||'').toUpperCase(), who ? `${who} · ${place}` : place];
-    if(place === 'FINISHED' && cId){ const c = teams.find(t => t.id === cId); if(c) parts.push(`${String(c.name).toUpperCase()} WON IT`); }
+    const who = solo ? null : teams[i].name;
+    const place = myId === cId ? 'Champion' : myId === rId ? 'Runner-up' : 'Finished';
+    const parts = [String(CS.league.name||''), who ? `${who} · ${place}` : place];
+    if(place === 'Finished' && cId){ const c = teams.find(t => t.id === cId); if(c) parts.push(`${String(c.name)} won it`); }
     return { text: parts.join(' · '), parts };
   }
-  const parts=[String(CS.league.name||'').toUpperCase()];
-  const rank=`${climbOrd(i+1).toUpperCase()} OF ${teams.length}`;
-  parts.push(solo ? rank : [teams[i].name.toUpperCase(), rank].join(' '));
+  const parts=[String(CS.league.name||'')];
+  const rank=`${climbOrd(i+1)} of ${teams.length}`;
+  parts.push(solo ? rank : [teams[i].name, rank].join(' '));
   if(i >= 2 && teams[0]){
     const gap = Number(teams[0].pts) - Number(teams[i].pts);
-    if(gap > 0) parts.push(`${teams[0].name.toUpperCase()} LEADS BY ${csN(gap)}`);
+    if(gap > 0) parts.push(`${teams[0].name} leads by ${csN(gap)}`);
   }
   const up = teams[i-1], down = teams[i+1];
-  if(up)   parts.push(`${csN(Number(up.pts)-Number(teams[i].pts))} BACK OF ${String(up.name).toUpperCase()}`);
-  if(down) parts.push(`${csN(Number(teams[i].pts)-Number(down.pts))} CLEAR OF ${String(down.name).toUpperCase()}`);
+  if(up)   parts.push(`${csN(Number(up.pts)-Number(teams[i].pts))} back of ${String(up.name)}`);
+  if(down) parts.push(`${csN(Number(teams[i].pts)-Number(down.pts))} clear of ${String(down.name)}`);
   if(i < 2){ const c = csEndgameClause(teams.length); if(c) parts.push(c); }
   return { text: parts.join(' · '), parts };
 }
@@ -20933,15 +20965,15 @@ function csEndgameClause(n){
   try{
     if(finish === 'points_table'){
       const e = new Date(seasonE());
-      return `POINTS TABLE CROWNS IT ${MOS[e.getMonth()].toUpperCase()} ${e.getDate()}`;
+      return `Points table crowns it ${MOS[e.getMonth()]} ${e.getDate()}`;
     }
     const cf = cupFinalStart();
-    const when = `${MOS[cf.getMonth()].toUpperCase()} ${cf.getDate()}`;
+    const when = `${MOS[cf.getMonth()]} ${cf.getDate()}`;
     /* a field of two is BOTH, never "top 2" (SA-3's tautology, which the
        squads2 league still printed: "TOP 2 INTO THE FINAL" of two squads) */
-    return (state.structure==='solo' && n===2) ? `A FINAL BETWEEN THE TWO OF YOU, OPENS ${when}`
-      : n === 2 ? `BOTH SQUADS PLAY THE FINAL, OPENS ${when}`
-      : `TOP 2 INTO THE FINAL, OPENS ${when}`;
+    return (state.structure==='solo' && n===2) ? `A Final between the two of you, opens ${when}`
+      : n === 2 ? `Both squads play the Final, opens ${when}`
+      : `Top 2 into the Final, opens ${when}`;
   }catch(_){ return null; }
 }
 
@@ -21959,33 +21991,78 @@ function csRailCell(s){
   if(!/[0-9]/.test(fig) || !day) return { value: v, label: s.label };
   return { value: fig, label: `${s.label} · ${day}` };
 }
+/* TEN / W6 · THE DESK'S IDENTITY BLOCK, IN THREE PARTS (owner desk C, critique-B
+   home/identity/desk; root's rulings of 2026-09-28).
+   · THE RAIL HOLDS NUMERALS (§16A.4): my number and my money. The day words
+     left it — "84 SUN" and "WED 7:40" set a weekday beside 14.2 and $75.
+   · LAST AND NEXT ARE DATED ROWS, the wire's own weight-5 row (`.cswire`): the
+     day in the leading date column, where dates live, then the fact, then the
+     chevron. The desk only — the phone's rail splits LAST with `csRailCell`
+     (`HomeWireCopy.railCell`) and never shows NEXT, which has its own row.
+   · A PLACEHOLDER IS NEVER A VALUE (L-44, §9.9). `— BUILDING`, `NO ROUNDS YET`
+     and `PLAN ONE` were doors wearing a slot's clothes. On the desk a missing
+     round is a quiet door ("Add my round", "Plan one"); when EVERY slot is a
+     placeholder the block is one sentence with one door — TERMINOLOGY §2's own
+     line, "Your number builds itself from three posted rounds." On the phone
+     the strip filters placeholders and stands down when nothing is left, which
+     is `MeStripCopy`'s `allEmpty` rule and `HomeFacts`' filter (native parity):
+     Home's lead already says the first round is the only thing missing. */
+const CS_ME_EMPTY = { line:'Your number builds itself from three posted rounds.', door:'Add my round' };
+function csMeCell(s, cls){
+  const c = csRailCell(s);
+  return `<button class="mefact${cls||''}" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
+        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
+      </button>`;
+}
+function csMeDated(s){
+  const mk = csDayMarker(s.on);
+  const what = s.fact === 'my_last_round' ? `Last round · ${s.fig}`
+             : ['Next round', s.tee ? `${s.tee} tee` : (s.course || '')].filter(Boolean).join(' · ');
+  return `<button type="button" class="cswire" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
+        <span class="mk cs-agate-s is-phrase">${esc(mk)}</span>
+        <span class="ln cs-body-s">${esc(what)}</span>
+        <span class="cv" aria-hidden="true">&rsaquo;</span>
+      </button>`;
+}
 function renderMeStrip(){
   const strip = csMeStrip();
-  const html = (!strip.slots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${strip.slots.map(s => { const c = csRailCell(s); return `
-      <button class="mefact${s.fact==='my_money'?' owed':''}" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
-      </button>`; }).join('')}</div>
-    ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
+  const real = strip.slots.filter(s => !s.ph);
+  const rail = real.filter(s => s.fact === 'my_number' || s.fact === 'my_money');
+  const dated = real.filter(s => s.fact === 'my_last_round' || s.fact === 'my_next_round');
+  const doorFor = { my_last_round:['add_round', CS_ME_EMPTY.door], my_next_round:['plan_one', 'Plan one'] };
+  const doors = strip.slots.filter(s => s.ph && doorFor[s.fact]).map(s => doorFor[s.fact]);
+  /* the league's name is the foot's (`#sideLeague`, one step down): the
+     sidebar's season row starts after it rather than saying it twice */
+  const row = strip.seasonRow;
+  const sideRowText = !row ? '' : (row.parts && row.parts.length > 1 && window.CS?.league && row.parts[0] === String(CS.league.name||''))
+    ? row.parts.slice(1).join(' · ') : row.text;
+  const onlyPlaceholders = strip.slots.length > 0 && !real.length && !row;
+  const html = onlyPlaceholders ? `
+    <p class="mesay cs-body-s">${esc(CS_ME_EMPTY.line)}</p>
+    <div class="hstart medoors"><a href="#" data-mego="add_round">${esc(CS_ME_EMPTY.door)}</a></div>`
+    : (!real.length && !row && !doors.length) ? '' : `
+    ${rail.length ? `<div class="mefacts">${rail.map(s => csMeCell(s, s.fact==='my_money' ? ' owed' : '')).join('')}</div>` : ''}
+    ${dated.length ? `<div class="medays">${dated.map(csMeDated).join('')}</div>` : ''}
+    ${doors.length ? `<div class="hstart medoors">${doors.map(([k, t]) => `<a href="#" data-mego="${k}">${esc(t)}</a>`).join('')}</div>` : ''}
+    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(sideRowText)}</button>` : ''}`;
   /* MW-02 · below the desk the strip is COMPACT: the number, the last round
      and the season row. The next round has its own row further down
      (`#homeUpNext`) and the money owed has its own page (the pot), where the
      tile already leads; printing both again above the lead put four small
      facts and a debt ahead of the one thing Home is for. The desk's sidebar
      keeps the full strip. Suppression is unchanged: the facts are still spent
-     on this page, just not at its head. */
-  const compactSlots = strip.slots.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
-  const compact = (!compactSlots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${compactSlots.map(s => { const c = csRailCell(s); return `
-      <button class="mefact" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
-      </button>`; }).join('')}</div>
-    ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
+     on this page, just not at its head. TEN / W6 · and no placeholder: the
+     phone's rail draws facts only (`HomeFacts` filters `isPlaceholder`). */
+  const compactSlots = real.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
+  const compact = (!compactSlots.length && !row) ? '' : `
+    <div class="mefacts">${compactSlots.map(s => csMeCell(s)).join('')}</div>
+    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(row.text)}</button>` : ''}`;
   ['#sideMe', '#homeMe'].forEach(sel => {
     const box = document.querySelector(sel);
     if(!box) return;
     box.innerHTML = sel === '#homeMe' ? compact : html;
-    box.querySelectorAll('[data-mego]').forEach(el => el.addEventListener('click', () => {
+    box.querySelectorAll('[data-mego]').forEach(el => el.addEventListener('click', (e) => {
+      e.preventDefault();
       const go = el.getAttribute('data-mego'), id = el.getAttribute('data-meid');
       qaEvent('cta_tapped', { door: go });
       /* Every figure taps to its receipt (L-01). Each door is one that already
@@ -21998,6 +22075,9 @@ function renderMeStrip(){
       else if(go==='my_next_round') { if(id) switchView('schedule'); else window.openDeclareSheet?.(); }
       else if(go==='my_money')      { switchView('pot'); }
       else if(go==='season_row')    { switchView('hub'); }
+      /* TEN / W6 · the placeholders' doors: the composer, and the declare sheet */
+      else if(go==='add_round')     { switchView('post'); }
+      else if(go==='plan_one')      { window.openDeclareSheet?.(); }
     }));
   });
   /* WAVE 11 / D280 - THE SIDEBAR'S FOOT IS THE VIEWER. It rides here because
@@ -22024,7 +22104,7 @@ function renderMeStrip(){
      lands exactly once at every width. `my_money` leaves the phone's set with
      no consumer — the pot keeps its own page and no money copy is added. */
   const onDesk = !window.matchMedia || window.matchMedia('(min-width:960px)').matches;
-  window.__meSuppress = new Set((onDesk ? strip.slots : compactSlots).map(s => s.fact));
+  window.__meSuppress = new Set((onDesk ? rail.concat(dated) : compactSlots).map(s => s.fact));
   /* D234 - the same funnel the phone writes, off the same producer. No name,
      no handle, no id; `qaEvent` stamps the platform centrally. */
   const tag = `${strip.slots.length}${strip.seasonRow?'s':'-'}`;
@@ -27256,7 +27336,12 @@ function refreshWhoChip(){
     const known = window.career && window.career.rounds != null;
     const rounds = known ? Number(window.career.rounds) : null;
     const cells = [];
-    if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Handicap index']);
+    /* TEN / W6 · ONE LABEL PER OBJECT (root, 2026-09-28; D319, TERMINOLOGY
+       row 90): the viewer's own figure is YOUR NUMBER everywhere it is
+       labelled — the strip, the masthead and this card; another golfer's card
+       says Handicap index (`csCredentialHtml`). One print per viewport: the
+       desk sidebar yields its copy while You is open. */
+    if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Your number']);
     cells.push([rounds == null ? '\u2014' : String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
     figs.innerHTML = cells.map(([v, l]) =>
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
@@ -27709,7 +27794,9 @@ function csCredentialHtml(profileId, card){
   const mk = (typeof MARKERS !== 'undefined' && (MARKERS[p.marker] || MARKERS.saguaro)) || null;
   const photo = (window.avatarUrl && window.avatarUrl[profileId]) || null;
   const figs = [];
-  if(p.index_current != null) figs.push([fmtIdx(p.index_current), 'Handicap index', '']);
+  /* one label per object: another golfer's figure is their Handicap index; the viewer's own is YOUR NUMBER */
+  const mine = !!(window.CS?.profile?.id && profileId === window.CS.profile.id);
+  if(p.index_current != null) figs.push([fmtIdx(p.index_current), mine ? 'Your number' : 'Handicap index', '']);
   figs.push([String(Number(c.rounds || 0)), 'Rounds', '']);
   /* the position figure needs a STANDING, and `tour_card` carries none - see
      IOS-047. It falls to the best round, which the card already holds. */

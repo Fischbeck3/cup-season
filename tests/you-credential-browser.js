@@ -20,7 +20,10 @@
     window.CS.profile={ display_name:'Audit', handle:'audit', index_current:11.4, index_source:'engine' };
     window.career=null;
     window.refreshWhoChip();
-    check(fig('Handicap index')==='11.4','the index cell is missing');
+    /* TEN / W6 (root, 2026-09-28) · one label per object: the viewer's OWN
+       figure is YOUR NUMBER on every surface (D319, TERMINOLOGY row 90); another
+       golfer's card keeps Handicap index. This card is the viewer's own. */
+    check(fig('Your number')==='11.4','the index cell is missing');
     check(fig('Rounds')==='—','WA3: an unread career printed a zero: '+fig('Rounds'));
     out.beforeLoad=fig('Rounds');
 
@@ -45,7 +48,7 @@
     window.CS.profile={ display_name:'Audit', handle:'audit', index_current:null };
     window.career={ rounds:2, rows:[], recent:[] };
     window.refreshWhoChip();
-    check(fig('Handicap index')===null,'a building index printed a figure');
+    check(fig('Your number')===null,'a building index printed a figure');
     check(fig('Rounds')==='2','WA3: a provisional profile lost its count');
     /* Exercise the real loader, including Supabase's resolved {error}
        response. Rendering a hand-assigned null never tested this path. */
