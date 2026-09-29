@@ -136,13 +136,18 @@ struct RoundSharePreview: View {
   private func render() {
     image = RecapCardView.render(publicRecap, photo: includePhoto ? roundPhoto : nil)
     #if DEBUG
+    // The fixture's files are encoded and written off the main thread: a
+    // 1080×1350 PNG encoded there held the preview, and a test's next tap,
+    // for seconds on a loaded machine.
     if MorningReviewFixture.on || ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_export"),
-       let png = image?.pngData() {
-      let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-      if MorningReviewFixture.on, let fixturePhoto = roundPhoto?.pngData() {
-        try? fixturePhoto.write(to: folder.appendingPathComponent("review-photo.png"))
+       let card = image {
+      let reviewPhoto = MorningReviewFixture.on ? roundPhoto : nil
+      let name = includePhoto && roundPhoto != nil ? "round-share-with-photo.png" : "round-share-no-photo.png"
+      Task.detached(priority: .utility) {
+        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        if let p = reviewPhoto?.pngData() { try? p.write(to: folder.appendingPathComponent("review-photo.png")) }
+        if let png = card.pngData() { try? png.write(to: folder.appendingPathComponent(name)) }
       }
-      try? png.write(to: folder.appendingPathComponent(includePhoto && roundPhoto != nil ? "round-share-with-photo.png" : "round-share-no-photo.png"))
     }
     #endif
     if image != nil, !fetching { CSTelemetry.event("round_share_generated", ["has_photo": .bool(includePhoto && roundPhoto != nil)]) }
