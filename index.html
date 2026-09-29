@@ -3391,8 +3391,19 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .sheet .panel > #shBody{
   flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
   overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
-  padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  --sh-foot:calc(24px + env(safe-area-inset-bottom));   /* named once: a sheet's pinned answers stick through it */
+  padding-bottom:var(--sh-foot);
 }
+/* TEN / W6 · craft (round 2) · the covenant's two answers stay in view. At
+   375 × 667 its terms ran past the sheet's height and the answers sat at
+   their end: Join cut in half at the screen's edge, Not now out of sight.
+   They ride the sheet's foot — through the body's own bottom padding, to
+   the panel's edge, the safe area kept under them — while the terms scroll
+   above and fade at their edge rather than being cut (the card gate's). */
+.cov-acts{position:sticky; bottom:calc(-1 * var(--sh-foot)); z-index:1; background:var(--bg1);
+  margin-top:var(--s3); padding-bottom:calc(var(--s3) + env(safe-area-inset-bottom));}
+.cov-acts::before{content:""; position:absolute; left:0; right:0; bottom:100%; height:var(--s3);
+  background:linear-gradient(to bottom, transparent, var(--bg1)); pointer-events:none;}
 @media(min-width:760px){
   .sheet .panel{ left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
     width:640px; max-height:82vh; border-radius:var(--rs); }
@@ -32690,8 +32701,10 @@ function showCovenant(info){
        pot or a thing won, and a buy-in is neither (craft C, critique B) */
     openSheet(csCovenantTitle(info), csCovenantEyebrow(info),
       facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--ink)':''}">${esc(f.t)}</p>`).join('') + `
-      <button class="btn" id="covJoin" style="margin-top:12px">${esc(csCovenantButton(info))}</button>
-      <button class="btn dark" id="covNo" data-decline style="margin-top:8px">Not now</button>`);
+      <div class="cov-acts">
+        <button class="btn" id="covJoin">${esc(csCovenantButton(info))}</button>
+        <button class="btn dark" id="covNo" data-decline style="margin-top:8px">Not now</button>
+      </div>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
        two buttons. The sheet has three other ways out — the X, the backdrop and
        Escape — and none of them touched it. While the gate lived behind a click

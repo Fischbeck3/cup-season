@@ -107,6 +107,16 @@ const claimDoor = (id, token, ready, selectors, extra = {}) => ({
   family: 'links', id, variant: 'signed_out', url: `/?claim=${token}`, short: true,
   settle: doorSettle(ready), expect: { door: true, selectors }, ...extra,
 })
+/* TEN / W6 · craft (round 2): at 375 × 667 the covenant's terms outran the
+   sheet and its answers sat at their end — Join cut at the screen's edge,
+   Not now out of sight. At rest both answers are inside the visible sheet. */
+const covenantAnswersInView = async (page) => page.evaluate(() => {
+  const p = document.querySelector('#sheet .panel'), acts = ['covJoin', 'covNo'].map((id) => document.getElementById(id))
+  if (!p || acts.some((b) => !b)) return 'the covenant has no answers'
+  const pr = p.getBoundingClientRect(), bottom = Math.min(pr.bottom, innerHeight)
+  const out = acts.filter((b) => { const r = b.getBoundingClientRect(); return r.top < pr.top - 0.5 || r.bottom > bottom + 0.5 })
+  return out.length ? `the covenant's answers are out of view at rest: ${out.map((b) => '#' + b.id).join(', ')}` : true
+})
 const LINKS = [
   /* W4 · the round LEADS the door (#obLink, the lead serif) and the status line
      keeps the next step: the same ruled sentence (TERMINOLOGY §6), split,
@@ -165,11 +175,13 @@ const LINKS = [
   { family: 'links', id: 'join-covenant', variant: 'brand_new', url: `/?join=${JOIN.season}`,
     settle: async (page) => { await until(page, () => document.getElementById('sheet').classList.contains('open') && /Before you join/.test(document.getElementById('shTitle').textContent), null, 15000); await page.waitForTimeout(600) },
     expect: { allowDoor: true, sheet: '^Before you join North Grove \\(fixture\\)$',
-      selectors: { '#covJoin': 'text:^Join — I’m in for \\$75$', '#covNo': 'visible', '#shBody': 'text:Blake Sample runs the season \\(the Pro\\)' } } },
+      selectors: { '#covJoin': 'text:^Join — I’m in for \\$75$', '#covNo': 'visible', '#shBody': 'text:Blake Sample runs the season \\(the Pro\\)' } },
+    check: covenantAnswersInView },
   { family: 'links', id: 'join-covenant-free', variant: 'brand_new', url: `/?join=${JOIN.free}`,
     settle: async (page) => { await until(page, () => document.getElementById('sheet').classList.contains('open') && /Before you join/.test(document.getElementById('shTitle').textContent), null, 15000); await page.waitForTimeout(600) },
     expect: { allowDoor: true, sheet: '^Before you join South Wash Weekday \\(fixture\\)$',
-      selectors: { '#covJoin': 'text:^Join South Wash Weekday \\(fixture\\)$', '#shBody': 'text:every round counts' } } },
+      selectors: { '#covJoin': 'text:^Join South Wash Weekday \\(fixture\\)$', '#shBody': 'text:every round counts' } },
+    check: covenantAnswersInView },
   /* signed in and already in: the covenant is not shown again; the line says so */
   { family: 'links', id: 'join-already-in', variant: 'member', url: `/?join=${JOIN.season}`,
     settle: async (page) => { await bootDone(page, 300); await until(page, () => /already in for season 1/.test((document.getElementById('toast') || {}).textContent || ''), null, 8000) },
@@ -197,7 +209,8 @@ const LINKS = [
   { family: 'links', id: 'invite-terms', variant: 'brand_new', world: { flags: { invite: true } },
     settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dgo^="invite:"]'), null, 15000); await page.waitForTimeout(300) },
     drive: async (page) => { await click(page, '#homeLead [data-dgo^="invite:"]'); await until(page, () => /Before you join/.test(document.getElementById('shTitle').textContent) && document.getElementById('sheet').classList.contains('open')) },
-    expect: { sheet: '^Before you join North Grove \\(fixture\\)$', selectors: { '#covJoin': 'visible' } } },
+    expect: { sheet: '^Before you join North Grove \\(fixture\\)$', selectors: { '#covJoin': 'visible' } },
+    check: covenantAnswersInView },
   /* the buddy link: the landing card, then the signed-in ask (R5) */
   { family: 'links', id: 'person-landing', variant: 'signed_out', url: `/?p=${SHARE.person}`, settle: shareSettle,
     /* W4 · "wants you in their golf" read as a translation error (critique B) */
