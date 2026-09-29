@@ -391,6 +391,17 @@ const mineLabel = async (page) => page.evaluate(() => {
   const t = l.textContent.trim()
   return /^Your rating \u00b7 (\d\.\d|not yet)$/.test(t) ? true : `the rating label reads ${JSON.stringify(t)}`
 })
+/* TEN / W8 · W7-097 [A2-courses-4] · a course row's figure names its owner: 'Yours 4.5' beside the drawn rail (or 'Rate it'), never a bare 4.5 that reads as the lead's 4.0 for the same course; the plan block
+   prints the same words from the same producer */
+const rowYours = async (page) => page.evaluate(() => {
+  const rows = [...document.querySelectorAll('#youCourses .cs-krow-rate')]
+  if (!rows.length) return 'no course row draws a rating'
+  for (const r of rows) {
+    const t = r.textContent.trim()
+    if (!/^(Yours \d\.\d|Rate it)$/.test(t)) return `a course row's rating reads ${JSON.stringify(t)}, not 'Yours N.N' or 'Rate it'`
+  }
+  return true
+})
 const courseCard = (id, courseId, title, want, circle = true) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
@@ -411,7 +422,7 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: all(courseBookWide, async (page) => page.evaluate(() => {
+    check: all(courseBookWide, rowYours, async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`

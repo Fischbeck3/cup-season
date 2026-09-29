@@ -14560,6 +14560,9 @@ const CS_COURSE_CAP = 40;
 /* W7-099 · the label under the rating rail names the object it is about: 'Your rating · 4.5', and for an unrated course 'Your rating · not yet' (the empty rail's old label, 'Not yours yet', read as 'this
    course is not yours'); one producer for the block and its live repaint */
 const csMineLabel = m => m != null ? `Your rating · ${Number(m).toFixed(1)}` : 'Your rating · not yet';
+/* W7-097 · a course's own figure beside a drawn rail names its OWNER: 'Yours 4.5' (the plan block's words), one producer for the record's rows and the plan block, so a row reads 'Yours 4.5' where the
+   lead's big figure reads the Cup Season average ('4.0 · Cup Season golfers') and the two never look like one course with two ratings */
+const csYours = m => `Yours ${Number(m).toFixed(1)}`;
 const CS_COURSE_COPY = {
   neverKept: 'This course is not on this device. Cup Season keeps the courses you have played or planned; open this one with a signal and it will be here next time.',
   readFailed: 'Could not reach the course list. What this device has kept is below.',
@@ -18866,7 +18869,7 @@ function renderCourseBooks(){
     const mine = r && r.mine != null ? Number(r.mine) : null;
     const trail = `<div class="cs-krow-rate">${csStarsSvg(mine || 0, mine == null, { size:24 })}`
       + (mine != null
-          ? `<span class="cs-fig-s">${mine.toFixed(1)}</span>`
+          ? `<span class="cs-agate-s" style="color:var(--mut)">${esc(csYours(mine))}</span>`
           : `<span class="cs-agate-s" style="color:var(--mut)">Rate it</span>`) + `</div>`;
     const said = (mine != null && r && r.note)
       ? `<p class="cs-story" style="padding-top:8px">“${esc(r.note)}”</p>` : '';
@@ -19197,7 +19200,7 @@ function csPlanCourseHtml(courseId, want){
   const rate = (mine != null || all != null)
     ? `<div class="cs-krow-rate" style="padding-top:8px">${csStarsSvg(mine != null ? mine : all, false, { size:20 })}`
       + `<span class="cs-agate-s" style="color:var(--mut)">${
-          mine != null ? `Yours ${mine.toFixed(1)}` : `${all.toFixed(1)} · ${r.count} rating${r.count===1?'':'s'}`}</span></div>`
+          mine != null ? csYours(mine) : `${all.toFixed(1)} · ${r.count} rating${r.count===1?'':'s'}`}</span></div>`
     : '';
 
   return `<div class="cs-plan-course">
