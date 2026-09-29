@@ -89,12 +89,16 @@ struct HomeWireBand: View {
   var photos: HomePhotoStore = .shared
   /// the storage refused this path on the last load — the object is gone or not ours
   var denied: Bool = false
+  /// W3 twin · the round's hole count when this client knows it (`KnownHoles`);
+  /// nil claims no sub-80 and prints a plain GROSS
+  var holes: Int? = nil
   let open: () -> Void
   let openPerson: () -> Void
 
-  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared, denied: Bool = false,
+  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared, denied: Bool = false, holes: Int? = nil,
        open: @escaping () -> Void, openPerson: @escaping () -> Void) {
-    self.row = row; self.photo = photo; self.photos = photos; self.denied = denied; self.open = open; self.openPerson = openPerson
+    self.row = row; self.photo = photo; self.photos = photos; self.denied = denied; self.holes = holes
+    self.open = open; self.openPerson = openPerson
   }
   private var credential: HomePhotoStore.Credential {
     if let photo { return .url(photo) }
@@ -102,7 +106,7 @@ struct HomeWireBand: View {
   }
 
   private var name: String { HomeCopy.who(row) }
-  private var line: String { HomeWireCopy.roundLine(row) }
+  private var line: String { HomeWireCopy.roundLine(row, holes: holes) }
   private var state: HomePhotoStore.State { photos.state(for: row.photo_path) }
 
   /// §16.3 · **AT THE ACCESSIBILITY SIZES THE COPY LEAVES THE PHOTOGRAPH.** A
@@ -125,9 +129,9 @@ struct HomeWireBand: View {
         if let prior { band(Image(uiImage: prior), loading: true) } else { frame }
       case .failed(let prior):
         if let prior { band(Image(uiImage: prior)) }
-        else { HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter) }
+        else { HomeWireSlat(row: row, open: open, openPerson: openPerson, holes: holes).padding(.horizontal, CSTokens.Space.gutter) }
       case .none, .removed:
-        HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter)
+        HomeWireSlat(row: row, open: open, openPerson: openPerson, holes: holes).padding(.horizontal, CSTokens.Space.gutter)
       }
     }
     .task(id: credential) { photos.load(path: row.photo_path, credential: credential) }
@@ -206,7 +210,7 @@ struct HomeWireBand: View {
   }
 
   private func gross(_ g: Int, onPhoto: Bool) -> some View {
-    CSPanel(onPhoto ? .overPhoto : .page, unit: "Gross", width: 60, height: 60) {
+    CSPanel(onPhoto ? .overPhoto : .page, unit: HomeWireCopy.grossUnit(holes: holes), width: 60, height: 60) {
       Text("\(g)").csType(.figureM)
     }
   }
@@ -296,12 +300,14 @@ struct HomeWireSlat: View {
   var points: Int? = nil
   var monthRank: Int? = nil
   var cap: Int? = nil
+  /// W3 twin · see `HomeWireBand.holes`
+  var holes: Int? = nil
 
   private var name: String { HomeCopy.who(row) }
   private var course: String {
     row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded"
   }
-  private var story: String? { HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap) }
+  private var story: String? { HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes) }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -335,7 +341,7 @@ struct HomeWireSlat: View {
             if let gross = row.gross {
               HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
                 Text("\(gross)").csType(.figureL).foregroundStyle(cs.ink)
-                Text("Gross").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                Text(HomeWireCopy.grossUnit(holes: holes)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
               }
               .fixedSize()
             }
@@ -368,7 +374,7 @@ struct HomeWireSlat: View {
       .buttonStyle(.plain)
       .accessibilityIdentifier("home.round.no-photo")
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row))")
+      .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row, holes: holes))")
       .accessibilityHint("Opens the round")
     }
     .padding(.top, CSTokens.Space.s2)

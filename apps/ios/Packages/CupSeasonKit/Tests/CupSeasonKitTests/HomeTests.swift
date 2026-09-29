@@ -39,11 +39,13 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
   @Test func sinceYouWereHereJoinsWithTheSerialComma() {
     let mark = now.addingTimeInterval(-3600)
     let fresh = now.addingTimeInterval(-600)
+    let rosa = UUID()
     let rounds = [
       row(golfer: "Diego", playedOn: "2026-08-27", createdAt: fresh, pr: true),
-      row(golfer: "Rosa", playedOn: "2026-08-27", createdAt: fresh, sub80: true),
+      row(rosa, golfer: "Rosa", playedOn: "2026-08-27", createdAt: fresh, sub80: true),
     ]
-    let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, now: now)!
+    // W3 twin · the claim needs the round KNOWN to be eighteen holes
+    let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
     #expect(d.kind == .since)
     #expect(d.body == "2 rounds, a personal best from Diego, and Rosa broke 80.")
   }
@@ -85,13 +87,53 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
   @Test func quietDayResurfacesTheBestRecentThing() {
     let mark = now.addingTimeInterval(-3600)
     let old = now.addingTimeInterval(-86400 * 2)
+    let rosa = UUID()
     let rounds = [
       row(golfer: "Marco", gross: 90, pvi: 0.4, playedOn: "2026-08-25", createdAt: old),
-      row(golfer: "Rosa", gross: 74, pvi: 3.8, playedOn: "2026-08-25", createdAt: old, sub80: true),
+      row(rosa, golfer: "Rosa", gross: 74, pvi: 3.8, playedOn: "2026-08-25", createdAt: old, sub80: true),
     ]
-    let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, now: now)!
+    let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
     #expect(d.kind == .quiet)
     #expect(d.body.hasSuffix("Rosa broke 80 — 74 at Papago GC"))
+  }
+}
+
+/// W3 twin (P0) · a nine is never "broke 80". `is_sub80` does not look at the
+/// hole count and the row carries none, so the claim waits for a round KNOWN
+/// to be eighteen holes; unknown claims nothing (L-44), and a known nine says
+/// it is a nine beside its figure.
+@Suite struct NineIsNeverBrokeEightyTests {
+  let now = ISO8601DateFormatter().date(from: "2026-08-27T15:00:00Z")!
+
+  @Test func onlyAKnownEighteenClaimsIt() {
+    let id = UUID()
+    let r = row(id, golfer: "Jade", gross: 43, pvi: 1.2, playedOn: "2026-08-27", sub80: true)
+    #expect(!HomeWireCopy.claimsSub80(r, holes: 9))
+    #expect(!HomeWireCopy.claimsSub80(r, holes: nil))
+    #expect(HomeWireCopy.claimsSub80(r, holes: 18))
+    #expect(HomeWireCopy.roundDetail(r, holes: 9)?.contains("broke 80") == false)
+    #expect(HomeWireCopy.roundDetail(r)?.contains("broke 80") == false, "unknown claims nothing")
+    #expect(HomeWireCopy.roundDetail(r, holes: 18) == "broke 80 for the first time.")
+    #expect(HomeCopy.milestone(r, holes: 9) == nil)
+    #expect(HomeCopy.milestone(r) == nil)
+    #expect(HomeCopy.milestone(r, holes: 18) == "Broke 80 — first time")
+  }
+
+  @Test func theDigestNeverSaysANineBrokeEighty() {
+    let mark = now.addingTimeInterval(-3600)
+    let nine = UUID()
+    let rounds = [row(nine, golfer: "Jade", gross: 43, playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600), sub80: true),
+                  row(golfer: "Diego", playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600))]
+    for holes in [KnownHoles([nine: 9]), .none] {
+      let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: holes, now: now)!
+      #expect(!d.body.contains("broke 80"), "\(d.body)")
+    }
+  }
+
+  @Test func aKnownNineSaysSoBesideItsFigure() {
+    #expect(HomeWireCopy.grossUnit(holes: 9) == "Gross · 9 holes")
+    #expect(HomeWireCopy.grossUnit(holes: 18) == "Gross")
+    #expect(HomeWireCopy.grossUnit(holes: nil) == "Gross")
   }
 }
 
