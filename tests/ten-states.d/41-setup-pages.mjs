@@ -141,7 +141,18 @@ const courseCard = (id, courseId, title, want) => ({
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
-    drive: toCourses, expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } } },
+    drive: toCourses, expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
+    /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
+       the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
+       select's whole value (plus its arrow) fits at every width. */
+    check: async (page) => page.evaluate(() => {
+      const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
+      const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
+      c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+      const need = c.measureText(s.options[s.selectedIndex].textContent).width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 24
+      const has = s.getBoundingClientRect().width
+      return need <= has + 1 ? true : `the tee select clips its value: it needs ${Math.round(need)}px and has ${Math.round(has)}`
+    }) },
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
   courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek'),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),

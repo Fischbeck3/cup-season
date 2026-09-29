@@ -4167,6 +4167,14 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-course{display:grid; grid-template-columns:1fr 340px; gap:var(--gutter-desk);
   align-items:start; margin-bottom:var(--s6);}
 @media (max-width:900px){ .cs-course{grid-template-columns:1fr; gap:var(--s4);} }
+/* TEN / W6 · §8's `1fr + 340` is the DESK BODY's (a left column near 820 at
+   1440). Inside You's column the lead's left column fell to 204px at 1280 —
+   the tee select clipped its value ("Blue — 70.1 / 121 · 7,8…") and the plate
+   squeezed its name into a tile (craft, round 2) — and to 26px at 960–1024.
+   The lead stacks, as it does on the phone, until its own width gives the
+   left column at least the right one's 340. */
+#youCourses{container-type:inline-size;}
+@container (max-width: 719px){ .cs-course{grid-template-columns:1fr; gap:var(--s4);} }
 /* D289 · a grid item's automatic minimum is its CONTENT, and the leaf's
    eighteen-column table is 514px wide — so at 390 the whole page scrolled
    sideways. `min-width:0` hands the scroll back to the leaf, which already
