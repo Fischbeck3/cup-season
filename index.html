@@ -3852,15 +3852,27 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    at the hole); reduced-motion lands them instantly. */
 #finish{
   position:fixed; inset:0; z-index:1100; display:none;
-  align-items:center; justify-content:center; padding:32px 24px;
+  align-items:center; justify-content:center; padding:32px 24px; overflow:auto;
   background:var(--ceremony);
   -webkit-tap-highlight-color:transparent;
 }
 #finish.open{display:flex;}
-.finish-card{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
-.finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:var(--ceremony-mut);}
+/* W4 · the ceremony is `.room-dusk` (markup), so the tokens inside it are the
+   dark printing in both themes — `act` is the dark printing's green on this
+   ground, `rule` its hairline. Its two halves: the moment (the course, the
+   number, the verdict, the points) and the share row (the card that will
+   leave, the photo switch, Share, and a quiet way back). */
+.finish-card{width:100%; max-width:440px; margin:auto; text-align:center; display:flex; flex-direction:column; align-items:center;}
+.finish-moment{width:100%; display:flex; flex-direction:column; align-items:center;}
+/* the course wraps whole on its own line and the day sits under it: a
+   separator never starts or ends a line (critique B). Agate, not tracked mono. */
+.finish-eyebrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--ceremony-mut); overflow-wrap:anywhere;}
+.finish-eyebrow span{display:block; text-wrap:balance;}
+.finish-eyebrow .dt{margin-top:4px;}
 .gross-slot{position:relative; margin-top:18px;}
-.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:var(--ceremony-ink);}
+/* §1.4 · a number is never the serif: the gross is the figure role, as it is
+   on the card it becomes (craft T) */
+.finish-gross{font-family:var(--board); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,104px); line-height:.92; color:var(--ceremony-ink);}
 /* C2 - the drop (owner-approved treatment, 2026-07-22 deck session): the ball
    rolls out of the left along the gross baseline on REAL friction - constant
    deceleration, distance follows 1-(1-t)^2 sampled into linear keyframes - dies
@@ -3905,40 +3917,69 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 #finish.open .finish-ball i{animation:csSpin 1.15s var(--roll) .15s both;}
 #finish.open .finish-cup, #finish.open .finish-cupfront{animation:csFade .4s ease .15s both, csGone .35s ease 2.35s forwards;}  /* in with the ball, gone once the number holds the room */
 #finish.open .finish-cupring{animation:csAnswer .7s var(--roll) 1.7s both;}
-.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:var(--ceremony-ink); margin-top:12px;}
-.finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
-.finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
+.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:var(--ceremony-ink); margin-top:12px; text-wrap:balance;}
+.finish-band .run, .finish-pts .run{font-family:var(--board); font-weight:700; font-variant-numeric:tabular-nums;}
+/* the facts line, sized up and said as a phrase (owner T, craft R: it was
+   12px tracked mono caps). Round points are ink: gold is for what was won
+   (§2.4 — the pot, a prize, a finish), and the door's sample and this line
+   no longer disagree on their colour (owner C). */
+.finish-pts{font-family:var(--board); font-size:17px; font-weight:600; line-height:1.3; color:var(--ceremony-ink); margin-top:18px; min-height:1em; text-wrap:balance;}
 .finish-pts.card{color:var(--ceremony-mut);}      /* league-less: it just posts to your rounds */
-.finish-rule{width:64px; height:1px; background:#1C2620; margin-top:26px;}
+/* THE SHARE ROW (owner E/D, craft H/B/D, critique B): the golfer sees the card
+   before it leaves — drawn by the same painter the export uses — and one
+   button at one weight: the photo is a switch that states its state, Share is
+   the one ordinary action (act, D359: ember is competition, and a share is
+   not one), and the way back is a quiet link. A share's outcome is said here,
+   under the button, because the toast lives beneath this curtain. */
+.finish-share-row{width:100%; display:flex; align-items:center; gap:var(--s4); margin-top:28px; padding-top:24px; border-top:var(--hair) solid var(--rule); text-align:left;}
+.finish-preview{flex:none; width:128px; aspect-ratio:4/5; border-radius:8px; overflow:hidden; background:var(--ceremony); box-shadow:0 0 0 1px var(--rule);}
+.finish-preview[hidden]{display:none;}
+.finish-preview canvas{display:block; width:100%; height:100%;}
+.finish-controls{flex:1; min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:var(--s2);}
+.finish-photoopt{
+  display:flex; align-items:center; justify-content:space-between; gap:var(--s3); min-height:44px; width:100%;
+  padding:0; border:0; background:none; cursor:pointer; text-align:left;
+  font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
+}
+/* the switch's track and knob: the knob's side and the track's fill say
+   on or off, not a brightness change (§16.4); off is an outline in mut */
+.finish-photoopt::after{content:""; flex:none; width:44px; height:26px; border-radius:13px; box-sizing:border-box;
+  background:radial-gradient(circle at 13px 50%, var(--ceremony-mut) 8px, transparent 8.5px);
+  box-shadow:inset 0 0 0 2px var(--ceremony-mut);}
+.finish-photoopt[aria-pressed="true"]::after{background:radial-gradient(circle at 31px 50%, var(--ceremony) 8px, transparent 8.5px), var(--act); box-shadow:none;}
+.finish-photoopt:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:6px;}
 .finish-share{
-  display:flex; align-items:center; justify-content:center; min-height:46px; min-width:220px;
-  margin-top:26px; padding:0 28px; border:0; border-radius:var(--rc); cursor:pointer;
-  font-family:var(--sans); font-size:14px; font-weight:600; color:var(--ceremony); background:var(--ceremony-brand);
+  display:flex; align-items:center; justify-content:center; min-height:48px;
+  padding:0 20px; border:0; border-radius:var(--rc); cursor:pointer;
+  font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony); background:var(--act);
   transition:filter .2s var(--roll);
 }
 .finish-share:hover{filter:brightness(1.06);}
 .finish-share:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
-.finish-photoopt{
-  display:flex; align-items:center; justify-content:center; gap:var(--s2); min-height:44px;
-  margin-top:var(--s5); padding:0 var(--s4); border:1px solid var(--ceremony-mut);
-  border-radius:var(--rc); background:none; cursor:pointer;
-  font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ceremony-mut);
+.finish-status{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut);}
+.finish-status:empty{display:none;}
+.finish-back{align-self:flex-start; min-height:44px; padding:0; border:0; background:none; cursor:pointer;
+  font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
+  text-decoration:underline; text-decoration-color:var(--ceremony-mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.finish-back:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:6px;}
+/* the desk: the moment on the left, the card itself at a readable size on
+   the right with its controls under it (D234; owner Sp/D: it was a 300px
+   column in a black field) */
+@media (min-width:960px){
+  .finish-card{max-width:920px; display:grid; grid-template-columns:minmax(0,1fr) 320px; column-gap:64px; align-items:center;}
+  .finish-share-row{flex-direction:column; align-items:stretch; margin-top:0; padding-top:0; border-top:0;}
+  .finish-preview{width:100%;}
 }
-.finish-photoopt[aria-pressed="true"]{color:var(--ceremony-ink); border-color:var(--ceremony-ink);}
-.finish-photoopt:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
-.finish-back{margin-top:8px; padding:12px; border:0; background:none; cursor:pointer;
-  font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ceremony-mut);}
-.finish-back:focus-visible{outline:2px solid var(--ceremony-mut); outline-offset:2px; border-radius:6px;}
 /* the reveal — staggered roll-in on the brand's one easing, held until the
    ball is in the hole (C2): gross lands at 1.85s where the ball fell */
 #finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.85s both;}
 #finish.open .finish-band{animation:finishRoll .64s var(--roll) 2.03s both;}
 #finish.open .finish-pts{animation:finishRoll .64s var(--roll) 2.21s both;}
-#finish.open .finish-rule, #finish.open .finish-photoopt, #finish.open .finish-share, #finish.open .finish-back{animation:csFade .5s ease 2.55s both;}
+#finish.open .finish-share-row{animation:csFade .5s ease 2.55s both;}
 @keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @media(prefers-reduced-motion:reduce){
   #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts,
-  #finish.open .finish-rule, #finish.open .finish-photoopt, #finish.open .finish-share, #finish.open .finish-back{animation:none;}
+  #finish.open .finish-share-row{animation:none;}
   #finish.open .finish-ball, #finish.open .finish-cup,
   #finish.open .finish-cupfront, #finish.open .finish-cupring{display:none;}
 }
@@ -6247,21 +6288,30 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
 <!-- the finish screen (2.1): a posted round ends in ceremony, not a toast.
      Dusk-locked full-screen band reveal; dialog role, dismisses to the board. -->
-<div id="finish" role="dialog" aria-modal="true" aria-label="Round posted" aria-hidden="true">
+<div id="finish" class="room-dusk" role="dialog" aria-modal="true" aria-label="Round posted" aria-hidden="true">
   <div class="finish-card">
-    <div class="finish-eyebrow" id="finEyebrow"></div>
-    <div class="gross-slot"><div class="finish-cup" aria-hidden="true"></div><div class="finish-ball" aria-hidden="true"><i></i></div><div class="finish-cupfront" aria-hidden="true"></div><div class="finish-cupring" aria-hidden="true"></div><div class="finish-gross" id="finGross"></div></div>
-    <div class="finish-band" id="finBand"></div>
-    <div class="finish-pts" id="finPts"></div>
-    <div class="finish-rule" aria-hidden="true"></div>
-    <!-- D359 follow-through · the photograph is the golfer's, and the artifact
-         that leaves the app asks before it carries it. The phone asks with a
-         switch and the desk with a pressed-state button — one sentence, two
-         shapes (RoundCopy.photoInclude). Hidden when the round has no
-         photograph, so the control never stands with nothing behind it. -->
-    <button class="finish-photoopt" id="finPhoto" type="button" aria-pressed="true" hidden></button>
-    <button class="finish-share" id="finShare" type="button">Share the card</button>
-    <button class="finish-back" id="finBack" type="button">Back to the board</button>
+    <div class="finish-moment">
+      <div class="finish-eyebrow" id="finEyebrow"></div>
+      <div class="gross-slot"><div class="finish-cup" aria-hidden="true"></div><div class="finish-ball" aria-hidden="true"><i></i></div><div class="finish-cupfront" aria-hidden="true"></div><div class="finish-cupring" aria-hidden="true"></div><div class="finish-gross" id="finGross"></div></div>
+      <div class="finish-band" id="finBand"></div>
+      <div class="finish-pts" id="finPts"></div>
+    </div>
+    <!-- W4 · the share row: the card that will leave (finishPreview draws it
+         with the export's own painter), then the controls at three weights. -->
+    <div class="finish-share-row">
+      <div class="finish-preview" id="finPreview" role="img" aria-label="The card that will be shared" hidden></div>
+      <div class="finish-controls">
+        <!-- D359 follow-through · the photograph is the golfer's, and the
+             artifact that leaves the app asks before it carries it — one
+             sentence on both clients (RoundCopy.photoInclude), a switch on
+             both now, and the preview beside it changes when it flips.
+             Hidden when the round has no photograph. -->
+        <button class="finish-photoopt" id="finPhoto" type="button" aria-pressed="true" hidden></button>
+        <button class="finish-share" id="finShare" type="button">Share the card</button>
+        <p class="finish-status" id="finStatus" role="status" aria-live="polite"></p>
+        <button class="finish-back" id="finBack" type="button">Back to the board</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -10082,12 +10132,22 @@ function drawRecapCard(d){
     if(iw&&ih){
       const s=Math.max(W/iw,H/ih), dw=iw*s, dh=ih*s;
       x.drawImage(d._img,(W-dw)/2,(H-dh)/2,dw,dh);
-      x.fillStyle='rgba(10,14,12,.78)'; x.fillRect(0,0,W,H);   /* the card's own ground (#0A0E0C), not D76's charcoal */
+      /* W4 · a MEASURED scrim on the card's own ground (#0A0E0C), not a
+         blackout (owner P, critique B): it was a 78% wash under a 58% panel,
+         so a photograph the golfer chose to include printed at ~1.3:1 at best
+         and the photo card read as the plain one. The photo now shows in the
+         top of the card and the ground deepens where the course line and the
+         signature sit (UI_SYSTEM §10.3's title scrim, lifted at the top
+         because the name and the marker sit there). */
+      const sc=x.createLinearGradient(0,0,0,H);
+      sc.addColorStop(0,'rgba(10,14,12,.44)'); sc.addColorStop(.44,'rgba(10,14,12,.5)');
+      sc.addColorStop(.72,'rgba(10,14,12,.74)'); sc.addColorStop(1,'rgba(10,14,12,.9)');
+      x.fillStyle=sc; x.fillRect(0,0,W,H);
     }
   }
-  x.fillStyle = d._img ? 'rgba(23,25,28,.58)' : PANEL;   /* D76 card over photo */
-  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
-  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
+  if(!d._img){ x.fillStyle = PANEL; x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill(); }
+  /* the frame is a hairline, not gold: gold is for what was won (§2.4) */
+  x.strokeStyle='rgba(241,244,239,.22)'; x.lineWidth=2;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
   /* the marker — identity above everything (living-card rule) */
   const mk=(window.MARKERS||{})[d.marker];
@@ -10113,8 +10173,17 @@ function drawRecapCard(d){
   const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
   if(pviSane){
     /* third person on the artifact — its audience is the group chat, and the
-       golfer's name is right above (same rule as the share page) */
-    ctr(theirs(bandName(Number(d.pvi))).toUpperCase(), 850, `600 46px ${BOARD}`, GOLD, 6);
+       golfer's name is right above (same rule as the share page).
+       W4 · ONE PHRASING (owner C/R): the card said the band's label ("BEAT
+       THEIR NUMBER", "PLAYED TO IT") while the ceremony and the public page
+       said the comparison, and a label is an insider word to the friend who
+       receives the card. It says the comparison now — R-M's noun, the same
+       producer as the ceremony and the public page, said once (F13). In ink:
+       a verdict is not an earning, and gold is for what was won (§2.4). The
+       line shrinks to fit rather than run through the frame. */
+    const said=theirs(vsPhrase(Number(d.pvi))).toUpperCase();
+    let bpx=46; for(; bpx>30; bpx-=2){ x.font=`600 ${bpx}px ${BOARD}`; try{ x.letterSpacing='6px'; }catch(e){} const w=x.measureText(said).width; try{ x.letterSpacing='0px'; }catch(e){} if(w<=W-192) break; }
+    ctr(said, 850, `600 ${bpx}px ${BOARD}`, INK, 6);
     /* F13 · the band is said ONCE on the artifact, as the phone's RecapCardView
        says it. The sentence under it ("played to their playing HCP" under PLAYED
        TO IT) repeated the band in smaller type; the margin it can add rides in
@@ -10264,7 +10333,13 @@ function recapText(d){
     + (pviSane?` — ${theirs(vsPhrase(Number(d.pvi)))}`:'')
     + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
 }
-async function shareRecapCard(d){
+/* `report` (optional) says the outcome where the golfer is looking — the
+   finish ceremony passes one, because a toast paints beneath its curtain
+   (critique B). Without it the toast says it, as before. The caption is
+   claimed as copied only when a clipboard took it (an absent clipboard used
+   to "succeed" through the optional chain and say so). */
+async function shareRecapCard(d, report){
+  const say = m => { if(typeof report === 'function') report(m); else toast(m); };
   try{
     /* the posted photo rides onto the card when there is one (photos arc) */
     if(d.photo && typeof photoDrawable==='function'){
@@ -10275,17 +10350,19 @@ async function shareRecapCard(d){
     const text=recapText(d);
     if(navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({files:[file], text});
+      if(typeof report === 'function') report('Shared.');
       return;
     }
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
-    catch(e){ toast('Card downloaded'); }
+    let copied=false;
+    try{ if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); copied=true; } }catch(_){ copied=false; }
+    say(copied ? 'Card downloaded · caption copied' : 'Card downloaded');
   }catch(e){
     if(e && e.name==='AbortError') return;   /* golfer closed the share sheet — not an error */
     console.warn('[recap card]', e);
-    toast(humanError(e, 'Could not make the card.'));
+    say(humanError(e, 'Could not make the card.'));
   }
 }
 /* ---- D78 · the settlement card ---------------------------------------------
@@ -11151,10 +11228,12 @@ let _ceremonyOwnsShare=false;
 function finishCeremony(o){
   const el=document.getElementById('finish');
   if(!el){ stampPosted('POSTED ✓'); return; }   /* element gone: never fail silent — old stamp */
-  const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-  const MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const DW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dt=(o.date instanceof Date && !isNaN(o.date)) ? o.date : new Date();
-  $('#finEyebrow').textContent=`${String(o.course||'A round').toUpperCase()} · ${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}`;
+  /* two lines by design: the course wraps whole, the day under it (the agate
+     role sets the caps; the words stay words) */
+  $('#finEyebrow').innerHTML=`<span class="crs">${esc(String(o.course||'A round'))}</span><span class="dt">${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}</span>`;
   $('#finGross').textContent=(o.gross!=null?o.gross:'');
   /* the band line reuses the app's one phrase producer — never re-derived.
      Gate on a SANE vs: a rating-less post recalcs to a nonsense differential
@@ -11162,17 +11241,23 @@ function finishCeremony(o){
      a number — the band bows out and eyebrow/gross/points carry the ceremony
      alone. Scoring/recalc are untouched; this is a display gate only. */
   const vsSane = o.vs!=null && isFinite(o.vs) && Math.abs(Number(o.vs))<=30;
-  $('#finBand').textContent = vsSane ? vsPhrase(Number(o.vs)) : '';
+  /* the one comparison producer, as a sentence; its number is a figure run
+     (§1.4 — never a number in the serif) */
+  const said = vsSane ? vsPhrase(Number(o.vs)) : '';
+  $('#finBand').innerHTML = said ? esc(said.charAt(0).toUpperCase() + said.slice(1) + '.').replace(/(\d+\.\d)/, '<span class="run">$1</span>') : '';
   const pl=$('#finPts');
-  if(o.inLeague && o.points>0){   /* champagne = EARNED: gold only for real points (>0), self-enforcing canon */
+  if(o.inLeague && o.points>0){
+    /* the points are ink now: gold is for what was won (§2.4), and a round's
+       points are not a trophy (owner C, craft C) */
     pl.className='finish-pts earned';
-    pl.textContent=`+${o.points} PTS`+(o.squad ? ` · COUNTS FOR ${String(o.squad).toUpperCase()}` : ' · COUNTS THIS SEASON');
+    pl.innerHTML=`<span class="run">+${esc(String(o.points))}</span> point${Number(o.points)===1?'':'s'}`
+      + (o.squad ? ` · counts for ${esc(String(o.squad))}` : ' · counts this season');
   } else {
     pl.className='finish-pts card';
-    /* D122 · "COUNTS TOWARD YOUR NUMBER" is true but not the question the golfer is
+    /* D122 · "Counts toward your number" is true but not the question the golfer is
        asking, which is why it did not count for the league. */
     const note = seasonNote('short');
-    pl.textContent = note ? note.toUpperCase() : 'COUNTS TOWARD YOUR NUMBER';
+    pl.textContent = note || 'Counts toward your number';
   }
   /* stash the exact payload the recap-card path expects (matches the epilogue) */
   _finishShare={
@@ -11194,12 +11279,33 @@ function finishCeremony(o){
        reads a missing const as the fallback string. `typeof` is the test. */
     po.textContent = (typeof CS_PHOTO!=='undefined' ? CS_PHOTO.include : 'Include round photo');
   }
+  const fs=$('#finStatus'); if(fs) fs.textContent='';
+  finishPreview();
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
   lockBody();
   csModal.opened('finish');
   _ceremonyOwnsShare=true;   /* the ceremony owns the share this post — the epilogue defers its own button */
   try{ if(navigator.vibrate) navigator.vibrate([10,38,10]); }catch(_){}   /* the stamp's thock */
+}
+/* the card that will leave, drawn by the painter the export uses — captured
+   here, at load, so the preview is always the real painter — so the golfer
+   shares exactly what they see (owner E, craft B/D, critique B). Redrawn when
+   the photo switch flips; the newest request wins. */
+const csPaintRecap = drawRecapCard;
+let _finishPreviewSeq = 0;
+async function finishPreview(){
+  const box=document.getElementById('finPreview'); if(!box || !_finishShare) return;
+  const seq=++_finishPreviewSeq;
+  const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
+  const d=Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null });
+  try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(_){}
+  if(d.photo && typeof photoDrawable==='function'){ try{ d._img = await photoDrawable(d.photo, 1200); }catch(_){ d._img=null; } }
+  if(seq!==_finishPreviewSeq) return;
+  let cv=null; try{ cv=csPaintRecap(d); }catch(_){ cv=null; }
+  if(!cv){ box.hidden=true; return; }
+  box.replaceChildren(cv); box.hidden=false;
+  box.setAttribute('aria-label', `The card that will be shared: ${d.gross!=null?d.gross:''} at ${d.course||'the course'}${d._img?', over your round photo':''}.`);
 }
 function finishDismiss(){
   const el=document.getElementById('finish');
@@ -11215,14 +11321,17 @@ function finishDismiss(){
   $('#finPhoto')?.addEventListener('click',e=>{
     const b=e.currentTarget;
     b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
+    finishPreview();   /* the preview follows the switch */
   });
   /* the OUTPUT carries the photograph only while the control says so; the
      round's own attachment is never touched by this — opting out of a card is
-     not removing a photograph from a round (§16). */
+     not removing a photograph from a round (§16). The outcome is said under
+     the button (critique B: the toast painted beneath this curtain). */
   $('#finShare')?.addEventListener('click',()=>{
     if(!_finishShare) return;
     const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
-    shareRecapCard(Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null }));
+    const fs=$('#finStatus'); if(fs) fs.textContent='';
+    shareRecapCard(Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null }), m => { if(fs) fs.textContent=m; });
   });
   $('#finBack')?.addEventListener('click',finishDismiss);
   el.addEventListener('click',e=>{ if(e.target===el) finishDismiss(); });   /* backdrop */
