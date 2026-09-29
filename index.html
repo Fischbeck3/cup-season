@@ -27552,15 +27552,19 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
   function eligible(){ try{ return !standalone && !localStorage.getItem('cs_nudge_done'); }catch(_){ return !standalone; } }
   /* never over a full-screen working surface: the live round, the composer,
      the wizard and squad formation each own the whole viewport */
-  var BUSY = ['view-play','view-record','view-wizard','view-draft'];
+  /* B25 (code audit 2026-08-30): the composer is `view-post`; the list named
+     only `view-record`, so the nudge could sit over the card being typed */
+  var BUSY = ['view-play','view-post','view-record','view-wizard','view-draft'];
   function busy(){ return BUSY.some(function(id){ var v=document.getElementById(id); return v && v.classList.contains('active'); }); }
   function show(){ if(shown || !eligible() || !n || busy()) return; shown = true; n.style.display = 'flex'; }
   window.csHideInstallNudge = function(){
     if(!n) return;
     if(busy()) n.style.display = 'none';
-    else if(shown) n.style.display = 'flex';
+    else if(shown && eligible()) n.style.display = 'flex';
   };
-  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; if(n) n.style.display = 'none'; }
+  /* B25 · a dismissal is final for the session too: `shown` stood true, so the
+     next view switch (csHideInstallNudge) painted the banner back (D186: once) */
+  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; shown = false; if(n) n.style.display = 'none'; }
   window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; });  /* hold — don't show until earned */
   window.csEarnInstallNudge = function(){ show(); };
   if(n){
