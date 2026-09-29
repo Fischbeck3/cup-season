@@ -65,7 +65,8 @@ enum RoundCardBlocks {
         rows.append(CSScorecardRow(
           label: mine ? "You" : "Score",
           cells: holes.map { h in
-            CSScorecardCell(h.strokes.map(String.init) ?? "", earned: h.mark == .under)
+            // W1 twin · the result is the card's own mark, in ink (D267/D368)
+            CSScorecardCell(h.strokes.map(String.init) ?? "", overPar: h.par.flatMap { p in h.strokes.map { $0 - p } })
           },
           total: b.strokes.map(String.init) ?? "", voice: .score,
           spoken: say(mine ? "Your round" : "The round", holes.map(\.strokes),

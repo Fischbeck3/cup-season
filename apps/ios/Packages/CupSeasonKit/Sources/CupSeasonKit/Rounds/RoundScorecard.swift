@@ -65,11 +65,10 @@ public struct RoundScorecardHole: Sendable, Equatable {
     self.hole = hole; self.par = par; self.si = si; self.yards = yards; self.strokes = strokes
   }
 
-  /// **The only colour on the card**, and it is one metal, not a rainbow.
-  /// §33 bans covering real golf with decoration; a scorecard that paints five
-  /// results in five colours is a heat map, not a card. Under par is `gold` —
-  /// the system's EARNED metal — and everything else is ink. A bogey does not
-  /// need to be shamed in red to be legible: the number says it.
+  /// The hole's result against its par. §33 bans covering real golf with
+  /// decoration, so the card draws it as the scorecard's own marks in ink
+  /// (`CSScoreMark`, D267/D368), never as a colour — and never as gold, which
+  /// is the earned metal (D359); a birdie is a fact, not a trophy.
   public enum Mark: Sendable, Equatable {
     case unknown   // no par to measure against
     case under
