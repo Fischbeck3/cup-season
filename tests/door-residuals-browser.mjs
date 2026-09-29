@@ -77,8 +77,10 @@ for (const width of [375, 402, 1280, 1600]) for (const theme of ['dark', 'light'
   /* the league-code branch, opened FIRST in a fresh page, has its own way back */
   await page.goto(BASE + '/?exit', { waitUntil: 'load' }); await page.waitForURL(u => !/[?&]exit\b/.test(String(u)), { waitUntil: 'load' }); await page.waitForSelector('#obJoin', { state: 'visible' }); await page.waitForTimeout(300)
   await page.focus('#obJoin'); await page.keyboard.press('Enter')
-  const jn = await page.evaluate(() => { const b = document.getElementById('obBack'); const j = document.getElementById('obJoin'); const r = b?.getBoundingClientRect(); return { exists: !!b, shown: !!b && getComputedStyle(b).display !== 'none', above: !!b && r.bottom <= j.getBoundingClientRect().top + 0.5, w: r?.width, h: r?.height } })
-  check(`${label}: the league-code branch has a Back above it`, jn.exists && jn.shown && jn.above && jn.w >= 44 && jn.h >= 44, jn)
+  /* the chosen door gives way to its field (as the email door does), and Back
+     sits above the league-code FIELD */
+  const jn = await page.evaluate(() => { const b = document.getElementById('obBack'); const f = document.getElementById('joinCode'); const r = b?.getBoundingClientRect(); return { exists: !!b, shown: !!b && getComputedStyle(b).display !== 'none', above: !!b && r.bottom <= f.getBoundingClientRect().top + 0.5, doorHidden: getComputedStyle(document.getElementById('obJoin')).display === 'none', w: r?.width, h: r?.height } })
+  check(`${label}: the league-code branch has a Back above its field, and its door gives way`, jn.exists && jn.shown && jn.above && jn.doorHidden && jn.w >= 44 && jn.h >= 44, jn)
   await page.focus('#obBack'); await page.keyboard.press('Enter')
   const jb = await page.evaluate(() => document.activeElement?.id)
   check(`${label}: Back from the code branch focuses the code door`, jb === 'obJoin', jb)

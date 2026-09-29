@@ -2794,10 +2794,12 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   border-radius:5px; padding:2.5px 6px; margin-left:8px;
 }
 .ob-status{
-  font-family:var(--mono); font-size:12.5px; line-height:1.6; letter-spacing:.02em;
+  /* a status is a SENTENCE, so it is set in sans (UI_SYSTEM §1.4), at the
+     reading size: it was 12.5px mono, the smallest words on the Door */
+  font-family:var(--sans); font-size:14px; line-height:1.45;
   margin-top:10px; color:var(--mut);
 }
-.ob-status.ok{color:var(--pos);}
+.ob-status.ok{color:var(--ink);}   /* "Sent to…" is news, not a gain: --pos is a signed figure */
 .ob-status.err{color:var(--neg);}
 .slot4{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:10px;}
 @media(min-width:700px){ .slot4{grid-template-columns:repeat(4,1fr);} }
@@ -3485,6 +3487,10 @@ body:not(.noleague) #hubLeagueless{display:none;}
    minimum, so a four-line course name at 375 lost its first line and the
    "on your schedule" line off the plate's top edge. `clip` crops the drawing
    the same way and lets the plate grow to hold its words. */
+/* a figure inside a sentence that opens its round: 44px of hit box from
+   padding that the negative margins take back, so the line keeps its height */
+.cs-bestlink{display:inline-block; background:none; border:0; padding:12px 6px; margin:-12px -4px; font:inherit; color:var(--ink); font-weight:600;
+  text-decoration:underline; text-underline-offset:3px; cursor:pointer; vertical-align:baseline;}
 .cs-plate{position:relative; aspect-ratio:2.6/1; background:var(--ceremony);
   overflow:hidden; overflow:clip; display:flex; align-items:flex-end;}
 .cs-plate .cs-plate-copy{position:relative; z-index:2; padding:var(--s4);
@@ -3519,7 +3525,16 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-leaf-cap{color:var(--leaf-mut); padding-bottom:6px;}
 .cs-nines{overflow-x:auto; overscroll-behavior-x:contain;}
 .cs-nines table{border-collapse:separate; border-spacing:0; width:100%;
-  font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap;
+  /* the nine holes are EQUAL columns: auto layout sized each by its widest
+     figure, so a nine without yardage read "1 2  3  4 5 6  7 8  9" (the craft
+     panel). The key and the total take their own widths; the table never
+     shrinks below what its figures need (--hc per hole), so a nine that cannot
+     fit still scrolls under the pinned key, as before. */
+  table-layout:fixed; min-width:calc(3.2em + 3.6em + 9 * var(--hc, 2.6ch));}
+.cs-nines table.yds{--hc:3.6ch;}
+.cs-nines thead th[scope="row"]{width:3.2em;}
+.cs-nines thead th.tot{width:3.6em;}
 .cs-nines table + table{margin-top:var(--s3);}
 .cs-nines th, .cs-nines td{padding:2px 0 2px var(--s1); text-align:right; font-weight:400; color:var(--leaf-mut);}
 .cs-nines th[scope="row"]{position:sticky; left:0; z-index:1; background:var(--leaf);
@@ -16358,7 +16373,7 @@ function csCourseLeafHtml(holes, title){
       `<tr${cls?` class="${esc(cls)}"`:''}><th scope="row"${spoken?` aria-label="${esc(spoken)}"`:''}>${esc(key)}</th>`
       + cells.map(c=>`<td>${esc(c==null?'':String(c))}</td>`).join('')
       + `<td class="tot">${esc(tot)}</td></tr>`;
-    return `<table><caption class="cs-sr">${esc(n.name)}</caption>`
+    return `<table${yds ? ' class="yds"' : ''}><caption class="cs-sr">${esc(n.name)}</caption>`
       + `<thead><tr><th scope="row">HOLE</th>`
       + n.hs.map(h=>`<th scope="col" aria-label="Hole ${esc(String(h.hole))}">${esc(String(h.hole))}</th>`).join('')
       + `<th scope="col" class="tot">${n.tot.toUpperCase()}</th></tr></thead><tbody>`
@@ -16513,12 +16528,15 @@ function renderCourseBooks(){
     const leaf = holes.length
       ? csCourseLeafHtml(holes, `The card · ${tee ? (tee.tee_name||'Tee') : ''}`)
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
+    /* two name sizes by length: a 60-character name at display size wrapped
+       to seven lines of caps and pushed the figures off the first screen
+       (the judges); past 40 characters the plate sets it at display-s */
     return `<section class="cs-course">
       <div>
         <div class="cs-plate">${plate}<div class="cs-scrim"></div>
           <div class="cs-plate-copy"><div style="min-width:0;flex:1">
             <div class="cs-agate cs-sub">${why}</div>
-            <div class="cs-display cs-name">${esc(csCourseLabel(b))}</div>
+            <div class="${csCourseLabel(b).length > 40 ? 'cs-display-s' : 'cs-display'} cs-name">${esc(csCourseLabel(b))}</div>
             ${csCoursePlace(b)?`<div class="cs-agate cs-sub">${esc(csCoursePlace(b))}</div>`:''}
           </div></div>
         </div>
@@ -16559,12 +16577,19 @@ function renderCourseBooks(){
    §5 both want the night before, drawn from the 400 rounds `loadCareer`
    already holds. Absent, never dashed, when nothing produced it (L-44). */
 function csCourseHistoryLine(b){
-  const n = csRoundsAt(b.id), best = csBestAt(b.id);
+  const n = csRoundsAt(b.id), bestRow = csBestRoundAt(b.id);
   if(!n) return '';
-  const bits = [`You have played here ${n} time${n===1?'':'s'}`];
-  if(best != null) bits.push(`best ${best}`);
-  return `<p class="cs-body-s" style="color:var(--mut);padding-top:8px">${esc(bits.join(' · '))}</p>`;
+  /* §16 · a figure has a path to the round that produced it: "best 84" is a
+     door to that round's receipt (the owner's panel, D391) */
+  const bestH = bestRow
+    ? ` · best <button type="button" class="cs-bestlink" data-best-rid="${esc(String(bestRow.id))}" aria-label="Your best here, ${esc(String(bestRow.gross))}: open the round">${esc(String(bestRow.gross))}</button>`
+    : '';
+  return `<p class="cs-body-s" style="color:var(--mut);padding-top:8px">${esc(`You have played here ${n} time${n===1?'':'s'}`)}${bestH}</p>`;
 }
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-best-rid]');
+  if(b){ e.preventDefault(); window.csOpenPostedRound?.(b.dataset.bestRid); }
+});
 
 /* your record AT a course, off the 400 rounds `loadCareer` already holds.
    `api_course_id` is one word on that select and no migration (`rounds`
@@ -16573,14 +16598,15 @@ function csRoundsAt(id){
   if(!id) return 0;
   return (window.career?.rows || []).filter(r=>String(r.api_course_id||'')===String(id)).length;
 }
-function csBestAt(id){
+/* the best ROUND at a course (its gross and its id, so the figure can open it) */
+function csBestRoundAt(id){
   if(!id) return null;
   /* a nine's 35 is not a best — the phone's own rule (`CoursePageRepository`) */
-  const g = (window.career?.rows || [])
-    .filter(r=>String(r.api_course_id||'')===String(id) && (r.holes_played==null || r.holes_played===18))
-    .map(r=>Number(r.gross)).filter(n=>n>0);
-  return g.length ? Math.min(...g) : null;
+  const rs = (window.career?.rows || [])
+    .filter(r=>String(r.api_course_id||'')===String(id) && (r.holes_played==null || r.holes_played===18) && Number(r.gross)>0);
+  return rs.length ? rs.reduce((a, r) => Number(r.gross) < Number(a.gross) ? r : a) : null;
 }
+function csBestAt(id){ const r = csBestRoundAt(id); return r ? Number(r.gross) : null; }
 
 /* the sentences your golfers wrote, for the courses actually on screen. One
    read per course, capped at six, once per session — never one per row of a
@@ -20090,8 +20116,10 @@ function csEndgameClause(n){
     }
     const cf = cupFinalStart();
     const when = `${MOS[cf.getMonth()].toUpperCase()} ${cf.getDate()}`;
-    return (state.structure==='solo' && n===2)
-      ? `A FINAL BETWEEN THE TWO OF YOU, OPENS ${when}`
+    /* a field of two is BOTH, never "top 2" (SA-3's tautology, which the
+       squads2 league still printed: "TOP 2 INTO THE FINAL" of two squads) */
+    return (state.structure==='solo' && n===2) ? `A FINAL BETWEEN THE TWO OF YOU, OPENS ${when}`
+      : n === 2 ? `BOTH SQUADS PLAY THE FINAL, OPENS ${when}`
       : `TOP 2 INTO THE FINAL, OPENS ${when}`;
   }catch(_){ return null; }
 }
@@ -21159,12 +21187,11 @@ function csSideWho(){
   const idx = document.getElementById('sideIdx');
   const fc  = document.getElementById('sideFace');
   if(who) who.textContent = pr?.display_name || (state.demo ? 'You' : 'Your golf');
-  if(idx){
-    const n = pr && pr.index_current != null ? Number(pr.index_current) : null;
-    /* an unestablished index is ABSENT, never a dash: a slot with no figure
-       is not a verb and not a placeholder (home.md 1.3, rule 1). */
-    idx.textContent = (n != null && isFinite(n)) ? n.toFixed(1) + ' index' : '';
-  }
+  /* L-34 · the number is the facts strip's, directly above ("14.2 YOUR
+     NUMBER"); printed again here as "14.2 INDEX" it was one fact twice, under
+     two names, in one sidebar (the owner's and craft panels). The foot is the
+     face and the name. */
+  if(idx) idx.textContent = '';
   if(fc){
     fc.style.background = pr?.id ? csPigment(pr.id) : 'var(--bg2)';
     fc.innerHTML = window.mkr ? (window.mkr(pr?.marker || 'saguaro') || '') : '';
@@ -29583,7 +29610,13 @@ function doorBack(anchor, branch){
 
 $('#obEmail').addEventListener('click', () => {
   $('#joinbox').classList.remove('open');   /* don't stack the code box under it */
+  $('#obEmailGo').hidden = false;
   openEmailBox($('#obEmail'));
+});
+/* an edited address needs its own send */
+$('#obEmailIn')?.addEventListener('input', () => {
+  const b = $('#obEmailGo');
+  if(b && b.hidden && $('#obEmailIn').value.trim() !== (CS.pendingEmail || '')) b.hidden = false;
 });
 
 $('#obCodeGo').addEventListener('click', async () => {
@@ -29704,6 +29737,10 @@ $('#obEmailGo').addEventListener('click', async () => {
     await requestOtpCode(email);
     CS.pendingEmail = email;
     $('#codebox').classList.add('open');
+    /* one filled action per step: once the code is out, Verify is the step's
+       action and Resend covers a second send, so Send code steps aside (it
+       comes back if the address is edited) */
+    btn.hidden = true;
     $('#obCodeIn').focus();
     authStatus(`Sent to ${email}. Type the sign-in code from the newest email.`,'ok');
     startResendCooldown(); scheduleSpamHint();
@@ -29731,7 +29768,10 @@ $('#obJoin').addEventListener('click', () => {
      is open, so the golfer sees one path, not four rows of choices — and the
      same Back returns, so neither branch is a one-way street. */
   const em = $('#obEmail'); if(em) em.style.display = 'none';
-  doorBack($('#obJoin'), 'join');
+  /* the chosen door gives way to its field, as the email door does: the
+     league-code button stood above its own field (the category panel) */
+  $('#obJoin').style.display = 'none';
+  doorBack($('#joinbox'), 'join');
   $('#emailbox').classList.remove('open');   /* don't stack the two input rows */
   $('#codebox').classList.remove('open');
   const rs=$('#obResend'); if(rs) rs.style.display='none';
