@@ -434,8 +434,15 @@ struct LiveSlotChip: View {
         // a course's rounds all say "You". `player.me` was already on the row.
         Text(player.me ? "You" : player.n).csType(.name).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
-        Text("\(player.est ? "Est " : "")\(LiveFmt.idx(player.i)) playing HCP")
+        // N4-205 · the seat's noun is the index word (CredentialCopy's, the
+        // one label the card and You print), never "playing HCP" — the seat
+        // holds the golfer's INDEX; the playing HCP is derived from it. An
+        // estimated seat says so in TERMINOLOGY's words — without "(tap to
+        // change)": a tap on a seat here picks it for a team swap
+        Text(player.est ? "No number — playing off 18"
+                        : "\(LiveFmt.idx(player.i)) · \(CredentialCopy.indexLabel(isMe: player.me))")
           .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
       }
       Spacer(minLength: 0)
       if tradeable { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.act) }
