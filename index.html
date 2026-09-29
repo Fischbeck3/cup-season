@@ -1223,6 +1223,8 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
   padding:4px 8px 10px;
 }
 .tbl th.num, .tbl td.num{text-align:right;}
+#clashTbl .tc{text-transform:uppercase;}   /* W7-024 · a clash side's line takes its caps from the role (the phone's agateS caps), never the string */
+.tbl th .is-phrase{text-transform:none;}   /* W7-024 · a head's rider is a phrase: sentence case after the label's caps (§1.3, root's ruling) */
 .tbl td{padding:11px 8px; border-top:1px solid var(--rule); vertical-align:middle;}
 /* THE RANK RAIL (Wave 5, UI_SYSTEM 9.1). 44px, radius 0, a two-digit tabular
    numeral with a leading zero, and a FIELD: `gold` when the position was
@@ -9650,17 +9652,27 @@ function renderClash(){
     return rows[0]||null;
   };
   const aB=settled?wc.a_best:bestOf(wc.a_member), bB=settled?wc.b_best:bestOf(wc.b_member);
-  const head = settled
-    ? (wc.winner_member
-        ? `THE CLASH \u00b7 ${esc(nm(wc.winner_member).toUpperCase())} TOOK THE WEEK`
-        : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 ALL SQUARE`)
-    : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 THROUGH ${DOW[we.getDay()].toUpperCase()}`;
+  /* TEN / W6 · W7-024 [B2-season-5] (D's delta) · the head and its sides'
+     lines were built with toUpperCase(): capitals typed into the string. The
+     words are typed as said (ClashCopy's: "took the week", "through Sun", "No
+     round yet"). Root's ruling (§1.3): the head's LABEL, "The clash", keeps
+     its caps from the row's role (.tbl th); the RIDER after it is a phrase a
+     person reads aloud ("Devon took the week", "You v Devon · through Sun"),
+     so it is the agate role's phrase form, sentence case, on both clients.
+     The sides' lines keep their caps from their role (#clashTbl .tc), as the
+     phone's agateS lines set them. */
+  const up1 = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : t;   /* a phrase opens on a capital ("you" is the viewer) */
+  const pair = `${esc(nm(wc.a_member))} v ${esc(nm(wc.b_member))}`;
+  const rider = settled
+    ? (wc.winner_member ? `${esc(nm(wc.winner_member))} took the week` : `${pair} \u00b7 all square`)
+    : `${pair} \u00b7 through ${DOW[we.getDay()]}`;
+  const head = `The clash \u00b7 <span class="is-phrase">${up1(rider)}</span>`;
   const side=(id,b,key)=>{
     const won=settled && wc.winner_member===id;
     const band=b ? (b.band || bandName(Number(b.pvi))) : null;
     const sub=b
-      ? `${esc(String(id===meId?band:theirs(band)).toUpperCase())} \u00b7 ${DOW[localDate(String(b.played_on)).getDay()].toUpperCase()}`
-      : (settled?'IDLE \u2014 NO ROUND':'NO ROUND YET');
+      ? `${esc(String(id===meId?band:theirs(band)))} \u00b7 ${DOW[localDate(String(b.played_on)).getDay()]}`
+      : (settled?'Idle \u2014 no round':'No round yet');
     return `<tr class="${b&&b.round_id?'tap':''}" ${b&&b.round_id?`data-clash="${key}"`:''}>
       <td class="rk mono">${won?'W':''}</td>
       <td><div class="tn">${esc(nm(id))}</div><div class="tc">${sub}</div></td>

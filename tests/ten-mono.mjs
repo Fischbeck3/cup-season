@@ -195,6 +195,28 @@ export const capsFromRole = (sels, need = []) => async (page) => page.evaluate((
   return bad.length ? 'capitals typed into the string, not set by the role (§1.3): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
 }, [sels, need])
 
+/* TEN / W6 · W7-071 · the other half of §1.3 (root's OB2-02 ruling): a
+ * SENTENCE a person reads aloud is set in sentence case, the agate role's
+ * phrase form. `phraseAsSaid(sels, need)` fails when a visible element types
+ * capitals (read as capsFromRole reads them), or when its role still sets it
+ * in caps. `need` works as in `notMono`. */
+export const phraseAsSaid = (sels, need = []) => async (page) => page.evaluate(([sels, need]) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' }
+  const missing = need.map((n) => (typeof n === 'string' ? { sel: n } : n))
+    .filter((n) => !(n.below && innerWidth >= n.below))
+    .filter((n) => ![...document.querySelectorAll(n.sel)].some(shown)).map((n) => n.sel)
+  if (missing.length) return 'the state does not draw ' + missing.join(', ')
+  const ACRO = new Set(['HCP', 'GHIN', 'PGA', 'USGA', 'WHS'])
+  const bad = []
+  for (const sel of sels.map((n) => (typeof n === 'string' ? n : n.sel))) for (const el of document.querySelectorAll(sel)) {
+    if (!shown(el)) continue
+    const typed = ((el.textContent || '').match(/\b[A-Z]{3,}\b/g) || []).filter((w) => !ACRO.has(w))
+    if (typed.length) bad.push(`${sel} types ${JSON.stringify(typed.slice(0, 5).join(' '))}`)
+    else if (getComputedStyle(el).textTransform !== 'none') bad.push(`${sel} is set in caps`)
+  }
+  return bad.length ? 'a sentence is not set as said (§1.3): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
+}, [sels, need])
+
 /* TEN / W6 · E's twin (N4-087) · UI_SYSTEM §10.3: copy over a photograph is
  * measured on the photograph. `bandContrast(card, parts)` scrolls the first
  * visible `card` into view, paints each part's own text transparent (and any
