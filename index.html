@@ -4511,6 +4511,9 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .phsw{display:flex; align-items:center; gap:var(--s3); width:100%; min-height:52px; padding:var(--s2) 0;
   background:none; border:0; border-top:1px solid var(--rule); color:var(--ink); text-align:left; cursor:pointer; font:inherit;}
 .phsws > .phsw:last-child{border-bottom:1px solid var(--rule);}
+/* W7-082 · a channel group's head: an agate label under the block's own head, with the gap between sections above it (the first sits close under 'Notifications') */
+.phgrp-h{margin:var(--s4) 2px var(--s2);}
+.phgrp-h.is-first{margin-top:var(--s2);}
 .phsw:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .phsw:disabled{cursor:progress;}
 .phsw-t{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px;}
@@ -31366,13 +31369,26 @@ function openProfileHub(){
          critique-B P2). Every notification lives here: the three conversation
          switches that only the inbox sheet carried join them (owner C). -->
     <div class="eyebrow" role="heading" aria-level="3" style="margin-top:0">Notifications</div>
+    <!-- W7-082 · the block NAMES ITS CHANNELS. Push, email and in-app kinds shared one list with no labels, so 'This device' read off while six kinds read on, and the last row of
+         one block met the first rule of the next as a doubled hairline. Three groups now, each under its own agate head (level 4 under 'Notifications'): the devices (This device
+         switches alerts on for this browser; Round posts and Chat are account flags the push function honours on every device, so every switch stays enabled whatever This device
+         says), the email, and the in-app kinds. Each group hides with its own switches when the server cannot answer them (the recap RPC, D391). -->
+    <div class="eyebrow phgrp-h is-first" role="heading" aria-level="4">On your devices</div>
     <div class="phsws" id="phNotify">
       ${phSwitch('phPushTog', 'This device', 'Notifications on this browser')}
       ${phSwitch('phRoundsTog', 'Round posts', 'When someone in your seasons posts a round')}
       ${phSwitch('phChatTog', 'Chat', 'Messages on your seasons’ boards')}
-      ${phSwitch('phMailTog', 'Season email', 'The recap when a season ends')}
     </div>
-    <div class="phsws" id="phTalk" hidden></div>
+    <p class="fine" style="padding-left:0">This device switches alerts on for this browser. Round posts and Chat choose which alerts you get, on every device.</p>
+    <div id="phMailGroup">
+      <div class="eyebrow phgrp-h" role="heading" aria-level="4">By email</div>
+      <div class="phsws">${phSwitch('phMailTog', 'Season email', 'The recap when a season ends')}</div>
+    </div>
+    <div id="phTalkGroup" hidden>
+      <div class="eyebrow phgrp-h" role="heading" aria-level="4">In Cup Season</div>
+      <div class="phsws" id="phTalk"></div>
+      <p class="fine" style="padding-left:0">${typeof CS_INBOX !== 'undefined' ? esc(CS_INBOX.prefsNote) : ''}</p>
+    </div>
     <p class="fine" style="padding-left:0">Milestones, results and month closes always come through.</p>
 
     <!-- R9 (S8) · the scan's yes, taken back where the other switches live -->
@@ -31728,7 +31744,7 @@ function openProfileHub(){
     sb.rpc('social_notify_prefs').then(({ data, error }) => {
       if(error || !data || !talk.isConnected) return;
       talk.innerHTML = CS_INBOX.prefs.map(([k, name, sub]) => phSwitch('phTalk_' + k, name, sub)).join('');
-      talk.hidden = false;
+      const grp = $('#phTalkGroup'); if(grp) grp.hidden = false;   /* W7-082 · the head, the rows and the note appear together, or not at all */
       CS_INBOX.prefs.forEach(([k]) => {
         const el = document.getElementById('phTalk_' + k);
         phSwitchSet(el, data[k] !== false);
@@ -31764,9 +31780,10 @@ function openProfileHub(){
   const mailBtn = $('#phMailTog');
   if(mailBtn){
     const paint = on => phSwitchSet(mailBtn, on);
+    const noMail = () => { const g = $('#phMailGroup'); if(g) g.hidden = true; else mailBtn.style.display = 'none'; };   /* W7-082 · the 'By email' head goes with its one switch */
     sb.rpc('set_email_recap', {}).then(({ data, error }) => {
-      if(error) mailBtn.style.display = 'none'; else paint(data !== false);
-    }).catch(()=>{ mailBtn.style.display = 'none'; });
+      if(error) noMail(); else paint(data !== false);
+    }).catch(noMail);
     mailBtn.addEventListener('click', async () => {
       mailBtn.disabled = true;
       const next = mailBtn.getAttribute('aria-checked') !== 'true';

@@ -396,6 +396,46 @@ const unsavedSaid = async (page) => page.evaluate((want) => {
 }, CARD_UNSAVED)
 /* the sheet is still the hub (title, no guide's way back) */
 const stillTheHub = async (page) => page.evaluate(() => document.getElementById('shTitle').textContent === 'Card & settings' && !document.getElementById('guideBack') ? true : `the sheet left the card: ${JSON.stringify(document.getElementById('shTitle').textContent)}`)
+/* TEN / W8 · W7-082 [A2-settings-5] · the Notifications block names its channels: 'On your devices' (This device, Round posts, Chat, with what This device governs), 'By email' (Season email) and 'In Cup Season' (the three
+   conversation switches, with their note), each an agate head at level 4 under 'Notifications'; no two ruled blocks abut (the doubled hairline), every switch stays enabled whatever This device says, and a group whose
+   RPC cannot answer hides with its head. `heads` is the list of groups the state expects to be drawn. */
+const NOTIFY_GROUPS = {
+  'On your devices': ['phPushTog', 'phRoundsTog', 'phChatTog'],
+  'By email': ['phMailTog'],
+  'In Cup Season': ['phTalk_own_round', 'phTalk_replies', 'phTalk_followed'],
+}
+const notifyGroups = (heads) => async (page) => page.evaluate(({ heads, groups }) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const pane = document.getElementById('phPaneSettings'), top = [...pane.querySelectorAll('.eyebrow[role="heading"]')].find((h) => h.textContent.trim() === 'Notifications')
+  if (!top || top.getAttribute('aria-level') !== '3') return 'the Notifications head is missing or not level 3'
+  const seen = [...pane.querySelectorAll('.phgrp-h')].filter(shown)
+  if (JSON.stringify(seen.map((h) => h.textContent.trim())) !== JSON.stringify(heads)) return `the channel heads read ${JSON.stringify(seen.map((h) => h.textContent.trim()))}, expected ${JSON.stringify(heads)}`
+  for (const h of seen) {
+    if (h.getAttribute('role') !== 'heading' || h.getAttribute('aria-level') !== '4') return `${JSON.stringify(h.textContent.trim())} is not a level-4 heading`
+    let rows = h.nextElementSibling; while (rows && !rows.classList.contains('phsws')) rows = rows.nextElementSibling
+    const ids = rows ? [...rows.querySelectorAll('.phsw')].filter(shown).map((b) => b.id) : []
+    const want = groups[h.textContent.trim()]
+    if (JSON.stringify(ids) !== JSON.stringify(want)) return `${JSON.stringify(h.textContent.trim())} holds ${JSON.stringify(ids)}, expected ${JSON.stringify(want)}`
+  }
+  const all = [...pane.querySelectorAll('.phsws')].filter(shown)
+  for (const g of all) if (g.nextElementSibling && g.nextElementSibling.classList.contains('phsws') && shown(g.nextElementSibling)) return 'two ruled switch blocks abut (a doubled hairline)'
+  const off = [...pane.querySelectorAll('.phsw')].filter((b) => shown(b) && b.disabled).map((b) => b.id)
+  if (off.length) return `switches disabled: ${off.join(', ')}`
+  const said = (el) => { let n = el; while ((n = n.nextElementSibling)) if (n.classList.contains('fine')) return n.textContent.trim(); return '' }
+  const devices = pane.querySelector('#phNotify')
+  if (said(devices) !== 'This device switches alerts on for this browser. Round posts and Chat choose which alerts you get, on every device.') return `the devices sentence reads ${JSON.stringify(said(devices))}`
+  if (heads.includes('In Cup Season')) {
+    const note = pane.querySelector('#phTalkGroup > .fine')
+    if (!note || note.textContent.trim() !== 'Muted conversations stay quiet. You won\u2019t be notified of your own comments.') return 'the conversation note is missing or misread'
+  }
+  for (const [name, id] of [['By email', 'phMailGroup'], ['In Cup Season', 'phTalkGroup']]) {
+    if (!heads.includes(name) && !document.getElementById(id).hidden) return `${name} is not drawn, but its group is not hidden`
+  }
+  const last = [...pane.querySelectorAll(':scope > .fine')].find((p) => /^Milestones, results and month closes always come through\.$/.test(p.textContent.trim()))
+  if (!last) return 'the always-come-through line is gone'
+  const lastGroup = [...pane.querySelectorAll('.phsws')].filter(shown).pop()
+  return lastGroup.compareDocumentPosition(last) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the always-come-through line is not after the last group'
+}, { heads, groups: NOTIFY_GROUPS })
 const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
     drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
@@ -406,7 +446,14 @@ const SETTINGS = [
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
-    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings')) },
+    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings'), notifyGroups(['On your devices', 'By email', 'In Cup Season']), ariaWellFormed('#phPaneSettings')) },
+  /* W7-082 · a server that cannot answer the recap or the conversation switches (D68, D391 not deployed): their groups hide with their heads, and the devices group stands alone */
+  { family: 'settings', id: 'notify-skew', variant: 'member', fullPage: false, title: 'Card & settings · Settings when the server has no season email or conversation switches',
+    world: { errors: { rpc: { set_email_recap: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' }, social_notify_prefs: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' } } } },
+    expectConsole: [/status of 404/],
+    drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(600) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phPushTog': 'visible' } },
+    check: all(notifyGroups(['On your devices']), ariaWellFormed('#phPaneSettings')) },
   /* TEN / W8 · W7-043 [A2-settings-4] · the Handicap index block, scrolled to. Once the engine owns the number (index_source 'app') the card draws no
      field and no 'Update index' (the server refuses the edit by design and the golfer learned it from a toast): it says whose the number is, in the
      phone's words (CardAndSettingsScreen, Y-06), and keeps the door. A golfer whose number has not been built keeps the starter field. */
