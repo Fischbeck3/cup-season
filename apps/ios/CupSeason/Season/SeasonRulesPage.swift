@@ -140,11 +140,12 @@ struct SeasonRulesPage: View {
               catch { toast.show(roomError(error, "Could not make the link."), kind: .failed) }
             }
           }
-          ArmedMini("✕", armedLabel: "Sure? Turn it off") {
+          // W7-008 · a word, not a bare ✕, turns the link off for everyone (C's words)
+          ArmedMini("Turn off", armedLabel: "Sure? Turn it off") {
             guard model.season != nil else { return }
             Task {
               do { try await model.revokeSeasonShare(); toast.show("Link is off — the page stops working for everyone", kind: .confirmed) }
-              catch { toast.show(roomError(error, "Could not revoke."), kind: .failed) }
+              catch { toast.show(roomError(error, "Could not turn it off — the link is still live."), kind: .failed) }
             }
           }
           .accessibilityLabel("Turn off this link — the page stops working for everyone who has it")
