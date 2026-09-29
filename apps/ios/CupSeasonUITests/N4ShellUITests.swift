@@ -34,11 +34,15 @@ final class N4ShellUITests: N2UITestCase {
       XCTAssertTrue(riding.isEmpty, "\(size): no tab rides on top of the keys — \(riding.map { "\($0.label) \($0.frame)" })")
       XCTAssertLessThanOrEqual(field.frame.maxY, top, "\(size): the search field is above the keys")
       attach(app, "n4-golfers-search-keyboard-\(size)")
-      // the keyboard goes, and the band comes back
+      // the keyboard goes, and the band comes back. No key is tapped by name:
+      // root's 17 Pro drew no "search" key, and on this one a "return" key
+      // that existed could not be tapped (XCUI's legacy and modern attributes
+      // disagreed on whether it was a button). The return goes through the
+      // field instead, which works whatever the key is called.
       app.swipeDown()
-      if keys.exists, app.buttons["Close keyboard"].firstMatch.exists { app.buttons["Close keyboard"].firstMatch.tap() }
-      if keys.exists { app.keyboards.buttons["Return"].firstMatch.tap() }
-      if keys.exists { app.keyboards.buttons["search"].firstMatch.tap() }
+      if keys.exists { field.typeText("\n") }
+      let close = app.buttons["Close keyboard"].firstMatch
+      if keys.exists, close.exists { close.tap() }
       XCTAssertTrue(waitGone(keys, timeout: 6), "\(size): the keyboard went")
       Thread.sleep(forTimeInterval: 1)
       XCTAssertGreaterThanOrEqual(band(app).filter(\.isHittable).count, 4, "\(size): the band is back")
