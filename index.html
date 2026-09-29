@@ -35873,8 +35873,11 @@ function openLeagueWelcome(name){
     loadBylaws(CS.league.id).then(b=>{
       const usd=Math.round(Number(b?.buyin_cents||0)/100);
       if(!usd) return;
+      /* TEN / W6 · the buy-in is what you OWE, so it is ink (UI_SYSTEM §2.4's
+         money row: gold is the pot itself or a thing won — root's ruling to E,
+         twin JoinLeagueFlow.swift:219); `.fine b` sets the ink */
       document.getElementById('shBody')?.insertAdjacentHTML('afterbegin',
-        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot: $${usd} buy-in.</b> The Pro tracks who's paid.</p>`);
+        `<p class="fine" style="padding:0 0 10px"><b>You're on the pot: $${usd} buy-in.</b> The Pro tracks who's paid.</p>`);
     }).catch(()=>{});
   }
 }

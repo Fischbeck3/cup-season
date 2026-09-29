@@ -1482,6 +1482,12 @@
       [F({ ...full, structure: 'solo' }).ledger, F({ ...full, structure: 'squads4' }).ledger], [CS_LEDGER, CS_LEDGER]);
     t('D225: the fact ORDER is a value both clients hold',
       CS_COVENANT_FACTS, ['season', 'who', 'length', 'structure', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);   /* TEN / W6 · JoinLeague.Fact, `structure` included */
+    /* TEN / W6 · root's ruling (UI_SYSTEM §2.4's money row): the welcome's
+       "You're on the pot: $X buy-in." is what you OWE, so it is ink — gold is
+       the pot itself or a thing won. Read off the producer's source, since
+       the line waits on the league's settings. */
+    t('§2.4: the league welcome sets its buy-in in ink, never gold',
+      [typeof window.openLeagueWelcome, /on the pot/.test(String(window.openLeagueWelcome)), /var\(--gold\)/.test(String(window.openLeagueWelcome))], ['function', true, false]);
     /* D375 · season two is a re-up: the season is the first fact; the finish is the golfer's own (L-44) */
     t('D375: a re-up covenant says the season first, with the golfer\'s own finish',
       [csCovenantFacts({ ...today, season_number: 2, reup: true, last_season: { number: 1, my_rank: 3, of: 8, my_points: 41 } })[0],
