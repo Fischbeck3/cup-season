@@ -71,10 +71,18 @@ const run = async (label, path, sel, width, theme) => {
   const page = await ctx.newPage()
   await page.route('**/*', r => /supabase\.co/.test(r.request().url()) ? r.abort() : r.continue())
   await page.goto(BASE + path, { waitUntil: 'load' })
-  await page.evaluate(() => document.fonts.ready)
+  /* `/?exit` resets the session and RELOADS (SESSIONS §5): wait for the URL to
+     settle before evaluating, then the page-suite runner's own retry loop */
+  if (/[?&]exit/.test(path)) {
+    await page.waitForURL(u => !/[?&]exit/.test(String(u)), { timeout: 10000 }).catch(() => {})
+    await page.waitForLoadState('load').catch(() => {})
+  }
+  for (let i = 0; i < 6; i++) { try { await page.evaluate(() => document.fonts.ready); break } catch (e) { await page.waitForTimeout(500) } }
   await page.waitForTimeout(700)
   await page.waitForFunction(s => !!document.querySelector(s), sel, { timeout: 8000 }).catch(() => {})
-  holds(`${label} ${width} ${theme}`, await page.evaluate(measure, sel))
+  let got = null
+  for (let i = 0; i < 4 && got === null; i++) { try { got = await page.evaluate(measure, sel) } catch (e) { await page.waitForTimeout(500) } }
+  holds(`${label} ${width} ${theme}`, got)
   await ctx.close()
 }
 
