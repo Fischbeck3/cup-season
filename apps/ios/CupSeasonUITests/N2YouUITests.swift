@@ -36,4 +36,26 @@ final class N2YouUITests: N2UITestCase {
     XCTAssertFalse(failed.exists)
     attach(app, "f10-you-retried")
   }
+
+  // MARK: the Form row (§9.7 · parity with the web at 38471687)
+
+  /// The synthetic golfer's last five hold a 43 over nine holes among 18-hole
+  /// grosses. The craft panel caught the nine taking the gold; it never does,
+  /// and it says it is a nine — in the columns and in the five rows at AX3.
+  @MainActor func testTheFormRowNeverGoldsANine() {
+    for size in ["large", "AX3"] {
+      let app = launch("season-live", "you", size: size)
+      _ = root(app, "you")
+      let nine = app.descendants(matching: .any)
+        .matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", "43, ", "nine holes")).firstMatch
+      XCTAssertTrue(nine.waitForExistence(timeout: 15), "\(size): the nine says it is a nine")
+      for _ in 0..<8 where !nine.isHittable { app.swipeUp() }
+      XCTAssertFalse(nine.label.contains("their best"), "\(size): a nine is never the best — \(nine.label)")
+      let best = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", ", their best"))
+      XCTAssertEqual(best.count, 1, "\(size): one column is the best")
+      XCTAssertFalse(best.firstMatch.label.contains("nine holes"), "\(size): the best is an 18 — \(best.firstMatch.label)")
+      attach(app, "form-\(size)")
+      app.terminate()
+    }
+  }
 }

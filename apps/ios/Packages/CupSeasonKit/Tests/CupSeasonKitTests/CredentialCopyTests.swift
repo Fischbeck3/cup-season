@@ -76,6 +76,35 @@ struct CredentialCopyTests {
     #expect(!CredentialCopy.formCount(2).lowercased().contains("card"))
   }
 
+  private func round(_ on: String, _ gross: Int?, holes: Int? = 18) -> TourCard.Recent {
+    TourCard.Recent(playedOn: on, courseLabel: "North Grove (fixture)", gross: gross, differential: nil,
+                    holesPlayed: holes, beat: nil)
+  }
+
+  @Test("the form row's gold is the lowest 18-hole gross: a nine never takes it (§9.7, web 38471687)")
+  func formBestSkipsANine() {
+    // oldest → newest, as the row draws them: the craft panel's case, a 43
+    // over nine holes among 18-hole 84s and an 86
+    let row = [round("2026-09-06", 86), round("2026-09-13", 43, holes: 9), round("2026-09-15", 84),
+               round("2026-09-20", 88), round("2026-09-27", 84)]
+    #expect(CredentialCopy.formBest(row) == 2, "the first 84, not the nine's 43")
+    // a tie goes to the first of it, as the web's `seen` does
+    #expect(CredentialCopy.formBest([round("2026-09-06", 80), round("2026-09-13", 80)]) == 0)
+    // a row of nines has no best; a round with no hole count stays a round
+    #expect(CredentialCopy.formBest([round("2026-09-06", 41, holes: 9), round("2026-09-13", 44, holes: 9)]) == nil)
+    #expect(CredentialCopy.formBest([round("2026-09-06", 90), round("2026-09-13", 85, holes: nil)]) == 1)
+    #expect(CredentialCopy.formBest([round("2026-09-06", nil), round("2026-09-13", 43, holes: 9)]) == nil)
+  }
+
+  @Test("a nine says so under its date and aloud; an 18 is unchanged")
+  func formNine() {
+    #expect(CredentialCopy.formDate(round("2026-09-13", 43, holes: 9)) == "SEP 13 · NINE")
+    #expect(CredentialCopy.formDate(round("2026-09-27", 84)) == "SEP 27")
+    #expect(CredentialCopy.formSpoken(round("2026-09-13", 43, holes: 9), best: false) == "43, September 13, nine holes")
+    #expect(CredentialCopy.formSpoken(round("2026-09-15", 84), best: true) == "84, September 15, their best")
+    #expect(CredentialCopy.formSpoken(round("2026-09-15", nil), best: false) == "no round, September 15")
+  }
+
   @Test("the overlap sentence is D150's answer, and it degrades to nothing")
   func overlap() {
     #expect(CredentialCopy.overlap([]) == nil)
