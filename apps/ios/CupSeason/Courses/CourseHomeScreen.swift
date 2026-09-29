@@ -23,6 +23,7 @@ struct CourseHomeScreen: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
         Text("Courses").csType(.agate, caps: true).foregroundStyle(cs.mut)
         Text("Places you play.").csType(.display).foregroundStyle(cs.ink)
+          .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
           .fixedSize(horizontal: false, vertical: true)
         CSField("Find a course", text: $query, font: CSFont.body)
           .accessibilityIdentifier("courses.search")

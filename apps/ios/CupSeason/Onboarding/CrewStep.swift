@@ -92,6 +92,7 @@ struct CrewStep: View {
       VStack(alignment: .leading, spacing: 18) {
         Text(OnboardingCopy.crewEyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
         Text(OnboardingCopy.crewTitle).csType(.display).foregroundStyle(cs.ink)
+          .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
           .fixedSize(horizontal: false, vertical: true)
         Text(OnboardingCopy.crewSub).csType(.body).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)

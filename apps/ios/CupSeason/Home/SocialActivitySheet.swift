@@ -72,6 +72,7 @@ struct SocialActivitySheet: View {
       ScrollView {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           Text("Activity").csType(.display).foregroundStyle(cs.ink)
+            .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
           if inbox.unread > 0 {
             Button("Mark all read") { Task { await inbox.mark() } }.buttonStyle(.csTertiary(.content))
           }

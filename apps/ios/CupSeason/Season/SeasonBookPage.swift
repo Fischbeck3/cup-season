@@ -66,6 +66,7 @@ struct SeasonBookPage: View {
           // typo: the page is "The Book"; running copy keeps "the Book"
           Text(store.snapshot.map { SeasonBookSnapshot.prominent(fieldSize:$0.field_size,hasSquads:$0.hasSquads) ? "The Book" : "Rounds & points" } ?? "The Book")
             .csType(.display).accessibilityIdentifier("seasonBook.title")
+              .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
         }.padding(CSTokens.Space.gutter).frame(maxWidth:.infinity,alignment:.leading)
           .background { CSTopoField(.accent,tint:livery.accent).opacity(CSTokens.Alpha.a24) }
         if let book=store.snapshot { content(book) }
