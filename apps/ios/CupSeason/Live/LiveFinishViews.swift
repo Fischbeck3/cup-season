@@ -252,9 +252,15 @@ struct LiveRecapSheet: View {
   private func settlementCard(_ r: LiveResult) -> some View {
     GeometryReader { geo in
       let scale = geo.size.width / 1080
+      // The card lays out at 1080 × 1350, wider than the frame it is put in.
+      // A frame centres an oversized child, so without the top-leading
+      // alignment the card's top-leading corner — the scale's anchor — sat
+      // (1080 − w)/2 left of and (1350 − h)/2 above the frame: the card was
+      // drawn up and off the left edge, missing on a 375pt phone and a 23pt
+      // sliver over the takeover's words on a 402pt one.
       card(r)
         .scaleEffect(scale, anchor: .topLeading)
-        .frame(width: geo.size.width, height: 1350 * scale)
+        .frame(width: geo.size.width, height: 1350 * scale, alignment: .topLeading)
     }
     .frame(height: nil)
     .aspectRatio(1080 / 1350, contentMode: .fit)
