@@ -36,6 +36,34 @@ const setupColumns = async (page) => page.evaluate(() => {
   }
   return c.top < g.top && g.top < m.top ? true : 'below 960 the order is not course, group, game'
 })
+/* TEN / W7-056 [A2-play-9] · a Next hole under the last golfer's row, on a phone held upright; gone on the
+   last hole; it moves exactly as the header's arrow does */
+const nextHoleFoot = async (page) => {
+  const r = await page.evaluate(() => {
+    const b = document.getElementById('holeNextFoot')
+    if (!b) return 'no Next hole in the thumb zone'
+    const shown = b.offsetParent !== null && !b.hidden
+    if (innerWidth >= 740) return shown ? 'the foot’s Next hole shows on a wide screen' : 'wide'
+    if (!shown) return 'the foot’s Next hole is hidden on a phone'
+    const rows = document.querySelectorAll('#playerRows > *')
+    if (rows.length && !(rows[rows.length - 1].compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'Next hole is not under the last golfer’s row'
+    if (b.getBoundingClientRect().height < 49.5) return 'Next hole is under 50px'
+    return state.live.hole
+  })
+  if (r === 'wide') return true
+  if (typeof r !== 'number') return r
+  await page.evaluate(() => { window.__nhY = window.scrollY; document.getElementById('holeNextFoot').click() })
+  await page.waitForTimeout(250)
+  const out = await page.evaluate((h0) => {
+    const moved = state.live.hole === h0 + 1
+    const last = liveHoles() - 1, keep = state.live.hole
+    state.live.hole = last; renderPlay()
+    const goneOnLast = document.getElementById('holeNextFoot').hidden
+    state.live.hole = h0; renderPlay(); window.scrollTo(0, window.__nhY || 0); if (typeof csLiveSticky === 'function') csLiveSticky()
+    return !moved ? 'Next hole did not move one hole' : !goneOnLast ? 'Next hole shows on the last hole' : true
+  }, r)
+  return out
+}
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -284,7 +312,10 @@ export default [
       async (page) => {
         const t = await page.evaluate(() => [document.getElementById('sbHero')?.textContent || '', document.getElementById('matchStatus')?.textContent || ''])
         return t[0] && t[0] === t[1] && /UP|SQUARE|WIN/.test(t[0]) ? true : 'the hero does not carry the match state: ' + JSON.stringify(t)
-      }) },
+      },
+      /* TEN / W7-056 [A2-play-9]: a Next hole in the thumb zone, under the last golfer's row (this state rests at the page top,
+         so the check's click and its restore leave the capture as it was) */
+      nextHoleFoot) },
 
   /* Skins, three golfers, through five */
   { family: 'play', id: 'skins-scoring', variant: 'member', title: 'Live round · Skins, three golfers, $2 a skin, through five',

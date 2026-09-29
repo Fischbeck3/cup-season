@@ -2382,6 +2382,9 @@ body.guestlive #onboard{display:none !important;}
    height), so the hole and its arrows stay on screen with the rows — one
    navigator, never a second copy of it. */
 #playEntry .holehdr{position:sticky; top:0; z-index:15;}   /* over the rows, under the board (60) and the header (20) */
+.holenextfoot{min-height:50px; margin-top:var(--s3);}
+.holenextfoot[hidden]{display:none;}   /* .btn is display:flex, which the UA's [hidden] cannot beat */
+@media(min-width:740px){ .holenextfoot{display:none;} }   /* W7-056 · a phone held upright only */
 .holehdr .hnum{font-family:var(--board); font-size:24px; font-weight:700; letter-spacing:calc(var(--d2) * 1em);}   /* W1 · displayS, never mono */
 .holehdr .hmeta{font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:2px;}
 .holehdr button{
@@ -6704,6 +6707,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             </div>
             <div class="holedots" id="holeDots" aria-hidden="true"></div>
             <div id="playerRows"></div>
+            <!-- TEN / W7-056 [A2-play-9] · the next hole where the thumb is: under
+                 the last golfer's row, on a phone held upright. It never
+                 advances by itself, so a correction stays one tap. -->
+            <button class="btn dark holenextfoot" id="holeNextFoot" type="button" hidden>Next hole</button>
           </div>
           <!-- D153 · three grid children, not two. Narrow (a phone in portrait)
                takes them in SOURCE order — entry, then the side games, then the
@@ -17100,6 +17107,7 @@ function renderPlay(){
 
   const h=state.live.hole;
   $('#holeNum').textContent='HOLE '+(h+1);
+  { const nf=$('#holeNextFoot'); if(nf) nf.hidden = h >= liveHoles()-1; }   /* W7-056 · none past the last hole */
   $('#holeMeta').textContent=`PAR ${PAR[h]}` + (SI ? ` · HCP ${SI[h]}` : '');   /* TERMINOLOGY §3.1: SI is an engine word; the phone's LiveCopy prints HCP */
 
   /* D153b · prominence tracks the round; the wording does not editorialise
@@ -17506,6 +17514,9 @@ function csLiveSticky(){
 }
 $('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
 $('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
+/* W7-056 · the foot's Next hole is the header's, then the rest at the top of
+   the new hole (the first golfer's row, under the board), as tee off rests */
+$('#holeNextFoot')?.addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();csLiveRest();});
 
 /* the tee-off match preview: sides + who gets strokes WHERE — the first-tee
    argument, settled before anyone hits (§2.2). Recomputed on every roster,
