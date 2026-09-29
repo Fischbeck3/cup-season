@@ -1267,6 +1267,13 @@ th.deskonly, td.deskonly{display:none;}
    this file is a keyboard user losing their place; if a component needs a
    different ring it overrides the colour, never the existence. */
 .tap:focus-visible, [tabindex]:focus-visible{outline-color:var(--act);}
+/* AW2-11 · THE LEAF DOES NOT INVERT (D266), so neither does a ring drawn on it.
+   Dark `act` on the bone leaf was 2.54:1 (WCAG 1.4.11 wants 3:1); the leaf's
+   own ink is the one colour that reads on paper in both printings. The colour
+   changes, never the ring's existence or its width. The control list lifts
+   this over each control's own ring (`.cs-tskip:focus-visible` is later in
+   the file at the same weight), wherever that rule sits. */
+:is(.rcpt-leaf, .cs-leaf, .csleaf) :is(a, button, summary, input, select, textarea, [tabindex]):focus-visible{outline-color:var(--leaf-ink);}
 /* D359 · THE FOCUS RING IS AN ORDINARY ACTION, so it takes `act` and not the
    competition ember. Every ring in this stylesheet moved together — a ring
    that is one colour in one place and another elsewhere is not a system — and
