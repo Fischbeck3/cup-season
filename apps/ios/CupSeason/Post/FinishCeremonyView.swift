@@ -54,7 +54,8 @@ struct FinishCeremonyView: View {
       ScrollView {
       VStack(spacing: 0) {
         Spacer(minLength: 24)
-        Text(ceremony.eyebrow).font(CSFont.eyebrow).tracking(2.6).textCase(.uppercase).foregroundStyle(eyebrowInk)
+        // N4-090 · the dateline is a label: agate in caps, the role's tracking
+        Text(ceremony.eyebrow).csType(.agate, caps: true).foregroundStyle(eyebrowInk)
           .multilineTextAlignment(.center).opacity(stage >= 1 ? 1 : 0)
         if let photo {
           Image(uiImage: photo).resizable().scaledToFill()

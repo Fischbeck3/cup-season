@@ -58,8 +58,8 @@ public enum CSFont {
 
   // MARK: mono
 
-  /// Section header: mono, uppercase, tracked. Pair with `.csEyebrow()`.
-  public static let eyebrow = Font.custom(monoMedium, size: 12, relativeTo: .caption)
+  // N4-090 · the mono eyebrow face is gone: a label is the agate role in
+  // caps (`.csEyebrow()`), so nothing can reach for mono as a label voice.
   /// Stat / table / tile labels. Never below 11pt (the web went to 8.5).
   public static let label = Font.custom(monoRegular, size: 11, relativeTo: .caption2)
   /// The number on a stat tile.
@@ -97,16 +97,18 @@ public struct CSEyebrowStyle: ViewModifier {
   @Environment(\.cs) private var cs
   let color: Color?
   public func body(content: Content) -> some View {
+    // N4-090 · **MONO IS NEVER A LABEL VOICE** (UI_SYSTEM §1.4). Every section
+    // head and eyebrow was Plex Mono at 12 with a hand-set tracking; they are
+    // the agate role in caps, the web's label role, and the tracking is the
+    // role's own (LINT-07: one call site). One modifier, every site.
     content
-      .font(CSFont.eyebrow)
-      .tracking(1.6)
-      .textCase(.uppercase)
+      .csType(.agate, caps: true)
       .foregroundStyle(color ?? cs.mut)
   }
 }
 
 public extension View {
-  /// Mono · 12pt · .16em · uppercase · `mut` (or a given colour).
+  /// The agate role, in caps · `mut` (or a given colour). N4-090: it was mono.
   func csEyebrow(_ color: Color? = nil) -> some View { modifier(CSEyebrowStyle(color: color)) }
   /// Digits that line up in columns.
   func csTabular() -> some View { monospacedDigit() }
