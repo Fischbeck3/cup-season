@@ -16,10 +16,10 @@ This page adds only the ten program's recipient, accessibility and device rows, 
 
 | Layer | Identity | How to confirm on the device |
 |---|---|---|
-| Web | main `cf401dee` | cupseason.app → sign-in caption reads `v23 · cf401de`; it must match |
-| iPhone | Owner TestFlight 1.0.0 (`1180`) from `cf401dee` | TestFlight → Cup Season → build number; in the app, Settings → version |
+| Web | main `7b9c17e4` | cupseason.app → sign-in caption reads `v23 · 7b9c17e`; it must match |
+| iPhone | Owner TestFlight 1.0.0 (`1335`) from `7b9c17e4` | TestFlight → Cup Season → build number; in the app, Settings → version |
 
-Filled on 2026-09-28 for the owner's testing release ([LEDGER §4e](LEDGER.md)). If a later candidate ships before the testers arrive, replace both rows and re-run every gate on it.
+Filled on 2026-09-29 (04:15 MST) for the owner's testing release ([LEDGER §4i](LEDGER.md)). It replaced 2026-09-28's `cf401dee` / 1180, and the 1328 build from `41cf8050` earlier the same night. If a later candidate ships before the testers arrive, replace both rows and re-run every gate on it.
 
 Use the candidate on both clients for every row. A row run on an older build is recorded, but it does not count.
 
