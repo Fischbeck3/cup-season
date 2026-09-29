@@ -539,17 +539,6 @@ public enum MajorMath {
                opensAhead: f.opensAhead, opensOn: f.session?.opens_on, today: today, calendar: calendar)
   }
 
-  /// The card's three lines (12398–12404).
-  public static func cardLines(days: Int, when: String, field: Int, contenders: Int, buyIn: Double, pot: Double, potSplit: String?) -> [String] {
-    let ex = field != contenders ? " · \(field - contenders) NOT COUNTING THIS YEAR" : ""
-    let stakes = buyIn > 0
-      ? "BUY-IN \(money(buyIn)) · POT \(money(pot)) · \(potSplit == "wta" ? "WINNER TAKES ALL" : "60 / 25 / 15")"
-      : "BRAGGING RIGHTS"
-    // D252 · "the field" was the room's word for a headcount; T-08 gives the
-    // count to "playing". The exhibition tail keeps its own plain gloss.
-    return ["A MAJOR · \(days) DAYS", "\(when) · \(field) PLAYING\(ex)", stakes]
-  }
-
   /// D61 — "THE 2ND ANNUAL · MARCUS DEFENDS". nil until the chain has two editions.
   public static func lineageLine(lineage: [EventLineageRow], eventId: UUID, complete: Bool) -> String? {
     let chain = lineage.filter { $0.isMajor }
@@ -570,8 +559,39 @@ public enum MajorMath {
   public static func cardsLine(gross: Int?, cards: Int, prize: Double? = nil, exhibition: Bool = false) -> String {
     var s = (gross.map { "\($0) · " } ?? "") + "\(cards) card\(cards == 1 ? "" : "s")"
     if let p = prize, p > 0 { s += " · \(money(p))" }
-    if exhibition { s += " · doesn't count this year" }
+    if exhibition { s += " · " + unofficial }
     return s
+  }
+
+  // MARK: the room's head and sections (PAR-28 · one producer, both clients)
+
+  /// TERMINOLOGY §2.3's words for a card that is on the board and not in the
+  /// running — never "Exhibition", and never an "EX" mark in the rank slot.
+  public static let unofficial = "doesn’t count this year"
+
+  /// The section heads, in TERMINOLOGY's Major row: the leaderboard is what
+  /// it is (D252), and a card that does not count says so in words.
+  public enum Head {
+    public static let board = "Leaderboard"
+    /// the leaderboard head's count slot while the window is open
+    public static let live = "Live"
+    public static let final = "Final"
+    public static let unofficial = "Doesn’t count this year"
+    public static let noCard = "No card"
+    public static let stillToPost = "Still to post"
+  }
+
+  /// The pot figure's caption: the stake each, then the split (D273 — the
+  /// figure carries its own caption). `$20 each · 60/25/15`.
+  public static func potCaption(buyIn: Double, potSplit: String?) -> String {
+    money(buyIn) + " each · " + (potSplit == "wta" ? "winner takes all" : "60/25/15")
+  }
+
+  /// The dateline's second line: the window, then the field in words —
+  /// `Sep 26 – Sep 29 · five playing`. nil when there is neither.
+  public static func windowLine(window: String?, field: Int) -> String? {
+    let parts = [window, field > 0 ? "\(RyderMath.spelled(field)) playing" : nil].compactMap { $0 }
+    return parts.isEmpty ? nil : parts.joined(separator: " · ")
   }
 
   /// `No cards yet — first one leads.` (D252: "the clubhouse" was the room's
