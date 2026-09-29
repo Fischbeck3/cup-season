@@ -16836,10 +16836,7 @@ function csLiveSticky(){
   const was = sb.classList.contains('stuck');
   const at = sent.getBoundingClientRect().top;
   const saved = Number(sb.dataset.shrink||0);
-  /* …and at the page's top it is in its own place, never stuck: there the
-     sentinel cannot fall "back down by what the face saved", so the rule
-     above held the compact face at scrollY 0 (AW2-21, found resting a round) */
-  const stuck = (window.scrollY || 0) <= 0 ? false : (was ? at < top + saved : at < top);
+  const stuck = was ? at < top + saved : at < top;
   if(stuck && !was){
     const h0 = sb.offsetHeight;
     sb.classList.add('stuck');
@@ -17281,8 +17278,12 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
    at 313, its context line and "Change setup" above the sticky header and the
    board already stuck. The golfer's own scrolling after that is theirs. */
 function csLiveRest(){
+  /* the board is judged afresh at the top: a stuck face (and what it saved)
+     carried over from the setup's scroll would otherwise hold by hysteresis */
+  const sb = document.getElementById('scoreBoard');
+  if(sb){ sb.classList.remove('stuck'); delete sb.dataset.shrink; }
   try{ window.scrollTo({ top:0, behavior:'auto' }); }catch(_){ window.scrollTo(0, 0); }
-  csLiveSticky();   /* judged at the top now, not at the setup's scroll */
+  csLiveSticky();
 }
 $('#backToSetup').addEventListener('click',e=>{
   e.preventDefault();
