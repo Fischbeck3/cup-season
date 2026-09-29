@@ -5775,7 +5775,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- IA P5: friends go contextual — find & add any golfer from anywhere -->
         <button class="hdrsearch" id="hdrSearch" aria-label="Find golfers" title="Find golfers"
           style="background:none; border:0; cursor:pointer; padding:var(--s2); color:var(--mut); display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px;">
-          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg>
         </button>
         <!-- D391 · the inbox: replies and comments on your rounds. HIDDEN until
@@ -5789,7 +5789,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- league name + week live in the Clubhouse header and the Home hub now;
              kept here (hidden) so existing setters never null-ref -->
         <div class="title" style="display:none">
-          <div id="lgRow"><h1 id="leagueName">The Sunday Cup</h1><svg id="lgChev" viewBox="0 0 24 24" style="display:none"><path d="M6 9.5l6 6 6-6"/></svg></div>
+          <div id="lgRow"><h1 id="leagueName">The Sunday Cup</h1><svg id="lgChev" aria-hidden="true" viewBox="0 0 24 24" style="display:none"><path d="M6 9.5l6 6 6-6"/></svg></div>
           <div class="sub" id="phaseSub">Wk 18 / 36</div>
         </div>
         <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; background:none; border:0; cursor:pointer; padding:6px 0; min-height:44px;">
@@ -7193,15 +7193,15 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
      router, which is the whole of R-C as revised: shared producers and routes,
      separate chrome. -->
 <nav class="tabbar" aria-label="Sections">
-  <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
-  <button class="tab" data-v="compete"><svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M6 4h11l-2.4 3.6L17 11H6"/></svg>Compete</button>
+  <button class="tab active" data-v="home"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
+  <button class="tab" data-v="compete"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M6 4h11l-2.4 3.6L17 11H6"/></svg>Compete</button>
   <!-- the phone's `CSGlyph.play`, verbatim: an OUTLINED circle with a plus in
          it. The web drew a bare plus inside a filled ember disc that floated
          above the band; the band has five equal slots now and this is a tab
          like its neighbours (owner board, 2026-09-14). -->
-    <button class="tab" data-v="record" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17M12 8v8M8 12h8"/></svg>Play</button>
-  <button class="tab" data-v="golfers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.6 19c.4-3 2.7-4.6 5.4-4.6s5 1.6 5.4 4.6"/><path d="M16.2 6.4a3 3 0 0 1 0 5.6"/><path d="M17.4 14.9c2 .6 3.2 2.1 3.5 4.1"/></svg>Golfers</button>
-  <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>You</button>
+    <button class="tab" data-v="record" aria-label="Play"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17M12 8v8M8 12h8"/></svg>Play</button>
+  <button class="tab" data-v="golfers"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.6 19c.4-3 2.7-4.6 5.4-4.6s5 1.6 5.4 4.6"/><path d="M16.2 6.4a3 3 0 0 1 0 5.6"/><path d="M17.4 14.9c2 .6 3.2 2.1 3.5 4.1"/></svg>Golfers</button>
+  <button class="tab" data-v="stats"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>You</button>
 </nav>
 
 <div id="errbar" role="alert"></div>
@@ -8919,7 +8919,7 @@ function sparkline(arr,ci){
     const py=16-((v-min)/Math.max(1,max-min))*14-1;
     return `${px.toFixed(1)},${py.toFixed(1)}`;
   }).join(' ');
-  return `<svg class="spark" width="60" height="18" viewBox="0 0 60 18"><polyline points="${pts}" fill="none" style="stroke:${SQHEX[ci]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg class="spark" aria-hidden="true" width="60" height="18" viewBox="0 0 60 18"><polyline points="${pts}" fill="none" style="stroke:${SQHEX[ci]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 /* Batch C: row-glide — when the table reorders, rows slide to their new spot
    instead of teleporting (FLIP). Keyed by data-squad; reduced-motion opts out. */
@@ -17735,7 +17735,7 @@ function csStarsWidth(value){
 function csStarsSvg(value, unrated, opts){
   const o = opts || {};
   const size = o.size || 22;
-  const one = fill => `<svg viewBox="0 0 24 24">`
+  const one = fill => `<svg aria-hidden="true" viewBox="0 0 24 24">`
     + (fill ? `<path d="${CS_STAR_PATH}" fill="var(--ink)"/>`
             : `<path d="${CS_STAR_PATH}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`)
     + `</svg>`;
@@ -24053,13 +24053,13 @@ function renderIndStats(){
        glyph - and the diorama draws the same object as a real account, which
        is the whole of "one object, one chrome" (and it fabricates no face). */
     if(window.MARKERS && MARKERS.saguaro)
-      set('#youMk', `<svg viewBox="0 0 24 24"><path d="${MARKERS.saguaro.p}"/></svg>`, true);
+      set('#youMk', `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="${MARKERS.saguaro.p}"/></svg>`, true);
     const dp = $('#youPlate');
     if(dp && !dp.querySelector('.ccont') && typeof csContourSvg === 'function')
       dp.insertAdjacentHTML('afterbegin',
         csContourSvg('papago-golf-course', true)
         + (window.MARKERS && MARKERS.saguaro
-            ? `<span class="ccrest"><svg viewBox="0 0 24 24"><path d="${MARKERS.saguaro.p}"/></svg></span>` : ''));
+            ? `<span class="ccrest" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${MARKERS.saguaro.p}"/></svg></span>` : ''));
   }
   const ysl=$('#youSeasonLg'); if(ysl) ysl.textContent = state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || 'your league');
   renderLeagueRecord();
@@ -27927,7 +27927,7 @@ const MARKERS = {
   thistle:   {n:'The Thistle',    p:'M8.2 5l1.5 2.6M12 4v3M15.8 5l-1.5 2.6M12 7c2.2 0 3.5 1.2 3.5 3s-1.3 3-3.5 3-3.5-1.2-3.5-3 1.3-3 3.5-3M10.2 8.6l3.6 2.8M13.8 8.6l-3.6 2.8M12 13v8M11 16.5c-1.8-.2-3.2-1.2-3.7-2.9M13 17.8c1.8-.2 3.2-1.2 3.7-2.9'},
 };
 const mkr = k => MARKERS[k]
-  ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="${MARKERS[k].p}"/></svg>`
+  ? `<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="${MARKERS[k].p}"/></svg>`
   : '';
 window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silently breaks */
 window.MARKERS = MARKERS; /* classic recap-card canvas draws the marker PATH — same bridge rule */
@@ -28564,7 +28564,7 @@ function refreshWhoChip(){
   const mkEl = $('#youMk');
   if(mkEl && window.MARKERS){
     const mk = MARKERS[p.marker] || MARKERS.saguaro;
-    mkEl.innerHTML = mk ? `<svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg>` : '';
+    mkEl.innerHTML = mk ? `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="${mk.p}"/></svg>` : '';
     const folio = $('#youFolio');
     if(folio) folio.textContent = 'Cup Season' + (mk && mk.n ? ' · ' + mk.n : '');
   }
@@ -28578,7 +28578,7 @@ function refreshWhoChip(){
       ? `<img src="${esc(photo)}" alt="">`
       : (typeof csContourSvg === 'function'
           ? csContourSvg(p.home_course || String(CS.user?.id || 'cup-season'), !!p.home_course)
-            + (mk ? `<span class="ccrest"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : '')
+            + (mk ? `<span class="ccrest" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : '')
           : '');
     plate.insertAdjacentHTML('afterbegin', html);
   }
@@ -29032,7 +29032,7 @@ function csCredentialHtml(profileId, card){
   const seed = p.home_course || String(profileId);
   const plate = photo
     ? `<img src="${esc(photo)}" alt="">`
-    : `${csContourSvg(seed, !!p.home_course)}${mk ? `<span class="ccrest"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}`;
+    : `${csContourSvg(seed, !!p.home_course)}${mk ? `<span class="ccrest" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}`;
   return `<div class="cred">
     <div class="cplate">
       ${plate}
@@ -29041,7 +29041,7 @@ function csCredentialHtml(profileId, card){
         ${slot ? `<span class="cslot">${esc(slot)}</span>` : '<span></span>'}
         ${credit ? `<span class="ccredit">${esc(credit)}</span>` : ''}
       </div>
-      ${mk ? `<span class="cmed"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}
+      ${mk ? `<span class="cmed" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}
       <div class="cname">
         <b>${esc(p.display_name || '—')}</b>
         <small>${esc(csIdentityLine(p))}</small>
@@ -32213,6 +32213,10 @@ $('#obEmailGo').addEventListener('click', async () => {
         ? 'Too many sign-in emails for now — give it a few minutes and try again.'
         : 'Couldn’t send a sign-in code. If you deleted this account it can’t be reused — try a different email. Otherwise wait a minute and retry.',
       'err');
+    /* AW2-18 · the disabled Send code button took focus with it, so a failure
+       left a keyboard golfer on <body>. The address is what the sentence asks
+       them to change, so focus waits there. */
+    $('#obEmailIn').focus();
   } finally { btn.disabled = false; btn.textContent = 'Send code'; }
 });
 
