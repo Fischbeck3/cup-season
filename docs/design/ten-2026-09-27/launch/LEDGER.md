@@ -614,6 +614,22 @@ Their web halves are on integration: W7-003 (the held round's setup is locked, P
 
 **Root's W7 items since:** W7-017, W7-120 and W7-121, the harness world drawing three things production cannot (`44128341`); W7-120's product line, "minimum 2 rounds" (`b2bd5b1f`); W7-061's comment id (`d1d29cf0`). W7-005 needed no commit: B's `d4d7c6f0` had closed it before D's list was cut.
 
+## 4n · Web push 5, C's W8 share, D's first delta (2026-09-29, afternoon)
+
+**Merged:** B's first W7 web halves at `a8c0c0b3`: W7-003 [X02], the held round's setup locked (P1); W7-001 [X42]'s who-line; AW2-05's idle words. Their two server halves were reverted at `28f176aa` and `ea5f19a4` and live on the held branch. C's first W8 checkpoint at `282578eb` (21 items) and its final at `51211947` (W7-027, 053, 047, 043, 020, 022, 019 and W7-029 in four commits), with ratchets at `e78d7f22` (LINT-06 1054).
+
+**Web push 5: `bbd72753`, 13:40 MST.** 42 commits, a fast-forward from `2f6c24dc`; `index.html` the only served file; no migrations net, no generated Swift, no version lines.
+- Verified: `e78d7f22` in full (`ci-local` 11/11; app-tests 520/0 in both themes; 43 of 43 suites; the full harness from a snapshot, 1,310 captures, 0 route failures, 0 errors); then `bbd72753`'s own `ci-local` 11/11, app-tests 520/0 in both themes, the you family 32/32 at `1bb743d7` (its control fails 4 at `e78d7f22`), and the home family 256/256.
+- Live `v23 · bbd7275`; CI green.
+
+**Regressions found and fixed:**
+- **W7-101 [A2-identity-12]** (session D, from C's W7-055): You's section index drew on a failed read and pushed "Try again" wholly under the tab band at 375×667. `1bb743d7` draws it only for a record that holds something; `you/error` pins it.
+- **The desk sidebar's foot** (session B, from C's final set): the empty-record yield hid `#sideMe` with `display:none`, taking the column's `margin-top:auto` pin, so the foot floated 484px up. `d3e96f86` collapses the block in place; `you/empty` checks the foot within 48px of the column's bottom (the control fails 4).
+- **N4-106's sibling** (session D): the Home hero's minimum foot read "Sep minimum 5/2 · cleared" past the minimum; `bbd72753` names the minimum, then what the golfer has.
+- **W7-120's zero minimum** (session D): the Book said "minimum 0 rounds" for a solo league; `0a0e43eb` says a minimum only when there is one (L-23).
+
+**D's first delta at `e78d7f22`** (two independent readers per verdict): 27 records fixed (18 items, 9 debt lines), 25 partly, 1 regression (W7-101, fixed in push 5). **3 of the 32 heuristic cells at 2 have lifted:** desk·B2·H7, identity·B2·H7, season·A2·H8. None of the six tier-0 items is fully closed: W7-001 and W7-002 wait on the owner's push of the held branch, W7-004 is after launch by design, and W7-003, W7-005 and W7-006 have small remainders routed to B. Every partly remainder is routed by source id (B: W7-003, 005, 024, 046, 056, 071, 085, 114, 125, K077; C: W7-009, 014, 015/K102, 025, 026, 028, 034, 042, 072, #boardCard). C's queue also took seven of B's items (W7-035, 039, 040, 049, 052, 057, 058) to balance the two lanes.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
