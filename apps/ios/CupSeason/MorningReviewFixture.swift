@@ -27,7 +27,9 @@ import CupSeasonKit
     let s = LiveRoundStore()
     s.seedMorningReview(live: scene != "setup")
     if scene == "score" { s.state.game = .score }
-    if scene == "offline" { s.state.lr = UUID(); s.syncStatus = "CLOSED"; s.queued = 3 }
+    // a shared round (it has a code, as every round on the server does) with
+    // three scores held on this phone and no signal
+    if scene == "offline" { s.state.lr = UUID(); s.state.code = "FIXTURE"; s.syncStatus = "CLOSED"; s.queued = 3 }
     if scene == "kept" { s.scoreOnPhone = true }
     return s
   }

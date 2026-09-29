@@ -48,7 +48,8 @@ final class MorningReviewTests: XCTestCase {
 
   @MainActor func testDisconnectedLiveRoundSaysItIsWaitingToSync() {
     let app = launch("offline")
-    XCTAssertTrue(app.staticTexts["SAVED ON THIS PHONE · WAITING TO SYNC"].waitForExistence(timeout: 15))
+    // W1 · the web's sentence, one producer: what is saved here and when it goes
+    XCTAssertTrue(app.staticTexts["3 scores saved on this phone; they send when you have signal."].waitForExistence(timeout: 15))
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = "live-disconnected"; shot.lifetime = .keepAlways; add(shot)
   }

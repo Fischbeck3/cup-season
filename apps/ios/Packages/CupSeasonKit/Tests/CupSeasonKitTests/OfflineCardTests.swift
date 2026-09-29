@@ -11,7 +11,10 @@
 //
 // These tests pin the three rules that came out of it: a card with strokes is
 // KEPT rather than deleted; a card the golfer threw away is NOT kept; and the
-// badge names the deadline the server is actually enforcing.
+// badge says, in words, where the scores are and when they go. (W1 · it named
+// the server's deadline — "closes in 6h" — until the line became the web's
+// sentence, which has no deadline in it; a round the server has closed still
+// says so.)
 
 import Testing
 import Foundation
@@ -106,40 +109,36 @@ private func tempDisk() -> LiveDisk {
 @Suite struct UnsentBadgeTests {
   private let now: Int64 = 1_757_000_000_000
 
-  @Test("the badge names the deadline the server is enforcing")
-  func theDeadlineIsSaid() {
+  /// W1 · the web's sentence, word for word (`liveSyncBadge`): the scores are
+  /// safe on this phone, and they go when there is signal. It replaced
+  /// "18 unsent · closes in 6h", so a tee-off time no longer changes the words.
+  @Test("the badge says where the scores are and when they go")
+  func theSentenceIsSaid() {
     let s = card(strokes: true, started: now - 18 * 3_600_000)
-    let t = LiveCopy.syncBadge(s, presence: ["Jerecho"], queued: 18, now: now)
-    #expect(t.contains("18 unsent"))
-    #expect(t.contains("closes in 6h"))
+    #expect(LiveCopy.syncBadge(s, presence: ["Avery Fixture"], queued: 18)
+              == "18 scores saved on this phone; they send when you have signal.")
+    #expect(LiveCopy.syncBadge(card(strokes: true), presence: [], queued: 18)
+              == "18 scores saved on this phone; they send when you have signal.")
   }
 
-  /// L-44 · a deadline nobody can compute is not one to print. Cards written
-  /// before `startedAt` existed decode without it.
-  @Test("with no tee-off time it says only what it knows")
-  func noGuessedDeadline() {
-    let t = LiveCopy.syncBadge(card(strokes: true), presence: [], queued: 3, now: now)
-    #expect(t.contains("3 unsent"))
-    #expect(!t.contains("closes"))
-  }
-
-  @Test("past the window it says so rather than counting backwards")
-  func pastTheWindow() {
-    let s = card(strokes: true, started: now - 30 * 3_600_000)
-    #expect(LiveCopy.syncBadge(s, presence: [], queued: 4, now: now).contains("past its window"))
+  @Test("one score is said as one")
+  func oneScore() {
+    #expect(LiveCopy.syncBadge(card(strokes: true), presence: [], queued: 1)
+              == "1 score saved on this phone; it sends when you have signal.")
   }
 
   @Test("a retired round stops claiming it is syncing")
   func theRetiredBadge() {
-    let t = LiveCopy.syncBadge(card(strokes: true), presence: [], queued: 4, retired: true, now: now)
+    let t = LiveCopy.syncBadge(card(strokes: true), presence: [], queued: 4, retired: true)
     #expect(t.contains("saved on this phone"))
-    #expect(!t.contains("unsent"))
+    #expect(!t.contains("when you have signal"))
   }
 
-  @Test("nothing queued still reads synced")
+  @Test("nothing queued says every score is sent")
   func synced() {
-    #expect(LiveCopy.syncBadge(card(strokes: true), presence: ["A", "B"], queued: 0, now: now)
-              .contains("synced"))
+    #expect(LiveCopy.syncBadge(card(strokes: true), presence: ["A", "B"], queued: 0)
+              == "2 phones scoring · every score sent")
+    #expect(LiveCopy.syncBadge(card(strokes: true), presence: [], queued: 0) == "Every score sent")
   }
 }
 

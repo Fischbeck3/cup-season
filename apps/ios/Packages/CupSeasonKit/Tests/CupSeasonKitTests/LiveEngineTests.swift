@@ -423,6 +423,22 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(LiveCopy.toWinThisHole(open).isEmpty)
   }
 
+  /// W1 · a dot beside the name is a shot on THIS hole, and the row says so
+  /// (the web's words); one stroke is "1 STROKE", never "1 STROKES".
+  @Test func theStrokeDotIsExplained() {
+    let names = ["Avery Fixture", "Blake Sample", "Casey Placeholder"]
+    // hole 1 is stroke index 1: one shot for the 1, two for the 20
+    let hard = round(names, indices: [0, 1.0, 20.0], scores: [S(), S(), S()], game: .score, si: Array(1...18))
+    #expect(LiveCopy.playerRow(hard, 0).sub == "NO STROKES")
+    #expect(LiveCopy.playerRow(hard, 1).sub == "1 STROKE · A SHOT ON THIS HOLE")
+    #expect(LiveCopy.playerRow(hard, 2).sub == "20 STROKES · 2 SHOTS ON THIS HOLE")
+    #expect(LiveCopy.playerRow(hard, 2).strokeDots == 2)
+    // hole 1 is stroke index 3: only the 20 gets one, and no dot is no clause
+    let easier = round(names, indices: [0, 1.0, 20.0], scores: [S(), S(), S()], game: .score, si: [3, 1, 2] + Array(4...18))
+    #expect(LiveCopy.playerRow(easier, 1).sub == "1 STROKE")
+    #expect(LiveCopy.playerRow(easier, 2).sub == "20 STROKES · A SHOT ON THIS HOLE")
+  }
+
   @Test func soloResultEnvelope() {
     let s = round(["A", "B", "C", "D"], indices: [0, 0, 0, 0], scores: [S(3, 3, 5, 5, 5, 5, 6), S(4, 4, 4, 4, 4, 4, 4), S(7, 7, 7, 7, 7, 7, 8), S(7, 7, 7, 7, 7, 7, 8)],
                   game: .sunningdale, stake: 10, mode: .solo)
@@ -516,11 +532,12 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     s.code = nil
     #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Scoring it yourself · live on this phone")
     s.code = "abc"
-    // D-offline · "queued" implies it will go; "unsent" states the fact, and
-    // with a tee-off time on the card the deadline follows it. This card has
-    // no `startedAt`, so the badge says only what it knows (`UnsentBadgeTests`).
-    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 scoring · 2 unsent")
-    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "1 scoring · synced")
+    // W1 · the sync line is the web's sentence (`liveSyncBadge`), word for
+    // word: it replaced "2 scoring · 2 unsent", which said a count and not
+    // that the scores were safe or when they would go (`UnsentBadgeTests`).
+    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 scores saved on this phone; they send when you have signal.")
+    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 0) == "2 phones scoring · every score sent")
+    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Every score sent")
     s.course.label = "Papago"
     s.hole = 1
     let mine = LiveCopy.resumeBanner(s)!

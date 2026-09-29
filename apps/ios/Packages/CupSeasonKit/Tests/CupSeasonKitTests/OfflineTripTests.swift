@@ -56,7 +56,7 @@ import Testing
     try local.save(state)
     await LiveDisk(directory: dir.appendingPathComponent("online")).clearSnapshots(keep: nil)
     #expect(try local.rounds(owner: owner).count == 1)
-    #expect(LiveCopy.syncBadge(state, presence: [], queued: 0, now: Int64.max).contains("NOT POSTED"))
+    #expect(LiveCopy.syncBadge(state, presence: [], queued: 0).contains("NOT POSTED"))   // W1 · the badge has no clock now
   }
   @Test func corruptCardIsReportedNotSilentlyHidden() throws {
     let dir = directory(); defer { try? FileManager.default.removeItem(at: dir) }

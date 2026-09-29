@@ -165,12 +165,13 @@ struct LivePlayView: View {
     VStack(spacing: 0) { ForEach(s.players.indices, id: \.self) { playerRow($0) } }
   }
 
-  /// The sync badge's sentence, or "" when there is nothing to say. A round
-  /// held on a phone with no signal says so (D-offline), at every size.
+  /// The sync badge's sentence, or "" when there is nothing to say. W1 · one
+  /// producer on both clients (the web's `liveSyncBadge`): what is saved on
+  /// this phone and when it goes, in words — "8 scores saved on this phone;
+  /// they send when you have signal." A phone with no signal says so the
+  /// moment a score is waiting, at every size.
   private var syncBadge: String {
-    s.lr != nil && !s.onThisPhone && store.syncStatus != "SUBSCRIBED" && !store.retiredCard
-      ? "SAVED ON THIS PHONE · WAITING TO SYNC"
-      : LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)
+    LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)
   }
 
   /// F07 · the accessibility sizes' first line: the live mark (the screen's
@@ -190,7 +191,8 @@ struct LivePlayView: View {
         Button("Retry saving scores") { store.flushLocalCard() }.buttonStyle(.csSecondary())
       }
       if !badge.isEmpty && store.localSaveError == nil {
-        Text(badge).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        // W1 · a sentence is set as one, never mono caps (§1.4; the web's `.sb-sub`)
+        Text(badge).csType(.bodyS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityAddTraits(.updatesFrequently)
           .accessibilityIdentifier("live.sync.status")
@@ -257,7 +259,8 @@ struct LivePlayView: View {
         Button("Retry saving scores") { store.flushLocalCard() }.buttonStyle(.csSecondary())
       }
       if !badge.isEmpty && store.localSaveError == nil {
-        Text(badge).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        Text(badge).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
           .accessibilityAddTraits(.updatesFrequently)
           .accessibilityIdentifier("live.sync.status")
       }
@@ -336,9 +339,10 @@ struct LivePlayView: View {
               Text(p.me ? "You" : r.name).csType(.name).foregroundStyle(cs.ink)
                 .fixedSize(horizontal: false, vertical: true)
               if r.guest { Text("Guest").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
-              // the strokes a golfer gets on THIS hole, drawn rather than said
+              // the strokes a golfer gets on THIS hole, drawn — and said in the
+              // facts line ("a shot on this hole", W1); the dot is ink, as the web's
               ForEach(0..<r.strokeDots, id: \.self) { _ in
-                Circle().fill(cs.mut).frame(width: 5, height: 5)
+                Circle().fill(cs.ink).frame(width: 5, height: 5)
               }
             }
             // `2 STROKES · 55 THRU 14` fits one line in the 162pt column at
