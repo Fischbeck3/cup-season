@@ -1313,7 +1313,8 @@ struct MainTabView: View {
     case "receipt-withdrawn": presenter.receipt = fid(4_005)
     case "receipt-other": presenter.receipt = fid(4_101)
     case "plan": presenter.scheduledRound = fid(7_001)
-    case "declare": presenter.declare = DeclarePrefill()
+    // `declare join` · a buddy's plan, got in on — the sheet's "You're in" line
+    case "declare": presenter.declare = DeclarePrefill(hostName: detail == "join" ? "Blake" : nil)
     case "tourcard": presenter.tourCard = detail == "other" ? blake : store.me?.profile?.id
     case "bag": presenter.showBag = true
     case "post": presenter.postOnComposer = false; presenter.showPost = true

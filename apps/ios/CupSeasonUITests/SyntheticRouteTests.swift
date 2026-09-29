@@ -93,7 +93,9 @@ final class SyntheticRouteTests: XCTestCase {
     let extra: [String]?
     let settle: Double?
     /// An optional XCUITest step before the shot: "keyboard" focuses the first
-    /// text field and waits for the keyboard.
+    /// text field and waits for the keyboard; `reveal:<identifier>` (or
+    /// `reveal:~<words in a label>`) scrolls a below-the-fold element into
+    /// the shot once the root is up.
     let step: String?
   }
 
@@ -122,6 +124,13 @@ final class SyntheticRouteTests: XCTestCase {
           reveal(field, in: app)
           if field.exists { field.tap() }
           _ = app.keyboards.firstMatch.waitForExistence(timeout: 6)
+        }
+        if found, let step = entry.step, step.hasPrefix("reveal:") {
+          let key = String(step.dropFirst(7))
+          let target = key.hasPrefix("~")
+            ? app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", String(key.dropFirst()))).firstMatch
+            : app.descendants(matching: .any)[key]
+          if target.waitForExistence(timeout: 10) { reveal(target, in: app) }
         }
         Thread.sleep(forTimeInterval: entry.settle ?? 2.0)
         // The counters are the router's, not the screen's: every mark carries
