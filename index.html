@@ -3247,39 +3247,44 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
 .joinbox input:focus-visible{outline:2px solid var(--act);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 
-/* ---- the wings: live showcases beside the centered door (>=1100px only).
-   Hand-authored diorama content (the door is pre-auth) — same philosophy as
-   demo mode. JS loops pause on tab-hide and die on .onboard.hide. ---- */
+/* ---- the wings: two worked EXAMPLES beside the centered door (>=1100px only).
+   Hand-authored (the door is pre-auth, anon reads no table), so they are
+   labelled as what they are: how a round reads and how a season reads, never
+   "live" (AW P2-16, PRODUCT.md: no invented claims). The figures they print
+   come from the real producers (pointsFor / vsPhrase), so the example obeys
+   the rules it illustrates. JS loops pause on tab-hide and die on .onboard.hide.
+   AW P2-13 / TP-09 · the 3.5px squad spine is retired (UI_SYSTEM "Changed":
+   the spine leaves the card edge); a row is a row under a hairline and the
+   squad rides as a swatch (§2.5), not a stripe. Numbers are the board face,
+   never the serif (§1.4); round points are ambient mut, never ember (D359). ---- */
 .ob-wing{display:none; width:100%; max-width:330px; text-align:left;}
 @media(min-width:1100px){ .ob-wing{display:block;} }
+/* a link landing is about the link: the examples stand down (critique B) */
+.onboard.ob-linked .ob-wing{display:none;}
 .ob-wing .wt{
   display:flex; align-items:center; gap:10px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
   text-transform:uppercase; color:var(--mut); margin-bottom:10px;
 }
 .ob-wing .wt::after{content:""; height:1px; flex:1; background:var(--rule);}
 .ob-feed{position:relative; height:250px; overflow:hidden;}
 .ob-pcard{
-  position:absolute; left:0; right:0; top:0; height:74px;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
-  padding:12px 14px; box-shadow:none; overflow:hidden;
+  position:absolute; left:0; right:0; top:0; min-height:74px;
+  border-top:1px solid var(--rule); padding:12px 0 0;
   transition:opacity .55s var(--roll), transform .55s var(--roll);
   will-change:transform;
 }
-.ob-pcard::before{content:""; position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:2px; background:var(--sqc,var(--brand));}
 .ob-pcard .who{
-  display:flex; justify-content:space-between; gap:8px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
   text-transform:uppercase; color:var(--mut); margin-bottom:6px;
 }
+.ob-pcard .who .dot{flex:none; width:9px; height:9px; border-radius:3px; background:var(--sqc);}
+.ob-pcard .who .crs{margin-left:auto; text-align:right;}
 .ob-pcard .ln{display:flex; align-items:baseline; gap:10px;}
-.ob-pcard .gr{font-family:var(--serif); font-size:26px; font-weight:700; line-height:1; color:var(--ink);}
-.ob-pcard .band{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.ob-pcard .pts{margin-left:auto; font-family:var(--mono); font-size:12px; font-weight:600; color:var(--brand); white-space:nowrap;}
-.ob-lb{
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
-  padding:14px 14px 10px; box-shadow:none;
-}
+.ob-pcard .gr{font-family:var(--board); font-weight:700; font-size:20px; line-height:1; font-variant-numeric:tabular-nums; color:var(--ink);}
+.ob-pcard .band{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); min-width:0;}
+.ob-pcard .pts{margin-left:auto; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); white-space:nowrap;}
 .ob-lb .rows{position:relative; height:176px;}
 .ob-lbrow{
   position:absolute; left:0; right:0; top:0; height:44px;
@@ -3288,13 +3293,13 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
   transition:transform .65s var(--roll); will-change:transform;
 }
 .ob-lbrow .dot{flex:none; width:9px; height:9px; border-radius:3px; background:var(--sqc);}
-.ob-lbrow .nm{font-size:13px; font-weight:600; color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.ob-lbrow .pt{margin-left:auto; font-family:var(--mono); font-size:13px; font-weight:600; color:var(--mut); font-variant-numeric:tabular-nums;}
+.ob-lbrow .nm{font-family:var(--board); font-size:15px; font-weight:600; color:var(--mut); overflow-wrap:anywhere;}
+.ob-lbrow .pt{margin-left:auto; font-family:var(--board); font-size:15px; font-weight:700; color:var(--mut); font-variant-numeric:tabular-nums;}
 .ob-lbrow.lead .pt{color:var(--gold);}
 .ob-lbrow.lead .nm{color:var(--ink);}
 .ob-lb .lfoot{
-  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--mut); padding-top:8px; border-top:1px solid var(--rule); text-align:center;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
+  color:var(--mut); padding-top:8px; border-top:1px solid var(--rule); text-wrap:balance;
 }
 
 
@@ -4580,8 +4585,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
   </svg>
   <div class="ob-fold">
   <div class="ob-fgrid">
+  <!-- the wings are worked examples, labelled as examples (AW P2-16) -->
   <aside class="ob-wing ob-wl" aria-hidden="true">
-    <div class="wt">Rounds hitting the board</div>
+    <div class="wt">How a round reads</div>
     <div class="ob-feed" id="obFeed"></div>
   </aside>
   <div class="ob-in">
@@ -4705,10 +4711,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <div class="ob-caption" id="obCaption"><span>v23 · __CS_VERSION__</span></div>
   </div>
   <aside class="ob-wing ob-wr" aria-hidden="true">
-    <div class="wt">The season, live</div>
+    <div class="wt">How a season reads</div>
     <div class="ob-lb">
       <div class="rows" id="obLb"></div>
-      <div class="lfoot">Month 4 of 6 · every point has a receipt</div>
+      <div class="lfoot">An example season, in month 4 of 6</div>
     </div>
   </aside>
   </div><!-- /ob-fgrid -->
@@ -6493,13 +6499,19 @@ setInterval(function(){
   /* ---- wings ---- */
   const feedEl = document.getElementById('obFeed');
   const lbEl = document.getElementById('obLb');
+  /* an EXAMPLE, so it keeps the product's own rules: the sentence is the
+     one comparison producer (vsPhrase, third person, never a guessed his or
+     her) and the points are pointsFor's band — the same arithmetic the
+     server's cup_points() pays. `theirs` is a later const (TDZ here), so the
+     third person is made in place. A nine is not an 18-hole score: Encanto's
+     18, not its 9. */
   const FEED = [
-    {n:'MARCUS', c:'PAPAGO GC', g:82, b:'BEAT HIS PLAYING HCP BY 2.4', p:'+9 PTS', sq:'--sq0'},
-    {n:'DANA', c:'ENCANTO 9', g:91, b:'POSTED ANYWAY', p:'+5 PTS', sq:'--sq1'},
-    {n:'RAY', c:'AGUILA', g:78, b:'TORCHED IT BY 4.1', p:'+12 PTS', sq:'--sq2'},
-    {n:'PRIYA', c:'KEN McDONALD', g:87, b:'PLAYED TO HER PLAYING HCP', p:'+7 PTS', sq:'--sq3'},
-    {n:'COLE', c:'DOBSON RANCH', g:84, b:'BEAT HIS PLAYING HCP BY 1.2', p:'+9 PTS', sq:'--sq0'}
-  ];
+    {n:'Marcus', c:'Papago GC', g:82, vs:2.4, sq:'--sq0'},
+    {n:'Dana', c:'Encanto 18', g:91, vs:-3.6, sq:'--sq1'},
+    {n:'Ray', c:'Aguila', g:78, vs:4.1, sq:'--sq2'},
+    {n:'Priya', c:'Ken McDonald', g:87, vs:0.3, sq:'--sq3'},
+    {n:'Cole', c:'Dobson Ranch', g:84, vs:1.2, sq:'--sq0'}
+  ].map(r => Object.assign(r, { b: vsPhrase(r.vs).replace(/\byour\b/g, 'their'), p: '+' + pointsFor(r.vs)[0] + ' pts' }));
   const LBT = [
     {n:'Dew Sweepers', sq:'--sq3', p:184},
     {n:'The Grinders', sq:'--sq0', p:178},
@@ -6515,11 +6527,12 @@ setInterval(function(){
      a page people leave open. */
   const LB_CEIL=232, LB_BASE=181;
   let fi=0, live=[], order=[0,1,2,3], lbRows=[], loopA=null, loopB=null, dead=false, lbSwaps=0;
-  function gone(){ return !ob || ob.classList.contains('hide'); }
+  /* a link landing hides the wings (.ob-linked), so their loops stop for good */
+  function gone(){ return !ob || ob.classList.contains('hide') || ob.classList.contains('ob-linked'); }
   function cardEl(r){
     const el=document.createElement('div'); el.className='ob-pcard';
     el.style.setProperty('--sqc','var('+r.sq+')');
-    el.innerHTML='<div class="who"><span>'+r.n+'</span><span>'+r.c+'</span></div>'
+    el.innerHTML='<div class="who"><span class="dot"></span><span>'+r.n+'</span><span class="crs">'+r.c+'</span></div>'
       +'<div class="ln"><span class="gr">'+r.g+'</span><span class="band">'+r.b+'</span><span class="pts">'+r.p+'</span></div>';
     return el;
   }
