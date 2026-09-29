@@ -37429,6 +37429,11 @@ for(const L of CS_SHARE_LINKS){
   break;
 }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
+/* W7-058 · the sentence after 'This link is dead.' (the public page) and 'That link has expired.' (csShareLine): ONE, for every kind of link. share_info answers the
+   same null for a round, a settled game, a season table, a golfer and a plan (D57, fail-closed), so the page cannot know it was a round: 'from the round' was
+   the wording for the era when only rounds had public pages (the phone's ShareIntent.dead already says this). Only CS_CLAIM_DEAD, which IS about a scorecard link, keeps it. */
+const CS_LINK_DEAD_SUB = 'Whoever sent it can share a fresh one.';
+window.CS_LINK_DEAD_SUB = CS_LINK_DEAD_SUB;
 async function renderShareView(tok, _testInfo){
   /* ONE PUBLIC SHELL (owner C/B/P, craft C, critique B, 2026-09-28). Every
      branch — a round, a settled game, a season table, a golfer, a plan, a dead
@@ -37508,7 +37513,7 @@ async function renderShareView(tok, _testInfo){
     card.className = 'sv-short';
     card.innerHTML = `<div class="sv-head">
         <h1 class="cs-lead">This link is dead.</h1>
-        <p class="sv-where cs-body-s">Whoever sent it can share a fresh one from the round.</p>
+        <p class="sv-where cs-body-s">${esc(CS_LINK_DEAD_SUB)}</p>
       </div>` + foot({ cta: 'Open Cup Season', primary: true });   /* AW2-14 · the page's one action is act */
     return;
   }
@@ -38125,7 +38130,7 @@ function csShareLine(kind, data){
      phone, which is what D234 means by "produced once" */
   const known = (window.CS_SHARE_LINKS || [{kind:'person'},{kind:'plan'}]).map(l=>l.kind);
   if(!data || !data.kind || known.indexOf(data.kind) < 0)
-    return 'That link has expired. Whoever sent it can share a fresh one.';
+    return 'That link has expired. ' + CS_LINK_DEAD_SUB;
   if(data.kind === 'plan'){
     if(data.seat === 'host') return null;
     if(data.seat === 'past') return 'That round has already been played.';

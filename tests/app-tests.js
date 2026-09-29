@@ -1348,6 +1348,10 @@
       t('D241: dead path ' + i + ' answers the same nothing',
         csShareLine('person', d), 'That link has expired. Whoever sent it can share a fresh one.');
     });
+    /* W7-058 · and the PUBLIC PAGE's dead link says the same second sentence, from the one constant: it said 'from the round' for every kind of link that died */
+    t('W7-058: the dead link\'s sentence is one constant for the page and csShareLine, and names no kind of link',
+      [window.CS_LINK_DEAD_SUB, csShareLine('plan', null).endsWith(window.CS_LINK_DEAD_SUB), /round/i.test(window.CS_LINK_DEAD_SUB)],
+      ['Whoever sent it can share a fresh one.', true, false]);
 
     /* D80 · a REQUEST, never a friendship — unless they asked first */
     t('D241: the sentence says request, not friendship',
