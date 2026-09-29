@@ -364,30 +364,33 @@ struct LiveHoleStrip: View {
       // one element, one sentence: who won how many, halved, carried, where it ended
       .accessibilityElement(children: .ignore)
       .accessibilityLabel(ledger.summary(hot: hot, hotName: hotName, otherName: otherName))
+      .accessibilityIdentifier("live.recap.strip")
       key.accessibilityHidden(true)
     }
     .padding(.top, CSTokens.Space.s2)
   }
 
-  /// The key, all kinds in words, each beside the shape it keys.
+  /// The key, all kinds in words, each beside the shape it keys. The shapes
+  /// are the cells' own: square-cornered bars, as the strip has always drawn
+  /// them (no radius outside the five, and no container shape, LINT-05/10).
   private var key: some View {
     LiveFlow(spacing: CSTokens.Space.s3) {
-      item(hotName.map { "\($0) won" } ?? "Won") { RoundedRectangle(cornerRadius: 2).fill(hotColor).frame(width: 10, height: 14) }
-      item(otherName.map { "\($0) won" } ?? "Theirs") { RoundedRectangle(cornerRadius: 2).fill(coolColor).frame(width: 10, height: 7) }
+      item(hotName.map { "\($0) won" } ?? "Won") { Rectangle().fill(hotColor).frame(width: 10, height: 14) }
+      item(otherName.map { "\($0) won" } ?? "Theirs") { Rectangle().fill(coolColor).frame(width: 10, height: 7) }
       if ledger.drawsHalved { item("Halved") { hollow.frame(width: 10, height: 14) } }
       if ledger.drawsCarried { item("Carried") { hollow.frame(width: 10, height: 14) } }
     }
   }
 
   private func item<S: View>(_ word: String, @ViewBuilder _ swatch: () -> S) -> some View {
-    HStack(alignment: .bottom, spacing: 6) {
+    HStack(alignment: .bottom, spacing: CSTokens.Space.s1) {
       swatch().frame(height: 14, alignment: .bottom)
       Text(word).csType(.agateS, caps: true).foregroundStyle(mutColor)
     }
   }
 
   private var hollow: some View {
-    RoundedRectangle(cornerRadius: 2).strokeBorder(mutColor, lineWidth: 1.5)
+    Rectangle().strokeBorder(mutColor, lineWidth: 1.5)
   }
 
   @ViewBuilder private func cell(_ v: LiveCell?, tall: CGFloat) -> some View {
@@ -395,15 +398,15 @@ struct LiveHoleStrip: View {
       if v == .h || v == .c {
         hollow.frame(maxWidth: .infinity).frame(height: tall)                           // halved, or carried
       } else if let hot, v.key == hot {
-        RoundedRectangle(cornerRadius: 2).fill(hotColor)
+        Rectangle().fill(hotColor)
           .frame(maxWidth: .infinity).frame(height: tall)                               // the subject's: full height
       } else {
-        RoundedRectangle(cornerRadius: 2).fill(coolColor)
+        Rectangle().fill(coolColor)
           .frame(maxWidth: .infinity).frame(height: (tall / 2).rounded())               // anyone else's: half height
       }
     } else {
-      RoundedRectangle(cornerRadius: 2).strokeBorder(mutColor, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
-        .frame(maxWidth: .infinity).frame(height: tall).opacity(0.5)                    // never played
+      Rectangle().strokeBorder(mutColor, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        .frame(maxWidth: .infinity).frame(height: tall).opacity(CSTokens.Alpha.a56)     // never played
     }
   }
 }
