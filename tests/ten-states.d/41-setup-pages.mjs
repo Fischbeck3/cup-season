@@ -243,6 +243,18 @@ const reviewAlone = async (page) => page.evaluate(() => {
   const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
   return after(h2, nm) && after(nm, note) && after(note, rules) ? true : 'the review does not read head, name, line, rules'
 })
+/* TEN / W8 · W7-104 [A2-wizard-5, A2-desk-19] · a missing pay note is said in ink, as the phone says it, before the Pro has tried to start: 'add how they pay you' in the Money group's summary,
+   the field's line and the review's 'Not set yet' are not the error red (neg is for a refusal, not a field not yet filled); the disabled Start and its reason stay */
+const payNoteInk = async (page) => page.evaluate(() => {
+  const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const neg = tok('--neg'), seen = []
+  for (const sel of ['.wizgrp-need', '#payNoteFine', '.byrow .byneed']) for (const el of document.querySelectorAll(sel)) {
+    const r = el.getBoundingClientRect(); if (!(r.width > 0)) continue
+    seen.push(sel)
+    if (getComputedStyle(el).color === neg) return `${sel} says the missing pay note in the error red`
+  }
+  return seen.length ? true : 'no missing pay note is drawn on this step (the state is not the one the pin is for)'
+})
 const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
@@ -292,7 +304,7 @@ const WIZARD = [
     expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
     /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
        narrowed column broke it ("Best / 4", "2 / / mo") */
-    check: all(async (page) => page.evaluate(() => {
+    check: all(payNoteInk, async (page) => page.evaluate(() => {
       const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
         .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
         .map((v) => JSON.stringify(v.textContent.trim()))
@@ -305,7 +317,7 @@ const WIZARD = [
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
       await click(page, '#wizFastPath'); await wizAt(page, 2); await page.waitForTimeout(600)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone) },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone, payNoteInk) },
 ]
 
 /* --------------------------------------------- COURSES & THE COURSE CARD */

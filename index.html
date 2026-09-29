@@ -2838,7 +2838,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 #view-wizard .wizgrp-h .ic{grid-area:ic; width:18px; height:18px; color:var(--mut); transition:transform .15s ease;}
 #view-wizard .wizgrp[data-open] .wizgrp-h .ic{transform:rotate(180deg);}
 #view-wizard .wizgrp-h:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
-#view-wizard .wizgrp-need{color:var(--neg);}
+#view-wizard .wizgrp-need{color:var(--ink);}   /* W7-104 · a required field the Pro has not reached reads as guidance, in ink as the phone says it: neg is for a refusal, not a field not yet filled */
 #view-wizard .wizgrp-b{padding:var(--s1) 0 var(--s4);}
 #view-wizard .wizgrp-b[hidden]{display:none;}
 /* the review: agate labels over left-aligned sans values (the table was all
@@ -2847,7 +2847,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 #view-wizard .byrow > :first-child{display:block; max-width:none; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 #view-wizard .byrow b{display:block; text-align:left; font-family:var(--sans); font-size:15px; font-weight:500; line-height:1.4; color:var(--ink); margin-top:2px;}
-#view-wizard .byrow .byneed{font-style:normal; color:var(--neg);}
+#view-wizard .byrow .byneed{font-style:normal; color:var(--ink);}   /* W7-104 · ink, not the error red, until the Pro has tried to start */
 /* W7-165 · below the desk the review opens on the league's own name and one reassurance line (the phone's WizardAgreementView), not on a portrait that
    restated the rules under it; from 1100 the sticky aside names the league beside the list */
 #view-wizard .wizrev-id{margin:0 0 var(--s3);}
@@ -29008,7 +29008,7 @@ function csRenderPayNote(){
     fine.textContent = csPayNoteMissing()
       ? "They'll need somewhere to send it."
       : "Everyone who owes will see this. It's the only place they can look.";
-    fine.style.color = csPayNoteMissing() ? 'var(--neg)' : '';   /* a missing field is a validation state (neg, as .ob-status.err), never the competition ember */
+    fine.style.color = csPayNoteMissing() ? 'var(--ink)' : '';   /* W7-104 · a missing field the Pro has not reached is guidance, said in ink as the phone does; the disabled Start and its reason (#lockWhy) still stop the lock */
   }
   const btn = document.getElementById('lockBtn');
   /* W5 · the disabled tier is bg1 with a mut label (§7.1), never the action
