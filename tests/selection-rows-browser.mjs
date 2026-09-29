@@ -91,15 +91,28 @@ for (const width of [320, 375, 1280]) for (const theme of ['dark', 'light']) {
     const cells = [...document.querySelectorAll('#calGrid .calcell:not(.blank)')].map(c => c.getBoundingClientRect())
     /* the rivalry tag rides the crew's plans (module-side: reached through its bridge) */
     window.RIVALS = [{ opponent: 'pf2', display_name: 'Devon Example', meetings: 7, wins: 3, losses: 4, rivalry_name: 'The Fixture Derby' }]
-    window.watchAll = [{ id: 'w1', profile_id: 'pf2', display_name: 'Devon Example', mine: false, shared_league: true, tagged_me: true, play_on: isoOf(new Date(Date.now() + 5 * 864e5)), course_label: 'Mesquite Wash', marker: 'saguaro' }]
+    /* 2026-09-28 · critique-B P0: "in" means an explicit yes. A tagged plan
+       with `my_rsvp:'in'` says YOU'RE IN in the row's fixed state slot (it was
+       "ON THE SCHEDULE", printed on the TAG alone, which told a golfer who had
+       never answered that they had said yes); a tagged plan with no answer
+       says ASKED and offers I'm in. The soonest plan of yours leads the page
+       (#schNext), so a plan of the viewer's own comes first and the two tagged
+       rows fall to the list this suite reads. */
+    const soon = n => isoOf(new Date(Date.now() + n * 864e5))
+    window.watchAll = [
+      { id: 'm1', profile_id: 'me', display_name: 'Me', mine: true, shared_league: false, tagged_me: false, play_on: soon(1), course_label: 'Papago', marker: 'saguaro' },
+      { id: 'w1', profile_id: 'pf2', display_name: 'Devon Example', mine: false, shared_league: true, tagged_me: true, my_rsvp: 'in', play_on: soon(5), course_label: 'Mesquite Wash', marker: 'saguaro' },
+      { id: 'w2', profile_id: 'pf2', display_name: 'Devon Example', mine: false, shared_league: true, tagged_me: true, my_rsvp: null, play_on: soon(6), course_label: 'Mesquite Wash', marker: 'saguaro' }]
     window.renderWatchList()
     const tagEl = [...document.querySelectorAll('#calWatch small span')].find(e => /leads|even/.test(e.textContent))
     const c = tagEl ? getComputedStyle(tagEl).color : null
-    const status = [...document.querySelectorAll('#calWatch .fine')].find(e => /ON THE SCHEDULE/.test(e.textContent))
+    const status = [...document.querySelectorAll('#calWatch .schrow-chip')].find(e => /You’re in/i.test(e.textContent))
     const sc = status ? getComputedStyle(status).color : null
+    const asked = document.querySelector('#calWatch [data-wopen="w2"]')
+    const askedOk = !!asked && /Asked/.test(asked.textContent) && !/You’re in/i.test(asked.textContent) && !!asked.querySelector('[data-imin]')
     const probe = document.createElement('span'); probe.style.color = 'var(--ink)'; document.body.appendChild(probe); const ink = getComputedStyle(probe).color; probe.remove()
     const card = homeRoundCard({ id: 'x', mine: false, display_name: 'Devon Example', play_on: '2026-10-03', tee_time: '08:10', course_label: 'Mesquite Wash', marker: 'saguaro' }, false)
-    return { maxH: Math.max(...cells.map(r => r.height)), minW: Math.min(...cells.map(r => r.width)), rivalry: c, status: sc, ink, teeGold: /color:var\(--gold\)/.test(card) }
+    return { maxH: Math.max(...cells.map(r => r.height)), minW: Math.min(...cells.map(r => r.width)), rivalry: c, status: sc, askedOk, ink, teeGold: /color:var\(--gold\)/.test(card) }
   })
   if (width >= 960) check(`${label}: the desk calendar is short rows (${Math.round(cal.maxH)}px tall days), not squares`, cal.maxH <= 100 && cal.minW > cal.maxH, cal)
   /* 44 from 375 (the smallest supported iPhone) is calendar-album's; at 320 CSS
@@ -107,7 +120,8 @@ for (const width of [320, 375, 1280]) for (const theme of ['dark', 'light']) {
      a named exception: WCAG 2.5.8's 24px holds, and the days stay square */
   else if (width >= 375) check(`${label}: a phone's calendar days stay square 44px targets`, cal.maxH >= 44 && cal.minW >= 44 && Math.abs(cal.maxH - cal.minW) < 1, cal)
   else check(`${label}: at 320 the days stay square and above WCAG's 24px (${Math.round(cal.minW)}px, named exception)`, cal.minW >= 24 && Math.abs(cal.maxH - cal.minW) < 1, cal)
-  check(`${label}: a rivalry record, "on the schedule" and a tee time are ink, never gold`, cal.rivalry === cal.ink && cal.status === cal.ink && !cal.teeGold, cal)
+  check(`${label}: a rivalry record, "you're in" and a tee time are ink, never gold`, cal.rivalry === cal.ink && cal.status === cal.ink && !cal.teeGold, cal)
+  check(`${label}: a tag nobody answered says ASKED and offers I'm in — never "you're in"`, cal.askedOk, cal)
   check(`${label}: no page errors`, errs.length === 0, errs)
   await ctx.close()
 }

@@ -2339,20 +2339,22 @@ body.guestlive #onboard{display:none !important;}
 .rsheet .rs-course .meta{display:block; font-size:11px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--mut); margin-top:1px;}
 .rs-when{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
-.teechip{font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); background:var(--bg2); border:0; border-radius:var(--p); padding:0 10px; min-height:28px; display:inline-flex; align-items:center;}
 /* the weather chip spent GOLD on a forecast — a metal that means EARNED */
 .wxchip{font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); background:var(--bg2); border:0; border-radius:var(--p); padding:0 10px; min-height:28px; display:inline-flex; align-items:center; gap:6px;}
 .wxchip .sun{color:var(--gold);} .wxchip b{color:var(--ink);}
 .rs-note{font-style:italic; color:var(--mut); font-size:13px; margin-top:10px;}
-.rivchip{margin-top:12px; border:1px solid rgba(212,178,62,.34); background:rgba(212,178,62,.08); border-radius:10px; padding:9px 11px; font-size:13px;}
-.rivchip em{font-style:italic; color:var(--mut);}
-.rs-lbl{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut); margin:16px 0 8px; display:flex; justify-content:space-between;}
-.rs-lbl .n{color:var(--pos); font-weight:600;}
-.rsvppill{font-family:var(--board); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; padding:0 8px; min-height:24px; display:inline-flex; align-items:center; border-radius:var(--p); flex:none; align-self:center; background:var(--bg2);}
-.rsvppill.in{color:var(--pos); background:rgba(78,197,132,.14);}
-.rsvppill.maybe{color:var(--ink); background:var(--bg2);}   /* gold means earned (D359); a maybe is the neutral voice */
-.rsvppill.out{color:var(--mut); background:var(--bg2);}
-.rsvppill.none{color:var(--mut); background:var(--bg2);}
+.rs-riv{margin-top:12px; color:var(--mut);}
+/* the sheet's labels are the agate role (§1.4: mono never sets a section
+   label), and the count beside WHO'S IN is a count, in ink — `pos` is a
+   performance semantic, not a tally */
+.rs-lbl{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin:16px 0 8px; display:flex; justify-content:space-between;}
+.rs-lbl .n{color:var(--ink);}
+.rshost{color:var(--mut); margin-left:4px;}
+/* the answer is a word, not a pill: IN in ink, the rest mut (the phone's
+   ScheduledRoundSheet) — a green wash for "in" and grey fills for the rest were
+   colour carrying a state a word already carries */
+.rsvppill{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; font-weight:600; flex:none; align-self:center; color:var(--mut);}
+.rsvppill.in{color:var(--ink);}
 .rsvpset{display:flex; gap:7px; margin-top:10px;}
 /* the RSVP set. Unchosen, a button reads on the sheet's own ground (it was
    `mut` on the figure tile: 1.9:1 in dark). Chosen, it IS the tile, the
@@ -3626,6 +3628,100 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .caldot.rd{background:var(--act);}
 .caldot.lgm{background:var(--ink);}
 .caldot.lg{background:var(--mut);}
+/* §16.4 · colour is never the only channel: a round you are on is a filled
+   disc, a round in your seasons a ring, a season date a bar. Three kinds that
+   were one dot in three tints (critique-B P2). */
+#view-schedule .caldot, #sheet .schrow .caldot{box-sizing:border-box; width:7px; height:7px;}
+#view-schedule .caldot.lgm, #sheet .schrow .caldot.lgm{background:transparent; border:1.5px solid var(--ink);}
+#view-schedule .caldot.lg, #sheet .schrow .caldot.lg{width:9px; height:2px; border-radius:0;}
+#view-schedule .caldots{height:7px; align-items:center;}
+/* ── the schedule (2026-09-28): a head, the next round, one list, the grid ── */
+.schhead{margin:0 0 var(--s4);}
+.schhead h1{margin:0; color:var(--ink);}
+.schhead p{color:var(--mut); margin-top:var(--s1);}
+.schplans > .btn{margin:var(--s3) 0 0;}
+.schnav{display:flex; align-items:center;}
+.schnav-ctl{margin-left:auto; display:flex; gap:var(--s2); align-items:center;}
+.schnav-ctl b{min-width:84px; text-align:center; color:var(--ink);}
+.schnav .schprev-ic{transform:rotate(90deg);}
+.schnav .schnext-ic{transform:rotate(-90deg);}
+.schlegend{display:flex; gap:var(--s3); flex-wrap:wrap; padding:var(--s2) 0 0; color:var(--mut);}
+.schlegend span{display:inline-flex; align-items:center; gap:var(--s2);}
+.schlegend[hidden], .schlegend span[hidden]{display:none;}
+.schlegend .caldot{margin:0;}
+/* the next round: its tee time as a figure on a rule (§1.6), the course as it
+   is called, who has answered, and the host's own words */
+.schnext{display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:var(--s3); align-items:start;
+  padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--rule); cursor:pointer;}
+.schnext:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
+.schnext-k{grid-column:1 / -1; color:var(--mut);}
+.schnext-fig{grid-column:1; margin-top:var(--s3);}
+.schnext-fig b{display:block; color:var(--ink);}
+.schnext-fig i{display:block; width:120px; height:2px; background:var(--ink); margin:var(--s2) 0;}
+.schnext-fig small{display:block; color:var(--mut);}
+.schnext-what{grid-column:1 / -1; margin-top:var(--s3); min-width:0;}
+.schnext-what .cs-social{display:block; color:var(--ink); overflow-wrap:anywhere;}
+.schnext-what .cs-body-s{color:var(--mut); margin-top:var(--s1);}
+.schnext-what .cs-story{color:var(--ink); margin-top:var(--s2);}
+.schnext-riv{color:var(--mut); margin-top:var(--s1);}
+.schnext-slot{grid-column:2; grid-row:2; align-self:end;}
+.schnone{padding:var(--s2) 0 var(--s1);}
+.schnone .cs-name{margin:0; color:var(--ink);}
+.schnone .cs-body-s, p.schnone{color:var(--mut); margin-top:var(--s1);}
+/* ONE ROW PER PLAN, on a rule, no card. The day over the tee time leads (a
+   tee sheet reads down its times); the name shares its line with the right
+   slot, whose width is fixed and which holds the action OR the state; the
+   course, one quiet line and the note run under both. */
+.schlist{margin:0;}
+.schrow{display:grid; grid-template-columns:64px minmax(0,1fr) auto;
+  grid-template-areas:"when name slot" "when rest rest"; column-gap:var(--s3); row-gap:2px;
+  align-items:start; padding:var(--s3) 0; border-top:1px solid var(--rule); cursor:pointer; text-align:left;}
+.schrow:last-child{border-bottom:1px solid var(--rule);}
+.schrow:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
+@media(hover:hover){ .schrow:hover{background:var(--bg1);} }
+.schrow-when{grid-area:when; display:flex; flex-direction:column; gap:var(--s1); padding-top:var(--s1); min-width:0;}
+.schrow-when .cs-agate-s{color:var(--mut);}
+.schrow-when .cs-fig-s{color:var(--ink);}
+.schrow-name{grid-area:name; align-self:center; min-width:0; color:var(--ink); overflow-wrap:anywhere;}
+.schrow-slot{grid-area:slot; min-width:92px; display:flex; justify-content:flex-end; align-items:center;}
+.schrow-slot .mini{min-width:92px;}
+.schrow-chip{display:inline-flex; align-items:center; justify-content:center; min-width:92px; min-height:44px; padding:0 var(--s2);
+  border:1px solid var(--rule); border-radius:var(--rc); color:var(--mut);
+  font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; text-align:center;}
+.schrow-chip.is-in{color:var(--ink);}
+.schrow-rest{grid-area:rest; min-width:0; display:flex; flex-direction:column; gap:var(--s1);}
+.schrow-course{font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ink); overflow-wrap:anywhere;}
+.schrow-rest .cs-agate-s{color:var(--mut); line-height:1.45; overflow-wrap:anywhere;}
+.schrow-note{font-family:var(--sans); font-size:14px; line-height:1.45; color:var(--mut); font-style:italic; overflow-wrap:anywhere;}
+.schrow-acts{display:flex; gap:var(--s2); flex-wrap:wrap; margin-top:var(--s2);}
+.schrow .schcancel.is-armed{color:var(--neg);}
+.schrow.is-date{grid-template-areas:"when name name"; cursor:default; align-items:center;}
+.schrow.is-date .schrow-when{align-items:center; padding-top:0;}
+/* the season's week-by-week, behind its door (it belongs to the season page) */
+.schweeks{margin-top:var(--s4);}
+.schweeks[hidden]{display:none;}
+.schweeks > summary{cursor:pointer; list-style:none; min-height:44px; margin:0;}
+.schweeks > summary::-webkit-details-marker{display:none;}
+.schweeks > summary::after{content:''; width:8px; height:8px; margin-left:var(--s2); border-right:1.5px solid var(--mut);
+  border-bottom:1.5px solid var(--mut); transform:rotate(45deg); flex:none;}
+.schweeks[open] > summary::after{transform:rotate(-135deg);}
+.schweeks > summary:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.schwk{display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:var(--s3); align-items:baseline;
+  padding:var(--s2) 0; border-top:1px solid var(--rule);}
+.schwk .cs-body-s{color:var(--ink); overflow-wrap:anywhere;}
+.schwk .cs-fig-s{color:var(--ink);}
+.schwk-hd{color:var(--mut); border-top:0; padding-top:0;}
+.schwk-hd span:last-child{text-align:right;}
+/* THE DESK'S OWN SHAPE (D234, UI_SYSTEM §14.1): the calendar in the reading
+   column, the plans in the 340 aside. It was the phone column stretched to
+   960px (owner D, craft D, AW P2-15). */
+@media(min-width:960px){
+  #view-schedule .schbody{display:grid; grid-template-columns:minmax(0,1fr) 340px; column-gap:var(--gutter-desk); align-items:start;}
+  #view-schedule .schcal{grid-column:1; grid-row:1; min-width:0;}
+  #view-schedule .schplans{grid-column:2; grid-row:1; min-width:0;}
+  #view-schedule .schcal > .schnav{margin-top:0;}
+  #view-schedule .schplans .eyebrow{margin-top:var(--s5);}
+}
 #boardCard .composer{position:static; background:none; padding:10px 0 2px;}
 #hubLeagueless .btn{text-align:left;}
 #hubLeagueless .btn{width:100%;}
@@ -4391,6 +4487,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .sv-round .sv-signoff { margin-bottom:var(--s5); color:var(--mut); }
 .sv-round .sv-action { display:block; padding:var(--s3) var(--s4); min-height:44px; background:var(--act); color:var(--bg0); border-radius:var(--rc); text-align:center; text-decoration:none; }
 .sv-round .sv-action:focus-visible { outline:3px solid var(--ink); outline-offset:4px; }
+/* the plan landing rides the public round's shell (2026-09-28): a lead
+   sentence, who is in, one line of what this is, and the way in over its
+   consent line */
+.sv-plan .cs-lead { margin-top:var(--s3); overflow-wrap:anywhere; text-wrap:balance; }
+.sv-plan .sv-who { color:var(--ink); margin-top:var(--s4); }
+.sv-plan .sv-what { color:var(--mut); margin-top:var(--s3); }
+.sv-plan .sv-consent { color:var(--mut); margin-top:var(--s3); }
 
 /* D391 · the round's conversation, the inbox and the course's circle. Rules and
    spacing only — no new container shape, no colour outside the tokens. */
@@ -6035,31 +6138,51 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <!-- SCHEDULE (D93) — a destination, not a segment -->
       <section class="view" id="view-schedule">
         <a href="#" class="backlink" data-go="home">← Home</a>
-        <div class="eyebrow" style="margin-top:0">Yours, your buddies’, your seasons’</div>
-        <div id="room-schedule">
-        <div class="eyebrow" id="calWatchHead" style="margin-top:0; display:none">In your crew's plans</div>
-        <div id="calWatch" style="display:none; margin-bottom:6px"></div>
-        <div class="eyebrow" style="display:flex; align-items:center; margin-top:0">The calendar
-          <span style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-            <button class="mini" id="calPrev" aria-label="Previous month">←</button>
-            <b class="mono" id="calTitle" style="font-size:12.5px; letter-spacing:.1em; min-width:72px; text-align:center">—</b>
-            <button class="mini" id="calNext" aria-label="Next month">→</button>
+        <!-- THE PAGE SAYS WHAT IT IS (owner + craft + critique-B, 2026-09-28).
+             It opened on two stacked mono eyebrows — "Yours, your buddies’,
+             your seasons’" over "In your crew's plans" — and nothing on the
+             first screen said Schedule, the word the sidebar and the phone's
+             navigation title use. One head, the scope as one sentence. -->
+        <header class="schhead">
+          <h1 class="cs-display-s">The schedule</h1>
+          <p class="cs-body-s">Your rounds, and the ones your seasons have planned.</p>
+        </header>
+        <div id="room-schedule" class="schbody">
+        <!-- the desk's 340 aside and the phone's first screen: what is coming,
+             nearest first, one row per plan (it was two lists, and a plan could
+             print in both with different facts) -->
+        <div class="schplans">
+          <div id="schNext"></div>
+          <button class="btn" id="calDeclare">Put a round on the schedule</button>
+          <h2 class="eyebrow" id="calWatchHead" style="display:none">Coming up</h2>
+          <div id="calWatch" style="display:none"></div>
+        </div>
+        <div class="schcal">
+        <div class="eyebrow schnav">The calendar
+          <span class="schnav-ctl">
+            <button class="mini" id="calPrev" aria-label="Previous month"><svg class="ic schprev-ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <b class="cs-agate" id="calTitle">—</b>
+            <button class="mini" id="calNext" aria-label="Next month"><svg class="ic schnext-ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           </span>
         </div>
         <div class="card" style="text-align:left; padding:12px">
           <div class="calgrid" id="calGrid"></div>
-          <div class="fine" style="padding:8px 0 0; display:flex; gap:12px; flex-wrap:wrap">
-            <span><i class="caldot rd"></i> ON THE SCHEDULE</span>
-            <span><i class="caldot lgm"></i> IN YOUR SEASONS</span>
-            <span><i class="caldot lg"></i> SEASON DATE</span>
+          <!-- §16.4 · a mark's kind is its SHAPE as well as its colour -->
+          <div class="schlegend cs-agate-s" id="calLegend">
+            <span><i class="caldot rd" aria-hidden="true"></i>Your rounds</span>
+            <span><i class="caldot lgm" aria-hidden="true"></i>In your seasons</span>
+            <span><i class="caldot lg" aria-hidden="true"></i>Season dates</span>
           </div>
         </div>
         <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day.</p>
-        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the schedule</button>
-        <div class="eyebrow">On the schedule</div>
-        <div id="calList"></div>
-        <div class="eyebrow" id="calWeeksHead">Week by week</div>
-        <div class="card" id="calWeeks" style="text-align:left"></div>
+        <!-- a season's week-by-week table belongs to the season page; until it
+             lives there it waits behind a door here instead of trailing the
+             plans (owner, craft, critique-B) -->
+        <details class="schweeks" id="calWeeksWrap">
+          <summary class="eyebrow" id="calWeeksHead">Week by week</summary>
+          <div id="calWeeks" style="text-align:left"></div>
+        </details>
+        </div>
         </div>
       </section>
     </div>
@@ -24319,17 +24442,75 @@ function renderRosterDoor(){
   });
 }
 window.renderRosterDoor = renderRosterDoor;
-/* ---------- the calendar tab: month by month, social first ----------
+/* ── THE PLAN'S STATE, SAID ONCE FOR THE WHOLE SCHEDULE (2026-09-28) ────────
+   critique-B P0: the list printed YOU'RE IN, and the public card "Avery and
+   Devon are in.", for a golfer who had been asked and never answered — while
+   the plan's own sheet said NO REPLY. Two definitions of "in" were printing
+   contradictory facts about a real person's commitment. There is one now:
+   `in` is an explicit yes and nothing else. A tag with no answer is `asked`,
+   the server's own word (`my_schedule.rsvp[].status`, G7: the state of the
+   invitation, never a verdict on the man); the host is in by declaring it.
+   The phone's twin is `PlanSeat.isIn / isAsked` (PlanIdentity.swift); its
+   ScheduleScreen still keys YOU'RE IN on `tagged_me` (lines 80/100/170). */
+function csPlanMe(sr){
+  if(!sr) return null;
+  if(sr.mine) return 'host';
+  if(!sr.tagged_me) return null;
+  const r = String(sr.my_rsvp || '');
+  return (r === 'in' || r === 'maybe' || r === 'out') ? r : 'asked';
+}
+const CS_PLAN_ME = { in:'You’re in', maybe:'Maybe', out:'You’re out', asked:'Asked' };
+/* A-7 · the tag names the crew ("IN THE FELLAS"), never the retired compound.
+   `my_schedule` says only THAT a season is shared (`shared_league`), never
+   which, so the name is read from rosters this client already holds: the
+   league on screen, or the one league the golfer is in. Where neither can
+   answer, the section head's own words stand rather than a guessed name. */
+function csPlanCrew(sr){
+  if(!sr || sr.mine || !sr.shared_league) return null;
+  const C = window.CS || {};
+  if(C.league && Array.isArray(C.members) && C.members.some(m => m && m.profile_id === sr.profile_id)) return C.league.name || null;
+  const ms = (Array.isArray(C.memberships) ? C.memberships : []).filter(m => m && m.league && !m.league.sandbox);
+  return ms.length === 1 ? (ms[0].league.name || null) : null;
+}
+function csPlanRel(sr){
+  if(!sr || sr.mine) return null;
+  if(sr.is_friend) return 'Buddy';
+  const crew = csPlanCrew(sr);
+  return crew ? 'In ' + crew : (sr.shared_league ? 'In your seasons' : null);
+}
+/* the course as the golfer calls it: the picker writes `club — course · tee`,
+   and the tee belongs to the plan's own sheet, not to a row */
+function csPlanCourse(label){
+  const s = String(label || '').trim();
+  if(!s) return '';
+  return csCourse(s.split(' · ')[0]);
+}
+/* the rest of the group, first names, the viewer left out */
+function csPlanWith(sr){
+  const me = window.CS?.user?.id || null;
+  const myName = window.CS?.profile?.display_name || null;
+  const rs = Array.isArray(sr && sr.rsvp) ? sr.rsvp : null;
+  const names = rs
+    ? rs.filter(x => x && Number(x.ord) === 1 && x.profile_id !== me).map(x => x.display_name)
+    : ((sr && sr.tagged_names) || []).filter(n => n && n !== myName);
+  const f = names.filter(Boolean).map(n => String(n).trim().split(/\s+/)[0]);
+  if(!f.length) return null;
+  return 'with ' + (f.length < 2 ? f[0] : f.slice(0, -1).join(', ') + ' and ' + f[f.length - 1]);
+}
+window.csPlanMe = csPlanMe; window.csPlanRel = csPlanRel; window.csPlanCourse = csPlanCourse; window.csPlanWith = csPlanWith;
+
+/* ---------- the calendar: month by month, social first ----------
    Days carry (a) rounds on the books — yours, friends', league mates' (the
    my_schedule RPC does the visibility math) and (b) season dates from EVERY
-   league you're in (window.leagueSpans). A league mate's round glows gold:
-   the "Logan's playing Pebble — get something on the books" loop. */
+   league you're in (window.leagueSpans). The plans themselves are listed once,
+   above the grid, by renderWatchList (the module's, because the rivalry tag
+   and the tee-time producer live there). */
 function calFirst(y,m){ return new Date(y,m,1); }
 function renderCalendar(){
   const grid=$('#calGrid'); if(!grid) return;
   const now=new Date(); now.setHours(0,0,0,0);
   const cur=window.calCursor || (window.calCursor={y:now.getFullYear(), m:now.getMonth()});
-  $('#calTitle').textContent = `${MOS[cur.m].toUpperCase()} ${cur.y}`;
+  $('#calTitle').textContent = `${MOS[cur.m]} ${cur.y}`;
 
   /* gather this month's items, keyed by day-of-month */
   const byDay={};
@@ -24338,9 +24519,9 @@ function renderCalendar(){
   if(inLeague){
     const s=seasonS(), e=seasonE(), cf=cupFinalStart();
     const lgName = state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || 'Your league');
-    add(s,  {kind:'lg', t:`${lgName} — first tee`, gold:true});
-    add(cf, {kind:'lg', t:`${lgName} — Cup Final begins`, gold:true});
-    add(e,  {kind:'lg', t:`${lgName} — season ends, cup decided`, gold:true});
+    add(s,  {kind:'lg', t:`${lgName} — first tee`});
+    add(cf, {kind:'lg', t:`${lgName} — Cup Final begins`});
+    add(e,  {kind:'lg', t:`${lgName} — season ends, cup decided`});
     const first=calFirst(cur.y, cur.m);
     if(first>s && first<=e) add(first, {kind:'lg', t:`${MOS[(cur.m+11)%12]} closes — minimums & bonuses assessed`});
     for(let d=1; d<=31; d++){
@@ -24352,17 +24533,21 @@ function renderCalendar(){
   (window.leagueSpans||[]).forEach(ls=>{
     if(!state.demo && window.CS?.league && ls.league_id===window.CS.league.id) return;
     add(new Date(ls.starts_on+'T00:00:00'), {kind:'lg', t:`${ls.name} — first tee`});
-    add(new Date(ls.ends_on+'T00:00:00'),   {kind:'lg', t:`${ls.name} — season ends`, gold:true});
+    add(new Date(ls.ends_on+'T00:00:00'),   {kind:'lg', t:`${ls.name} — season ends`});
   });
-  /* League Room calendar is LEAGUE-scoped (pilot feedback #3): your rounds,
+  /* the calendar is LEAGUE-scoped (pilot feedback #3): your rounds,
      league-mates', and any you're tagged in — a pure buddy you share no league
-     with lives on Home, not in a specific league's room. (shared_league is the
-     best proxy until scheduled rounds carry a league — see spec/scheduled-rounds-arc.md.) */
+     with lives on Home. (shared_league is the best proxy until scheduled rounds
+     carry a league — see spec/scheduled-rounds-arc.md.) */
   (window.mySchedule||[]).filter(sr => sr.mine || sr.shared_league || sr.tagged_me).forEach(sr=>{
     add(new Date(sr.play_on+'T00:00:00'), {kind:'rd', sr});
   });
 
-  /* the grid */
+  /* the grid. A mark's kind is its shape as well as its colour (§16.4): a
+     round you are on is a filled disc, a round in your seasons a ring, a
+     season date a bar — a declined booking is not yours, whoever booked it */
+  const markOf = it => it.kind!=='rd' ? 'lg'
+    : (it.sr && (it.sr.mine || (it.sr.tagged_me && it.sr.my_rsvp !== 'out'))) ? 'rd' : 'lgm';
   const firstDow=calFirst(cur.y,cur.m).getDay();
   const days=new Date(cur.y, cur.m+1, 0).getDate();
   const pad2=n=>String(n).padStart(2,'0');
@@ -24375,8 +24560,7 @@ function renderCalendar(){
     const isToday = cur.y===now.getFullYear() && cur.m===now.getMonth() && d===now.getDate();
     const isPast = new Date(cur.y,cur.m,d) < now;
     const tappable = items.length || (canPlan && !isPast);
-    const dots=items.slice(0,3).map(it=>
-      `<i class="caldot ${it.kind==='rd' ? (it.sr && (it.sr.tagged_me || (it.sr.shared_league && !it.sr.mine)) ? 'lgm' : 'rd') : 'lg'}" style="margin:0"></i>`).join('');
+    const dots=items.slice(0,3).map(it=>`<i class="caldot ${markOf(it)}" style="margin:0"></i>`).join('');
     /* F15 · a day you can act on is a BUTTON, named for its date and what it
        holds; it was a div with a click handler, so no keyboard could reach it */
     const cls = `calcell${isToday?' today':''}${items.length?' has':''}${tappable?' tap':''}${canPlan&&!isPast&&!items.length?' plan':''}`;
@@ -24387,97 +24571,70 @@ function renderCalendar(){
       : `<div class="${cls}" data-cd="${d}">${d}<span class="caldots" aria-hidden="true">${dots}</span></div>`;
   }
   grid.innerHTML=html;
+  /* the legend lists only the marks this month carries */
+  const kinds = new Set(Object.values(byDay).flat().map(markOf));
+  const lg = $('#calLegend');
+  if(lg) lg.querySelectorAll('.caldot').forEach(i => { const k = ['rd','lgm','lg'].find(c => i.classList.contains(c)); i.parentElement.hidden = !kinds.has(k); });
+  if(lg) lg.hidden = !kinds.size;
   grid.querySelectorAll('.calcell.tap').forEach(c=>c.addEventListener('click',()=>{
     const d=Number(c.dataset.cd), items=byDay[d]||[], iso=isoOf(d);
     const isPast = new Date(cur.y,cur.m,d) < now;
     const canAdd = canPlan && !isPast;
     if(!items.length){ if(canAdd) openDeclareSheet(iso); return; }
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
-    openSheet(dowName, `${items.length} ON THE SCHEDULE`,
-      items.map(it=> it.kind==='rd'
-        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--ink)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--ink)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--ink)">IN YOUR SEASONS</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ON THE SCHEDULE'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
-        : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
-      ).join('')
+    /* the day's plans are the schedule's own rows (window.csPlanRowHtml, the
+       module's producer); a season date is a date, set in ink — the gold that
+       painted it meant "earned" (D359), and the phone's day sheet is ink too */
+    const rows = items.map(it => it.kind==='rd'
+        ? (window.csPlanRowHtml ? window.csPlanRowHtml(it.sr, { day:true }) : '')
+        : `<div class="schrow is-date"><span class="schrow-when"><i class="caldot lg" aria-hidden="true"></i></span><span class="schrow-name cs-social">${esc(it.t)}</span></div>`).join('');
+    const n = items.filter(it => it.kind==='rd').length;
+    openSheet(dowName, n ? `${n} on the schedule` : 'Season dates',
+      `<div class="schlist">${rows}</div>`
       + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Put your round on this day</button>` : ''));
     if(canAdd) document.getElementById('dayAdd')?.addEventListener('click', ()=>{ closeSheet(); openDeclareSheet(iso); });
     /* manage your own round straight from the day sheet (pilot: cancel/edit was
-       only in the list below the grid, hard to find). Change the date = cancel
-       here, then re-add on the right day. */
-    $('#shBody')?.querySelectorAll('[data-retag]').forEach(b=>b.addEventListener('click',()=>{ closeSheet(); openRetagSheet(b.dataset.retag); }));
-    $('#shBody')?.querySelectorAll('[data-scratch]').forEach(b=>b.addEventListener('click', async()=>{
-      b.disabled=true;
-      try{ const {error}=await sb.rpc('scratch_round',{p_id:b.dataset.scratch}); if(error) throw error;
-        closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList();
-      }catch(e){ toast(humanError(e, 'Scratch failed.')); b.disabled=false; }
-    }));
-    /* tap the round (not its ✕/＋) to open the full round object */
-    $('#shBody')?.querySelectorAll('[data-roundopen]').forEach(el=>el.addEventListener('click',(e)=>{
-      if(e.target.closest('button')) return;
-      closeSheet(); if(window.openRoundSheet) window.openRoundSheet(el.dataset.roundopen);
-    }));
+       only in the list below the grid, hard to find); one wiring for the day
+       sheet and the list */
+    window.csPlanRowsWire?.($('#shBody'), { sheet:true });
   }));
 
-  /* the on-the-books list: this month's rounds with the social framing */
-  const list=$('#calList');
-  if(list){
-    const rows=(window.mySchedule||[])
-      .filter(sr => sr.mine || sr.shared_league || sr.tagged_me)   /* League Room = league-scoped (pilot #3) */
-      .filter(sr=>{ const d=new Date(sr.play_on+'T00:00:00'); return d.getFullYear()===cur.y && d.getMonth()===cur.m && d>=now; })
-      .map(sr=>{
-        const d=new Date(sr.play_on+'T00:00:00');
-        const n=Math.round((d-now)/864e5);
-        const when = n===0?'TODAY':n===1?'TOMORROW':n+' DAYS';
-        const withTxt=(sr.tagged_names||[]).length?' · WITH '+esc(sr.tagged_names.join(' & ').toUpperCase()):'';
-        return `<div class="check">
-          <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tee_time?' · <span style="color:var(--ink)">'+fmtTee(sr.tee_time)+'</span>':''}${sr.tagged_me?' · <span style="color:var(--ink)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--ink)">IN YOUR SEASONS</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
-          <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+esc(sr.course_label.toUpperCase()):''}${withTxt}${sr.note?' · “'+esc(sr.note)+'”':''}</small></div>
-          <span style="display:flex; gap:6px; align-items:center; flex:none">
-            <b class="mono" style="font-size:11.5px; color:var(--mut); letter-spacing:.06em">${when}</b>
-            ${sr.mine?`<button class="mini" data-retag="${sr.id}" title="Tag your group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="${sr.id}" aria-label="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}
-          </span>
-        </div>`;
-      }).join('');
-    list.innerHTML = rows || `<p class="fine" style="padding:6px 0">Nothing on the schedule for ${MOS[cur.m]}${state.demo?' (scheduling is a real-account thing)':''}. ${!state.demo?'Put one up: buddies and the crews you play with see it the moment you do.':''}</p>`;
-  }
-
-  /* week-by-week history (league seasons only) */
-  const wkEl=$('#calWeeks'), wkHd=$('#calWeeksHead');
+  /* week-by-week history (league seasons only), behind its door */
+  const wkEl=$('#calWeeks'), wkWrap=$('#calWeeksWrap');
   const showWk = inLeague;
-  if(wkHd) wkHd.style.display = showWk?'':'none';
-  if(wkEl){
-    wkEl.style.display = showWk?'':'none';
-    if(showWk){
-      const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
-      if(!hist.length){
-        wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
-          ? 'The demo skips the archive. Real seasons record every Sunday night.'
-          : 'Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season.')+'</p>';
-      } else {
-        /* D234 · a SOLO season forms no squads, so `standings.squads` is []
-           and every week of a solo archive rendered as a bare "WK 3" with no
-           leader, no gap and no points — three of the six in-season leagues in
-           prod. snapshot_week writes BOTH halves of the payload; read the one
-           this season has. `teams` carries the season's own rows either way
-           (squads, or the individual race with `solo:true` and `id` = member
-           id), so one nameOf serves both. */
-        const solo = !!(teams.length && teams[0].solo);
-        const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
-        wkEl.innerHTML = hist.slice().reverse().map(sn=>{
+  if(wkWrap) wkWrap.hidden = !showWk;
+  if(wkEl && showWk){
+    const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
+    if(!hist.length){
+      wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
+        ? 'The demo skips the archive. Real seasons record every Sunday night.'
+        : 'Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season.')+'</p>';
+    } else {
+      /* D234 · a SOLO season forms no squads, so `standings.squads` is []
+         and every week of a solo archive rendered as a bare "WK 3" with no
+         leader, no gap and no points — three of the six in-season leagues in
+         prod. snapshot_week writes BOTH halves of the payload; read the one
+         this season has. `teams` carries the season's own rows either way
+         (squads, or the individual race with `solo:true` and `id` = member
+         id), so one nameOf serves both. */
+      const solo = !!(teams.length && teams[0].solo);
+      const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
+      /* a sentence per week in the sentence face and the points in the
+         board's (§1.4 — this was a column of mono caps sentences), under ONE
+         head that names the figure column (§16A.3) */
+      wkEl.innerHTML = `<div class="schwk schwk-hd cs-agate-s"><span>Week</span><span>Who led</span><span>Pts</span></div>`
+        + hist.slice().reverse().map(sn=>{
           const rows=((sn.standings && (solo ? sn.standings.individuals : sn.standings.squads))||[])
             .slice().sort((a,b)=>b.points-a.points);
           const lead=rows[0], second=rows[1];
           const leadId = lead ? (solo ? lead.member_id : lead.squad_id) : null;
           const gap=lead&&second ? lead.points-second.points : null;
-          return `<div class="fine" style="display:flex; justify-content:space-between; gap:10px; padding:5px 0;">
-            <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+esc(nameOf(leadId)).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
-            <b class="mono">${lead?lead.points+' PTS':''}</b>
-          </div>`;
+          const said = lead ? esc(nameOf(leadId)) + (gap!=null ? (gap===0 ? ', tied at the top' : ' by ' + gap) : '') : 'No rounds that week';
+          return `<div class="schwk"><span class="cs-fig-s">${sn.week_no}</span><span class="cs-body-s">${said}</span><b class="cs-fig-s">${lead?lead.points:''}</b></div>`;
         }).join('');
-      }
     }
   }
-  window.renderWatchList && window.renderWatchList();   /* crew's plans ride atop the grid */
+  window.renderWatchList && window.renderWatchList();   /* the plans ride above the grid */
 }
 $('#calPrev').addEventListener('click',()=>{
   const c=window.calCursor||{y:new Date().getFullYear(), m:new Date().getMonth()};
@@ -30970,50 +31127,183 @@ function rivalryTag(pid){
      fact, and gold means earned (D359) */
   return `<span style="color:var(--ink)">${nm}${rec}</span>`;
 }
-/* others' upcoming rounds, nearest first — the rows the Watch List shows */
-function watchRows(){
+/* ── THE SCHEDULE'S ONE LIST (owner, craft, critique-B · 2026-09-28) ──────────
+   Every plan the page can show, nearest first, from BOTH reads: the 14-day
+   window (watchAll — it survives calendar paging) and the calendar's month
+   (mySchedule). They were two lists, "In your crew's plans" and "On the
+   schedule", and a plan in both printed twice with different facts (L-34);
+   the month list also dropped next Saturday on the 28th because it followed
+   the calendar. League-scoped as the page always was (pilot #3): your plans,
+   plans you are tagged in, and your seasons' — a pure buddy's lives on Home. */
+function csUpcomingPlans(){
   const today = new Date(); today.setHours(0,0,0,0);
-  return (window.watchAll||[])
-    /* League Room watch list = league-mates' plans (+ rounds you're tagged in);
-       pure buddies stay on Home. (pilot #3) */
-    .filter(sr => sr.mine === false && (sr.shared_league || sr.tagged_me))
-    .filter(sr => { const d = localDate(sr.play_on); return !isNaN(d) && d >= today; })
-    .sort((a,b)=> a.play_on < b.play_on ? -1 : a.play_on > b.play_on ? 1 : 0);
+  const seen = new Set(), out = [];
+  [...(window.watchAll||[]), ...(window.mySchedule||[])].forEach(sr => {
+    if(!sr || !sr.id || seen.has(sr.id)) return;
+    if(!(sr.mine || sr.shared_league || sr.tagged_me)) return;
+    const d = localDate(sr.play_on); if(isNaN(d) || d < today) return;
+    seen.add(sr.id); out.push(sr);
+  });
+  const key = r => String(r.play_on) + ' ' + String(r.tee_time || '99');
+  return out.sort((a,b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0);
+}
+window.csUpcomingPlans = csUpcomingPlans;
+function csPlanDay(iso){
+  const d = localDate(iso); if(isNaN(d)) return '';
+  const t = new Date(); t.setHours(0,0,0,0);
+  const n = Math.round((d - t)/864e5);
+  return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`;
+}
+/* ONE ROW PER PLAN — the day over the tee time as a figure (a tee sheet reads
+   down its times), the host by name, the course as it is called, ONE quiet
+   line in sentence case, and the host's note in their own words. The right
+   slot has one width and holds the action OR the state, never a button on one
+   row and a word on the next. This was six to eleven lines of 11px mono caps
+   sentences per plan (§1.4 — mono never carries a sentence). */
+function csPlanRowHtml(sr, o){
+  o = o || {};
+  const me = csPlanMe(sr);
+  const tee = fmtTee(sr.tee_time);
+  const who = sr.mine ? 'You' : (sr.display_name || 'A golfer');
+  const course = csPlanCourse(sr.course_label);
+  const riv = (!sr.mine && typeof rivalryTag === 'function') ? rivalryTag(sr.profile_id) : null;
+  /* the slot says the state when it is settled (in, out) and offers the act
+     when it is not; the quiet line names an open state so it is never silent */
+  const openState = (me === 'asked' || me === 'maybe') ? CS_PLAN_ME[me] : null;
+  const quiet = [openState ? esc(openState) : null, csPlanRel(sr) ? esc(csPlanRel(sr)) : null,
+                 csPlanWith(sr) ? esc(csPlanWith(sr)) : null, riv].filter(Boolean).join(' · ');
+  const slot = me === 'host' ? ''
+    : (me === 'in' || me === 'out')
+      ? `<span class="schrow-chip${me==='in'?' is-in':''}">${esc(CS_PLAN_ME[me])}</span>`
+      : `<button type="button" class="mini" data-imin="${esc(sr.id)}">I’m in</button>`;
+  /* your own plan: its two acts, LABELLED (they were a bare + and ×), and the
+     cancel asks once more before it pulls the plan from everyone tagged */
+  const acts = sr.mine
+    ? `<span class="schrow-acts"><button type="button" class="mini" data-retag="${esc(sr.id)}">Invite</button>`
+      + `<button type="button" class="mini schcancel" data-scratch="${esc(sr.id)}">Cancel</button></span>` : '';
+  const said = [who, csPlanDay(sr.play_on), tee, course].filter(Boolean).join(', ');
+  return `<div class="schrow" data-wopen="${esc(sr.id)}" role="button" tabindex="0" aria-label="${esc(said)}">
+    <span class="schrow-when">${o.day ? '' : `<span class="cs-agate-s">${esc(csPlanDay(sr.play_on))}</span>`}${tee ? `<b class="cs-fig-s">${esc(tee)}</b>` : ''}</span>
+    <b class="schrow-name cs-social">${esc(who)}</b>
+    <span class="schrow-slot">${slot}</span>
+    <span class="schrow-rest">
+      ${course ? `<span class="schrow-course">${esc(course)}</span>` : ''}
+      ${quiet ? `<small class="cs-agate-s is-phrase">${quiet}</small>` : ''}
+      ${sr.note ? `<span class="schrow-note">“${esc(sr.note)}”</span>` : ''}
+      ${acts}
+    </span>
+  </div>`;
+}
+window.csPlanRowHtml = csPlanRowHtml;
+/* one wiring for the list, the lead and the day sheet */
+function csPlanRowsWire(root, o){
+  if(!root) return;
+  o = o || {};
+  const find = id => [...(window.watchAll||[]), ...(window.mySchedule||[])].find(x => x && String(x.id) === String(id)) || null;
+  const reload = () => { loadSchedule(); if(window.loadWatchList) loadWatchList(); };
+  root.querySelectorAll('[data-wopen]').forEach(el => {
+    const go = e => { if(e.target.closest('button')) return; if(o.sheet) closeSheet(); openRoundSheet(el.dataset.wopen); };
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', e => { if(e.target !== el) return; if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(e); } });
+  });
+  root.querySelectorAll('[data-imin]').forEach(b => b.addEventListener('click', async () => {
+    const sr = find(b.dataset.imin); if(!sr) return;
+    /* tagged: "I'm in" is the same answer the plan's sheet gives (set_round_rsvp,
+       D69 — the RSVP is for the invited). Not tagged: your own round that day
+       tagging the host, two rounds and one outing (D17). */
+    if(sr.tagged_me){
+      b.disabled = true;
+      try{ const { error } = await sb.rpc('set_round_rsvp', { p_round: sr.id, p_status: 'in' }); if(error) throw error;
+        toast(CS_PLAN_ME.in); if(o.sheet) closeSheet(); reload(); }
+      catch(e){ toast(humanError(e, 'RSVP did not save.')); b.disabled = false; }
+      return;
+    }
+    if(o.sheet) closeSheet();
+    openDeclareSheet(sr.play_on, { course: sr.course_label||'', tee: sr.tee_time||'',
+      tagPids: [sr.profile_id], hostName: sr.display_name });
+  }));
+  root.querySelectorAll('[data-retag]').forEach(b => b.addEventListener('click', () => { if(o.sheet) closeSheet(); openRetagSheet(b.dataset.retag); }));
+  root.querySelectorAll('[data-scratch]').forEach(b => b.addEventListener('click', async () => {
+    /* §7.1 · destructive, armed: the first tap asks, the second does it */
+    if(b.dataset.armed !== '1'){
+      b.dataset.armed = '1'; b.classList.add('is-armed'); b.textContent = 'Sure? Cancel for everyone';
+      setTimeout(() => { if(b.isConnected && b.dataset.armed === '1' && !b.disabled){ b.dataset.armed = ''; b.classList.remove('is-armed'); b.textContent = 'Cancel'; } }, 4000);
+      return;
+    }
+    b.disabled = true;
+    try{ const { error } = await sb.rpc('scratch_round', { p_id: b.dataset.scratch }); if(error) throw error;
+      if(o.sheet) closeSheet(); toast('Round cancelled'); reload(); }
+    catch(e){ toast(humanError(e, 'That did not cancel.')); b.disabled = false; }
+  }));
+}
+window.csPlanRowsWire = csPlanRowsWire;
+/* "Blake is in · Casey is asked" — who has answered, in the words the plan's
+   sheet uses (PlanIdentity.askedLine is the phone's half) */
+function csPlanAnswers(sr){
+  const me = window.CS?.user?.id || null;
+  const rs = Array.isArray(sr && sr.rsvp) ? sr.rsvp.filter(x => x && Number(x.ord) === 1 && x.profile_id !== me) : [];
+  const first = n => String(n || '').trim().split(/\s+/)[0];
+  const list = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+  const inN = rs.filter(x => x.status === 'in').map(x => first(x.display_name));
+  const asked = rs.filter(x => x.status !== 'in' && x.status !== 'out').map(x => first(x.display_name));
+  const bits = [];
+  if(inN.length) bits.push(list(inN) + (inN.length === 1 ? ' is in' : ' are in'));
+  if(asked.length) bits.push(list(asked) + (asked.length === 1 ? ' is asked' : ' are asked'));
+  return bits.join(' · ') || csPlanWith(sr);
+}
+/* NOTHING SAID A ROUND WAS COMING (owner E, craft E, category H). The next
+   round you are on — yours, or booked with you and not declined: `isMyPlan`,
+   the one predicate Home's Next tile and the phone's chips share (D219) —
+   leads the page with its tee time as a figure. */
+function csRenderPlanLead(rows){
+  const box = $('#schNext'); if(!box) return;
+  const next = rows.find(r => isMyPlan(r)) || null;
+  if(!next){
+    /* §16A.7 · the page carries its own drawn object (the calendar), so the
+       empty state is the fact and the door beside it: the primary under it */
+    box.innerHTML = rows.length
+      ? `<p class="schnone cs-body-s">Nothing of yours on the schedule yet. Put one up, or say you’re in on one below.</p>`
+      : `<div class="schnone"><h2 class="cs-name">Nothing on the schedule yet</h2><p class="cs-body-s">Put a round up and your buddies and your seasons see it the moment you do.</p></div>`;
+    return;
+  }
+  const me = csPlanMe(next);
+  const d = localDate(next.play_on);
+  const tee = fmtTee(next.tee_time);
+  const t = new Date(); t.setHours(0,0,0,0);
+  const n = Math.round((d - t)/864e5);
+  const away = n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`;
+  const date = `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`;
+  const who = next.mine ? null : (next.display_name ? `${String(next.display_name).split(/\s+/)[0]}’s round` : null);
+  const answers = csPlanAnswers(next);
+  /* someone else's round leads with the head-to-head too (owner E: "lead each
+     card with the person and the rivalry"), in ink as the rows print it */
+  const riv = (!next.mine && typeof rivalryTag === 'function') ? rivalryTag(next.profile_id) : null;
+  const slot = (me === 'asked' || me === 'maybe') ? `<button type="button" class="mini" data-imin="${esc(next.id)}">I’m in</button>` : '';
+  box.innerHTML = `<section class="schnext" data-wopen="${esc(next.id)}" role="button" tabindex="0" aria-label="${esc(['Your next round', date, tee, csPlanCourse(next.course_label)].filter(Boolean).join(', '))}">
+    <div class="schnext-k cs-agate">Your next round · ${esc(date)}</div>
+    <div class="schnext-fig"><b class="cs-fig-l">${esc(tee || String(d.getDate()))}</b><i></i><small class="cs-agate-s">${esc(tee ? 'Tee time · ' + away : MOS[d.getMonth()] + ' · ' + away)}</small></div>
+    <div class="schnext-what">
+      <b class="cs-social">${esc(csPlanCourse(next.course_label) || 'A round')}</b>
+      <p class="cs-body-s">${esc([who, me === 'asked' || me === 'maybe' ? CS_PLAN_ME[me] : null, answers].filter(Boolean).join(' · '))}</p>
+      ${riv ? `<p class="schnext-riv cs-agate-s is-phrase">${riv}</p>` : ''}
+      ${next.note ? `<p class="cs-story">“${esc(next.note)}”</p>` : ''}
+    </div>
+    ${slot ? `<div class="schnext-slot">${slot}</div>` : ''}
+  </section>`;
+  csPlanRowsWire(box);
+  return next;
 }
 function renderWatchList(){
   const box = $('#calWatch'), head = $('#calWatchHead');
   if(!box || !head) return;
-  if(state.demo){ box.style.display='none'; head.style.display='none'; return; }
-  const rows = watchRows();
-  if(!rows.length){ box.style.display='none'; head.style.display='none'; return; }
+  if(state.demo){ box.style.display='none'; head.style.display='none'; const n=$('#schNext'); if(n) n.innerHTML=''; return; }
+  const all = csUpcomingPlans();
+  const lead = csRenderPlanLead(all);
+  const rows = all.filter(r => r !== lead);
+  if(!rows.length){ box.style.display='none'; head.style.display='none'; box.innerHTML=''; return; }
   head.style.display=''; box.style.display='';
-  box.innerHTML = rows.slice(0,6).map((sr,i)=>{
-    const d = localDate(sr.play_on);
-    const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
-    const when = n===0?'TODAY':n===1?'TOMORROW':`${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`;
-    const rel = sr.is_friend ? 'BUDDY' : 'IN YOUR SEASONS';
-    const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
-      sr.tee_time?`<span style="color:var(--ink)">${fmtTee(sr.tee_time)}</span>`:null,
-      rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
-      sr.tagged_me?'<span style="color:var(--ink)">YOU’RE IN</span>':null,
-      sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
-    return `<div class="check tap" data-wopen="${sr.id}">
-      <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-      <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--mut); letter-spacing:.06em">${rel}</span></b>
-      <small>${bits}</small></div>
-      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--ink); flex:none">ON THE SCHEDULE</span>`
-        : `<button class="mini" data-imin="${i}" style="flex:none">I’m in</button>`}
-    </div>`;
-  }).join('');
-  box.querySelectorAll('[data-imin]').forEach(b=>b.addEventListener('click',()=>{
-    const sr = rows[+b.dataset.imin]; if(!sr) return;
-    openDeclareSheet(sr.play_on, { course: sr.course_label||'', tee: sr.tee_time||'',
-      tagPids: [sr.profile_id], hostName: sr.display_name });
-  }));
-  /* tap a crew member's plan (not the "I'm in" button) to open the round object */
-  box.querySelectorAll('[data-wopen]').forEach(el=>el.addEventListener('click',(e)=>{
-    if(e.target.closest('button')) return; openRoundSheet(el.dataset.wopen);
-  }));
+  box.innerHTML = `<div class="schlist">${rows.map(sr => csPlanRowHtml(sr)).join('')}</div>`;
+  csPlanRowsWire(box);
 }
 window.renderWatchList = renderWatchList;
 
@@ -32411,11 +32701,19 @@ function renderRoundSheet(id, d){
 
   const rsvp = d.rsvp||[];
   const inN = rsvp.filter(r=>r.status==='in').length;
-  const rsvpRows = rsvp.length ? rsvp.map(r=>`<div class="check">
+  /* WHO'S IN, in the phone's words (ScheduledRoundSheet.answer): HOST is a role,
+     so it is a quiet agate tag and never the earned metal (D359); a seat with
+     no answer is ASKED — the state of the invitation (G7), and the one word the
+     schedule's list now prints too — and the host, who did the asking, prints
+     no answer at all rather than a word that is untrue about them. */
+  const rsvpRows = rsvp.length ? rsvp.map(r=>{
+      const host = r.profile_id===d.profile_id;
+      const word = ({in:'In',maybe:'Maybe',out:'Out'})[r.status] || (host ? '' : 'Asked');
+      return `<div class="check">
       <span class="num">${M(r.marker||'saguaro')}</span>
-      <div class="tt"><b>${esc(r.name||'A golfer')}${r.profile_id===d.profile_id?' <span class="fine" style="padding:0; color:var(--gold)">HOST</span>':''}</b></div>
-      <span class="rsvppill ${r.status||'none'}">${({in:'In',maybe:'Maybe',out:'Out'})[r.status]||'No reply'}</span>
-    </div>`).join('') : '<p class="fine" style="padding:2px 0">Just you so far — tag your group.</p>';
+      <div class="tt"><b>${esc(r.name||'A golfer')}${host?' <span class="rshost cs-agate-s">Host</span>':''}</b></div>
+      ${word?`<span class="rsvppill ${r.status||'none'}">${word}</span>`:''}
+    </div>`; }).join('') : '<p class="fine" style="padding:2px 0">Just you so far — tag your group.</p>';
   const myR=d.my_rsvp;
   /* D69: RSVP is for the invited. The In/Maybe/Can't controls show only to the
      host or a tagged player; everyone else still SEES the round and who's in,
@@ -32443,8 +32741,11 @@ function renderRoundSheet(id, d){
   const worthHtml = csRoundWorthLines(d.worth, 'This round')
     .map(w => `<p class="fine" style="padding:2px 0">${esc(w)}</p>`).join('');
 
+  /* the head-to-head, in ink as the list prints it (X22: gold means earned,
+     and a rival's lead is neither) — no dingbat, no unexplained "one more
+     round." */
   const riv = (!d.mine && typeof rivalryTag==='function') ? rivalryTag(d.profile_id) : null;
-  const rivHtml = riv ? `<div class="rivchip">◇ ${riv} · <em>one more round.</em></div>` : '';
+  const rivHtml = riv ? `<p class="rs-riv cs-agate-s is-phrase">${riv}</p>` : '';
 
   const comments=d.comments||[];
   /* R8 · a line somebody else wrote carries its ⋯ (Report, Block) once
@@ -32464,10 +32765,15 @@ function renderRoundSheet(id, d){
      <button class="mbtn2" id="rrGroup">Edit group</button>
      <button class="mbtn2 warn" id="rrScratch">Cancel round</button></div>` : '';
 
+  /* EACH FACT ONCE (critique-B P3, owner C). The tee time is the sheet's own
+     sub-line, so the chip that printed it again under the course is gone; the
+     course block names the tee, its yards and its rating and slope, so the
+     head keeps those only when there is no block to say them. */
+  const courseBlock = typeof csPlanCourseHtml==='function' ? csPlanCourseHtml(d.course_id, d.course && d.course.tee) : '';
   const body = `<div class="rsheet">
-    <div class="rs-course"><b>${esc(courseName)}</b>${meta?`<span class="meta mono">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
-    <div class="rs-when"><span class="teechip mono">${tee?tee+' tee':'Tee TBD'}</span><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
-    ${typeof csPlanCourseHtml==='function' ? csPlanCourseHtml(d.course_id, d.course && d.course.tee) : ''}
+    <div class="rs-course"><b>${esc(courseName)}</b>${meta && !courseBlock?`<span class="meta cs-agate-s">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
+    <div class="rs-when"><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
+    ${courseBlock}
     ${worthHtml}
     ${d.note?`<div class="rs-note">“${esc(d.note)}”</div>`:''}
     ${rivHtml}
@@ -32548,19 +32854,7 @@ async function openRetagSheet(id){
   });
 }
 
-/* scratch/retag your own declared round (list is classic-rendered — delegate) */
-document.getElementById('calList')?.addEventListener('click', async (e) => {
-  const rt = e.target?.dataset?.retag;
-  if(rt){ openRetagSheet(rt); return; }
-  const id = e.target?.dataset?.scratch; if(!id) return;
-  e.target.disabled = true;
-  try {
-    const { error } = await sb.rpc('scratch_round', { p_id: id });
-    if(error) throw error;
-    toast('Scratched');
-    loadSchedule(); loadWatchList();
-  } catch(err){ toast(humanError(err, 'Scratch failed.')); e.target.disabled = false; }
-});
+/* the list's own rows carry their Invite and Cancel now (csPlanRowsWire) */
 
 /* ---------- members & invites: the clubhouse roster ---------- */
 /* D386 · who can be seated by the Pro right now: a squads season under way, a
@@ -33418,21 +33712,38 @@ async function renderShareView(tok, _testInfo){
        takes a name from the database). */
     const venue = String(info.course || '').split(' — ')[0] || 'the course';
     document.title = `Golf at ${venue} — Cup Season`;
-    card.style.borderColor = 'rgba(255,90,46,.38)';
+    /* THE PUBLIC ROUND'S OWN SHELL (critique-B P3, owner C, category C): the
+       page's tokens in both printings instead of a fixed dark palette, the
+       pennant signing it (D358), and the day in `mut` — a planned round is not
+       a live competition, so ember (D359) and its border go. The time is the
+       app's one format, "8:10a" (it printed the raw "08:10" here). */
+    wrap.classList.add('sv-round', 'sv-plan');
+    wrap.style.background = 'var(--bg0)'; wrap.style.color = 'var(--ink)';
+    const page = wrap.firstElementChild;
+    page.className = 'sv-page'; page.removeAttribute('style');
+    const signature = page.firstElementChild;
+    signature.className = 'sv-signature'; signature.removeAttribute('style');
+    signature.innerHTML = `<svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>
+      <span class="cs-name">Cup Season</span><span class="cs-agate-s">A round on</span>`;
+    card.removeAttribute('style'); card.setAttribute('role', 'article');
+    card.setAttribute('aria-label', 'A planned round');
     const who = (info.who || []);
     /* a name is singular, a list takes "and" — the same conjugation bug that
        produced "Alex lead by 4" on the season page */
     const whoTxt = who.length <= 1 ? who.join('')
                  : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
+    const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(info.play_on || ''));
+    const dd = dm ? new Date(+dm[1], +dm[2] - 1, +dm[3]) : null;   /* manual parse — the UTC landmine */
+    const day = dd ? `${DOW[dd.getDay()]} ${MOS[dd.getMonth()]} ${dd.getDate()}` : '';
+    const tee = info.tee ? fmtTee(info.tee) : '';
     card.innerHTML = `
-      <div style="color:${C.hot};letter-spacing:.2em;font-size:12px;font-weight:600;font-family:${MONO}">${esc(fmtD(info.play_on))}${info.tee ? ' · ' + esc(info.tee) : ''}</div>
-      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(info.host)} has a round on at ${esc(venue)}.</div>
-      ${who.length
-        ? `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.</div>`
-        : `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">Just ${esc(info.host)} so far.</div>`}
-      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
-    foot.innerHTML = `<a href="/" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
-      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. The seat, and a buddy request to ${esc(info.host)}, wait for your yes.</div>`;
+      <p class="sv-date cs-agate">${esc([day, tee].filter(Boolean).join(' \u00b7 '))}</p>
+      <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
+      <p class="sv-who cs-body-s">${who.length ? `${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.` : `Just ${esc(info.host)} so far.`}</p>
+      <p class="sv-what cs-body-s">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</p>`;
+    foot.removeAttribute('style');
+    foot.innerHTML = `<a class="sv-action cs-name" href="/">Take the seat</a>
+      <p class="sv-consent cs-body-s">Sign in and you’ll be asked first. The seat, and a buddy request to ${esc(info.host)}, wait for your yes.</p>`;
 
   } else if(info.kind === 'recap'){
     /* "— the season" is a section header, not news. The champion is the news;
