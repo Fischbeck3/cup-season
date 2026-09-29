@@ -29278,7 +29278,10 @@ function bootTrace(m){
 }
 function authStatus(msg, kind){
   const el=$('#obStatus');
-  if(el){ el.textContent = msg; el.className = 'ob-status' + (kind ? ' ' + kind : ''); }
+  if(el){ el.textContent = msg; el.className = 'ob-status' + (kind ? ' ' + kind : '');
+    /* the sentence lands where the golfer can read it: with the keyboard up,
+       "Code didn't take…" sat under the fold of a 380px view */
+    if(msg){ try{ el.scrollIntoView({ block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }catch(_){} } }
   if(kind === 'err'){
     console.error('[cs]', msg);
     if(!window.CS_DEBUG) return;
