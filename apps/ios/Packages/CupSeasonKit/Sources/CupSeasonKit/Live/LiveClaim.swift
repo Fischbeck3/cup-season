@@ -39,7 +39,7 @@ public enum ClaimIntent {
 /// The door card for a finished claim (17700–17727).
 public struct ClaimDoor: Sendable, Equatable {
   public enum Face: Sendable, Equatable {
-    /// "NAME — 84 at CLUB. Enter your email to keep it." — the course, tee
+    /// "NAME — 84 at CLUB." — the course, tee
     /// and day ride `sub`, beneath it (W4)
     case waiting(String)
     /// already kept — said (`usedLine`, not an error), token dropped (W4: it
@@ -86,11 +86,19 @@ public struct ClaimDoor: Sendable, Equatable {
   /// TERMINOLOGY §6's, with the CLUB in it (W4, the web's `csClaimLanding`):
   /// the whole label ran a dash-joined triple into the sentence. The course,
   /// tee and day go to `subLine`, beneath it.
+  ///
+  /// N4-040 · the sentence asks for nothing — "Enter your email to keep
+  /// it." stood on a screen with no field. The button says the next step.
   public static func line(_ data: JSONValue) -> String {
     let name = data["guest_name"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "Your scorecard"
     let gross = data["gross"]?.int.flatMap { $0 == 0 ? nil : $0 }
-    return "\(name) — \(gross.map { "\($0) at " } ?? "")\(label(data).club). Enter your email to keep it."
+    return "\(name) — \(gross.map { "\($0) at " } ?? "")\(label(data).club)."
   }
+
+  /// N4-040 · the waiting face's act, saying what it does next, and the way
+  /// out that keeps the claim (root: the plain door; the claim stays pending)
+  public static let keepAction = "Sign in with your email to keep it"
+  public static let notNow = "Not now"
 
   /// W4 · beneath the sentence: the course and tee (the label after its
   /// club), then the day. nil when the preview carried neither.

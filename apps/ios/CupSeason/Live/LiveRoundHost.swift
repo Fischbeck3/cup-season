@@ -152,8 +152,11 @@ struct GuestPencilScreen: View {
   @Environment(\.toast) private var toast
   @Environment(\.scenePhase) private var phase
   let token: UUID
-  /// "Keep this round" → the root's door
+  /// "Sign in with your email to keep it" → the root's door
   var onDoor: () -> Void = {}
+  /// N4-040 (root) · "Not now" → the plain door; the claim stays pending and
+  /// this screen comes back on the next launch
+  var notNow: () -> Void = {}
   @State private var store = LiveRoundStore.shared
   @State private var face: Face = .loading
 
@@ -211,6 +214,9 @@ struct GuestPencilScreen: View {
 
   private func door(_ d: ClaimDoor) -> some View {
     VStack(alignment: .leading, spacing: 16) {
+      // N4-040 (root) · the screen names the product the way the door does:
+      // a stranger who just installed the app met a caption and a button
+      DoorCrest(identifier: "claim.brand")
       Spacer()
       // W4 · the web's landing label (`csClaimLanding`), in mut as the web
       // sets it: a link is ordinary, and ember is competition only (D359)
@@ -227,8 +233,13 @@ struct GuestPencilScreen: View {
               .fixedSize(horizontal: false, vertical: true)
           }
         }
-        Button("Keep this round") { onDoor() }
+        Button(ClaimDoor.keepAction) { onDoor() }
           .buttonStyle(.csPrimary())
+        // N4-040 (root) · a way out that keeps the claim for later
+        Button(ClaimDoor.notNow) { notNow() }
+          .buttonStyle(.csTertiary(.content))
+          .frame(maxWidth: .infinity)
+          .accessibilityIdentifier("claim.notNow")
       case .claimed(let line):
         // W4 · `CS_CLAIM_USED`: not an error, so ink, and it says what to do
         Text(line).csType(.body).foregroundStyle(cs.ink)

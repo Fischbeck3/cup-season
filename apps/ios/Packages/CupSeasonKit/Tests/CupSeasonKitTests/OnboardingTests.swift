@@ -227,6 +227,19 @@ import Foundation
     #expect(PendingLink.doorLine(defaults: d) == nil)
   }
 
+  /// N4-040 (root) · "Not now" on a claim meets the plain door, and the claim
+  /// is not spent: it is still pending, so its screen opens on the next launch
+  @Test func aDeferredClaimMeetsThePlainDoorAndStaysPending() {
+    let d = UserDefaults(suiteName: "cs.onboarding.defer.\(UUID().uuidString)")!
+    ClaimIntent.store(UUID().uuidString, defaults: d)
+    #expect(PendingLink.doorLine(defaults: d) == "A round is waiting. Sign in to review it.")
+    #expect(PendingLink.doorLine(defaults: d, deferringClaim: true) == nil)
+    #expect(PendingLink.first(defaults: d) == .claim)
+    // a join still speaks on the plain door: only the claim was put off
+    JoinIntent.store("FELLAS", name: "The Fellas", defaults: d)
+    #expect(PendingLink.doorLine(defaults: d, deferringClaim: true) == "You're joining The Fellas. Sign in to review and join.")
+  }
+
   @Test func everyClaimedLinkKindHasADoorSentence() {
     for k in PendingLink.allCases {
       let d = UserDefaults(suiteName: "cs.onboarding.link.\(k.rawValue).\(UUID().uuidString)")!

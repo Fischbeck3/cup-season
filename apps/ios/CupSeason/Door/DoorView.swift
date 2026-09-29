@@ -21,7 +21,13 @@ struct DoorView: View {
   @State private var toasts = CSToastCenter()   // the door sits above the tab host, so it carries its own
   /// QB-08 · what is waiting, said above the email field. Read once on
   /// appearance and again whenever a link lands while the door is up.
-  @State private var pending: String? = PendingLink.doorLine()
+  /// N4-040 · "Not now" on a claim: the plain door, the claim kept pending
+  let claimDeferred: Bool
+  @State private var pending: String?
+  init(claimDeferred: Bool = false) {
+    self.claimDeferred = claimDeferred
+    _pending = State(initialValue: PendingLink.doorLine(deferringClaim: claimDeferred))
+  }
   /// QB-08 · the cold-install answer, typed rather than tapped.
   @State private var codeEntry = false
   @State private var typedCode = ""
@@ -123,10 +129,10 @@ struct DoorView: View {
       }
     }
     .onReceive(NotificationCenter.default.publisher(for: .csJoinCodePending)) { _ in
-      pending = PendingLink.doorLine()
+      pending = PendingLink.doorLine(deferringClaim: claimDeferred)
     }
     .onReceive(NotificationCenter.default.publisher(for: .csShareTokenPending)) { _ in
-      pending = PendingLink.doorLine()
+      pending = PendingLink.doorLine(deferringClaim: claimDeferred)
     }
     // the flag never blocks the email field: it lands whenever it lands
     .task {
@@ -203,23 +209,7 @@ struct DoorView: View {
     focus = .email
   }
 
-  private var crest: some View {
-    ViewThatFits(in: .horizontal) {
-      HStack(spacing: CSTokens.Space.s3) {
-        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
-        Text("Cup Season").csType(.name)
-      }
-      .fixedSize(horizontal: true, vertical: false)
-      VStack(spacing: CSTokens.Space.s2) {
-        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
-        Text("Cup Season").csType(.name).multilineTextAlignment(.center)
-      }
-    }
-    .foregroundStyle(cs.ink)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Cup Season")
-    .accessibilityIdentifier("door.brand.lockup")
-  }
+  private var crest: some View { DoorCrest() }
 
   /// The door's paragraph — the invited stranger's own sentence when there is
   /// one, the pitch when there is not. Drawn from one place because IOS-064
@@ -589,4 +579,30 @@ enum DoorCopy {
   static let sendCode = "Send code"
   static let sending = "Sending\u{2026}"
   static let noPassword = "No password needed."
+}
+
+/// The door's own name: its mark and "Cup Season". N4-040 (root) · the
+/// signed-out claim wears it too — on the web the claim is a landing card on
+/// the door and wears the door's name, so the phone's claim screen names the
+/// product the same way, and no fifth place carries the lockup.
+struct DoorCrest: View {
+  @Environment(\.cs) private var cs
+  var identifier = "door.brand.lockup"
+  var body: some View {
+    ViewThatFits(in: .horizontal) {
+      HStack(spacing: CSTokens.Space.s3) {
+        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
+        Text("Cup Season").csType(.name)
+      }
+      .fixedSize(horizontal: true, vertical: false)
+      VStack(spacing: CSTokens.Space.s2) {
+        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
+        Text("Cup Season").csType(.name).multilineTextAlignment(.center)
+      }
+    }
+    .foregroundStyle(cs.ink)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Cup Season")
+    .accessibilityIdentifier(identifier)
+  }
 }
