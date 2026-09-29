@@ -125,6 +125,12 @@
   --ceremony-sq1:#B27E7C;
   --ceremony-sq2:#97B999;
   --ceremony-sq3:#EDD4FA;
+  --ceremony-pig0:#492D2C;        /* the ceremony ramp’s pigments: a face on a ceremony object keeps the DARK disc in both printings (TEN / W6) */
+  --ceremony-pig1:#473C28;
+  --ceremony-pig2:#293B2B;
+  --ceremony-pig3:#1F4648;
+  --ceremony-pig4:#293B4E;
+  --ceremony-pig5:#4E3C4F;
   --crest:#33463B;                /* the crest plate behind a medallion */
   --folio-rule:#8B8F8B;           /* the folio hairline on an object, which is not the page rule */
   --scrim-ink:#F1F4EF;            /* type over a photograph — the photo is the ground, not the theme */
@@ -307,7 +313,9 @@ html[data-theme="light"]{
   --ceremony:#0A0E0C; --ceremony-ink:#F1F4EF; --ceremony-mut:#9BA69D;
   --ceremony-brand:#E8622C; --ceremony-gold:#D8B25A; --ceremony-pos:#4EC584;
   --ceremony-cool:#7F8C95; --ceremony-sq0:#366F87; --ceremony-sq1:#B27E7C;
-  --ceremony-sq2:#97B999; --ceremony-sq3:#EDD4FA; --crest:#33463B;
+  --ceremony-sq2:#97B999; --ceremony-sq3:#EDD4FA;
+  --ceremony-pig0:#492D2C; --ceremony-pig1:#473C28; --ceremony-pig2:#293B2B;
+  --ceremony-pig3:#1F4648; --ceremony-pig4:#293B4E; --ceremony-pig5:#4E3C4F; --crest:#33463B;
   --folio-rule:#8B8F8B; --scrim-ink:#F1F4EF; --scrim-mut:#CBD2C8;
   /* pigment */
   --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7;
@@ -2192,7 +2200,8 @@ body.guestlive #onboard{display:none !important;}
    value inside it, the pigments too. In the light printing the discs took the
    paper pigments under ceremony-ink glyphs, and the golfers' marks vanished
    (craft C/R, critique-B P2). These are tokens.json's dark pigment values. */
-.evcard{--pig0:#492D2C; --pig1:#473C28; --pig2:#293B2B; --pig3:#1F4648; --pig4:#293B4E; --pig5:#4E3C4F;}
+.evcard{--pig0:var(--ceremony-pig0); --pig1:var(--ceremony-pig1); --pig2:var(--ceremony-pig2);
+        --pig3:var(--ceremony-pig3); --pig4:var(--ceremony-pig4); --pig5:var(--ceremony-pig5);}   /* TEN / W6 · the ceremony pigment tokens (tokens.json), no re-typed hexes */
 .evclinch{margin:0; color:var(--mut);}
 .evstake{margin:12px 0 0; display:flex; align-items:baseline; gap:8px;}
 .evstake b{font-family:var(--board); font-size:20px; font-weight:700; color:var(--gold);}
@@ -4631,6 +4640,11 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
   --panel:#E9ECE3; --panel-ink:#0B120E; --panel-mut:#4C574F;
   --leaf:#EFEADD; --leaf-ink:#1A1B14; --leaf-mut:#57605A;
   --scrim-ink:#F1F4EF; --scrim-mut:#CBD2C8;
+  /* TEN / W6 · the pigments too: a golfer's disc inside the room took the
+     paper pigments in the light printing (W2's `.evcard` fixed its own plate
+     by hand). The ceremony ramp carries them now (tokens.json). */
+  --pig0:var(--ceremony-pig0); --pig1:var(--ceremony-pig1); --pig2:var(--ceremony-pig2);
+  --pig3:var(--ceremony-pig3); --pig4:var(--ceremony-pig4); --pig5:var(--ceremony-pig5);
   color:var(--ink);
 }
 /* the draw reveal is a whole room, not a card floating on a board — give it

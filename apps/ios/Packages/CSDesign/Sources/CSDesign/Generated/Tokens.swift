@@ -51,6 +51,12 @@ public struct CSPalette: Sendable {
   public let ceremonySq1: Color  // object
   public let ceremonySq2: Color  // object
   public let ceremonySq3: Color  // object
+  public let ceremonyPig0: Color  // object · the ceremony ramp’s pigments: a face drawn on a ceremony object keeps the DARK disc in both printings (TEN / W6; .evcard re-typed these hexes, .room-dusk left them to the light printing)
+  public let ceremonyPig1: Color  // object
+  public let ceremonyPig2: Color  // object
+  public let ceremonyPig3: Color  // object
+  public let ceremonyPig4: Color  // object
+  public let ceremonyPig5: Color  // object
   public let crest: Color  // object · the crest plate behind a medallion
   public let folioRule: Color  // object · the folio hairline on an object, which is not the page rule
   public let scrimInk: Color  // object · type over a photograph — the photo is the ground, not the theme
@@ -103,6 +109,12 @@ public enum CSTokens {
     ceremonySq1: Color(hex: 0xB27E7C),
     ceremonySq2: Color(hex: 0x97B999),
     ceremonySq3: Color(hex: 0xEDD4FA),
+    ceremonyPig0: Color(hex: 0x492D2C),
+    ceremonyPig1: Color(hex: 0x473C28),
+    ceremonyPig2: Color(hex: 0x293B2B),
+    ceremonyPig3: Color(hex: 0x1F4648),
+    ceremonyPig4: Color(hex: 0x293B4E),
+    ceremonyPig5: Color(hex: 0x4E3C4F),
     crest: Color(hex: 0x33463B),
     folioRule: Color(hex: 0x8B8F8B),
     scrimInk: Color(hex: 0xF1F4EF),
@@ -152,6 +164,12 @@ public enum CSTokens {
     ceremonySq1: Color(hex: 0xB27E7C),
     ceremonySq2: Color(hex: 0x97B999),
     ceremonySq3: Color(hex: 0xEDD4FA),
+    ceremonyPig0: Color(hex: 0x492D2C),
+    ceremonyPig1: Color(hex: 0x473C28),
+    ceremonyPig2: Color(hex: 0x293B2B),
+    ceremonyPig3: Color(hex: 0x1F4648),
+    ceremonyPig4: Color(hex: 0x293B4E),
+    ceremonyPig5: Color(hex: 0x4E3C4F),
     crest: Color(hex: 0x33463B),
     folioRule: Color(hex: 0x8B8F8B),
     scrimInk: Color(hex: 0xF1F4EF),
@@ -246,7 +264,7 @@ public enum CSTokens {
   public static let leafShade = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.22), x: 0, y: 1, blur: 0)
   public static let shadowLift = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.55), x: 0, y: 18, blur: 44)
 
-  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "brand-ink", "act", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "leaf-gold", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "crest", "folio-rule", "scrim-ink", "scrim-mut", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
+  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "brand-ink", "act", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "leaf-gold", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "ceremony-pig0", "ceremony-pig1", "ceremony-pig2", "ceremony-pig3", "ceremony-pig4", "ceremony-pig5", "crest", "folio-rule", "scrim-ink", "scrim-mut", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
 }
 
 public extension Color {
