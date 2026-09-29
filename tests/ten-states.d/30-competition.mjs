@@ -335,6 +335,24 @@ const SEASON = [
     expectConsole: [/status of 503/],
     expect: { view: 'view-hub', selectors: { '#seasonStoryRetry': 'visible', '#seasonArc': 'text:Couldn.t load this' } },
     check: all(onNorthGrove, async (page) => page.evaluate(() => /starts when the first week closes/i.test(document.getElementById('seasonArc').innerText) ? 'a failed story read says the story has not started' : true)) },
+  /* TEN / W8 · W7-015 [B2-season-2] · the season album for a league whose rounds carry no photograph (every new league):
+     the written empty state runs the whole row of the three-column grid, and has its door (LINT-21) */
+  { family: 'season', id: 'album-empty', variant: 'member', world: { photo: 'none' }, title: 'The season page, the album, for a league with no photographs', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await page.evaluate(() => window.setRoomSeg('album'))
+      await until(page, () => /Photos land here/.test((document.getElementById('albumGrid') || {}).innerText || ''), null, 10000)
+      await page.evaluate(() => document.getElementById('albumGrid').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#albumGrid': 'text:Photos land here', '#albumGrid [data-empty-go]': 'visible' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const g = document.getElementById('albumGrid'), line = g.querySelector('.tempty')
+      if (!line) return 'the empty album has no empty-state block'
+      const w = line.getBoundingClientRect().width, gw = g.getBoundingClientRect().width
+      return w >= gw * 0.98 ? true : `the empty line is ${Math.round(w)}px in a ${Math.round(gw)}px grid (one third of the row)`
+    })) },
   /* TEN / W8 · W7-011 [B2-season-12] · the week clock, cropped: the weeks played are ink, the live week brand
      and tall, the weeks ahead mut — never rule (§16.1), so each reads as a state on the page's ground */
   { family: 'season', id: 'month-clock', variant: 'member', title: 'The season page, the week clock (its own crop)', shot: '#monthClock',

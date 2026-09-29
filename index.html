@@ -35540,8 +35540,12 @@ window.loadCareer = loadCareer;
 async function renderAlbum(){
   const box = document.getElementById('albumGrid'); if(!box) return;
   const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  /* W7-015 [B2-season-2] · #albumGrid is a 3-column grid: the empty line and the opening line take the
+     whole row (grid-column:1/-1), as the two failed states do, and the empty state has a door
+     (UI_SYSTEM §13.1: one written line; LINT-21: every empty state has a door) */
   const empty = () => { box.innerHTML =
-    '<p class="fine" style="padding:8px 2px">Photos land here when rounds carry them — add one from the Post card.</p>'; };
+    '<div class="tempty" style="grid-column:1/-1"><p class="cs-body-s">Photos land here when rounds carry them — add one from the Post card.</p>'
+    + '<button type="button" class="mini" data-empty-go="record" style="margin-top:var(--s2)">Add my round</button></div>'; };
   /* F16 · a read that failed is not an empty album: say it failed, keep any
      photographs already on screen, and offer the read again. The sentence is
      the phone's AlbumScreen twin. */
@@ -35557,7 +35561,7 @@ async function renderAlbum(){
     document.getElementById('albumRetry')?.addEventListener('click', e2 => { const b=e2.currentTarget; b.disabled=true; b.textContent='Loading…'; renderAlbum(); });
   };
   if(!window.sb || !CS?.user || !CS?.league){ empty(); return; }
-  if(!box.querySelector('.alcell')) box.innerHTML = '<p class="fine" style="padding:8px 2px">Opening the album…</p>';
+  if(!box.querySelector('.alcell')) box.innerHTML = '<p class="fine" style="grid-column:1/-1; padding:8px 2px">Opening the album…</p>';
   try {
     const pids = (CS.members||[]).map(m => m.profile_id).filter(Boolean);
     if(!pids.length){ empty(); return; }
