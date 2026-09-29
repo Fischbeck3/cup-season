@@ -41,6 +41,11 @@ page.on('pageerror', e => exceptions.push(e.message))
 await page.route('**/*', r => /supabase\.co/.test(r.request().url()) ? r.abort() : r.continue())
 await page.goto(BASE + '/?exit', { waitUntil: 'load' })
 await page.waitForFunction(() => typeof window.openSheet === 'function' || typeof openSheet === 'function', null, { timeout: 15000 })
+/* the module (esm.sh import, then boot) exports openScoringHelp and injects the
+   views' h1s; on a loaded machine it lands after the classic script, and two
+   checks below read what it provides — wait for it rather than race it (the
+   suite failed 3 of 31 under load at b8a61266 and ed8e6837, 31/31 alone) */
+await page.waitForFunction(() => typeof window.openScoringHelp === 'function' && !!document.querySelector('[data-view-title]'), null, { timeout: 30000 }).catch(() => {})
 await page.waitForTimeout(600)
 
 const active = () => page.evaluate(() => {
