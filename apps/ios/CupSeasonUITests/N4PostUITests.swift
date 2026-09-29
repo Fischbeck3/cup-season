@@ -35,6 +35,7 @@ final class N4PostUITests: N2UITestCase {
     if named {
       let course = courseField(app)
       XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+      app.revealUnderBars(course)   // after the slope it can sit under the bars
       course.tap(); course.typeText("Fixture Muni")
     }
     app.swipeDown()
