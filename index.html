@@ -4774,7 +4774,7 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 }
 .finish-share:hover{filter:brightness(1.06);}
 .finish-share:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
-.finish-status{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut);}
+.finish-status{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut); overflow-wrap:anywhere;}
 .finish-status:empty{display:none;}
 .finish-back{align-self:flex-start; min-height:44px; padding:0; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
@@ -11437,33 +11437,6 @@ function recapText(d){
    (critique B). Without it the toast says it, as before. The caption is
    claimed as copied only when a clipboard took it (an absent clipboard used
    to "succeed" through the optional chain and say so). */
-async function shareRecapCard(d, report){
-  const say = m => { if(typeof report === 'function') report(m); else toast(m); };
-  try{
-    /* the posted photo rides onto the card when there is one (photos arc) */
-    if(d.photo && typeof photoDrawable==='function'){
-      try{ d._img = await photoDrawable(d.photo); }catch(_){ d._img=null; }
-    }
-    const blob=await new Promise(res=>drawRecapCard(d).toBlob(res,'image/png'));
-    const file=new File([blob],'cup-season-recap.png',{type:'image/png'});
-    const text=recapText(d);
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], text});
-      if(typeof report === 'function') report('Shared.');
-      return;
-    }
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    let copied=false;
-    try{ if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); copied=true; } }catch(_){ copied=false; }
-    say(copied ? 'Card downloaded · caption copied' : 'Card downloaded');
-  }catch(e){
-    if(e && e.name==='AbortError') return;   /* golfer closed the share sheet — not an error */
-    console.warn('[recap card]', e);
-    say(humanError(e, 'Could not make the card.'));
-  }
-}
 /* ---- D78 · the settlement card ---------------------------------------------
    The third canvas artifact, same skeleton as drawRecapCard/drawMajorCard:
    1080×1350 (4:5, the tallest a thread preview renders uncropped), no DPR
@@ -11598,7 +11571,7 @@ function drawSettlementCard(d){
   csArtifactSignature(x, W, 1192, { ink:INK, mut:MUT });
   return cv;
 }
-/* same five moves as shareRecapCard: blob, file, capability gate, share,
+/* the five moves a card share makes: blob, file, capability gate, share,
    download+clipboard fallback. AbortError is a user cancel, never an error. */
 async function shareSettlementCard(d){
   try{
@@ -11657,13 +11630,18 @@ window.CS_SHARE_PHOTO_INCLUDE = CS_SHARE_PHOTO_INCLUDE; window.CS_SHARE_PHOTO_FI
    `cancelled` on the golfer's own cancel), else the clipboard (`copied` only
    when the write resolved), else the link shown in a sheet to copy by hand
    (`shown`). Nothing here claims "copied" or "sent" that did not happen. */
-async function csDeliverLink({ text, url, cardFile, cardBlob, kindLabel }){
+/* TEN / W6 · `report`, when given, says the outcome where the golfer is
+   looking — the finish ceremony's status line under its button — because a
+   sheet (z 200) paints beneath that curtain (z 1100). Without it, the toast
+   and the sheet, as before. */
+async function csDeliverLink({ text, url, cardFile, cardBlob, kindLabel, report }){
+  const say = typeof report === 'function' ? report : null;
   if(cardFile && navigator.canShare && navigator.canShare({ files:[cardFile] })){
-    try{ await navigator.share({ files:[cardFile], text: (text ? text + ' ' : '') + url }); return 'shared'; }
+    try{ await navigator.share({ files:[cardFile], text: (text ? text + ' ' : '') + url }); if(say) say('Shared.'); return 'shared'; }
     catch(e){ if(e && e.name==='AbortError') return 'cancelled'; }
   }
   if(navigator.share){
-    try{ await navigator.share({ title:'Cup Season', text, url }); return 'shared'; }
+    try{ await navigator.share({ title:'Cup Season', text, url }); if(say) say('Shared.'); return 'shared'; }
     catch(e){ if(e && e.name==='AbortError') return 'cancelled'; }
   }
   let copied = false;
@@ -11680,10 +11658,15 @@ async function csDeliverLink({ text, url, cardFile, cardBlob, kindLabel }){
     }catch(_){ downloaded = false; }
   }
   if(copied){
-    toast(downloaded ? 'Link copied · card downloaded — no account needed to view it' : 'Link copied — no account needed to view it');
+    const m = downloaded ? 'Link copied · card downloaded — no account needed to view it' : 'Link copied — no account needed to view it';
+    if(say) say(m); else toast(m);
     return 'copied';
   }
   /* no clipboard, or the browser refused it: the link is SHOWN, never claimed as copied */
+  if(say){
+    say((downloaded ? 'The card was downloaded. ' : '') + 'Your ' + (kindLabel || 'link') + ' — copy it to send it: ' + url);
+    return 'shown';
+  }
   openSheet('Your ' + (kindLabel || 'link'), 'COPY IT TO SEND IT',
     `<input class="f" id="csLinkShown" readonly value="${esc(url)}" style="font-family:var(--mono);font-size:13px">`
     + (downloaded ? '<p class="fine">The card was downloaded too.</p>' : '')
@@ -11720,16 +11703,17 @@ async function csRetryShareAcks(){
 }
 window.csRetryShareAcks = csRetryShareAcks;
 async function csShareRoundLink(ref, text, opts){
+  const say = m => (typeof opts.report === 'function' ? opts.report(m) : toast(m));
   const attempt = (crypto.randomUUID ? crypto.randomUUID() : null);
   if(!attempt) return null;   /* no attempt id: the legacy path below */
   const prep = await sb.rpc('prepare_round_share', { p_round: ref, p_include_photo: !!opts.includePhoto, p_attempt: attempt });
   if(prep.error){
     if(csMissingFn(prep.error)) return null;   /* an older database: the legacy path */
-    toast(humanError(prep.error, 'Could not make the link.'));
+    say(humanError(prep.error, 'Could not make the link.'));
     return 'error';
   }
   const tok = prep.data?.token, created = !!prep.data?.created, withPhoto = !!prep.data?.include_photo;
-  if(!tok){ toast('Could not make the link.'); return 'error'; }
+  if(!tok){ say('Could not make the link.'); return 'error'; }
   if(created){
     /* the copies belong to the NEW link only; a reused link keeps its original artifact */
     try{
@@ -11753,7 +11737,7 @@ async function csShareRoundLink(ref, text, opts){
   }
   const url = location.origin + '/?share=' + tok;
   const cardFile = opts.cardBlob ? new File([opts.cardBlob], 'cup-season-round.png', { type:'image/png' }) : null;
-  const how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob, kindLabel: 'round link' });
+  const how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob, kindLabel: 'round link', report: opts.report });
   const delivered = how !== 'cancelled';
   await csFinishShare(attempt, delivered);
   if(delivered) growthEvent('artifact_shared', 'share', tok, null, window.CS?.league?.id);
@@ -11761,13 +11745,14 @@ async function csShareRoundLink(ref, text, opts){
 }
 
 async function csShareLink(kind, ref, text, card, opts){
-  if(!window.sb || !ref){ toast('Sharing needs your real league'); return; }
   opts = opts || {};
+  const say = m => (typeof opts.report === 'function' ? opts.report(m) : toast(m));
+  if(!window.sb || !ref){ say('Sharing needs your real league'); return; }
   if(kind === 'round'){
     try{
       const how = await csShareRoundLink(ref, text, opts);
       if(how) return;          /* handled — shared, copied, shown, cancelled or refused */
-    }catch(e){ toast(humanError(e, 'Could not make the link.')); return; }
+    }catch(e){ say(humanError(e, 'Could not make the link.')); return; }
   }
   try{
     let { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
@@ -11853,16 +11838,24 @@ async function csShareLink(kind, ref, text, card, opts){
     /* W2 · the card and the link leave together when the sheet can carry a file */
     const cardFile = opts.cardBlob ? new File([opts.cardBlob], 'cup-season-round.png', { type:'image/png' }) : null;
     let how;
-    try{ how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob }); }
+    try{ how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob, report: opts.report }); }
     catch(_){ how = 'shown'; }
     if(how !== 'cancelled') growthEvent('artifact_shared', kind==='round' ? 'share' : kind, data, null, window.CS?.league?.id);
-  }catch(e){ toast(humanError(e, 'Could not make the link.')); }
+  }catch(e){ say(humanError(e, 'Could not make the link.')); }
 }
 
+/* the sentence that rides with a shared round: one producer for the
+   epilogue's Share and the finish ceremony's */
+function csShareRoundText(gross, course){
+  return `${window.CS?.profile?.display_name || 'A round'} — ${gross} at ${course || 'the course'}`;
+}
 /* W2 (D380) · ONE Share action from a posted round: the recap card (with the
    photo only on a yes) and the link, together. Demo and link-less rounds share
-   the card alone, exactly as before. `d` is the recap card's facts. */
-async function csShareRound(d, roundId, includePhoto, text){
+   the card alone, exactly as before. `d` is the recap card's facts. `report`,
+   when given, says each outcome in the caller's own place (the ceremony's
+   status line) instead of a toast. */
+async function csShareRound(d, roundId, includePhoto, text, report){
+  const say = m => (typeof report === 'function' ? report(m) : toast(m));
   try{
     // Do not carry a previous render's image through an opt-out or erase the
     // caller's attachment when they share the same round again later.
@@ -11873,20 +11866,24 @@ async function csShareRound(d, roundId, includePhoto, text){
     const blob = await new Promise(res=>drawRecapCard(d).toBlob(res,'image/png'));
     if(!roundId || state.demo || !window.sb){
       const file=new File([blob],'cup-season-recap.png',{type:'image/png'});
-      if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], text: text || recapText(d)}); return; }
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], text: text || recapText(d)});
+        if(typeof report === 'function') report('Shared.');
+        return;
+      }
       const a=document.createElement('a');
       a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
       setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-      toast('Card downloaded');
+      say('Card downloaded');
       return;
     }
-    await csShareLink('round', roundId, text || recapText(d), null, { includePhoto: !!includePhoto, cardBlob: blob });
+    await csShareLink('round', roundId, text || recapText(d), null, { includePhoto: !!includePhoto, cardBlob: blob, report });
     await csUpdateRoundLinkControl(document.getElementById('rcptCardRevoke'),roundId);
     await csUpdateRoundLinkControl(document.getElementById('epiRevoke'),roundId,document.getElementById('epiRevokeWrap'));
   }catch(e){
     if(e && e.name==='AbortError') return;
     console.warn('[share round]', e);
-    toast(humanError(e, 'Could not make the card.'));
+    say(humanError(e, 'Could not make the card.'));
   }
 }
 window.csShareRound = csShareRound;
@@ -12303,8 +12300,7 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
       league: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
       badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
       photo: window._lastPostPhoto || null,   /* photos arc: the round's photo becomes the card's backdrop — on a yes */
-    }, state.demo ? null : roundId, includePhoto,
-    `${window.CS?.profile?.display_name || 'A round'} — ${epi.gross} at ${course || 'the course'}`);
+    }, state.demo ? null : roundId, includePhoto, csShareRoundText(epi.gross, course));
   });
 }
 /* ============ the finish screen (2.1): a posted round ends in ceremony ============
@@ -12315,8 +12311,9 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
    landed (home). Bands are NEVER re-derived here: vsPhrase() is the one phrase
    producer, the same the round cards and the recap card use. Champagne is
    earned-only — the points line goes gold ONLY when league points exist,
-   ink-muted ("posts to your rounds") otherwise. Share rides the existing
-   recap-card path (shareRecapCard); no new fetches — every value is passed in. */
+   ink-muted ("posts to your rounds") otherwise. Share is D380's one action
+   (csShareRound): the card and the round's link together, the photo on the
+   ceremony's own switch; no new fetches — every value is passed in. */
 let _finishShare=null;
 /* 2.1 follow-up: set true by finishCeremony when the ceremony owned the share
    for this post, so the epilogue keeps all its content (achievements, rivalry
@@ -12365,6 +12362,7 @@ function finishCeremony(o){
     points:o.points!=null ? Number(o.points) : null,
     course:o.course||'', date:dt, league:o.leagueName||null,
     badge:null, photo:o.photo||null,
+    roundId:o.roundId||null,   /* D380 · the posted round's id: its link leaves with the card */
   };
   /* the opt-out stands only when there is a photograph to leave out, and it
      re-arms on every post — a golfer who opted out of one card is not opted
@@ -12426,11 +12424,16 @@ function finishDismiss(){
      round's own attachment is never touched by this — opting out of a card is
      not removing a photograph from a round (§16). The outcome is said under
      the button (critique B: the toast painted beneath this curtain). */
+  /* D380 · ONE Share: the card AND the round's link, through the epilogue's
+     own csShareRound. The switch above is the photo answer — asked once, on
+     by default because the golfer attached it — and nothing asks again. */
   $('#finShare')?.addEventListener('click',()=>{
     if(!_finishShare) return;
     const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
     const fs=$('#finStatus'); if(fs) fs.textContent='';
-    shareRecapCard(Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null }), m => { if(fs) fs.textContent=m; });
+    const { roundId, ...card } = _finishShare;
+    csShareRound(card, state.demo ? null : roundId, on && !!card.photo,
+      csShareRoundText(card.gross, card.course), m => { if(fs) fs.textContent = m || ''; });
   });
   $('#finBack')?.addEventListener('click',finishDismiss);
   el.addEventListener('click',e=>{ if(e.target===el) finishDismiss(); });   /* backdrop */
@@ -13384,6 +13387,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           marker: window.CS?.profile?.marker || 'saguaro',
           leagueName: leagueName,
           photo: window._lastPostPhoto || null,
+          roundId: rrow?.id || null,   /* D380 · the ceremony's Share sends this round's link */
         }); else { stampPosted('POSTED ✓'); toast(`Round posted: ~${pts} pts pending the league's math`); } }
       /* the ceremony IS the confirmation — its toast lives only in the stamp fallback (above),
          never firing behind the z-1100 curtain */

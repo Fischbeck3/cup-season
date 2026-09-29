@@ -103,7 +103,9 @@
   }
 
   /* the round's own attachment is never touched by a share choice (§16) */
-  check(!/clear_round_photo|set_round_photo/.test(String(shareRecapCard)),
+  /* TEN / W6 · D380: the ceremony shares through csShareRound (the card and
+     the round's link together), so that is the path held to it now */
+  check(!/clear_round_photo|set_round_photo/.test(String(csShareRound)+String(csShareLink)+String(csShareRoundLink)+String(csDeliverLink)),
     'the share path writes to the round');
 
   out.ok=true;

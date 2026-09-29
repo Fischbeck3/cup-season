@@ -299,7 +299,15 @@ function shareState(id, title, card, extra = {}) {
     },
     /* the ceremony is a full-screen dialog over Home (the post returns there) */
     expect: { view: 'view-home', selectors: { '#finish.open': 'visible', '#finShare': 'visible' } },
-    check: async (page) => page.evaluate(() => window.__tenArtifact ? true : 'the card was not downloaded'),
+    /* TEN / W6 · D380: the ceremony's one Share sends the card AND the round's
+       link, and says so under its own button (a toast or a sheet would paint
+       beneath the curtain). The card-only path says "Card downloaded" and never
+       "link", so a status line naming the link is the proof the link left. */
+    check: async (page) => page.evaluate(() => {
+      if (!window.__tenArtifact) return 'the card was not downloaded'
+      const said = (document.getElementById('finStatus')?.textContent || '').trim()
+      return /link/i.test(said) ? true : 'the ceremony shared no link (D380): ' + JSON.stringify(said)
+    }),
     ...extra,
   }
 }
