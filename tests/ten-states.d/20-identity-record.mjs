@@ -278,7 +278,17 @@ const RECEIPT = [
       const labels = [...document.querySelectorAll('.rcpt-leaf .mathrow > span:first-child')].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.innerText.replace(/\s+/g, ' ').trim())
       if (labels.length < 4) return `the leaf has ${labels.length} labels`
       const shouted = labels.filter((l) => /[A-Za-z]{4,}/.test(l) && l === l.toUpperCase())
-      return shouted.length ? `the leaf mixes label cases: ${JSON.stringify(shouted)} in caps beside ${JSON.stringify(labels.filter((l) => !shouted.includes(l)).slice(0, 2))}` : true
+      if (shouted.length) return `the leaf mixes label cases: ${JSON.stringify(shouted)} in caps beside ${JSON.stringify(labels.filter((l) => !shouted.includes(l)).slice(0, 2))}`
+      /* TEN / W8 · W7-034 (E2, D's second reader): ONE label role in the table — every fact and working label (the total's own is the receipt's climax) shares a
+         face, a size, a weight and a tracking, and the working differs by ink alone */
+      const roles = new Map()
+      for (const e of document.querySelectorAll('.rcpt-leaf .mathrow:not(.tot) > span:first-child')) {
+        if (!(e.getBoundingClientRect().width > 0)) continue
+        const cs = getComputedStyle(e), key = [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.letterSpacing, cs.textTransform].join(' | ')
+        if (!roles.has(key)) roles.set(key, [])
+        roles.get(key).push(e.innerText.replace(/\s+/g, ' ').trim().slice(0, 22))
+      }
+      return roles.size === 1 ? true : `the leaf sets ${roles.size} label roles: ` + [...roles].map(([k, v]) => `${k} → ${JSON.stringify(v.slice(0, 2))}`).join('; ')
     }) },
   /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
      photograph the page cannot open (every signed URL answers 404): the

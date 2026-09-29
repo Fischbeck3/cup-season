@@ -3809,13 +3809,14 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    row because it is the arithmetic, not the verdict — but present, because a
    figure with no visible working is what made a true -11.5 read as an
    accusation (§16). */
-/* TEN / W6 · AW2-06: the working stays quieter by role, not by mono — its label
-   is an agateS phrase (sentence case), its value `column` small */
+/* TEN / W6 · AW2-06: the working stays quieter by ink, not by mono — its value is `column` small.
+   W7-034 · and its LABEL is the row's own body role (sans 15, flat), quieter by ink alone (`.rcpt-leaf .mathrow.sub span`):
+   it was an 11px board-face phrase with agate tracking beside 'The course' and 'Points' in the body, two label roles in
+   one table (E2, D's second reader; surfaces/leaderboard.md §6, and ReceiptLeaf.mathRow sets every non-total label .body
+   and lets `sub` change the ink only) */
 .mathrow.sub{color:var(--mut); padding-top:7px; padding-bottom:7px;}
 .mathrow.sub b{color:var(--mut); font-family:var(--mono); font-size:12px; font-weight:400;
   letter-spacing:var(--flat);}
-.mathrow.sub > span{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
-  letter-spacing:calc(var(--agate-s) * 1em);}
 .rdrow{
   display:flex; align-items:center; gap:10px; width:100%; text-align:left;
   background:none; border:none; border-top:1px solid var(--rule); padding:10px 2px; cursor:pointer;
