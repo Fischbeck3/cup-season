@@ -43,12 +43,19 @@
     check(document.querySelectorAll('#cmpList .peerrow').length===3 && document.querySelectorAll('#cmpList .cband').length===1,'the four seasons did not all render (band + three rows)');
     check(Array.from(document.querySelectorAll('#cmpList .peerrow')).every(b=>b.getBoundingClientRect().height>=44),'a row is under the tap target');
 
-    /* the empty archive: chrome on the phone, a column on the desk */
+    /* the empty archive. W5 · the second column holds the moments and the
+       finished shelf; holding neither, it stands down at EVERY width — on the
+       desk it printed "Nothing finished yet." and nothing else in its 340
+       (the owner and craft panels, desk D: "fill or remove the second
+       column") — and the desk's main column takes the whole body */
     const aside=document.querySelector('#view-compete .deskaside');
     check(aside.hasAttribute('data-empty'),'the empty shelf was not marked empty');
     const shown=getComputedStyle(aside).display!=='none';
-    if(innerWidth<960) check(!shown,'MW-03: the empty Finished shelf still shows on the phone');
-    else check(shown,'the desk lost its Finished column');
+    check(!shown,'W5: an empty second column still shows');
+    if(innerWidth>=960){
+      const body=document.getElementById('cmpBody');
+      check(body.hasAttribute('data-solo') && getComputedStyle(body).gridTemplateColumns.trim().split(/\s+/).length===1,'W5: the desk kept an empty column beside the list');
+    }
     check(document.documentElement.scrollWidth<=innerWidth,'Compete overflows at this width');
 
     /* and with something finished, the shelf returns everywhere */

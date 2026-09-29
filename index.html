@@ -554,9 +554,13 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 }
 .peerrow:hover{background:var(--bg1);}
 .peerrow:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
-.peerrow .pe{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); display:block;}
+/* W5 · the row's words in their roles (§1.3/§1.4): the eyebrow and the status
+   are agate LABELS in caps; the sub-line is a phrase a golfer reads aloud
+   ("Blake's round. You, Devon Testwell."), so it is agate in sentence case,
+   never mono — mono sets codes and columns, never a sentence */
+.peerrow .pe{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); display:block;}
 .peerrow .pn{font-size:14.5px; font-weight:700; display:block; margin-top:2px;}
-.peerrow .ps{font-family:var(--mono); font-size:12px; color:var(--mut); display:block; margin-top:3px;}
+.peerrow .ps{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); display:block; margin-top:3px;}
 /* MW-03 · one status, when there is one: the clash closing, the season's last
    week. Ember is the clock's colour on this client (D231); it is a word, not a
    control, so it is never a button. */
@@ -747,7 +751,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
    size: the ember dot and the state word, never a second full band. */
 .csedn .cstate, .cswire .cstate{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
   text-transform:uppercase; color:var(--brand); margin-left:var(--s2);}
-.peerrow .pt{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
+.peerrow .pt{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
 /* WA4 · a standings-history row is a door to its round (§16). It keeps the
    line it always was; what changes is that it is a control, so it takes the
    tap target every other row on this client takes. */
@@ -757,7 +761,49 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .histrow .cv{flex:none; color:var(--mut);}
 .histrow:hover:not(.static){color:var(--ink);}
 .histrow:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
-@media(max-width:959px){ #view-compete .deskaside[data-empty]{display:none;} }
+/* W5 · Compete's second column holds the moments and the finished shelf. When
+   it holds neither it stands down at EVERY width, and on the desk the main
+   column takes the body — the desk's 340 printed "Nothing finished yet." and
+   nothing else (the owner and craft panels, desk D). */
+#view-compete .deskaside[data-empty]{display:none;}
+#view-compete #cmpFinishedWrap[hidden]{display:none;}
+/* W5 · the Compete band's note: the standing is a NAME (the side and its
+   place, in the board face's social role) and the story a sentence in sans — a rank and a
+   gap are numbers, never set in the serif (§1.4). Compete only: the season
+   page's band draws its own. */
+#view-compete .cband-scoreboard .cband-note{font-family:var(--sans); font-size:17px; line-height:1.4; min-width:0;}
+#view-compete .cband-scoreboard .cband-standing{display:block; font-family:var(--board); font-weight:600; font-size:17px; line-height:1.16;
+  letter-spacing:0; margin-bottom:var(--s1);}   /* the social role: a side's name and its place, in title case */
+#view-compete .cband-scoreboard .cband-story{display:block;}
+@media(min-width:960px){ #view-compete .deskbody[data-solo]{grid-template-columns:minmax(0,1fr);} }
+/* the head's door is an agate label in the action green: mono never sets a
+   button's label (§1.4), and the caps are the role's, not the string's (§1.3) */
+#view-compete #cmpStart{font-family:var(--board); font-weight:600; font-size:12px;
+  letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;}
+/* W5 · the empty Compete is the Scoreboard band's "nothing yet" printing:
+   the band's neutral ground and terrain, a drawn object in mut (§13.1), the
+   headline in the lead role, the fact and the line in sans (never mono,
+   §1.4), then ONE primary and the other doors as quiet links (§16A.5). */
+#view-compete .cmpempty{position:relative; isolation:isolate; overflow:hidden; background:var(--bg1);
+  padding:0; margin:var(--s3) 0 0;}
+#view-compete .cmpempty-in{position:relative; padding:var(--s4); max-width:640px;}
+#view-compete .cmpempty-obj{display:block; width:64px; height:64px; color:var(--mut); margin:0 0 var(--s3) -8px;}
+#view-compete .cmpempty h3{font-family:var(--serif); font-size:28px; font-weight:700; line-height:1.14;
+  letter-spacing:calc(var(--tight) * 1em); margin:0 0 var(--s2);}
+#view-compete .cmpempty .fact{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--ink); margin:0 0 var(--s2);}
+#view-compete .cmpempty .sub{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut); margin:0 0 var(--s4); max-width:46ch;}
+#view-compete .cmpempty-doors{display:flex; flex-wrap:wrap; align-items:center; gap:var(--s3) var(--s4);}
+#view-compete .cmpempty-go{width:auto; margin:0; padding:0 var(--s4); flex:none;}
+#view-compete .cmpempty-alt{display:flex; flex-wrap:wrap; gap:0 var(--s4);}
+#view-compete .cmpempty-alt button{background:none; border:0; padding:0; min-height:44px; cursor:pointer;
+  font-family:var(--sans); font-size:15px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+#view-compete .cmpempty-alt button:hover{text-decoration-color:var(--ink);}
+#view-compete .cmpempty-alt button:focus-visible{outline:2px solid var(--act); outline-offset:3px;}
+@media(min-width:960px){
+  #view-compete .cmpempty{margin-top:var(--s4);}
+  #view-compete .cmpempty-in{padding:var(--s6) var(--gutter-desk);}
+}
 /* D339 I-3 · the head's own terrain. It sits BEHIND the name, bleeding off the
    right edge, at the quiet end of the alpha ramp — a ground, never a graphic
    with something to say. The head is the only place it goes on an interior
@@ -6055,17 +6101,27 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
            browser: on a 1,440-px screen the archive sits next to the list
            rather than under it. -->
       <section class="view" id="view-compete">
-        <div class="deskbody wide">
+        <div class="deskbody wide" id="cmpBody">
           <div class="deskmain">
             <div class="cmphead">
               <h2>Compete</h2>
-              <a href="#" id="cmpStart">START SOMETHING ↗</a>
+              <!-- an in-app sheet opens here, so no leaving-the-app arrow (§5.2);
+                   the head sets the label's caps (§1.3) -->
+              <a href="#" id="cmpStart">Start something</a>
             </div>
             <div id="cmpList" style="text-align:left"></div>
           </div>
+          <!-- W5 · the second column holds what runs BESIDE the seasons — the
+               moments, then the finished shelf — so the desk's 340 is never one
+               row or "Nothing finished yet." On the phone the same two follow
+               the list in the same order. A column with nothing in it stands
+               down at every width (renderCompete). -->
           <aside class="deskaside">
-            <div class="eyebrow">Finished</div>
-            <div id="cmpFinished" style="text-align:left"></div>
+            <div id="cmpMoments" style="text-align:left"></div>
+            <div id="cmpFinishedWrap">
+              <div class="eyebrow">Finished</div>
+              <div id="cmpFinished" style="text-align:left"></div>
+            </div>
           </aside>
         </div>
       </section>
@@ -20175,6 +20231,15 @@ function csPlanLine(sr, myName){
   return 'You, ' + list(names) + '.';
 }
 
+/* W5 · a finished edition's day: its month and day, and the year when it is not
+   this one ("Aug 13", "Aug 13, 2025") — never a weekday, which a past row would
+   read as this week. Null when the row carries no date. */
+function csEditionDay(iso){
+  if(!iso) return null;
+  const d = localDate(String(iso).slice(0,10));
+  if(isNaN(d)) return null;
+  return `${MOS[d.getMonth()]} ${d.getDate()}` + (d.getFullYear() !== new Date().getFullYear() ? ', ' + d.getFullYear() : '');
+}
 /* Compete's moment row — the noun, then the state. Never a countdown: the
    row's clock is a sort key, not a sentence (L-22). Twin of `EventCopy
    .momentLine`. */
@@ -20488,13 +20553,28 @@ function csSeasonRowFacts(f, role){
   const of   = st && Number.isFinite(Number(st.of)) ? Number(st.of) : null;
   const pts  = st && st.points != null && Number.isFinite(Number(st.points)) ? Number(st.points) : null;
   const gap  = st && st.gap_to_leader != null && Number.isFinite(Number(st.gap_to_leader)) ? Number(st.gap_to_leader) : null;
+  /* W5 · in a squads season the standing is the SQUAD's. The band printed
+     "137 points · 2nd · You are 34 back from Fixture Javelinas" and never said
+     the 137 was Fixture Wrens'. The side is named wherever the standing is
+     said, and a leader that is a squad keeps its whole name (the row cut
+     "Fixture Javelinas" to "Fixture", a golfer's first-name rule). Twin:
+     CompeteRoot.competitionLine / pointsStanding on the phone. */
+  const side = !upcoming && f.squad && f.squad.name ? String(f.squad.name) : null;
+  const leader = st && st.leader_name ? (side ? String(st.leader_name) : String(st.leader_name).split(' ')[0]) : null;
   const parts = [];
+  if(side && rank != null) parts.push(side);
   if(rank != null && of != null) parts.push(climbOrd(rank) + (st.points_tied ? ' · Tied' : '') + ' of ' + of);
   if(pts != null) parts.push(pts + ' pts');
   if(rank != null && of != null){
     if(rank === 1 && of > 1) parts.push('leading');
-    else if(gap != null && gap > 0 && st.leader_name) parts.push(gap + ' behind ' + String(st.leader_name).split(' ')[0]);
+    else if(gap != null && gap > 0 && leader) parts.push(gap + ' behind ' + leader);
   }
+  /* W5 · the upcoming Scoreboard said "not yet" twice and never WHEN: the
+     first tee is a date the payload carries (native_home.season.starts_on and
+     days_to_first_tee), said as a golfer reads a day (csRoundDay). */
+  const tee = upcoming && se && se.starts_on ? csRoundDay(se.starts_on) : null;
+  const toTee = !tee ? null : se.days_to_first_tee != null ? Number(se.days_to_first_tee) : csDaysBetween(isoOf(new Date()), se.starts_on);
+  const teeStory = tee ? 'The first tee is ' + tee + (toTee > 1 ? ', in ' + toTee + ' days.' : toTee === 1 ? ', tomorrow.' : '.') : 'No standing yet. First tee is ahead.';
   let eyebrow = null;
   if(upcoming) eyebrow = STAGE_LABEL.preseason;
   else if(se && se.week_no != null && se.weeks_total != null) eyebrow = 'Week ' + se.week_no + ' of ' + se.weeks_total;
@@ -20502,7 +20582,9 @@ function csSeasonRowFacts(f, role){
   let status = null;
   if(clash && clash.closes_today) status = 'The clash closes today';
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
-  return { upcoming, sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts, standing:rank==null?null:climbOrd(rank)+(st.points_tied?' · Tied':''), story:upcoming?'No standing yet. First tee is ahead.':gap>0?'You are '+gap+' back from '+(st.leader_name||'the lead')+'.':rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
+  return { upcoming, sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts,
+    standing:rank==null?null:(side?side+' · ':'')+climbOrd(rank)+(st.points_tied?' · Tied':''),
+    story:upcoming?teeStory:gap>0?(side?gap+' back from '+(st.leader_name||'the lead')+'.':'You are '+gap+' back from '+(st.leader_name||'the lead')+'.'):rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
 }
 /* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
    recognition, so every rule here is a refusal: par must be KNOWN (an
@@ -20575,7 +20657,11 @@ window.CS_COMPETITION = CS_COMPETITION;
 function csCompetitionBandHtml(row){
   if(!row || !row.state) return '';
   const fig=row.points!=null?`<span class="cband-fig">${row.points}<small>points</small></span>`:'';
-  return `<button class="cband cband-scoreboard" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?esc(row.standing)+'<br>':''}${esc(row.story||row.sub||'')}</span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
+  /* W5 · the standing is a LABEL (the side and its place, in the board face)
+     and the story a sentence in sans: a rank and a gap are numbers, and a
+     number is never set in the serif (§1.4); the season's name keeps the
+     band's one serif object */
+  return `<button class="cband cband-scoreboard" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?`<span class="cband-standing">${esc(row.standing)}</span>`:''}<span class="cband-story">${esc(row.story||row.sub||'')}</span></span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
 }
 window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
@@ -20624,8 +20710,12 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     const done = e.status==='complete';
     const row={ id:'event:'+e.id, kind:'moment', eventId:e.id,
                 /* the phone's eventEyebrow: the day, else the status's own word —
-                   a live Ryder read "Forming" because no date had been selected */
-                eyebrow: done ? 'Final' : e.starts_on ? csDayToken(e.starts_on) : (CS_COMPETITION.event(e.status) === 'Live' ? 'Live' : 'Forming'),
+                   a live Ryder read "Forming" because no date had been selected.
+                   W5 · a FINISHED one is dated by its edition: a Ryder run twice
+                   printed "The North Grove Ryder" as Live and as Final with
+                   nothing to tell them apart, and "Final" was said twice on the
+                   one row (the sub already says it). Twin: CompeteRoot.eventEyebrow. */
+                eyebrow: done ? (csEditionDay(e.starts_on) || 'Final') : e.starts_on ? csDayToken(e.starts_on) : (CS_COMPETITION.event(e.status) === 'Live' ? 'Live' : 'Forming'),
                 title: e.name || 'A moment',
                 sub: csMomentLine(e.kind, e.status, e.mine !== false),
                 state: CS_COMPETITION.event(e.status),
@@ -21050,16 +21140,57 @@ function csEmptyRootDoors(box, take){
   box.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>take(b.dataset.erdoor)));
 }
 
+/* W5 · Compete's own shape of the empty root (D234: the producer above is
+   shared — head, fact, sub and the doors in their order — and the SHAPE is
+   the surface's). It is the Scoreboard band's "nothing yet" printing: the
+   band's ground and its terrain, a drawn object (§13.1: an empty scoreboard, in the
+   icon family's weight, in mut), the headline, the fact, and ONE primary —
+   the first door as the act button — with the rest as quiet links (§16A.5).
+   The three equal mono links it replaces gave the page no action. */
+function csCompeteEmptyHtml(root){
+  if(root.state==='loading') return '<p class="fine" style="padding:0">Loading…</p>';
+  const [first, ...rest] = root.doors;
+  /* the object is an EMPTY SCOREBOARD — the band's own shape with its figure
+     slot blank and its lines unwritten. Not a flag: the pennant is the one
+     flag in the product (§5.2), and two absences never share an object */
+  const obj = '<svg class="cmpempty-obj" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round">'
+    + '<rect x="1.8" y="6" width="20.4" height="12" rx="1"/><path d="M5 12.4h3.4M9.9 12.4h3.4" stroke-width="1.6"/>'
+    + '<rect x="16.2" y="8.2" width="3.6" height="1.8" rx=".9"/><path d="M5 15.4h6.4"/></svg>';
+  return `<div class="emptyroot cmpempty"><span class="sb-terrain" aria-hidden="true"></span><div class="cmpempty-in">${obj}`
+    + `<h3>${esc(root.head)}</h3>`
+    + (root.fact ? `<p class="fact">${esc(root.fact)}</p>` : '')
+    + `<p class="sub">${esc(root.sub)}</p>`
+    + `<div class="cmpempty-doors">`
+    + (first ? `<button type="button" class="btn cmpempty-go" data-erdoor="${esc(first.k)}">${esc(first.t)}</button>` : '')
+    + (rest.length ? `<span class="cmpempty-alt">${rest.map(d=>`<button type="button" data-erdoor="${esc(d.k)}">${esc(d.t)}</button>`).join('')}</span>` : '')
+    + `</div></div></div>`;
+}
+
 function renderCompete(){
   const box=document.getElementById('cmpList'), shelf=document.getElementById('cmpFinished');
   if(!box) return;
+  const momentsBox=document.getElementById('cmpMoments'), shelfWrap=document.getElementById('cmpFinishedWrap');
+  const aside = document.querySelector('#view-compete .deskaside'), deskBody = document.getElementById('cmpBody');
+  /* W5 · the second column, said once for every path: it holds the moments and
+     the finished shelf, and when it holds neither it stands down at every
+     width — the desk's main column takes the body (an empty 340 beside a list
+     was a void: "Nothing finished yet." was all it ever said). */
+  const settleAside = (hasMoments, hasFinished) => {
+    if(shelfWrap) shelfWrap.hidden = !hasFinished;
+    const empty = !hasMoments && !hasFinished;
+    if(aside) aside.toggleAttribute('data-empty', empty);
+    if(deskBody) deskBody.toggleAttribute('data-solo', empty);
+  };
   /* F12 · one fact, one place (D360). An empty Compete offers Start something
      at the empty state's own doors, closest to the decision; the head's link
      said it a second time. It stands down until there is a list to head. */
   const headStart = document.getElementById('cmpStart');
   if(!window.CS?.user){
-    box.innerHTML = csEmptyRootHtml(csEmptyRoot('compete', { buddies:0 }));
+    box.innerHTML = csCompeteEmptyHtml(csEmptyRoot('compete', { buddies:0 }));
+    box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
     if(shelf) shelf.innerHTML='';
+    if(momentsBox) momentsBox.innerHTML='';
+    settleAside(false, false);
     if(headStart) headStart.hidden = true;
     csEmptyRootDoors(box, take);
     return;
@@ -21073,13 +21204,18 @@ function renderCompete(){
   const lead = list.seasons.find(r => r.state === 'Live' && r.figure)
            || list.seasons.find(r => r.state === 'Live')
            || list.seasons.find(r => r.state) || null;
+  /* §16A.7 · a head is drawn only over rows: when the band holds the only
+     season, "Your seasons" had nothing under it (an orphan that read as a
+     failed load), and with no season at all it said "None yet." with no door
+     — the head's Start something is that door. */
+  const others = list.seasons.filter(r => !lead || r.id !== lead.id);
   const body = list.nothingRunning
-    ? csEmptyRootHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
+    ? csCompeteEmptyHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
     : (lead ? csCompetitionBandHtml(lead)+(lead.seasonId?`<button type="button" class="sb-door" id="cmpBookDoor">${lead.fieldSize>=10||lead.squads?'Open the Book':'Rounds &amp; points'} →</button>`:'') : '')
-      + `<div class="eyebrow">Your seasons</div>`
-      + (list.seasons.length ? list.seasons.filter(r => !lead || r.id !== lead.id).map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
-      + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
+      + (others.length ? `<div class="eyebrow">Your seasons</div>` + others.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
+  /* the moments ride the second column (desk) — and follow the list on the phone */
+  if(momentsBox) momentsBox.innerHTML = list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '';
   if(headStart) headStart.hidden = !!list.nothingRunning;
   box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
   box.querySelector("#cmpBookDoor")?.addEventListener("click",()=>csOpenSeasonBook(lead.leagueId,lead.seasonId));
@@ -21093,15 +21229,11 @@ function renderCompete(){
     const id = String(lead && lead.leagueId || '');
     openRow(lead, id);
   });
-  if(shelf) shelf.innerHTML = list.finished.length
-    ? list.finished.map(csPeerRowHtml).join('')
-    : '<p class="fine" style="padding:0">Nothing finished yet.</p>';
-  /* MW-03 · an empty archive is chrome on a phone. The shelf keeps its place
-     on the desk, where a column beside the list costs nothing; below the desk
-     it stands down until there is something finished to show. */
-  const aside = shelf && shelf.closest('.deskaside');
-  if(aside) aside.toggleAttribute('data-empty', !list.finished.length);
-  [box, shelf].forEach(el=>{ if(!el) return;
+  /* §16A.7 · the shelf is drawn when something has finished; "Nothing finished
+     yet." under its head was a doorless empty at every width */
+  if(shelf) shelf.innerHTML = list.finished.map(csPeerRowHtml).join('');
+  settleAside(!!list.moments.length, !!list.finished.length);
+  [box, momentsBox, shelf].forEach(el=>{ if(!el) return;
     el.querySelectorAll('[data-peer]').forEach(b=>b.addEventListener('click',()=>{
       const [kind,id]=b.dataset.peer.split(':');
       /* WA2 · the same arrival Home's season item takes. This row had the
