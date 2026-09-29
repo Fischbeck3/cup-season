@@ -2898,6 +2898,20 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   border-radius:0;}
 #view-hub .check:last-child, #view-hub .nextcard{border-bottom:1px solid var(--rule);}
 #view-hub .nextcard{margin-bottom:var(--s4);}
+/* (4 of 4) the pot is a RULE-AND-FIGURE in gold, the season's second and last gold object (§15.4; D273: money is ink, the pot
+   and anything won are gold): #potAmt over its own 2px gold rule with its math beneath, no box round it. The split is three
+   figures in INK on ONE 2px ink rule with agate labels beneath, the shape of the phone's PotPane.split (PotPane.swift): the
+   figures touch, so their rules read as one, and the label sits under each. The three award tiles in the standings room are the
+   same object (a golfer's name, then its line), and carry no gold. The tiles were three bordered, rounded cards. */
+#view-hub .purse{background:none; border:0; padding:0; margin:0 0 var(--s4); text-align:left; overflow:visible;
+  border-radius:0;}
+#view-hub .purse .amt{display:inline-block; margin:var(--s2) 0 0; padding-bottom:var(--s1); border-bottom:2px solid var(--gold);}
+#view-hub .purse .m{display:block; margin-top:var(--s2);}
+#view-hub .trip{gap:0; margin-top:var(--s4);}
+#view-hub .trip .p{background:none; border:0; padding:0; text-align:left;
+  border-radius:0;}
+#view-hub .trip .p b{padding:0 var(--s3) var(--s1) 0; border-bottom:2px solid var(--ink);}
+#view-hub .trip .p span{display:block; padding:var(--s1) var(--s3) 0 0;}
 /* printing the season is a desk act; on a phone the button was one more row
    of chrome between the story and the pot (the craft panel) */
 @media(max-width:959px){ #seasonPrint{display:none;} }

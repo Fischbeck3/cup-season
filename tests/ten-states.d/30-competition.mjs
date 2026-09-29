@@ -215,7 +215,7 @@ const SEASON = [
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
       goldOnly('#view-hub', ['tr.lead td.rk', '#potAmt']),
       /* (2 of 4): the climb is no card and its rungs are slats */
-      noBoxes(['#view-hub .homegrid > div > .card', '#view-hub .climb-rung', '#view-hub .nextcard']),
+      noBoxes(['#view-hub .homegrid > div > .card', '#view-hub .climb-rung', '#view-hub .nextcard', '#view-hub .trip .p']),
       /* TEN / W8 · W7-023 [B2-desk-9]: the individual board carries Last five inside the row at the desk (D280), and not below it */
       async (page) => page.evaluate(() => {
         const th = document.querySelector('#indTable th.deskonly'), rows = [...document.querySelectorAll('#indTable tr[data-ri]')]
@@ -272,7 +272,20 @@ const SEASON = [
       noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt']),
       /* TEN / W8 · W7-014 [B2-season-6]: 'Season stakes' and 'How to pay' take the section gap */
       headGap(['#room-pot .potgrid > div > .eyebrow:first-child']),
-      goldOnly('#view-hub', ['tr.lead td.rk', '#potAmt'])) },
+      goldOnly('#view-hub', ['tr.lead td.rk', '#potAmt']),
+      /* TEN / W8 · W7-029 [A2-season-3] (4 of 4): the pot is a rule-and-figure (a 2px gold rule under #potAmt) and the split is three
+         ink figures on ONE 2px ink rule (the figures touch), with no box round either (PotPane.swift's shape, §15.4) */
+      noBoxes(['#view-hub .purse', '#view-hub .trip .p']),
+      async (page) => page.evaluate(() => {
+        const tok = (n) => { const i = document.createElement('i'); i.style.color = `var(${n})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+        const amt = getComputedStyle(document.getElementById('potAmt'))
+        if (amt.borderBottomWidth !== '2px' || amt.borderBottomColor !== tok('--gold')) return `the pot figure's rule is ${amt.borderBottomWidth} ${amt.borderBottomColor}, not 2px gold`
+        const bs = [...document.querySelectorAll('#room-pot .trip .p b')].filter((b) => b.getBoundingClientRect().width > 0)
+        if (bs.length !== 3) return `the split has ${bs.length} figures`
+        if (bs.some((b) => getComputedStyle(b).borderBottomWidth !== '2px' || getComputedStyle(b).borderBottomColor !== tok('--ink'))) return 'the split figures are not on a 2px ink rule'
+        const gaps = [1, 2].map((i) => Math.round(bs[i].getBoundingClientRect().left - bs[i - 1].getBoundingClientRect().right))
+        return gaps.every((g) => Math.abs(g) <= 1) ? true : `the split's rule is broken: gaps ${JSON.stringify(gaps)}`
+      })) },
   { family: 'season', id: 'pot-pro', variant: 'pro', title: 'The season page, the money, as the Pro: tap a name as money moves', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
     drive: (page) => toRoom(page, 'pot'),
