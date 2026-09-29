@@ -129,7 +129,7 @@ struct ProfileFormRow: View {
     // oldest → newest, left to right, which is how a form line is read
     let shown = Array(rounds.prefix(5).reversed())
     // the lowest 18-hole gross: a nine never takes the gold (§9.7, the web's
-    // csFormNine at 38471687)
+    // csFormNine at 38471687), and one round is not a field (D359)
     let bestAt = CredentialCopy.formBest(shown)
     if typeSize.isA11y {
       // §16.3 · at the accessibility sizes the row becomes five rows, each
@@ -307,7 +307,9 @@ struct RivalSlat: View {
   let sub: String
   let record: String
   let verdict: String
-  /// M3/D18 · a christened rivalry wears its name, in gold, above the row.
+  /// M3/D18 · a christened rivalry wears its name above the row, in agate
+  /// `mut` — a name is not a result, and gold is earned only (D359; the web's
+  /// `.yriv-name`).
   let rivalryName: String?
   let open: () -> Void
 
@@ -319,7 +321,7 @@ struct RivalSlat: View {
           CSFace(face, size: .slat)
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
             if let r = rivalryName, !r.isEmpty {
-              Text(r).csType(.agateS, caps: true).foregroundStyle(cs.gold)
+              Text(r).csType(.agateS, caps: true).foregroundStyle(cs.mut)
                 .lineLimit(1).truncationMode(.tail)
             }
             Text(name).csType(.name).foregroundStyle(cs.ink)

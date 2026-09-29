@@ -143,7 +143,8 @@ struct CredDevView: View {
   }
 
   private var three: [CSCredentialGolfer.Figure] {
-    [.init("10.2", label: "Handicap index"),
+    // the viewer's own card: only it carries a position figure
+    [.init("10.2", label: CredentialCopy.indexLabel(isMe: true)),
      .init("31", label: "Rounds"),
      .init("1", label: "The Fellas", ordinal: "ST")]
   }

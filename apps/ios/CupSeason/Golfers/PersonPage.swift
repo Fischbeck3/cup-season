@@ -157,7 +157,12 @@ struct PersonPage: View {
       identity: CredentialCopy.identity(p),
       slot: slotLabel(p),
       liveTag: nil,
-      credit: credit(c, name: p.displayName),
+      // A PROFILE PHOTO IS NOT A ROUND'S (critique-B P1; the web's
+      // csCredentialHtml). The plate is the golfer's own picture or their
+      // crest, never a round photograph, so nothing here credits a round —
+      // "AVERY'S ROUND · AUG 24" over an avatar was a provenance the product
+      // made up. §10.1 keeps a credit for a round photograph, from that round.
+      credit: nil,
       figures: figures(c),
       club: CredentialCopy.club(markerName: CSMarkers.marker(p.marker).name))
     if let url = l.avatarURL {
@@ -200,15 +205,6 @@ struct PersonPage: View {
     }
   }
 
-  /// `GALEN'S ROUND · AUG 24` — a photograph the product borrowed and a
-  /// photograph somebody took are told apart by this line and by nothing else.
-  private func credit(_ c: TourCard, name: String?) -> String? {
-    guard let r = c.recent.first else { return nil }
-    let who = name?.split(separator: " ").first.map(String.init) ?? "Their"
-    let day = RivalryCopy.monthDay(r.playedOn)
-    return day.isEmpty ? nil : "\(who)’s round · \(day)"
-  }
-
   /// One to three. **A slot with no figure is ABSENT** — never a dash, never a
   /// zero, never a verb. The position figure needs a standing, and the payload
   /// carries one only for the viewer, so somebody else's third cell falls to
@@ -217,7 +213,7 @@ struct PersonPage: View {
     guard !c.stranger else { return [] }
     var out: [CSCredentialGolfer.Figure] = []
     if let idx = c.profile.indexCurrent {
-      out.append(.init(CSCopy.index(idx), label: "Handicap index"))
+      out.append(.init(CSCopy.index(idx), label: CredentialCopy.indexLabel(isMe: c.profile.isMe)))
     }
     out.append(.init(String(c.career.rounds), label: "Rounds"))
     if c.profile.isMe, let m = standing, let st = m.standing {

@@ -96,6 +96,22 @@ struct CredentialCopyTests {
     #expect(CredentialCopy.formBest([round("2026-09-06", nil), round("2026-09-13", 43, holes: 9)]) == nil)
   }
 
+  @Test("one index label per object: yours is Your number, theirs is their Handicap index")
+  func indexLabel() {
+    #expect(CredentialCopy.indexLabel(isMe: true) == "Your number")
+    #expect(CredentialCopy.indexLabel(isMe: false) == "Handicap index")
+  }
+
+  @Test("a best needs a field: one 18-hole round takes no gold (D359, the web's formRowHtml)")
+  func formBestNeedsTwo() {
+    #expect(CredentialCopy.formBest([round("2026-09-06", 84)]) == nil, "a best of one is not a best")
+    // a nine beside it is not a second comparable round
+    #expect(CredentialCopy.formBest([round("2026-09-06", 84), round("2026-09-13", 43, holes: 9)]) == nil)
+    // nor is a round with no gross
+    #expect(CredentialCopy.formBest([round("2026-09-06", nil), round("2026-09-13", 84)]) == nil)
+    #expect(CredentialCopy.formBest([round("2026-09-06", 88), round("2026-09-13", 84)]) == 1)
+  }
+
   @Test("a nine says so under its date and aloud; an 18 is unchanged")
   func formNine() {
     #expect(CredentialCopy.formDate(round("2026-09-13", 43, holes: 9)) == "SEP 13 · NINE")

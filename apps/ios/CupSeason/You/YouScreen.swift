@@ -328,7 +328,7 @@ struct YouScreen: View {
   private func figures(_ p: Me.Profile) -> [CSCredentialGolfer.Figure] {
     var out: [CSCredentialGolfer.Figure] = []
     if let idx = p.index_current {
-      out.append(.init(CSCopy.index(idx), label: "Handicap index"))
+      out.append(.init(CSCopy.index(idx), label: CredentialCopy.indexLabel(isMe: true)))
     }
     if let rounds = model.data.career?.rounds ?? model.card?.career.rounds ?? p.rounds_count {
       out.append(.init(String(rounds), label: "Rounds"))
