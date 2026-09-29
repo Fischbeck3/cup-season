@@ -166,4 +166,49 @@ final class N4ShellUITests: N2UITestCase {
     let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: page)
     XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "Back leaves, with no question")
   }
+
+  /// W7-042 · the inbox's settings door never replaces an edited card (root's
+  /// ruling). The first time, it lands on the card, which asks under Save
+  /// with the edit kept; the next time, it leaves without saving, as Back does.
+  @MainActor func testTheInboxDoorLandsOnAnEditedCard() {
+    let app = launch("season-live", "settings")
+    _ = root(app, "settings")
+    let city = app.textFields["City"].firstMatch
+    XCTAssertTrue(city.waitForExistence(timeout: 10), "the card pane's City field")
+    app.tapToType(city)
+    city.typeText("x")
+    let edited = city.value as? String ?? ""
+    XCTAssertTrue(edited.hasSuffix("x"), "the edit is typed: \(edited)")
+    // the keyboard stands the band down: put it away, as the band's own test does
+    let keys = app.keyboards.firstMatch
+    app.swipeDown()
+    if keys.exists { city.typeText("\n") }
+    let close = app.buttons["Close keyboard"].firstMatch
+    if keys.exists, close.exists { close.tap() }
+    XCTAssertTrue(waitGone(keys, timeout: 6), "the keyboard went")
+    let said = app.staticTexts["You have unsaved changes. Save them, or do that again to leave without saving."]
+    func throughTheInbox(_ pass: String) {
+      guard let home = band(app).first(where: { $0.label == "Home" }) else { return XCTFail("\(pass): the band's Home") }
+      home.tap()
+      let activity = app.buttons["home.activity"]
+      XCTAssertTrue(activity.waitForExistence(timeout: 20), "\(pass): Home's Activity")
+      for _ in 0..<4 where !activity.isHittable { app.swipeUp() }
+      activity.tap()
+      let door = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Notification settings")).firstMatch
+      XCTAssertTrue(door.waitForExistence(timeout: 10), "\(pass): the inbox's settings door")
+      for _ in 0..<4 where !door.isHittable { app.swipeUp() }
+      door.tap()
+    }
+    throughTheInbox("first")
+    XCTAssertTrue(said.waitForExistence(timeout: 10), "the door lands on the card, which asks under Save")
+    XCTAssertTrue(said.isHittable, "with the question in view")
+    XCTAssertEqual(city.value as? String, edited, "and the edit kept")
+    attach(app, "w7-042-inbox-door-asks")
+    throughTheInbox("second")
+    XCTAssertTrue(waitGone(said, timeout: 10), "asked already, the door leaves without saving")
+    let settingsPane = app.staticTexts.matching(NSPredicate(format: "label ==[c] %@", "How the app runs")).firstMatch
+    XCTAssertTrue(settingsPane.waitForExistence(timeout: 10), "on the Settings pane the door names")
+    XCTAssertFalse(app.buttons["settings.back"].exists, "a page that holds no edit")
+    attach(app, "w7-042-inbox-door-leaves")
+  }
 }

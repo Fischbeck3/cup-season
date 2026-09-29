@@ -23,9 +23,6 @@ struct CardAndSettingsScreen: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
   @State private var vm = CardSettingsModel()
-  /// W7-042 · Back has asked about the pending edits (see `leave()`); a new
-  /// edit asks again
-  @State private var leaveAsked = false
   @State private var pane: Int
   /// Y-01 · both panes open the guide through this one door.
   @State private var guideSheet: GuideRoute?
@@ -69,7 +66,7 @@ struct CardAndSettingsScreen: View {
     }
     // W7-042 · the line the first Back says sits under Save, below the fold
     // of a golfer who edited the name: bring it into view
-    .onChange(of: leaveAsked) { _, asked in
+    .onChange(of: vm.leaveAsked) { _, asked in
       guard asked else { return }
       withAnimation { proxy.scrollTo(CardSettingsModel.statusID, anchor: .bottom) }
     }
@@ -122,11 +119,15 @@ struct CardAndSettingsScreen: View {
     // tab, or from a page pushed over it. A reload over pending edits
     // dropped them without a word (W7-042), so only a clean card reloads.
     .task { if !vm.dirty { await vm.load(userId: store.session?.user.id) } }
-    .onChange(of: vm.dirty) { _, dirty in if !dirty { leaveAsked = false } }
+    // W7-042 · the card is the one on You's stack: a door elsewhere that
+    // would replace the stack asks it first (`CardEditGuard`)
+    .onAppear { CardEditGuard.shared.card = vm }
+    .onChange(of: vm.leaveRequest) { _, _ in leave() }
+    .onChange(of: vm.dirty) { _, dirty in if !dirty { vm.leaveAsked = false } }
     // a new edit is a new pending edit: the question's line goes with it, so
     // the page never says "do that again" of a way out that will ask
     .onChange(of: vm.editKey) { _, _ in
-      leaveAsked = false
+      vm.leaveAsked = false
       if vm.status?.0 == CardSettingsModel.unsaved { vm.status = nil }
     }
     .sheet(item: $guideSheet) { g in
@@ -140,16 +141,29 @@ struct CardAndSettingsScreen: View {
 
 extension CardAndSettingsScreen {
   /// W7-042 · the phone dropped a card's pending edits on Back, silently. The
-  /// first way out with edits pending, Back or the back gesture, keeps the
-  /// page, turns to the card and says why under Save; the next one leaves
-  /// without saving. It asks once per pending edit, with no stopwatch (root's
-  /// final rule).
+  /// first way out with edits pending, Back, the back gesture or the inbox's
+  /// settings door, keeps the page, turns to the card and says why under
+  /// Save; the next one leaves without saving. It asks once per pending edit,
+  /// with no stopwatch (root's final rule).
   func leave() {
-    if !vm.dirty || leaveAsked { dismiss(); return }
+    if !vm.dirty || vm.leaveAsked { dismiss(); return }
     pane = 0
     vm.status = (CardSettingsModel.unsaved, .mut)
-    leaveAsked = true
+    vm.leaveAsked = true
   }
+}
+
+/// W7-042 · the card on You's stack, as a door elsewhere sees it. The inbox's
+/// settings door reset You's stack, and a card left there with edits went
+/// with it, unasked. Now the door asks the card first, as Back does: the
+/// first time it lands on the card with the question under Save, and the
+/// next time it leaves (root's ruling). A weak hold, so a card that leaves
+/// the stack frees itself.
+@MainActor final class CardEditGuard {
+  static let shared = CardEditGuard()
+  weak var card: CardSettingsModel?
+  /// the card holds edits the question has not yet been asked about
+  var unasked: Bool { card.map { $0.dirty && !$0.leaveAsked } ?? false }
 }
 
 // MARK: - Model
@@ -182,6 +196,12 @@ final class CardSettingsModel {
   var status: (String, CSTone)? = nil
   /// W7-042 · one sentence for every way out (root's final words)
   static let unsaved = "You have unsaved changes. Save them, or do that again to leave without saving."
+  /// W7-042 · a way out has asked about the pending edits (see
+  /// `CardAndSettingsScreen.leave()`); a new edit asks again
+  var leaveAsked = false
+  /// W7-042 · a way out from elsewhere (the inbox's settings door) asks the
+  /// page to do what Back does
+  var leaveRequest = 0
   /// Every card field in one value: a change is a new pending edit, which the
   /// guard asks about again.
   var editKey: String { [name, city, home, handle, ghin, marker ?? ""].joined(separator: "\u{1F}") }

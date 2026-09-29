@@ -585,6 +585,13 @@ struct MainTabView: View {
     .environment(\.openPerson, { openPerson($0) })
     .environment(\.openSettings, {
       tab = .you
+      // W7-042 · never reset a stack that holds a card with pending edits:
+      // the door is a way out like any other, so it lands on the card, which
+      // asks under Save; asked already, it leaves without saving (root)
+      if let card = CardEditGuard.shared.card, CardEditGuard.shared.unasked {
+        card.leaveRequest += 1
+        return
+      }
       youPath = NavigationPath()
       youPath.append(YouRoute.notifications)
     })
