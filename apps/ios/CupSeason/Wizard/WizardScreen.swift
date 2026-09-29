@@ -210,10 +210,14 @@ struct WizardDots: View {
     HStack(spacing: 6) {
       ForEach(0..<3, id: \.self) { i in
         // the step marks are ink, not ember — three steps of a form are not three
-        // live actions, and only the one you are on is filled
-        Rectangle().fill(i == step ? cs.ink : cs.rule).frame(width: i == step ? 22 : 8, height: 4)
+        // live actions, and only the one you are on is filled. N4-141 · the
+        // others are mut, not rule: a mark, never a hairline (§16.1)
+        Rectangle().fill(i == step ? cs.ink : cs.mut).frame(width: i == step ? 22 : 8, height: 4)
           .csAnimation(CSMotion.rise, value: step)
       }
+      // N4-141 · the marker says its step in words, not only to VoiceOver
+      Text("Step \(step + 1) of 3").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        .padding(.leading, CSTokens.Space.s1)
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("Step \(step + 1) of 3")
