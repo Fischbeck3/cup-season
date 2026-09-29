@@ -391,7 +391,7 @@ export default function install(W) {
         subject: e.inviter ? firstname(e.inviter) : 'A golfer', human_subject: !!e.inviter, eyebrow: 'AN INVITATION',
         headline: e.reup ? `Season ${e.season_number || ''} of ${e.container_name || 'your league'} is on. Same rules, fresh table.`
           : `${e.inviter ? firstname(e.inviter) : 'A golfer'} put you on ${e.container_name || 'a season'}.`,
-        standfirst: 'See the terms before you are in.', action: 'See the terms',
+        standfirst: 'See the terms before you’re in.', action: 'See the terms',   /* TEN / W6 · 20261211094500: the server says you’re */
         route: { kind: 'invite', id: e.container_id, pane: e.kind }, league_id: e.kind === 'league' ? e.container_id : null,
         suppress: [], spine: 'ember', at: e.created_at })
     }
