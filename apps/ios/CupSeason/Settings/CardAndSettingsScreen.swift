@@ -15,7 +15,8 @@ import CupSeasonKit
 
 /// A field on the card the screen can open ON. `.ghin` is the You hero's "add
 /// your GHIN" (Y-30): the golfer asked for the field, so the field is what lands.
-enum CardField: Hashable { case ghin }
+/// `.home` is the pane's own: the home course's search holds the cursor (N4-160).
+enum CardField: Hashable { case ghin, home }
 
 struct CardAndSettingsScreen: View {
   @Environment(SessionStore.self) private var store
@@ -283,6 +284,14 @@ private struct CardEditorPane: View {
   let openGuide: (GuideRoute) -> Void
   @State private var pick: PhotosPickerItem?
   @FocusState private var focused: CardField?
+  /// N4-160 · the home course's search is open because "Change" asked for it.
+  /// The search also stays open while it holds the cursor, and on a card with
+  /// no home course; otherwise the course is a row whose name wraps.
+  @State private var homeSearch = false
+  /// The search stamps an id on a pick; a profile keeps only the name.
+  @State private var homeCourseId: String?
+  /// The name the search just wrote, so that write does not read as typing.
+  @State private var homePicked: String?
   /// Y-27 · as many across as fit a name — the grid decides, not a count, so a
   /// marker's name is never clipped at the sizes between reading and accessibility.
   private let columns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
@@ -291,10 +300,12 @@ private struct CardEditorPane: View {
     VStack(alignment: .leading, spacing: 10) {
       label("Name on the card")
       CSField("", text: $vm.name, font: CSFont.body).textContentType(.name).onChange(of: vm.name) { vm.dirty = true }.accessibilityLabel("Name on the card")
-      A11yStack(spacing: 10) {
-        VStack(alignment: .leading, spacing: 6) { label("City"); CSField("", text: $vm.city, font: CSFont.body).onChange(of: vm.city) { vm.dirty = true }.accessibilityLabel("City") }
-        VStack(alignment: .leading, spacing: 6) { label("Home course"); CSField("", text: $vm.home, font: CSFont.body).onChange(of: vm.home) { vm.dirty = true }.accessibilityLabel("Home course") }
-      }
+      // N4-160 · the city and the home course each take the measure: a course
+      // name is the longest free text on the card, and half of it was cut
+      VStack(alignment: .leading, spacing: 6) { label("City"); CSField("", text: $vm.city, font: CSFont.body).onChange(of: vm.city) { vm.dirty = true }.accessibilityLabel("City") }
+      VStack(alignment: .leading, spacing: 6) { label("Home course"); homeCourse }
+        // typing keeps the search open until a pick or a save closes it
+        .onChange(of: vm.home) { vm.dirty = true; if focused == .home, vm.home != homePicked { homeSearch = true } }
 
       label("Ball marker").padding(.top, 4)
       // D174 · the marker grid promised nothing and the audit found every member
@@ -385,7 +396,7 @@ private struct CardEditorPane: View {
         .csType(.bodyS).foregroundStyle(cs.mut)
 
       A11yStack(spacing: 12) {
-        Button { Task { await vm.save(); if vm.status?.1 == .pos { toast.show("Card saved", kind: .confirmed) } } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
+        Button { Task { await vm.save(); if vm.status?.1 == .pos { homeSearch = false; toast.show("Card saved", kind: .confirmed) } } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
           .disabled(vm.saving)
         if let s = vm.status { CSNote(s.0, tone: s.1).csType(.bodyS) }
       }
@@ -445,6 +456,39 @@ private struct CardEditorPane: View {
       guard !Task.isCancelled else { return }
       focused = f
       focus = nil
+    }
+  }
+
+  /// N4-160 · a named home course is a row that wraps, and "Change" opens the
+  /// plan's own course search, which ends at the course (a home course has
+  /// no tee). Typing a name the search does not know still keeps it.
+  @ViewBuilder private var homeCourse: some View {
+    if homeSearch || focused == .home || vm.home.isEmpty {
+      CourseSearchField(text: $vm.home, courseId: $homeCourseId, toasts: toast,
+                        onCourse: { c in homePicked = c.label; homeSearch = false; focused = nil }, label: "Home course")
+        .focused($focused, equals: .home)
+        .task(id: homeSearch) {
+          // "Change" lands the cursor in the search it opened
+          guard homeSearch else { return }
+          try? await Task.sleep(for: .milliseconds(100))
+          guard !Task.isCancelled else { return }
+          focused = .home
+        }
+    } else {
+      Button { homeSearch = true } label: {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+          Text(vm.home).csType(.body).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Text("Change").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Home course, \(vm.home)")
+      .accessibilityHint("Opens the course search")
+      .accessibilityIdentifier("card.home")
     }
   }
 
