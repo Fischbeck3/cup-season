@@ -107,8 +107,8 @@
     check(V(4.1,false)==='Beat their playing HCP by 4.1 \u2014 torched it.','WA6: the third person did not reach the phrase: '+V(4.1,false));
     out.verdict=V(0.2,true);
 
-    /* the verdict ROW is a different sentence and stays whole: `vsShort`
-       here is the signed short form ("+2.4" / "level" / "-1.8"), so the row
+    /* the verdict ROW is a different sentence and stays whole: `vsSigned`
+       is the signed short form ("+2.4" / "level" / "-1.8"), so the row
        reads "level — PLAYED TO IT" and repeats nothing. Pinned, because an
        earlier pass of this repair collapsed it on the opposite assumption. */
     seedOnly=true;

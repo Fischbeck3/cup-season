@@ -258,6 +258,12 @@
            letter-spacing:var(--flat); }
 .cs-body { font-family:var(--sans); font-weight:400; font-size:17px; line-height:1.45; }
 .cs-body-s{font-family:var(--sans); font-weight:400; font-size:15px; line-height:1.45; }
+/* a headline never leaves one word on its last line ("You and Devon are both
+   / in."): balance evens its lines at the same count. A sentence avoids a
+   lone last word where the engine can (pretty reflows only its last lines).
+   Both are ignored where unsupported. */
+.cs-lead, .cs-display, .cs-display-s{ text-wrap:balance; }
+.cs-story, .cs-body, .cs-body-s{ text-wrap:pretty; }
 /* agate sets CAPS for a label and SENTENCE CASE for a phrase a person could
    read aloud — same face, same size, same tracking, and only the caps form
    counts against the budget of ten. `.cs-agate.is-phrase` is the switch. */
@@ -321,6 +327,10 @@ html[data-theme="light"] .hdr{background:color-mix(in srgb, var(--bg0) 88%, tran
 html[data-theme="light"] .tabbar{background:color-mix(in srgb, var(--bg0) 92%, transparent); border-top:1px solid var(--rule);}
 html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{background:var(--bg1);}
 *{box-sizing:border-box; margin:0; padding:0;}
+/* `hidden` always means hidden. A component's own display (flex, grid) outranks
+   the browser's [hidden] rule, so a hidden control drew anyway: the finish
+   ceremony offered "Include round photo" on rounds with no photo. */
+[hidden]{display:none !important;}
 html{height:100%;}
 body{
   min-height:100dvh;
@@ -381,7 +391,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .navitem{
   display:block; width:100%; text-align:left;
   background:none; border:0; cursor:pointer;
-  padding:12px 0 12px 20px; margin:0;
+  padding:15px 0 15px 20px; margin:0;   /* §16.2 · 44 tall (was 38) */
   font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2;
   text-transform:uppercase; letter-spacing:calc(var(--agate) * 1em);
   color:var(--mut);
@@ -403,7 +413,8 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sideme .mefacts{display:flex; flex-wrap:wrap; gap:14px 22px;}
 .sideme .mefact{
   background:none; border:0; padding:0; margin:0; cursor:pointer; text-align:left;
-  display:flex; flex-direction:column; gap:2px; color:var(--ink); min-width:0;
+  display:flex; flex-direction:column; justify-content:center; gap:2px; color:var(--ink); min-width:0;
+  min-height:44px;   /* §16.2 · was 34 */
 }
 .sideme .mefact b{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.01em; font-variant-numeric:tabular-nums;}
 .sideme .mefact small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase;}
@@ -467,7 +478,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
    `brand` only while the block IS live (D269 -- ember has exactly two jobs),
    and `mut` otherwise; `rule` at 2.66 / 2.30 would stop it being a control. */
 .csedn .act{
-  display:inline-block; margin-top:15px; background:none; border:0; padding:0 0 4px; cursor:pointer;
+  /* §16.2 · 44 tall (was 23): the extra height is above the words, and the
+     negative margin keeps them exactly where they were */
+  display:inline-block; margin-top:-6px; background:none; border:0; padding:21px 0 4px; cursor:pointer;
   color:var(--ink); border-bottom:2px solid var(--mut);
 }
 .csedn.ember .act{border-bottom-color:var(--act);}   /* an ordinary action, in the action colour */
@@ -746,10 +759,12 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
    instead of under it — the pot and rules heads used to land behind the bar,
    and a focused field near the top could be covered (WCAG 2.4.11) */
 @media (max-width:959px){ html{scroll-padding-top:calc(60px + env(safe-area-inset-top) + var(--s2));} }
-/* header */
+/* header · its ground is the page's own (--bg0 at 86%), so the dark bar reads
+   fescue like the page under it, never the retired D76 charcoal it kept after
+   the ground changed (the light printing's .hdr/.tabbar mix the same way) */
 .hdr{
   position:sticky; top:0; z-index:20;
-  background:rgba(12,13,15,.86);
+  background:color-mix(in srgb, var(--bg0) 86%, transparent);
   backdrop-filter:blur(16px) saturate(1.3);
   -webkit-backdrop-filter:blur(16px) saturate(1.3);
   border-bottom:1px solid var(--rule);
@@ -800,7 +815,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   margin:26px 2px 10px; display:flex; align-items:center; justify-content:space-between;
 }
 .view .eyebrow:first-child{margin-top:4px;}
-.eyebrow a{color:var(--pos); text-decoration:none;}
+.eyebrow a{color:var(--act); text-decoration:none;}   /* D359 · a link is an ordinary action; --pos is a signed gain */
 
 .card{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -1048,7 +1063,8 @@ th.deskonly, td.deskonly{display:none;}
 .round .body{flex:1; min-width:0;}
 .round .l1{font-size:13px; font-weight:600;}
 .round .l1 span{color:var(--mut); font-weight:500;}
-.round .l2{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+/* the course line wraps whole: an ellipsis cut "Mesquite Wash G…" at 375 */
+.round .l2{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:2px; overflow-wrap:anywhere;}
 .round .pvi{
   font-family:var(--mono); font-size:12.5px; font-weight:600; flex:none;
   padding:3px 8px; border-radius:6px; background:var(--bg2); border:1px solid var(--rule);
@@ -1132,9 +1148,9 @@ th.deskonly, td.deskonly{display:none;}
 .fbrow .fbn{min-width:0; flex:1;}
 .fbrow .fbn b{display:block; font-family:var(--board); font-size:15px; font-weight:600;
   letter-spacing:.035em; text-transform:uppercase; color:var(--ink);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  overflow-wrap:anywhere;}   /* a name wraps whole; it was cut at 320 */
 .fbrow .fbn small{display:block; font-family:var(--board); font-size:11px; letter-spacing:.08em;
-  color:var(--mut); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  color:var(--mut); margin-top:3px; overflow-wrap:anywhere;}
 .fbrow .fbv{flex:none; text-align:right; padding-right:2px;}
 .fbrow .fbv b{display:block; font-family:var(--board); font-size:20px; font-weight:700;
   font-variant-numeric:tabular-nums; color:var(--ink); line-height:1;}
@@ -1168,6 +1184,10 @@ input.f, textarea.f, select.f{
   padding:11px 12px; min-height:44px;
 }
 input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--act); outline-offset:1px;}
+/* every placeholder is the quiet ink, never the browser's #757575 (2.79:1 dark,
+   3.24:1 light); a field with its own placeholder rule still outranks this.
+   opacity:1 because Firefox fades placeholders on its own. */
+::placeholder{color:var(--mut); opacity:1;}
 /* iOS date inputs ship an intrinsic min-width that ignores width:100% and
    pokes past the container (the pilot's protruding date selector). Width
    clamps everywhere; the appearance flattening is iOS-only (desktop Chrome
@@ -1203,6 +1223,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .grossbox::-webkit-outer-spin-button, .grossbox::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
 .grossbox::placeholder{color:var(--mut);}
+/* the box draws no border, so its focus is a ring of its own (WCAG 2.4.7):
+   focused and unfocused screenshots were identical */
+.grossbox:focus-visible{outline:2px solid var(--act); outline-offset:6px;}
 /* IOS-066 - the composer's hero is the number AND the picture. The plate is
    the gross column's neighbour: 150x100 (3:2, the CSPlate inset ratio the
    phone and the round receipt both draw a round photograph at), one hairline,
@@ -1255,7 +1278,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .inheritline{
   display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
   background:transparent; border:0; border-top:1px solid var(--rule);
-  padding:12px 0 0; margin-top:12px; cursor:pointer;
+  padding:12px 0; min-height:44px; margin-top:12px; cursor:pointer;   /* §16.2 · was 28 */
   font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--ink);
 }
 .inheritline .edit{margin-left:auto; color:var(--act);}
@@ -1266,7 +1289,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
    unselected one. There is no pill: 999px is the shape the system deleted. */
 .whochip{
   display:inline-flex; align-items:center; gap:6px; padding:0 12px; margin:0 6px 6px 0;
-  min-height:28px; border-radius:var(--p); border:0; background:var(--bg2);
+  min-height:44px; border-radius:var(--p); border:0; background:var(--bg2);   /* §16.2 · 44 */
   color:var(--mut); font-family:var(--board); font-size:11.5px; font-weight:600;
   letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
 }
@@ -1468,7 +1491,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .hfhead{display:flex; align-items:center; gap:12px;}
 .hfid{flex:1; min-width:0;}
-.hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; color:var(--ink);}
+.hfid b{display:block; overflow-wrap:anywhere; color:var(--ink);}   /* whole: a two-line clamp cut the long course names */
 /* the two sub-lines carry their ROLE as a class (`cs-body-s`, `cs-agate-s`);
    this sets only what a role does not — the stack and the colour step */
 .hfid small{display:block; margin-top:4px;}
@@ -1497,7 +1520,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-id{display:flex; align-items:center; gap:var(--s2); min-height:32px;}
 .hfr-id .hffacew{display:flex; align-items:center;}
 .hfr-id .hfperson{margin:calc(-1 * var(--s2)) 0;}
-.hfr-who{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink);}
+.hfr-who{flex:1; min-width:0; overflow-wrap:anywhere; color:var(--ink);}   /* whole, never an ellipsis */
 .hfr-day{flex:none; color:var(--mut);}
 /* the scorecard's header row: the course on the left, the figure on the
    right, one fine rule under both. A long name wraps in its own column and
@@ -1598,7 +1621,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   letter-spacing:.005em; text-transform:uppercase; color:var(--ceremony-ink);}
 .cred .cname small{display:block; margin-top:4px; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:.08em; text-transform:uppercase; color:var(--ceremony-mut);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  overflow-wrap:anywhere;}   /* the identity line wraps whole */
 /* the record half: one to three figures on ONE ceremony-ink rule - never
    `ink`, which is 1.11:1 on ceremony in the light printing - and the folio. */
 .cred .cfoot{flex:1 1 auto; padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
@@ -1771,9 +1794,11 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
 }
 .vtog{display:none; margin-left:auto; border:.5px solid var(--rule); border-radius:7px; overflow:hidden;}
 @media(min-width:740px){ .vtog{display:flex;} }
-.vtog button{font-family:var(--mono); font-size:11px; letter-spacing:.1em; padding:4px 9px;
+.vtog button{font-family:var(--mono); font-size:11px; letter-spacing:.1em; padding:0 12px; min-height:44px;   /* §16.2 names this strip: was ~22 */
   color:var(--mut); background:none; border:0; cursor:pointer;}
-.vtog button.on{background:var(--act); color:#0E1512; font-weight:600;}
+/* the chosen segment's word is the page's ground on act, in both printings:
+   the fixed #0E1512 read 2.37:1 on light's dark act */
+.vtog button.on{background:var(--act); color:var(--bg0); font-weight:600;}
 .cardwrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
 table.hcard{width:100%; border-collapse:collapse; font-family:var(--mono); min-width:600px;}
 table.hcard th, table.hcard td{padding:4px 0; text-align:center; font-size:11px;
@@ -1891,7 +1916,7 @@ body.guestlive #onboard{display:none !important;}
 .strokedot{width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; flex:none;}
 .prow .tot{font-family:var(--mono); font-size:12px; color:var(--mut); text-align:right; min-width:66px; font-variant-numeric:tabular-nums;}
 .step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--rule); border-radius:10px; flex:none;}
-.step button{width:36px; height:36px; border:none; background:none; font-size:16px; font-weight:600; color:var(--mut); cursor:pointer; border-radius:9px;}
+.step button{width:44px; height:44px; border:none; background:none; font-size:16px; font-weight:600; color:var(--mut); cursor:pointer; border-radius:9px;}
 .step button:hover{color:var(--ink);}
 .step button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 .step .sv{font-family:var(--mono); font-size:15px; font-weight:600; min-width:26px; text-align:center; font-variant-numeric:tabular-nums;}
@@ -1946,7 +1971,8 @@ body.guestlive #onboard{display:none !important;}
 .backlink{
   display:inline-flex; align-items:center; gap:6px;
   font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--mut); text-decoration:none; margin-bottom:12px;
+  color:var(--mut); text-decoration:none;
+  min-height:44px; margin:-14px 0 -2px;   /* §16.2 · 44 tall (was 15), sitting where it sat */
 }
 .backlink:hover{color:var(--ink);}
 .optcard{
@@ -2055,7 +2081,7 @@ body.guestlive #onboard{display:none !important;}
 .evclash{border-top:1px solid var(--rule); padding:12px 0 8px;}
 .evclash .top{display:flex; align-items:center; gap:8px;}
 .evclash .nm{font-family:var(--board); font-size:15px; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
-             min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+             min-width:0; overflow-wrap:anywhere;}   /* a side's name wraps whole */
 .evclash .nm.b{text-align:right;}
 .evclash .nm.lost{color:var(--mut);}
 .evclash .mid{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
@@ -2077,7 +2103,7 @@ body.guestlive #onboard{display:none !important;}
 .mini{
   font-family:var(--board); font-size:13px; font-weight:600; letter-spacing:.02em;
   color:var(--ink); background:var(--bg2); border:0;
-  border-radius:var(--rc); padding:0 14px; min-height:44px; cursor:pointer; flex:none;
+  border-radius:var(--rc); padding:0 14px; min-height:44px; min-width:44px; cursor:pointer; flex:none;
 }
 .mini:hover{background:var(--rule);}
 .mini:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
@@ -2111,7 +2137,7 @@ body.guestlive #onboard{display:none !important;}
 /* the first row under a dateline needs no rule — the head is its edge */
 .feedsec + .hfcard.hfrail, .feedsec + .hfcard.hfrecord, .feedsec + .hfline{border-top:0;}
 .feedmore{margin-top:4px;}
-.feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:10px 12px; border:1px solid var(--rule); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
+.feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:14px 12px; min-height:44px; box-sizing:border-box; border:1px solid var(--rule); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
 .feedmore>summary::-webkit-details-marker{display:none;}
 .feedmore>summary:hover{color:var(--ink); border-color:var(--rule);}
 .feedmore[open]>summary{margin-bottom:8px; color:var(--mut);}
@@ -2179,7 +2205,9 @@ body.guestlive #onboard{display:none !important;}
   #view-wizard .wiz-grid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:28px; align-items:start;}
   #view-wizard .wiz-main{min-width:0;}
   #view-wizard .wiz-aside{display:block; position:sticky; top:88px;}
-  #view-wizard #bylawsReview{display:none;}   /* the sticky aside IS the review on desktop */
+  /* the rules review shows on the desk too: the aside is the season's portrait
+     (squads, endgame, pot, season), not its rules, so hiding the review left
+     the "Review the rules" step with no cap, minimum, penalty or allowance */
 }
 /* D81's one lane, and D228's amendment to it.
    D81 retired Stage 3b's desktop rail and 3b.1's mobile order:-1 hoist — the
@@ -2269,6 +2297,10 @@ body.guestlive #onboard{display:none !important;}
   pointer-events:none;
 }
 .fcard .round.has-photo>*{position:relative; z-index:1;}
+/* ...except the marker stamp, which rides the photo's top corner, out of the
+   row: made relative by the rule above, it took a flex slot (and its own
+   right/bottom offsets) and squeezed the golfer's lines to ~115px at 375 */
+.fcard .round.has-photo>.mkstamp{position:absolute; top:var(--s3); right:var(--s3); bottom:auto;}
 /* 3.2 follow-up: every line that reads DIRECTLY on the photo (no opaque chip
    behind it — unlike .pvi, which sits on its own solid --bg2 chip and was
    already safe) is forced to one of two fixed light shades. .room-dusk's
@@ -2400,7 +2432,7 @@ body.guestlive #onboard{display:none !important;}
 .hocc.earned .ho-k{color:var(--gold);}
 .hocc h4{font-family:var(--serif); font-size:18px; font-weight:700; margin:0 0 5px; color:var(--ink); line-height:1.2; letter-spacing:-.01em;}
 .hocc p{margin:0; font-size:12.5px; line-height:1.5; color:var(--mut);}
-.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:11px; padding-top:10px; border-top:1px solid var(--rule);
+.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:11px; padding-top:10px; min-height:44px; border-top:1px solid var(--rule);
   font-size:13px; font-weight:600; color:var(--act); cursor:pointer; width:100%; background:none; border-left:0; border-right:0; border-bottom:0; text-align:left; font-family:var(--sans);}
 .hocc.earned .ho-act{color:var(--act);}
 .hocc .ho-mk{position:absolute; right:34px; top:12px; width:30px; height:30px; opacity:.3; pointer-events:none;}
@@ -2419,7 +2451,7 @@ body.guestlive #onboard{display:none !important;}
 .hround .num{flex:none;}
 .hr-body{flex:1; min-width:0;}
 .hr-body b{font-size:12.5px; display:block; letter-spacing:.02em;}
-.hr-body small{display:block; color:var(--mut); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.hr-body small{display:block; color:var(--mut); font-size:11.5px; overflow-wrap:anywhere;}   /* the course wraps whole */
 .hr-side{display:flex; align-items:center; gap:7px; flex:none;}
 .hr-in{font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.04em; color:var(--pos); background:rgba(78,197,132,.14); border-radius:99px; padding:3px 8px;}
 .hr-c{font-size:11px; color:var(--mut);}
@@ -2497,6 +2529,11 @@ body.guestlive #onboard{display:none !important;}
 }
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
 .rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+/* §16.2 · the bar's small controls keep their drawn size inside a 44px hit
+   box. The row is already 44 tall (the applause button), so the box stays in
+   it, and 3px a side meets its neighbour's in the 6px gap without overlapping. */
+.rxadd, .rxcm, .rxchip{position:relative;}
+.rxadd::after, .rxcm::after, .rxchip::after{content:""; position:absolute; inset:-9px -3px;}
 /* D341 · Home keeps given reactions and an invitation to reveal the rest.
    Every choice retains a 44px target; the reveal wraps on narrow screens. */
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
@@ -2552,7 +2589,8 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .eyebrow.withgo{display:flex; align-items:center; gap:10px;}
 .eyebrow.withgo a{
   margin-left:auto; flex:none; font-size:11px; letter-spacing:.12em;
-  color:var(--gold); text-decoration:none;
+  color:var(--mut); text-decoration:none;   /* D359 · gold is earned; a way in is furniture */
+  padding:15px 0; margin-top:-15px; margin-bottom:-15px;   /* §16.2 · a 44 target, the line's height unchanged */
 }
 .eyebrow.withgo a:hover{color:var(--ink);}
 .eyebrow.withgo a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
@@ -2657,7 +2695,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em;
   text-transform:uppercase;
   color:var(--mut); background:var(--bg2); border:0;
-  border-radius:var(--p); padding:0 13px; min-height:28px; cursor:pointer; margin:0 6px 6px 0;
+  border-radius:var(--p); padding:0 13px; min-height:44px; cursor:pointer; margin:0 6px 6px 0;   /* §16.2 · 44 */
 }
 .selchip.on{color:var(--panel-ink); background:var(--panel);}
 .selchip.on .gtag{background:var(--bg0); color:var(--ink);}
@@ -2776,8 +2814,9 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .pslot.empty .sn{color:var(--mut); font-weight:500; font-size:12px;}
 .pslot .si{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:4px; letter-spacing:.06em;}
 .pslot .sx{
-  position:absolute; top:5px; right:7px; border:none; background:none;
-  color:var(--mut); font-size:14px; cursor:pointer; padding:2px 4px;
+  position:absolute; top:-6px; right:-6px; width:44px; height:44px;   /* §16.2 · was 22×21; centred where the glyph sat */
+  display:flex; align-items:center; justify-content:center; border:none; background:none;
+  color:var(--mut); font-size:14px; cursor:pointer; padding:0;
 }
 .pslot .sx:hover{color:var(--neg);}
 .pslot .sx:focus-visible{outline:2px solid var(--act); border-radius:6px;}
@@ -2826,7 +2865,8 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
    starts at the top; they are not controls, so they draw no ring */
 #shTitle:focus, #bfTitle:focus, #finish:focus, h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus{outline:none;}
 .sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
-.sheet .x{position:absolute; top:14px; right:14px; border:none; background:none; color:var(--mut); font-size:20px; cursor:pointer; padding:4px;}
+.sheet .x{position:absolute; top:6px; right:6px; width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+  border:none; background:none; color:var(--mut); font-size:20px; cursor:pointer; padding:0;}   /* §16.2 · was 26×31 */
 /* WAVE 7 - THE RECEIPT IS PRINTED ON A LEAF (leaderboard.md 6). A receipt is a
    printed grid, and a printed grid is the one thing 3.3 licenses a leaf for.
    The rows keep every word `roundCardBody` produces; what changed is the paper
@@ -2851,6 +2891,11 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 /* a signed points row is INK on a leaf: pos/neg are cut for the page's ground
    and a green +2 beside a red -1 is the P&L axis D273 retired. */
 .rcpt-leaf .mathrow.pos b, .rcpt-leaf .mathrow.neg b{color:var(--leaf-ink);}
+/* a quiet link printed on the leaf takes the leaf's own quiet ink: the page's
+   --mut is cut for charcoal and read 2.10:1 on the cream ("Your rounds that
+   count in September ›", dark) */
+.rcpt-leaf .cs-tskip{color:var(--leaf-mut);}
+.rcpt-leaf .cs-tskip:hover{color:var(--leaf-ink);}
 /* D294 · THE CARD A ROUND ACTUALLY HAS. The owner: "our scorecard looks good
    lets show it off." The bone leaf with par and stroke index was drawn in one
    place — inside the course page — and a ROUND showed one number.
@@ -2983,7 +3028,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
      the bar onto a second row and the ⊕ landed on top of a label. */
   display:grid; grid-template-columns:repeat(4,1fr);
   padding:7px 8px calc(9px + env(safe-area-inset-bottom));
-  background:rgba(12,13,15,.9);
+  background:color-mix(in srgb, var(--bg0) 90%, transparent);   /* the page's ground, as .hdr */
   backdrop-filter:blur(18px) saturate(1.3);
   -webkit-backdrop-filter:blur(18px) saturate(1.3);
   border-top:1px solid var(--rule);
@@ -3311,7 +3356,9 @@ body.noleague .league-only{display:none !important;}
 }
 .seasoneye:empty{display:none;}
 .seasoneye.quiet{color:var(--mut);}
-.seasontitle{margin:0 0 12px; color:var(--ink);}
+/* the title takes its band's ink: on the ember masthead that is --brand-ink
+   (5.76:1 light, 5.27:1 dark), where --ink read 2.69:1 / 3.05:1 */
+.seasontitle{margin:0 0 12px; color:inherit;}
 .seasondate{
   font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
@@ -3349,7 +3396,7 @@ body.noleague .league-only{display:none !important;}
 .prow:first-child{border-top:none;}
 .prow .pmk{flex:none; display:flex; color:var(--mut);}
 .prow .pmeta{min-width:0; flex:1; display:flex; flex-direction:column; line-height:1.3;}
-.prow .pmeta b{font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.prow .pmeta b{font-size:14px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}   /* a name wraps whole */
 .prow .pmeta small{font-size:13px; color:var(--mut);}
 .prow .pact{flex:none; display:flex; gap:6px;}
 .ptag{flex:none; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--mut); padding:2px 8px; white-space:nowrap;}
@@ -3370,9 +3417,11 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .upchip{min-height:44px; cursor:pointer; font-family:var(--sans); text-align:left;}   /* §16.2 · 44, not 36 */
 .upchip[data-upgo]:hover{border-color:var(--rule);}
 .upchip .ch{color:var(--mut); font-size:14px; line-height:1; margin-left:-2px; flex:none;}   /* D359 · a way in is furniture */
-.upchip.hot .ch{color:var(--brand);}
-.upchip.hot{border-color:color-mix(in srgb, var(--brand) 70%, transparent);}
-.upchip.hot .k{color:var(--brand);}
+/* a closing window (D359: competition) is an ember RING on the chip, and its
+   words stay ink: ember type on bg2 read 3.81:1 at 11px. (.upchip is border:0,
+   so the old border-color never drew; the ring is an inset shadow.) */
+.upchip.hot{box-shadow:inset 0 0 0 1.5px var(--brand);}
+.upchip.hot .k, .upchip.hot .ch{color:var(--ink);}
 /* D177 · a GROUP head: one level above .eyebrow, for a page that needs a spine
    rather than a list. Brand at rest (a group head is structure, not an accent
    moment), a heavier rule, and real air above so the eye reads a break. Two on
@@ -3506,8 +3555,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-hardrow{display:flex; gap:var(--s4); margin-top:var(--s2);}
 .cs-hard{flex:1 1 0; min-width:0; border-top:2px solid var(--ink); padding-top:var(--s2);}
 .cs-hard .cs-fig-m{display:block;}
-.cs-hard .cs-agate-s{display:block; color:var(--mut); padding-top:4px; white-space:nowrap;
-  overflow:hidden; text-overflow:ellipsis;}
+.cs-hard .cs-agate-s{display:block; color:var(--mut); padding-top:4px; overflow-wrap:anywhere;}   /* wraps whole */
 .cs-krow-head-h{margin:var(--s6) 0 0;}
 .cs-kplate{margin-top:var(--s3); height:40px; background:var(--bg1);}
 .cs-krow .cs-kplate svg{width:100%; height:100%; display:block;}
@@ -3654,12 +3702,10 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .svfc > i::before{content:attr(data-d);}
 @media(prefers-reduced-motion:reduce){ .svfc > i{animation:none;} }
 
-/* machined surfaces: light falls from above (charcoal family, D76) */
-.card, .stat{
-  background:linear-gradient(180deg, #191C20 0%, #141619 100%);
-  border-color:#2A2F36;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.035), 0 1px 2px rgba(0,0,0,.25);
-}
+/* (the D76 "machined" charcoal gradient that sat here re-painted every dark
+   .card/.stat over the base rule's tokens: charcoal boxes with a drop shadow on
+   the fescue page. The light printing was flattened by D266; the dark one now
+   uses the same base rule — bg1, the one hairline, no shadow.) */
 .check{transition:border-color .15s ease, transform .15s ease;}
 @media(hover:hover){
   .check:hover{border-color:var(--rule); transform:translateY(-1px);}
@@ -3905,8 +3951,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
   padding:var(--s2) 0; min-height:50px; border-top:1px solid var(--rule);}
 .tslat[role="button"]{cursor:pointer;}
 .tslatx{display:flex; flex-direction:column; gap:2px; min-width:0;}
-.tslatx b{color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.tslatx small{color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.tslatx b{color:var(--ink); overflow-wrap:anywhere;}   /* names and courses wrap whole */
+.tslatx small{color:var(--mut); overflow-wrap:anywhere;}
 .tslat .tmint{position:relative; display:inline-block; overflow:hidden; max-width:100%; vertical-align:bottom;}
 .tslat .tmint .tcover{position:absolute; inset:0; background:var(--bg0); border-left:2px solid var(--gold);}
 .tslat.mintin{animation:csUp .5s var(--roll) both;}
@@ -3952,7 +3998,7 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
   border-top:1px solid var(--rule); cursor:pointer;}
 .yrow:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 .yrowx{flex:1 1 auto; min-width:0;}
-.yrowx b{display:block; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.yrowx b{display:block; color:var(--ink); overflow-wrap:anywhere;}   /* a recent round's course wraps whole; it was cut at every width to 1280 */
 /* the sub-line may run to two lines rather than clip: `vs your playing HCP`
    is the denominator and a figure without one is a lie (§16.1, L-32), so the
    line wraps and the ROW grows. `YouCopy.vsPlayingNumber` is one constant on
@@ -3963,7 +4009,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 /* no min-width: two grosses right-flush in a flex row already share an edge,
    and 2.6em at `figure` 27 reserved 70px for a two-digit number. */
 .yrowg{flex:0 0 auto; color:var(--ink); text-align:right;}
-.yrow .ydel{flex:none; background:none; border:0; color:var(--mut); cursor:pointer; padding:2px 0 2px 6px; line-height:1;}
+.yrow .ydel{flex:none; background:none; border:0; color:var(--mut); cursor:pointer; line-height:1;
+  min-width:44px; min-height:44px; margin:-10px -12px -10px 0; display:inline-flex; align-items:center; justify-content:center; padding:0;}   /* §16.2 · was ~20 */
 /* THE RECORD, printed on a leaf — `year · competition · finish`. The money
    column is DROPPED rather than zeroed: `season_payouts` holds no rows in
    prod, and four zeroes is not a table (profile.md §14.2). A WIN takes the
@@ -4050,17 +4097,20 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    was never updated, so a light-theme viewer got paper-tuned HEAT on a ceremony
    screen. --pine is deliberately absent: zero use sites app-wide. */
 .room-dusk{
-  /* ground + ink: warmer and deeper than the utility charcoal */
-  --bg0:#0A0908; --bg1:#191614; --bg2:#221E1B;
-  --line:#2E2926; --line2:#3B3531;
-  --ink:#F4F1EE; --mut:#9A918A; --dim:#665F59;
-  /* semantics: identical to :root — meaning does not change by room */
-  --pos:#4EC584; --neg:#FF5F56; --gold:#D8B25A;
-  --brand:#E8622C; --act:#5FA271; --dawn:#7FA6C9; --focus:#FF8A4C;
-  --warm:#E9A23B; --hot:#FF5A2E; --fire:#FF3B1A; --cool:#66707A;
-  --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
-  /* the one thing the room turns UP: the glow is the fire in the grate */
-  --glow:rgba(255,90,46,.22);
+  /* D277 · the room is the CEREMONY ground (#0A0E0C) under the dark
+     printing's own surfaces and semantics, in both printings. Every token
+     html[data-theme="light"] flips is re-asserted with its dark value, or
+     paper leaks in. This block held the pre-D270 palette (a warm #0A0908
+     ground, the literal squad hues, a brighter --neg) and seven tokens with
+     no use site left (--line/--line2/--dawn/--focus/--warm/--hot/--fire). */
+  --bg0:#0A0E0C; --bg1:#1A2620; --bg2:#26352E; --rule:#4A6155;
+  --ink:#F1F4EF; --mut:#9BA69D; --dim:#5E6A62;
+  --pos:#4EC584; --neg:#FF6A5E; --cool:#7F8C95;
+  --gold:#D8B25A; --brand:#E8622C; --brand-ink:#0F1A15; --act:#5FA271;
+  --sq0:#366F87; --sq1:#B27E7C; --sq2:#97B999; --sq3:#EDD4FA;
+  --panel:#E9ECE3; --panel-ink:#0B120E; --panel-mut:#4C574F;
+  --leaf:#EFEADD; --leaf-ink:#1A1B14; --leaf-mut:#57605A;
+  --scrim-ink:#F1F4EF; --scrim-mut:#CBD2C8;
   color:var(--ink);
 }
 /* the draw reveal is a whole room, not a card floating on a board — give it
@@ -4083,9 +4133,11 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .room-dusk .stat,
 html[data-theme="light"] .room-dusk .card,
 html[data-theme="light"] .room-dusk .stat{
-  background:linear-gradient(180deg,#1C1815 0%,#171412 100%);
-  border-color:#2E2926;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.035), 0 1px 2px rgba(0,0,0,.25);
+  /* the room's own surface on its ceremony ground (D277): the warm #1C1815
+     charcoal went with the pre-D270 palette */
+  background:var(--bg1);
+  border-color:var(--rule);
+  box-shadow:none;
 }
 html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color:#08120C;}
 
@@ -4271,9 +4323,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .bf-hdr{
   display:flex; align-items:center; justify-content:space-between;
   padding:14px 16px 12px; border-bottom:1px solid var(--rule);
-  background:rgba(12,13,15,.9); backdrop-filter:blur(16px);
+  /* the room's own ground in both printings: the fixed charcoal made a black
+     bar on the paper page, with the --mut course line unreadable on it */
+  background:color-mix(in srgb, var(--bg0) 90%, transparent); backdrop-filter:blur(16px);
 }
-.bf-hdr b{font-size:12px; letter-spacing:.14em; color:var(--pos);}
+/* a room's name is ink; --pos is a signed gain, and this is not one */
+.bf-hdr b{font-size:12px; letter-spacing:.14em; color:var(--ink);}
 .bf-hdr small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; margin-top:2px;}
 #feedListFull{flex:1; overflow-y:auto; padding:6px 16px 12px; overscroll-behavior:contain;}
 .bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--rule); background:var(--bg0);}
@@ -4757,7 +4812,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <div class="hdr-in">
         <!-- IA P5: friends go contextual — find & add any golfer from anywhere -->
         <button class="hdrsearch" id="hdrSearch" aria-label="Find golfers" title="Find golfers"
-          style="background:none; border:0; cursor:pointer; padding:6px; color:var(--mut); display:flex;">
+          style="background:none; border:0; cursor:pointer; padding:var(--s2); color:var(--mut); display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px;">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg>
         </button>
@@ -5345,7 +5400,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <button class="btn" id="postBtn">Add my round</button>
               <!-- abandonment is a real path, not a refresh: one tap empties the
                    card (pilot: a tested/half-filled composer lingered for days) -->
-              <p class="fine" style="text-align:center; padding:10px 0 0"><a href="#" id="postReset" style="color:var(--mut)">Start over</a></p>
+              <p class="fine" style="text-align:center; padding:10px 0 0"><a href="#" id="postReset" style="color:var(--mut); display:inline-flex; align-items:center; min-height:44px; padding:0 var(--s2)">Start over</a></p>
             </div>
           </div>
           <div>
@@ -5538,7 +5593,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div class="eyebrow" style="margin-top:0">Review the rules, then start the season</div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <p class="fine" id="inviteNote" style="padding-bottom:10px"></p>
-          <button class="btn" id="lockBtn">Start the season</button>
+          <button class="btn" id="lockBtn" aria-describedby="lockWhy">Start the season</button>
+          <!-- a disabled start says why, on the step where it is disabled (the
+               reason used to live only on the dials step) -->
+          <p class="fine" id="lockWhy" hidden style="padding:8px 0 0">Add how to pay first — they'll need somewhere to send it. <a href="#" id="lockWhyGo" style="color:var(--ink); display:inline-flex; align-items:center; min-height:44px">Add how to pay</a></p>
           <p class="fine" id="lockErr" role="alert" hidden style="padding:8px 0 0; color:var(--neg)"></p>
         </div>
 
@@ -6172,7 +6230,10 @@ function isoAgo(n){
 const M3=[2,1,0].map(k=>{ const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-k); return MOS[d.getMonth()].toUpperCase(); });
 const SQ = ['var(--sq0)','var(--sq1)','var(--sq2)','var(--sq3)'];
 const PILOT=true;   /* flip false to strip pilot chrome: chip + boot narration */
-const SQHEX = ['#57A8FF','#FB8B4B','#A78BFA','#2FD3BE'];
+/* squad colour is the theme's own --sq0..3 (D270): every use is a style value,
+   so var() resolves per printing. The literal palette never rendered the
+   tokens, and its orange (#FB8B4B) read as ember on every live-scoring bar. */
+const SQHEX = [0, 1, 2, 3].map(i => `var(--sq${i})`);
 /* Which drawn mark the weather takes. The phone's twin is
    `ScheduledRoundSheet.weatherGlyph`; neither client types a glyph into a
    string any more (LINT-12). **Classic-side, and bridged** — the round sheet
@@ -7704,7 +7765,7 @@ function sparkline(arr,ci){
     const py=16-((v-min)/Math.max(1,max-min))*14-1;
     return `${px.toFixed(1)},${py.toFixed(1)}`;
   }).join(' ');
-  return `<svg class="spark" width="60" height="18" viewBox="0 0 60 18"><polyline points="${pts}" fill="none" stroke="${SQHEX[ci]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg class="spark" width="60" height="18" viewBox="0 0 60 18"><polyline points="${pts}" fill="none" style="stroke:${SQHEX[ci]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 /* Batch C: row-glide — when the table reorders, rows slide to their new spot
    instead of teleporting (FLIP). Keyed by data-squad; reduced-motion opts out. */
@@ -9190,7 +9251,8 @@ function renderFeedFull(force){
    always ends exactly as open-ness says. The Book is a real <dialog>
    (showModal) and the browser does all of this for it; it is never managed
    here, so there are never two traps. The door is a page, not a layer: a
-   sheet over it isolates it like any other page content. */
+   sheet over it isolates it like any other page content, and while it (or a
+   link's own view) covers the app, the app is isolated under it (COVERS). */
 const csModal = (() => {
   const ORDER = ['finish', 'sheet', 'boardFull'];   /* the stack, top first: z 1100 · 200 · 44 */
   const LIVE = new Set(['toast', 'errbar']);
@@ -9214,8 +9276,18 @@ const csModal = (() => {
     }
     return keys;
   }
+  /* A COVER is a whole page drawn over the app: a link's share view (above
+     everything) and the Door. It is not a layer: no trap, no Escape. But what
+     it covers leaves the Tab order and the accessibility tree like a layer's
+     page does. Behind the Door, 8 of 12 Tab stops were the app, and Enter on
+     a hidden tab switched views. A layer over a cover isolates the cover as it
+     would any page. */
+  const COVERS = ['shareView', 'unsubView', 'onboard'];
+  const coverShown = (n) => !!n && !n.classList.contains('hide') && n.style.display !== 'none'
+    && getComputedStyle(n).display !== 'none';
+  const cover = () => COVERS.map(byId).find(coverShown) || null;
   function isolate(){
-    const id = top(), layer = id && byId(id);
+    const id = top(), layer = (id && byId(id)) || cover();
     for(const c of document.body.children){
       const want = !!layer && c !== layer && !c.contains(layer) && !LIVE.has(c.id)
         && !['SCRIPT', 'STYLE', 'TEMPLATE', 'LINK', 'DIALOG'].includes(c.tagName);
@@ -9280,6 +9352,21 @@ const csModal = (() => {
     if(id && (!document.activeElement || document.activeElement === document.body)) enter(id);
   });
   ORDER.forEach(id => { const n = byId(id); if(n) watch.observe(n, { childList: true, subtree: true }); });
+  /* a cover shows and hides outside opened()/closed(): the Door by its class
+     and style, a link's view by being appended. Re-isolate on exactly those
+     changes and nothing else; any other node added to the body is left as the
+     layers leave it. */
+  const covers = new MutationObserver((recs) => {
+    const hit = (n) => n.nodeType === 1 && COVERS.includes(n.id);
+    if(recs.some(r => r.type === 'attributes' || [...r.addedNodes, ...r.removedNodes].some(hit))) isolate();
+  });
+  const door = byId('onboard');
+  if(door) covers.observe(door, { attributes: true, attributeFilter: ['class', 'style'] });
+  covers.observe(document.body, { childList: true });
+  /* the Door is up at first paint: isolate now, and again once the parser has
+     added the body's later children */
+  isolate();
+  document.addEventListener('DOMContentLoaded', isolate, { once: true });
   document.addEventListener('keydown', (e) => {
     const id = top(); if(!id) return;
     if(e.key === 'Escape' && !e.defaultPrevented){
@@ -9900,7 +9987,7 @@ function drawRecapCard(d){
     if(iw&&ih){
       const s=Math.max(W/iw,H/ih), dw=iw*s, dh=ih*s;
       x.drawImage(d._img,(W-dw)/2,(H-dh)/2,dw,dh);
-      x.fillStyle='rgba(12,13,15,.78)'; x.fillRect(0,0,W,H);   /* D76 ground */
+      x.fillStyle='rgba(10,14,12,.78)'; x.fillRect(0,0,W,H);   /* the card's own ground (#0A0E0C), not D76's charcoal */
     }
   }
   x.fillStyle = d._img ? 'rgba(23,25,28,.58)' : PANEL;   /* D76 card over photo */
@@ -17271,7 +17358,7 @@ function renderHomeStart(){
      golfer holding a code is not choosing anything. */
   const inALeague = (window.CS?.memberships||[]).some(m => m.league?.phase !== 'complete');
   const doors = inALeague ? `
-    <p class="fine" style="padding:8px 0 0"><a href="#" data-hgmore style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">Start something else…</a></p>`
+    <p class="fine" style="padding:8px 0 0"><a href="#" data-hgmore style="color:var(--mut); text-decoration:underline; text-underline-offset:3px; display:inline-flex; align-items:center; min-height:44px">Start something else…</a></p>`
     : `
     <div class="startgrid" style="grid-template-columns:1fr 1fr">
       <button class="startjoin" data-hgnew type="button" style="margin:0">Start something</button>
@@ -18757,8 +18844,12 @@ async function loadHomeClash(){
   }catch(_){ /* skew: an un-migrated database renders no card, never an error */ }
 }
 /* the compact band form — "+2.4" / "level" / "-1.8". Same half-open boundary as
-   cup_points, so the short form and the named band can never disagree. */
-function vsShort(v){
+   cup_points, so the short form and the named band can never disagree.
+   Its own name: it was a second `vsShort` in the same script, so it silently
+   replaced the words form (Q-23) everywhere — the composer printed "+1.4" over
+   "your playing HCP", which reads as a plus handicap. The clash side and the
+   receipt's verdict row want this signed form; every other caller, the words. */
+function vsSigned(v){
   if(v==null || !isFinite(v)) return '';
   const n=Math.round(v*10)/10;
   if(n>=1) return '+'+n.toFixed(1);
@@ -18770,7 +18861,7 @@ function clashSide(name, best, ahead, right){
   if(best){
     const bits=[];
     if(best.gross!=null) bits.push(String(best.gross));
-    const vs=vsShort(best.pvi); if(vs) bits.push(vs);
+    const vs=vsSigned(best.pvi); if(vs) bits.push(vs);
     if(best.played_on) bits.push(DOW[localDate(best.played_on).getDay()].toUpperCase());
     d = bits.length?bits.join(' \u00b7 '):'Posted';
   }
@@ -21643,17 +21734,21 @@ window.renderCareerRecord = renderCareerRecord;
    them - **no blank slots and no em dash**, because three empty slots make a
    two-round golfer's row read as a five-round row with failures in it. The
    head's count is the honest statement of the gap. */
+/* the best is an 18-hole gross: a nine is half a round, so its 43 never
+   takes the gold from an 84 (the craft panel caught exactly that), and it
+   says it is a nine under its date */
+const csFormNine = (r) => !!r && Number(r.holes_played) === 9;
 function formRowHtml(recent, caption){
   if(!Array.isArray(recent) || !recent.length) return '';
   const cols = recent.slice(0, 5).reverse();             /* oldest first */
   if(!cols.some(r => r && r.gross != null)) return '';
-  const best = cols.map(r => r && r.gross).filter(g => g != null).sort((a, b) => a - b)[0];
+  const best = cols.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross).sort((a, b) => a - b)[0];
   let seen = false;
   const head = `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : esc(csCapFirst(csSpelled(cols.length))) + ' of five'}</span></div>`;
   const body = cols.map(r => {
-    const gold = !seen && best != null && r && r.gross === best; if(gold) seen = true;
+    const gold = !seen && best != null && r && !csFormNine(r) && r.gross === best; if(gold) seen = true;
     return `<div class="dfcol${gold ? ' won' : ''}"><b>${r && r.gross != null ? r.gross : '—'}</b><i></i>`
-         + `<small>${esc(csDayToken(r && r.played_on || ''))}</small></div>`;
+         + `<small>${esc(csDayToken(r && r.played_on || ''))}${csFormNine(r) ? ' · NINE' : ''}</small></div>`;
   }).join('');
   return head + `<div class="dform" role="img" aria-label="Form, last ${cols.length} rounds">${body}</div>`;
 }
@@ -22110,7 +22205,7 @@ function roundCardBody(r, pvi, capN){
        An earlier pass of this repair collapsed the row on the assumption that
        it read "played to it — PLAYED TO IT"; a probe of the rendered receipt
        showed otherwise, and collapsing it dropped the figure. */
-    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} playing HCP</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
+    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} playing HCP</span><b>${mine?vsSigned(pvi):theirs(vsSigned(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   /* D362 · THE LENSES. `contributions` is every league this round counts in
@@ -23932,7 +24027,7 @@ function wizPortrait(){
         <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="#0A0B0D" stroke="#332018" stroke-width="1.4"/>
         <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--gold)"/>
       </svg>
-      <div><b>${esc(name)}</b><small>Forming — the rules aren't set yet</small></div>
+      <div><b>${esc(name)}</b><small>Forming — nothing locks until you start it</small></div>
     </div>
     <div class="wizp-row"><span class="k">Squads</span>${dots}<span style="font-family:var(--mono);font-size:11px;color:var(--mut)">${structLine}</span></div>
     <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-chip ${cup?'on':''}">Cup Final</span><span class="wizp-chip ${cup?'':'on'}">Points table</span></div>
@@ -25149,6 +25244,7 @@ function csRenderPayNote(){
   }
   const btn = document.getElementById('lockBtn');
   if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = csPayNoteMissing() ? 0.5 : ''; }
+  const why = document.getElementById('lockWhy'); if(why) why.hidden = !csPayNoteMissing();
   const other = document.getElementById('stakeOther');
   if(other && document.activeElement !== other){
     other.value = (Number(state.stake) && !STAKES.includes(Number(state.stake))) ? String(state.stake) : '';
@@ -25175,6 +25271,12 @@ document.getElementById('stakeOther')?.addEventListener('input', e => {
   window.renderBylaws?.(); csRenderPayNote();
 });
 $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);renderWizard();});
+/* the review's "Add how to pay": back to the dials, on the field itself */
+$('#lockWhyGo')?.addEventListener('click', e => {
+  e.preventDefault(); state.wiz = 1; renderWizard();
+  const f = document.getElementById('payNote');
+  if(f){ f.scrollIntoView({ block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); f.focus({ preventScroll:true }); }
+});
 $('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(2,state.wiz+1);renderWizard();});
 /* A-W3 fast path: the defaults are excellent — skip the dials and land on
    Review & lock. Any preset tapped above rides along; the review card
@@ -26026,7 +26128,7 @@ function psRow(r, actionHTML){
                   .filter(Boolean).join(' · ');
   const home = r.home_course ? `<small style="color:var(--mut)">${esc(r.home_course)}</small>` : '';
   return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker, 36) : mkr(r.marker||'saguaro')}</span>
-    <span class="pmeta" data-tc="${r.profile_id}"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
+    <span class="pmeta" data-tc="${r.profile_id}" role="button" tabindex="0"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
       <small>${line2}</small>${home}</span>${actionHTML}</div>`;
 }
 function psFriendTag(rel){
@@ -26199,7 +26301,7 @@ async function renderRivalries(){
        survives colour blindness (§16.4). And the `→` is gone with every other
        typed arrow: a row whose whole surface is the target carries no chevron
        (§D-8, LINT-13). */
-    return `<div class="prow" data-tc="${r.opponent}">
+    return `<div class="prow" data-tc="${r.opponent}" role="button" tabindex="0">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
       <span class="pmeta">${named}<b class="cs-name">${esc(r.display_name||'—')}</b><small class="cs-agate-s is-phrase">${facets}</small></span>
       <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex:none;">
@@ -27147,16 +27249,9 @@ async function openPerson(profileId){
      viewport - and what replaces them is the form row as five columns and
      the full course table, which the phone can only show three of. */
   const courses = card.courses || [];
-  const formCols = rec.slice(0, 5).reverse();
-  const bestG = formCols.map(r => r.gross).filter(g => g != null).sort((a, b) => a - b)[0];
-  let bestSeen = false;
   if(main) main.innerHTML = `
     ${narrative ? `<p style="font-size:16px; line-height:1.5; margin:0 0 14px">${esc(narrative)}</p>` : ''}
-    ${formCols.length ? `<div class="dsec"><span>Form</span><i></i><span>${esc(formCols.length >= 5 ? 'Last five' : csCapFirst(csSpelled(formCols.length)) + ' of five')}</span></div>
-      <div class="dform">${formCols.map(r => {
-        const gold = !bestSeen && bestG != null && r.gross === bestG; if(gold) bestSeen = true;
-        return `<div class="dfcol${gold ? ' won' : ''}"><b>${r.gross != null ? r.gross : '—'}</b><i></i><small>${esc(csDayToken(r.played_on || ''))}</small></div>`;
-      }).join('')}</div>` : ''}
+    ${window.formRowHtml ? window.formRowHtml(rec) : ''}
     ${courses.length ? `<div class="dsec"><span>Courses</span><i></i><span>${courses.length} kept</span></div>
       <table class="dtab"><tbody>${courses.map(x => `<tr><td>${esc(csCourse(x.name))}</td>
         <td class="ag">${x.last_played ? 'Last played ' + esc(csDayToken(x.last_played)) : ''}</td>
@@ -27297,6 +27392,13 @@ document.addEventListener('click', e => {
 document.addEventListener('click', e=>{
   const el = e.target.closest('[data-tc]');
   if(el && el.dataset.tc){ e.preventDefault(); openTourCard(el.dataset.tc); }
+});
+/* ...and a row drawn as role=button opens it from the keyboard too (a real
+   <button> already turns Enter into a click). Tab never reached these rows. */
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest('[data-tc][role="button"]');
+  if(el && el === e.target && el.dataset.tc){ e.preventDefault(); openTourCard(el.dataset.tc); }
 });
 
 function openPeoplePicker(opts){
@@ -27447,11 +27549,11 @@ function openProfileHub(){
     <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
 
     <div class="eyebrow" style="margin-top:24px">Your account</div>
-    <a href="#" id="phDelete" class="fine" style="color:var(--neg); padding-left:0; display:inline-block">Delete my account</a>
+    <a href="#" id="phDelete" class="fine" style="color:var(--neg); padding-left:0; display:inline-flex; align-items:center; min-height:44px">Delete my account</a>
     <div id="phDelConfirm" style="display:none; margin-top:8px">
       <p class="fine" style="padding-left:0">This can't be undone. Your name, photo, email and profile are removed, notifications stop, and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as "Former member".</p>
       <div style="display:flex; gap:8px; margin-top:10px">
-        <button class="btn" id="phDelYes" style="background:var(--neg); color:#fff; box-shadow:none; flex:1">Delete permanently</button>
+        <button class="btn" id="phDelYes" style="background:var(--neg); color:var(--bg0); box-shadow:none; flex:1">Delete permanently</button>
         <button class="mini" id="phDelNo">Cancel</button>
       </div>
     </div>
@@ -29819,7 +29921,7 @@ $('#joinGo').addEventListener('click', async () => {
     let name;
     try { const { data } = await sb.rpc('league_by_code', { p_code: code }); name = data; }
     catch(e){ name = undefined; }
-    if(name === null){ toast('No league with that code \u2014 check with your Pro'); return; }
+    if(name === null){ toast(CS_NO_LEAGUE); return; }
     localStorage.setItem('cs_code', code);
     if(name) localStorage.setItem('cs_code_name', name); else localStorage.removeItem('cs_code_name');
     openEmailBox($('#joinbox'), name
@@ -30021,7 +30123,7 @@ function openJoinSheet(prefill){
       toast('Joined ' + m.league.name);
       openLeagueWelcome(m.league.name);
     }catch(err){
-      toast(/invalid/i.test(err.message||'') ? 'No league with that code. Check with your Pro' : humanError(err, 'Could not join.'));
+      toast(/invalid/i.test(err.message||'') ? CS_NO_LEAGUE : humanError(err, 'Could not join.'));
       $('#jGo').disabled = false;
     }
   };
@@ -30661,7 +30763,14 @@ async function csOpenSeason(id, opts){
 window.csOpenSeason = csOpenSeason;
 ['lgRow','sideLeague'].forEach(id => {
   const el = document.getElementById(id);
-  if(el){ el.style.cursor = 'pointer'; el.addEventListener('click', openLeagueSwitcher); }
+  if(!el) return;
+  el.style.cursor = 'pointer'; el.addEventListener('click', openLeagueSwitcher);
+  /* a switch reached by the mouse only was no switch from the keyboard */
+  if(!/^(BUTTON|A)$/.test(el.tagName)){
+    el.setAttribute('role', 'button'); el.tabIndex = 0;
+    el.setAttribute('aria-haspopup', 'dialog');
+    el.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openLeagueSwitcher(); } });
+  }
 });
 
 /* the escape hatch: a league that never went live can be deleted by the Pro.
@@ -32821,7 +32930,7 @@ $('#wCodeGo').addEventListener('click', async () => {
     openLeagueWelcome(m.league.name);
   } catch(err){
     toast(/invalid/i.test(err.message)
-      ? 'No league with that code. Check with your Pro'
+      ? CS_NO_LEAGUE
       : humanError(err, 'Could not join.'));
   }
 });
@@ -33088,15 +33197,18 @@ if(unsubParam){
     try{ const { error } = await sb.rpc('email_unsubscribe', { p_token: unsubParam.trim() }); ok = !error; }
     catch(_){ ok = false; }
     const w = document.createElement('div');
-    /* D76: charcoal ground; the CTA is an app action → ember, never gold */
-    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0B1410;color:#F0F2F3;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:ui-monospace,Menlo,monospace';
+    w.id = 'unsubView';   /* a cover: csModal isolates the app under it */
+    /* the ceremony ground and ink (D277, as the share view); the way back in is
+       an ordinary action, so it is act, never ember (D359). Mono is kept for
+       the wordmark; the sentences are sans. */
+    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0A0E0C;color:#F1F4EF;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,system-ui,Segoe UI,sans-serif';
     w.innerHTML = `<div style="max-width:340px">
-      <div style="letter-spacing:.22em;font-size:12px;color:#8E979E">CUP SEASON</div>
+      <div style="letter-spacing:.22em;font-size:12px;color:#9BA69D;font-family:ui-monospace,Menlo,monospace">CUP SEASON</div>
       <div style="font-family:Georgia,serif;font-size:26px;margin:16px 0 8px">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</div>
-      <p style="color:#8E979E;font-size:13px;line-height:1.6;margin:0 0 20px">${ok
+      <p style="color:#9BA69D;font-size:15px;line-height:1.5;margin:0 0 20px">${ok
         ? 'No more season-end emails. Your league and your rounds are untouched — this only stops the mail.'
         : 'Nothing changed. You can turn season emails off any time from the app.'}</p>
-      <a href="/" style="display:inline-block;padding:12px 20px;border-radius:11px;background:#FF5A2E;color:#1C1208;font-family:-apple-system,Segoe UI,sans-serif;font-weight:600;text-decoration:none;font-size:14px">Open Cup Season</a>
+      <a href="/" style="display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:11px;background:#5FA271;color:#0A0E0C;font-weight:600;text-decoration:none;font-size:15px">Open Cup Season</a>
     </div>`;
     document.body.appendChild(w);
   })();
@@ -33140,8 +33252,8 @@ async function renderShareView(tok, _testInfo){
   const wrap = document.createElement('div');
   wrap.id = 'shareView';
   wrap.style.cssText = `position:fixed;inset:0;z-index:99999;overflow:auto;background:${C.bg};color:${C.ink};-webkit-font-smoothing:antialiased`;
-  wrap.innerHTML = `<div style="max-width:430px;margin:0 auto;padding:26px 16px 40px;text-align:center;font-family:${MONO}">
-    <div style="letter-spacing:.22em;font-size:12px;color:${C.mut}">CUP SEASON</div>
+  wrap.innerHTML = `<div style="max-width:430px;margin:0 auto;padding:26px 16px 40px;text-align:center;font-family:var(--sans)">
+    <div style="letter-spacing:.22em;font-size:12px;color:${C.mut};font-family:${MONO}">CUP SEASON</div>
     <div id="svCard" style="margin-top:18px;background:${C.panel};border:1px solid rgba(233,190,98,.35);border-radius:18px;padding:26px 18px">
       <div style="color:${C.mut};font-size:13px;padding:34px 0">Opening the card…</div>
     </div>
@@ -33167,7 +33279,8 @@ async function renderShareView(tok, _testInfo){
     if(!error) info = data;
   }catch(_){}
   const card = wrap.querySelector('#svCard'), foot = wrap.querySelector('#svFoot');
-  /* the CTA is an app action, not an earned face — ember on every branch (D76) */
+  /* the CTA is an app action, not an earned face: act on every branch (D359
+     superseded D76's ember here) */
   /* D77: "Built with" is builder-speak on a page whose reader has never heard
      of us, and "Start your crew's season" asks a stranger for a commitment
      before they know what the thing is. The CTA points at what they just saw. */
@@ -33247,22 +33360,22 @@ async function renderShareView(tok, _testInfo){
     const strip = (HL?.cells?.length && window.renderHoleStrip)
       ? `<div style="margin:18px 10px 0">
            ${window.renderHoleStrip(HL, { hot: HL.hot, mutedColor: C.mut, margin:'0' })}
-           ${HL.legend ? `<div style="margin-top:10px;font-size:11px;letter-spacing:.12em;color:${C.mut}">
+           ${HL.legend ? `<div style="margin-top:10px;font-size:11px;letter-spacing:.12em;color:${C.mut};font-family:${MONO}">
               <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${C.hot};margin-right:6px;vertical-align:middle"></span>${esc(String(HL.legend).toUpperCase())}</div>` : ''}
            ${(window.holeHighlights ? window.holeHighlights(HL, { hot: HL.hot }) : []).map(t =>
               `<span style="display:inline-block;margin:9px 5px 0 0;font-size:11px;letter-spacing:.06em;color:${C.mut};background:rgba(241,244,239,.08);border-radius:3px;padding:4px 9px">${esc(t)}</span>`).join('')}
          </div>`
       : '';
     card.innerHTML = `
-      <div style="color:${C.gold};letter-spacing:.2em;font-size:12px;font-weight:600">${esc(GAME[info.game] || 'SETTLED')}</div>
+      <div style="color:${C.gold};letter-spacing:.2em;font-size:12px;font-weight:600;font-family:${MONO}">${esc(GAME[info.game] || 'SETTLED')}</div>
       <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(story)}</div>
       ${money ? `<div style="color:${C.mut};font-size:12.5px;letter-spacing:.08em;margin-top:10px">${esc(money)}</div>` : ''}
       ${strip}
       ${(info.players || []).length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 40px"></div>
       ${info.players.map(p => `<div style="display:flex;justify-content:space-between;padding:5px 12px;font-size:13.5px"><span>${esc(p.name)}</span><span style="color:${C.mut}">${p.gross != null ? esc(String(p.gross)) : '—'}</span></div>`).join('')}` : ''}
       <div style="border-top:1px solid rgba(255,255,255,.1);margin:14px 40px 0"></div>
-      <div style="letter-spacing:.12em;font-size:12.5px;margin-top:14px">${esc(String(info.course || '').toUpperCase())}</div>
-      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}</div>`;
+      <div style="letter-spacing:.12em;font-size:12.5px;margin-top:14px;font-family:${MONO}">${esc(String(info.course || '').toUpperCase())}</div>
+      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px;font-family:${MONO}">${esc(fmtD(info.played_on))}</div>`;
   } else if(info.kind === 'person'){
     /* D241 · IA §10.5's own card: a name, a marker, the number and the recent
        rounds. Every line is a FACT the server returned — a golfer with no
@@ -33283,15 +33396,16 @@ async function renderShareView(tok, _testInfo){
       ${markerSvg(info.marker)}
       <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:6px 6px 4px">${esc(info.name)} wants you in their golf.</div>
       ${line2 ? `<div style="color:${C.mut};font-size:13.5px;line-height:1.6;margin-top:10px">${line2}</div>` : ''}
-      ${info.index != null ? `<div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px">INDEX ${esc(String(info.index))}</div>` : ''}
+      ${info.index != null ? `<div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px;font-family:${MONO}">INDEX ${esc(String(info.index))}</div>` : ''}
       ${rounds.length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 30px 6px"></div>
       ${rounds.map(r => `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 12px;font-size:13px;text-align:left">
-         <span style="color:${C.mut};white-space:nowrap">${esc(fmtD(r.played_on))}</span>
-         <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">${r.gross != null ? esc(String(r.gross)) : '—'}${esc(r.course ? ' · ' + String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}` : ''}
+         <span style="color:${C.mut};white-space:nowrap;font-family:${MONO};font-size:12px">${esc(fmtD(r.played_on))}</span>
+         <span style="min-width:0;overflow-wrap:anywhere;text-align:right">${r.gross != null ? esc(String(r.gross)) : '—'}${esc(r.course ? ' · ' + String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}` : ''}
       <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
     /* W5 · "Get the app" is a destination (/get: the iPhone beta or the store,
        the web app, and install-then-reopen said once), not the root */
-    foot.innerHTML = `<a href="/get" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
+    /* D359 · getting the app is an ordinary action: act, as every branch's way in */
+    foot.innerHTML = `<a href="/get" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
       <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. Nothing goes to ${esc(info.name)} until you say yes.</div>`;
 
   } else if(info.kind === 'plan'){
@@ -33311,7 +33425,7 @@ async function renderShareView(tok, _testInfo){
     const whoTxt = who.length <= 1 ? who.join('')
                  : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
     card.innerHTML = `
-      <div style="color:${C.hot};letter-spacing:.2em;font-size:12px;font-weight:600">${esc(fmtD(info.play_on))}${info.tee ? ' · ' + esc(info.tee) : ''}</div>
+      <div style="color:${C.hot};letter-spacing:.2em;font-size:12px;font-weight:600;font-family:${MONO}">${esc(fmtD(info.play_on))}${info.tee ? ' · ' + esc(info.tee) : ''}</div>
       <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(info.host)} has a round on at ${esc(venue)}.</div>
       ${who.length
         ? `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.</div>`
@@ -33330,16 +33444,19 @@ async function renderShareView(tok, _testInfo){
       `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:7px 12px;font-size:14px;${i === 0 ? `color:${C.gold};font-weight:600` : ''}">
          <span>${i + 1} · ${esc(q.name)}</span><span style="font-family:${SERIF};font-size:16px">${esc(String(q.points))} pts</span></div>`).join('');
     card.innerHTML = `
-      <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.league || 'A LEAGUE').toUpperCase())}</div>
-      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px">${esc(fmtD(info.starts_on))} — ${esc(fmtD(info.ends_on))}</div>
-      ${info.champion ? `<div style="color:${C.gold};letter-spacing:.14em;font-size:13px;font-weight:600;margin-top:14px">🏆 ${esc(String(info.champion).toUpperCase())} TOOK THE CUP</div>` : ''}
-      ${info.points_king ? `<div style="color:${C.mut};font-size:12px;letter-spacing:.1em;margin-top:6px">POINTS KING · ${esc(String(info.points_king).toUpperCase())}</div>` : ''}
+      <div style="letter-spacing:.18em;font-size:16px;font-weight:600;font-family:${MONO}">${esc(String(info.league || 'A LEAGUE').toUpperCase())}</div>
+      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px;font-family:${MONO}">${esc(fmtD(info.starts_on))} — ${esc(fmtD(info.ends_on))}</div>
+      ${info.champion ? `<div style="color:${C.gold};letter-spacing:.14em;font-size:13px;font-weight:600;margin-top:14px;font-family:${MONO}">🏆 ${esc(String(info.champion).toUpperCase())} TOOK THE CUP</div>` : ''}
+      ${info.points_king ? `<div style="color:${C.mut};font-size:12px;letter-spacing:.1em;margin-top:6px;font-family:${MONO}">POINTS KING · ${esc(String(info.points_king).toUpperCase())}</div>` : ''}
       <div style="border-top:1px solid rgba(255,255,255,.1);margin:16px 30px 8px"></div>
       ${rows || `<div style="color:${C.mut};font-size:13px;padding:10px 0">Nobody has posted a round yet.</div>`}
-      <div style="color:${C.mut};font-size:11px;letter-spacing:.1em;margin-top:12px">${info.status === 'complete' ? 'FINAL' : 'IN PLAY'}</div>`;
+      <div style="color:${C.mut};font-size:11px;letter-spacing:.1em;margin-top:12px;font-family:${MONO}">${info.status === 'complete' ? 'FINAL' : 'IN PLAY'}</div>`;
   }
 }
 
+/* a code that matches no league, said the one way everywhere (the Door's
+   dead link, the code box, the join button); it was three literals */
+const CS_NO_LEAGUE = 'No league with that code. Check with your Pro.';
 /* invite links: /?join=CODE rides the existing cs_code auto-join machinery —
    signed-in users join on this boot; signed-out users join right after auth */
 const joinParam = new URLSearchParams(window.location.search).get('join');
@@ -33352,10 +33469,20 @@ if(joinParam){
      only manual code entry did — so recipients were greeted with the raw code.
      Resolve it now (league_by_code is one of the anon endpoints) and, if the
      door already opened on the generic line, warm it up in place. */
-  sb.rpc('league_by_code', { p_code: jc }).then(({ data }) => {
-    if(!data) return;
-    localStorage.setItem('cs_code_name', data);
+  sb.rpc('league_by_code', { p_code: jc }).then(({ data, error }) => {
     const st = document.getElementById('obStatus');
+    if(!data){
+      /* the owner's panel: a code that matches NO league said "You're invited.
+         Sign in to review the league before you join." to a stranger. An
+         answer with no league is said as that, in the manual entry's own
+         words, and the dead code is dropped so sign-in tries no join. A read
+         that FAILED (error) proves nothing, so it changes nothing. */
+      if(error) return;
+      try { localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); localStorage.setItem('cs_code_dead', '1'); } catch(_){}
+      if(st && /^You're invited\. /.test(st.textContent)){ st.textContent = CS_NO_LEAGUE; try { localStorage.removeItem('cs_code_dead'); } catch(_){} }
+      return;
+    }
+    localStorage.setItem('cs_code_name', data);
     /* matches the GENERIC line only — it must track the string at ~15900, or
        the league name silently stops warming it up (the F1 fix this guards) */
     if(st && /^You're invited\. /.test(st.textContent))
@@ -33731,6 +33858,8 @@ async function safeBoot(force){
   /* invite link landed while signed out: surface it on the door */
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
+  let deadJoin = false; try { deadJoin = localStorage.getItem('cs_code_dead') === '1'; localStorage.removeItem('cs_code_dead'); } catch(_){}
+  if(!CS.user && !pend && deadJoin) openEmailBox($('#obJoin'), CS_NO_LEAGUE);   /* the lookup beat the boot */
   if(!CS.user && pend){
     openEmailBox($('#obJoin'), pendName
       ? `You're invited to ${pendName}. Sign in to review the league before you join.`   /* Q-15 */

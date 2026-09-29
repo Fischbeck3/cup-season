@@ -41,13 +41,16 @@ const measure = () => {
   }
 }
 
+/* `/?exit` signs out and then REPLACES the page without the query; a door
+   driven before that reload was driven on a page about to vanish (the Back
+   "disappeared" at random). Every entry waits for the reload first. */
 for (const width of [375, 402, 1280, 1600]) for (const theme of ['dark', 'light']) for (const height of (width < 500 ? [667, 380] : [900])) {
   const ctx = await browser.newContext({ viewport: { width, height }, serviceWorkers: 'block', reducedMotion: 'reduce' })
   await ctx.addInitScript(t => { try { localStorage.setItem('cs_theme', t) } catch (e) {} }, theme)
   const page = await ctx.newPage()
   const errs = []; page.on('pageerror', e => errs.push(e.message))
   await page.route('**/*', r => /supabase\.co/.test(r.request().url()) ? r.abort() : r.continue())
-  await page.goto(BASE + '/?exit', { waitUntil: 'load' })
+  await page.goto(BASE + '/?exit', { waitUntil: 'load' }); await page.waitForURL(u => !/[?&]exit\b/.test(String(u)), { waitUntil: 'load' })
   await page.waitForSelector('#obEmail', { state: 'visible', timeout: 15000 })
   await page.waitForTimeout(400)
   const label = `${width}×${height} ${theme}`
@@ -72,7 +75,7 @@ for (const width of [375, 402, 1280, 1600]) for (const theme of ['dark', 'light'
   /* measured against the field, not the viewport: at 380px the door scrolls to the focused field */
   check(`${label}: re-entry keeps Back above the field at the same offset`, m2.backAboveField && Math.abs((m2.field.top - m2.back.top) - (m.field.top - m.back.top)) < 1, { first: m.field.top - m.back.top, again: m2.field.top - m2.back.top })
   /* the league-code branch, opened FIRST in a fresh page, has its own way back */
-  await page.goto(BASE + '/?exit', { waitUntil: 'load' }); await page.waitForSelector('#obJoin', { state: 'visible' }); await page.waitForTimeout(300)
+  await page.goto(BASE + '/?exit', { waitUntil: 'load' }); await page.waitForURL(u => !/[?&]exit\b/.test(String(u)), { waitUntil: 'load' }); await page.waitForSelector('#obJoin', { state: 'visible' }); await page.waitForTimeout(300)
   await page.focus('#obJoin'); await page.keyboard.press('Enter')
   const jn = await page.evaluate(() => { const b = document.getElementById('obBack'); const j = document.getElementById('obJoin'); const r = b?.getBoundingClientRect(); return { exists: !!b, shown: !!b && getComputedStyle(b).display !== 'none', above: !!b && r.bottom <= j.getBoundingClientRect().top + 0.5, w: r?.width, h: r?.height } })
   check(`${label}: the league-code branch has a Back above it`, jn.exists && jn.shown && jn.above && jn.w >= 44 && jn.h >= 44, jn)

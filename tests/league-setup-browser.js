@@ -38,12 +38,13 @@
   check(document.getElementById('lockBtn').disabled, 'Paid league can start without payment instructions');
   document.getElementById('payNote').value='Pay Sam'; csRenderPayNote();
   document.getElementById('wizFastPath').click();
-  /* D234 · two shapes: on the phone the review is the step's own card; at 1100
-     and up the sticky aside IS the review (#wizAside, the live portrait) and
-     the in-step copy is hidden by design. Assert whichever this width shows. */
+  /* D234 · two shapes, one review: the step's own rules card shows at every
+     width (the owner's panel found the desk's "Review the rules" step showing
+     no rules while the aside stood in for them); at 1100 and up the sticky
+     aside is the season's portrait BESIDE it. */
   const review=document.getElementById('bylawsReview'), aside=document.getElementById('wizAside');
   const desk=matchMedia('(min-width:1100px)').matches;
-  check(state.wiz===2 && (desk ? aside.getClientRects().length>0 && aside.textContent.trim().length>0 : review.getClientRects().length>0), 'Review did not open');
+  check(state.wiz===2 && review.getClientRects().length>0 && (!desk || (aside.getClientRects().length>0 && aside.textContent.trim().length>0)), 'Review did not open, or the desk lost its rules');
   check(review.textContent.includes('monthly counting limit') && !review.textContent.includes('scored fresh'), 'Final agreement omits eligibility limitation');
   check(review.textContent.includes('Pay Sam') && review.textContent.includes('4 squads'), 'Review lost money instructions or custom squad count');
   check(state.startISO==='2026-10-03', 'Review moved the chosen first tee');

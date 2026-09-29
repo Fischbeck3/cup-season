@@ -47,6 +47,14 @@ const active = () => page.evaluate(() => {
   const a = document.activeElement
   return { id: a?.id || null, tag: a?.localName || null, inSheet: !!a?.closest('#sheet'), inBoard: !!a?.closest('#boardFull'), inFinish: !!a?.closest('#finish'), text: (a?.textContent || '').trim().slice(0, 40), key: a?.dataset?.round || null }
 })
+/* 0 · the Door is a cover: while it is up, the app under it is out of the Tab
+   order and the accessibility tree (AW P1: 8 of 12 Tab stops were the app) */
+const cover = await page.evaluate(() => ({ shell: !!document.querySelector('.shell')?.inert, tabbar: !!document.querySelector('.tabbar')?.inert, door: !!document.getElementById('onboard').inert }))
+check('under the Door the app is inert and the Door is not', cover.shell && cover.tabbar && !cover.door, cover)
+/* the sheets below open over the APP, so the Door goes first, as a sign-in would
+   take it; the cover then releases what it held */
+await page.evaluate(() => { const ob = document.getElementById('onboard'); ob.classList.add('hide'); ob.style.display = 'none' })
+await page.waitForFunction(() => !document.querySelector('.shell')?.inert && !document.querySelector('.tabbar')?.inert, null, { timeout: 5000 })
 /* a visible invoker in the page, opened with a real Enter */
 await page.evaluate(() => {
   const host = document.createElement('div'); host.id = 'tHost'

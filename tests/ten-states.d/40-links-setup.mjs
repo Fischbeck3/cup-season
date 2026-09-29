@@ -126,10 +126,12 @@ const LINKS = [
   { family: 'links', id: 'join-valid', variant: 'signed_out', url: `/?join=${JOIN.season}`, short: true,
     settle: doorSettle(() => /You're invited to North Grove/.test((document.getElementById('obStatus') || {}).textContent || '')),
     expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obStatus': "text:^You're invited to North Grove \\(fixture\\)\\. Sign in to review the league before you join\\.$" } } },
+  /* a code that matches no league says so (owner panel P1: it said "You're
+     invited" to a stranger) and is dropped, so signing in tries no join */
   { family: 'links', id: 'join-unavailable', variant: 'signed_out', url: `/?join=${JOIN.dead}`, short: true,
-    settle: doorSettle(() => /You're invited\./.test((document.getElementById('obStatus') || {}).textContent || '') && (window.__tenNet || []).some((e) => /rpc\/league_by_code/.test(e.url) && e.status === 200)),
-    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obStatus': "text:^You're invited\\. Sign in to review the league before you join\\.$" } },
-    check: async (page) => ((await page.evaluate(() => localStorage.getItem('cs_code') === 'QQFX00' && localStorage.getItem('cs_code_name') === null)) ? true : 'the dead code resolved to a name') },
+    settle: doorSettle(() => /^No league with that code/.test((document.getElementById('obStatus') || {}).textContent || '') && (window.__tenNet || []).some((e) => /rpc\/league_by_code/.test(e.url) && e.status === 200)),
+    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obStatus': "text:^No league with that code\\. Check with your Pro\\.$" } },
+    check: async (page) => ((await page.evaluate(() => localStorage.getItem('cs_code') === null && localStorage.getItem('cs_code_name') === null)) ? true : 'the dead code was kept, or resolved to a name') },
   /* signed in with no league: the covenant gate, before join_league runs */
   { family: 'links', id: 'join-covenant', variant: 'brand_new', url: `/?join=${JOIN.season}`,
     settle: async (page) => { await until(page, () => document.getElementById('sheet').classList.contains('open') && /Before you join/.test(document.getElementById('shTitle').textContent), null, 15000); await page.waitForTimeout(600) },
