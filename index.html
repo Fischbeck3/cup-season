@@ -36546,7 +36546,9 @@ function renderRoundSheet(id, d){
 
   const rsvp = d.rsvp||[];
   const inN = rsvp.filter(r=>r.status==='in').length;
-  /* WHO'S IN, in the phone's words (ScheduledRoundSheet.answer): HOST is a role,
+  /* W7-035 · the viewer's own seat reads 'You', as the schedule's list prints the same person (csPlanRowHtml, UI_SYSTEM §9.1: the viewer's own row reads YOU
+     alone, product-wide); every other seat keeps its name.
+     WHO'S IN, in the phone's words (ScheduledRoundSheet.answer): HOST is a role,
      so it is a quiet agate tag and never the earned metal (D359); a seat with
      no answer is ASKED — the state of the invitation (G7), and the one word the
      schedule's list now prints too — and the host, who did the asking, prints
@@ -36556,7 +36558,7 @@ function renderRoundSheet(id, d){
       const word = ({in:'In',maybe:'Maybe',out:'Out'})[r.status] || (host ? '' : 'Asked');
       return `<div class="check">
       <span class="num">${M(r.marker||'saguaro')}</span>
-      <div class="tt"><b>${esc(r.name||'A golfer')}${host?' <span class="rshost cs-agate-s">Host</span>':''}</b></div>
+      <div class="tt"><b>${r.profile_id && r.profile_id===CS.user?.id ? 'You' : esc(r.name||'A golfer')}${host?' <span class="rshost cs-agate-s">Host</span>':''}</b></div>
       ${word?`<span class="rsvppill ${r.status||'none'}">${word}</span>`:''}
     </div>`; }).join('') : '<p class="fine" style="padding:2px 0">Just you so far — tag your group.</p>';
   const myR=d.my_rsvp;

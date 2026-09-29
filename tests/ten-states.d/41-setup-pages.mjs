@@ -72,7 +72,14 @@ const SCHEDULE = [
       await page.waitForTimeout(600)
     },
     expect: { view: 'view-schedule', sheet: true },
-    check: has('#sheet', 'Mesquite Wash', 'the plan’s course') },
+    check: all(has('#sheet', 'Mesquite Wash', 'the plan’s course'),
+      /* TEN / W8 · W7-035 [B2-schedule-5]: the viewer's own seat reads 'You' in Who's in, as Coming up prints the same person (§9.1); every other seat keeps its name */
+      async (page) => page.evaluate(() => {
+        const seats = [...document.querySelectorAll('.rs-who .check')].map((r) => r.querySelector('.tt b').innerText.replace(/\s+/g, ' ').trim())
+        const yous = seats.filter((t) => /^You\b/.test(t))
+        if (yous.length !== 1) return `Who's in has ${yous.length} seats reading You: ${JSON.stringify(seats)}`
+        return seats.some((t) => /Avery/.test(t)) ? `the viewer is also named: ${JSON.stringify(seats)}` : seats.some((t) => /Blake/.test(t)) ? true : `the host is not named: ${JSON.stringify(seats)}`
+      })) },
   { family: 'schedule', id: 'plan-landing', variant: 'signed_out', url: `/?plan=${SHARE.plan}`, title: 'The /?plan= landing a recipient opens',
     settle: async (page) => { await page.waitForSelector('#shareView', { timeout: 15000 }); await until(page, () => !/Opening the card/.test((document.getElementById('svCard') || {}).textContent || ''), null, 15000); await page.waitForTimeout(400) },
     expect: { overlay: true, selectors: { '#svCard': 'visible' } },
