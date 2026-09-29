@@ -24146,7 +24146,7 @@ function showSquad(name){
   h+=`<div class="eyebrow" style="margin-top:18px">Who built it</div>`;
   roster.sort((a,b)=>b.pts-a.pts).forEach(p=>{
     h+=`<button class="rdrow" data-player="${p.n}">
-      <span class="sw" style="background:${SQHEX[p.ci]}"></span>
+      <span class="sw" style="background:${csSqVar(p.ci)}"></span>
       <span class="rn"><b>${p.n}</b><small>${csSquadRowSub(p.r, p.avg, p.n===DEMO_ME)}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
@@ -24158,6 +24158,9 @@ function showSquad(name){
    anybody else's (R-M: the pronoun follows the person; it printed "your" on
    Devon's), one phrase in sentence case rather than caps glued to lowercase
    inside one tracked line (§1.3), and the figure after the words it answers */
+/* W1 · the squad's mark is its D270 token, per printing — never the raw
+   SQHEX orange that read as ember (P2-12) */
+function csSqVar(ci){ const i = Number(ci); return (i >= 0 && i <= 3) ? `var(--sq${i})` : 'var(--sq1)'; }
 function csSquadRowSub(rounds, avg, mine){
   const n = Number(rounds) || 0;
   const fig = avg == null || !isFinite(Number(avg)) ? '—' : (Number(avg) >= 0 ? '+' : '\u2212') + Math.abs(Number(avg)).toFixed(1);
@@ -24197,7 +24200,7 @@ function showSquadReal(t){
   h+=`<div class="eyebrow" style="margin-top:18px">Who built it</div>`;
   rows.forEach((p,i)=>{
     h+=`<button class="rdrow" data-sqm="${i}">
-      <span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span>
+      <span class="sw" style="background:${csSqVar(p.ci)}"></span>
       <span class="rn"><b>${esc(p.n)}</b><small>${csSquadRowSub(p.r, p.r ? p.avg : null, !!(p.mid && window.CS?.member?.id && p.mid === window.CS.member.id))}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
