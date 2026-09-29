@@ -311,7 +311,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(HumanError.text(RpcError(name: "add_friend_to_league", underlying: "P0001 They're already in.", droppedArgs: [])) == "They're already in.")
     #expect(HumanError.text(E(m: "Only the host and tagged golfers can RSVP to this round.")) == "Only the host and tagged golfers can RSVP to this round.")
     #expect(HumanError.text(E(m: "invite not found")) == "Something went wrong — please try again.")
-    #expect(JoinService.joinError(E(m: "invalid code")) == "No league with that code. Check with your Pro")
+    #expect(JoinService.joinError(E(m: "invalid code")) == "No league with that code. Check with your Pro.")
   }
 }
 

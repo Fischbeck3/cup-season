@@ -533,6 +533,7 @@ public struct JoinService: Sendable {
   /// Error copy (17150, 15338): an "invalid" code reads as the Pro's problem.
   public static func joinError(_ error: Error) -> String {
     let m = ((error as? LocalizedError)?.errorDescription ?? String(describing: error)).lowercased()
-    return m.contains("invalid") ? "No league with that code. Check with your Pro" : HumanError.text(error, prefix: "Could not join.")
+    // N4-214 · the web's sentence, full stop and all (PAR-32)
+    return m.contains("invalid") ? "No league with that code. Check with your Pro." : HumanError.text(error, prefix: "Could not join.")
   }
 }
