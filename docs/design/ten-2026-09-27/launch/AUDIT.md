@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**, source read from the snapshot `candidate-9d84c483/`. Live probes ran against the pinned server, which served `index.html` sha256 `2ac5c63a…`. |
-| **Status read at** | **`fd27ace4`**, the web ship candidate: `git log cf401dee..fd27ace4`, plus `9d84c483..cf401dee`. That covers root's fixes, N2's merge, every lane (W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856`, W6 `f6cb4760`), and root's `b82eabd9` and `253e20d7`. |
+| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every web lane, E's native phase 1 (`6716b0ed`), and root's fixes through `41cf8050`. Nothing after `144ee0b0` changes an item in this file. |
 | **Date** | 2026-09-28 |
 | **Assessors** | **AW**, an independent web audit with Impeccable 4.3.1 `audit`. AW wrote no code. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/audit-web/AUDIT-web.md` and `audit-web.json` · `…/audit-web/raw/` (probe results) · `…/audit-web/shots/` · `…/audit-web/snapshots/` and `…/audit-web/detector/` (sanitised DOMs and detector runs) · `…/audit-web/probe/aw-probe.mjs` |
@@ -44,7 +44,7 @@ AW's integrity verdict: "Pass, with verified drift."
 | P2-13 | P2 | integrity | The retired 3.5px card spine is still painted (`.purse`, `.gamecard`, `.optcard`, `.nextcard`, `.ontheline`, `.ob-pcard`, …) | 11 selectors in CSS; `raw/stripes.json` | **fixed.** Home's hero, digest and occasion spines (e8108e59: ffdcd6b4, d9ee98da); the Door wings' `.ob-pcard` (b8a61266: 2bc71749); the Play landing's option cards, the live match, skins, wolf and settlement cards and the live banner (1e9eb856: ab687232); and the Season page's `.purse`, `.phasehero`, `.nextcard` and `.ontheline` (b82eabd9). DX's longer list keeps two more open (TP-09: `.squad.onclock`, `.momrow`). |
 | P2-14 | P2 | responsive | Long names are cut with an ellipsis instead of wrapping | `.yrow .cs-name-s`, `.cs-agate-s.is-phrase`, `#youMeta`, `#glfBoard .fbn b`, the person-landing rows | **fixed (38471687)**: 13 ellipsis rules removed (names and course lines wrap whole, and the Golfers board name "wraps whole; it was cut at 320"). Five ellipsis rules remain, none of them AW's: the trip figures, the credential's figure sub-line, the Home tile value, and two in the Door wings. W2's two-column You squeezed a long course name to three lines; root fixed that regression at 65a1a11a (course-leaf 122/122). |
 | P2-15 | P2 | responsive | You and Schedule on the desk are the phone column stretched (D234) | `view-stats` and Schedule at ≥1024 | **fixed (f46086b4)**: You is identity, form and golf left with buddies and the record in the 340 aside (35b4f475); Schedule is the calendar in the reading column with plans in the aside (57325028) |
-| P2-16 | P2 | integrity | The Door wings show authored fiction as live data ("Rounds hitting the board", "The season, live") | index.html:4529, :4653, data :6435–6446 | **fixed (b8a61266)**: labelled examples ("How a round reads", "How a season reads", an example season) that stand down on a link landing (2bc71749; CQ-06). Whether the phone Door shows a specimen is Q6. |
+| P2-16 | P2 | integrity | The Door wings show authored fiction as live data ("Rounds hitting the board", "The season, live") | index.html:4529, :4653, data :6435–6446 | **fixed (b8a61266, 7141516f)**: labelled examples ("How a round reads", "How a season reads", an example season) that stand down on a link landing (2bc71749), and, since round 2 found them still ticking, still (7141516f; CQ-06). Whether the phone Door shows a specimen is Q6. |
 | P2-17 | P2 | integrity | Share and unsubscribe takeovers paint the ordinary action in ember and set sentences in mono | person landing "Get the app" `C.hot`; unsubscribe `#FF5A2E`; the share view's base font MONO | **fixed (38471687)**: "act, not ember, for the way in; sentences in sans, labels in mono" |
 | P3-18 | P3 | theming | theme-color and the manifest colours don't match the `bg0` ground | index.html:6, :4429; `manifest.webmanifest` | **fixed (69f40d1f)** |
 | P3-19 | P3 | theming | `.room-dusk` re-asserts pre-D270 values (deleted tokens, old squad hues, a pre-token ground) | index.html:4052–4064 | **fixed (38471687)**: the room is the ceremony ground under the current dark printing (D277) |
@@ -69,6 +69,54 @@ This is a reading of AW's rubric against the commits, not a score.
 
 At 18/20, at most two points can be lost across the five dimensions. With performance left at 2 or 3, the other four must be at 4, or at 4, 4, 4 and 3.
 
-## 4 · Native audit
+## 4 · Native audit AN (session A, measured at `4112a3f0`, TestFlight 1180)
 
-**Pending (session A).** Session A runs audit AN on `4112a3f0` with `reference/audit.native.md`, scoring accessibility (Dynamic Type, VoiceOver names and order from the AX trees), performance as far as source shows it, responsive (SE 3 375pt against 17 Pro 402pt, and AX3), theming and integrity, 0–4 each. Output: `~/cup-season-claude-ten-gallery/evidence/native/audit/AUDIT-native.{md,json}`. The gate is the same 18/20.
+Session A ran Impeccable's `audit` with `reference/audit.native.md`. Files: `~/cup-season-claude-ten-gallery/evidence/native/audit/AUDIT-native.{md,json}`.
+
+| Dimension | Score | Where the web stands (AW) |
+|---|:-:|:-:|
+| Accessibility (Dynamic Type, VoiceOver names and order) | **2** | 2 |
+| Performance (as far as source shows it) | **3** | 2 |
+| Responsive (SE 3 against 17 Pro, and AX3) | **2** | 3 |
+| Theming | **3** | 3 |
+| Implementation integrity | **2** | 2 |
+| **Total** | **12/20**, "Acceptable (10–13)"; the gate is 18 | 12/20 |
+
+Issues: P0 0, P1 2, P2 15, P3 10. Session A also notes that the 4112 matrix wrote no accessibility trees, so VoiceOver order is read from source and from N2's trees at other SHAs.
+
+| AN id | Sev | Dimension | Finding | Where (A, at `4112a3f0`) | Status at `144ee0b0` |
+|---|---|---|---|---|---|
+| AN-01 | P1 | accessibility | At AX3 the composer scrolls the gross field out of view while the keypad types into it | `CupSeason/Post/PostRoundScreen.swift:251` | open · N4 (not in E's phase 1) |
+| AN-02 | P1 | accessibility | Type set over round photographs fails WCAG AA in both themes (2.0:1 to 3.4:1) | `Packages/CSDesign/Sources/CSDesign/Course.swift:573` | open · N4 (not in E's phase 1) |
+| AN-03 | P2 | accessibility | CSFactStrip gives VoiceOver every fact three times, out of order (Home's ME strip, the story head) | `Packages/CSDesign/Sources/CSDesign/Chrome.swift:533` | open · N4 (not in E's phase 1) |
+| AN-04 | P2 | accessibility | Nine screen names set in raw `display` are not headings, on pages that blank the navigation title | `CupSeason/Season/SeasonStoryPane.swift:57` | open · N4 (not in E's phase 1) |
+| AN-05 | P2 | accessibility | Plan rows open on .onTapGesture and are not buttons to VoiceOver | `CupSeason/Schedule/ScheduleScreen.swift:89` | open · N4 (not in E's phase 1) |
+| AN-06 | P2 | accessibility | Home's header links, every round's Comments button and the applause count miss the 44pt target | `CupSeason/Home/HomeWire.swift:344` | **fixed in part (6716b0ed: 5c25d24c)**: the Comments door is a whole 44pt target. **Open:** Home's header links and the applause count (E measured it at 20pt wide). |
+| AN-07 | P2 | responsive | At AX3, rows with a trailing control break the person's name mid-word | `CupSeason/People/Links.swift:200` | open · N4 (not in E's phase 1) |
+| AN-08 | P2 | responsive | The Scoreboard band breaks the league name mid-word at AX3 ('PLACEHOLDE / R SQUADS') | `CupSeason/Compete/CompeteScoreboard.swift:18` | open · N4 (not in E's phase 1) |
+| AN-09 | P2 | responsive | The record's figures strip breaks 'SEASONS' mid-word at AX3 | `CupSeason/You/RecordPage.swift:114` | open · N4 (not in E's phase 1) |
+| AN-10 | P2 | responsive | The declare sheet's DAY \| TEE TIME row clips and breaks words at AX3 | `CupSeason/Schedule/DeclareRoundSheet.swift:51` | **fixed (6716b0ed: 7ab58c24)**: at the AX sizes the declare sheet's day and tee time stack |
+| AN-11 | P2 | responsive | FlowLayout lets an over-wide chip run off the screen (the wizard's roster at AX3) | `CupSeason/Schedule/DeclareRoundSheet.swift:283` | open · N4 (not in E's phase 1) |
+| AN-12 | P2 | responsive | The Tour Card's Share action reads 'SHA…' on both phones at every size | `CupSeason/Golfers/PersonPage.swift:562` | open · N4 (not in E's phase 1) |
+| AN-13 | P2 | responsive | The bag's fields cut the golfer's own words, and at AX3 the club slot itself ('Driv…') | `CupSeason/You/BagSheet.swift:113` | open · N4 (not in E's phase 1) |
+| AN-14 | P2 | responsive | The photo receipt's marker stamp overprints the round's date on the 17 Pro | `CupSeason/Rounds/ReceiptMoment.swift:79` | open · N4 (not in E's phase 1) |
+| AN-15 | P2 | responsive | The forced-update screen truncates its instruction at SE3 AX3 | `CupSeason/RootView.swift:487` | open · N4 (not in E's phase 1) |
+| AN-16 | P2 | integrity | Ember and gold outside their ratified roles (D359/F11, UI_SYSTEM §2.4) at about a dozen sites | `CupSeason/RootView.swift:379` | **fixed in part (6716b0ed)**: "You're in —" is ink (561328ce) and the Pro's note is not a metal (2fcd0878). **Open:** the other sites; E also saw the buy-in and the board's note spine in gold. |
+| AN-17 | P2 | integrity | Retired type voices still render: Charter (D268) on shared surfaces, and Plex Mono as every section head (§1.4) | `Packages/CSDesign/Sources/CSDesign/Surfaces.swift:208` | open · N4 (not in E's phase 1) |
+| AN-18 | P3 | integrity | LINT-14, LINT-12 and LINT-29 leftovers: uppercased display strings, emoji on shared surfaces, `dim` as a word | `CupSeason/Compete/CompeteScreen.swift:376` | open · N4 (not in E's phase 1) |
+| AN-19 | P3 | integrity | The retired card spine survives in shared rows and the draft room | `CupSeason/People/Links.swift:214` | open · N4 (not in E's phase 1) |
+| AN-20 | P3 | integrity | The product's tab band has no tab-bar semantics, puts an action in a tab slot, and icons mix three sets | `Packages/CSDesign/Sources/CSDesign/Chrome.swift:395` | open · N4 (not in E's phase 1) |
+| AN-21 | P3 | accessibility | Icons do not follow Dynamic Type | `Packages/CSDesign/Sources/CSDesign/Chrome.swift:107` | open · N4 (not in E's phase 1) |
+| AN-22 | P3 | performance | Photos outside Home decode at full size through AsyncImage, avatars included | `Packages/CSDesign/Sources/CSDesign/Person.swift:161` | open · N4 (not in E's phase 1) |
+| AN-23 | P3 | performance | Shared date helpers allocate a DateFormatter on every call | `Packages/CSDesign/Sources/CSDesign/Surfaces.swift:104` | open · N4 (not in E's phase 1) |
+| AN-24 | P3 | responsive | At AX3 a pinned foot shears a sentence, and the Door's primary starts below the fold on SE3 | `CupSeason/People/LinkConfirmationSheet.swift:24` | open · N4 (not in E's phase 1) |
+| AN-25 | P3 | integrity | A round with one comment reads '1 comments' on Home | `CupSeason/Home/HomeWire.swift:341` | **fixed (6716b0ed: 5c25d24c)**: one comment reads as one |
+| AN-26 | P3 | integrity | The activity inbox's empty state is a sentence with no door (LINT-21) | `CupSeason/Home/SocialActivitySheet.swift:86` | open · N4 (not in E's phase 1) |
+| AN-27 | P3 | responsive | Live scoring truncates a player's running line on SE3 at the default size | `CupSeason/Live/LivePlayView.swift:448` | **fixed (6716b0ed: 327d6708, d27d3b6e, b9e42723)**: the SE keeps its 20pt gutter, and a live row wraps its name and breaks its facts on their separator |
+
+**Tally at `144ee0b0`:** 27 findings.
+- **fixed: 3.** AN-10, AN-25 and AN-27.
+- **fixed in part: 2.** AN-06 and AN-16.
+- **open: 22.** Both P1s among them (AN-01, the AX3 gross field; AN-02, text over photographs), for N4 phase 2.
+
+N4-WORKLIST.md tracks each by its N4 id.

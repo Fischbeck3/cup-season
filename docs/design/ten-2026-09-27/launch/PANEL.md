@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). Native **`4112a3f0`**, Owner TestFlight 1.0.0 (1180), judged from `native-4112/` (COVERAGE.md §2). |
-| **Status read at** | **`fd27ace4`**, the web ship candidate (root's fixes, N2's merge, and every lane: W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856`, W6 `f6cb4760`) |
+| **Status read at** | **`41cf8050`**, which is shipping as web plus TestFlight 1328 (its suites and archive were running when this was written). The previous ship was `272c2da1`. Round 2's judges read `fd27ace4`, and `ed8e6837` for home, compete, desk, courses and you. |
 | **Date** | 2026-09-28 |
 | **Assessors** | the **category**, **craft** and **owner** judges: three fresh agents that wrote no code. Their calibration stays with root, which runs the same three on the native half and on round 2. |
 | **Raw evidence (outside git)** | Web: `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/`. Native: `…/evidence/panel/{category,craft,owner}-native.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/native-4112/`. |
@@ -11,7 +11,73 @@
 Written by session C (docs). The scores and sentences below are the judges', copied from their JSON. Two strings are redacted with bracketed tokens: `[course]` stands for a fixture course that borrows a real course's name, and `~/` for the local home directory. The judges' proposed "change" for every cell is in the JSON; this file gives what stands between each cell and 10, and its kind.
 
 **The gate** (SESSIONS §1): no cell below 9, and a mean of at least 9.5, on every row, from every judge.
-**Round 1: not met anywhere.** On the web no row reaches 8 with any judge, and 649 of the 660 cells are below 9. On the phone no row reaches 9, and 483 of the 510 scored cells are below 9 (§5). Fix commits do not change a score. Nothing here is re-scored until round 2 (session D builds the gallery, and root runs the judges).
+**Round 1: not met anywhere.** On the web no row reaches 8 with any judge, and 649 of the 660 cells are below 9. On the phone no row reaches 9, and 483 of the 510 scored cells are below 9 (§5).
+
+## Round 2 so far (web)
+The judges re-scored the web at `fd27ace4`, with `ed8e6837` (the shipped client) for home, compete, desk, courses and you. Their files are `~/cup-season-claude-ten-gallery/evidence/r2-fd27ace4/panel/`. **All three have reported.**
+
+**The gate is still not met.** One row reaches 9 with one judge: support at 9.1 with craft. No row has every cell at 9 from every judge, and no product mean reaches 9.5.
+
+| Row | Category r1 | Category r2 | Craft r1 | Craft r2 | Owner r1 | Owner r2 |
+|---|---:|---:|---:|---:|---:|---:|
+| `web/door` | 6.5 | 6.9 | 7.8 | **8.4** | 7.5 | 7.8 |
+| `web/home` | 6.3 | 7.5 | 6.2 | **8.1** | 7.1 | **8.0** |
+| `web/post` | 6.3 | 7.2 | 5.9 | 7.9 | 6.2 | 7.8 |
+| `web/share` | 7.4 | **8.0** | 7.5 | **8.7** | 7.1 | **8.1** |
+| `web/public-round` | 6.6 | 7.6 | 7.2 | **8.6** | 7.0 | 7.9 |
+| `web/claim-invite` | 6.0 | 7.2 | 6.8 | **8.2** | 6.9 | 7.9 |
+| `web/identity` | 6.3 | 7.8 | 6.7 | **8.0** | 6.8 | 7.9 |
+| `web/golfers` | 6.3 | 7.0 | 6.7 | 7.9 | 7.1 | 7.5 |
+| `web/history` | 6.9 | 7.5 | 7.2 | **8.2** | 7.4 | **8.1** |
+| `web/season` | 7.2 | 7.9 | 6.9 | **8.1** | 7.6 | **8.1** |
+| `web/competition` | 6.4 | 7.5 | 7.0 | **8.3** | 7.2 | **8.1** |
+| `web/events` | 6.4 | **8.0** | 7.0 | **8.8** | 7.6 | **8.2** |
+| `web/schedule` | 5.0 | 7.3 | 6.1 | **8.1** | 6.4 | 7.7 |
+| `web/wizard` | 5.4 | 7.2 | 6.1 | 7.9 | 6.3 | 7.9 |
+| `web/courses` | 7.5 | 7.6 | 7.5 | 7.7 | 7.3 | 7.7 |
+| `web/settings` | 6.1 | 7.2 | 6.5 | **8.1** | 7.2 | 7.9 |
+| `web/play` | 6.1 | 7.4 | 6.2 | **8.2** | 7.0 | 7.8 |
+| `web/rules` | 6.8 | 7.5 | 7.1 | **8.0** | 7.2 | 7.9 |
+| `web/get` | 6.2 | 7.1 | 7.6 | **8.9** | 7.3 | **8.1** |
+| `web/support` | 6.8 | 7.5 | 7.5 | **9.1** | 7.4 | **8.2** |
+| `web/legal` | 6.5 | 7.2 | 7.0 | **8.8** | 7.3 | 7.9 |
+| `web/desk` | 6.7 | 7.6 | 6.6 | **8.2** | 7.1 | **8.1** |
+| **product mean** | 6.44 | **7.44** | 6.87 | **8.28** | 7.09 | **7.94** |
+
+**Keep rows** (a mean of 8 or more), shown in bold:
+- craft: **18 of 22**; only post (7.9), golfers (7.9), wizard (7.9) and courses (7.7) remain polish;
+- owner: 9 (home, share, history, season, competition, events, get, support and desk);
+- category: 2 (share and events).
+
+**Cells at 10** (craft, 12): public-round T; get H, Sp, C and R; support H, Sp, R and D; legal Sp, R and D.
+
+**Round 2's P0 and P1:**
+
+| Judge | Pri | Defect | Status at `144ee0b0` |
+|---|---|---|---|
+| category | **P0** | The public plan link says "Avery and Devon are in." while the plan's own sheet says Avery is ASKED: `the_plan_link.sql` counts an unanswered tag as in | **fixed on the client (09beefd3)**. The landing and the signed-in ask say "Avery and Devon are on the plan." (one producer, `csPlanWhoLine`), which is what the payload can support. The in-app half is fixed (f46086b4). **Open:** the database half, X42, a migration the owner must `db push`. |
+| owner | P1 | The same plan-link defect: attendance inferred from an invitation | fixed on the client (09beefd3); X42 open |
+| craft | P1 | The golfer page's course rows collide: "LAST PLAYED SEP 20" and "2 ROUNDS" read "SEP 202 ROUNDS" (owner P2 too) | **fixed (41cf8050)**: `.dtab`'s right column takes `--s4` |
+| owner | P1 | The rivalry record still contradicts itself across surfaces, unchanged since round 1 | **decision X36** |
+| category | P1 | At `fd27ace4` a course row on You could not be opened (a regression from W2's `<details>` door, found by session D) | **fixed (5df6d4cc)**, verified in `ed8e6837`'s recapture |
+
+**Fixed from session D's round-2 deltas:**
+- the dead league link at 375×380, a P1 regression: the notice is now the landing, and no email box opens (41cf8050);
+- the covenant's "Custom rules, built on Standard" for a customised league (crit:A:wizard:1, 3d3b9e55);
+- the live game picker's edge fade, a P2 regression that hid the fifth game (c1b70890);
+- the Door's example wings stilled (crit:A:door:1, 7141516f).
+
+**Round 2's P2s:**
+- The person page's course rows collide into "SEP 202 ROUNDS" (owner). **Fixed (41cf8050).**
+- The card gate at 375: the pinned "Save my card" bar covers the marker helper line (craft). A defect, open.
+- The desk course book: the tee select clips its value, and the plate squeezes a four-line title (craft). A defect, open.
+- The covenant sheet at 375 stops short of the screen, so the page's links show beneath its Join (craft). A defect, open.
+- Home's clash lead never says who holds the week (owner). It is server copy: Q10.
+- Home repeats "… have played here" under nearly every wire card (owner; L-34, D360). A defect, open.
+- Two records for one pair (category): X36.
+- The receipt with an unopenable photo stacks five buttons under a checkbox (category). A defect, open.
+- The phone Door shows no product (category): Q6.
+- The person page buries the credential about 960px down on the phone (category). A defect, open. Fix commits do not change a score. Nothing here is re-scored until round 2 (session D builds the gallery, and root runs the judges).
 
 ## 1 · Summary
 
@@ -74,7 +140,7 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 | 3 | category | P1 | wizard | Desk wizard step 3 "Review the rules" shows no rules (`#bylawsReview` hidden at ≥1100px). | `wizard--step-3-review--1280--light.png` | **fixed (38471687)**: the review shows on the desk |
 | 4 | category | P1 | identity/history | EVERY SEASON prints live seasons under FINISH as "1ST"/"2ND" with the podium rule, a standing presented as a finish (`csRecordLeaf`). | `you--populated--375--dark.png`, `record--populated--375--dark.png` | **fixed (f46086b4)**: a live season has no finish; it reads "In play" with its standing in its own line, and the podium mark is a finished season's (35b4f475) |
 | 5 | category | P1 | identity | FORM marks a nine-hole 43 as the best of the last five, in gold (`formRowHtml`). | `you--populated--375--dark.png` | **fixed (38471687)**: a nine never takes the gold and reads "NINE"; the phone twin is 74997409 (N2). W2 adds gold only among two or more comparable rounds (f46086b4). |
-| 6 | category | P1 | schedule | The public plan link says "Avery and Devon are in." while the plan sheet shows Avery NO REPLY; `the_plan_link.sql` counts a missing RSVP as in. | `schedule--plan-landing--375--dark.png`, `schedule--plan-sheet--375--dark.png` | **fixed in part (f46086b4).** In the app, "in" is an explicit yes and an unanswered tag reads Asked (57325028). **Open:** the public card reads `share_info`'s plan `who`, which is X42 (owner's `db push`); the phone's `ScheduleScreen` is N4's. |
+| 6 | category | P1 | schedule | The public plan link says "Avery and Devon are in." while the plan sheet shows Avery NO REPLY; `the_plan_link.sql` counts a missing RSVP as in. | `schedule--plan-landing--375--dark.png`, `schedule--plan-sheet--375--dark.png` | **fixed in part (f46086b4, 09beefd3).** In the app, "in" is an explicit yes and an unanswered tag reads Asked (57325028). The public card now says "on the plan", which the payload supports (09beefd3). **Open:** X42, so that the card can say "in" again truthfully (owner's `db push`); the phone's `ScheduleScreen` is N4's. |
 | 7 | craft | P1 | wizard | The review's "Start the season" is disabled with no reason on screen. | `wizard--step-3-review--375--dark.png` | **fixed (38471687)**: `#lockWhy` says why, with a door to the pay note |
 | 8 | craft | P1 | settings | "Delete permanently" is white on `#FF6A5E`, 2.81:1 in the default dark theme. | `settings--delete-confirm--375--dark.png` | **fixed (38471687)** |
 | 9 | craft | P1 | play | Light desk live scoring: the selected HOLE segment is 2.37:1. | `play--scoring--1280--light.png` | **fixed (38471687)** |
@@ -166,9 +232,9 @@ No judge raised a P0. The six P1 entries are four distinct defects.
 | # | Judge | Row | Defect (the judge's words, shortened) | Captures | Status at `4a703402` |
 |---|---|---|---|---|---|
 | N-1 | category, craft | identity | FORM gilds a nine-hole 43 as the best of the last five beside 18-hole grosses, and VoiceOver calls it "their best" (craft); the web's twin defect | `17pro/tourcard-dark-large.png`, `17pro/person-me-dark-large.png` | **fixed (de3eaf35)**: N2's 74997409: a nine never takes the gold, and a nine says so; tests ab3d1cac. Not in 1180; verification pending. |
-| N-2 | category | history | The record prints two LIVE seasons (week 6 of 13, week 4 of 10) under FINISH as "2ND" with the podium rule; the web's twin defect | `17pro/record-dark-large.png`, `se3/record-light-large.png` | open · in lane N4. The web twin is fixed (f46086b4: "In play"). |
-| N-3 | craft | post | A refused or failed post shows no message: the composer's toast is drawn by the app-root host beneath the Play full-screen cover, for every composer failure (`PostRoundModel.swift:541`, `CupSeasonApp.swift:76`, `MainTabView.swift:1043`) | `flows/flow__post-failed.png` | open · in lane N4. The web twin, CQ-09, is fixed at 1e9eb856 (an inline refusal that keeps focus). |
-| N-4 | craft, owner | post | At AX3 the composer scrolls the focused gross field off screen with the keypad up, and content slides under the status bar: the golfer types a score they cannot see | `17pro/composer-light-AX3.png`, `se3/composer-dark-AX3.png` | open · in lane N4 |
+| N-2 | category | history | The record prints two LIVE seasons (week 6 of 13, week 4 of 10) under FINISH as "2ND" with the podium rule; the web's twin defect | `17pro/record-dark-large.png`, `se3/record-light-large.png` | open · in lane N4 (not in E's phase 1, `6716b0ed`). The web twin is fixed (f46086b4: "In play"). |
+| N-3 | craft | post | A refused or failed post shows no message: the composer's toast is drawn by the app-root host beneath the Play full-screen cover, for every composer failure (`PostRoundModel.swift:541`, `CupSeasonApp.swift:76`, `MainTabView.swift:1043`) | `flows/flow__post-failed.png` | open · in lane N4 (N4-020; not in E's phase 1). The web twin, CQ-09, is fixed at 1e9eb856 (an inline refusal that keeps focus). |
+| N-4 | craft, owner | post | At AX3 the composer scrolls the focused gross field off screen with the keypad up, and content slides under the status bar: the golfer types a score they cannot see | `17pro/composer-light-AX3.png`, `se3/composer-dark-AX3.png` | open · in lane N4 (N4-021; not in E's phase 1) |
 
 The judges' P2 and P3 counts: category 19 + 12, craft 24 + 5, owner 7 + 17. They are listed in the `-native.md` files.
 
