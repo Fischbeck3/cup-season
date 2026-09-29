@@ -101,7 +101,10 @@ const RECORD = [
     check: all(recordState('some'), heroState('none'),
       async (page) => page.evaluate(() => document.querySelectorAll('#sheet img[src*="token=fixture"]').length === 0 ? true : 'a photograph rendered with none on file')) },
   /* every signed URL answers 404: the receipt falls back to its no-photo
-     moment, never a broken image on the ceremony ground */
+     moment, never a broken image on the ceremony ground, and — it is the
+     owner's own round, and it carries a photograph — says so once beside
+     Replace and Remove: "This round’s photo couldn’t be opened." (S9, the
+     phone's RoundCopy.photoUnavailable, verbatim) */
   { family: 'record', id: 'photo-broken', variant: 'member', world: { flags: { brokenPhotos: true } }, fullPage: false,
     title: 'The record · the photograph will not load (404): the receipt falls back to its no-photo moment',
     expectConsole: [/status of 404/],
@@ -110,7 +113,7 @@ const RECORD = [
       await until(page, () => { const h = document.getElementById('rcptHero'); return !!h && !h.querySelector(':scope > img') && !!h.querySelector('.rm-topo') }, null, 10000)
       await page.waitForTimeout(500)
     },
-    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptHero': 'visible' } },
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptHero': 'visible', '#rcptPhotoGone': 'text:^This round\u2019s photo couldn\u2019t be opened\.$' } },
     check: all(recordState('some'), heroState('none')) },
   /* a credited photograph: Blake's avatar on his credential carries the credit
      line "Blake's round · <day>" (csCredentialHtml). Opened from the board's
@@ -147,7 +150,10 @@ const RECEIPT = [
       await page.waitForTimeout(700)
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
-    check: all(heroState('photo'), async (page) => page.evaluate(() => {
+    check: all(heroState('photo'),
+      /* S9 · a picture that is showing says nothing */
+      async (page) => page.evaluate(() => { const g = document.getElementById('rcptPhotoGone'); return !g || g.hidden ? true : 'the photo-unavailable line shows over a photo that loaded' }),
+      async (page) => page.evaluate(() => {
       const t = document.getElementById('shBody').innerText.replace(/\s+/g, ' ')
       if (!(/\b84\b/.test(document.getElementById('sheet').innerText) && /Mesquite Wash/i.test(document.getElementById('sheet').innerText))) return 'the receipt does not show the 84 at Mesquite Wash: ' + t.slice(0, 160)
       const f = document.getElementById('rcptFigs').getBoundingClientRect()
@@ -155,6 +161,28 @@ const RECEIPT = [
       if (/\bgross\b/i.test(document.getElementById('shTitle').textContent)) return 'the sheet title repeats the figure: ' + document.getElementById('shTitle').textContent
       return true
     })) },
+  /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
+     photograph the page cannot open (every signed URL answers 404): the
+     moment falls back, and the photo row says it once, beside Replace and
+     Remove — "This round’s photo couldn’t be opened." — the phone's
+     RoundCopy.photoUnavailable, verbatim. Scrolled to the photo row, which
+     sits under the verdict, the receipt and the card. */
+  { family: 'receipt', id: 'photo-unavailable', variant: 'member', world: { flags: { brokenPhotos: true } }, fullPage: false,
+    title: 'Round receipt · the photograph could not be opened (the owner is told once, beside Replace and Remove)',
+    expectConsole: [/status of 404/],
+    drive: async (page) => {
+      await openLatestReceipt(page)
+      await until(page, () => { const g = document.getElementById('rcptPhotoGone'); return !!g && !g.hidden }, null, 10000)
+      await page.evaluate(() => document.getElementById('rcptPhotoRow').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptPhotoGone': 'text:^This round\u2019s photo couldn\u2019t be opened\.$', '#rcptPhotoBtn': 'visible', '#rcptPhotoClear': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const g = document.getElementById('rcptPhotoGone').getBoundingClientRect()
+      if (g.top < 0 || g.bottom > innerHeight) return 'the line is not on screen'
+      const f = getComputedStyle(document.getElementById('rcptPhotoGone')).fontFamily
+      return /mono/i.test(f) ? 'the line is set in mono: ' + f : true
+    }) },
   /* the points receipt (§16): the squad row on the season's own standings
      opens the squad math */
   { family: 'receipt', id: 'points', variant: 'member', fullPage: false, title: 'Points receipt · the squad math, from the standings row',

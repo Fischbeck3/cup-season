@@ -3038,6 +3038,8 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   letter-spacing:calc(var(--agate) * 1em); line-height:1.3; color:var(--mut);}
 /* §7.1 · destructive, armed: bg2 fill (the .mini), neg label — 4.58:1 / 4.62:1 */
 .mini.del{color:var(--neg);}
+/* S9 · the photo row's one sentence, in the body face and the quiet ink */
+.rcpt-photogone{color:var(--mut); flex:1 1 180px;}
 .mathrow{
   display:flex; justify-content:space-between; gap:12px; align-items:baseline;
   font-family:var(--mono); font-size:13px; padding:9px 2px; border-top:1px solid var(--rule);
@@ -3925,11 +3927,9 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 }
 #finish.open{display:flex;}
 .finish-card{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
-.finish-eyebrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--ceremony-mut);}   /* W1 · a label: the agate face, on its token */
+.finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:var(--ceremony-mut);}
 .gross-slot{position:relative; margin-top:18px;}
-/* W1 · numbers are never serif (§1.4): the ceremony's gross is the figure the
-   shared card prints, the board face, tabular — the card and the room agree */
-.finish-gross{font-family:var(--board); font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1,'lnum' 1; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:var(--ceremony-ink);}
+.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:var(--ceremony-ink);}
 /* C2 - the drop (owner-approved treatment, 2026-07-22 deck session): the ball
    rolls out of the left along the gross baseline on REAL friction - constant
    deceleration, distance follows 1-(1-t)^2 sampled into linear keyframes - dies
@@ -3975,7 +3975,7 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 #finish.open .finish-cup, #finish.open .finish-cupfront{animation:csFade .4s ease .15s both, csGone .35s ease 2.35s forwards;}  /* in with the ball, gone once the number holds the room */
 #finish.open .finish-cupring{animation:csAnswer .7s var(--roll) 1.7s both;}
 .finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:var(--ceremony-ink); margin-top:12px;}
-.finish-pts{font-family:var(--board); font-size:13px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:24px; min-height:1em;}
+.finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
 .finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
 .finish-pts.card{color:var(--ceremony-mut);}      /* league-less: it just posts to your rounds */
 .finish-rule{width:64px; height:1px; background:#1C2620; margin-top:26px;}
@@ -22609,6 +22609,10 @@ const CS_PHOTO = {
   needsPush: 'Not attached — photos on a posted round need the latest update — try again shortly.',
   failed: 'That photo didn’t attach. Check your signal and try again.',
   removeFailed: 'That photo didn’t come off. Check your signal and try again.',
+  /* S9 · RoundCopy.photoUnavailable, verbatim: the owner's receipt, a round
+     that carries a photograph, and a picture that could not be fetched or
+     shown. Said once, beside Replace and Remove; never on anyone else's. */
+  unavailable: 'This round\u2019s photo couldn\u2019t be opened.',
 };
 /* PostgREST's tell for a function prod does not have yet (PGRST202 / 42883).
    Only this earns the push sentence; everything else is a real failure. */
@@ -22885,6 +22889,7 @@ function csReceiptPhotoRow(r){
   return `<div id="rcptPhotoRow" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 12px">
       <button class="mini" id="rcptPhotoBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> ${esc(has?CS_PHOTO.replace:CS_PHOTO.add)}</button>
       <button class="mini" id="rcptPhotoClear" type="button" style="${has?'':'display:none'}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> ${esc(CS_PHOTO.remove)}</button>
+      <span class="cs-body-s rcpt-photogone" id="rcptPhotoGone" role="status" hidden>${esc(CS_PHOTO.unavailable)}</span>
     </div>
     <p class="fine" id="rcptPhotoNote" style="display:none; color:var(--neg); margin:-6px 0 12px"></p>`;
 }
@@ -22914,6 +22919,7 @@ function csWireReceiptPhoto(r, rid, stampOf, opts){
     /* W1 · attaching or removing a photograph changes the moment's picture and
        nothing else: this rewrote the whole moment, so an attach wiped the
        course, the 84 and the verdict, and a removal hid the moment entirely */
+    csRcptPhotoGone(false);   /* a picture on its way, or none at all, says nothing (S9) */
     if(hero) csRcptHeroSet(hero, r.photo_url || null, r.photo_url ? stampOf() : '');
   };
   const busyOn = on => { busy=on; btn.disabled=on; if(clr) clr.disabled=on; };
@@ -23138,11 +23144,17 @@ function csRcptHeroSet(hero, url, stampHtml){
 }
 /* a photograph that will not load (a 404, an expired link, no signal) falls
    back to the no-photo moment, never a broken image on the ceremony ground */
+/* S9 · the owner's line about a picture the receipt could not show. It exists
+   only on the owner's own receipt (csReceiptPhotoRow is drawn for no one
+   else), and only a picture that failed turns it on */
+function csRcptPhotoGone(on){
+  const el=document.getElementById('rcptPhotoGone'); if(el) el.hidden = !on;
+}
 function csRcptHeroWire(hero){
   const img = hero && hero.querySelector(':scope > img');
   if(!img || img.__csWired) return;
   img.__csWired = true;
-  const fall = () => { if(img.isConnected) csRcptHeroSet(hero, null); };
+  const fall = () => { if(img.isConnected){ csRcptHeroSet(hero, null); csRcptPhotoGone(true); } };
   if(img.complete && img.naturalWidth === 0){ fall(); return; }
   img.addEventListener('error', fall, { once:true });
 }
@@ -23321,7 +23333,8 @@ function openRoundReceipt(x, opts){
       const hb=document.getElementById('rcptHero');
       /* W1 · the photograph joins the moment; it never replaces its words */
       if(data?.signedUrl && hb){ r.photo_url=data.signedUrl; csRcptHeroSet(hb, data.signedUrl, stampOf()); }
-    }).catch(()=>{});
+      else if(hb) csRcptPhotoGone(true);   /* S9 · nothing could be signed */
+    }).catch(()=>{ csRcptPhotoGone(true); });
   }
 }
 
