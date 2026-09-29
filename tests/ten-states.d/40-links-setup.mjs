@@ -82,9 +82,24 @@ const PUBLIC_ROUND = [
   share('escaped-name', SHARE.roundEscaped, { round: true, text: '<img src=x onerror=', photos: 0, cta: 'Play with your people' }),
   share('no-band', SHARE.roundNoBand, { round: true, text: 'Jules Sandbox', photos: 0, band: false, cta: 'Play with your people' }),
   share('broken-photo', SHARE.roundBroken, { round: true, text: 'Harper Examplar', photos: 0, cta: 'Play with your people' }, { world: { flags: { brokenPhotos: true } }, expectConsole: [/status of 404/] }),
-  share('dead-link', SHARE.dead, { text: 'This link is dead', cta: 'Play this with your crew' }),
-  share('settlement', SHARE.settlement, { text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play this with your crew', title: '^MATCH PLAY at ' }),
-  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas[\\s\\S]*IN PLAY', cta: 'Play this with your crew' }),
+  /* W4 · one public shell and one action wording (craft C, critique B): the
+     settled game and the season table say what the round record says, and a
+     dead link's action names the product — "Play this" had nothing on the
+     page to refer to. The strip is keyed in words and spoken as one image. */
+  share('dead-link', SHARE.dead, { text: 'This link is dead', cta: 'Open Cup Season' }),
+  share('settlement', SHARE.settlement, { text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play with your people', title: '^MATCH PLAY at ' },
+    { check: async (page) => {
+      const base = await shareCheck({ text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play with your people', title: '^MATCH PLAY at ' })(page)
+      if (base !== true) return base
+      return page.evaluate(() => {
+        const img = document.querySelector('#svCard [role="img"][aria-label]')
+        if (!img || !/Blake & Devon won 7 holes, Casey & Gray won 4, 5 halved, closed on 16\./.test(img.getAttribute('aria-label'))) return 'the strip has no spoken summary: ' + (img && img.getAttribute('aria-label'))
+        const key = (document.querySelector('.sv-strip p[aria-hidden]') || {}).textContent || ''
+        if (!/Blake & Devon won/.test(key) || !/Casey & Gray won/.test(key) || !/Halved/.test(key)) return 'the key does not name all three kinds: ' + key
+        return true
+      })
+    } }),
+  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas[\\s\\S]*IN PLAY', cta: 'Play with your people' }),
 ]
 
 /* ------------------------------------------- claim + invite recipients */
@@ -172,9 +187,10 @@ const LINKS = [
     expect: { sheet: '^Before you join North Grove \\(fixture\\)$', selectors: { '#covJoin': 'visible' } } },
   /* the buddy link: the landing card, then the signed-in ask (R5) */
   { family: 'links', id: 'person-landing', variant: 'signed_out', url: `/?p=${SHARE.person}`, settle: shareSettle,
-    expect: { overlay: true }, check: shareCheck({ text: 'Blake Sample wants you in their golf[\\s\\S]*7 rounds posted, best 81', cta: 'Get the app' }) },
+    /* W4 · "wants you in their golf" read as a translation error (critique B) */
+    expect: { overlay: true }, check: shareCheck({ text: 'Blake Sample wants to play golf with you[\\s\\S]*7 rounds posted, best 81', cta: 'Get the app' }) },
   { family: 'links', id: 'person-landing-new', variant: 'signed_out', url: `/?p=${SHARE.personNew}`, settle: shareSettle,
-    expect: { overlay: true }, check: shareCheck({ text: 'Kit Specimen wants you in their golf', cta: 'Get the app' }) },
+    expect: { overlay: true }, check: shareCheck({ text: 'Kit Specimen wants to play golf with you', cta: 'Get the app' }) },
   /* the landing keeps its token (cs_person); opening the app again spends it
      through the ask — the same two steps a golfer takes */
   { family: 'links', id: 'person-signed-in-ask', variant: 'member', url: `/?p=${SHARE.person}`, settle: shareSettle,

@@ -100,8 +100,12 @@ export default function install(W) {
       [SHARE.settlement]: { kind: 'settlement', game: 'match', course: pickerLabel(COURSE.wash, 'Black'), played_on: W.iso(-2),
         result: stripNulls({ side_a: 'Blake & Devon', side_b: 'Casey & Gray', status: '3&2', winner: '0', stake: '10',
           transfers: [{ from: 'Casey', to: 'Blake', amt: 10 }, { from: 'Gray', to: 'Devon', amt: 10 }],
+          /* one result, told once: the cells close the match 3 up with 2 to play
+             on 16 (3&2, the status), never earlier — 7 won, 4 lost, 5 halved.
+             Hole 14 was a win, which made the strip 4&2 against its own
+             status (critique B). */
           holes: { n: 18, played: 16, closed: 16, hot: '0', legend: 'Blake & Devon',
-            cells: ['0', 'h', '1', '0', '0', 'h', '1', '0', 'h', '0', '1', '0', 'h', '0', '1', '0'] } }),
+            cells: ['0', 'h', '1', '0', '0', 'h', '1', '0', 'h', '0', '1', '0', 'h', 'h', '1', '0'] } }),
         players: [{ name: 'Blake Sample', gross: 81 }, { name: 'Devon Testwell', gross: 78 }, { name: 'Casey Placeholder', gross: 92 }, { name: 'Gray Dummett', gross: 88 }] },
       [SHARE.recap]: s1 ? stripNulls({ kind: 'recap', league: 'North Grove (fixture)', starts_on: s1.starts_on, ends_on: s1.ends_on, status: s1.status, rows: recapRows }) : null,
       [SHARE.person]: personCard(2),
