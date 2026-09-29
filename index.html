@@ -27424,7 +27424,7 @@ function renderMajorRoom(el, E){
   /* the fine print — chosen, not discovered (D45) */
   html+=`<div class="card" style="margin-top:12px; padding:11px 13px; background:var(--bg2)">
     <div class="fine" style="padding:0; line-height:1.65">
-      <b style="color:var(--ink)">The fine print.</b> 18-hole cards only; scored by how far you beat <em>your own</em> number. An established number (3 posted rounds) contends for the jug${buyIn>0?' and the pot':''}; newer golfers <b>don't count this year</b> — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.${buyIn>0?` ${ev.pot_split==='wta'?'Winner takes it':'60/25/15, top three'}. ${CS_LEDGER}`:''}
+      <b style="color:var(--ink)">The fine print.</b> 18-hole cards only; scored by how far you beat your playing HCP. An established number (3 posted rounds) contends for the jug${buyIn>0?' and the pot':''}; newer golfers <b>don't count this year</b> — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.${buyIn>0?` ${ev.pot_split==='wta'?'Winner takes it':'60/25/15, top three'}. ${CS_LEDGER}`:''}
     </div>
   </div>`;
 
