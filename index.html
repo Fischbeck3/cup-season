@@ -5600,7 +5600,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <input class="f" id="pfName" autocomplete="name" placeholder="First and last" style="font-family:var(--sans); font-size:16px;">
       <div style="height:16px"></div>
       <label class="f" id="pfShootLabel"></label>
-      <div id="pfBands" role="radiogroup" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px"></div>
+      <div id="pfBands" role="radiogroup" aria-labelledby="pfShootLabel" aria-describedby="pfShootSub" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px"></div>
       <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--mut)" id="pfShootSub"></p>
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut); display:none" id="pfStarterNote"></p>
       <div style="height:16px"></div>
@@ -5608,7 +5608,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <!-- D247 · the marker is DEFAULTED, so the fourteen are behind a "Change"
            row rather than in front of a stranger. Same interaction as the
            phone; the desk simply has room to open four across. -->
-      <button class="mini" type="button" id="pfMarkerRow" style="width:100%; display:flex; align-items:center; gap:10px; min-height:44px; margin-top:8px; text-align:left"></button>
+      <button class="mini" type="button" id="pfMarkerRow" aria-labelledby="pfMarkerLabel pfMarkerRow" aria-expanded="false" aria-controls="pfMarkers" style="width:100%; display:flex; align-items:center; gap:10px; min-height:44px; margin-top:8px; text-align:left"></button>
       <div id="pfMarkers" style="display:none; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)" id="pfMarkerNote"></p>
       <div style="height:16px"></div>
@@ -27994,6 +27994,7 @@ function csPaintMarkerRow(){
   const name = (window.MARKERS || {})[pfMarker]?.n || 'The Saguaro';
   if(note) note.textContent = csMarkerFootnote(name);
   if(!row) return;
+  row.setAttribute('aria-expanded', pfMarkerOpen ? 'true' : 'false');
   row.innerHTML = `<span>${(window.mkr || (()=>''))(pfMarker)}</span>
     <span style="flex:1">${esc(name)}</span>
     <span class="fine">${pfMarkerOpen ? 'Close' : 'Change'}</span>`;
@@ -28101,7 +28102,7 @@ function showProfileGate(){
      keys, aria-checked, and a 10ms haptic tick on pick. */
   const grid = $('#pfMarkers');
   grid.setAttribute('role','radiogroup');
-  grid.setAttribute('aria-label','Ball marker');
+  grid.setAttribute('aria-labelledby','pfMarkerLabel');
   grid.innerHTML = Object.keys(MARKERS).map(k =>
     `<button class="mini" data-mk="${k}" role="radio" aria-checked="${k===pfMarker}" tabindex="${k===pfMarker?0:-1}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--act);color:var(--ink);':''}">${mkr(k)}<span style="font-size:11px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
   grid.style.display = pfMarkerOpen ? 'grid' : 'none';
@@ -28110,7 +28111,9 @@ function showProfileGate(){
     pfMarker = b.dataset.mk; pfMarkerTouched = true; pfMarkerOpen = false;
     try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
     showProfileGate();
-    grid.querySelector(`[data-mk="${pfMarker}"]`)?.focus();
+    /* a pick closes the grid, so focus goes back to the row that opened it —
+       a button inside a display:none grid cannot take focus, and it fell to <body> */
+    document.getElementById('pfMarkerRow')?.focus();
   }));
   if(!grid._csKeys){
     grid._csKeys = true;   /* the grid element persists across rebuilds — bind once */
@@ -30009,8 +30012,8 @@ function openProfileHub(){
       <div><label class="f" for="phCity">City</label><input class="f" id="phCity" style="font-family:var(--sans)"></div>
       <div><label class="f" for="phHome">Home course</label><input class="f" id="phHome" style="font-family:var(--sans)"></div>
     </div>
-    <label class="f" style="display:block; margin-top:8px">Ball marker</label>
-    <div id="phMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
+    <label class="f" id="phMarkersLabel" style="display:block; margin-top:8px">Ball marker</label>
+    <div id="phMarkers" role="group" aria-labelledby="phMarkersLabel" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
     <label class="f" style="display:block; margin-top:10px">Your photo · the marker always backs it up</label>
     <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
       <span id="phFace" style="flex:none; display:flex"></span>
