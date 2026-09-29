@@ -130,4 +130,23 @@ final class N4SheetsUITests: N2UITestCase {
     attach(app, "n4-042-claim-AX3")
     app.terminate()
   }
+
+  /// N4-114 · at 260 points the when-fork cut its second answer on an SE at
+  /// the reading size. A fitted sheet grows to its content now (the height is
+  /// a floor): both answers are whole on the first screen, with no scroll.
+  @MainActor func testTheWhenForksAnswersAreWholeWithoutAScroll() {
+    let app = launch("season-live", "whenfork")
+    let head = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] %@", "Two ways")).firstMatch
+    XCTAssertTrue(head.waitForExistence(timeout: 30), "the sheet is up")
+    Thread.sleep(forTimeInterval: 2)
+    let screen = app.windows.firstMatch.frame
+    for words in ["right now", "this week"] {
+      let answer = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", words)).firstMatch
+      XCTAssertTrue(answer.exists, "\(words): the answer is there")
+      XCTAssertTrue(answer.isHittable, "\(words): a target without a scroll")
+      XCTAssertLessThanOrEqual(answer.frame.maxY, screen.maxY, "\(words): whole on the first screen — \(answer.frame)")
+    }
+    attach(app, "n4-114-whenfork")
+    app.terminate()
+  }
 }
