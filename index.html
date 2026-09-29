@@ -4279,6 +4279,19 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .youmain, .youaside{display:contents;}
 .you-id{order:1;} .you-golf{order:2;} .you-seasons{order:3;} .you-bag{order:4;}
 .you-courses{order:5;} .you-doors{order:6; margin-top:var(--s5);}
+/* W7-055 · the phone's index to You: one row of tertiary links (§7.1: ink on a 2px
+   mut rule, a 44 target, §16.2) to the section heads that are on the page, agate
+   in caps; it scrolls sideways when the five do not fit and wears the scrollers'
+   edge (data-more, W5). The desk holds the same page in two columns and has no use for it. */
+.youjump{display:flex; gap:var(--s4); overflow-x:auto; margin:0 0 var(--s3); -webkit-overflow-scrolling:touch;}
+.youjump::-webkit-scrollbar{display:none;}
+.youjump[hidden], .youjump button[hidden]{display:none;}
+.youjump button{flex:none; min-height:44px; padding:0; background:none; border:0; cursor:pointer; color:var(--ink);
+  font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+.youjump button:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.youjump[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
+@media(min-width:960px){ .youjump{display:none;} }
 /* THE DESK'S OWN SHAPE (D234, §14.1, AW P2-15): identity, form and the golf
    in the reading column; buddies and the record in the 340 aside. It was the
    phone column stretched to 5,041px. */
@@ -6214,6 +6227,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              facts that are permanent -->
         <div id="youForm"></div>
         <div class="ctros" id="youTros" style="text-align:left; margin:10px 0 14px"></div>
+        <!-- W7-055 · the phone's index to this page: one row of links to the heads that are on it (csYouJump) -->
+        <nav class="youjump" id="youJump" aria-label="Sections on your page" hidden></nav>
         </div>
 
         <!-- ══ D177 · YOUR GOLF ═══════════════════════════════════════════
@@ -6231,7 +6246,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- the recent five lead the golf: the golf you just played is the
              first thing a golfer looks for on their own page, and an empty
              record's one next step sits here, right under the card -->
-        <h2 class="eyebrow">Recent rounds</h2>
+        <h2 class="eyebrow" id="youRecentHead">Recent rounds</h2>
         <div id="youRecent" style="text-align:left"></div>
         <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
              permanent tab an inch below it, and this is a page about the past. -->
@@ -6242,7 +6257,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              the case's top strip now; the objects sit under them. The money
              stays D39's frame — what friends settled between themselves,
              never a balance the app holds. -->
-        <h2 class="eyebrow" data-rec="some">Trophies</h2>
+        <h2 class="eyebrow" id="youTrophiesHead" data-rec="some">Trophies</h2>
         <!-- D291 · neither of these is a card any more. The record was four
              bordered tiles and the case sat inside a `.room-dusk` left over
              from the tile era — a class that re-asserts the dusk INK and no
@@ -6333,7 +6348,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
 
         <div class="league-only">
-          <h2 class="eyebrow"><span>This season · <span id="youSeasonLg">your league</span></span></h2>
+          <h2 class="eyebrow" id="youSeasonHead"><span>This season · <span id="youSeasonLg">your league</span></span></h2>
           <!-- ALL TIME and THIS SEASON printed the same three figures for a
                golfer in their first season (owner C, category C, critique-B);
                when they agree only the figure that is the season's own, the
@@ -8191,12 +8206,15 @@ function setRoomSeg(r){
   if(r==='pot' && typeof renderPot==='function') renderPot();
   if(r==='pot') window.loadStakes?.();      /* D64: refresh the forfeit ledger (module-side — guard) */
   if(r==='album') window.renderAlbum?.();   /* module-side (needs sb) — guard the boundary */
-  const el = document.getElementById('room-'+r);
+  csScrollToHead(document.getElementById('room-'+r));
+}
+/* a section scrolled to "start", below the sticky bar (setRoomSeg's own scroll,
+   and W7-055's You index). Reduce Motion jumps. Otherwise it glides and then
+   SETTLES: the root's scroll-padding keeps "start" below the sticky bar, but the
+   glide's target is fixed when it begins, and a section re-laying out above it
+   while it runs left the head up to 14px under the bar. */
+function csScrollToHead(el){
   if(el && typeof el.scrollIntoView === 'function'){
-    /* Reduce Motion jumps. Otherwise it glides and then SETTLES: the root's
-       scroll-padding keeps "start" below the sticky bar, but the glide's target
-       is fixed when it begins, and a section re-laying out above it while it
-       runs left the head up to 14px under the bar. */
     const calm = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
     try { el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block:'start' }); } catch(_){ el.scrollIntoView(); }
     if(!calm){
@@ -8210,6 +8228,7 @@ function setRoomSeg(r){
     }
   }
 }
+window.csScrollToHead = csScrollToHead;
 /* D222 · THE ROUTER'S OWN ALIAS TABLE, in one place.
    `switchView` used to rename views inline, so nothing else could ask "does
    this destination resolve?" — which is how the live route pointed at a
@@ -24718,6 +24737,43 @@ function renderCareer(){
    where that button sat, and You is a page about the past. */
 /* `RoundCopy.deleteConsequence` — one sentence, two clients. */
 const CS_ROUND_DELETE = 'It leaves your rounds and any season standings it counted toward. This cannot be undone.';
+/* W7-055 [X10] · YOU'S INDEX, BELOW THE DESK. The phone-width page is one ~3,000px
+   scroll (recent rounds, trophies, seasons, rivalries, courses) and nothing named
+   what was on it. One row of links under the card, each to the head of a section
+   that is ON the page now: it is built from the heads that are displayed (a record
+   with no rounds has no trophies, a golfer with no league no rivalries, and the
+   sections arrive after boot), so a section that does not exist is never offered,
+   and a row of fewer than three is not drawn. Web-only chrome (D234: navigation is
+   not shared); the phone's YouScreen is one scroll too. */
+const CS_YOU_JUMPS = [['Recent rounds', ['#youRecentHead']], ['Trophies', ['#youTrophiesHead']],
+  ['Seasons', ['#lgRecHead', '#youSeasonHead']], ['Rivalries', ['#youRivalsHead']], ['Courses', ['#youCoursesDoor']]];
+(function csYouJump(){
+  const box = document.getElementById('youJump'), view = document.getElementById('view-stats');
+  if(!box || !view) return;
+  const shown = el => !!el && el.getClientRects().length > 0;
+  const targetOf = i => CS_YOU_JUMPS[i][1].map(sel => document.querySelector(sel)).find(shown) || null;
+  box.innerHTML = CS_YOU_JUMPS.map(([label], i) => `<button type="button" data-yj="${i}">${label}</button>`).join('');
+  box.addEventListener('click', e => {
+    const b = e.target.closest('[data-yj]'); if(!b) return;
+    const i = Number(b.dataset.yj), el = targetOf(i);
+    if(!el) return;
+    window.qaEvent?.('cta_tapped', { door: 'you:' + CS_YOU_JUMPS[i][0].toLowerCase().replace(/ /g, '_') });
+    csScrollToHead(el);
+  });
+  csBookEdge(box, box, 'x');
+  let q = 0;
+  const sync = () => {
+    q = 0;
+    const on = [...box.querySelectorAll('[data-yj]')].filter(b => { const t = targetOf(Number(b.dataset.yj)); b.hidden = !t; return !!t; }).length;
+    box.hidden = on < 3;
+    box.dispatchEvent(new Event('scroll'));   /* the edge re-reads after the chips change */
+  };
+  const again = () => { if(!q) q = requestAnimationFrame(sync); };
+  new MutationObserver(recs => { if(recs.some(r => !box.contains(r.target))) again(); })
+    .observe(view, { childList:true, subtree:true, attributes:true, attributeFilter:['hidden', 'style', 'class', 'data-record'] });
+  window.addEventListener('resize', again, { passive:true });
+  again();
+})();
 function renderIndStats(){
   renderTrophyCase();
   renderCareerRecord();

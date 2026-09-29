@@ -40,20 +40,43 @@ const text = (sel, re, what) => async (page) => page.evaluate(({ sel, re, what }
   return new RegExp(re, 'i').test(el.innerText.replace(/\s+/g, ' ')) ? true : `${what}: ${sel} reads ${JSON.stringify(el.innerText.replace(/\s+/g, ' ').slice(0, 120))}`
 }, { sel, re, what })
 
+/* TEN / W8 · W7-055 [X10] · the phone-width You has an index under the card: one row of links (44px tall) to the heads that
+   are on the page, drawn only when three or more are, and never at the desk, whose two columns hold the page in one screen.
+   `want` is the count that must be drawn (0 = the row is absent). The second link's target lands under the sticky bar. */
+const youIndex = (want) => async (page) => page.evaluate(async (want) => {
+  const box = document.getElementById('youJump')
+  const shown = (el) => !!el && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0
+  if (innerWidth >= 960) return shown(box) ? 'the desk draws the phone-width index' : true
+  const btns = box ? [...box.querySelectorAll('button')].filter(shown) : []
+  if (!want) return shown(box) ? `the index is drawn with ${btns.length} link(s), and a row of fewer than three is not` : true
+  if (!shown(box) || btns.length !== want) return `the index has ${btns.length} visible link(s), expected ${want}`
+  const small = btns.filter((b) => b.getBoundingClientRect().height < 44)
+  if (small.length) return `an index link is under 44px tall: ${small[0].textContent}`
+  /* the second link: a head near the foot cannot reach the top of a page that ends below it */
+  const link = btns[1], target = { Courses: '#youCoursesDoor', Rivalries: '#youRivalsHead', Seasons: '#lgRecHead, #youSeasonHead', Trophies: '#youTrophiesHead', 'Recent rounds': '#youRecentHead' }[link.textContent.trim()]
+  if (!target) return `an index link has no target: ${link.textContent}`
+  link.click(); await new Promise((r) => setTimeout(r, 300))
+  const el = [...document.querySelectorAll(target)].find(shown), top = el ? Math.round(el.getBoundingClientRect().top) : null
+  window.scrollTo(0, 0)
+  return el && top >= 40 && top <= 100 ? true : `the ${link.textContent.trim()} link scrolled its head to ${top}px, not under the sticky bar`
+}, want)
+
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
     drive: youSettled('empty'), expect: { view: 'view-stats', selectors: { '#youCard': 'visible', '#youName': 'text:^Avery Fixture$' } },
     check: all(recordState('empty'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 0 ? true : 'a round row rendered for a golfer with none'),
       /* TEN / W8 · W7-009: an empty record says the first round is missing and holds the door, so the sidebar's sentence and door stand down */
-      standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]'])) },
+      standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]']),
+      /* TEN / W8 · W7-055: an empty record has one section, so no index */
+      youIndex(0)) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
     check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`)) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
-    check: all(recordState('some'), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
+    check: all(recordState('some'), youIndex(5), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
       readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */
