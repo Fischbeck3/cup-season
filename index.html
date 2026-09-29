@@ -35701,6 +35701,15 @@ function showWelcome(){
      when installed, still silent on a working surface. */
   setTimeout(() => window.csEarnInstallNudge?.(), 3400);
 }
+/* THE PUBLIC PLAN'S WHO-LINE · round 2's P0 (category judge, 2026-09-29): the
+   link said "Avery and Devon are in." while the plan's own sheet showed Avery
+   ASKED. share_info's `who` is every tagged golfer who has not said no — an
+   unanswered tag counts (the_plan_link.sql, X42; the in-app producer already
+   says ASKED, f46086b4). Until the database half is pushed, the page says only
+   what the payload supports: they are on the plan. When `who` carries only an
+   explicit yes, this is the one line to turn back to "in". */
+function csPlanWhoLine(whoTxt, n){ return whoTxt + (n === 1 ? ' is' : ' are') + ' on the plan.'; }
+
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';
   $('#obDoor').style.display = 'block';
@@ -36304,7 +36313,7 @@ async function renderShareView(tok, _testInfo){
     card.innerHTML = `<div class="sv-head">
         <p class="sv-eb cs-agate">${esc(fmtD(info.play_on))}${info.tee ? ` · <span style="text-transform:none">${esc(fmtTee(info.tee))}</span>` : ''}</p>
         <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
-        <p class="sv-where cs-body-s">${who.length ? `${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.` : `Just ${esc(info.host)} so far.`}</p>
+        <p class="sv-where cs-body-s">${who.length ? esc(csPlanWhoLine(whoTxt, who.length)) : `Just ${esc(info.host)} so far.`}</p>
       </div>` +
       foot({ cta: 'Take the seat', primary: true,
              note: `Sign in and you’ll be asked first. The seat, and a buddy request to ${info.host}, wait for your yes.` });
@@ -36553,7 +36562,7 @@ function csLinkCard(kind, info){
     /* the SHORT course name, as the landing card prints it */
     return { title: CS_LINK_ASK.plan.title, yes: CS_LINK_ASK.plan.yes, note: csLinkPlanNote(i.host),
              mark: mkr(i.marker), ask: csLinkAskPlan(i.host, String(i.course || '').split(' — ')[0], csLinkDay(i.play_on)),
-             facts: [tee ? tee + ' tee' : '', who.length ? whoTxt + (who.length === 1 ? ' is in.' : ' are in.') : ''].filter(Boolean).join(' · ') };
+             facts: [tee ? tee + ' tee' : '', who.length ? csPlanWhoLine(whoTxt, who.length) : ''].filter(Boolean).join(' · ') };
   }
   const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
