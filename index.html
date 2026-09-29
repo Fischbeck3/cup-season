@@ -1137,7 +1137,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
    (labels) are agateS — never mono (§1.4). The rank and points stay columns. */
 .climb-rung .voice{flex:none; flex-basis:100%; min-width:0; font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); padding-left:46px; overflow-wrap:anywhere;}   /* D258 · the rung's one sentence wraps rather than clipping */
 .climb-rung .voice b{color:var(--ink); font-weight:600;}
-.climb-rung .voice .stake{color:var(--gold);}
+.climb-rung .voice .stake{color:var(--ink);}   /* W7-029 · gold is a won thing (§2.4, §15.4: the leader's rail field and the pot, twice); '— the top seed' is a stake not yet won */
 .climb-rung .badge{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; padding:1px 5px; border-radius:4px; flex:none;}   /* D258 · 11px is the floor (L-29); the phone's badge is CSFont.label */
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
 .climb-rung .badge.out{color:var(--mut); border:1px solid var(--rule);}
@@ -1155,7 +1155,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
    leader's gold paints only AFTER the flip lands: earned, then painted. */
 .climb-rung{position:relative;}
 .climb-rung .nm{transition:color .3s ease;}
-.climb-rung.lead .nm{color:var(--gold);}
+.climb-rung.lead .nm{color:var(--ink);}   /* W7-029 · the leader is named in ink; the 01 rail is the season's gold (§15.4) */
 .climb-rung.lead.lead-wait .nm{color:var(--ink);}
 .climb-roar{position:absolute; inset:0; border:1.5px solid var(--brand); border-radius:9px; pointer-events:none; opacity:0;}
 .climb-roar.go{animation:csRoar .8s ease-out forwards;}
@@ -2914,8 +2914,8 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 }
 /* .ontheline: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 /* TEN / W6 · AW2-06: the label and the split (#lineSplit) are agate in caps, never mono */
-.ontheline .ok{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--gold);}
-.ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold); font-variant-numeric:tabular-nums;}
+.ontheline .ok{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--ink);}   /* W7-029 · gold twice on the season page (§15.4), and this is neither */
+.ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums;}
 .ontheline .os{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
 .ontheline .go{margin-left:auto; color:var(--mut);}
 /* TEN / W6 · AW2-04 (L-34, D360) · at the desk the pot stands in the second

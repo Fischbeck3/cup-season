@@ -380,3 +380,20 @@ export const isSystemSegment = (sel, chosen) => async (page) => page.evaluate(([
   const u = getComputedStyle(on[0]).borderBottomWidth
   return u === '2px' ? true : `the chosen tab has a ${u} underline, not 2px`
 }, [sel, chosen])
+
+/* TEN / W8 · W7-029 · UI_SYSTEM §15.4 and §2.4: gold on the season page is a won thing, exactly twice (the leader's rail field and
+ * the pot's figure), and no card appears on it. `goldOnly(root, allowed)` fails the capture when a visible element under `root`
+ * carries the gold token (its text colour, fill, an edge or a stroke) and matches none of the `allowed` selectors. */
+export const goldOnly = (root, allowed) => async (page) => page.evaluate(([root, allowed]) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const gold = (() => { const i = document.createElement('i'); i.style.color = 'var(--gold)'; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c })()
+  const path = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '')
+  const bad = []
+  for (const el of document.querySelector(root).querySelectorAll('*')) {
+    if (!shown(el) || allowed.some((a) => el.matches(a))) continue
+    const cs = getComputedStyle(el), ownText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())
+    const edge = ['Top', 'Left', 'Bottom', 'Right'].some((s) => parseFloat(cs[`border${s}Width`]) > 0 && cs[`border${s}Color`] === gold)
+    if ((cs.color === gold && ownText) || cs.backgroundColor === gold || edge || cs.stroke === gold || cs.fill === gold) bad.push(`${path(el)} ${JSON.stringify((el.innerText || '').replace(/\s+/g, ' ').slice(0, 24))}`)
+  }
+  return bad.length ? `gold is spent past the leader's rail and the pot (§15.4): ${bad.slice(0, 5).join('; ')}` : true
+}, [root, allowed])
