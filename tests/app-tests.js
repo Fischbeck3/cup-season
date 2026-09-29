@@ -978,12 +978,14 @@
     }
     /* TEN / W6 · the held round's line (18a279bd) agrees with its count: one
        hole scored STAYS, three holes scored STAY, and none says only that the
-       round is still on. The phone's twin prints the same three. */
-    t('the held round\u2019s line agrees with its count',
+       round is still on. The phone's twin prints the same three.
+       TEN / W7-003 [X02] · and it says why the setup is locked, and the way to
+       change it, instead of inviting an edit the server never receives. */
+    t('the held round\u2019s line agrees with its count, and says why its setup is locked',
       [csLiveHeldLine({ scores: [[4, null, null]] }), csLiveHeldLine({ scores: [[4, 5, 3], [5, null, 4]] }), csLiveHeldLine({ scores: [[null, null]] })],
-      ['Your round is still on, and its 1 hole scored stays with it. Change the course, the tee or the holes here.',
-       'Your round is still on, and its 3 holes scored stay with it. Change the course, the tee or the holes here.',
-       'Your round is still on. Change the course, the tee or the holes here.'])
+      ['Your round is still on, and its 1 hole scored stays with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.',
+       'Your round is still on, and its 3 holes scored stay with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.',
+       'Your round is still on. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.'])
     t('D252: one you have not joined says the door is open',
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();
