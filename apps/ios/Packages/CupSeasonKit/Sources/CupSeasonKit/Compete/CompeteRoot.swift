@@ -208,12 +208,16 @@ public enum CompeteRoot {
     // grain, not a second producer — and `rank:` is the third: when the row
     // draws the standing as a figure, the sentence stops saying it (D286).
     let rank = rank(m, phase: phase)
+    let line = finishedSub(m, phase: phase)
+      // D318 · `mine: true` — this list is the viewer's own seasons,
+      // so their unpaid stake belongs on the row that is owed it.
+      ?? SeasonFacts.seasonLine(m, week: false, rank: rank == nil, mine: true,
+                                today: today, calendar: calendar)
+    // N4-204 · the Pro reads that they run it, on a running season and in the
+    // Final, as the web's row says it (`csSeasonRowFacts`: "… · you run it")
+    let running: Bool = { switch phase { case .season, .cupFinal: return true; default: return false } }()
     return Row(id: "league:\(m.league_id.uuidString)", kind: .season, eyebrow: eyebrow, title: m.name,
-               sub: finishedSub(m, phase: phase)
-                 // D318 · `mine: true` — this list is the viewer's own seasons,
-                 // so their unpaid stake belongs on the row that is owed it.
-                 ?? SeasonFacts.seasonLine(m, week: false, rank: rank == nil, mine: true,
-                                           today: today, calendar: calendar),
+               sub: running && m.role == "commissioner" && !line.isEmpty ? line + " · you run it" : line,
                clock: clock(m, phase: phase, today: today, calendar: calendar),
                rank: rank,
                leagueId: m.league_id,
