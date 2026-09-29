@@ -63,22 +63,55 @@ const YOU = [
 
 /* ------------------------------------------------------ THE RECORD (photos) */
 /* the record section of You, with the round photographs in each state: the
-   world gives Avery's latest round a photo (rounds/<me>/<round>.jpg) */
+   world gives Avery's latest round a photo (rounds/<me>/<round>.jpg).
+   W1 (2026-09-28): the You page draws no round photograph at all — the record
+   opens a round's receipt, and that is where its photograph lives (the album
+   is the season's, in the league room). So photos-none and photo-broken were
+   byte-identical to populated: they captured a page with no photo slot. They
+   now open the latest round's receipt from Recent rounds, the record's own
+   door, and capture what that photograph slot does in each state. */
+/* the real tap: the first Recent rounds row opens its receipt */
+async function openLatestReceipt(page) {
+  await youSettled('some')(page)
+  for (let i = 0; i < 4; i++) {
+    await click(page, '#youRecent [data-rcpt-i="0"]').catch(() => {})
+    const ok = await page.waitForFunction(() => document.getElementById('sheet').classList.contains('open'), null, { timeout: 2000 }).then(() => true, () => false)
+    if (ok) break
+  }
+  await until(page, () => document.getElementById('sheet').classList.contains('open') && !/LOADING/.test(document.getElementById('shSub').textContent), null, 10000)
+}
+const heroState = (want) => async (page) => page.evaluate((want) => {
+  const h = document.getElementById('rcptHero')
+  if (!h) return 'no receipt moment'
+  const img = h.querySelector(':scope > img')
+  const broken = [...document.querySelectorAll('#sheet img')].filter((i) => i.complete && i.naturalWidth === 0 && i.offsetParent !== null)
+  if (broken.length) return `${broken.length} broken image(s) are showing`
+  if (want === 'photo') return img && !h.querySelector('.rm-topo') ? true : 'the moment has no photograph'
+  return !img && !!h.querySelector('.rm-topo') && !h.classList.contains('has-photo') && !!h.querySelector('.rm-fig')
+    ? true : 'the moment did not keep its no-photo face: ' + h.className
+}, want)
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
     check: recordState('some') },
-  { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, title: 'The record · no photographs anywhere',
-    drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#view-stats img[src*="token=fixture"]').length === 0 ? true : 'a photograph rendered with none on file')) },
-  /* every signed URL answers 404: the record must fall back, never show a broken image */
-  { family: 'record', id: 'photo-broken', variant: 'member', world: { flags: { brokenPhotos: true } }, title: 'The record · the photograph will not load (404)',
+  { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
+    title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
+    drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptHero': 'visible' } },
+    check: all(recordState('some'), heroState('none'),
+      async (page) => page.evaluate(() => document.querySelectorAll('#sheet img[src*="token=fixture"]').length === 0 ? true : 'a photograph rendered with none on file')) },
+  /* every signed URL answers 404: the receipt falls back to its no-photo
+     moment, never a broken image on the ceremony ground */
+  { family: 'record', id: 'photo-broken', variant: 'member', world: { flags: { brokenPhotos: true } }, fullPage: false,
+    title: 'The record · the photograph will not load (404): the receipt falls back to its no-photo moment',
     expectConsole: [/status of 404/],
-    drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => {
-      const broken = [...document.querySelectorAll('#view-stats img')].filter((i) => i.complete && i.naturalWidth === 0 && i.offsetParent !== null)
-      return broken.length === 0 ? true : `${broken.length} broken image(s) are showing`
-    })) },
+    drive: async (page) => {
+      await openLatestReceipt(page)
+      await until(page, () => { const h = document.getElementById('rcptHero'); return !!h && !h.querySelector(':scope > img') && !!h.querySelector('.rm-topo') }, null, 10000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptHero': 'visible' } },
+    check: all(recordState('some'), heroState('none')) },
   /* a credited photograph: Blake's avatar on his credential carries the credit
      line "Blake's round · <day>" (csCredentialHtml). Opened from the board's
      own tour-card door, the in-context peek (data-tc). */
@@ -104,22 +137,24 @@ const RECORD = [
 /* ------------------------------------------------------------ RECEIPTS */
 const RECEIPT = [
   /* the round receipt, from the first Recent rounds row (the real tap) */
+  /* W1 (2026-09-28): the league's verdict (points, league, the month) sits
+     directly under the moment now, so this first-screen capture reaches it —
+     it used to stop at the photo buttons and the card */
   { family: 'receipt', id: 'round', variant: 'member', fullPage: false, title: 'Round receipt · opened from Recent rounds',
     drive: async (page) => {
-      await youSettled('some')(page)
-      for (let i = 0; i < 4; i++) {
-        await click(page, '#youRecent [data-rcpt-i="0"]').catch(() => {})
-        const ok = await page.waitForFunction(() => document.getElementById('sheet').classList.contains('open'), null, { timeout: 2000 }).then(() => true, () => false)
-        if (ok) break
-      }
-      await until(page, () => document.getElementById('sheet').classList.contains('open') && !/LOADING/.test(document.getElementById('shSub').textContent), null, 10000)
+      await openLatestReceipt(page)
+      await until(page, () => { const f = document.getElementById('rcptFigs'); return !!f && !f.hidden }, null, 10000).catch(() => {})
       await page.waitForTimeout(700)
     },
-    expect: { view: 'view-stats', sheet: true },
-    check: async (page) => page.evaluate(() => {
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
+    check: all(heroState('photo'), async (page) => page.evaluate(() => {
       const t = document.getElementById('shBody').innerText.replace(/\s+/g, ' ')
-      return /\b84\b/.test(document.getElementById('sheet').innerText) && /Mesquite Wash/i.test(document.getElementById('sheet').innerText) ? true : 'the receipt does not show the 84 at Mesquite Wash: ' + t.slice(0, 160)
-    }) },
+      if (!(/\b84\b/.test(document.getElementById('sheet').innerText) && /Mesquite Wash/i.test(document.getElementById('sheet').innerText))) return 'the receipt does not show the 84 at Mesquite Wash: ' + t.slice(0, 160)
+      const f = document.getElementById('rcptFigs').getBoundingClientRect()
+      if (f.bottom > innerHeight) return 'the league verdict is below the first screen (' + Math.round(f.bottom) + ' > ' + innerHeight + ')'
+      if (/\bgross\b/i.test(document.getElementById('shTitle').textContent)) return 'the sheet title repeats the figure: ' + document.getElementById('shTitle').textContent
+      return true
+    })) },
   /* the points receipt (§16): the squad row on the season's own standings
      opens the squad math */
   { family: 'receipt', id: 'points', variant: 'member', fullPage: false, title: 'Points receipt · the squad math, from the standings row',
