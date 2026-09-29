@@ -215,6 +215,22 @@ const SETTINGS = [
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
     check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings')) },
+  /* TEN / W8 · W7-043 [A2-settings-4] · the Handicap index block, scrolled to. Once the engine owns the number (index_source 'app') the card draws no
+     field and no 'Update index' (the server refuses the edit by design and the golfer learned it from a toast): it says whose the number is, in the
+     phone's words (CardAndSettingsScreen, Y-06), and keeps the door. A golfer whose number has not been built keeps the starter field. */
+  { family: 'settings', id: 'card-index', variant: 'member', fullPage: false, title: 'Card & settings · the Handicap index, built by the engine (no field, no Update index)',
+    drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdxOwned': 'text:^Your number builds itself now . 14\\.2$', '#phScoreHelp': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      if (document.getElementById('phIdx') || document.getElementById('phIdxGo')) return 'the engine-owned card still offers a field or Update index'
+      const help = document.getElementById('phIdxHelp').textContent.replace(/\s+/g, ' ').trim()
+      if (help !== 'It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. How scoring works') return `the note reads ${JSON.stringify(help)}`
+      return /[\u2192\u203a]/.test(document.getElementById('phIdxHelp').textContent) ? 'the door carries a typed arrow' : true
+    }) },
+  { family: 'settings', id: 'card-starter', variant: 'one_round', fullPage: false, title: 'Card & settings · the Handicap index, still building (the starter field stays)',
+    drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdx': 'visible', '#phIdxGo': 'text:^Update index$' } },
+    check: async (page) => page.evaluate(() => /Set a starter here/.test(document.getElementById('phIdxHelp').textContent) ? true : 'the starter sentence is gone') },
   /* TEN / W8 · W7-042 [A2-settings-3] · an armed card is not dropped by a dismissal. Findable-by saves on the tap, so it does not arm
      Save changes; a pending name edit does, and the first dismissal (the ×) keeps the sheet open, puts focus on Save and says why */
   { family: 'settings', id: 'card-unsaved', variant: 'member', fullPage: false, title: 'Card & settings · an edit is pending and the sheet is dismissed once (kept open, and it says why)',

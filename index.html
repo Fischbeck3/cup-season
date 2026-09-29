@@ -31034,11 +31034,17 @@ function openProfileHub(){
     <!-- AW2-02 (round 2, WCAG 4.1.2): the field is named by its eyebrow, and
          the sentence under it describes it -->
     <div class="eyebrow" id="phIdxLab" style="margin-top:20px">Handicap index</div>
+    ${p.index_source === 'app' ? `
+    <!-- W7-043 · once the engine owns the number the server refuses an edit by design (set_index: 'Your number comes from
+         your scores now'), so the card does not offer one: it says whose the number is and where to read why, in the
+         phone's own words (CardAndSettingsScreen, Y-06). D395: the card never sets a scored number. -->
+    <p class="cs-body" id="phIdxOwned" aria-labelledby="phIdxLab" style="margin:0">Your number builds itself now · ${p.index_current != null ? esc(Number(p.index_current).toFixed(1)) : '\u2014'}</p>
+    <p class="fine" id="phIdxHelp" style="padding-left:0">It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>` : `
     <div style="display:flex; gap:10px; align-items:center;">
       <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px" aria-labelledby="phIdxLab" aria-describedby="phIdxHelp">
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
-    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>
+    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>`}
 
     <div class="eyebrow" style="margin-top:20px">Your seasons</div>
     ${leagues}
@@ -31134,7 +31140,7 @@ function openProfileHub(){
   $('#phCity').value = p.city || '';
   $('#phHome').value = p.home_course || '';
   $('#phGhin').value = p.ghin_number || '';
-  $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';
+  if($('#phIdx')) $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';   /* W7-043 · absent while the engine owns the number */
   renderPhMarkers();
 
   /* D59: the avatar editor — square-crop to 512, straight into {uid}/avatar.jpg,
@@ -31256,7 +31262,7 @@ function openProfileHub(){
     finally { btn.disabled = false; }
   });
 
-  $('#phIdxGo').addEventListener('click', async () => {
+  $('#phIdxGo')?.addEventListener('click', async () => {
     const idx = parseFloat($('#phIdx').value);
     if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off — anywhere from -10 to 54.'); return; }
     const btn = $('#phIdxGo'); btn.disabled = true;
