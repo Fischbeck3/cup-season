@@ -385,9 +385,11 @@ async function eventFromCompete(page, sel, id) {
   await page.waitForTimeout(400)
 }
 const EVENTS = [
+  /* W5 (4a703402) moved Compete's moments into their own column, #cmpMoments;
+     the events states tap the row where it now lives */
   { family: 'events', id: 'live', variant: 'member', title: 'The event room · a live Ryder, week 3 of 3, from Compete’s moments',
     prepare: async (W) => { ryderWorld(W) },
-    drive: (page) => eventFromCompete(page, `#cmpList [data-peer="event:${E_LIVE}"]`, E_LIVE),
+    drive: (page) => eventFromCompete(page, `#cmpMoments [data-peer="event:${E_LIVE}"]`, E_LIVE),
     /* W2 2026-09-28 · the side scores ride the plate now (owner H: the score
        was under the fold at 375), so the rail below it is gone; and the
        series line says the holder once — "hold the Ryder 1–0 · Fixture Hawks
@@ -426,7 +428,7 @@ const EVENTS = [
     },
     expectConsole: [/status of 503/, /\[event\]/, /^\[cs\] error:\s+fixture: the event read failed/],
     drive: async (page) => {
-      await eventFromCompete(page, `#cmpList [data-peer="event:${E_LIVE}"]`, E_LIVE).catch(() => {})
+      await eventFromCompete(page, `#cmpMoments [data-peer="event:${E_LIVE}"]`, E_LIVE).catch(() => {})
       await until(page, () => !!window.CS_EVENT && window.CS_EVENT.state === 'failed' && !!document.getElementById('evRetry'), null, 15000)
       await page.waitForTimeout(300)
     },
