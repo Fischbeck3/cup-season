@@ -23,8 +23,21 @@ const { chromium } = require(process.env.CS_PLAYWRIGHT || '/Users/fischbeck3/.ca
 const shell = () => { const r = join(homedir(), 'Library', 'Caches', 'ms-playwright'); for (const d of readdirSync(r).filter(d => d.startsWith('chromium_headless_shell')).sort().reverse()) { const p = join(r, d, 'chrome-headless-shell-mac-arm64', 'chrome-headless-shell'); if (existsSync(p)) return p } }
 
 /* sha256 of document.body.textContent (scripts removed, whitespace runs
-   collapsed) at 1b5916b2, before the shell changed. The words may not move. */
-const TEXT_SHA = 'ac76bd84f4e94f10c3d3ca4c9bf37cd70f066a2bb729cbb305ada7f1f54f0fb2'
+   collapsed). The words may not move without this pin moving WITH a reason.
+   Was ac76bd84… (1b5916b2, before the F04 shell). Re-pinned 2026-09-28 (W4,
+   the static pages' one shell) for exactly these changes and no others:
+   - the masthead's "Cup Season" replaces "← Back to Cup Season", and the
+     page title "Cup Season · Legal" becomes "Privacy, terms and the pot"
+     with a one-sentence summary under it (owner D);
+   - contents rows for the three documents and the privacy policy's six
+     heads, and a "Back to top" at each document's foot (owner M/R);
+   - the pot document is named "The pot", not "Prize Pool Disclaimer", and
+     the terms' one cross-reference follows it (TERMINOLOGY T-12, which names
+     this rename; the owner panel's C) — the same rename in legal/*.md;
+   - the footer says "Need a hand? Support · Get the app" and names the
+     operator, as /get and /support do.
+   Every clause of the three documents is otherwise the text counsel has. */
+const TEXT_SHA = '292cb3285e29990a7c77d95e617718f44db46a8f96c86193a7adac8ab6da755f'
 
 const results = []
 const check = (name, ok, got) => { results.push({ name, ok: !!ok }); console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : '  got: ' + JSON.stringify(got))) }
@@ -88,14 +101,19 @@ for (const width of [375, 402, 1280, 1600]) for (const c of cases) {
   if (width === 375 && ['new visitor, OS dark', 'explicit light'].includes(c.name)) {
     const link = page.locator('section a').first()
     await link.hover()
-    const hover = await page.evaluate(() => { const a = document.querySelector('section a'); const lum = s => { const x = s.match(/[\d.]+/g).slice(0, 3).map(Number).map(c => { c /= 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4 }); return .2126 * x[0] + .7152 * x[1] + .0722 * x[2] }; const A = lum(getComputedStyle(a).color), B = lum(getComputedStyle(a.closest('section')).backgroundColor); return (Math.max(A, B) + .05) / (Math.min(A, B) + .05) })
+    /* the ground is the first painted ancestor: the documents are no longer
+       boxed in a tinted panel (W4), so the section itself is transparent and
+       reading ITS colour measured the link against black */
+    const hover = await page.evaluate(() => { const a = document.querySelector('section a'); const lum = s => { const x = s.match(/[\d.]+/g).slice(0, 3).map(Number).map(c => { c /= 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4 }); return .2126 * x[0] + .7152 * x[1] + .0722 * x[2] }; const ground = el => { for (let n = el; n; n = n.parentElement) { const c = getComputedStyle(n).backgroundColor; if (!/rgba\(0, 0, 0, 0\)|transparent/.test(c)) return c } return 'rgb(255,255,255)' }; const A = lum(getComputedStyle(a).color), B = lum(ground(a.closest('section'))); return (Math.max(A, B) + .05) / (Math.min(A, B) + .05) })
     check(`${label}: hovered link ${hover.toFixed(2)} ≥4.5`, hover >= 4.5, hover)
     await page.mouse.move(0, 0)
     await page.keyboard.press('Tab')
     const order = []
     for (let i = 0; i < 5; i++) { order.push(await page.evaluate(() => ({ t: document.activeElement.textContent.trim().slice(0, 24), ring: getComputedStyle(document.activeElement).outlineStyle }))); await page.keyboard.press('Tab') }
-    check(`${label}: keyboard order starts Back → Privacy → Terms → Prize Pool, with a drawn ring`,
-      /Back to Cup Season/.test(order[0].t) && /Privacy/.test(order[1].t) && /Terms/.test(order[2].t) && /Prize/.test(order[3].t) && order.slice(0, 4).every(o => o.ring === 'solid'), order)
+    /* W4 · the way home is the masthead (the pennant and "Cup Season"), and
+       the pot document is named "The pot" (T-12) */
+    check(`${label}: keyboard order starts Cup Season → Privacy → Terms → The pot, with a drawn ring`,
+      /^Cup Season$/.test(order[0].t) && /Privacy/.test(order[1].t) && /Terms/.test(order[2].t) && /^The pot$/.test(order[3].t) && order.slice(0, 4).every(o => o.ring === 'solid'), order)
   }
   await ctx.close()
 }

@@ -5,8 +5,7 @@
 Cup Season is operated by Fischbeck3 LLC. By using it you agree to these terms.
 
 **Who can use it.** You must be at least 13. A league that keeps a pot is a
-private arrangement between adults who know each other; see the Prize Pool
-Disclaimer.
+private arrangement between adults who know each other; see The pot.
 
 **Your account and your scores.** You are responsible for the accuracy of what
 you post — your scores most of all. A posted round is a fact in your leagues'

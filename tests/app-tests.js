@@ -1476,6 +1476,25 @@
        'Season 2.',
        'Season 2. Last season you finished 1st of 6 with 1 point.',
        undefined]);
+    /* W4 · where the season stands, said before the money (owner E, critique
+       B): the week off the payload's own first tee, D386's seat for a squads
+       season outside a Final, D161's waiver where a minimum exists — and
+       nothing before the first tee or after the last week. Clock passed in. */
+    {
+      const nine = { starts_on: '2026-08-09', weeks: 13, finish: 'cup_final' };
+      const at = (y, m, d) => new Date(y, m - 1, d);
+      t('W4: week 8 of 13, the squad with the fewest golfers, no minimum until next month',
+        csCovenantClock({ ...nine, structure: 'squads2', floor: 2 }, at(2026, 9, 28)).t,
+        'You’d join in week 8 of 13, on the squad with the fewest golfers; your rounds count for it from that day. There’s no minimum to clear until October.');
+      t('W4: a solo season says the week and promises no minimum (L-23)',
+        csCovenantClock({ ...nine, structure: 'solo', floor: 2 }, at(2026, 9, 28)).t, 'You’d join in week 8 of 13.');
+      t('W4: inside the Cup Final no late seat is promised (D382)',
+        csCovenantClock({ ...nine, ends_on: '2026-11-07', structure: 'squads2', floor: 2 }, at(2026, 10, 20)).t,
+        'You’d join in week 11 of 13, during the Cup Final.');
+      t('W4: before the first tee and after the last week it says nothing',
+        [csCovenantClock(nine, at(2026, 8, 8)), csCovenantClock(nine, at(2026, 11, 8)), csCovenantClock({ weeks: 13 }, at(2026, 9, 28))],
+        [null, null, null]);
+    }
     t('D375: the re-up frame — title, eyebrow, button — at $50 and at $0',
       [csCovenantTitle({ ...today, season_number: 2, reup: true }), csCovenantEyebrow({ ...today, season_number: 2, reup: true }),
        csCovenantButton({ ...today, season_number: 2, reup: true }), csCovenantButton({ ...today, buyin_cents: 0, season_number: 2, reup: true }),
@@ -1591,8 +1610,10 @@
        'You’re already in for season 2.',
        'Mike is asked again — it rings on their phone.',
        'They’re asked again — it rings on their phone.']);
+    /* W4 · T §2.3: league is never a thing you join — a first invitation is a
+       "Season invite", the family "Season 2 invite" already belonged to */
     t('D375: a re-up invitation says which season',
-      [csInviteTitle({ kind:'league', reup:true, season_number:2 }), csInviteTitle({ kind:'league' })], ['Season 2 invite', 'League invite']);
+      [csInviteTitle({ kind:'league', reup:true, season_number:2 }), csInviteTitle({ kind:'league' })], ['Season 2 invite', 'Season invite']);
     t('D376: the ruling toast says the delta and the new total',
       [csRulingDone('Mike', -3, 4), csRulingDone('Mike', 1, null)],
       ['Ruled — Mike −3 points. Now 4. It’s on the board.', 'Ruled — Mike +1 point. It’s on the board.']);

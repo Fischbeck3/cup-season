@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark light">
 <title>Cup Season — Support</title>
-<meta name="description" content="How to get help with Cup Season, how to install the app and open a link into it, and how to delete your account.">
+<meta name="description" content="How to get help with Cup Season: a sign-in code that did not arrive, a link that did not open, and how to delete your account.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,83 +45,126 @@
     --ink:#151B17; --mut:#575F57; --dim:#8B9089;
     --act:#1F5D3A; --act-ink:#F4F1E9;
   }
+  /* ONE SHELL for the three static pages (get, support, legal), the same one
+     the public round record wears: the pennant and the condensed wordmark
+     over a hairline, the page's name at the right, a serif title, then
+     sections separated by rules rather than boxed in tinted cards (BRIEF §6,
+     owner and craft panels 2026-09-28). The mark is the generated geometry
+     (tools/build-beta-mark.sh), inline so it takes the page's ink. */
   *{box-sizing:border-box;}
   html{-webkit-text-size-adjust:100%;}
   body{margin:0; background:var(--bg0); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.45; -webkit-font-smoothing:antialiased;}
-  .wrap{max-width:640px; margin:0 auto; padding:var(--s5) var(--gutter) 72px;}
-  @media (min-width:720px){ .wrap{ padding-left:var(--gutter-desk); padding-right:var(--gutter-desk); } }
-  a{color:var(--act);}
-  .home{display:inline-block; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; color:var(--mut); text-decoration:none; margin-bottom:var(--s4); min-height:44px; line-height:44px;}
-  .home:hover{color:var(--ink);}
-  h1{font-family:var(--board); font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); font-weight:600; margin:0 0 var(--s2);}
-  .lede{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.005em; margin:0 0 var(--s5);}
-  nav{display:flex; gap:0 var(--s4); flex-wrap:wrap; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; margin:0 0 var(--s5); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule);}
-  nav a{display:flex; align-items:center; min-height:44px; text-decoration:none; color:var(--mut); padding:12px 0; line-height:1.2;} nav a:hover{color:var(--ink);}
-  section{background:var(--bg1); border-radius:var(--r); padding:var(--s4); margin-bottom:var(--s4); scroll-margin-top:var(--s4);}
-  h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s1);}
-  h3{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:var(--s4) 0 var(--s2);}
-  .sub{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s3);}
-  p{margin:0 0 var(--s3);} p:last-child{margin-bottom:0;}
+  ::selection{background:var(--act); color:var(--act-ink);}
+  .wrap{max-width:640px; margin:0 auto; padding:var(--s4) var(--gutter) 72px;}
+  @media (min-width:720px){ .wrap{ padding:var(--s5) var(--gutter-desk) 96px; } }
+  a{color:var(--act); text-underline-offset:.18em;}
+  a:hover{color:var(--ink);}
+  /* the product's focus ring: 2px act, 2px off the control (critique B) */
+  a:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:4px;}
+  .mast{display:flex; align-items:center; gap:var(--s3); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule); margin:0 0 var(--s5);}
+  .mast .home{display:inline-flex; align-items:center; gap:var(--s3); min-height:44px; color:var(--ink); text-decoration:none;}
+  .mast .home:hover{color:var(--ink);}
+  .mast svg{width:48px; height:28px; flex:none; display:block;}
+  .mast .name{font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:var(--caps); text-transform:uppercase;}
+  .mast .where{margin-left:auto; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); text-align:right;}
+  h1{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.01em; margin:0 0 var(--s3); text-wrap:balance;}
+  .sum{color:var(--mut); margin:0 0 var(--s4); text-wrap:pretty;}
+  section{padding-top:var(--s4); margin-top:var(--s5); border-top:var(--hair) solid var(--rule); scroll-margin-top:var(--s4);}
+  h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s3);}
+  h3{font-family:var(--board); font-weight:600; font-size:17px; line-height:1.2; color:var(--ink); margin:var(--s4) 0 var(--s2); scroll-margin-top:var(--s4);}
+  p{margin:0 0 var(--s3); text-wrap:pretty;} p:last-child{margin-bottom:0;}
   ol,ul{margin:0 0 var(--s3); padding-left:var(--s4);} li{margin:0 0 var(--s2);}
   b,strong{font-weight:650;}
-  .btn{display:block; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:14px var(--s3); min-height:50px; font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:.01em; margin:var(--s2) 0 var(--s3);}
-  .btn.quiet{background:var(--bg2); color:var(--ink);}
-  .btn[hidden]{display:none;}
+  /* the way to write is a button above the fold, not a link inside a
+     paragraph (owner H); the subject and the three asks are prefilled */
+  .btn{display:flex; align-items:center; justify-content:center; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:12px var(--s3); min-height:50px; font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:.01em; margin:0 0 var(--s2); overflow-wrap:anywhere;}
+  .btn:hover{color:var(--act-ink); filter:brightness(1.05);}
   .note{font-size:15px; color:var(--mut);}
-  .status{display:flex; gap:var(--s2); align-items:baseline; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s3);}
-  .status i{width:8px; height:8px; border-radius:50%; background:var(--dim); flex:none; transform:translateY(-1px);}
-  hr{border:0; border-top:var(--hair) solid var(--rule); margin:var(--s4) 0;}
-  footer{color:var(--mut); font-size:13px; text-align:center; margin-top:var(--s5);}
+  /* the questions on this page, as questions (craft H), each 44px tall */
+  .toc{list-style:none; margin:var(--s5) 0 0; padding:0; border-top:var(--hair) solid var(--rule);}
+  .toc li{margin:0; border-bottom:var(--hair) solid var(--rule);}
+  .toc a{display:flex; align-items:center; min-height:44px; padding:var(--s2) 0; text-decoration:none; color:var(--ink);}
+  .toc a:hover{color:var(--act);}
+  .up{margin-top:var(--s3);}
+  .up a{display:inline-flex; align-items:center; min-height:44px; font-size:15px; color:var(--mut);}
+  footer{margin-top:var(--s6); padding-top:var(--s4); border-top:var(--hair) solid var(--rule); color:var(--mut); font-size:15px;}
+  footer p{margin:0 0 var(--s2);}
+  footer .who{font-size:13px;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <a class="home" href="/">← Cup Season</a>
-  <h1>Support</h1>
-  <p class="lede">One golfer answers this address. Say what you were doing and you will hear back within a day.</p>
-  <nav>
-    <a href="#help">Get help</a>
-    <a href="#install">Install</a>
-    <a href="#links">A link that did not open</a>
-    <a href="#account">Your account</a>
-    <a href="/legal.html">Legal</a>
+<div class="wrap" id="top">
+  <header class="mast">
+    <a class="home" href="/" aria-label="Cup Season, open the app">
+      <svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></svg>
+      <span class="name">Cup Season</span>
+    </a>
+    <span class="where">Support</span>
+  </header>
+
+  <main>
+  <h1>One golfer answers this address.</h1>
+  <p class="sum">Say what you were doing and you will hear back within a day.</p>
+  <a class="btn" href="mailto:jerecho@fischbeck3.com?subject=Cup%20Season%20help&amp;body=What%20I%20was%20doing%3A%0A%0AWhich%20phone%3A%0A%0ARoughly%20when%3A%0A">Write to jerecho@fischbeck3.com</a>
+
+  <nav aria-label="On this page">
+    <ul class="toc">
+      <li><a href="#code">The sign-in code didn’t come, or didn’t work</a></li>
+      <li><a href="#links">A link didn’t open the way you expected</a></li>
+      <li><a href="#delete">Deleting your account</a></li>
+      <li><a href="#pot">The pot</a></li>
+    </ul>
   </nav>
 
   <section id="help">
     <h2>Get help</h2>
-    <p>Write to <a href="mailto:jerecho@fischbeck3.com">jerecho@fischbeck3.com</a> with what you were trying to do, which phone you were on, and roughly when. Cup Season is built and run by one golfer in Tempe, Arizona; you are writing to him.</p>
+    <p>Write with what you were trying to do, which phone you were on, and roughly when. Cup Season is built and run by one golfer in Tempe, Arizona; you are writing to him.</p>
     <p>If a score did not land, a round posted twice, or you can see something that is not yours, say so first — those are the things we drop everything for.</p>
+    <p>Installing the app, and opening a link inside it, is at <a href="/get">cupseason.app/get</a>.</p>
   </section>
 
-  <section id="install">
-    <h2>Install the app</h2>
-    <p>Everything you need is at <a href="/get">cupseason.app/get</a>: the web app for any phone, and the iPhone app as it opens up.</p>
-    <p><b>If somebody sent you a link</b> — to a round, a card or a season — <b>install the app, then open the link again.</b> The link opens on the web first; once the app is on your phone, opening the same link lands inside it. The app does not remember a link you opened before it was installed, so keep the message it came in.</p>
+  <!-- the likeliest support task on a code-only sign-in, in the Door's own
+       words (critique B P2) -->
+  <section id="code">
+    <h2>The sign-in code didn’t come, or didn’t work</h2>
+    <p>There is no password. You type your email and we send a code; the code is what you type back.</p>
+    <ul>
+      <li><b>No code yet?</b> Check spam for the newest Cup Season email. Older codes retire when a new one sends.</li>
+      <li><b>“Code didn’t take”?</b> Codes expire when a new one is sent, so use the code in the newest email. Codes are 8 digits.</li>
+      <li><b>“Too many sign-in emails for now”?</b> Give it a few minutes and try again.</li>
+      <li><b>Still stuck?</b> Write in from the email you are signing in with.</li>
+    </ul>
+    <p class="up"><a href="#top">Back to the questions</a></p>
   </section>
 
   <section id="links">
-    <h2>A link that did not open</h2>
+    <h2>A link didn’t open the way you expected</h2>
     <ul>
-      <li><b>It opened in the browser instead of the app.</b> Expected before the app is installed. Install it, then open the link again from the message.</li>
-      <li><b>It says the round was never finished.</b> There is no card to keep — whoever ran the round can tee off again and send you a new link from that round.</li>
-      <li><b>It says the card was already claimed.</b> Your card is on a record already. Sign in with the same email and it is there.</li>
-      <li><b>It asks you to sign in.</b> Sign in on that screen. A card or an invitation you opened while signed out is waiting for you after the code, and the app asks before it adds a buddy, takes a seat or puts a round on your record.</li>
+      <li><b>It opened in the browser instead of the app.</b> Expected before the app is installed. The link works in the browser as it is; once the iPhone app is installed, open the link again from the message.</li>
+      <li><b>It says the round was never finished.</b> There is no scorecard to keep — whoever ran the round can tee off again and send you a new link from that round.</li>
+      <li><b>It says the scorecard is already on a golfer’s record.</b> If you kept it, sign in with the same email and it is in your rounds. If you didn’t, ask whoever sent it for a fresh link.</li>
+      <li><b>It says the scorecard link has expired or was already claimed.</b> Ask whoever sent it to share a fresh one from the round.</li>
+      <li><b>It asks you to sign in.</b> Sign in on that screen. A scorecard or an invitation you opened while signed out is waiting for you after the code, and the app asks before it adds a buddy, takes a seat or puts a round on your record.</li>
     </ul>
+    <p class="up"><a href="#top">Back to the questions</a></p>
   </section>
 
   <section id="account">
     <h2>Your account</h2>
-    <h3>Signing in</h3>
-    <p>There is no password. You type your email and we send a code; the code is what you type back.</p>
-    <h3>Deleting your account</h3>
+    <h3 id="delete">Deleting your account</h3>
     <p>You can do it yourself, on the phone or the web: open <b>You</b>, then <b>Card &amp; settings</b>, and choose <b>Delete my account</b> at the bottom of Settings. It asks once more before anything happens.</p>
     <p>Deleting removes your name, handle, photo, email, photos and share images, and the text of your posts and comments, and your notifications stop. Your posted rounds stay in the leagues you played as "Former member", so standings stay true. The <a href="/legal.html#privacy">privacy policy</a> says exactly what is kept and why.</p>
     <p>If you can't get into the app, write to <a href="mailto:jerecho@fischbeck3.com">jerecho@fischbeck3.com</a> from the email on the account and we will delete it for you.</p>
-    <h3>The pot</h3>
-    <p>Cup Season keeps the ledger; the money moves between friends. Nothing is paid through the app. See the <a href="/legal.html#pot">prize pool disclaimer</a>.</p>
+    <h3 id="pot">The pot</h3>
+    <p>Cup Season keeps the ledger; the money moves between friends. Nothing is paid through the app. See <a href="/legal.html#pot">the pot</a> on the legal page.</p>
+    <p class="up"><a href="#top">Back to the questions</a></p>
   </section>
+  </main>
 
-  <footer>Cup Season · cupseason.app · operated by Fischbeck3 LLC</footer>
+  <footer>
+    <p><a href="/get">Get the app</a> · <a href="/legal.html">Legal</a></p>
+    <p class="who">Cup Season · cupseason.app · operated by Fischbeck3&nbsp;LLC</p>
+  </footer>
 </div>
 </body>
 </html>

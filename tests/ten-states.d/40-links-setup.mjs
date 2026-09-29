@@ -82,9 +82,24 @@ const PUBLIC_ROUND = [
   share('escaped-name', SHARE.roundEscaped, { round: true, text: '<img src=x onerror=', photos: 0, cta: 'Play with your people' }),
   share('no-band', SHARE.roundNoBand, { round: true, text: 'Jules Sandbox', photos: 0, band: false, cta: 'Play with your people' }),
   share('broken-photo', SHARE.roundBroken, { round: true, text: 'Harper Examplar', photos: 0, cta: 'Play with your people' }, { world: { flags: { brokenPhotos: true } }, expectConsole: [/status of 404/] }),
-  share('dead-link', SHARE.dead, { text: 'This link is dead', cta: 'Play this with your crew' }),
-  share('settlement', SHARE.settlement, { text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play this with your crew', title: '^MATCH PLAY at ' }),
-  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas[\\s\\S]*IN PLAY', cta: 'Play this with your crew' }),
+  /* W4 · one public shell and one action wording (craft C, critique B): the
+     settled game and the season table say what the round record says, and a
+     dead link's action names the product — "Play this" had nothing on the
+     page to refer to. The strip is keyed in words and spoken as one image. */
+  share('dead-link', SHARE.dead, { text: 'This link is dead', cta: 'Open Cup Season' }),
+  share('settlement', SHARE.settlement, { text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play with your people', title: '^MATCH PLAY at ' },
+    { check: async (page) => {
+      const base = await shareCheck({ text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play with your people', title: '^MATCH PLAY at ' })(page)
+      if (base !== true) return base
+      return page.evaluate(() => {
+        const img = document.querySelector('#svCard [role="img"][aria-label]')
+        if (!img || !/Blake & Devon won 7 holes, Casey & Gray won 4, 5 halved, closed on 16\./.test(img.getAttribute('aria-label'))) return 'the strip has no spoken summary: ' + (img && img.getAttribute('aria-label'))
+        const key = (document.querySelector('.sv-strip p[aria-hidden]') || {}).textContent || ''
+        if (!/Blake & Devon won/.test(key) || !/Casey & Gray won/.test(key) || !/Halved/.test(key)) return 'the key does not name all three kinds: ' + key
+        return true
+      })
+    } }),
+  share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas[\\s\\S]*IN PLAY', cta: 'Play with your people' }),
 ]
 
 /* ------------------------------------------- claim + invite recipients */
@@ -93,17 +108,26 @@ const claimDoor = (id, token, ready, selectors, extra = {}) => ({
   settle: doorSettle(ready), expect: { door: true, selectors }, ...extra,
 })
 const LINKS = [
+  /* W4 · the round LEADS the door (#obLink, the lead serif) and the status line
+     keeps the next step: the same ruled sentence (TERMINOLOGY §6), split,
+     with the club in the sentence and the course · tee · day beneath it (no
+     number in the serif, §1.4). It was
+     one 12.5px mono line under the field (owner H, craft H/B, critique B). */
   claimDoor('claim-valid', CLAIM.valid,
     () => /Enter your email to keep it/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#emailbox.open': 'visible', '#obEmailIn': 'visible', '#obStatus': 'text:^Kit — 91 at Mesquite Wash Golf Club \\(fixture\\) — Mesquite Wash · Black, Sun, Sep 27\\. Enter your email to keep it\\.$' }),
+    { '#emailbox.open': 'visible', '#obEmailIn': 'visible', '#obLink h1': 'text:^Kit — 91 at Mesquite Wash Golf Club \\(fixture\\)\\.$',
+      '#obLink .sub': 'text:^Mesquite Wash · Black · Sun, Sep 27$', '#obStatus': 'text:^Enter your email to keep it\\.$' }),
   claimDoor('claim-scan-partner', CLAIM.scan,
     () => /Enter your email to keep it/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#emailbox.open': 'visible', '#obStatus': 'text:^Kit Specimen — 94 at Papago Fixture Links — North · Gold, Fri, Sep 25\\.' },
+    { '#emailbox.open': 'visible', '#obLink h1': 'text:^Kit Specimen — 94 at Papago Fixture Links\\.$', '#obLink .sub': 'text:^North · Gold · Fri, Sep 25$' },
     { world: { errors: { rpc: { guest_live_state: { __error: 'No such round', status: 400 } } } }, expectConsole: [/status of 400/] }),
   claimDoor('claim-used', CLAIM.used,
     () => { try { return localStorage.getItem('cs_claim') === null && (window.__tenNet || []).some((e) => /rpc\/claim_round_info/.test(e.url) && e.status === 200) } catch (_) { return false } },
-    { '#obEmail': 'visible', '#obJoin': 'visible', '#emailbox': 'hidden' },
-    { check: async (page) => ((await page.evaluate(() => (document.getElementById('obStatus').textContent || '').trim() === '')) ? true : 'the door says something about a used card') }),
+    /* W4 · a kept scorecard SAYS so (owner R, critique B P2): it was the plain
+       door, pixel for pixel. Not an error, and no more than CS_CLAIM_DEAD
+       already says to any token. */
+    { '#obEmail': 'visible', '#obJoin': 'visible', '#emailbox': 'hidden', '#obStatus': 'text:^That scorecard is already on a golfer’s record\\. If it’s yours, sign in with the same email' },
+    { check: async (page) => ((await page.evaluate(() => !document.getElementById('obStatus').classList.contains('err'))) ? true : 'the kept-scorecard line is styled as an error') }),
   claimDoor('claim-unfinished', CLAIM.abandoned,
     () => /never finished/.test((document.getElementById('obStatus') || {}).textContent || ''),
     { '#obStatus.err': 'visible', '#obStatus': 'text:^This round was never finished' },
@@ -123,14 +147,16 @@ const LINKS = [
     expect: { sheet: '^A scorecard link$', selectors: { '#lnkYes': 'text:^Add it to my record$', '#lnkNo': 'visible', '#lnkAsk .lead': 'text:Add this 91 at Mesquite Wash' } } },
 
   /* the league invite link, /?join=CODE (the format shareInvite writes, index.html:27224) */
+  /* W4 · the invitation leads the door (#obLink) and the status keeps the next
+     step; the invitation is to a season, never "the league" (T §2.3) */
   { family: 'links', id: 'join-valid', variant: 'signed_out', url: `/?join=${JOIN.season}`, short: true,
-    settle: doorSettle(() => /You're invited to North Grove/.test((document.getElementById('obStatus') || {}).textContent || '')),
-    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obStatus': "text:^You're invited to North Grove \\(fixture\\)\\. Sign in to review the league before you join\\.$" } } },
+    settle: doorSettle(() => /invited to North Grove/.test((document.querySelector('#obLink h1') || {}).textContent || '')),
+    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obLink h1': "text:^You’re invited to North Grove \\(fixture\\)\\.$", '#obStatus': 'text:^Sign in to read the terms before you join\\.$' } } },
   /* a code that matches no league says so (owner panel P1: it said "You're
      invited" to a stranger) and is dropped, so signing in tries no join */
   { family: 'links', id: 'join-unavailable', variant: 'signed_out', url: `/?join=${JOIN.dead}`, short: true,
     settle: doorSettle(() => /^No league with that code/.test((document.getElementById('obStatus') || {}).textContent || '') && (window.__tenNet || []).some((e) => /rpc\/league_by_code/.test(e.url) && e.status === 200)),
-    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obStatus': "text:^No league with that code\\. Check with your Pro\\.$" } },
+    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obStatus': "text:^No league with that code\\. Check with your Pro\\.$", '#obLink': 'hidden' } },
     check: async (page) => ((await page.evaluate(() => localStorage.getItem('cs_code') === null && localStorage.getItem('cs_code_name') === null)) ? true : 'the dead code was kept, or resolved to a name') },
   /* signed in with no league: the covenant gate, before join_league runs */
   { family: 'links', id: 'join-covenant', variant: 'brand_new', url: `/?join=${JOIN.season}`,
@@ -145,19 +171,36 @@ const LINKS = [
   { family: 'links', id: 'join-already-in', variant: 'member', url: `/?join=${JOIN.season}`,
     settle: async (page) => { await bootDone(page, 300); await until(page, () => /already in for season 1/.test((document.getElementById('toast') || {}).textContent || ''), null, 8000) },
     expect: { view: 'view-home', selectors: { '#toast': 'text:^You’re already in for season 1\\.$' } }, pause: 50 },
-  /* in-app invitation (my_invites): the banner, then its terms */
+  /* in-app invitation (my_invites): drawn ONCE, then its terms. W4 · the banner
+     row and Home's lead drew the same invitation twice with two "See the terms"
+     (owner H, critique B P2). An invitation the served dispatch carries is the
+     dispatch's item (lead or wire), and the banner keeps only the rest
+     (renderNotifications' csDispatchCarries filter, lane W3's mechanism; the
+     banner's look — a flat row, the stacked title, See the terms and a one-tap
+     Decline — is W4's). So the invitation is the lead's, drawn once, and its
+     door opens the terms. NOTE: on the W4 branch alone csDispatchCarries does
+     not exist yet, so this state holds only once W3's half is merged. */
   { family: 'links', id: 'invite-banner', variant: 'brand_new', world: { flags: { invite: true } },
-    settle: async (page) => { await until(page, () => !!document.querySelector('#notifBanner [data-ivacc]') && document.querySelector('#notifBanner').offsetParent !== null, null, 15000); await page.waitForTimeout(500) },
-    expect: { allowDoor: false, selectors: { '#notifBanner': 'text:League invite · North Grove \\(fixture\\)' } } },
+    settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dkey^="invite:"]'), null, 15000); await page.waitForTimeout(500) },
+    expect: { allowDoor: false, selectors: { '#homeLead': 'text:put you on North Grove \\(fixture\\)' } },
+    check: async (page) => page.evaluate(() => {
+      const key = (document.querySelector('#homeLead [data-dkey^="invite:"]') || {}).getAttribute?.('data-dkey') || ''
+      const id = key.slice(7)
+      const shown = (el) => !!el && el.offsetParent !== null
+      const drawn = [...document.querySelectorAll('#homeLead [data-dkey], #homeDeck [data-dgo]')].filter((n) => (n.getAttribute('data-dkey') || n.getAttribute('data-dgo')) === key && shown(n)).length
+        + [...document.querySelectorAll('#notifBanner [data-inv]')].filter((n) => n.getAttribute('data-inv') === id && shown(n)).length
+      return drawn === 1 ? true : `the invitation is drawn ${drawn} times on Home`
+    }) },
   { family: 'links', id: 'invite-terms', variant: 'brand_new', world: { flags: { invite: true } },
-    settle: async (page) => { await until(page, () => !!document.querySelector('#notifBanner [data-ivacc]') && document.querySelector('#notifBanner').offsetParent !== null, null, 15000); await page.waitForTimeout(300) },
-    drive: async (page) => { await click(page, '#notifBanner [data-ivacc]'); await until(page, () => /Before you join/.test(document.getElementById('shTitle').textContent) && document.getElementById('sheet').classList.contains('open')) },
+    settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dgo^="invite:"]'), null, 15000); await page.waitForTimeout(300) },
+    drive: async (page) => { await click(page, '#homeLead [data-dgo^="invite:"]'); await until(page, () => /Before you join/.test(document.getElementById('shTitle').textContent) && document.getElementById('sheet').classList.contains('open')) },
     expect: { sheet: '^Before you join North Grove \\(fixture\\)$', selectors: { '#covJoin': 'visible' } } },
   /* the buddy link: the landing card, then the signed-in ask (R5) */
   { family: 'links', id: 'person-landing', variant: 'signed_out', url: `/?p=${SHARE.person}`, settle: shareSettle,
-    expect: { overlay: true }, check: shareCheck({ text: 'Blake Sample wants you in their golf[\\s\\S]*7 rounds posted, best 81', cta: 'Get the app' }) },
+    /* W4 · "wants you in their golf" read as a translation error (critique B) */
+    expect: { overlay: true }, check: shareCheck({ text: 'Blake Sample wants to play golf with you[\\s\\S]*7 rounds posted, best 81', cta: 'Get the app' }) },
   { family: 'links', id: 'person-landing-new', variant: 'signed_out', url: `/?p=${SHARE.personNew}`, settle: shareSettle,
-    expect: { overlay: true }, check: shareCheck({ text: 'Kit Specimen wants you in their golf', cta: 'Get the app' }) },
+    expect: { overlay: true }, check: shareCheck({ text: 'Kit Specimen wants to play golf with you', cta: 'Get the app' }) },
   /* the landing keeps its token (cs_person); opening the app again spends it
      through the ask — the same two steps a golfer takes */
   { family: 'links', id: 'person-signed-in-ask', variant: 'member', url: `/?p=${SHARE.person}`, settle: shareSettle,

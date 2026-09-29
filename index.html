@@ -2226,13 +2226,25 @@ body.guestlive #onboard{display:none !important;}
 .evclash .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
             font-size:14px; flex:none;}
 @media (min-width:900px){ .evcard h1{font-size:52px;} .evrail .fig{font-size:64px;} }
-/* notifications banner — pending invites, act in line */
+/* notifications banner — pending invites, act in line.
+   Critique B / owner H / craft Sp · ONE invitation object: a flat row on the
+   page's own surface (the ember gradient wash was a decorative fill, and a
+   pending invitation is not a live competition, D359), stacked so the title
+   wraps whole instead of squeezing to three lines beside two buttons, with
+   "See the terms" and a one-tap Decline (D351) — "Details" said nothing the
+   terms do not. An invitation the served dispatch already carries is not
+   drawn here a second time (renderNotifications, csDispatchCarries). */
 #notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
-.notifrow{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
-  background:linear-gradient(90deg, color-mix(in srgb, var(--brand) 20%, transparent), transparent); border:1px solid var(--brand);}
-.notifrow .tt{flex:1; min-width:0;}
-.notifrow .tt b{font-size:13.5px; display:block;}
-.notifrow .tt small{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut);}
+.notifrow{display:flex; flex-direction:column; align-items:stretch; gap:var(--s2); padding:var(--s3) 14px;
+  border-radius:var(--rc); background:var(--bg1); border:1px solid var(--rule);}
+.notifrow .tt{min-width:0;}
+.notifrow .tt b{display:block; overflow-wrap:anywhere;}
+.notifrow .tt small{display:block; margin-top:2px; color:var(--mut);}
+.notifrow .acts{display:flex; align-items:center; gap:var(--s3); flex-wrap:wrap;}
+.notifrow .ivdec{min-height:44px; padding:0 var(--s1); background:none; border:0; cursor:pointer;
+  font-family:var(--board); font-weight:600; font-size:15px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.notifrow .ivdec:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:4px;}
 .mini{
   font-family:var(--board); font-size:13px; font-weight:600; letter-spacing:.02em;
   color:var(--ink); background:var(--bg2); border:0;
@@ -3405,39 +3417,47 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
 .joinbox input:focus-visible{outline:2px solid var(--act);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 
-/* ---- the wings: live showcases beside the centered door (>=1100px only).
-   Hand-authored diorama content (the door is pre-auth) — same philosophy as
-   demo mode. JS loops pause on tab-hide and die on .onboard.hide. ---- */
+/* ---- the wings: two worked EXAMPLES beside the centered door (>=1100px only).
+   Hand-authored (the door is pre-auth, anon reads no table), so they are
+   labelled as what they are: how a round reads and how a season reads, never
+   "live" (AW P2-16, PRODUCT.md: no invented claims). The figures they print
+   come from the real producers (pointsFor / vsPhrase), so the example obeys
+   the rules it illustrates. JS loops pause on tab-hide and die on .onboard.hide.
+   AW P2-13 / TP-09 · the 3.5px squad spine is retired (UI_SYSTEM "Changed":
+   the spine leaves the card edge); a row is a row under a hairline and the
+   squad rides as a swatch (§2.5), not a stripe. Numbers are the board face,
+   never the serif (§1.4); round points are ambient mut, never ember (D359). ---- */
 .ob-wing{display:none; width:100%; max-width:330px; text-align:left;}
 @media(min-width:1100px){ .ob-wing{display:block;} }
+/* a door a link brought the visitor to is about the link: the examples stand
+   down (critique B) — on a landing (.ob-linked) and on a link that could not
+   land (.ob-via: unfinished, not started, kept, dead). Hidden, not removed,
+   so the door stays in the grid's middle column. */
+.onboard.ob-linked .ob-wing, .onboard.ob-via .ob-wing{visibility:hidden;}
 .ob-wing .wt{
   display:flex; align-items:center; gap:10px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
   text-transform:uppercase; color:var(--mut); margin-bottom:10px;
 }
 .ob-wing .wt::after{content:""; height:1px; flex:1; background:var(--rule);}
 .ob-feed{position:relative; height:250px; overflow:hidden;}
 .ob-pcard{
-  position:absolute; left:0; right:0; top:0; height:74px;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
-  padding:12px 14px; box-shadow:none; overflow:hidden;
+  position:absolute; left:0; right:0; top:0; min-height:74px;
+  border-top:1px solid var(--rule); padding:12px 0 0;
   transition:opacity .55s var(--roll), transform .55s var(--roll);
   will-change:transform;
 }
-.ob-pcard::before{content:""; position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:2px; background:var(--sqc,var(--brand));}
 .ob-pcard .who{
-  display:flex; justify-content:space-between; gap:8px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
   text-transform:uppercase; color:var(--mut); margin-bottom:6px;
 }
+.ob-pcard .who .dot{flex:none; width:9px; height:9px; border-radius:3px; background:var(--sqc);}
+.ob-pcard .who .crs{margin-left:auto; text-align:right;}
 .ob-pcard .ln{display:flex; align-items:baseline; gap:10px;}
-.ob-pcard .gr{font-family:var(--serif); font-size:26px; font-weight:700; line-height:1; color:var(--ink);}
-.ob-pcard .band{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.ob-pcard .pts{margin-left:auto; font-family:var(--mono); font-size:12px; font-weight:600; color:var(--brand); white-space:nowrap;}
-.ob-lb{
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
-  padding:14px 14px 10px; box-shadow:none;
-}
+.ob-pcard .gr{font-family:var(--board); font-weight:700; font-size:20px; line-height:1; font-variant-numeric:tabular-nums; color:var(--ink);}
+.ob-pcard .band{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); min-width:0;}
+.ob-pcard .pts{margin-left:auto; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); white-space:nowrap;}
 .ob-lb .rows{position:relative; height:176px;}
 .ob-lbrow{
   position:absolute; left:0; right:0; top:0; height:44px;
@@ -3446,14 +3466,27 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
   transition:transform .65s var(--roll); will-change:transform;
 }
 .ob-lbrow .dot{flex:none; width:9px; height:9px; border-radius:3px; background:var(--sqc);}
-.ob-lbrow .nm{font-size:13px; font-weight:600; color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.ob-lbrow .pt{margin-left:auto; font-family:var(--mono); font-size:13px; font-weight:600; color:var(--mut); font-variant-numeric:tabular-nums;}
+.ob-lbrow .nm{font-family:var(--board); font-size:15px; font-weight:600; color:var(--mut); overflow-wrap:anywhere;}
+.ob-lbrow .pt{margin-left:auto; font-family:var(--board); font-size:15px; font-weight:700; color:var(--mut); font-variant-numeric:tabular-nums;}
 .ob-lbrow.lead .pt{color:var(--gold);}
 .ob-lbrow.lead .nm{color:var(--ink);}
 .ob-lb .lfoot{
-  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--mut); padding-top:8px; border-top:1px solid var(--rule); text-align:center;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);
+  color:var(--mut); padding-top:8px; border-top:1px solid var(--rule); text-wrap:balance;
 }
+/* ---- the link landing (claim · invitation): the fact that brought the
+   visitor LEADS the door, and the brand statement steps back to the
+   signature above it (owner H, craft H/B, critique B P2). An agate label for
+   the kind of link, the fact in the lead serif with its gross as a figure
+   run (§1.6: never a number in the serif), one supporting line in mut. The
+   status line under the field keeps only the next step. csLinkLanding()
+   builds it; signed out only. ---- */
+.ob-link{margin:40px 0 0; text-align:left;}
+.ob-link .eb{margin:0 0 var(--s2); color:var(--mut);}
+.ob-link h1{margin:0; color:var(--ink); overflow-wrap:anywhere;}
+.ob-link .run{font-family:var(--board); font-weight:700; font-variant-numeric:tabular-nums;}
+.ob-link .sub{margin:var(--s2) 0 0; color:var(--mut); overflow-wrap:anywhere;}
+.onboard.ob-linked .ob-in > .ob-hero{display:none;}
 
 
 /* ---- shared "quiet link" style: sign-in resend code, etc. (formerly also
@@ -4217,15 +4250,27 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    at the hole); reduced-motion lands them instantly. */
 #finish{
   position:fixed; inset:0; z-index:1100; display:none;
-  align-items:center; justify-content:center; padding:32px 24px;
+  align-items:center; justify-content:center; padding:32px 24px; overflow:auto;
   background:var(--ceremony);
   -webkit-tap-highlight-color:transparent;
 }
 #finish.open{display:flex;}
-.finish-card{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
-.finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:var(--ceremony-mut);}
+/* W4 · the ceremony is `.room-dusk` (markup), so the tokens inside it are the
+   dark printing in both themes — `act` is the dark printing's green on this
+   ground, `rule` its hairline. Its two halves: the moment (the course, the
+   number, the verdict, the points) and the share row (the card that will
+   leave, the photo switch, Share, and a quiet way back). */
+.finish-card{width:100%; max-width:440px; margin:auto; text-align:center; display:flex; flex-direction:column; align-items:center;}
+.finish-moment{width:100%; display:flex; flex-direction:column; align-items:center;}
+/* the course wraps whole on its own line and the day sits under it: a
+   separator never starts or ends a line (critique B). Agate, not tracked mono. */
+.finish-eyebrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--ceremony-mut); overflow-wrap:anywhere;}
+.finish-eyebrow span{display:block; text-wrap:balance;}
+.finish-eyebrow .dt{margin-top:4px;}
 .gross-slot{position:relative; margin-top:18px;}
-.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:var(--ceremony-ink);}
+/* §1.4 · a number is never the serif: the gross is the figure role, as it is
+   on the card it becomes (craft T) */
+.finish-gross{font-family:var(--board); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,104px); line-height:.92; color:var(--ceremony-ink);}
 /* C2 - the drop (owner-approved treatment, 2026-07-22 deck session): the ball
    rolls out of the left along the gross baseline on REAL friction - constant
    deceleration, distance follows 1-(1-t)^2 sampled into linear keyframes - dies
@@ -4270,40 +4315,69 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 #finish.open .finish-ball i{animation:csSpin 1.15s var(--roll) .15s both;}
 #finish.open .finish-cup, #finish.open .finish-cupfront{animation:csFade .4s ease .15s both, csGone .35s ease 2.35s forwards;}  /* in with the ball, gone once the number holds the room */
 #finish.open .finish-cupring{animation:csAnswer .7s var(--roll) 1.7s both;}
-.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:var(--ceremony-ink); margin-top:12px;}
-.finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
-.finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
+.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:var(--ceremony-ink); margin-top:12px; text-wrap:balance;}
+.finish-band .run, .finish-pts .run{font-family:var(--board); font-weight:700; font-variant-numeric:tabular-nums;}
+/* the facts line, sized up and said as a phrase (owner T, craft R: it was
+   12px tracked mono caps). Round points are ink: gold is for what was won
+   (§2.4 — the pot, a prize, a finish), and the door's sample and this line
+   no longer disagree on their colour (owner C). */
+.finish-pts{font-family:var(--board); font-size:17px; font-weight:600; line-height:1.3; color:var(--ceremony-ink); margin-top:18px; min-height:1em; text-wrap:balance;}
 .finish-pts.card{color:var(--ceremony-mut);}      /* league-less: it just posts to your rounds */
-.finish-rule{width:64px; height:1px; background:#1C2620; margin-top:26px;}
+/* THE SHARE ROW (owner E/D, craft H/B/D, critique B): the golfer sees the card
+   before it leaves — drawn by the same painter the export uses — and one
+   button at one weight: the photo is a switch that states its state, Share is
+   the one ordinary action (act, D359: ember is competition, and a share is
+   not one), and the way back is a quiet link. A share's outcome is said here,
+   under the button, because the toast lives beneath this curtain. */
+.finish-share-row{width:100%; display:flex; align-items:center; gap:var(--s4); margin-top:28px; padding-top:24px; border-top:var(--hair) solid var(--rule); text-align:left;}
+.finish-preview{flex:none; width:128px; aspect-ratio:4/5; border-radius:8px; overflow:hidden; background:var(--ceremony); box-shadow:0 0 0 1px var(--rule);}
+.finish-preview[hidden]{display:none;}
+.finish-preview canvas{display:block; width:100%; height:100%;}
+.finish-controls{flex:1; min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:var(--s2);}
+.finish-photoopt{
+  display:flex; align-items:center; justify-content:space-between; gap:var(--s3); min-height:44px; width:100%;
+  padding:0; border:0; background:none; cursor:pointer; text-align:left;
+  font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
+}
+/* the switch's track and knob: the knob's side and the track's fill say
+   on or off, not a brightness change (§16.4); off is an outline in mut */
+.finish-photoopt::after{content:""; flex:none; width:44px; height:26px; border-radius:13px; box-sizing:border-box;
+  background:radial-gradient(circle at 13px 50%, var(--ceremony-mut) 8px, transparent 8.5px);
+  box-shadow:inset 0 0 0 2px var(--ceremony-mut);}
+.finish-photoopt[aria-pressed="true"]::after{background:radial-gradient(circle at 31px 50%, var(--ceremony) 8px, transparent 8.5px), var(--act); box-shadow:none;}
+.finish-photoopt:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:6px;}
 .finish-share{
-  display:flex; align-items:center; justify-content:center; min-height:46px; min-width:220px;
-  margin-top:26px; padding:0 28px; border:0; border-radius:var(--rc); cursor:pointer;
-  font-family:var(--sans); font-size:14px; font-weight:600; color:var(--ceremony); background:var(--ceremony-brand);
+  display:flex; align-items:center; justify-content:center; min-height:48px;
+  padding:0 20px; border:0; border-radius:var(--rc); cursor:pointer;
+  font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony); background:var(--act);
   transition:filter .2s var(--roll);
 }
 .finish-share:hover{filter:brightness(1.06);}
 .finish-share:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
-.finish-photoopt{
-  display:flex; align-items:center; justify-content:center; gap:var(--s2); min-height:44px;
-  margin-top:var(--s5); padding:0 var(--s4); border:1px solid var(--ceremony-mut);
-  border-radius:var(--rc); background:none; cursor:pointer;
-  font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ceremony-mut);
+.finish-status{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut);}
+.finish-status:empty{display:none;}
+.finish-back{align-self:flex-start; min-height:44px; padding:0; border:0; background:none; cursor:pointer;
+  font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
+  text-decoration:underline; text-decoration-color:var(--ceremony-mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.finish-back:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:6px;}
+/* the desk: the moment on the left, the card itself at a readable size on
+   the right with its controls under it (D234; owner Sp/D: it was a 300px
+   column in a black field) */
+@media (min-width:960px){
+  .finish-card{max-width:920px; display:grid; grid-template-columns:minmax(0,1fr) 320px; column-gap:64px; align-items:center;}
+  .finish-share-row{flex-direction:column; align-items:stretch; margin-top:0; padding-top:0; border-top:0;}
+  .finish-preview{width:100%;}
 }
-.finish-photoopt[aria-pressed="true"]{color:var(--ceremony-ink); border-color:var(--ceremony-ink);}
-.finish-photoopt:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
-.finish-back{margin-top:8px; padding:12px; border:0; background:none; cursor:pointer;
-  font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ceremony-mut);}
-.finish-back:focus-visible{outline:2px solid var(--ceremony-mut); outline-offset:2px; border-radius:6px;}
 /* the reveal — staggered roll-in on the brand's one easing, held until the
    ball is in the hole (C2): gross lands at 1.85s where the ball fell */
 #finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.85s both;}
 #finish.open .finish-band{animation:finishRoll .64s var(--roll) 2.03s both;}
 #finish.open .finish-pts{animation:finishRoll .64s var(--roll) 2.21s both;}
-#finish.open .finish-rule, #finish.open .finish-photoopt, #finish.open .finish-share, #finish.open .finish-back{animation:csFade .5s ease 2.55s both;}
+#finish.open .finish-share-row{animation:csFade .5s ease 2.55s both;}
 @keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @media(prefers-reduced-motion:reduce){
   #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts,
-  #finish.open .finish-rule, #finish.open .finish-photoopt, #finish.open .finish-share, #finish.open .finish-back{animation:none;}
+  #finish.open .finish-share-row{animation:none;}
   #finish.open .finish-ball, #finish.open .finish-cup,
   #finish.open .finish-cupfront, #finish.open .finish-cupring{display:none;}
 }
@@ -4785,26 +4859,79 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 }
 
 /* D359 / D380 · the recipient reads the same round record as the native card.
-   The page uses the viewer's printing; the exported PNG keeps its fixed face. */
-#shareView.sv-round { background:var(--bg0); color:var(--ink); }
-.sv-round .sv-page { max-width:600px; margin:auto; padding:var(--s5) var(--gutter) var(--s6); text-align:left; }
-.sv-round .sv-signature { display:flex; gap:var(--s3); align-items:center; padding-bottom:var(--s4); border-bottom:var(--hair) solid var(--rule); }
-.sv-round .sv-signature svg { width:64px; height:37px; flex-shrink:0; }
-.sv-round .sv-signature .cs-col-s { margin-left:auto; text-align:right; color:var(--mut); }
-.sv-round #svCard { margin-top:var(--s5); }
-.sv-round .sv-date { color:var(--mut); margin-top:var(--s3); }
-.sv-round .sv-photo { display:block; width:100%; aspect-ratio:3/2; object-fit:cover; margin-top:var(--s4); }
-.sv-round .sv-score { display:flex; align-items:baseline; gap:var(--s3); margin:var(--s5) 0 var(--s4); }
-.sv-round .sv-score .cs-fig-xl { font-size:clamp(56px,14vw,104px); }
-.sv-round .sv-score .cs-col-s { color:var(--mut); }
-.sv-round .sv-golfer { display:flex; align-items:center; gap:var(--s3); }
-.sv-round .sv-golfer svg { width:28px; height:28px; flex-shrink:0; }
-.sv-round .sv-golfer span,.sv-round h1 { overflow-wrap:anywhere; }
-.sv-round .sv-band { margin-top:var(--s3); }
-.sv-round #svFoot { margin-top:var(--s6); padding-top:var(--s4); border-top:var(--hair) solid var(--rule); }
-.sv-round .sv-signoff { margin-bottom:var(--s5); color:var(--mut); }
-.sv-round .sv-action { display:block; padding:var(--s3) var(--s4); min-height:44px; background:var(--act); color:var(--bg0); border-radius:var(--rc); text-align:center; text-decoration:none; }
-.sv-round .sv-action:focus-visible { outline:3px solid var(--ink); outline-offset:4px; }
+   The page uses the viewer's printing; the exported PNG keeps its fixed face.
+   ONE PUBLIC SHELL (owner C/B/P, craft C, critique B, 2026-09-28): every
+   /?share=, /?p= and /?plan= page — a round, a settled game, a season table,
+   a golfer, a plan, a dead or unreadable link — is this family. The pennant
+   signature over a hairline, the page's kind at the right, the type roles
+   (lead serif for the one sentence, the board face for every figure, sans for
+   prose, agate for labels — never a sentence in mono, never a number in the
+   serif, §1.4), the viewer's own printing, and one sentence of what Cup
+   Season is above one action at secondary weight, so the object stays the
+   object. It replaces the string-built cards on the pinned dark ground with
+   a gold frame, mono sentences and no mark. The desk is its own shape
+   (D234): the object's second half — the photograph, the hole strip, the
+   table, the rounds — beside it, not a phone column in a field.
+   #svCard is the grid: head · photo · facts · second · foot. */
+#shareView.sv { position:fixed; inset:0; z-index:99999; overflow:auto; background:var(--bg0); color:var(--ink); -webkit-font-smoothing:antialiased; text-align:left; }
+.sv .sv-page { max-width:600px; margin:0 auto; padding:var(--s5) var(--gutter) var(--s6); }
+.sv .sv-signature { display:flex; gap:var(--s3); align-items:center; padding-bottom:var(--s4); border-bottom:var(--hair) solid var(--rule); }
+.sv .sv-signature svg { width:64px; height:37px; flex-shrink:0; }
+.sv .sv-signature .sv-kind { margin-left:auto; text-align:right; color:var(--mut); }
+.sv #svCard { display:grid; grid-template-columns:minmax(0,1fr); grid-template-areas:"head" "photo" "facts" "second" "foot"; align-content:start; margin-top:var(--s5); }
+.sv .sv-head { grid-area:head; min-width:0; }
+.sv .sv-photo { grid-area:photo; display:block; width:100%; aspect-ratio:3/2; object-fit:cover; margin-top:var(--s4); }
+.sv .sv-facts { grid-area:facts; min-width:0; }
+.sv .sv-second { grid-area:second; min-width:0; margin-top:var(--s5); }
+.sv #svFoot { grid-area:foot; margin-top:var(--s6); padding-top:var(--s4); border-top:var(--hair) solid var(--rule); }
+.sv .sv-wait { color:var(--mut); }
+.sv .sv-eb { color:var(--mut); margin:0 0 var(--s2); }
+.sv h1 { margin:0; overflow-wrap:anywhere; }
+.sv .sv-run { font-family:var(--board); font-weight:700; font-variant-numeric:tabular-nums; }
+.sv .nw { white-space:nowrap; }
+.sv .sv-date, .sv .sv-where { color:var(--mut); margin-top:var(--s3); overflow-wrap:anywhere; }
+.sv .sv-score { display:flex; align-items:baseline; gap:var(--s3); margin:var(--s5) 0 var(--s4); }
+.sv .sv-score .cs-fig-xl { font-size:clamp(56px,14vw,104px); }
+.sv .sv-score .cs-agate { color:var(--mut); }
+.sv .sv-golfer { display:flex; align-items:center; gap:var(--s3); }
+.sv .sv-golfer svg { width:28px; height:28px; flex-shrink:0; }
+.sv .sv-golfer span { overflow-wrap:anywhere; }
+.sv .sv-band { margin-top:var(--s3); }
+.sv .sv-money { margin-top:var(--s4); text-wrap:balance; }
+.sv .sv-champ { color:var(--gold); margin-top:var(--s3); }
+.sv .sv-story { margin-top:var(--s3); }
+.sv .sv-rows { margin-top:var(--s4); border-top:var(--hair) solid var(--rule); }
+.sv .sv-row { display:flex; align-items:baseline; gap:var(--s3); min-height:44px; padding:10px 0; border-bottom:var(--hair) solid var(--rule); }
+.sv .sv-row .nm { flex:1; min-width:0; overflow-wrap:anywhere; }
+.sv .sv-row .rk, .sv .sv-row .dt { flex:none; color:var(--mut); }
+.sv .sv-row .fig { flex:none; font-family:var(--board); font-weight:700; font-size:20px; line-height:1; font-variant-numeric:tabular-nums; text-align:right; min-width:2ch; }
+.sv .sv-row.is-lead .fig { color:var(--gold); }
+.sv .sv-colhead { display:flex; justify-content:space-between; color:var(--mut); margin-top:var(--s4); }
+.sv .sv-colhead + .sv-rows { margin-top:var(--s2); }
+.sv .sv-status { color:var(--mut); margin-top:var(--s3); }
+.sv .sv-marker { width:64px; height:64px; margin:0 0 var(--s4); border:var(--hair) solid var(--rule); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--ink); }
+.sv .sv-marker svg { width:36px; height:36px; }
+.sv .sv-strip .sv-highs { color:var(--mut); margin-top:var(--s3); }
+.sv .sv-why { color:var(--mut); margin:0 0 var(--s4); }
+.sv .sv-action { display:flex; align-items:center; justify-content:center; min-height:50px; padding:var(--s3) var(--s4); border:0; border-radius:var(--rc); background:var(--bg2); color:var(--ink); text-align:center; text-decoration:none; cursor:pointer; width:100%; }
+.sv .sv-action.is-primary { background:var(--act); color:var(--bg0); }
+.sv .sv-action:focus-visible { outline:2px solid var(--act); outline-offset:2px; }
+.sv .sv-retry { margin-top:var(--s4); }
+.sv .sv-note { color:var(--mut); margin-top:var(--s3); }
+@media (min-width:1024px){
+  /* the signature stays at the head of the page and the object sits in the
+     middle of what is left, not in its top third (critique B) */
+  .sv .sv-page { max-width:1080px; min-height:100%; display:flex; flex-direction:column; padding:var(--s6) var(--gutter-desk); }
+  .sv #svCard { margin-top:auto; margin-bottom:auto; padding-top:var(--s5); }
+  .sv #svCard { grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:var(--s6); grid-template-rows:auto auto 1fr;
+                grid-template-areas:"head second" "facts second" "foot second"; }
+  .sv #svCard.sv-with-photo { grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); grid-template-areas:"head photo" "facts photo" "foot photo"; }
+  .sv #svCard.sv-short { grid-template-columns:minmax(0,1fr) 360px; grid-template-rows:auto 1fr; grid-template-areas:"head foot" "facts foot"; }
+  .sv .sv-photo, .sv .sv-second { margin-top:0; align-self:start; }
+  .sv .sv-score .cs-fig-xl { font-size:104px; }
+  .sv #svFoot { margin-top:var(--s5); align-self:start; }
+  .sv #svCard.sv-short #svFoot { margin-top:0; padding:0 0 0 var(--s5); border-top:0; border-left:var(--hair) solid var(--rule); }
+}
 
 /* D391 · the round's conversation, the inbox and the course's circle. Rules and
    spacing only — no new container shape, no colour outside the tokens. */
@@ -5018,8 +5145,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
   </svg>
   <div class="ob-fold">
   <div class="ob-fgrid">
+  <!-- the wings are worked examples, labelled as examples (AW P2-16) -->
   <aside class="ob-wing ob-wl" aria-hidden="true">
-    <div class="wt">Rounds hitting the board</div>
+    <div class="wt">How a round reads</div>
     <div class="ob-feed" id="obFeed"></div>
   </aside>
   <div class="ob-in">
@@ -5148,10 +5276,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <div class="ob-caption" id="obCaption"><span>v23 · __CS_VERSION__</span></div>
   </div>
   <aside class="ob-wing ob-wr" aria-hidden="true">
-    <div class="wt">The season, live</div>
+    <div class="wt">How a season reads</div>
     <div class="ob-lb">
       <div class="rows" id="obLb"></div>
-      <div class="lfoot">Month 4 of 6 · every point has a receipt</div>
+      <div class="lfoot">An example season, in month 4 of 6</div>
     </div>
   </aside>
   </div><!-- /ob-fgrid -->
@@ -6686,21 +6814,30 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
 <!-- the finish screen (2.1): a posted round ends in ceremony, not a toast.
      Dusk-locked full-screen band reveal; dialog role, dismisses to the board. -->
-<div id="finish" role="dialog" aria-modal="true" aria-label="Round posted" aria-hidden="true">
+<div id="finish" class="room-dusk" role="dialog" aria-modal="true" aria-label="Round posted" aria-hidden="true">
   <div class="finish-card">
-    <div class="finish-eyebrow" id="finEyebrow"></div>
-    <div class="gross-slot"><div class="finish-cup" aria-hidden="true"></div><div class="finish-ball" aria-hidden="true"><i></i></div><div class="finish-cupfront" aria-hidden="true"></div><div class="finish-cupring" aria-hidden="true"></div><div class="finish-gross" id="finGross"></div></div>
-    <div class="finish-band" id="finBand"></div>
-    <div class="finish-pts" id="finPts"></div>
-    <div class="finish-rule" aria-hidden="true"></div>
-    <!-- D359 follow-through · the photograph is the golfer's, and the artifact
-         that leaves the app asks before it carries it. The phone asks with a
-         switch and the desk with a pressed-state button — one sentence, two
-         shapes (RoundCopy.photoInclude). Hidden when the round has no
-         photograph, so the control never stands with nothing behind it. -->
-    <button class="finish-photoopt" id="finPhoto" type="button" aria-pressed="true" hidden></button>
-    <button class="finish-share" id="finShare" type="button">Share the card</button>
-    <button class="finish-back" id="finBack" type="button">Back to the board</button>
+    <div class="finish-moment">
+      <div class="finish-eyebrow" id="finEyebrow"></div>
+      <div class="gross-slot"><div class="finish-cup" aria-hidden="true"></div><div class="finish-ball" aria-hidden="true"><i></i></div><div class="finish-cupfront" aria-hidden="true"></div><div class="finish-cupring" aria-hidden="true"></div><div class="finish-gross" id="finGross"></div></div>
+      <div class="finish-band" id="finBand"></div>
+      <div class="finish-pts" id="finPts"></div>
+    </div>
+    <!-- W4 · the share row: the card that will leave (finishPreview draws it
+         with the export's own painter), then the controls at three weights. -->
+    <div class="finish-share-row">
+      <div class="finish-preview" id="finPreview" role="img" aria-label="The card that will be shared" hidden></div>
+      <div class="finish-controls">
+        <!-- D359 follow-through · the photograph is the golfer's, and the
+             artifact that leaves the app asks before it carries it — one
+             sentence on both clients (RoundCopy.photoInclude), a switch on
+             both now, and the preview beside it changes when it flips.
+             Hidden when the round has no photograph. -->
+        <button class="finish-photoopt" id="finPhoto" type="button" aria-pressed="true" hidden></button>
+        <button class="finish-share" id="finShare" type="button">Share the card</button>
+        <p class="finish-status" id="finStatus" role="status" aria-live="polite"></p>
+        <button class="finish-back" id="finBack" type="button">Back to the board</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -7020,13 +7157,19 @@ setInterval(function(){
   /* ---- wings ---- */
   const feedEl = document.getElementById('obFeed');
   const lbEl = document.getElementById('obLb');
+  /* an EXAMPLE, so it keeps the product's own rules: the sentence is the
+     one comparison producer (vsPhrase, third person, never a guessed his or
+     her) and the points are pointsFor's band — the same arithmetic the
+     server's cup_points() pays. `theirs` is a later const (TDZ here), so the
+     third person is made in place. A nine is not an 18-hole score: Encanto's
+     18, not its 9. */
   const FEED = [
-    {n:'MARCUS', c:'PAPAGO GC', g:82, b:'BEAT HIS PLAYING HCP BY 2.4', p:'+9 PTS', sq:'--sq0'},
-    {n:'DANA', c:'ENCANTO 9', g:91, b:'POSTED ANYWAY', p:'+5 PTS', sq:'--sq1'},
-    {n:'RAY', c:'AGUILA', g:78, b:'TORCHED IT BY 4.1', p:'+12 PTS', sq:'--sq2'},
-    {n:'PRIYA', c:'KEN McDONALD', g:87, b:'PLAYED TO HER PLAYING HCP', p:'+7 PTS', sq:'--sq3'},
-    {n:'COLE', c:'DOBSON RANCH', g:84, b:'BEAT HIS PLAYING HCP BY 1.2', p:'+9 PTS', sq:'--sq0'}
-  ];
+    {n:'Marcus', c:'Papago GC', g:82, vs:2.4, sq:'--sq0'},
+    {n:'Dana', c:'Encanto 18', g:91, vs:-3.6, sq:'--sq1'},
+    {n:'Ray', c:'Aguila', g:78, vs:4.1, sq:'--sq2'},
+    {n:'Priya', c:'Ken McDonald', g:87, vs:0.3, sq:'--sq3'},
+    {n:'Cole', c:'Dobson Ranch', g:84, vs:1.2, sq:'--sq0'}
+  ].map(r => Object.assign(r, { b: vsPhrase(r.vs).replace(/\byour\b/g, 'their'), p: '+' + pointsFor(r.vs)[0] + ' pts' }));
   const LBT = [
     {n:'Dew Sweepers', sq:'--sq3', p:184},
     {n:'The Grinders', sq:'--sq0', p:178},
@@ -7042,11 +7185,12 @@ setInterval(function(){
      a page people leave open. */
   const LB_CEIL=232, LB_BASE=181;
   let fi=0, live=[], order=[0,1,2,3], lbRows=[], loopA=null, loopB=null, dead=false, lbSwaps=0;
-  function gone(){ return !ob || ob.classList.contains('hide'); }
+  /* a link landing hides the wings (.ob-linked), so their loops stop for good */
+  function gone(){ return !ob || ob.classList.contains('hide') || ob.classList.contains('ob-linked') || ob.classList.contains('ob-via'); }
   function cardEl(r){
     const el=document.createElement('div'); el.className='ob-pcard';
     el.style.setProperty('--sqc','var('+r.sq+')');
-    el.innerHTML='<div class="who"><span>'+r.n+'</span><span>'+r.c+'</span></div>'
+    el.innerHTML='<div class="who"><span class="dot"></span><span>'+r.n+'</span><span class="crs">'+r.c+'</span></div>'
       +'<div class="ln"><span class="gr">'+r.g+'</span><span class="band">'+r.b+'</span><span class="pts">'+r.p+'</span></div>';
     return el;
   }
@@ -10543,12 +10687,22 @@ function drawRecapCard(d){
     if(iw&&ih){
       const s=Math.max(W/iw,H/ih), dw=iw*s, dh=ih*s;
       x.drawImage(d._img,(W-dw)/2,(H-dh)/2,dw,dh);
-      x.fillStyle='rgba(10,14,12,.78)'; x.fillRect(0,0,W,H);   /* the card's own ground (#0A0E0C), not D76's charcoal */
+      /* W4 · a MEASURED scrim on the card's own ground (#0A0E0C), not a
+         blackout (owner P, critique B): it was a 78% wash under a 58% panel,
+         so a photograph the golfer chose to include printed at ~1.3:1 at best
+         and the photo card read as the plain one. The photo now shows in the
+         top of the card and the ground deepens where the course line and the
+         signature sit (UI_SYSTEM §10.3's title scrim, lifted at the top
+         because the name and the marker sit there). */
+      const sc=x.createLinearGradient(0,0,0,H);
+      sc.addColorStop(0,'rgba(10,14,12,.44)'); sc.addColorStop(.44,'rgba(10,14,12,.5)');
+      sc.addColorStop(.72,'rgba(10,14,12,.74)'); sc.addColorStop(1,'rgba(10,14,12,.9)');
+      x.fillStyle=sc; x.fillRect(0,0,W,H);
     }
   }
-  x.fillStyle = d._img ? 'rgba(23,25,28,.58)' : PANEL;   /* D76 card over photo */
-  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
-  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
+  if(!d._img){ x.fillStyle = PANEL; x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill(); }
+  /* the frame is a hairline, not gold: gold is for what was won (§2.4) */
+  x.strokeStyle='rgba(241,244,239,.22)'; x.lineWidth=2;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
   /* the marker — identity above everything (living-card rule) */
   const mk=(window.MARKERS||{})[d.marker];
@@ -10574,8 +10728,17 @@ function drawRecapCard(d){
   const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
   if(pviSane){
     /* third person on the artifact — its audience is the group chat, and the
-       golfer's name is right above (same rule as the share page) */
-    ctr(theirs(bandName(Number(d.pvi))).toUpperCase(), 850, `600 46px ${BOARD}`, GOLD, 6);
+       golfer's name is right above (same rule as the share page).
+       W4 · ONE PHRASING (owner C/R): the card said the band's label ("BEAT
+       THEIR NUMBER", "PLAYED TO IT") while the ceremony and the public page
+       said the comparison, and a label is an insider word to the friend who
+       receives the card. It says the comparison now — R-M's noun, the same
+       producer as the ceremony and the public page, said once (F13). In ink:
+       a verdict is not an earning, and gold is for what was won (§2.4). The
+       line shrinks to fit rather than run through the frame. */
+    const said=theirs(vsPhrase(Number(d.pvi))).toUpperCase();
+    let bpx=46; for(; bpx>30; bpx-=2){ x.font=`600 ${bpx}px ${BOARD}`; try{ x.letterSpacing='6px'; }catch(e){} const w=x.measureText(said).width; try{ x.letterSpacing='0px'; }catch(e){} if(w<=W-192) break; }
+    ctr(said, 850, `600 ${bpx}px ${BOARD}`, INK, 6);
     /* F13 · the band is said ONCE on the artifact, as the phone's RecapCardView
        says it. The sentence under it ("played to their playing HCP" under PLAYED
        TO IT) repeated the band in smaller type; the margin it can add rides in
@@ -10725,7 +10888,13 @@ function recapText(d){
     + (pviSane?` — ${theirs(vsPhrase(Number(d.pvi)))}`:'')
     + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
 }
-async function shareRecapCard(d){
+/* `report` (optional) says the outcome where the golfer is looking — the
+   finish ceremony passes one, because a toast paints beneath its curtain
+   (critique B). Without it the toast says it, as before. The caption is
+   claimed as copied only when a clipboard took it (an absent clipboard used
+   to "succeed" through the optional chain and say so). */
+async function shareRecapCard(d, report){
+  const say = m => { if(typeof report === 'function') report(m); else toast(m); };
   try{
     /* the posted photo rides onto the card when there is one (photos arc) */
     if(d.photo && typeof photoDrawable==='function'){
@@ -10736,17 +10905,19 @@ async function shareRecapCard(d){
     const text=recapText(d);
     if(navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({files:[file], text});
+      if(typeof report === 'function') report('Shared.');
       return;
     }
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
-    catch(e){ toast('Card downloaded'); }
+    let copied=false;
+    try{ if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); copied=true; } }catch(_){ copied=false; }
+    say(copied ? 'Card downloaded · caption copied' : 'Card downloaded');
   }catch(e){
     if(e && e.name==='AbortError') return;   /* golfer closed the share sheet — not an error */
     console.warn('[recap card]', e);
-    toast(humanError(e, 'Could not make the card.'));
+    say(humanError(e, 'Could not make the card.'));
   }
 }
 /* ---- D78 · the settlement card ---------------------------------------------
@@ -11612,10 +11783,12 @@ let _ceremonyOwnsShare=false;
 function finishCeremony(o){
   const el=document.getElementById('finish');
   if(!el){ stampPosted('POSTED ✓'); return; }   /* element gone: never fail silent — old stamp */
-  const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-  const MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const DW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dt=(o.date instanceof Date && !isNaN(o.date)) ? o.date : new Date();
-  $('#finEyebrow').textContent=`${String(o.course||'A round').toUpperCase()} · ${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}`;
+  /* two lines by design: the course wraps whole, the day under it (the agate
+     role sets the caps; the words stay words) */
+  $('#finEyebrow').innerHTML=`<span class="crs">${esc(String(o.course||'A round'))}</span><span class="dt">${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}</span>`;
   $('#finGross').textContent=(o.gross!=null?o.gross:'');
   /* the band line reuses the app's one phrase producer — never re-derived.
      Gate on a SANE vs: a rating-less post recalcs to a nonsense differential
@@ -11623,17 +11796,23 @@ function finishCeremony(o){
      a number — the band bows out and eyebrow/gross/points carry the ceremony
      alone. Scoring/recalc are untouched; this is a display gate only. */
   const vsSane = o.vs!=null && isFinite(o.vs) && Math.abs(Number(o.vs))<=30;
-  $('#finBand').textContent = vsSane ? vsPhrase(Number(o.vs)) : '';
+  /* the one comparison producer, as a sentence; its number is a figure run
+     (§1.4 — never a number in the serif) */
+  const said = vsSane ? vsPhrase(Number(o.vs)) : '';
+  $('#finBand').innerHTML = said ? esc(said.charAt(0).toUpperCase() + said.slice(1) + '.').replace(/(\d+\.\d)/, '<span class="run">$1</span>') : '';
   const pl=$('#finPts');
-  if(o.inLeague && o.points>0){   /* champagne = EARNED: gold only for real points (>0), self-enforcing canon */
+  if(o.inLeague && o.points>0){
+    /* the points are ink now: gold is for what was won (§2.4), and a round's
+       points are not a trophy (owner C, craft C) */
     pl.className='finish-pts earned';
-    pl.textContent=`+${o.points} PTS`+(o.squad ? ` · COUNTS FOR ${String(o.squad).toUpperCase()}` : ' · COUNTS THIS SEASON');
+    pl.innerHTML=`<span class="run">+${esc(String(o.points))}</span> point${Number(o.points)===1?'':'s'}`
+      + (o.squad ? ` · counts for ${esc(String(o.squad))}` : ' · counts this season');
   } else {
     pl.className='finish-pts card';
-    /* D122 · "COUNTS TOWARD YOUR NUMBER" is true but not the question the golfer is
+    /* D122 · "Counts toward your number" is true but not the question the golfer is
        asking, which is why it did not count for the league. */
     const note = seasonNote('short');
-    pl.textContent = note ? note.toUpperCase() : 'COUNTS TOWARD YOUR NUMBER';
+    pl.textContent = note || 'Counts toward your number';
   }
   /* stash the exact payload the recap-card path expects (matches the epilogue) */
   _finishShare={
@@ -11655,12 +11834,33 @@ function finishCeremony(o){
        reads a missing const as the fallback string. `typeof` is the test. */
     po.textContent = (typeof CS_PHOTO!=='undefined' ? CS_PHOTO.include : 'Include round photo');
   }
+  const fs=$('#finStatus'); if(fs) fs.textContent='';
+  finishPreview();
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
   lockBody();
   csModal.opened('finish');
   _ceremonyOwnsShare=true;   /* the ceremony owns the share this post — the epilogue defers its own button */
   try{ if(navigator.vibrate) navigator.vibrate([10,38,10]); }catch(_){}   /* the stamp's thock */
+}
+/* the card that will leave, drawn by the painter the export uses — captured
+   here, at load, so the preview is always the real painter — so the golfer
+   shares exactly what they see (owner E, craft B/D, critique B). Redrawn when
+   the photo switch flips; the newest request wins. */
+const csPaintRecap = drawRecapCard;
+let _finishPreviewSeq = 0;
+async function finishPreview(){
+  const box=document.getElementById('finPreview'); if(!box || !_finishShare) return;
+  const seq=++_finishPreviewSeq;
+  const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
+  const d=Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null });
+  try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(_){}
+  if(d.photo && typeof photoDrawable==='function'){ try{ d._img = await photoDrawable(d.photo, 1200); }catch(_){ d._img=null; } }
+  if(seq!==_finishPreviewSeq) return;
+  let cv=null; try{ cv=csPaintRecap(d); }catch(_){ cv=null; }
+  if(!cv){ box.hidden=true; return; }
+  box.replaceChildren(cv); box.hidden=false;
+  box.setAttribute('aria-label', `The card that will be shared: ${d.gross!=null?d.gross:''} at ${d.course||'the course'}${d._img?', over your round photo':''}.`);
 }
 function finishDismiss(){
   const el=document.getElementById('finish');
@@ -11676,14 +11876,17 @@ function finishDismiss(){
   $('#finPhoto')?.addEventListener('click',e=>{
     const b=e.currentTarget;
     b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
+    finishPreview();   /* the preview follows the switch */
   });
   /* the OUTPUT carries the photograph only while the control says so; the
      round's own attachment is never touched by this — opting out of a card is
-     not removing a photograph from a round (§16). */
+     not removing a photograph from a round (§16). The outcome is said under
+     the button (critique B: the toast painted beneath this curtain). */
   $('#finShare')?.addEventListener('click',()=>{
     if(!_finishShare) return;
     const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
-    shareRecapCard(Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null }));
+    const fs=$('#finStatus'); if(fs) fs.textContent='';
+    shareRecapCard(Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null }), m => { if(fs) fs.textContent=m; });
   });
   $('#finBack')?.addEventListener('click',finishDismiss);
   el.addEventListener('click',e=>{ if(e.target===el) finishDismiss(); });   /* backdrop */
@@ -14782,25 +14985,36 @@ function holeLedger(mode, cells, played, closedOut, hot, legend){
    halved or carried, faded is a hole never played. Which key is hot is the
    caller's call: the winning side on the public card, YOUR side in the recap.
 
+   W4 · SHAPE AS WELL AS COLOUR (critique B P1; UI_SYSTEM §16.4, WCAG 1.4.1).
+   Heat and slate measured 1.05:1 in luminance, so hue alone said who won each
+   hole. The subject's holes are full-height fills; everyone else's are
+   HALF-height fills on the same baseline; a halved or carried hole is a
+   hollow outline; a hole never played is a dashed outline. The colours are
+   the tokens (`brand`, `cool`, `mut` — the pre-D270 #FF5A2E is retired), so
+   the strip reads in either printing and on the ceremony ground alike.
+   `opts.label` (a sentence, holeStripSummary) makes the strip one image with
+   one spoken summary; holeStripKey says all three kinds in words. The
+   signature is unchanged: renderHoleStrip(H, opts).
+
    Inline styles, deliberately: the /?share= page renders into a bare container
    and must not depend on a class surviving a CSS refactor. Returns a string —
    callers own their own escaping (nothing user-authored reaches this).       */
-const STRIP_HOT='#FF5A2E', STRIP_COOL='#8E979E';
+const STRIP_HOT='var(--brand)', STRIP_COOL='var(--cool)', STRIP_MUT='var(--mut)';
 function renderHoleStrip(H, opts){
   if(!H || !Array.isArray(H.cells) || !H.cells.length) return '';
   const o=opts||{}, n=Math.max(1, Number(H.n)||18), hot=String(o.hot);
-  const hotC=o.hotColor||STRIP_HOT, coolC=o.coolColor||STRIP_COOL, mut=o.mutedColor||STRIP_COOL;
+  const hotC=o.hotColor||STRIP_HOT, coolC=o.coolColor||STRIP_COOL, mut=o.mutedColor||STRIP_MUT;
   const cells=[];
   for(let i=0;i<n;i++){
     const v = i<H.cells.length ? H.cells[i] : null;
     const isClose = H.closed && (i+1)===H.closed;
-    let bg='transparent', bd='rgba(140,150,160,.30)', op=1;
-    if(v==null) op=.28;                                     /* never played */
-    else if(v==='h'||v==='c') bd='rgba(255,255,255,.42)';   /* halved, or the skin carried */
-    else if(String(v)===hot){ bg=hotC; bd=hotC; }
-    else { bg=coolC; bd=coolC; }
-    cells.push(`<span title="Hole ${i+1}" style="flex:1 1 0;min-width:0;height:${isClose?20:14}px;`
-      + `border-radius:2px;background:${bg};border:1px solid ${bd};opacity:${op}"></span>`);
+    const tall = isClose ? 22 : 16;
+    let look;
+    if(v==null) look=`height:${tall}px;border:1px dashed ${mut};opacity:.5`;              /* never played */
+    else if(v==='h'||v==='c') look=`height:${tall}px;border:1.5px solid ${mut}`;            /* halved, or the skin carried: hollow */
+    else if(String(v)===hot) look=`height:${tall}px;background:${hotC}`;                     /* the subject's: full height */
+    else look=`height:${Math.round(tall/2)}px;background:${coolC}`;                          /* anyone else's: half height */
+    cells.push(`<span title="Hole ${i+1}" style="flex:1 1 0;min-width:0;box-sizing:border-box;border-radius:2px;${look}"></span>`);
   }
   /* S2 (ship audit 2026-08-31) · these two reach innerHTML inside the ANON
      /?share= settlement card, and their source is live_rounds.game_result — a
@@ -14815,14 +15029,46 @@ function renderHoleStrip(H, opts){
   const foot = nClosed
     ? `<span style="color:${hotC}">CLOSED ON ${nClosed}</span>`
     : `<span>THRU ${nPlayed}</span>`;
-  return `<div style="margin:${o.margin||'14px 0 0'}">
-    <div style="display:flex;gap:3px;align-items:flex-end">${cells.join('')}</div>
+  const label = o.label ? ` role="img" aria-label="${esc(String(o.label))}"` : '';
+  return `<div style="margin:${o.margin||'14px 0 0'}"${label}>
+    <div style="display:flex;gap:3px;align-items:flex-end;height:22px">${cells.join('')}</div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;
-                font-size:11px;letter-spacing:.14em;color:${mut}">
+                font-family:var(--board);font-weight:600;font-size:12px;letter-spacing:calc(var(--agate) * 1em);color:${mut}">
       <span>1</span>${foot}<span>${n}</span>
     </div>
   </div>`;
 }
+/* W4 · the strip, said: who won how many holes, how many halved or carried,
+   and where it ended — counted from the same cells the strip draws, never
+   stored (§16). `names` is { hot, other }: the subject and everyone else. */
+function holeStripSummary(H, opts){
+  if(!H || !Array.isArray(H.cells) || !H.cells.length) return '';
+  const o=opts||{}, hot=String(o.hot), nm=o.names||{};
+  let a=0, b=0, h=0, c=0;
+  H.cells.forEach(v=>{ if(v==null) return; if(v==='h') h++; else if(v==='c') c++; else if(String(v)===hot) a++; else b++; });
+  const parts=[`${nm.hot||'The subject'} won ${a} hole${a===1?'':'s'}`, `${nm.other||'the other side'} won ${b}`];
+  if(h) parts.push(`${h} halved`);
+  if(c) parts.push(`${c} carried`);
+  const closed=Number(H.closed)||0;
+  return parts.join(', ') + (closed ? `, closed on ${closed}.` : `, through ${Number(H.played)||H.cells.length}.`);
+}
+/* W4 · the key, all three kinds in words, each with the shape it keys */
+function holeStripKey(H, opts){
+  if(!H || !Array.isArray(H.cells) || !H.cells.length) return '';
+  const o=opts||{}, nm=o.names||{};
+  const hotC=o.hotColor||STRIP_HOT, coolC=o.coolColor||STRIP_COOL, mut=o.mutedColor||STRIP_MUT;
+  const any=f=>H.cells.some(f);
+  const sw=st=>`<span style="display:inline-block;width:10px;height:14px;box-sizing:border-box;border-radius:2px;vertical-align:-2px;margin-right:6px;${st}"></span>`;
+  const item=(st,t)=>`<span style="display:inline-block;white-space:nowrap;margin:0 14px 4px 0">${sw(st)}${esc(t)}</span>`;
+  return `<p aria-hidden="true" style="margin:10px 0 0;font-family:var(--board);font-weight:600;font-size:12px;letter-spacing:calc(var(--agate) * 1em);color:${mut}">`
+    + item(`background:${hotC}`, nm.hot ? `${nm.hot} won` : 'Won')
+    + item(`height:7px;background:${coolC}`, nm.other ? `${nm.other} won` : 'Theirs')
+    + (any(v=>v==='h') ? item(`border:1.5px solid ${mut}`, 'Halved') : '')
+    + (any(v=>v==='c') ? item(`border:1.5px solid ${mut}`, 'Carried') : '')
+    + `</p>`;
+}
+window.holeStripSummary = holeStripSummary;
+window.holeStripKey = holeStripKey;
 window.renderHoleStrip = renderHoleStrip;   /* the /?share= page lives in the module block */
 
 /* the strip shows the shape; these name it. Derived at render from the same
@@ -21330,10 +21576,17 @@ const CS_RUNBACK_NOT_YET = 'Running it back needs the latest update — try agai
 /* D374 · a claim link from a round nobody finished says so — one producer, both
    doors (signed out and signed in). The pencil (D85/D87) stays: the link is
    minted at seat time so a guest can score from their own phone. */
-const CS_CLAIM_UNFINISHED = 'This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.';
-const CS_CLAIM_NOT_STARTED = 'That round hasn’t teed off yet — your card lands here when it finishes.';
+/* T-01 · the holes are the SCORECARD; "card" is the person (critique B). The
+   not-started line says what to do next instead of a vague "lands here". */
+const CS_CLAIM_UNFINISHED = 'This round was never finished, so there’s no scorecard to keep. Whoever ran it can tee off again and send your link from the new round.';
+const CS_CLAIM_NOT_STARTED = 'That round hasn’t teed off yet. Open this link again once it tees off to keep your own score, or once it finishes to keep your scorecard.';
 /* F3's sentence for a claim link nothing answers — both doors now say it */
 const CS_CLAIM_DEAD = 'That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round.';
+/* a link whose scorecard was already kept said NOTHING: the door was the plain
+   door, pixel for pixel (owner R, critique B P2). The likeliest visitor is the
+   golfer who kept it, opening the thread on another device. Not an error, and
+   it reveals no more than CS_CLAIM_DEAD already says to any token. */
+const CS_CLAIM_USED = 'That scorecard is already on a golfer’s record. If it’s yours, sign in with the same email and it’s in your rounds.';
 
 /* R5 (security review 2026-09-25, S5 / D-05) · A LINK NEVER ACTS ON ITS OWN.
    `?p=`, `?plan=` and `?claim=` spent their token the moment a boot found it:
@@ -21357,9 +21610,14 @@ function csLinkAskPlan(host, course, day){
   return csLinkName(host, 'A golfer') + '’s round at ' + csLinkName(course, 'the course') + (day ? ' on ' + day : '') + ' — take a seat?';
 }
 function csLinkPlanNote(host){ return 'Taking the seat puts you down as in and sends ' + csLinkName(host, 'the host') + ' a buddy request.'; }
+/* W4 (critique B) · the question names the CLUB, and the course and tee go
+   to the facts line under it: "…Golf Club (fixture) — Mesquite Wash · Black to
+   your record?" ran a dash-joined triple into the question. The holes are a
+   scorecard; "card" is the person (T-01). Twin: LinkConfirmation.swift. */
+function csLinkClub(course){ return String(course == null ? '' : course).split(' — ')[0]; }
 function csLinkAskClaim(gross, course){
-  const at = csLinkName(course, 'the course'), g = csLinkName(gross, '');
-  return (g ? 'Add this ' + g + ' at ' + at : 'Add this card from ' + at) + ' to your record?';
+  const at = csLinkName(csLinkClub(course), 'the course'), g = csLinkName(gross, '');
+  return (g ? 'Add this ' + g + ' at ' + at : 'Add this scorecard from ' + at) + ' to your record?';
 }
 
 /* R8 (S7, Guideline 1.2) · MUTE BECOMES BLOCK, and it is one real thing. The
@@ -26019,32 +26277,23 @@ function renderNotifications(){
   const carried = typeof csDispatchCarries === 'function' ? csDispatchCarries('invite:') : new Set();
   const inv=(window.myInvites||[]).filter(i => !carried.has(String(i.id)));
   if(!inv.length || state.demo){ el.innerHTML=''; return; }
+  /* a first tee is a date a golfer writes, not the database's ISO string */
+  const tee = iso => { try{ const d = localDate(String(iso).slice(0,10)); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return String(iso); } };
   el.innerHTML=inv.map(i=>`
-    <div class="notifrow">
-      <div class="tt"><b>${esc((window.csInviteTitle||(()=>'Invite'))(i))} · ${esc(i.container_name||'')}</b>
-        <small>from ${esc(i.inviter||'a golfer')}${i.kind==='event'&&i.starts_on?' · first tee '+i.starts_on:''}</small></div>
-      <span style="display:flex; gap:6px; flex:none">
-        <button class="mini" data-ivacc="${i.id}">See the terms</button>
-        <button class="mini" data-ivdet="${i.id}">Details</button>
-      </span>
+    <div class="notifrow" data-inv="${esc(i.id)}">
+      <div class="tt"><b class="cs-social">${esc((window.csInviteTitle||(()=>'Invite'))(i))} · ${esc(i.container_name||'')}</b>
+        <small class="cs-agate is-phrase">from ${esc(i.inviter||'a golfer')}${i.kind==='event'&&i.starts_on?' · first tee '+esc(tee(i.starts_on)):''}</small></div>
+      <div class="acts">
+        <button class="mini" data-ivacc="${esc(i.id)}">See the terms</button>
+        <button class="ivdec" data-ivdec="${esc(i.id)}">Decline</button>
+      </div>
     </div>`).join('');
   /* D351 / D356 · every primary control READS THE TERMS — a season's covenant
      or an event's own facts; the accept is the sheet's own button.
-     `respondInvite(…, true)` is that gate. */
+     `respondInvite(…, true)` is that gate. Declining stays one tap and
+     ungated (D351), on the row itself, where the Details sheet hid it. */
   el.querySelectorAll('[data-ivacc]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivacc,true)));
-  el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
-    const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
-    const what = i.kind==='league' ? ((i.reup && Number(i.season_number) > 1) ? 'The next season of your league — same rules, fresh table.' : 'A season-long league.')
-               : ((window.csEventTerms ? window.csEventTerms(i)[0] : null) || 'This server hasn’t said whether it’s a Ryder or a Major yet.');
-    openSheet((window.csInviteTitle||(()=>'Invite'))(i), (i.container_name||'').toUpperCase(),
-      `<p class="fine">${esc(what)} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
-       <div style="display:flex; gap:8px; margin-top:14px">
-         <button class="btn" id="ivDetAcc" style="flex:1">See the terms</button>
-         <button class="btn dark" id="ivDetDec" style="flex:1">Decline</button>
-       </div>`);
-    $('#ivDetAcc').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,true); });
-    $('#ivDetDec').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,false); });
-  }));
+  el.querySelectorAll('[data-ivdec]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivdec,false)));
 }
 window.renderNotifications=renderNotifications;
 /* every league-identity string on screen renders from real state — the
@@ -26528,7 +26777,7 @@ function showProfileGate(){
     if(localStorage.getItem('cs_claim') && !document.getElementById('pfClaimNote')){
       const note=document.createElement('p');
       note.id='pfClaimNote'; note.className='fine';
-      note.style.cssText='padding:0 0 10px; color:var(--gold)';
+      note.style.cssText='padding:0 0 10px; color:var(--mut)';   /* a note, not an earning: gold is earned only (D359) */
       note.textContent='Saving your card attaches the round you’re claiming.';
       g.prepend(note);
     }
@@ -30811,6 +31060,41 @@ function csCovenantFacts(info, postedRounds){
   return out;
 }
 window.csCovenantFacts = csCovenantFacts;
+/* WHERE THE SEASON STANDS, said before the money (owner E, critique B P2).
+   A week-8 joiner was asked for $75 against "Thirteen weeks from Sun Aug 9"
+   and left to do the arithmetic, and nothing said what a late seat means.
+   Pure, with the clock passed in, so it is testable and csCovenantFacts'
+   pinned order is untouched; the sheet sets it after the length. Every
+   clause is a rule the server already keeps, stated rather than invented:
+   - the week, from the payload's own first tee and length (§14.0);
+   - D386: a join after formation is seated on the thinnest squad and counts
+     for it from the seat, never before — said only outside a Cup Final,
+     because D382 holds a Final's squads and no late seat is made in one;
+   - D161 / D354a: the month you join carries no minimum — said only where a
+     minimum exists and the season is not solo (L-23).
+   Nothing before the first tee (the length already says when) or after the
+   last week. Twin to write on the phone: `Covenant` in JoinLeague.swift. */
+function csCovenantClock(info, today){
+  if(!info || !info.starts_on) return null;
+  const wk = Number(info.weeks)||0; if(!wk) return null;
+  const start = localDate(String(info.starts_on).slice(0,10));
+  const now = today instanceof Date ? new Date(today.getFullYear(), today.getMonth(), today.getDate()) : new Date(new Date().setHours(0,0,0,0));
+  const day = Math.round((now - start) / 864e5);
+  if(!(day >= 0) || day >= wk * 7) return null;
+  const week = Math.floor(day / 7) + 1;
+  const ends = info.ends_on ? localDate(String(info.ends_on).slice(0,10)) : new Date(start.getFullYear(), start.getMonth(), start.getDate() + wk * 7 - 1);
+  const finalOpen = info.finish === 'cup_final' && wk >= 6 && Math.round((ends - now) / 864e5) <= 27;
+  if(finalOpen) return { k:'joining', t: 'You’d join in week ' + week + ' of ' + wk + ', during the Cup Final.' };
+  const squads = /^squads[234]$/.test(String(info.structure||''));
+  let t = 'You’d join in week ' + week + ' of ' + wk
+    + (squads ? ', on the squad with the fewest golfers; your rounds count for it from that day.' : '.');
+  if(Number(info.floor) > 0 && info.structure !== 'solo'){
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    t += ' There’s no minimum to clear until ' + CS_MONTHS_LONG[next.getMonth()] + '.';
+  }
+  return { k:'joining', t };
+}
+window.csCovenantClock = csCovenantClock;
 
 async function covenantGate(code){
   let info=null, answered=false;
@@ -30900,7 +31184,7 @@ async function eventTermsGate(inv){
   const b = Number(inv.buy_in) || 0;
   return new Promise(res=>{
     openSheet('Before you accept '+(inv.container_name||'this one'), 'EVERYTHING BEFORE YOU TAP',
-      facts.map((t,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${(b>0 && /each\.$/.test(t))?';color:var(--gold)':''}">${esc(t)}</p>`).join('')
+      facts.map((t,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${(b>0 && /each\.$/.test(t))?';color:var(--ink)':''}">${esc(t)}</p>`).join('')
       + `<p class="fine" style="padding-top:6px">Invited by ${esc(inv.inviter||'a golfer')}.</p>
       <button class="btn" id="evAccept" style="margin-top:12px">${b>0?`Accept — I’m in for $${Math.round(b)}`:'Accept'}</button>
       <button class="btn dark" id="evNo" style="margin-top:8px">Not now</button>`);
@@ -30919,7 +31203,9 @@ async function eventTermsGate(inv){
 /* the title an invitation wears: the event's OWN kind, never a guess */
 function csInviteTitle(i){
   /* D375 · a re-up says which season it is for; a first invitation reads as before */
-  if(!i || i.kind === 'league') return (i && i.reup && Number(i.season_number) > 1) ? ('Season ' + Number(i.season_number) + ' invite') : 'League invite';
+  /* T §2.3 · league is the crew's standing name, never a thing you join: the
+     invitation is to a season (owner C). Twin: ReUpCopy.inviteTitle (ReUp.swift). */
+  if(!i || i.kind === 'league') return (i && i.reup && Number(i.season_number) > 1) ? ('Season ' + Number(i.season_number) + ' invite') : 'Season invite';
   return i.event_kind === 'major' ? 'Major invite' : i.event_kind === 'ryder' ? 'Ryder invite' : 'Invite';
 }
 window.csInviteTitle = csInviteTitle;
@@ -30948,11 +31234,16 @@ function showCovenant(info){
      still a different case and still fails closed (above). */
   if(!info) return false;
   const facts = csCovenantFacts(info);
+  /* where the season stands, right after its length (csCovenantClock) */
+  const clock = csCovenantClock(info);
+  if(clock){ const at = facts.findIndex(f => f.k === 'length'); facts.splice(at >= 0 ? at + 1 : Math.min(1, facts.length), 0, clock); }
   return new Promise(res=>{
     /* D375 · a re-up reads as one: the title names the season and the button
        is the yes to it (csCovenantTitle / csCovenantButton, pinned) */
+    /* the stake is money, and money is ink (UI_SYSTEM §2.5): gold is for the
+       pot or a thing won, and a buy-in is neither (craft C, critique B) */
     openSheet(csCovenantTitle(info), csCovenantEyebrow(info),
-      facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--gold)':''}">${esc(f.t)}</p>`).join('') + `
+      facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--ink)':''}">${esc(f.t)}</p>`).join('') + `
       <button class="btn" id="covJoin" style="margin-top:12px">${esc(csCovenantButton(info))}</button>
       <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
@@ -34449,87 +34740,121 @@ for(const L of CS_SHARE_LINKS){
 }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
 async function renderShareView(tok, _testInfo){
-  /* D76: the GROUND converges to charcoal (identity, not metals) — every
-     branch. Gold stays the earned face (settlement/recap); rounds are the
-     live layer and speak ember/warm. */
-  /* WAVE 8 · the `ceremony` ramp (D277). `warm` was deleted from the palette
-     in Wave 0a and survived here because this view is built from a string. */
-  const C = { bg:'#0A0E0C', panel:'#0A0E0C', ink:'#F1F4EF', mut:'#9BA69D', gold:'#D8B25A', hot:'#E8622C', warm:'#D8B25A', act:'#5FA271' };   /* act: the dark printing of the ordinary action (tokens.json metal.act) */
-  const MONO = "'IBM Plex Mono',ui-monospace,Menlo,monospace";
-  const SERIF = "ui-serif,'New York',Georgia,serif";
+  /* ONE PUBLIC SHELL (owner C/B/P, craft C, critique B, 2026-09-28). Every
+     branch — a round, a settled game, a season table, a golfer, a plan, a dead
+     or an unreadable link — renders into the same page: the pennant signature,
+     the type roles, the viewer's own printing, one sentence of what Cup Season
+     is and one action. The round branch was already this; the others were
+     string-built cards on a pinned dark ground with a gold frame, sentences in
+     mono, ember on identity and no mark (D359 retired both uses of ember and
+     gold there). The CSS is `.sv` (search "ONE PUBLIC SHELL"). #svCard is the
+     grid — head · photo · facts · second · foot — so the desk sets the
+     object's second half beside it (D234). No colour is typed here: the
+     tokens carry both printings. */
   const wrap = document.createElement('div');
   wrap.id = 'shareView';
-  wrap.style.cssText = `position:fixed;inset:0;z-index:99999;overflow:auto;background:${C.bg};color:${C.ink};-webkit-font-smoothing:antialiased`;
-  wrap.innerHTML = `<div style="max-width:430px;margin:0 auto;padding:26px 16px 40px;text-align:center;font-family:var(--sans)">
-    <div style="letter-spacing:.22em;font-size:12px;color:${C.mut};font-family:${MONO}">CUP SEASON</div>
-    <div id="svCard" style="margin-top:18px;background:${C.panel};border:1px solid rgba(233,190,98,.35);border-radius:18px;padding:26px 18px">
-      <div style="color:${C.mut};font-size:13px;padding:34px 0">Opening the card…</div>
-    </div>
-    <div id="svFoot" style="margin-top:22px"></div>
+  wrap.className = 'sv';
+  const MARK = `<svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>`;
+  wrap.innerHTML = `<div class="sv-page">
+    <header class="sv-signature">${MARK}<span class="cs-name">Cup Season</span><span class="sv-kind cs-agate"></span></header>
+    <div id="svCard"><p class="sv-wait cs-body-s">Opening the card…</p></div>
   </div>`;
   document.body.appendChild(wrap);
-  const fmtD = (iso) => {   /* manual parse — new Date('YYYY-MM-DD') is the UTC landmine */
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-    if(!m) return '';
-    const d = new Date(+m[1], +m[2]-1, +m[3]);
-    const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    return `${DW[d.getDay()]} · ${MO[d.getMonth()]} ${d.getDate()}`;
+  const card = wrap.querySelector('#svCard');
+  const kind = t => { wrap.querySelector('.sv-kind').textContent = t || ''; };
+  /* manual parse — new Date('YYYY-MM-DD') is the UTC landmine. Title case:
+     the agate role sets the caps, the words stay words for a screen reader. */
+  const dayOf = (iso) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+    return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
   };
-  const markerSvg = (mk) => {   /* round-branch only — the live layer wears ember (D76) */
+  const fmtD = (iso) => {
+    const d = dayOf(iso); if(!d) return '';
+    const DW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${DW[d.getDay()]} ${MO[d.getMonth()]} ${d.getDate()}`;
+  };
+  /* the golfer's own marker, in ink: identity is not a competition (D359) */
+  const glyph = (mk) => {
     const m = (window.MARKERS || {})[mk];
-    if(!m) return '';
-    return `<div style="width:76px;height:76px;margin:0 auto 14px;border:2px solid rgba(255,90,46,.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${C.hot}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg></div>`;
+    return m ? `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg>` : '';
   };
-  let info = _testInfo || null;
+  const nw = (t) => `<span class="nw">${esc(String(t))}</span>`;
+  const run = (t) => `<span class="sv-run">${esc(String(t))}</span>`;
+  /* ONE sentence of what this is, above ONE action (owner H, critique B): a
+     stranger holding the link learns what Cup Season is before being asked to
+     do anything. The action is secondary where the page's object is a round or
+     a table (craft H: "the round stays the object"), and the ordinary action
+     (act, D359) where taking it IS the page (a golfer's card, a seat). */
+  const WHY = 'Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.';
+  const foot = (o) => `<footer id="svFoot">
+      <p class="sv-why cs-body-s">${esc(WHY)}</p>
+      <a class="sv-action cs-name${o.primary ? ' is-primary' : ''}" href="${o.href || '/'}">${esc(o.cta)}</a>
+      ${o.note ? `<p class="sv-note cs-body-s">${esc(o.note)}</p>` : ''}
+    </footer>`;
+  let info = _testInfo || null, failed = false;
   if(!info) try{
     const { data, error } = await sb.rpc('share_info', { p_token: tok });
-    if(!error) info = data;
-  }catch(_){}
-  const card = wrap.querySelector('#svCard'), foot = wrap.querySelector('#svFoot');
-  /* the CTA is an app action, not an earned face: act on every branch (D359
-     superseded D76's ember here) */
-  /* D77: "Built with" is builder-speak on a page whose reader has never heard
-     of us, and "Start your crew's season" asks a stranger for a commitment
-     before they know what the thing is. The CTA points at what they just saw. */
-  foot.innerHTML = `<div style="color:${C.mut};font-size:12px;letter-spacing:.08em;margin-bottom:12px">Cup Season — real rounds, real crews</div>
-    <a href="/" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Play this with your crew</a>`;   /* D359 · the way in is an ordinary action: the action green, as the public round's "Play with your people" is — ember is the match's, not the door's */
-  if(!info || !info.kind){
-    /* "Nothing here." reads as a broken app to someone who was sent a link in
-       good faith. Say what happened and what to do about it. */
-    card.innerHTML = `<div style="font-size:15px;line-height:1.6;color:${C.ink};padding:16px 0 6px">This link is dead.</div>
-      <div style="color:${C.mut};font-size:13px;line-height:1.6;padding-bottom:12px">Whoever sent it can share a fresh one from the round. Cup Season is season-long golf with your own crew.</div>`;
+    if(error) failed = true; else info = data;
+  }catch(_){ failed = true; }
+
+  /* a read that FAILED is not an empty answer (critique B): "This link is
+     dead" told a recipient on a bad connection that the link was gone. */
+  if(failed && !info){
+    kind('');
+    card.className = 'sv-short';
+    card.innerHTML = `<div class="sv-head">
+        <h1 class="cs-lead">Couldn’t open this card.</h1>
+        <p class="sv-where cs-body-s">The link may be fine. Check your signal and try again.</p>
+        <button type="button" class="sv-action is-primary cs-name sv-retry">Try again</button>
+      </div>` + foot({ cta: 'Open Cup Season' });
+    card.querySelector('.sv-retry').addEventListener('click', () => { wrap.remove(); renderShareView(tok); });
     return;
   }
+  if(!info || !info.kind){
+    /* "Nothing here." read as a broken app to someone sent a link in good
+       faith. Say what happened and what to do about it; the action names the
+       product, because "Play this" had nothing on the page to refer to. */
+    kind('');
+    card.className = 'sv-short';
+    card.innerHTML = `<div class="sv-head">
+        <h1 class="cs-lead">This link is dead.</h1>
+        <p class="sv-where cs-body-s">Whoever sent it can share a fresh one from the round.</p>
+      </div>` + foot({ cta: 'Open Cup Season' });
+    return;
+  }
+
   if(info.kind === 'round'){
     const pviSane = info.pvi != null && isFinite(info.pvi) && Math.abs(Number(info.pvi)) <= 30;
     document.title = `${info.name} — ${info.gross} at ${info.course} · Cup Season`;
     wrap.classList.add('sv-round');
-    wrap.style.background = 'var(--bg0)'; wrap.style.color = 'var(--ink)';
-    const page = wrap.firstElementChild;
-    page.className = 'sv-page'; page.removeAttribute('style');
-    const signature = page.firstElementChild;
-    signature.className = 'sv-signature'; signature.removeAttribute('style');
-    // Reuse the generated mark paths already used by the web artifacts.
-    signature.innerHTML = `<svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>
-      <span class="cs-name">Cup Season</span><span class="cs-col-s">ROUND RECORD</span>`;
-    card.removeAttribute('style'); card.setAttribute('role', 'article');
+    kind('Round record');
+    card.setAttribute('role', 'article');
     card.setAttribute('aria-label', 'Round record');
     // Consent is carried by the public payload. Never load the photo on opt-out.
     const pub = info.photo ? `${SUPABASE_URL}/storage/v1/object/public/shared/${encodeURIComponent(String(tok||''))}.jpg` : null;
-    const mark = (window.MARKERS || {})[info.marker];
-    const glyph = mark ? `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${mark.p}"/></svg>` : '';
-    card.innerHTML = `<h1 class="cs-lead">${esc(String(info.course || 'A round'))}</h1>
-      <p class="sv-date cs-col-s">${esc(fmtD(info.played_on))}${info.holes === 9 ? ' · NINE HOLES' : ''}</p>
+    /* the verdict, the plain way for a stranger: the one comparison producer in
+       the third person, as a sentence (owner R, critique B: "PLAYED TO IT" meant
+       nothing to the recipient, and it was the serif in capitals, §1.3). Its one
+       number is a figure run (§1.4: never a number in sans or serif prose). */
+    let band = '';
+    if(pviSane){
+      const said = theirs(vsPhrase(Number(info.pvi)));
+      band = esc(said.charAt(0).toUpperCase() + said.slice(1) + '.').replace(/(\d+\.\d)/, '<span class="sv-run">$1</span>');
+    }
+    card.className = pub ? 'sv-with-photo' : 'sv-short';
+    card.innerHTML = `<div class="sv-head">
+        <h1 class="cs-lead">${esc(String(info.course || 'A round'))}</h1>
+        <p class="sv-date cs-agate">${esc(fmtD(info.played_on))}${info.holes === 9 ? ' · Nine holes' : ''}</p>
+      </div>
       ${pub ? `<img class="sv-photo" src="${pub}" alt="Round photograph shared by ${esc(String(info.name || 'the golfer'))}">` : ''}
-      <div class="sv-score"><span class="cs-fig-xl">${esc(String(info.gross))}</span><span class="cs-col-s">GROSS</span></div>
-      <div class="sv-golfer">${glyph}<span class="cs-name">${esc(String(info.name || 'A golfer'))}</span></div>
-      ${pviSane ? `<p class="sv-band cs-story">${esc(theirs(bandName(Number(info.pvi))).toUpperCase())}</p>` : ''}`;
+      <div class="sv-facts">
+        <div class="sv-score"><span class="cs-fig-xl">${esc(String(info.gross))}</span><span class="cs-agate">Gross</span></div>
+        <div class="sv-golfer">${glyph(info.marker)}<span class="cs-name">${esc(String(info.name || 'A golfer'))}</span></div>
+        ${band ? `<p class="sv-band cs-body">${band}</p>` : ''}
+      </div>` + foot({ cta: 'Play with your people' });
     // A missing copy must not leave a broken-image icon or obscure the record.
-    card.querySelector('.sv-photo')?.addEventListener('error', event => { event.currentTarget.remove(); });
-    foot.removeAttribute('style');
-    foot.innerHTML = `<p class="sv-signoff cs-col-s">${esc(window.CS_BRAND.taglineCaps)}<br>cupseason.app</p>
-      <a class="sv-action cs-name" href="/">Play with your people</a>`;
+    card.querySelector('.sv-photo')?.addEventListener('error', event => { event.currentTarget.remove(); card.className = 'sv-short'; });
+
   } else if(info.kind === 'settlement'){
     const r = info.result || {};
     /* D74 amendment: the mode was absent from this map, so every Sunningdale
@@ -34539,58 +34864,83 @@ async function renderShareView(tok, _testInfo){
     const GAME = { match:'MATCH PLAY', wolf:'WOLF', skins:'SKINS', none:'THE ROUND',
                    sunningdale:'SUNNINGDALE RULES' };
     document.title = `${GAME[info.game] || 'Settlement'} at ${info.course} · Cup Season`;
-    const story = r.story
-      || (r.winner != null
-          ? `${(r.winner === '0' ? r.side_a : r.side_b) || 'Winners'} beat ${(r.winner === '0' ? r.side_b : r.side_a) || 'the other side'} ${r.status || ''}`
-          /* comma, not "and": two "A & B" sides joined by "and" parsed as four
-             separate people (the same fix as the recap sheet and the board) */
-          : (r.side_a ? `All square — ${r.side_a}, ${r.side_b}` : 'Settled on the course'));
+    wrap.classList.add('sv-settle');
+    kind('Result');
+    const A = r.side_a || null, B = r.side_b || null;
+    const side = k => k === '0' ? A : k === '1' ? B : null;
+    /* the result in the lead serif: each pair's names stay together on a line
+       (critique B: "…beat Casey / & Gray"), and the margin is a figure run */
+    let story;
+    if(r.story){
+      story = esc(String(r.story));
+      [A, B].filter(Boolean).forEach(n => { const e = esc(n); story = story.split(e).join(`<span class="nw">${e}</span>`); });
+      const st = r.status ? esc(String(r.status)) : '';
+      if(st && story.endsWith(st)) story = story.slice(0, -st.length) + `<span class="sv-run">${st}</span>`;
+    } else if(r.winner != null){
+      story = `${nw(side(r.winner) || 'Winners')} beat ${nw(side(r.winner === '0' ? '1' : '0') || 'the other side')}${r.status ? ' ' + run(r.status) : ''}`;
+    } else {
+      /* comma, not "and": two "A & B" sides joined by "and" parsed as four
+         separate people (the same fix as the recap sheet and the board) */
+      story = A ? `All square — ${nw(A)}, ${nw(B || '')}` : 'Settled on the course';
+    }
     /* D77: 'Bragging rights only' is a CLAIM, and on Sunningdale Rules it was a
        false one. That game settles a BANK (units × unit stake), which share_info
        does not carry — so `stake` is undefined and this card told the crew no
        money was on a round where $15 had changed hands, directly contradicting
        the story line above it. Assert nothing we cannot see: no stake key means
-       no money line, not a denial. */
+       no money line, not a denial. Money is ink (§2.5). */
     const knowsStake = r.stake != null && String(r.stake) !== '';
     const money = Number(r.stake) > 0
       ? ((r.transfers || []).length
-          ? r.transfers.map(t => `${t.from} pays ${t.to} $${t.amt}`).join(' · ')
-          : `$${r.stake} a side`)
+          ? r.transfers.map(t => nw(`${t.from} pays ${t.to} $${t.amt}`)).join(' · ')
+          : nw(`$${r.stake} a side`))
       : knowsStake ? 'Bragging rights only' : '';
     /* D78 · the hole strip. "3&2" is the margin; this is the shape of it — the
-       run, the collapse, the hole it ended on. Reads r.holes, which the client
-       has written into game_result since D78 but which share_info only returns
-       once its migration lands: the whole block is absent-safe in BOTH deploy
-       orders, and every round settled before D78 has no ledger and never will,
-       so a strip-less card stays a first-class render rather than an empty
-       row of grey. renderHoleStrip is bridged from the classic block. */
+       run, the collapse, the hole it ended on. Reads r.holes, absent-safe in
+       BOTH deploy orders (every round settled before D78 has no ledger and
+       never will, so a strip-less card is a first-class render). W4: keyed in
+       words for all three kinds and spoken as one sentence (critique B P1),
+       and the closing hole is said once — the strip's foot says it, so the
+       "CLOSED OUT ON" highlight is not repeated here (D90's own reason). */
     const HL = r.holes;
-    const strip = (HL?.cells?.length && window.renderHoleStrip)
-      ? `<div style="margin:18px 10px 0">
-           ${window.renderHoleStrip(HL, { hot: HL.hot, mutedColor: C.mut, margin:'0' })}
-           ${HL.legend ? `<div style="margin-top:10px;font-size:11px;letter-spacing:.12em;color:${C.mut};font-family:${MONO}">
-              <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${C.hot};margin-right:6px;vertical-align:middle"></span>${esc(String(HL.legend).toUpperCase())}</div>` : ''}
-           ${(window.holeHighlights ? window.holeHighlights(HL, { hot: HL.hot }) : []).map(t =>
-              `<span style="display:inline-block;margin:9px 5px 0 0;font-size:11px;letter-spacing:.06em;color:${C.mut};background:rgba(241,244,239,.08);border-radius:3px;padding:4px 9px">${esc(t)}</span>`).join('')}
-         </div>`
+    let strip = '';
+    if(HL && Array.isArray(HL.cells) && HL.cells.length && window.renderHoleStrip){
+      const hotKey = String(HL.hot);
+      const names = { hot: side(hotKey) || HL.legend || null, other: side(hotKey === '0' ? '1' : hotKey === '1' ? '0' : '') };
+      const said = window.holeStripSummary ? window.holeStripSummary(HL, { hot: HL.hot, names }) : '';
+      const highs = (window.holeHighlights ? window.holeHighlights(HL, { hot: HL.hot }) : []).filter(t => !/^CLOSED OUT ON/.test(t));
+      strip = `<div class="sv-second sv-strip">
+          <p class="sv-eb cs-agate">Hole by hole</p>
+          ${window.renderHoleStrip(HL, { hot: HL.hot, margin: '0', label: said })}
+          ${window.holeStripKey ? window.holeStripKey(HL, { hot: HL.hot, names }) : ''}
+          ${highs.length ? `<p class="sv-highs cs-agate is-phrase">${highs.map(t => esc(t)).join(' · ')}</p>` : ''}
+        </div>`;
+    }
+    const players = (info.players || []).length
+      ? `<div class="sv-rows">${info.players.map(p => `<div class="sv-row"><span class="nm cs-social">${esc(p.name)}</span><span class="fig">${p.gross != null ? esc(String(p.gross)) : ''}</span></div>`).join('')}</div>`
       : '';
-    card.innerHTML = `
-      <div style="color:${C.gold};letter-spacing:.2em;font-size:12px;font-weight:600;font-family:${MONO}">${esc(GAME[info.game] || 'SETTLED')}</div>
-      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(story)}</div>
-      ${money ? `<div style="color:${C.mut};font-size:12.5px;letter-spacing:.08em;margin-top:10px">${esc(money)}</div>` : ''}
-      ${strip}
-      ${(info.players || []).length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 40px"></div>
-      ${info.players.map(p => `<div style="display:flex;justify-content:space-between;padding:5px 12px;font-size:13.5px"><span>${esc(p.name)}</span><span style="color:${C.mut}">${p.gross != null ? esc(String(p.gross)) : '—'}</span></div>`).join('')}` : ''}
-      <div style="border-top:1px solid rgba(255,255,255,.1);margin:14px 40px 0"></div>
-      <div style="letter-spacing:.12em;font-size:12.5px;margin-top:14px;font-family:${MONO}">${esc(String(info.course || '').toUpperCase())}</div>
-      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px;font-family:${MONO}">${esc(fmtD(info.played_on))}</div>`;
+    const when = fmtD(info.played_on);
+    card.className = strip ? '' : 'sv-short';
+    card.innerHTML = `<div class="sv-head">
+        <p class="sv-eb cs-agate">${esc(((g) => g.charAt(0) + g.slice(1).toLowerCase())(GAME[info.game] || 'SETTLED'))}</p>
+        <h1 class="cs-lead">${story}</h1>
+        <p class="sv-where cs-body-s">${esc(String(info.course || ''))}${when ? ' · ' + esc(when) : ''}</p>
+      </div>
+      <div class="sv-facts">
+        ${money ? `<p class="sv-money cs-body-s">${money}</p>` : ''}
+        ${players}
+      </div>
+      ${strip}` + foot({ cta: 'Play with your people' });
+
   } else if(info.kind === 'person'){
     /* D241 · IA §10.5's own card: a name, a marker, the number and the recent
        rounds. Every line is a FACT the server returned — a golfer with no
        rounds gets no rounds line rather than a zero (L-44), and there is no
-       handle, no city and no id on the page. */
+       handle, no city and no id on the page. (Whether D394 should narrow this
+       card is an open owner question, recorded by root, not decided here.) */
     document.title = `${info.name} — Cup Season`;
-    card.style.borderColor = 'rgba(255,90,46,.38)';   /* live layer: ember frame (D76) */
+    wrap.classList.add('sv-person');
+    kind('A golfer');
     const rounds = (info.rounds || []);
     /* L-01 · the BEST is the server's, over every round. Deriving it from the
        three rows below would print a number narrower than the sentence it sits
@@ -34598,49 +34948,57 @@ async function renderShareView(tok, _testInfo){
     const best = info.best;
     const nRounds = Number(info.rounds_n || 0);
     const line2 = nRounds > 0
-      ? `${esc(String(nRounds))} round${nRounds === 1 ? '' : 's'} posted${best != null ? `, best ${esc(String(best))}` : ''}.`
+      ? `${run(nRounds)} round${nRounds === 1 ? '' : 's'} posted${best != null ? `, best ${run(best)}` : ''}.`
       : '';
-    card.innerHTML = `
-      ${markerSvg(info.marker)}
-      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:6px 6px 4px">${esc(info.name)} wants you in their golf.</div>
-      ${line2 ? `<div style="color:${C.mut};font-size:13.5px;line-height:1.6;margin-top:10px">${line2}</div>` : ''}
-      ${info.index != null ? `<div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px;font-family:${MONO}">INDEX ${esc(String(info.index))}</div>` : ''}
-      ${rounds.length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 30px 6px"></div>
-      ${rounds.map(r => `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 12px;font-size:13px;text-align:left">
-         <span style="color:${C.mut};white-space:nowrap;font-family:${MONO};font-size:12px">${esc(fmtD(r.played_on))}</span>
-         <span style="min-width:0;overflow-wrap:anywhere;text-align:right">${r.gross != null ? esc(String(r.gross)) : '—'}${esc(r.course ? ' · ' + String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}` : ''}
-      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
-    /* W5 · "Get the app" is a destination (/get: the iPhone beta or the store,
-       the web app, and install-then-reopen said once), not the root */
-    /* D359 · getting the app is an ordinary action: act, as every branch's way in */
-    foot.innerHTML = `<a href="/get" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
-      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. Nothing goes to ${esc(info.name)} until you say yes.</div>`;
+    /* D395 · a number from fewer than three posted rounds is a starter, and it
+       says so (critique B: a golfer with no rounds was shown an INDEX) */
+    const idx = info.index != null
+      ? `<p class="sv-date cs-agate">${nRounds >= 3 ? 'Index' : 'Starter number'} ${run(info.index)}</p>` : '';
+    card.className = rounds.length ? '' : 'sv-short';
+    card.innerHTML = `<div class="sv-head">
+        ${glyph(info.marker) ? `<div class="sv-marker">${glyph(info.marker)}</div>` : ''}
+        <h1 class="cs-lead">${esc(info.name)} wants to play golf with you.</h1>
+        ${line2 ? `<p class="sv-where cs-body-s">${line2}</p>` : ''}
+        ${idx}
+      </div>
+      ${rounds.length ? `<div class="sv-second">
+        <p class="sv-eb cs-agate">Recent rounds</p>
+        <div class="sv-rows">${rounds.map(r => `<div class="sv-row">
+          <span class="dt cs-agate">${esc(fmtD(r.played_on))}</span>
+          <span class="fig">${r.gross != null ? esc(String(r.gross)) : ''}</span>
+          <span class="nm cs-body-s">${esc(r.course ? String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}</div>
+      </div>` : ''}` +
+      /* W5 · "Get the app" is a destination (/get: the iPhone beta or the store,
+         the web app, and install-then-reopen said once), not the root.
+         D359 · getting the app is an ordinary action: act. */
+      foot({ cta: 'Get the app', href: '/get', primary: true,
+             note: `Sign in and you’ll be asked first. Nothing goes to ${info.name} until you say yes.` });
 
   } else if(info.kind === 'plan'){
     /* D253 · the day, the course and who is in. Not the note — the host wrote
-       that for the crew they tagged, not for a stranger holding a link. */
-    /* the SHORT course name in the headline, the full label nowhere: a public
-       card that prints `Gold Canyon — Dinosaur Mountain · Black/Blue` in serif
-       runs to three lines and tells a stranger which tees to hit off before it
-       tells them whose round it is (BUILD_PLAN §2.z's rule for any slot that
-       takes a name from the database). */
+       that for the crew they tagged, not for a stranger holding a link. The
+       SHORT course name, the full label nowhere: a public card that prints
+       `Gold Canyon — Dinosaur Mountain · Black/Blue` in serif runs to three
+       lines and tells a stranger which tees to hit off before it tells them
+       whose round it is (BUILD_PLAN §2.z). A plain booked round is not a
+       competition, so nothing on it is ember (D359). */
     const venue = String(info.course || '').split(' — ')[0] || 'the course';
     document.title = `Golf at ${venue} — Cup Season`;
-    card.style.borderColor = 'rgba(255,90,46,.38)';
+    wrap.classList.add('sv-plan');
+    kind('A round');
     const who = (info.who || []);
     /* a name is singular, a list takes "and" — the same conjugation bug that
        produced "Alex lead by 4" on the season page */
     const whoTxt = who.length <= 1 ? who.join('')
                  : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
-    card.innerHTML = `
-      <div style="color:${C.hot};letter-spacing:.2em;font-size:12px;font-weight:600;font-family:${MONO}">${esc(fmtD(info.play_on))}${info.tee ? ' · ' + esc(info.tee) : ''}</div>
-      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(info.host)} has a round on at ${esc(venue)}.</div>
-      ${who.length
-        ? `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.</div>`
-        : `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">Just ${esc(info.host)} so far.</div>`}
-      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
-    foot.innerHTML = `<a href="/" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
-      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. The seat, and a buddy request to ${esc(info.host)}, wait for your yes.</div>`;
+    card.className = 'sv-short';
+    card.innerHTML = `<div class="sv-head">
+        <p class="sv-eb cs-agate">${esc(fmtD(info.play_on))}${info.tee ? ` · <span style="text-transform:none">${esc(fmtTee(info.tee))}</span>` : ''}</p>
+        <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
+        <p class="sv-where cs-body-s">${who.length ? `${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.` : `Just ${esc(info.host)} so far.`}</p>
+      </div>` +
+      foot({ cta: 'Take the seat', primary: true,
+             note: `Sign in and you’ll be asked first. The seat, and a buddy request to ${info.host}, wait for your yes.` });
 
   } else if(info.kind === 'recap'){
     /* "— the season" is a section header, not news. The champion is the news;
@@ -34648,23 +35006,98 @@ async function renderShareView(tok, _testInfo){
     document.title = info.champion
       ? `${info.champion} took the ${info.league || ''} cup · Cup Season`.replace(/\s+/g, ' ')
       : `${info.league || 'A league'} — the table so far · Cup Season`;
-    const rows = (info.rows || []).map((q, i) =>
-      `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:7px 12px;font-size:14px;${i === 0 ? `color:${C.gold};font-weight:600` : ''}">
-         <span>${i + 1} · ${esc(q.name)}</span><span style="font-family:${SERIF};font-size:16px">${esc(String(q.points))} pts</span></div>`).join('');
-    card.innerHTML = `
-      <div style="letter-spacing:.18em;font-size:16px;font-weight:600;font-family:${MONO}">${esc(String(info.league || 'A LEAGUE').toUpperCase())}</div>
-      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px;font-family:${MONO}">${esc(fmtD(info.starts_on))} — ${esc(fmtD(info.ends_on))}</div>
-      ${info.champion ? `<div style="color:${C.gold};letter-spacing:.14em;font-size:13px;font-weight:600;margin-top:14px;font-family:${MONO}">🏆 ${esc(String(info.champion).toUpperCase())} TOOK THE CUP</div>` : ''}
-      ${info.points_king ? `<div style="color:${C.mut};font-size:12px;letter-spacing:.1em;margin-top:6px;font-family:${MONO}">POINTS KING · ${esc(String(info.points_king).toUpperCase())}</div>` : ''}
-      <div style="border-top:1px solid rgba(255,255,255,.1);margin:16px 30px 8px"></div>
-      ${rows || `<div style="color:${C.mut};font-size:13px;padding:10px 0">Nobody has posted a round yet.</div>`}
-      <div style="color:${C.mut};font-size:11px;letter-spacing:.1em;margin-top:12px;font-family:${MONO}">${info.status === 'complete' ? 'FINAL' : 'IN PLAY'}</div>`;
+    wrap.classList.add('sv-recap');
+    kind('Season table');
+    const rows = info.rows || [];
+    const done = info.status === 'complete';
+    /* the season's story line, from the table the page already holds (owner
+       P/E: the recap was two rows and "IN PLAY"): who is on top, by how much,
+       and how long is left — verbless, because a squad and a golfer take
+       different verbs. Nothing is said that the rows and dates do not carry. */
+    let story = '';
+    if(!info.champion && rows.length >= 2){
+      const gap = Number(rows[0].points) - Number(rows[1].points);
+      const end = dayOf(info.ends_on), now = new Date(new Date().setHours(0,0,0,0));
+      const left = (!done && end) ? Math.ceil((end - now) / (7 * 864e5)) : 0;
+      story = gap > 0
+        ? `${nw(rows[0].name)}, ${run(gap)} point${gap === 1 ? '' : 's'} clear${left > 0 ? `, with ${run(left)} week${left === 1 ? '' : 's'} to play` : ''}.`
+        : `Level at the top: ${nw(rows[0].name)} and ${nw(rows[1].name)}.`;
+    }
+    /* gold is earned: the champion's line when there is one, otherwise the
+       leader's points (§1.6) — one gold object, never two */
+    const leadGold = !info.champion;
+    const table = rows.length
+      ? `<div class="sv-colhead cs-agate"><span>The table</span><span>Points</span></div>
+         <div class="sv-rows">${rows.map((q, i) => `<div class="sv-row${i === 0 && leadGold ? ' is-lead' : ''}">
+           <span class="rk cs-agate">${i + 1}</span><span class="nm cs-social">${esc(q.name)}</span><span class="fig">${esc(String(q.points))}</span></div>`).join('')}</div>`
+      : `<p class="sv-where cs-body-s">Nobody has posted a round yet.</p>`;
+    const span = [fmtD(info.starts_on), fmtD(info.ends_on)].filter(Boolean).join(' — ');
+    card.className = '';
+    card.innerHTML = `<div class="sv-head">
+        ${span ? `<p class="sv-eb cs-agate">${esc(span)}</p>` : ''}
+        <h1 class="cs-lead">${esc(String(info.league || 'A league'))}</h1>
+        ${info.champion ? `<p class="sv-champ cs-agate">${esc(String(info.champion))} took the cup</p>` : ''}
+        ${info.points_king ? `<p class="sv-date cs-agate">Points King · ${esc(String(info.points_king))}</p>` : ''}
+        ${story ? `<p class="sv-story cs-body">${story}</p>` : ''}
+      </div>
+      <div class="sv-second">
+        ${table}
+        <p class="sv-status cs-agate">${done ? 'Final' : 'In play'}</p>
+      </div>` + foot({ cta: 'Play with your people' });
   }
 }
 
 /* a code that matches no league, said the one way everywhere (the Door's
    dead link, the code box, the join button); it was three literals */
 const CS_NO_LEAGUE = 'No league with that code. Check with your Pro.';
+/* ---- THE LINK LANDING (owner H, craft H/B, critique B P2) -------------------
+   A scorecard link or an invitation brought the visitor, and that fact was
+   the smallest line on the door: 12.5px mono under the email field, beneath a
+   slogan that says the same thing to everyone. It leads now — an agate label
+   for the kind of link, the fact in the lead serif (a gross is a figure run,
+   §1.6), one supporting line — and the brand statement steps back to the
+   signature. The status line under the field keeps the next step only. The
+   claim sentence is TERMINOLOGY §6's, kept word for word and split across
+   the headline and the next step; the club sits in the sentence and the
+   course and tee beneath it, so the headline is not a dash-joined triple.
+   League is never a thing you join (T §2.3): the invitation is to a season.
+   Signed out only (the signed-in doors ask on a sheet, R5); the desk's
+   example wings stand down while it shows (.ob-linked). `o` null removes it. */
+const CS_JOIN_NEXT = 'Sign in to read the terms before you join.';
+function csLinkLanding(o){
+  const ob = document.getElementById('onboard');
+  const hero = ob && ob.querySelector('.ob-in > .ob-hero');
+  if(!ob || !hero) return null;
+  let el = document.getElementById('obLink');
+  ob.classList.add('ob-via');   /* a link brought them: the example wings stand down */
+  if(!o){ if(el) el.remove(); ob.classList.remove('ob-linked'); return null; }
+  if(!el){ el = document.createElement('div'); el.id = 'obLink'; el.className = 'ob-link'; hero.parentNode.insertBefore(el, hero); }
+  el.dataset.kind = o.kind;
+  el.innerHTML = `<p class="eb cs-agate">${esc(o.label)}</p><h1 class="cs-lead">${o.headHtml}</h1>`
+    + (o.sub ? `<p class="sub cs-body-s">${esc(o.sub)}</p>` : '');
+  ob.classList.add('ob-linked');
+  return el;
+}
+function csJoinLanding(name){
+  return csLinkLanding({ kind: 'join', label: 'A season invite',
+    headHtml: name ? `You’re invited to ${esc(name)}.` : 'You’re invited to a season.' });
+}
+/* §1.4 · no number in the serif: the gross is a figure run, and the date
+   rides the supporting line with the course and tee (it read ", Sun, Sep 27"
+   inside the headline) */
+function csClaimLanding(data, when){
+  const label = String(data.course_label || 'the course');
+  const cut = label.indexOf(' — ');
+  const club = cut > 0 ? label.slice(0, cut) : label;
+  const rest = cut > 0 ? label.slice(cut + 3) : '';
+  const day = String(when || '').replace(/^,\s*/, '');
+  return csLinkLanding({ kind: 'claim', label: 'Your scorecard link',
+    headHtml: `${esc(data.guest_name || 'Your scorecard')} — `
+      + (data.gross ? `<span class="run">${esc(String(data.gross))}</span> at ` : '')
+      + `${esc(club)}.`,
+    sub: [rest, day].filter(Boolean).join(' · ') });
+}
+window.csLinkLanding = csLinkLanding;
 /* invite links: /?join=CODE rides the existing cs_code auto-join machinery —
    signed-in users join on this boot; signed-out users join right after auth */
 const joinParam = new URLSearchParams(window.location.search).get('join');
@@ -34679,6 +35112,8 @@ if(joinParam){
      door already opened on the generic line, warm it up in place. */
   sb.rpc('league_by_code', { p_code: jc }).then(({ data, error }) => {
     const st = document.getElementById('obStatus');
+    /* the door may already have opened on the invitation, before the answer */
+    const landing = document.querySelector('#obLink[data-kind="join"]');
     if(!data){
       /* the owner's panel: a code that matches NO league said "You're invited.
          Sign in to review the league before you join." to a stranger. An
@@ -34687,17 +35122,18 @@ if(joinParam){
          that FAILED (error) proves nothing, so it changes nothing. */
       if(error) return;
       try { localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); localStorage.setItem('cs_code_dead', '1'); } catch(_){}
-      if(st && /^You're invited\. /.test(st.textContent)){ st.textContent = CS_NO_LEAGUE; try { localStorage.removeItem('cs_code_dead'); } catch(_){} }
+      if(landing){
+        csLinkLanding(null);
+        if(st && st.textContent === CS_JOIN_NEXT) st.textContent = CS_NO_LEAGUE;
+        try { localStorage.removeItem('cs_code_dead'); } catch(_){}
+      }
       return;
     }
     localStorage.setItem('cs_code_name', data);
-    /* matches the GENERIC line only — it must track the string at ~15900, or
-       the league name silently stops warming it up (the F1 fix this guards) */
-    if(st && /^You're invited\. /.test(st.textContent))
-      /* Q-15 · "and you're in" promised the opposite of what happens: the
-         golfer still reviews the league and confirms before anything is final
-         (D116). Say what the next screen actually does. */
-      st.textContent = `You're invited to ${data}. Sign in to review the league before you join.`;
+    /* F1 · the generic invitation warms up to the season's name in place.
+       Q-15 · the next step says what the next screen does: the terms, then
+       the yes (D116, D351). */
+    if(landing) csJoinLanding(data);
   }).catch(() => {});
 }
 
@@ -34810,9 +35246,10 @@ function csLinkCard(kind, info){
              mark: mkr(i.marker), ask: csLinkAskPlan(i.host, String(i.course || '').split(' — ')[0], csLinkDay(i.play_on)),
              facts: [tee ? tee + ' tee' : '', who.length ? whoTxt + (who.length === 1 ? ' is in.' : ' are in.') : ''].filter(Boolean).join(' · ') };
   }
+  const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
            mark: '', ask: csLinkAskClaim(i.gross, i.course_label),
-           facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
+           facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
 }
 /* R5 · what a claim link is, before anything is claimed. The two sources
    answer a token they do not know differently — claim_round_info with null,
@@ -34854,7 +35291,7 @@ async function claimPendingRound(){
       if(st === 'setup'){ toast(CS_CLAIM_NOT_STARTED); return; }
       /* R5 · still being played: nothing to ask about yet. D86's sentence,
          said without calling the claim to hear it; the token is kept */
-      if(st === 'live'){ toast('They’re still out there — your card lands here when the round finishes'); return; }
+      if(st === 'live'){ toast('They’re still out there — your scorecard comes to your rounds when the round finishes'); return; }
     }catch(_){}
     /* R5 · the golfer says yes before anything is claimed */
     const pv = await csClaimPreview(tok);
@@ -34896,7 +35333,7 @@ async function csClaimAct(tok){
          thing. Every other failure still retires the token as before. */
       const msg=String((firstErr&&firstErr.message)||(e2&&e2.message)||'');
       if(/still live|not live/i.test(msg)){
-        toast('They’re still out there — your card lands here when the round finishes');
+        toast('They’re still out there — your scorecard comes to your rounds when the round finishes');
         return;
       }
       try{ localStorage.removeItem('cs_claim'); }catch(_){}
@@ -35067,14 +35504,13 @@ async function safeBoot(force){
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
   let deadJoin = false; try { deadJoin = localStorage.getItem('cs_code_dead') === '1'; localStorage.removeItem('cs_code_dead'); } catch(_){}
-  if(!CS.user && !pend && deadJoin) openEmailBox($('#obJoin'), CS_NO_LEAGUE);   /* the lookup beat the boot */
+  if(!CS.user && !pend && deadJoin){ csLinkLanding(null); openEmailBox($('#obJoin'), CS_NO_LEAGUE); }   /* the lookup beat the boot */
   if(!CS.user && pend){
-    openEmailBox($('#obJoin'), pendName
-      ? `You're invited to ${pendName}. Sign in to review the league before you join.`   /* Q-15 */
-      /* the raw code is plumbing — the recipient never types it on this path,
-         the link carries it (F1). Saying it invites them to wonder what to do
-         with it. */
-      : `You're invited. Sign in to review the league before you join.`);
+    /* the invitation leads the door (csLinkLanding); the raw code is plumbing —
+       the recipient never types it on this path, the link carries it (F1). The
+       next step says what the next screen does (Q-15): the terms, then the yes. */
+    csJoinLanding(pendName);
+    openEmailBox($('#obJoin'), CS_JOIN_NEXT);
   }
   /* guest claim: the round is waiting at the door (anon-readable by token) */
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}
@@ -35104,7 +35540,7 @@ async function safeBoot(force){
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
       if(!error && data?.round?.status==='live'
          && window.enterGuestLive(data, claimTok, { signedIn:true })){
-        toast('You’re in this live round — score your own card');
+        toast('You’re in this live round — keep your own score');
         return;
       }
     }catch(_){}
@@ -35117,8 +35553,10 @@ async function safeBoot(force){
       const gs = guestSeen?.round?.status;
       if(gs === 'abandoned'){
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        csLinkLanding(null);
         authStatus(CS_CLAIM_UNFINISHED, 'err');
       } else if(gs === 'setup'){
+        csLinkLanding(null);
         authStatus(CS_CLAIM_NOT_STARTED);          /* not an error: the pencil is kept */
       } else {
       /* the door card serves both claim sources (live guests + scan partners) */
@@ -35143,11 +35581,14 @@ async function safeBoot(force){
           return ', ' + new Date(+m[1], +m[2]-1, +m[3])
             .toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
         })();
-        openEmailBox($('#obJoin'),
-          `${data.guest_name || 'Your card'} — ${data.gross ? data.gross+' at ' : ''}${data.course_label || 'the course'}`
-          + `${when}. Enter your email to keep it.`);
+        /* the round leads the door; the sentence's second half is the next step */
+        csClaimLanding(data, when);
+        openEmailBox($('#obJoin'), 'Enter your email to keep it.');
       } else if(data && data.claimed){
+        /* already kept: say so (it was the plain door, with nothing said) */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        csLinkLanding(null);
+        authStatus(CS_CLAIM_USED);
       } else {
         /* F3 (shareability audit): a dead/garbage token failed SILENT — the
            recipient tapped "your scorecard" and got the marketing door, and the
@@ -35155,6 +35596,7 @@ async function safeBoot(force){
            plainly (same answer for every bad token — nothing to enumerate) and
            drop the token. */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        csLinkLanding(null);
         authStatus(CS_CLAIM_DEAD, 'err');
       }
       }
