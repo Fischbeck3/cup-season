@@ -440,6 +440,35 @@ const SEASON = [
       const w = line.getBoundingClientRect().width, gw = g.getBoundingClientRect().width
       return w >= gw * 0.98 ? true : `the empty line is ${Math.round(w)}px in a ${Math.round(gw)}px grid (one third of the row)`
     })) },
+  /* TEN / W8 · K102 [X07] (D's delta at e78d7f22) · the season album reads again when a photograph is added: it read once per league per session, so the golfer who
+     attached the first photograph to a round was still told 'Photos land here' — on the season page, and on coming back to it — until a reload. The photographs are
+     attached through the app's own writer (csAttachRoundPhoto: an upload, set_round_photo, a signed URL), once with the season page open and once while on Home. */
+  { family: 'season', id: 'album-refresh', variant: 'member', world: { photo: 'none' }, title: 'The season page, the album, after photographs were added to two rounds in the same session', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toSeasonViaBand(page)
+      await page.evaluate(() => window.setRoomSeg('album'))
+      await until(page, () => /Photos land here/.test((document.getElementById('albumGrid') || {}).innerText || ''), null, 10000)
+      const mine = ctx.world.tables.rounds.filter((r) => r.profile_id === ctx.world.me).slice(0, 2).map((r) => r.id)
+      const attach = (rid) => page.evaluate(async (rid) => {
+        const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='), (c) => c.charCodeAt(0))
+        const out = await window.csAttachRoundPhoto(rid, new File([png], 'p.png', { type: 'image/png' }), null)
+        return !!(out && out.ok)
+      }, rid)
+      const cells = (n) => until(page, (n) => document.querySelectorAll('#albumGrid .alcell').length >= n, n, 4000).catch(() => {})
+      await attach(mine[0]); await cells(1)                                    /* (a) with the season page on screen: read again now */
+      await page.evaluate(() => window.switchView('home')); await page.waitForTimeout(300)
+      await attach(mine[1])                                                    /* (b) somewhere else: read again when the season page is opened */
+      await page.evaluate(() => window.switchView('hub')); await cells(2)
+      await page.evaluate(() => document.getElementById('albumGrid').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#albumGrid': 'visible' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const g = document.getElementById('albumGrid'), n = g.querySelectorAll('.alcell').length
+      if (/Photos land here/.test(g.innerText)) return 'the album still says no photographs after two were added in this session'
+      return n === 2 ? true : `the album shows ${n} photograph(s), expected the two just added`
+    })) },
   /* TEN / W8 · W7-011 [B2-season-12] · the week clock, cropped: the weeks played are ink, the live week brand
      and tall, the weeks ahead mut — never rule (§16.1), so each reads as a state on the page's ground */
   { family: 'season', id: 'month-clock', variant: 'member', title: 'The season page, the week clock (its own crop)', shot: '#monthClock',

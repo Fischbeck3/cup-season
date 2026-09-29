@@ -8297,12 +8297,20 @@ function backToDoor(){ const ob = $('#onboard'); ob.style.display = ''; ob.class
    empty grid. The grid now renders when the pane first scrolls into view, and
    again only when the league has changed — not on every pass of the scroll. */
 (()=>{
-  let last = null;
-  /* once per league: opening the season page, or the pane coming into view */
+  let last = null, at = 0;
+  /* once per league, and FRESH (K102 [X07]): opening the season page, or the pane coming into view, reads the album when the league has
+     changed, when a photograph was added or taken off a round on this device (csAlbumStale, from the three writers), or when the last read
+     is over two minutes old (a league-mate's photograph). It read once per league per session, so a photograph added later showed after
+     a reload only — and the golfer who posted the first one was still told 'Photos land here'. Not on every pass of the scroll. */
   window.csAlbumOnce = () => {
     const key = window.CS?.league?.id || null;
-    if(!key || key === last || typeof window.renderAlbum !== 'function') return;
-    last = key; window.renderAlbum();
+    if(!key || typeof window.renderAlbum !== 'function') return;
+    if(key === last && Date.now() - at < 120000) return;
+    last = key; at = Date.now(); window.renderAlbum();
+  };
+  window.csAlbumStale = () => {
+    last = null;
+    if(document.getElementById('view-hub')?.classList.contains('active')) window.csAlbumOnce();   /* the season page is on screen: now */
   };
   const pane = document.getElementById('room-album');
   if(pane && 'IntersectionObserver' in window)
@@ -13916,6 +13924,7 @@ $('#postBtn').addEventListener('click', async ()=>{
         }
       }
       growthEvent('first_round_posted');   /* server no-ops unless this is the golfer's first round */
+      if(payload.photo_path) window.csAlbumStale?.();   /* K102 · a round posted WITH a photograph: the season album reads again */
       /* D33: gate 3 measured on every real post — composer-open → posted */
       qaEvent('post_submit', {
         mode:  holesMode ? 'holes' : 'total',
@@ -25540,6 +25549,7 @@ async function csAttachRoundPhoto(rid, file, oldPath){
     /* D385 §2 · a replace retires the old link; say so if its copy is still up */
     const w = (oldPath && oldPath !== path) ? await csWithdrawRoundLinks(rid) : { ok:true, pending:[] };
     const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
+    window.csAlbumStale?.();   /* K102 · the season album reads again */
     return { ok:true, path, url: s?.signedUrl || null, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     try{ await sb.storage.from('media').remove([path]); }catch(_){ }
@@ -25555,6 +25565,7 @@ async function csRemoveRoundPhoto(rid, oldPath){
     if(error) throw error;
     await csReclaimPhotoObject(oldPath, null);
     const w = await csWithdrawRoundLinks(rid);                          /* D385 §1 */
+    window.csAlbumStale?.();   /* K102 · the season album reads again */
     return { ok:true, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.removeFailed };
