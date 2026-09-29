@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -145,6 +145,17 @@ const SEASON = [
     drive: async (page) => { await toSeasonViaBand(page); await page.evaluate(() => window.scrollTo(0, 0)); await scrollSettled(page) },
     expect: { view: 'view-hub', selectors: { '#seasonScoreboard': 'visible', '#seasonDateline': 'text:Week 8 of 13', '#seasonLead': 'visible' } },
     check: all(onNorthGrove, inViewport('#seasonScoreboard', 'the season head'),
+      /* TEN / W8 · W7-020 [A2-season-2]: at the phone the season page keeps COMPETE current in the tab band (it is a Compete page, as the event
+         room is) and has one way back, named for where it was opened from; the desk has neither (its sidebar marks The season) */
+      async (page) => page.evaluate(() => {
+        const back = document.getElementById('seasonBack'), shown = (el) => !!el && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0
+        if (innerWidth >= 960) return shown(back) ? 'the desk draws the phone\'s back link' : true
+        const on = [...document.querySelectorAll('.tab.active')].map((t) => t.dataset.v)
+        if (on.join() !== 'compete') return `the tab band marks ${JSON.stringify(on)}, expected ["compete"]`
+        if (document.querySelector('.tab.active').getAttribute('aria-current') !== 'page') return 'the current tab does not say aria-current'
+        if (!shown(back) || back.textContent.trim() !== 'Compete' || back.dataset.go !== 'compete') return `the back link is ${JSON.stringify(back && back.textContent.trim())} → ${back && back.dataset.go}`
+        return back.getBoundingClientRect().height >= 44 ? true : `the back link is ${Math.round(back.getBoundingClientRect().height)}px tall`
+      }),
       /* TEN / W8 · W7-028 [B2-season-24]: the story link carries no typed arrow (AW2-08) and its second channel is the rule beneath it (§16.4) */
       async (page) => page.evaluate(() => {
         const a = document.getElementById('seasonMore'), r = a.getBoundingClientRect()
@@ -201,6 +212,10 @@ const SEASON = [
       capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine']),
       /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
       headGap(['#climbEyebrow', '#standingsEyebrow']),
+      /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
+      goldOnly('#view-hub', ['tr.lead td.rk', '#potAmt']),
+      /* (2 of 4): the climb is no card and its rungs are slats */
+      noBoxes(['#view-hub .homegrid > div > .card', '#view-hub .climb-rung', '#view-hub .nextcard', '#view-hub .trip .p']),
       /* TEN / W8 · W7-023 [B2-desk-9]: the individual board carries Last five inside the row at the desk (D280), and not below it */
       async (page) => page.evaluate(() => {
         const th = document.querySelector('#indTable th.deskonly'), rows = [...document.querySelectorAll('#indTable tr[data-ri]')]
@@ -256,7 +271,21 @@ const SEASON = [
       /* TEN / W6 · AW2-07: the pot is the board `figure`, never the serif */
       noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt']),
       /* TEN / W8 · W7-014 [B2-season-6]: 'Season stakes' and 'How to pay' take the section gap */
-      headGap(['#room-pot .potgrid > div > .eyebrow:first-child'])) },
+      headGap(['#room-pot .potgrid > div > .eyebrow:first-child']),
+      goldOnly('#view-hub', ['tr.lead td.rk', '#potAmt']),
+      /* TEN / W8 · W7-029 [A2-season-3] (4 of 4): the pot is a rule-and-figure (a 2px gold rule under #potAmt) and the split is three
+         ink figures on ONE 2px ink rule (the figures touch), with no box round either (PotPane.swift's shape, §15.4) */
+      noBoxes(['#view-hub .purse', '#view-hub .trip .p']),
+      async (page) => page.evaluate(() => {
+        const tok = (n) => { const i = document.createElement('i'); i.style.color = `var(${n})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+        const amt = getComputedStyle(document.getElementById('potAmt'))
+        if (amt.borderBottomWidth !== '2px' || amt.borderBottomColor !== tok('--gold')) return `the pot figure's rule is ${amt.borderBottomWidth} ${amt.borderBottomColor}, not 2px gold`
+        const bs = [...document.querySelectorAll('#room-pot .trip .p b')].filter((b) => b.getBoundingClientRect().width > 0)
+        if (bs.length !== 3) return `the split has ${bs.length} figures`
+        if (bs.some((b) => getComputedStyle(b).borderBottomWidth !== '2px' || getComputedStyle(b).borderBottomColor !== tok('--ink'))) return 'the split figures are not on a 2px ink rule'
+        const gaps = [1, 2].map((i) => Math.round(bs[i].getBoundingClientRect().left - bs[i - 1].getBoundingClientRect().right))
+        return gaps.every((g) => Math.abs(g) <= 1) ? true : `the split's rule is broken: gaps ${JSON.stringify(gaps)}`
+      })) },
   { family: 'season', id: 'pot-pro', variant: 'pro', title: 'The season page, the money, as the Pro: tap a name as money moves', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
     drive: (page) => toRoom(page, 'pot'),
@@ -295,6 +324,8 @@ const SEASON = [
     expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible', '#hubSeasonRevoke': 'text:^Turn off$' } },
     check: all(onNorthGrove, inViewport('#room-league', 'the rules'),
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
+      /* TEN / W8 · W7-029 [A2-season-3] (3 of 4): the League rows are slats, not cards */
+      noBoxes(['#view-hub .check']),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
          scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
          scrolled back, the rules again (the scroll-spy, not only the click) */
@@ -343,6 +374,20 @@ const SEASON = [
     expectConsole: [/status of 503/],
     expect: { view: 'view-hub', selectors: { '#seasonStoryRetry': 'visible', '#seasonArc': 'text:Couldn.t load this' } },
     check: all(onNorthGrove, async (page) => page.evaluate(() => /starts when the first week closes/i.test(document.getElementById('seasonArc').innerText) ? 'a failed story read says the story has not started' : true)) },
+  /* TEN / W8 · W7-020 [A2-season-2] · the season page opened from HOME (Home's season door, csOpenSeason): the way back reads Home, and the
+     tab band still marks COMPETE, as the event room's does */
+  { family: 'season', id: 'from-home', variant: 'member', title: 'The season page opened from Home (the way back says Home)', fullPage: false, phoneOnly: true,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await page.evaluate((id) => window.csOpenSeason(id), NG.league)
+      await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub' && !!(document.getElementById('seasonTitle') || {}).textContent, null, 12000)
+      await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-hub', selectors: { '#seasonBack': 'text:^Home$' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const b = document.getElementById('seasonBack'), on = [...document.querySelectorAll('.tab.active')].map((t) => t.dataset.v)
+      return b.dataset.go === 'home' && on.join() === 'compete' ? true : `back → ${b.dataset.go}, tab band ${JSON.stringify(on)}`
+    })) },
   /* TEN / W8 · W7-015 [B2-season-2] · the season album for a league whose rounds carry no photograph (every new league):
      the written empty state runs the whole row of the three-column grid, and has its door (LINT-21) */
   { family: 'season', id: 'album-empty', variant: 'member', world: { photo: 'none' }, title: 'The season page, the album, for a league with no photographs', fullPage: false,

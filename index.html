@@ -487,7 +487,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .shell:has(#view-schedule.active) #sideMe [data-mego="plan_one"],
   .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
   .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"],
-  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay){display:none;}
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay),
+  .shell:has(#view-stats.active) #sideMe .mesay{display:none;}   /* W7-053 · You prints the building clause under its card: the sentence once per viewport */
 }
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
@@ -504,8 +505,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   /* WAVE 11 / D280 - 40, not 78: the desk's header is no longer a sticky band
      to clear, so the offset is the gutter. */
   .deskwire{position:sticky; top:40px; max-height:calc(100dvh - 80px); overflow:auto; padding-right:2px;}
-  .deskwire::-webkit-scrollbar{width:6px;}
-  .deskwire::-webkit-scrollbar-thumb{background:var(--rule); border-radius:3px;}
+  .deskwire::-webkit-scrollbar, .deskaside::-webkit-scrollbar{width:6px;}
+  .deskwire::-webkit-scrollbar-thumb, .deskaside::-webkit-scrollbar-thumb{background:var(--rule); border-radius:3px;}
 }
 /* ============ D231 - one dispatch card, two weights ============
    mono dateline / serif headline / sans standfirst / one ember verb. The
@@ -619,6 +620,18 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
      surfaces. D280 - the frame is the frame. */
   .deskbody.wide{grid-template-columns:minmax(0,1fr) 340px;}
   .deskaside{position:sticky; top:40px;}
+  /* W7-027 · the aside scrolls in its own height, as Home's wire does (.deskwire): the season's was taller than the
+     window and stuck at top:40, so its tail (who has paid, the ledger line, the pride bets) was out of reach until
+     the page's own foot. Both wear the rail's bottom fade while there is more (csBookEdge's data-more, wired for
+     every .deskaside and .deskwire below); neither traps the wheel (no overscroll-behavior:contain). */
+  .deskaside{max-height:calc(100dvh - 80px); overflow:auto; padding-right:2px;}
+  /* a scroll box clips what is drawn outside it: a focus ring (2px, 2px off) at the column's own edge lost its left and its top.
+     The box takes 4px (s1) of padding on every side and gives it back as a negative margin, so the content stays where it was */
+  .deskaside, .deskwire{padding:var(--s1); margin:calc(-1 * var(--s1));}
+  .deskwire[data-more], .deskaside[data-more]{
+    -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+  }
 }
 /* TEN · Golfers below the desk: the two columns dissolve into one lane in the
    phone's order — a request waiting on you, the ranking, the invite door, the
@@ -1127,7 +1140,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
    (labels) are agateS — never mono (§1.4). The rank and points stay columns. */
 .climb-rung .voice{flex:none; flex-basis:100%; min-width:0; font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); padding-left:46px; overflow-wrap:anywhere;}   /* D258 · the rung's one sentence wraps rather than clipping */
 .climb-rung .voice b{color:var(--ink); font-weight:600;}
-.climb-rung .voice .stake{color:var(--gold);}
+.climb-rung .voice .stake{color:var(--ink);}   /* W7-029 · gold is a won thing (§2.4, §15.4: the leader's rail field and the pot, twice); '— the top seed' is a stake not yet won */
 .climb-rung .badge{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; padding:1px 5px; border-radius:4px; flex:none;}   /* D258 · 11px is the floor (L-29); the phone's badge is CSFont.label */
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
 .climb-rung .badge.out{color:var(--mut); border:1px solid var(--rule);}
@@ -1145,7 +1158,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
    leader's gold paints only AFTER the flip lands: earned, then painted. */
 .climb-rung{position:relative;}
 .climb-rung .nm{transition:color .3s ease;}
-.climb-rung.lead .nm{color:var(--gold);}
+.climb-rung.lead .nm{color:var(--ink);}   /* W7-029 · the leader is named in ink; the 01 rail is the season's gold (§15.4) */
 .climb-rung.lead.lead-wait .nm{color:var(--ink);}
 .climb-roar{position:absolute; inset:0; border:1.5px solid var(--brand); border-radius:9px; pointer-events:none; opacity:0;}
 .climb-roar.go{animation:csRoar .8s ease-out forwards;}
@@ -2453,6 +2466,7 @@ body.guestlive #onboard{display:none !important;}
   min-height:44px; margin:-14px 0 -2px;   /* §16.2 · 44 tall (was 15), sitting where it sat */
 }
 .backlink:hover{color:var(--ink);}
+@media(min-width:960px){ #seasonBack{display:none;} }   /* W7-020 · the desk marks The season in its sidebar */
 .optcard{
   display:block; width:100%; text-align:left; cursor:pointer;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -2844,7 +2858,11 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    COLUMN, where it belongs. The measure is still capped; the page is no
    longer capped with it. Below 960 the columns stack and this does nothing. */
 @media(min-width:1100px){
-  #homeHub .deskmain{max-width:680px;}
+  /* W7-022 · the measure is the TRACK's, not a cap on the content beside a 1fr track: `#homeHub .deskmain{max-width:680px}`
+     left a 164px void between the reading column and the wire at 1600 (against §14.1's 40px gutter), so the wire now meets
+     the column after the gutter at every width. One rule for the three desk bodies: Home here, the season's (760) and
+     Golfers' (760, W7-023) below. */
+  #homeHub.deskbody{grid-template-columns:minmax(0,680px) 340px; justify-content:start;}
 }
 /* D223 · THE SEASON'S OWN BODY. Stage 3c split the room's standings segment
    against the board; the season page splits the PAGE against its own history —
@@ -2853,7 +2871,9 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    and the climb/table pair inside the column stacks, because two halves of a
    half render at ~200px and text escapes its pills (pilot, 2026-07-20). */
 @media(min-width:1100px){
-  #seasonBody .deskmain{max-width:760px;}
+  /* W7-022 · the season's own body takes the same track rule as Home's (the cap sat on the content, with a void
+     beside it at 1600) */
+  #seasonBody.deskbody{grid-template-columns:minmax(0,760px) 340px; justify-content:start;}
   /* W7-023 · and Golfers' ranking: each row set its name about 700px from its
      figure at 1600. The measure is the TRACK's (the aside follows the column
      after the desk gutter, as UI_SYSTEM §14.1 draws it), not a cap on the
@@ -2863,6 +2883,38 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 @media(min-width:960px){
   #seasonBody .homegrid{display:block;}
 }
+/* W7-029 [A2-season-3] (2 of 4) · NO CARD ANYWHERE ON THE SEASON PAGE (UI_SYSTEM §15.4; §3.1: a container only as panel, leaf or
+   object, none inside another; LINT-08). The climb was a card (#climb's wrapper) holding a card per rung: a bordered, filled,
+   rounded box inside a bordered, filled, rounded box. The wrapper is no box, and a rung is §9.1's slat: a hairline above, s3 above
+   and below, no fill, no radius, no edge but the rule. YOUR rung is marked by weight and an ink rule above it, never gold (the
+   owner's panel) — it was an ink edge around a box. Scoped to the season page; the phone draws no climb (CS-21). */
+#view-hub .homegrid > div > .card{background:none; border:0; padding:0; box-shadow:none;
+  border-radius:0;}
+#view-hub .climb-rung{background:none; border:0; border-top:1px solid var(--rule); padding:var(--s3) 0; margin:0;
+  border-radius:0;}
+#view-hub .climb-rung.me{border-top-color:var(--ink);}
+#view-hub .climb-rung:last-child{border-bottom:1px solid var(--rule);}
+/* (3 of 4) the League rows (the roster, the share link, the squads) and the 'Up next' block are slats too: no box, a hairline
+   above and s3 either side (the phone's RoomCheckRow is a slat on a hairline, RoomBits.swift). The icon tile inside a row stays
+   (the phone draws it, a 36pt bg2 tile), and so do the controls. */
+#view-hub .nextcard, #view-hub .check{background:none; border:0; border-top:1px solid var(--rule); padding:var(--s3) 0; margin:0;
+  border-radius:0;}
+#view-hub .check:last-child, #view-hub .nextcard{border-bottom:1px solid var(--rule);}
+#view-hub .nextcard{margin-bottom:var(--s4);}
+/* (4 of 4) the pot is a RULE-AND-FIGURE in gold, the season's second and last gold object (§15.4; D273: money is ink, the pot
+   and anything won are gold): #potAmt over its own 2px gold rule with its math beneath, no box round it. The split is three
+   figures in INK on ONE 2px ink rule with agate labels beneath, the shape of the phone's PotPane.split (PotPane.swift): the
+   figures touch, so their rules read as one, and the label sits under each. The three award tiles in the standings room are the
+   same object (a golfer's name, then its line), and carry no gold. The tiles were three bordered, rounded cards. */
+#view-hub .purse{background:none; border:0; padding:0; margin:0 0 var(--s4); text-align:left; overflow:visible;
+  border-radius:0;}
+#view-hub .purse .amt{display:inline-block; margin:var(--s2) 0 0; padding-bottom:var(--s1); border-bottom:2px solid var(--gold);}
+#view-hub .purse .m{display:block; margin-top:var(--s2);}
+#view-hub .trip{gap:0; margin-top:var(--s4);}
+#view-hub .trip .p{background:none; border:0; padding:0; text-align:left;
+  border-radius:0;}
+#view-hub .trip .p b{padding:0 var(--s3) var(--s1) 0; border-bottom:2px solid var(--ink);}
+#view-hub .trip .p span{display:block; padding:var(--s1) var(--s3) 0 0;}
 /* printing the season is a desk act; on a phone the button was one more row
    of chrome between the story and the pot (the craft panel) */
 @media(max-width:959px){ #seasonPrint{display:none;} }
@@ -2897,8 +2949,8 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 }
 /* .ontheline: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 /* TEN / W6 · AW2-06: the label and the split (#lineSplit) are agate in caps, never mono */
-.ontheline .ok{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--gold);}
-.ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold); font-variant-numeric:tabular-nums;}
+.ontheline .ok{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--ink);}   /* W7-029 · gold twice on the season page (§15.4), and this is neither */
+.ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums;}
 .ontheline .os{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
 .ontheline .go{margin-left:auto; color:var(--mut);}
 /* TEN / W6 · AW2-04 (L-34, D360) · at the desk the pot stands in the second
@@ -4218,6 +4270,7 @@ body.noleague .league-only{display:none !important;}
   button, .mini, .btn, .livebanner{display:none !important;}
   .deskbody, .deskbody.wide{display:block !important;}
   .deskaside{position:static !important; margin-top:24px;}
+  .deskaside, .deskwire{max-height:none !important; overflow:visible !important; -webkit-mask-image:none !important; mask-image:none !important;}   /* W7-027 · a sheet has no scroll box */
   .roompane{page-break-inside:avoid;}
   body{background:#fff; color:#000;}
   .card, .tblwrap{border-color:#ccc;}
@@ -5508,6 +5561,22 @@ html[data-theme="light"] .room-dusk .stat{
 .bf-hdr b{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--ink);}   /* TEN / W6 · AW2-06: the board's title is a label, agate — it was `.mono` */
 .bf-hdr small{display:block; font-family:var(--board); font-weight:600; font-size:11px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; margin-top:2px;}   /* a label: agate, not mono (§1.4) */
 #feedListFull{flex:1; overflow-y:auto; padding:6px 16px 12px; overscroll-behavior:contain;}
+/* W7-019 · THE BOARD AT THE DESK IS A DIALOG (D234, UI_SYSTEM §14.1: the desk is never the phone reflowed; the shared
+   sheet's desk shape is a centred panel). The phone's takeover stretched edge to edge put post lines 1,250 to 1,520px
+   wide with the round's facts at the left edge and '+2.4 VS PLAYING HCP · 9 PTS' at the far right, covered the
+   sidebar, and drew a photo card as a full-width band of about 7:1. From 960 up the panel is 720 wide on the sheet's
+   scrim (a click outside closes it, as the sheet's does), max 82dvh, on the board's own --bg0 ground so no card
+   sits on a card, and a round's photo is §6.4's 2.1:1 band. Below 960 it is the full screen, and returns you where you were. */
+.bf-panel{display:contents;}
+@media(min-width:960px){
+  #boardFull{background:rgba(8,9,11,.72); backdrop-filter:blur(3px); padding-top:0;}
+  .bf-panel{display:flex; flex-direction:column; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:720px; max-height:82dvh; overflow:hidden;
+    background:var(--bg0);   /* the board's own ground, so no card sits on a card */
+    border-radius:var(--rs); box-shadow:var(--shadow-lift);}   /* the sheet's own panel shape (.sheet .panel) */
+  #feedListFull{min-height:0;}
+  #boardFull .fcard .round.has-photo{min-height:0; aspect-ratio:2.1/1;}
+}
 .bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--rule); background:var(--bg0);}
 .rline{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; text-transform:uppercase; color:var(--mut); margin-top:3px; letter-spacing:calc(var(--agate-s) * 1em);}   /* TEN / W6 · AW2-06: a round card's band line is agateS in caps on every board, as the full board sets it */
 .rline .ok{color:var(--pos);} .rline .dim{color:var(--mut);}
@@ -6239,6 +6308,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- the form row and the milestone column live UNDER the object now,
              on the page's own ground, because the card carries only the four
              facts that are permanent -->
+        <!-- W7-053 · while the number is still building: the building clause alone, under the card -->
+        <p class="cstatus" id="youBuilding" hidden></p>
         <div id="youForm"></div>
         <div class="ctros" id="youTros" style="text-align:left; margin:10px 0 14px"></div>
         <!-- W7-055 · the phone's index to this page: one row of links to the heads that are on it (csYouJump) -->
@@ -7006,6 +7077,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
       <!-- LEAGUE HUB -->
       <section class="view" id="view-hub">
+        <!-- W7-020 · the season page is a pushed screen at the phone: the way back is one affordance (§12.2), Compete or
+             Home by where it was opened from (csSeasonBack, the event room's origin rule). The desk has its sidebar. -->
+        <a href="#" class="backlink" id="seasonBack" data-go="compete"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Compete</a>
         <!-- IA P5: the People segment retired — buddies moved to You,
              finding golfers moved to the header search. Crew is now purely
              your leagues & events (the "Groups" it always was). -->
@@ -7506,6 +7580,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
 <!-- ============ TAB BAR (mobile) ============ -->
 <div id="boardFull" role="dialog" aria-modal="true" aria-label="League board">
+  <!-- W7-019 · .bf-panel is the desk's dialog (a centred panel on the sheet's scrim); below 960 it dissolves and the
+       header, the list and the composer are the phone's full-screen takeover as before (D93/D223) -->
+  <div class="bf-panel">
   <header class="bf-hdr">
     <div><b id="bfTitle">THE BOARD</b><small id="bfSub"></small></div>
     <button class="mini" id="bfClose" aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
@@ -7514,6 +7591,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
   <div class="composer bf-comp">
     <input class="f" id="chatInFull" placeholder="Post to the board…">
     <button class="btn" id="chatSendFull" style="width:auto; padding:0 18px;">Send</button>
+  </div>
   </div>
 </div>
 
@@ -8398,14 +8476,23 @@ function switchView(v){
     window._schedFrom = null;   /* one trip only — the next entry decides again */
   }
   gateLiveRound();
+  /* W7-020 · where the season page was opened from, before the views swap: Home or Compete (the way back) */
+  if(v === 'hub'){
+    const prev = document.querySelector('.view.active')?.id;
+    if(prev === 'view-home') window._seasonFrom = 'home'; else if(prev === 'view-compete') window._seasonFrom = 'compete';
+    csSeasonBack();
+  }
   /* TEN / W6 · WHERE YOU ARE (critique-B events, heuristic 1): a Ryder or a
      Major room is a Compete page — it is reached from Compete and goes back to
      it — so Compete stays selected in the tab band and the sidebar while one is
      open. It selected nothing: no tab and no sidebar row said where you were. */
   const selected = v === 'event' ? 'compete' : v;
+  /* W7-020 · the season page is a Compete page too, as the event room is: the tab band keeps COMPETE current
+     (the desk's sidebar marks 'The season' instead, so only the tab toggle takes it) */
+  const tabSelected = (v === 'event' || v === 'hub') ? 'compete' : v;
   /* W7-025 · the current destination is said to a screen reader too (aria-current, WCAG 4.1.2) */
   [...$$('.tab'), ...$$('.navitem')].forEach(t=>{
-    const on = t.dataset.v===selected;
+    const on = t.dataset.v===(t.classList.contains('tab') ? tabSelected : selected);
     t.classList.toggle('active', on);
     if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
   });
@@ -11123,6 +11210,8 @@ function closeBoardFull(){
 }
 $('#bfOpen').addEventListener('click',e=>{ e.preventDefault(); openBoardFull(); });
 $('#bfClose').addEventListener('click',closeBoardFull);
+/* W7-019 · at the desk the board is a dialog on a scrim: a click on the scrim closes it, as the sheet's does */
+$('#boardFull').addEventListener('click',e=>{ if(e.target.id==='boardFull' && matchMedia('(min-width:960px)').matches) closeBoardFull(); });
 
 function scrollFeedBottom(){
   requestAnimationFrame(()=>{
@@ -22847,6 +22936,16 @@ function csBookEdge(scroller,host,axis){
   try{ const ro=new ResizeObserver(again); ro.observe(side); [...side.children].forEach(c=>ro.observe(c)); }
   catch(_){ window.addEventListener('resize', again, {passive:true}); }
 })();
+/* W7-027 · and the same edge on every desk aside and Home's wire, which scroll in their own height
+   (the wire's box was cut through its last card with no fade, B2-desk-8). Re-read when the column or
+   anything in it changes size or content: the pot, the clash and the story arrive after boot, and a
+   box capped at the window's height does not itself change size when its content grows. */
+(()=>{ document.querySelectorAll('.deskaside, .deskwire').forEach(el=>{
+  csBookEdge(el, el, 'y');
+  let q=0; const again=()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; el.dispatchEvent(new Event('scroll')); }); };
+  try{ const ro=new ResizeObserver(again); ro.observe(el); [...el.children].forEach(c=>ro.observe(c)); new MutationObserver(again).observe(el, { childList:true, subtree:true }); }
+  catch(_){ window.addEventListener('resize', again, {passive:true}); }
+}); })();
 async function csOpenSeasonBook(league,season){
   if(!window.CS?.user || !window.sb || state.demo)return;
   csCloseSeasonBook();
@@ -24676,7 +24775,7 @@ window.renderCareerRecord = renderCareerRecord;
    takes the gold from an 84 (the craft panel caught exactly that), and it
    says it is a nine under its date */
 const csFormNine = (r) => !!r && Number(r.holes_played) === 9;
-function formRowHtml(recent, caption){
+function formRowHtml(recent, caption, opts){
   if(!Array.isArray(recent) || !recent.length) return '';
   const cols = recent.slice(0, 5).reverse();             /* oldest first */
   if(!cols.some(r => r && r.gross != null)) return '';
@@ -24685,11 +24784,21 @@ function formRowHtml(recent, caption){
   const comparable = cols.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross);
   const best = comparable.length >= 2 ? comparable.sort((a, b) => a - b)[0] : null;
   let seen = false;
-  const head = `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : esc(csCapFirst(csSpelled(cols.length))) + ' of five'}</span></div>`;
+  const under = cols.length < 5 ? esc(csCapFirst(csSpelled(cols.length))) + ' of five' : '';
+  /* W7-047 · on You the head speaks the page's grammar (UI_SYSTEM §8, §16A.2, D286: one section-head idiom): an
+     eyebrow whose label carries the window ('Form · last five', OWNER-QUESTIONS Q21: the window moves into the
+     label) and whose right slot takes a count and nothing else ('Two of five', only under five rounds). The
+     person page keeps its rule-and-slot head. */
+  const head = opts && opts.head === 'eyebrow'
+    ? `<h2 class="eyebrow">Form · last five${under ? `<span>${under}</span>` : ''}</h2>`
+    : `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : under}</span></div>`;
+  /* W7-047 · each column's day is the month and day, as the Recent rounds rows below print the same round
+     (csMonthDay; the phone's CredentialCopy.formDate always does), and its caps are the role's: csDayToken
+     mixed 'TODAY', a weekday and a month-day in one row ('TUE', 'SEP 15'), and typed the capitals itself */
   const body = cols.map(r => {
     const gold = !seen && best != null && r && !csFormNine(r) && r.gross === best; if(gold) seen = true;
     return `<div class="dfcol${gold ? ' won' : ''}"><b>${r && r.gross != null ? r.gross : '—'}</b><i></i>`
-         + `<small>${esc(csDayToken(r && r.played_on || ''))}${csFormNine(r) ? ' · NINE' : ''}</small></div>`;
+         + `<small>${esc(csMonthDay(r && r.played_on || ''))}${csFormNine(r) ? ' · nine' : ''}</small></div>`;
   }).join('');
   return head + `<div class="dform" role="img" aria-label="Form, last ${cols.length} rounds">${body}</div>`;
 }
@@ -24760,7 +24869,7 @@ function renderCareer(){
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
   const sign = v => (v>=0?'+':'') + v.toFixed(1);
-  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY) : '';
+  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY, { head:'eyebrow' }) : '';
   /* F10 · the page knows which of four things it is showing: still loading, a
      read that failed, a record with nothing in it yet, or a record */
   const view = $('#view-stats');
@@ -24791,9 +24900,16 @@ function renderCareer(){
      Y-14 · WITH its denominator, and on BOTH figures: the best and the average
      are read off the same counting set, and with one counting round they are
      the same number. "Rounds posted" above counts a different set entirely. */
-  const clScope = !(c.counting>0) ? 'No rounds count yet' : countingScope(c.counting);
+  /* W7-053 · a golfer who has posted but has no round scored in a season yet is told what the strip is
+     waiting for, not 'No rounds count yet' under a figure that says they have rounds; and a record with
+     no rounds has no scope line to draw. The words are the Kit's YouCopy.noCountingRounds' too. */
+  const clScope = c.counting>0 ? countingScope(c.counting)
+                : c.rounds>0 ? 'Best and average start once a round is scored in a season.' : '';
   set('#clAvgSub', clScope);
   set('#clBestSub', clScope);
+  const clScopeRow = $('#clAvgSub')?.closest('.youscope'); if(clScopeRow) clScopeRow.hidden = !clScope;
+  const clRoundsLabel = $('#clR')?.closest('.youfig')?.querySelector('small');
+  if(clRoundsLabel) clRoundsLabel.textContent = c.rounds === 1 ? 'Round posted' : 'Rounds posted';   /* "1 ROUNDS POSTED" */
   set('#clPlayed', state.demo ? c.played : playedInCount());
   /* a figure with no data is ABSENT, never a dash in a numeral seat (§9.9,
      critique-B P2): a one-round golfer's best and average wait for a round
@@ -27847,6 +27963,13 @@ function csEventRecoveryHtml(E){
    opened from (switchView renders the room BEFORE it swaps the views, so the
    view still active on a first render is the one it came from), and a plate
    that carries its own door takes the header's away — one way back, not two. */
+/* W7-020 · the season page's way back at the phone: Compete unless it was opened from Home (csEventBack's rule) */
+function csSeasonBack(){
+  const back = document.getElementById('seasonBack'); if(!back) return;
+  const from = window._seasonFrom === 'home' ? 'home' : 'compete';
+  back.dataset.go = from;
+  back.innerHTML = '<svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>' + (from === 'home' ? 'Home' : 'Compete');
+}
 function csEventBack(showHeader){
   const active = document.querySelector('.view.active');
   if(active && active.id !== 'view-event') window._evFrom = active.id === 'view-compete' ? 'compete' : 'home';
@@ -29496,6 +29619,14 @@ function refreshWhoChip(){
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
       + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;
   }
+  /* W7-053 · the building clause under the card while the engine is still building the number (one to
+     two rounds posted, no index yet): the strip dropped the index cell and printed nothing in its place */
+  const bld = $('#youBuilding');
+  if(bld){
+    const nRounds = window.career && window.career.rounds != null ? Number(window.career.rounds) : null;
+    const say = p.index_current == null && nRounds != null && nRounds >= 1 && nRounds < 3;
+    bld.hidden = !say; bld.textContent = say ? csBuildingClause(true, nRounds) : '';
+  }
   /* the medallion: the ceremony disc, the gold ring, the marker in gold. One
      slot, one size, one treatment - the same one every other card carries. */
   const mkEl = $('#youMk');
@@ -29928,15 +30059,21 @@ function csStatusSentence(card){
   if(r.played_on) s += ' on ' + esc(csSpokenDay(r.played_on));
   s += '.';
   const rounds = Number((card.career || {}).rounds || 0);
-  if(p.index_current == null && rounds < 3){
-    const left = 3 - rounds;
-    s += left === 1
-      ? ` One more round sets ${p.is_me ? 'your' : 'their'} number.`
-      : ` ${csSpelled(left)} more rounds set ${p.is_me ? 'your' : 'their'} number.`;
-  }
+  if(p.index_current == null && rounds < 3) s += ' ' + csBuildingClause(!!p.is_me, rounds);
   return s;
 }
 window.csStatusSentence = csStatusSentence;
+/* W7-053 · the building clause, said once: what a golfer whose number is still building is waiting for.
+   csStatusSentence ends on it after the round it names (the phone's CredentialCopy.status ends on it too);
+   You prints it alone under the card, so the two are one producer and the round is not said a fifth time
+   beside Form, Recent rounds and the trophies (L-34). */
+function csBuildingClause(mine, rounds){
+  const left = 3 - rounds;
+  return left === 1
+    ? `One more round sets ${mine ? 'your' : 'their'} number.`
+    : `${csCapFirst(csSpelled(left))} more rounds set ${mine ? 'your' : 'their'} number.`;   /* it opens a sentence: csSpelled is small-cased ('two more rounds' followed a full stop) */
+}
+window.csBuildingClause = csBuildingClause;
 
 function csCredentialHtml(profileId, card){
   const p = card.profile || {}, c = card.career || {};
@@ -30987,11 +31124,17 @@ function openProfileHub(){
     <!-- AW2-02 (round 2, WCAG 4.1.2): the field is named by its eyebrow, and
          the sentence under it describes it -->
     <div class="eyebrow" id="phIdxLab" style="margin-top:20px">Handicap index</div>
+    ${p.index_source === 'app' ? `
+    <!-- W7-043 · once the engine owns the number the server refuses an edit by design (set_index: 'Your number comes from
+         your scores now'), so the card does not offer one: it says whose the number is and where to read why, in the
+         phone's own words (CardAndSettingsScreen, Y-06). D395: the card never sets a scored number. -->
+    <p class="cs-body" id="phIdxOwned" aria-labelledby="phIdxLab" style="margin:0">Your number builds itself now · ${p.index_current != null ? esc(Number(p.index_current).toFixed(1)) : '\u2014'}</p>
+    <p class="fine" id="phIdxHelp" style="padding-left:0">It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>` : `
     <div style="display:flex; gap:10px; align-items:center;">
       <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px" aria-labelledby="phIdxLab" aria-describedby="phIdxHelp">
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
-    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>
+    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>`}
 
     <div class="eyebrow" style="margin-top:20px">Your seasons</div>
     ${leagues}
@@ -31087,7 +31230,7 @@ function openProfileHub(){
   $('#phCity').value = p.city || '';
   $('#phHome').value = p.home_course || '';
   $('#phGhin').value = p.ghin_number || '';
-  $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';
+  if($('#phIdx')) $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';   /* W7-043 · absent while the engine owns the number */
   renderPhMarkers();
 
   /* D59: the avatar editor — square-crop to 512, straight into {uid}/avatar.jpg,
@@ -31209,7 +31352,7 @@ function openProfileHub(){
     finally { btn.disabled = false; }
   });
 
-  $('#phIdxGo').addEventListener('click', async () => {
+  $('#phIdxGo')?.addEventListener('click', async () => {
     const idx = parseFloat($('#phIdx').value);
     if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off — anywhere from -10 to 54.'); return; }
     const btn = $('#phIdxGo'); btn.disabled = true;

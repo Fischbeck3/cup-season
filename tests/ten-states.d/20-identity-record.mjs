@@ -61,6 +61,37 @@ const youIndex = (want) => async (page) => page.evaluate(async (want) => {
   return el && top >= 40 && top <= 100 ? true : `the ${link.textContent.trim()} link scrolled its head to ${top}px, not under the sticky bar`
 }, want)
 
+/* TEN / W8 · W7-053 [A2-identity-3, B2-identity-4] · a first round: You does not say 'No rounds count yet' under a figure that says the golfer has
+   rounds, and says the number is building. `one` (one round posted, no index yet): the strip's label is singular, its scope line says what
+   the best and average wait for, and the building clause stands alone under the card. `many` (an established golfer): the plural label, the
+   counting scope, and no clause. `none` (an empty record): no scope line and no clause. */
+const youBuilding = (kind) => async (page) => page.evaluate((kind) => {
+  const shown = (el) => !!el && !el.hidden && el.getBoundingClientRect().width > 0
+  const b = document.getElementById('youBuilding'), scope = document.getElementById('clAvgSub'), row = scope && scope.closest('.youscope')
+  const label = document.querySelector('#clR').closest('.youfig').querySelector('small').textContent.trim()
+  const said = shown(b) ? b.textContent.trim() : ''
+  if (kind === 'one') {
+    if (/No rounds count yet/.test(row ? row.textContent : '')) return 'You still says "No rounds count yet" under a figure that says the golfer has rounds'
+    if (!shown(row) || scope.textContent.trim() !== 'Best and average start once a round is scored in a season.') return `the scope line reads ${JSON.stringify(scope && scope.textContent.trim())}`
+    if (label !== 'Round posted') return `the strip's label reads ${JSON.stringify(label)}`
+    return said === 'Two more rounds set your number.' ? true : `the building clause under the card reads ${JSON.stringify(said)}`
+  }
+  if (kind === 'many') return said === '' && label === 'Rounds posted' && shown(row) && !/Best and average start|No rounds count yet/.test(scope.textContent) ? true : `an established golfer's strip: label ${JSON.stringify(label)}, clause ${JSON.stringify(said)}, scope ${JSON.stringify(scope.textContent)}`
+  return said === '' && !shown(row) ? true : `an empty record: clause ${JSON.stringify(said)}, scope line drawn: ${shown(row)}`
+}, kind)
+
+/* TEN / W8 · W7-047 [A2-identity-10] · You's Form head is the page's eyebrow with the window in its label ('Form · last five', Q21), a count slot only
+   under five rounds ('One of five'), and every column's day is the month and day ('SEP 27', 'SEP 13 · NINE'), the day form the Recent rounds below print */
+const youFormGrammar = (slot) => async (page) => page.evaluate((slot) => {
+  const head = document.querySelector('#youForm h2.eyebrow')
+  if (!head) return "You's Form head is not the eyebrow"
+  const t = head.innerText.replace(/\s+/g, ' ').trim()
+  if (t !== (slot ? `FORM · LAST FIVE ${slot}` : 'FORM · LAST FIVE')) return `You's Form head reads ${JSON.stringify(t)}`
+  const days = [...document.querySelectorAll('#youForm .dfcol small')].map((e) => e.innerText.trim())
+  const bad = days.filter((d) => !/^[A-Z]{3} \d{1,2}( · NINE)?$/.test(d))
+  return days.length && !bad.length ? true : `the Form columns mix day forms: ${JSON.stringify(days)}`
+}, slot)
+
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
@@ -69,14 +100,14 @@ const YOU = [
       /* TEN / W8 · W7-009: an empty record says the first round is missing and holds the door, so the sidebar's sentence and door stand down */
       standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]']),
       /* TEN / W8 · W7-055: an empty record has one section, so no index */
-      youIndex(0)) },
+      youIndex(0), youBuilding('none')) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`)) },
+    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youFormGrammar('ONE OF FIVE')) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
-    check: all(recordState('some'), youIndex(5), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
+    check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
       readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */

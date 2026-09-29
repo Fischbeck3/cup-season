@@ -215,6 +215,22 @@ const SETTINGS = [
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
     check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings')) },
+  /* TEN / W8 · W7-043 [A2-settings-4] · the Handicap index block, scrolled to. Once the engine owns the number (index_source 'app') the card draws no
+     field and no 'Update index' (the server refuses the edit by design and the golfer learned it from a toast): it says whose the number is, in the
+     phone's words (CardAndSettingsScreen, Y-06), and keeps the door. A golfer whose number has not been built keeps the starter field. */
+  { family: 'settings', id: 'card-index', variant: 'member', fullPage: false, title: 'Card & settings · the Handicap index, built by the engine (no field, no Update index)',
+    drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdxOwned': 'text:^Your number builds itself now . 14\\.2$', '#phScoreHelp': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      if (document.getElementById('phIdx') || document.getElementById('phIdxGo')) return 'the engine-owned card still offers a field or Update index'
+      const help = document.getElementById('phIdxHelp').textContent.replace(/\s+/g, ' ').trim()
+      if (help !== 'It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. How scoring works') return `the note reads ${JSON.stringify(help)}`
+      return /[\u2192\u203a]/.test(document.getElementById('phIdxHelp').textContent) ? 'the door carries a typed arrow' : true
+    }) },
+  { family: 'settings', id: 'card-starter', variant: 'one_round', fullPage: false, title: 'Card & settings · the Handicap index, still building (the starter field stays)',
+    drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdx': 'visible', '#phIdxGo': 'text:^Update index$' } },
+    check: async (page) => page.evaluate(() => /Set a starter here/.test(document.getElementById('phIdxHelp').textContent) ? true : 'the starter sentence is gone') },
   /* TEN / W8 · W7-042 [A2-settings-3] · an armed card is not dropped by a dismissal. Findable-by saves on the tap, so it does not arm
      Save changes; a pending name edit does, and the first dismissal (the ×) keeps the sheet open, puts focus on Save and says why */
   { family: 'settings', id: 'card-unsaved', variant: 'member', fullPage: false, title: 'Card & settings · an edit is pending and the sheet is dismissed once (kept open, and it says why)',
@@ -352,19 +368,52 @@ const deskRailEdge = async (page) => {
   if (!r.over) return `the rail does not overflow at ${vp.width}×800, so its edge cannot be read`
   return r.atRest && r.masked && !r.atEnd && r.back ? true : `the rail's edge at ${vp.width}×800: ${JSON.stringify(r)}`
 }
+/* TEN / W8 · W7-027 [B2-desk-11] · a desk aside (the season's) and Home's wire scroll in their own height under the rail's fade: the box is
+   capped at the window's, it overflows, it says so at rest (data-more + a mask), says nothing at its end, and its tail is reachable */
+const deskScroller = (sel) => async (page) => {
+  const r = await page.evaluate(async (sel) => {
+    const a = document.querySelector(sel), frame = () => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+    if (!a) return { missing: true }
+    const cs = getComputedStyle(a), h = a.getBoundingClientRect().height
+    const capped = h <= innerHeight - 80 + 1, over = a.scrollHeight > a.clientHeight + 2
+    const atRest = a.hasAttribute('data-more'), masked = (cs.webkitMaskImage || cs.maskImage || 'none') !== 'none'
+    a.scrollTop = a.scrollHeight; await frame()
+    const atEnd = a.hasAttribute('data-more')
+    const kids = [...a.children].filter((c) => c.getBoundingClientRect().height > 0), last = kids[kids.length - 1]
+    const tail = !!last && last.getBoundingClientRect().bottom <= a.getBoundingClientRect().bottom + 1
+    a.scrollTop = 0; await frame()
+    /* a scroll box clips a focus ring (2px, 2px off) drawn at its own edge: the first focusable's ring must fit inside the box */
+    const f = a.querySelector('button, a[href], [tabindex]:not([tabindex="-1"])'), fr = f && f.getBoundingClientRect(), ar = a.getBoundingClientRect()
+    const ring = !f || (fr.left - 4 >= ar.left - 0.5 && fr.top - 4 >= ar.top - 0.5 && fr.right + 4 <= ar.right + 0.5)
+    return { h: Math.round(h), vh: innerHeight, capped, over, atRest, masked, atEnd, tail, ring, back: a.hasAttribute('data-more') }
+  }, sel)
+  if (r.missing) return `${sel} is not drawn`
+  if (!r.capped) return `${sel} is ${r.h}px tall in a ${r.vh}px window: not a scroll box, so its tail is out of reach`
+  if (!r.over) return `${sel} fits its box, so its edge cannot be read`
+  return r.atRest && r.masked && !r.atEnd && r.tail && r.ring && r.back ? true : `${sel}'s edge: ${JSON.stringify(r)}`
+}
+/* TEN / W8 · W7-022 [B2-desk-8] · the reading measure is the track's and the aside follows the column after the desk gutter: from 1100 up the
+   gap between a desk body's reading column and its second column is the gutter (40), not a void */
+const deskGutter = (colSel, sideSel) => async (page) => page.evaluate(([colSel, sideSel]) => {
+  if (innerWidth < 1100) return true
+  const c = document.querySelector(colSel), a = document.querySelector(sideSel)
+  if (!c || !a) return `${colSel} or ${sideSel} is not drawn`
+  const gap = Math.round(a.getBoundingClientRect().left - c.getBoundingClientRect().right)
+  return gap >= 36 && gap <= 44 ? true : `${sideSel} sits ${gap}px from ${colSel}, not the 40px gutter (a void beside a capped column)`
+}, [colSel, sideSel])
 const DESK = [
   { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
-    check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskRailEdge(page) } },
+    check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); if (b !== true) return b; const g = await deskGutter('#homeHub .deskmain', '#homeHub .deskwire')(page); return g !== true ? g : deskRailEdge(page) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
     /* TEN / W8 · W7-025: the season page at its top marks The season, and only it */
-    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskMenuIs('The season')(page) } },
+    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskMenuIs('The season')(page); if (b !== true) return b; const g = await deskGutter('#seasonBody .deskmain', '#seasonAside')(page); return g !== true ? g : deskScroller('#seasonAside')(page) } },
   { family: 'desk', id: 'compete', variant: 'member', desk: true, title: 'The desk · Compete',
     drive: async (page) => { await click(page, '.navitem[data-v="compete"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-compete'); await page.waitForTimeout(900) },
     expect: { view: 'view-compete' }, check: deskCheck },
   { family: 'desk', id: 'golfers', variant: 'member', desk: true, title: 'The desk · Golfers',
     drive: async (page) => { await click(page, '.navitem[data-v="golfers"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-golfers'); await page.waitForTimeout(900) },
-    expect: { view: 'view-golfers' }, check: deskCheck },
+    expect: { view: 'view-golfers' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskGutter('#glfHub .deskmain', '#glfAside')(page) } },
   { family: 'desk', id: 'you', variant: 'member', desk: true, title: 'The desk · You',
     drive: async (page) => { await click(page, '.navitem[data-v="stats"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-stats'); await page.waitForTimeout(900) },
     /* TEN / W8 · W7-009: You's Form row and Recent rounds open on the last round, so the sidebar's LAST row stands down */
