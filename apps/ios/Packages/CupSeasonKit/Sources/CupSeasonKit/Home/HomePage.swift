@@ -464,6 +464,11 @@ public struct HomePage {
 
     // A wire carrying only league notes is NOT empty — it has news, folded.
     let empty = ordered.isEmpty && wireEmptyItem == nil && notes == nil
+    // N4-011 · the calendar's occasion is known before any read lands, so it
+    // is not content when deciding whether Home is still loading: a page whose
+    // only row is today's occasion looked finished, lead slot blank, while the
+    // read was still out (§13.2).
+    let onlyOccasion = ordered.allSatisfy { if case .occasion = $0.body { true } else { false } }
     let failed = (feedFailed && empty && !brandNew) ? EmptyRoot.failedRead() : nil
 
     var offered = Set<String>()
@@ -477,7 +482,7 @@ public struct HomePage {
       wireEmpty: !brandNew && empty && failed == nil && !loading,
       notes: notes,
       failed: failed,
-      redacted: loading && ranked.lead == nil && empty,
+      redacted: loading && ranked.lead == nil && onlyOccasion && wireEmptyItem == nil && notes == nil,
       offered: offered,
       hasPrimary: brandNew,
       hasEmber: brandNew || (ranked.lead?.spine == .ember && !(ranked.lead?.action ?? "").isEmpty),
