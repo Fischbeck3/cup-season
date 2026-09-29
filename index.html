@@ -1626,7 +1626,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    `ink`, which is 1.11:1 on ceremony in the light printing - and the folio. */
 .cred .cfoot{flex:1 1 auto; padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
 .cred .cfigs{display:flex; align-items:flex-start; position:relative;}
-.cred .cfigs .cfig{flex:0 0 33.333%; min-width:0;}
+.cred .cfigs .cfig{flex:0 0 33.333%; min-width:0; padding-right:var(--s3); box-sizing:border-box;}   /* two labels at the SE width ran together, "HANDICAP INDEX ROUNDS" (critique-B P3) */
 /* three figures take MEASURED columns, the phone's columnWidths: a column is as
    wide as its own label, so "BEST · MESQUITE WASH" has the room "ROUNDS" does
    not use, and only the last yields — the ellipsis fires when the three
@@ -3132,6 +3132,9 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 /* the entry rides at the foot of a tall phone and simply follows the statement on a short one */
 .onboard #obDoor{margin-top:auto; padding-top:52px;}
 .onboard #obProfile, .onboard #obWelcome, .onboard #obCrew{text-align:left;}
+/* the Save rides the foot only where there is room: in a short window (the
+   keyboard up) a pinned bar would sit on the field being typed into */
+@media (min-height:560px){ .onboard #obProfile .pfsave{position:sticky; bottom:0; z-index:2; background:var(--bg0); padding:var(--s2) 0;} }
 /* D247 · these three frames are left-aligned, so their standfirst is too —
    `.ob-hero p` centres itself with `margin:auto` for the DOOR, and under a
    left-aligned title that reads as a stray indent. */
@@ -3469,10 +3472,129 @@ body:not(.noleague) #hubLeagueless{display:none;}
    rather than a list. Brand at rest (a group head is structure, not an accent
    moment), a heavier rule, and real air above so the eye reads a break. Two on
    a page is a spine; four is a table of contents. */
-.grouphead{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--mut); margin:26px 0 7px;
-  padding-bottom:7px; border-bottom:1px solid var(--rule);}   /* D359 · a section head is furniture: mut, never the competition ember */
+/* §1.4 · a section label is the agate board face, never mono (it was mono
+   11.5 at .14em) */
+.grouphead{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
+  text-transform:uppercase; color:var(--mut); margin:32px 0 8px;
+  padding-bottom:8px; border-bottom:1px solid var(--rule);}   /* D359 · a section head is furniture: mut, never the competition ember */
 .grouphead:first-child{margin-top:0;}
+/* ── You, tiered (W2 2026-09-28) ─────────────────────────────────────────
+   Below the desk the two columns dissolve into ONE column in the phone's own
+   order (YouScreen): the card and the form, the golf, the seasons, the bag,
+   the courses, and the doors that are not golf at the foot. */
+.youbody{display:flex; flex-direction:column;}
+.youmain, .youaside{display:contents;}
+.you-id{order:1;} .you-golf{order:2;} .you-seasons{order:3;} .you-bag{order:4;}
+.you-courses{order:5;} .you-doors{order:6; margin-top:var(--s5);}
+/* THE DESK'S OWN SHAPE (D234, §14.1, AW P2-15): identity, form and the golf
+   in the reading column; buddies and the record in the 340 aside. It was the
+   phone column stretched to 5,041px. */
+@media(min-width:960px){
+  .youbody{display:grid; grid-template-columns:minmax(0,1fr) 340px; column-gap:var(--gutter-desk); align-items:start;}
+  .youmain, .youaside{display:block; min-width:0;}
+  .you-doors{margin-top:0;}
+  .youaside .you-seasons > :first-child{margin-top:var(--s5);}
+  #view-stats .cred{max-width:440px;}
+  /* the aside is 340 wide: its figures sit two to a row */
+  .youaside .youstrip{grid-template-columns:1fr 1fr;}
+}
+/* figures on a rule — the credential's grammar for the all-time and season
+   figures (§1.6/§9.2): a board figure, a 2pt rule, an agate label. They were
+   bordered tiles with serif numerals and mono label stacks. */
+.youstrip{display:grid; grid-template-columns:1fr 1fr; gap:var(--s4) var(--s3); margin:var(--s2) 0 0;}
+@media(min-width:600px){ .youstrip{grid-template-columns:repeat(4, minmax(0,1fr));} }
+.youfig{min-width:0;}
+.youfig[hidden], .youstrip[hidden]{display:none;}
+.youfig b{display:block; color:var(--ink);}
+.youfig i{display:block; height:2px; background:var(--ink); margin:var(--s2) 0;}
+.youfig small{display:block; color:var(--mut); overflow-wrap:anywhere;}
+.youfig .youfig-sub{margin-top:2px;}
+.youscope{color:var(--mut); margin:var(--s3) 0 0;}
+.youscope[hidden], .youscope [hidden]{display:none;}
+/* rivalries as rows on rules: a face, the opponent, the record as a figure */
+.yriv{display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:var(--s3); align-items:center;
+  min-height:44px; padding:var(--s3) 0; border-top:1px solid var(--rule); cursor:pointer;}
+.yriv:last-child{border-bottom:1px solid var(--rule);}
+.yriv:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
+@media(hover:hover){ .yriv:hover{background:var(--bg1);} }
+.yriv-mk{display:flex;}
+.yriv-txt{min-width:0; display:flex; flex-direction:column; gap:2px;}
+.yriv-txt b{color:var(--ink); overflow-wrap:anywhere;}
+.yriv-txt small{color:var(--mut);}
+.yriv-name{color:var(--mut);}
+.yriv-rec{display:flex; flex-direction:column; align-items:flex-end; gap:2px;}
+.yriv-rec .cs-fig-s{color:var(--ink);}
+.yriv-rec .cs-agate-s{color:var(--mut);}
+/* the bag and the courses wait behind their doors; the door says what is in
+   there before it opens */
+.youdoor{margin-top:var(--s5);}
+.youdoor[hidden]{display:none;}
+.youdoor > .youdoor-sum{display:flex; align-items:baseline; gap:var(--s3); min-height:44px; padding:var(--s2) 0;
+  border-bottom:1px solid var(--rule); cursor:pointer; list-style:none;}
+.youdoor > .youdoor-sum::-webkit-details-marker{display:none;}
+.youdoor > .youdoor-sum::after{content:''; margin-left:auto; align-self:center; width:8px; height:8px; flex:none;
+  border-right:1.5px solid var(--mut); border-bottom:1.5px solid var(--mut); transform:rotate(45deg);}
+.youdoor[open] > .youdoor-sum::after{transform:rotate(-135deg);}
+.youdoor > .youdoor-sum:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.youdoor-h{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
+  text-transform:uppercase; color:var(--mut); flex:none;}
+.youdoor-n{color:var(--mut); min-width:0; overflow-wrap:anywhere;}
+.youdoor[open] > .youdoor-sum{margin-bottom:var(--s3);}
+#youBagLine{margin-top:var(--s3);}
+/* the doors that are not golf are rows on rules, not bordered cards; a
+   waiting request is said in words, in the ordinary-action colour */
+#view-stats .youdoor-row{background:none; border:0; border-top:1px solid var(--rule); border-radius:0;
+  padding:var(--s3) 0; margin:0; min-height:52px;}
+#view-stats .you-doors .youdoor-row:last-of-type{border-bottom:1px solid var(--rule);}
+#view-stats .youdoor-row.has-req small{color:var(--act);}
+/* §1.4 [MO] · a door's gloss is a sentence, so it is sans — the shared
+   `.check .tt small` sets it in tracked mono */
+#view-stats .youdoor-row .tt small, #youGuide .check .tt small{font-family:var(--sans); font-size:13px; letter-spacing:0; line-height:1.4;}
+/* the Every season leaf: a season's own line sits under its name */
+#lgRec .csleaf .qual{display:block; margin:2px 0 0;}
+/* the course facts' separators are opaque mut (§16.1: dim/faded is never a
+   word) — they were `mut` at .56 opacity, 3.09:1 */
+#view-stats .cs-facts .sep{opacity:1;}
+/* ── Card & settings (W2 2026-09-28) ─────────────────────────────────────
+   Once the card has a change to save, its Save rides the foot of the sheet —
+   it sat below fourteen markers, a photo row and the handle at 375 */
+#phPaneCard #phSave.armed{position:sticky; bottom:var(--s3); z-index:2;}
+   A setting is a switch row: the name left, the state right — a track that
+   fills with the action colour and a knob that moves (two channels, §16.4). */
+.phsws{margin:0;}
+.phsws[hidden]{display:none;}
+.phsw{display:flex; align-items:center; gap:var(--s3); width:100%; min-height:52px; padding:var(--s2) 0;
+  background:none; border:0; border-top:1px solid var(--rule); color:var(--ink); text-align:left; cursor:pointer; font:inherit;}
+.phsws > .phsw:last-child{border-bottom:1px solid var(--rule);}
+.phsw:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.phsw:disabled{cursor:progress;}
+.phsw-t{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.phsw-t b{font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ink);}
+.phsw-t small{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut);}
+.phsw-k{position:relative; flex:none; width:44px; height:26px; border-radius:999px; box-sizing:border-box;
+  border:1.5px solid var(--mut); transition:background-color .15s var(--snap), border-color .15s var(--snap);}
+.phsw-k::after{content:''; position:absolute; top:3px; left:3px; width:17px; height:17px; border-radius:50%;
+  background:var(--mut); transition:transform .15s var(--snap), background-color .15s var(--snap);}
+.phsw[aria-checked="true"] .phsw-k{background:var(--act); border-color:var(--act);}
+.phsw[aria-checked="true"] .phsw-k::after{transform:translateX(18px); background:var(--bg0);}
+@media (prefers-reduced-motion: reduce){ .phsw-k, .phsw-k::after{transition:none;} }
+/* a quiet account action is a link on the page, not a filled or outlined
+   button (§16A.5 — one primary per surface) */
+.phlink{display:flex; align-items:center; width:100%; min-height:44px; padding:0; background:none; border:0;
+  border-top:1px solid var(--rule); color:var(--ink); font:inherit; font-family:var(--sans); font-size:15px; font-weight:600;
+  text-align:left; cursor:pointer;}
+.phlink-neg{color:var(--neg); border-bottom:1px solid var(--rule);}
+.phlink:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+/* ONE CHOSEN STATE (owner H, category C, critique-B P3): in the marker grid,
+   the findable pills and the appearance pills, hover and focus never fill a
+   tile — only `.sel` does. The shared `.mini:hover` filled `rule` and
+   `.mini:focus-visible` filled `bg1`, and either read as a second choice beside
+   the chosen ink tile. Hover draws a ring, and only where hover exists. */
+#phMarkers .mini:not(.sel):hover, #phDisc .mini:not(.sel):hover, #phTheme .mini:not(.sel):hover,
+#phMarkers .mini:not(.sel):focus-visible, #phDisc .mini:not(.sel):focus-visible, #phTheme .mini:not(.sel):focus-visible{background:var(--bg2);}
+@media (hover:hover){
+  #phMarkers .mini:not(.sel):hover, #phDisc .mini:not(.sel):hover, #phTheme .mini:not(.sel):hover{box-shadow:inset 0 0 0 1.5px var(--mut);}
+}
 /* D261 / R-N · the desk's course archive. The card scrolls INSIDE its own
    container — the page never scrolls sideways (IA §4.2, and preflight 39's
    web twin asserts it at 320px). Nothing here declares below the 11px floor. */
@@ -4779,7 +4901,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          the desk and the phone cannot word the same question two ways. -->
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
-        <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">✓ SIGNED IN</div>
+        <!-- a signed-in state is a fact, not a performance: `mut` on no wash
+             (`pos` is performance-up only, D270), and no typed check mark -->
+        <div class="lockbadge" style="color:var(--mut); border-color:var(--rule); background:none">SIGNED IN</div>
         <h1 style="font-size:30px" id="pfTitle"></h1>
         <p style="margin-top:10px" id="pfSubtitle"></p>
       </div>
@@ -4800,10 +4924,13 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)" id="pfMarkerNote"></p>
       <div style="height:16px"></div>
       <label class="f" for="pfHandle" id="pfHandleLabel"></label>
-      <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
+      <input class="f" id="pfHandle" autocomplete="off" placeholder="@yourname" style="font-family:var(--sans); font-size:16px;">
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)" id="pfHandleRule"></p>
       <div style="height:16px"></div>
-      <button class="btn" id="pfSave">Save my card</button>
+      <!-- the card's one action stays in reach: at 375 it sat under the fold,
+           below the handle (category M). It rides the foot of the window until
+           the form's own end reaches it. -->
+      <div class="pfsave"><button class="btn" id="pfSave">Save my card</button></div>
       <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--mut)" id="pfGhinNote"></p>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
     </div>
@@ -5051,6 +5178,20 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
       <!-- STATS -->
       <section class="view" id="view-stats">
+        <!-- W2 2026-09-28 · THE PAGE IS TIERED, AND THE DESK HAS ITS OWN SHAPE.
+             The owner, craft and category judges and critique-B read the same
+             thing: settings, feedback and buddies rows came before any golf,
+             and then eleven sections at one weight ran to 6,410px (5,041 on a
+             desk that stretched the phone column). The order is the phone's own
+             (YouScreen): the card and the form, then the golf, then the
+             seasons, then the bag and the courses behind their doors, and the
+             doors that are not golf at the foot. On the desk (D234, §14.1) the
+             same blocks sit in two columns — identity, form and golf on the
+             left; buddies and the record on the right. `.youmain` and
+             `.youaside` dissolve into one ordered column below the desk. -->
+        <div class="youbody">
+        <div class="youmain">
+        <div class="you-id">
         <!-- C4: your own credential — same object your buddies see on your Tour Card -->
         <!-- IOS-047 - YOUR OWN CARD IS THE SAME OBJECT your buddies see:
              one chrome, one ratio, one meta string. The charcoal panel with a
@@ -5083,11 +5224,96 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              facts that are permanent -->
         <div id="youForm"></div>
         <div class="ctros" id="youTros" style="text-align:left; margin:10px 0 14px"></div>
-        <button class="mini" id="youProfile" style="margin-bottom:14px">Card and settings</button>
-        <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
-             handler (window.openFeedback via #pilotChip id), quiet row right by
-             the card/settings entry instead of hovering over every screen. -->
-        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">Tell us how it's going<span style="margin-left:auto; color:var(--mut); font-weight:400">→</span></button>
+        </div>
+
+        <!-- ══ D177 · YOUR GOLF ═══════════════════════════════════════════
+             The page carried FIVE sections about your history under FOUR
+             names, interleaved with people and with the app's manual. Two
+             group heads give it a spine, and they group by SCOPE rather than
+             by league — because only ONE section below is league-scoped.
+             `my_rivalries` takes no league argument and the league record is
+             a row per membership, so an "In <league>" head would have been a
+             lie over two of its three children. -->
+        <div class="you-golf">
+        <!-- the group heads ("Your golf", "Your seasons") gave a 6,410px page a
+             spine; on a tiered page each landed directly on its first section's
+             own head — two stacked heads with nothing between (critique-B P3) -->
+        <!-- the recent five lead the golf: the golf you just played is the
+             first thing a golfer looks for on their own page, and an empty
+             record's one next step sits here, right under the card -->
+        <h3 class="eyebrow">Recent rounds</h3>
+        <div id="youRecent" style="text-align:left"></div>
+        <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
+             permanent tab an inch below it, and this is a page about the past. -->
+
+        <!-- D67 + D177: "The record" (silverware counts + the money) and the
+             display case (the same trophies as OBJECTS) were two sections
+             about one subject, adjacent, under different names. The counts are
+             the case's top strip now; the objects sit under them. The money
+             stays D39's frame — what friends settled between themselves,
+             never a balance the app holds. -->
+        <h3 class="eyebrow" data-rec="some">Trophies</h3>
+        <!-- D291 · neither of these is a card any more. The record was four
+             bordered tiles and the case sat inside a `.room-dusk` left over
+             from the tile era — a class that re-asserts the dusk INK and no
+             ground, so in the light theme the whole case was near-white type
+             on paper. Both are slats on the page's own ground now (§32). -->
+        <div id="careerRecord" data-rec="some" style="text-align:left; margin-bottom:16px"></div>
+        <div id="trophyCase" data-rec="some" style="margin-bottom:14px"></div>
+
+        <!-- "Lifetime" -> "All time": same rows, a name that states the scope
+             out loud. THE FIGURES SIT ON A RULE, the credential's own grammar
+             (§1.6, §9.2) — they were four bordered tiles with serif numerals
+             and a mono label stack, under a card that already says the count
+             (craft T/Sp, category B, critique-B P2). The scope line is said
+             once, under the strip, not under each figure. -->
+        <h3 class="eyebrow" data-rec="some">All time</h3>
+        <div class="youstrip" data-rec="some" id="youAllTime">
+          <div class="youfig"><b class="cs-fig-m" id="clR">—</b><i></i><small class="cs-agate-s">Rounds posted</small></div>
+          <div class="youfig"><b class="cs-fig-m" id="clBest">—</b><i></i><small class="cs-agate-s">Best vs your playing HCP</small></div>
+          <div class="youfig"><b class="cs-fig-m" id="clAvg">—</b><i></i><small class="cs-agate-s">Avg vs your playing HCP</small></div>
+          <div class="youfig"><b class="cs-fig-m" id="clPlayed">—</b><i></i><small class="cs-agate-s">Competitions played</small></div>
+        </div>
+        <p class="youscope cs-agate-s is-phrase" data-rec="some"><span id="clAvgSub">across rounds that count</span></p>
+        </div>
+
+        <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
+             The desk's half of the offline course store. It works with no
+             connection because it is drawn from what this device kept, and
+             it says so. BEHIND ITS DOOR (owner Sp/D, craft D): the full book
+             repeated the courses page inline — plates, facts and whole
+             scorecards — and ran the page to 6,410px. -->
+        <div class="you-courses">
+        <details class="youdoor" id="youCoursesDoor" data-courses>
+          <summary class="youdoor-sum"><span class="youdoor-h">Your courses</span><span class="youdoor-n cs-agate-s is-phrase" id="youCoursesN"></span></summary>
+          <p class="fine" id="youCoursesWhat" data-courses style="padding:0 0 8px"></p>
+          <div id="youCourses" data-courses style="text-align:left"></div>
+        </details>
+        </div>
+        </div>
+
+        <div class="youaside">
+        <!-- ══ THE DOORS THAT ARE NOT THE GOLF ═════════════════════════════
+             The phone keeps them at the page's foot in one rule-bounded block
+             (YouScreen `doors`); on the desk they head the right column, where
+             the buddies door is one reach from the card. Feedback is the
+             quietest of the three and comes last. -->
+        <div class="you-doors">
+        <!-- D93 · D222 promoted the buddies list to the GOLFERS destination;
+             this is the door to it. The door reports before you open it. -->
+        <button class="check tap youdoor-row" id="youPeopleGo" style="width:100%; text-align:left">
+          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
+          <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
+          <span class="go" aria-hidden="true">→</span>
+        </button>
+        <button class="check tap youdoor-row" id="youProfile" style="width:100%; text-align:left">
+          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span>
+          <div class="tt"><b>Card &amp; settings</b><small>Your card, notifications and your account</small></div>
+          <span class="go" aria-hidden="true">→</span>
+        </button>
+        <!-- F8 → W2 2026-09-28: "Tell us how it's going" is the app's, not the
+             golfer's identity (owner H: "move feedback into Settings"); it
+             lives in the Settings pane of Card & settings now (#phFeedback). -->
         <!-- the founder's desk: hidden for everyone but the owner; the SERVER
              is the gate (founder_desk/founder_note refuse non-founders) — this
              display toggle is courtesy, not security -->
@@ -5099,123 +5325,62 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           </div>
           <p class="fine" style="padding:6px 0 0">Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.</p>
         </div>
-        <!-- IA P3: the You page IS the public profile — card, case, record.
-             Everything editable + app settings live behind the ⚙. The
-             "Build your crew" card is gone (redundant with Crew · People). -->
-        <!-- D93: buddies left this page. IA P5 put them here and split the
-             relationship three ways (list on You, requests on Home, search in
-             the header). D222 promoted the list to the GOLFERS destination;
-             this is the door to it.
-             D177 moved it to the TOP: it is the only DOOR on a page that is
-             otherwise all reading, and it sat seventh. You do not scroll past
-             your own trophy case to reach a person. -->
-        <div class="eyebrow" style="margin-top:0">Your buddies</div>
-        <button class="check tap" id="youPeopleGo" style="width:100%; text-align:left">
-          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
-          <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
-          <span class="go" aria-hidden="true">→</span>
-        </button>
-
         <!-- D63: last round with — the reunion whisper. Threshold-fired only,
              one name, in-app only; dismiss is 90 days of quiet (device-local). -->
         <div id="lrwCard" style="margin:14px 0"></div>
-
-        <!-- ══ D177 · YOUR GOLF ═══════════════════════════════════════════
-             The page carried FIVE sections about your history under FOUR
-             names, interleaved with people and with the app's manual. Two
-             group heads give it a spine, and they group by SCOPE rather than
-             by league — because only ONE section below is league-scoped.
-             `my_rivalries` takes no league argument and the league record is
-             a row per membership, so an "In <league>" head would have been a
-             lie over two of its three children. -->
-        <div class="grouphead">Your golf</div>
-
-        <!-- D67 + D177: "The record" (silverware counts + the money) and the
-             display case (the same trophies as OBJECTS) were two sections
-             about one subject, adjacent, under different names. The counts are
-             the case's top strip now; the objects sit under them. The money
-             stays D39's frame — what friends settled between themselves,
-             never a balance the app holds. -->
-        <div class="eyebrow" data-rec="some">Trophies</div>
-        <!-- D291 · neither of these is a card any more. The record was four
-             bordered tiles and the case sat inside a `.room-dusk` left over
-             from the tile era — a class that re-asserts the dusk INK and no
-             ground, so in the light theme the whole case was near-white type
-             on paper. Both are slats on the page's own ground now (§32). -->
-        <div id="careerRecord" data-rec="some" style="text-align:left; margin-bottom:16px"></div>
-        <div id="trophyCase" data-rec="some" style="margin-bottom:14px"></div>
-
-        <!-- "Lifetime" -> "All time": same rows, a name that states the scope
-             out loud. It shares two row LABELS with "This season" below, and
-             until now the only thing telling them apart was a small grey sub
-             four sections away. -->
-        <div class="eyebrow" data-rec="some">All time</div>
-        <div class="stats" data-rec="some">
-          <!-- Y-14 · no "All time" sub: the eyebrow above this row already
-               says the scope (brand canon 3 - one fact, one place). Y-14 also
-               puts these three rows in the SAME order and under the SAME names
-               as "This season" below, so the two panels stop drifting. -->
-          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div></div>
-          <div class="stat"><div class="k">Best vs your playing HCP</div><div class="v" id="clBest">—</div><div class="d fl" id="clBestSub">across rounds that count</div></div>
-          <div class="stat"><div class="k">Avg vs your playing HCP</div><div class="v" id="clAvg">—</div><div class="d fl" id="clAvgSub">across rounds that count</div></div>
-          <div class="stat"><div class="k">Leagues &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
         </div>
-
-        <div class="eyebrow">Recent rounds</div>
-        <div id="youRecent" style="text-align:left"></div>
-        <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
-             permanent tab an inch below it, and this is a page about the past. -->
 
         <!-- ══ D177 · YOUR SEASONS ════════════════════════════════════════ -->
         <!-- D185: the head carries the class too. D178 recorded gating it on
              its children, but the children's class had no rule, so both the
              head and the dashes under it shipped to golfers with no league. -->
-        <div class="grouphead league-only">Your seasons</div>
-
-        <div class="league-only">
-          <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
-          <div class="stats">
-            <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div></div>
-            <div class="stat"><div class="k">Best vs your playing HCP</div><div class="v" id="msBest">—</div><div class="d fl" id="msBestSub">across rounds that count</div></div>
-            <div class="stat"><div class="k">Avg vs your playing HCP</div><div class="v" id="msAvg">—</div><div class="d fl" id="msAvgSub">across rounds that count</div></div>
-            <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up" id="msDeltaSub">Season to date</div></div>
-          </div>
-        </div>
-
-        <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3).
-             D177 names the scope: my_rivalries takes no league argument, so
-             this is every opponent in every league — and it sits beside a
-             season-scoped strip, which would otherwise lend it the wrong one. -->
-        <div class="eyebrow league-only" id="youRivalsHead">Rivalries · all leagues</div>
-        <div id="youRivals" class="league-only" style="text-align:left"></div>
+        <div class="you-seasons">
 
         <!-- D177: "League record" was the THIRD heading here meaning "record",
              and the only one that was not one — it is a season-by-season list
              of where you finished, in every league you have played. -->
-        <div class="eyebrow" id="lgRecHead" style="display:none">Every season</div>
+        <h3 class="eyebrow" id="lgRecHead" style="display:none">Every season</h3>
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
+
+        <div class="league-only">
+          <h3 class="eyebrow"><span>This season · <span id="youSeasonLg">your league</span></span></h3>
+          <!-- ALL TIME and THIS SEASON printed the same three figures for a
+               golfer in their first season (owner C, category C, critique-B);
+               when they agree only the figure that is the season's own, the
+               index move, is drawn here (csYouStripsDedupe) -->
+          <div class="youstrip" id="youThisSeason">
+            <div class="youfig"><b class="cs-fig-m" id="msR">—</b><i></i><small class="cs-agate-s">Rounds posted</small></div>
+            <div class="youfig"><b class="cs-fig-m" id="msBest">—</b><i></i><small class="cs-agate-s">Best vs your playing HCP</small></div>
+            <div class="youfig"><b class="cs-fig-m" id="msAvg">—</b><i></i><small class="cs-agate-s">Avg vs your playing HCP</small></div>
+            <div class="youfig"><b class="cs-fig-m" id="msDelta">—</b><i></i><small class="cs-agate-s">Index move</small><small class="youfig-sub cs-agate-s is-phrase" id="msDeltaSub">Season to date</small></div>
+          </div>
+          <p class="youscope cs-agate-s is-phrase"><span id="msAvgSub">across rounds that count</span><span id="msBestSub" hidden></span></p>
+          <p class="youscope cs-agate-s is-phrase" id="msSame" hidden>Every round you have posted is in this season, so its figures are the ones above.</p>
+        </div>
+
+        <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3).
+             D177 names the scope: my_rivalries takes no league argument, so
+             this is every opponent in every season. -->
+        <h3 class="eyebrow league-only" id="youRivalsHead">Rivalries · every season</h3>
+        <div id="youRivals" class="league-only" style="text-align:left"></div>
+        </div>
 
         <!-- ══ D262 / R-O · YOUR BAG ═══════════════════════════════════════
              Fourteen clubs in your own words, the sideline beside them, the
              ball under both — and the line the feature exists for at the top.
-             There is NO EQUIPMENT DATABASE behind these fields: two free-text
-             boxes per club and nothing else (R-O's written refusal).
-             The whole section is drawn only once `bag_of` has ANSWERED, so a
-             database this migration has not reached renders nothing at all
-             rather than an empty bag somebody might fill in twice. -->
-        <div class="grouphead" id="youBagHead" style="display:none">Your bag</div>
-        <div id="youBag" style="display:none; text-align:left"></div>
-
-                <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
-             The desk's half of the offline course store. On the phone this is
-             a lookup you reach when the signal is gone; on a 1440 it is the
-             ARCHIVE — every course you have played or planned, its tees, its
-             ratings and slopes and its card, side by side — which is the read
-             R-C says the desk should lean into. It works with no connection
-             because it is drawn from what this device kept, and it says so. -->
-        <div class="grouphead" data-courses>Your courses</div>
-        <p class="fine" id="youCoursesWhat" data-courses style="padding:0 0 8px"></p>
-        <div id="youCourses" data-courses style="text-align:left"></div>
+             There is NO EQUIPMENT DATABASE behind these fields (R-O's written
+             refusal). The whole section is drawn only once `bag_of` has
+             ANSWERED. Its line and its count lead; the clubs wait behind the
+             door (owner Sp, craft D). -->
+        <div class="you-bag">
+        <details class="youdoor" id="youBagDoor" hidden>
+          <summary class="youdoor-sum"><span class="youdoor-h" id="youBagHead">Your bag</span><span class="youdoor-n cs-agate-s is-phrase" id="youBagN"></span></summary>
+          <div id="youBag" style="text-align:left"></div>
+        </details>
+        <p class="bagsince" id="youBagLine" hidden></p>
+        </div>
+        </div>
+        </div>
 
         <!-- D177: "How it works" moved off this page into the ⚙ Card &
              settings sheet (#setGuide). It is reference material — the same
@@ -16442,6 +16607,8 @@ function renderCourseBooks(){
   const box = $('#youCourses'); if(!box) return;
   const what = $('#youCoursesWhat'); if(what) what.textContent = CS_COURSE_COPY.what;
   const books = csCourseAll();
+  /* the door says how many before it opens */
+  const kept = $('#youCoursesN'); if(kept) kept.textContent = books.length ? `${books.length} kept` : 'none kept yet';
   /* F10 · with no rounds and nothing kept, the courses section is one more
      statement of absence under the record's own; it waits with the record */
   const view = $('#view-stats');
@@ -16918,18 +17085,24 @@ function csBagRowEdit(it, where, i){
     + '</div>';
 }
 function renderBag(){
-  const head = $('#youBagHead'), box = $('#youBag');
-  if(!head || !box) return;
+  const door = $('#youBagDoor'), box = $('#youBag'), line = $('#youBagLine'), count = $('#youBagN');
+  if(!door || !box) return;
   const bag = CS_BAG.data;
   /* the read has not answered: the section does not exist */
-  if(!bag){ head.style.display = 'none'; box.style.display = 'none'; return; }
-  head.style.display = ''; box.style.display = '';
+  if(!bag){ door.hidden = true; if(line) line.hidden = true; return; }
+  door.hidden = false;
+  /* BEHIND ITS DOOR (2026-09-28): the line the feature exists for and the
+     bag's count stay on the page; the clubs open on a tap, and editing opens
+     the door by itself */
+  if(CS_BAG.editing) door.open = true;
   const d = CS_BAG.editing ? CS_BAG.draft : { clubs: bag.clubs || [], sideline: bag.sideline || [], ball: (bag.ball && bag.ball.label) || '' };
   const since = csBagSince(bag.since, true);
+  if(line){ line.textContent = since || ''; line.hidden = !since; }
+  if(count) count.textContent = csBagSummary(bag) || 'Nothing in it yet';
   const rows = (list, where) => (list.length
     ? list.map((it, i) => CS_BAG.editing ? csBagRowEdit(it, where, i) : csBagRowRead(it)).join('')
     : '<p class="fine">' + (where === 'clubs' ? 'Nothing in the bag yet.' : 'Nothing on the sideline.') + '</p>');
-  let html = since ? '<p class="bagsince">' + esc(since) + '</p>' : '';
+  let html = '';
   if(!CS_BAG.editing && !(d.clubs.length || d.sideline.length || d.ball)){
     html += '<p class="fine">' + esc(CS_BAG_COPY.emptyMine) + '</p>';
   }
@@ -17283,14 +17456,18 @@ function csRecordLeaf(rows){
   if(!rows || !rows.length) return '';
   const ord = n => { const s=['TH','ST','ND','RD'], v=n%100; return s[(v-20)%10]||s[v]||s[0]; };
   const body = rows.map(r => {
+    /* a finished season takes the finish figure and, on the podium, its rule;
+       one still being played says so in the column and where it stands in its
+       own line — a live place is not a finish (owner R, 2026-09-28) */
     const mark = r.won ? '<span class="mark won"></span>'
                : (r.finish && r.finish<=3 ? '<span class="mark pod"></span>' : '');
     const finish = r.won ? '<b class="cs-name-s">WON</b>'
                  : (r.finish ? `<b class="cs-fig-s">${r.finish}<span class="cs-agate-s">${ord(r.finish)}</span></b>`
-                             : `<span class="cs-col-s">${esc(r.line||'')}</span>`);
+                             : `<span class="cs-agate-s">${r.live ? 'In play' : 'Not yet'}</span>`);
+    const sub = r.finish || r.won ? r.qualifier : [r.qualifier, r.line].filter(Boolean).join(' \u00b7 ');
     return `<tr${r.id?` data-season="${esc(r.id)}" role="button" tabindex="0" style="cursor:pointer"`:''}>
       <td class="cs-col-s" style="width:42px">${esc(r.year||'')}</td>
-      <td><span class="cs-social">${esc(r.name)}</span>${r.qualifier?`<span class="qual cs-agate-s">${esc(r.qualifier)}</span>`:''}</td>
+      <td><span class="cs-social">${esc(r.name)}</span>${sub?`<span class="qual cs-agate-s is-phrase">${esc(sub)}</span>`:''}</td>
       <td class="r" style="width:64px">${finish}${mark}</td>
     </tr>`;
   }).join('');
@@ -17307,9 +17484,10 @@ function renderLeagueRecord(){
   if(state.demo){
     const rk=[...PLAYERS].sort((a,b)=>b.pts-a.pts);
     const i=rk.findIndex(p=>p.me);
+    /* the diorama's season is being played: a line, not a finish */
     rows=[{name:'The Sunday Cup', number:1, year:new Date().getFullYear(),
-           finish:i>=0?i+1:null, of:rk.length, won:false,
-           line:`WK ${currentWeek()} / ${totalWeeks()} · ${i>=0?ordU(i+1)+' OF '+rk.length+' · '+rk[i].pts+' PTS':'—'}`}];
+           finish:null, of:rk.length, won:false, live:true,
+           line:`Week ${currentWeek()} of ${totalWeeks()}${i>=0?' · '+ordU(i+1).toLowerCase()+' of '+rk.length+' · '+rk[i].pts+' pts':''} · in season`}];
   } else rows=window.leagueRecord||[];
   if(!rows.length){ hd.style.display='none'; el.style.display='none'; return; }
   hd.style.display=''; el.style.display='';
@@ -17318,9 +17496,10 @@ function renderLeagueRecord(){
     id: r.id || r.league_id || null,
     year: r.year || null,
     name: r.name,
-    qualifier: 'SEASON ' + (ROMAN[r.number]||r.number),
+    qualifier: 'Season ' + (ROMAN[r.number]||r.number),
     finish: r.finish != null ? Number(r.finish) : null,
     won: !!r.won,
+    live: !!r.live,
     line: r.line,
   }));
   el.innerHTML = csRecordLeaf(leafRows);
@@ -19911,7 +20090,10 @@ function paintBuddyDoor(){
   const n=(window.homeRequests||[]).length;
   el.textContent = n ? `${n} request${n===1?'':'s'} waiting` : 'Find golfers, see who you play with';
   const btn=$('#youPeopleGo');
-  if(btn) btn.style.borderColor = n ? 'color-mix(in srgb, var(--brand) 55%, transparent)' : '';
+  /* D359/F11 · a waiting request is an ordinary action: `act`, never the
+     competition ember (critique-B P2, owner C, category C) — and it is said
+     in words; the row is a row on a rule now, not a bordered card */
+  if(btn) btn.classList.toggle('has-req', !!n);
 }
 function renderHomeRequests(){ renderRequestsInto($('#homeRequests')); paintBuddyDoor(); }
 function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); }
@@ -21899,7 +22081,10 @@ function formRowHtml(recent, caption){
   if(!Array.isArray(recent) || !recent.length) return '';
   const cols = recent.slice(0, 5).reverse();             /* oldest first */
   if(!cols.some(r => r && r.gross != null)) return '';
-  const best = cols.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross).sort((a, b) => a - b)[0];
+  /* a best needs a field: with fewer than two comparable (18-hole) rounds the
+     gold marked a "best of one" — gold means earned (D359, critique-B P1) */
+  const comparable = cols.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross);
+  const best = comparable.length >= 2 ? comparable.sort((a, b) => a - b)[0] : null;
   let seen = false;
   const head = `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : esc(csCapFirst(csSpelled(cols.length))) + ' of five'}</span></div>`;
   const body = cols.map(r => {
@@ -21943,6 +22128,27 @@ window.playedInCount = playedInCount;
    `YouCopy.acrossCounting` — one wording for "how many rounds is this read
    off", on both panels and on both figures in each. */
 function countingScope(n){ return 'across '+n+' round'+(n===1?' that counts':'s that count'); }
+/* ONE FACT, ONE PLACE (owner C, category C, critique-B P2). In a golfer's
+   first season ALL TIME and THIS SEASON printed the same three figures one
+   under the other. When the season's rounds, best and average are the
+   all-time ones, the season keeps only its own figure (the index move) and
+   says why in one line. Read off what is on the page, so it can never
+   disagree with it. */
+function csYouStripsDedupe(){
+  const t = id => { const el = $(id); return el ? el.textContent.trim() : ''; };
+  const same = t('#clR') !== '' && t('#clR') !== '—' && t('#clR') === t('#msR')
+    && t('#clBest') === t('#msBest') && t('#clAvg') === t('#msAvg');
+  ['#msR','#msBest','#msAvg'].forEach(id => { const c = $(id)?.closest('.youfig'); if(c) c.hidden = same || t(id) === '—'; });
+  const dc = $('#msDelta')?.closest('.youfig'); if(dc) dc.hidden = t('#msDelta') === '—';
+  const scope = $('#msAvgSub')?.closest('.youscope');
+  if(scope) scope.hidden = same;
+  const note = $('#msSame'); if(note) note.hidden = !same;
+  /* a strip with nothing drawn in it is not drawn (the scope line still says
+     "No rounds count yet") */
+  const strip = $('#youThisSeason');
+  if(strip) strip.hidden = ![...strip.querySelectorAll('.youfig')].some(c => !c.hidden);
+}
+window.csYouStripsDedupe = csYouStripsDedupe;
 function renderCareer(){
   /* diorama form is fabricated coherently (index 12.4: beat = 12.4−diff ≥ 1) */
   const c = state.demo
@@ -21971,7 +22177,9 @@ function renderCareer(){
     const yr=$('#youRecent');
     if(yr) yr.innerHTML = recState === 'failed'
       ? `<div class="tempty" role="status"><h4 class="cs-name">Your rounds didn’t load</h4>`
-        + `<p class="cs-body-s">Nothing is lost — the read failed, not the record.</p>`
+        /* critique-B P3 · the trophies and the all-time figures wait on this
+           read, and the page said nothing about their going */
+        + `<p class="cs-body-s">Nothing is lost — the read failed, not the record. Your trophies and all-time figures come back with it.</p>`
         + `<button type="button" class="mini" id="youRecentRetry" style="margin-top:10px">Try again</button></div>`
       : '';
     $('#youRecentRetry')?.addEventListener('click', () => { const b=$('#youRecentRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadCareer?.(); });
@@ -21988,6 +22196,11 @@ function renderCareer(){
   set('#clAvgSub', clScope);
   set('#clBestSub', clScope);
   set('#clPlayed', state.demo ? c.played : playedInCount());
+  /* a figure with no data is ABSENT, never a dash in a numeral seat (§9.9,
+     critique-B P2): a one-round golfer's best and average wait for a round
+     that counts, and the scope line under the strip says so */
+  ['#clBest','#clAvg'].forEach(id => { const b = $(id), cell = b && b.closest('.youfig'); if(cell) cell.hidden = b.textContent.trim() === '—'; });
+  csYouStripsDedupe();
   const yr=$('#youRecent'); if(yr){
     /* D291 · RECENT ROUNDS — `formRowHtml`'s big brother, and the other half
        of "trophies and recent rounds also not engaging". The row was a 13.5px
@@ -22025,8 +22238,11 @@ function renderCareer(){
         }).join('')
       : `<div class="tempty"><h4 class="cs-name">No rounds yet</h4>`
         + `<p class="cs-body-s">Your record fills as you play — every round, every course, forever.</p>`
-        /* F10 · the one next step is a real control (LINT-21: every empty state has a door) */
-        + `<button type="button" class="mini" data-empty-go="record" style="margin-top:10px">Post your first round</button></div>`;
+        /* F10 · the one next step is a real control (LINT-21: every empty state
+           has a door). A-5: one verb opens the composer — "Add my round" — and
+           on an empty record it is the page's one primary, in the action colour,
+           right under the card (critique-B P2, owner C) */
+        + `<button type="button" class="btn" data-empty-go="record" style="margin-top:12px">Add my round</button></div>`;
     /* the whole row opens the receipt (photos arc 2: the sheet carries the
        photograph — no bare image tabs), and the × stays the × */
     yr.querySelectorAll('[data-rcpt-i]').forEach(b=>{
@@ -22142,6 +22358,7 @@ function renderIndStatsReal(){
     $('#awImpS').textContent='Most Improved';
     $('#awIronS').textContent='Iron Man';
     $('#indTable').innerHTML='<tr><td class="fine" style="padding:12px 4px">The race fills in once your league season is live and rounds land.</td></tr>';
+    csYouStripsDedupe();
     return;
   }
   const me=rows.find(p=>p.me);
@@ -22163,6 +22380,7 @@ function renderIndStatsReal(){
   /* Y-14 · "Needs 2 rounds" read as nonsense beside "Rounds posted 17";
      it means two rounds in THIS season. */
   $('#msDeltaSub').textContent = (!me || me.d==null) ? 'Needs 2 rounds this season' : 'Season to date';
+  csYouStripsDedupe();
 
   /* award tiles are narrow — first names only, so the row never wraps */
   const fn=n=>(n||'—').trim().split(/\s+/)[0];
@@ -25878,9 +26096,13 @@ function showProfileGate(){
   const dn = CS.profile?.display_name || '';
   if(dn && !csIsDerivedName(dn, CS.user?.email) && !$('#pfName').value) $('#pfName').value = dn;
   /* the handle DEFAULTS from the name (`csHandleFromName`, the phone's own
-     derivation), and the golfer can still edit it */
+     derivation), and the golfer can still edit it. NEVER FROM THE EMAIL
+     (owner M, critique-B P2): with the name empty it fell back to the address,
+     domain and all — "@averyfixtureexamplei is available ✓" — the first thing
+     the gate showed a stranger-visible handle (D394) made from their inbox.
+     With no name there is no suggestion until one is typed. */
   if(!$('#pfHandle').value){
-    const sug = CS.profile?.handle || csHandleFromName($('#pfName').value || CS.user?.email || '');
+    const sug = CS.profile?.handle || csHandleFromName($('#pfName').value || '');
     if(sug) $('#pfHandle').value = '@' + sug;
     /* L-24 · a handle the golfer already HAS is theirs: editing the name never
        overwrites it. Only a derived suggestion keeps following the name. */
@@ -26171,18 +26393,20 @@ document.getElementById('obCrewGo')?.addEventListener('click', () => leaveCrewSt
 /* D82: the guide sheets — the orientation's content, reopenable forever.
    Copy is grounded in the shipped labels; the model taught here must never
    drift from the doors that teach themselves.
-   Y-05 · verbatim with the phone's `GuideCopy.sheets`, with ONE deliberate
-   exception: the Clubhouse switcher. The phone pages between leagues by swipe
-   (D203); this client still switches with the chips up top (renderClubGroups),
-   and a door sentence names the door THAT client ships. Mirroring "swipe
-   sideways" here would write a fresh lie. Everything else is word for word. */
+   Y-05 · verbatim with the phone's `GuideCopy.sheets`, except where a
+   sentence names a door, because a door sentence names the door THAT client
+   ships: the Clubhouse switcher (the phone swipes, D203; this client switches
+   with the chips up top), the Play tab (the phone's ⊕ sits mid-bar and takes a
+   long press; this client's is a tab — it said "Record", a place the
+   navigation does not have, critique-B P2), and You's Card & settings (the
+   phone's gear up top; this page's door). Everything else is word for word. */
 const GUIDE = {
   places: ['The five places','FOUR PLACES AND ONE VERB', `
     <p class="fine" style="padding:0 0 10px"><b>Home</b> is what is happening and what you can do about it — your four numbers up top, then the one thing worth your attention, then your buddies' rounds.</p>
     <p class="fine" style="padding:0 0 10px"><b>Compete</b> is everything you are playing for, side by side: your seasons, your weekends and your matches. Finished ones fold under the list rather than disappearing.</p>
-    <p class="fine" style="padding:0 0 10px"><b>Record</b> is a verb rather than a place: add a round you played, score one live, or put a tee time up.</p>
+    <p class="fine" style="padding:0 0 10px"><b>Play</b> is a verb rather than a place: add a round you played, score one live, or put a tee time up.</p>
     <p class="fine" style="padding:0 0 10px"><b>Golfers</b> is the people — anybody waiting on you, your buddies, and the ones you play with but have not added yet.</p>
-    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record and your trophies. The gear up top opens Card &amp; settings, which runs everything else.</p>`],
+    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record and your trophies. Its Card &amp; settings door runs everything else.</p>`],
   games: ['Seasons, matches and weekends','WHAT YOU CAN PLAY FOR', `
     <p class="fine" style="padding:0 0 10px"><b>A season.</b> Weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.</p>
     <p class="fine" style="padding:0 0 10px"><b>A Ryder or a Major.</b> A weekend or a few weeks, its own little trophy: the Ryder (two teams, one clash a week), or a Major (one window, every card on one board, one name on the jug).</p>
@@ -26196,6 +26420,14 @@ const GUIDE = {
     <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the round posts to their rounds. No league, no buddy — just the round.</p>`],
 };
+/* the guide's rows are buttons to a keyboard too (role="button", tabindex 0):
+   Enter and Space open them through the same click path */
+document.addEventListener('keydown', (e) => {
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const row = e.target && e.target.closest && e.target.closest('#youGuide [data-guide]');
+  if(!row || row !== e.target) return;
+  e.preventDefault(); row.click();
+});
 /* D177 · the guide moved into the Card & settings SHEET, which is built at
    open time — a load-time getElementById would bind to nothing. Delegate from
    the document so it works wherever the rows are rendered. */
@@ -26272,8 +26504,8 @@ $('#pfName')?.addEventListener('input', () => {
     document.querySelectorAll('#pfMarkers [data-mk]').forEach(b => {
       const on = b.dataset.mk === pfMarker;
       b.setAttribute('aria-checked', String(on));
-      b.style.borderColor = on ? 'var(--brand)' : '';
-      b.style.color = on ? 'var(--brand)' : '';
+      b.style.borderColor = on ? 'var(--act)' : '';   /* the grid's first paint is act (D359); this repaint was ember */
+      b.style.color = on ? 'var(--ink)' : '';
     });
   }
   pfCheckHandle();
@@ -26301,20 +26533,10 @@ function refreshWhoChip(){
     [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
   if($('#youAnchor')){
     const since = estSince(p.created_at);
-    if(p.ghin_number){
-      $('#youAnchor').textContent = ['GHIN '+p.ghin_number, since].filter(Boolean).join(' · ');
-    } else {
-      /* pilot: a new golfer went looking for GHIN at account creation.
-         Creation stays lean (principle 2) — the card offers it quietly here
-         instead, landing on the same field they'd have wanted at signup. */
-      $('#youAnchor').innerHTML = (since ? esc(since)+' · ' : '')
-        + '<a href="#" id="youAddGhin" style="color:inherit; text-decoration:underline; text-underline-offset:2px">add your GHIN</a>';   /* the credential is a dark object in both themes: the folio's own ink, underlined */
-      $('#youAddGhin')?.addEventListener('click', e => {
-        e.preventDefault(); openProfileHub();
-        setTimeout(() => { const g=document.getElementById('phGhin');
-          if(g){ g.scrollIntoView({block:'center'}); g.focus({preventScroll:true}); } }, 60);
-      });
-    }
+    /* the folio is the object's serial, not a to-do (critique-B P3, §6.5): the
+       "add your GHIN" prompt that sat in it moved to where the field is —
+       Card & settings, one door down this page */
+    $('#youAnchor').textContent = [p.ghin_number ? 'GHIN '+p.ghin_number : null, since].filter(Boolean).join(' · ');
   }
   /* IOS-047 · the figure strip. **A slot with no figure is ABSENT** - the
      index cell is dropped while the number is still building rather than
@@ -26335,7 +26557,7 @@ function refreshWhoChip(){
     const rounds = known ? Number(window.career.rounds) : null;
     const cells = [];
     if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Handicap index']);
-    cells.push([rounds == null ? '\u2014' : String(rounds), 'Rounds']);
+    cells.push([rounds == null ? '\u2014' : String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
     figs.innerHTML = cells.map(([v, l]) =>
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
       + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;
@@ -26578,8 +26800,10 @@ async function renderRivalries(){
       r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
       dTot?`Ryder clashes ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
-    /* M3: a christened rivalry wears its name in gold, above the opponent */
-    const named=r.rivalry_name?`<span class="cs-agate-s" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name)}</span>`:'';
+    /* M3: a christened rivalry wears its name above the opponent — in the
+       agate role and `mut`: a nickname is not a trophy, and gold means earned
+       (D359; critique-B P2) */
+    const named=r.rivalry_name?`<span class="yriv-name cs-agate-s">${esc(r.rivalry_name)}</span>`:'';
     /* DD-17 · **a losing record is set in the same ink as a winning one.**
        The `.rivrec` tiers rendered a trailing record in the dim tier and a
        leading one in mint — the app greying out your losses, with colour as
@@ -26587,13 +26811,14 @@ async function renderRivalries(){
        survives colour blindness (§16.4). And the `→` is gone with every other
        typed arrow: a row whose whole surface is the target carries no chevron
        (§D-8, LINT-13). */
-    return `<div class="prow" data-tc="${r.opponent}" role="button" tabindex="0">
-      <span class="pmk">${mkr(r.marker||'saguaro')}</span>
-      <span class="pmeta">${named}<b class="cs-name">${esc(r.display_name||'—')}</b><small class="cs-agate-s is-phrase">${facets}</small></span>
-      <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex:none;">
-        <span class="cs-fig-s" style="color:var(--ink)">${rec}</span>
-        <span class="cs-agate-s" style="color:var(--mut)">${csLeadFor(r.lead)}</span>
-      </span></div>`;
+    /* A ROW ON A RULE, NOT A CARD (detector TP-22, craft Sp, owner P): the
+       rivalry rows were bordered `.prow` cards whose content sat 0px from their
+       own left border, under hairline lists — two spacing systems on one page.
+       The opponent is a face (their pigment and mark), the record a figure. */
+    return `<div class="yriv" data-tc="${r.opponent}" role="button" tabindex="0">
+      <span class="yriv-mk">${window.face ? window.face(r.opponent, r.marker, 30) : mkr(r.marker||'saguaro')}</span>
+      <span class="yriv-txt">${named}<b class="cs-social">${esc(r.display_name||'—')}</b><small class="cs-agate-s is-phrase">${facets}</small></span>
+      <span class="yriv-rec"><span class="cs-fig-s">${rec}</span><span class="cs-agate-s">${csLeadFor(r.lead)}</span></span></div>`;
   }).join('');
 }
 /* THE MEETING TAPE — chart 5 (§9.10), and the head-to-head's signature. One
@@ -26815,9 +27040,13 @@ function csCredentialHtml(profileId, card){
      ships a dingbat, which LINT-12 fails; the slot takes the words and the
      ROLE does the uppercasing. */
   const slot = (profileId && profileId === window.FOUNDER_ID) ? 'Founder' : null;
-  const rec0 = (card.recent || [])[0];
-  const credit = photo && rec0 && rec0.played_on
-    ? `${String(p.display_name || '').split(' ')[0] || 'Their'}’s round · ${csDayToken(rec0.played_on)}` : '';
+  /* A PROFILE PHOTO IS NOT A ROUND'S (critique-B P1, 2026-09-28). The plate
+     here is the golfer's own photograph (`avatarUrl`), and it was credited to
+     the newest round on the card — "BLAKE'S ROUND · SAT", a provenance the
+     product made up. §10.1 keeps a credit for a round photograph, from that
+     round; a golfer's own picture carries none. The phone's twin still credits
+     it (PersonPage.swift `credit(_:name:)`). */
+  const credit = '';
   const seed = p.home_course || String(profileId);
   const plate = photo
     ? `<img src="${esc(photo)}" alt="">`
@@ -27746,6 +27975,20 @@ window.openPeoplePicker = openPeoplePicker;
 document.addEventListener('click', e => {
   if(e.target && e.target.id === 'phJoin'){ if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
 });
+/* A SETTING IS A SWITCH (W2 2026-09-28): a row, its name on the left and its
+   state on the right, `role="switch"` + `aria-checked` — the phone's Toggle
+   row. They were text buttons whose only state was a trailing word. */
+function phSwitch(id, label, sub){
+  return `<button type="button" class="phsw" role="switch" id="${id}" aria-checked="false" aria-labelledby="${id}L"${sub ? ` aria-describedby="${id}D"` : ''}>
+    <span class="phsw-t"><b id="${id}L">${esc(label)}</b>${sub ? `<small id="${id}D">${esc(sub)}</small>` : ''}</span>
+    <span class="phsw-k" aria-hidden="true"></span></button>`;
+}
+function phSwitchSet(el, on){ if(el) el.setAttribute('aria-checked', on ? 'true' : 'false'); }
+/* D396 · what deleting an account does, said before the button, verbatim with
+   the phone (CardAndSettingsScreen): the words and the photographs go and the
+   shared links stop, the rounds stay so nobody else's table breaks. The web's
+   sentence named one photo and said nothing of posts, comments or links. */
+const CS_DELETE_ACCOUNT = 'This can\u2019t be undone. Your name, email and profile are removed, your posts and comments are cleared, your shared links stop working, and your photos are queued for removal. Notifications stop and your login is closed for good. Rounds you\u2019ve posted stay in the record so nobody else\u2019s standings or pot break \u2014 you\u2019ll just show as \u201cFormer member\u201d.';
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
   const p = CS.profile;
@@ -27781,12 +28024,13 @@ function openProfileHub(){
     </div>
     <div class="frow" style="margin-top:10px">
       <div><label class="f" for="phHandle">Handle · moves once / 60 days</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
-      <div><label class="f">Findable by</label><div id="phDisc" style="display:flex; gap:6px; margin-top:6px;">
-        <button class="mini" data-disc="everyone">All</button>
-        <button class="mini" data-disc="friends">Buddies</button>
-        <button class="mini" data-disc="nobody">Nobody</button>
+      <div><label class="f" id="phDiscL">Findable by</label><div id="phDisc" role="group" aria-labelledby="phDiscL" style="display:flex; gap:6px; margin-top:6px;">
+        <button class="mini" data-disc="everyone" aria-pressed="false">All</button>
+        <button class="mini" data-disc="friends" aria-pressed="false">Buddies</button>
+        <button class="mini" data-disc="nobody" aria-pressed="false">Nobody</button>
       </div></div>
     </div>
+    <p class="fine" id="phDiscSaid" style="padding-left:0"></p>
     <label class="f" for="phGhin" style="display:block; margin-top:8px">GHIN # · optional</label>
     <input class="f" id="phGhin" inputmode="numeric" placeholder="e.g. 1234567" style="font-family:var(--sans); max-width:180px">
     <p class="fine" style="padding-left:0">A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.</p>
@@ -27805,39 +28049,63 @@ function openProfileHub(){
 
     </div>
     <div id="phPaneSettings" style="display:none">
-    <div class="eyebrow" style="margin-top:0">Notifications</div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button class="mini" id="phPushTog">Enable on this device</button>
-      <button class="mini" id="phRoundsTog">Round posts: —</button>
-      <button class="mini" id="phChatTog">Chat: —</button>
-      <button class="mini" id="phMailTog">Season email: —</button>
+    <!-- W2 2026-09-28 · WHAT A GOLFER CHANGES OFTEN COMES FIRST, THE ACCOUNT
+         AT THE FOOT (owner D, craft H, category H). The preferences were text
+         buttons carrying their state as a word ("Round posts: ON"), in ragged
+         rows beside an action ("Enable on this device"); each is a real switch
+         now — a row, its name on the left and its state on the right, with
+         role="switch" and aria-checked (owner T/M, craft C, category C,
+         critique-B P2). Every notification lives here: the three conversation
+         switches that only the inbox sheet carried join them (owner C). -->
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:0">Notifications</div>
+    <div class="phsws" id="phNotify">
+      ${phSwitch('phPushTog', 'This device', 'Notifications on this browser')}
+      ${phSwitch('phRoundsTog', 'Round posts', 'When someone in your seasons posts a round')}
+      ${phSwitch('phChatTog', 'Chat', 'Messages on your seasons’ boards')}
+      ${phSwitch('phMailTog', 'Season email', 'The recap when a season ends')}
     </div>
-    <p class="fine" style="padding-left:0">Milestones, results and month closes always come through. Round posts and chat each have their own switch.</p>
+    <div class="phsws" id="phTalk" hidden></div>
+    <p class="fine" style="padding-left:0">Milestones, results and month closes always come through.</p>
 
     <!-- R9 (S8) · the scan's yes, taken back where the other switches live -->
-    <div class="eyebrow" style="margin-top:20px">Scorecard scanning</div>
-    <button class="mini" id="phScanTog">${esc(CS_SCAN_CONSENT.setting)}: —</button>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:20px">Scorecard scanning</div>
+    <div class="phsws">${phSwitch('phScanTog', CS_SCAN_CONSENT.setting, '')}</div>
     <p class="fine" style="padding-left:0">${esc(CS_SCAN_CONSENT.settingNote)}</p>
 
-    <div class="eyebrow" style="margin-top:20px">Appearance</div>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:20px">Appearance</div>
     <div style="display:flex; gap:6px;" id="phTheme">
       <button class="mini" data-th="dark">Charcoal</button>
       <button class="mini" data-th="light">Light</button>
       <button class="mini" data-th="auto">Match device</button>
     </div>
 
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">How it works</div>
+    <div id="youGuide" style="text-align:left; margin-bottom:14px">
+      <div class="check tap" data-guide="places" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>The five places</b><small>Home · Compete · Play · Golfers · You</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="games" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Seasons, matches and weekends</b><small>What you can play for</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="posting" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="buddies" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="scoring" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <!-- owner H · "Tell us how it's going" is the app's, not the golfer's
+           card: it moved here from the You page -->
+      ${(typeof PILOT !== 'undefined' && PILOT) ? `<button type="button" class="check tap" id="phFeedback" style="width:100%; text-align:left; cursor:pointer"><div class="tt"><b>Tell us how it’s going</b><small>A line to the people who make this</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></button>` : ''}
+    </div>
+
     <!-- D183: free until a thousand golfers. Says what is true and promises
          nothing structural (D39) — no "at launch", no "the pilot" (D132). -->
-    <div class="eyebrow" style="margin-top:20px">Membership</div>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">Membership</div>
     <div class="byrow"><span>PLAN</span><b>FREE</b></div>
     <p class="fine" style="padding-left:0">Everything is free — every season, every match, every round. No trial, nothing to enter.</p>
 
-    <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
-
-    <div class="eyebrow" style="margin-top:24px">Your account</div>
-    <a href="#" id="phDelete" class="fine" style="color:var(--neg); padding-left:0; display:inline-flex; align-items:center; min-height:44px">Delete my account</a>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">Your account</div>
+    <!-- §16A.5 · one primary per surface and the alternative is a link: Sign
+         out was a full-width outlined button, the loudest thing on the pane -->
+    <button type="button" class="phlink" id="phOut">Sign out of this browser</button>
+    <button type="button" class="phlink phlink-neg" id="phDelete">Delete my account</button>
     <div id="phDelConfirm" style="display:none; margin-top:8px">
-      <p class="fine" style="padding-left:0">This can't be undone. Your name, photo, email and profile are removed, notifications stop, and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as "Former member".</p>
+      <!-- D396 · the confirm says everything deletion does: the words and the
+           photos go, every share link is withdrawn, the rounds stay -->
+      <p class="fine" style="padding-left:0">${esc(CS_DELETE_ACCOUNT)}</p>
       <div style="display:flex; gap:8px; margin-top:10px">
         <button class="btn" id="phDelYes" style="background:var(--neg); color:var(--bg0); box-shadow:none; flex:1">Delete permanently</button>
         <button class="mini" id="phDelNo">Cancel</button>
@@ -27848,14 +28116,6 @@ function openProfileHub(){
          never shows once you're pinned + signed in). Stamped at deploy — the
          same __CS_VERSION__ substitution as the caption; NEVER hand-edit. -->
     <p class="fine" style="padding-left:0; margin-top:24px">Cup Season · v23 · __CS_VERSION__</p>
-    <div class="eyebrow">How it works</div>
-    <div id="youGuide" style="text-align:left; margin-bottom:14px">
-      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The five places</b><small>Home · Compete · Record · Golfers · You</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Seasons, matches and weekends</b><small>What you can play for</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-    </div>
     <p class="fine" style="padding-left:0; margin-top:6px"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">The pot (legal)</a></p>
     </div>
   `);
@@ -28015,7 +28275,7 @@ function openProfileHub(){
   });
   $('#phDelNo')?.addEventListener('click', () => {
     $('#phDelConfirm').style.display = 'none';
-    $('#phDelete').style.display = 'inline-block';
+    $('#phDelete').style.display = '';
   });
   $('#phDelYes')?.addEventListener('click', async () => {
     const btn = $('#phDelYes'); btn.disabled = true; btn.textContent = 'Deleting…';
@@ -28032,17 +28292,32 @@ function openProfileHub(){
       toast(humanError(e, 'Could not delete the account.'));
     }
   });
+  /* the feedback door moved here from You (owner H) — the same handler */
+  $('#phFeedback')?.addEventListener('click', () => { closeSheet(); window.openFeedback?.(); });
 
-  /* discoverability: highlight current, tap to switch */
-  const discPaint = () => $('#phDisc').querySelectorAll('[data-disc]').forEach(b => {
-    const on = b.dataset.disc === (CS.profile?.discoverable || 'everyone');
-    b.style.borderColor = on ? 'var(--pos)' : '';
-    b.style.color = on ? 'var(--pos)' : '';
-  });
+  /* FINDABLE BY SAYS WHAT IT IS (owner R, critique-B P2): the chosen option is
+     the chosen pill with aria-pressed — as X19 made the marker and the
+     appearance — and the value is said in words under the row. It painted a
+     border `.mini` never draws, in `pos`, which is not a selection (D359). */
+  const DISC_SAID = { everyone:'Anyone signed in can find you by name or @handle.',
+    friends:'Only your buddies can find you.', nobody:'Nobody can find you by search.' };
+  const discPaint = () => {
+    /* the column is text with 'everyone' as its default; anything else (an old
+       payload, a fixture's boolean) reads as that default, so a choice is
+       always drawn */
+    const raw = CS.profile?.discoverable;
+    const cur = (typeof raw === 'string' && DISC_SAID[raw]) ? raw : 'everyone';
+    $('#phDisc').querySelectorAll('[data-disc]').forEach(b => {
+      const on = b.dataset.disc === cur;
+      b.classList.toggle('sel', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    const said = $('#phDiscSaid'); if(said) said.textContent = DISC_SAID[cur] || '';
+  };
   discPaint();
   $('#phDisc').querySelectorAll('[data-disc]').forEach(b => b.addEventListener('click', async () => {
     const { error } = await sb.rpc('set_discoverable', { p_mode: b.dataset.disc });
-    if(error) return toast(humanError(error, 'Could not update.'));
+    if(error) return toast(humanError(error, 'Could not change who can find you.'));
     CS.profile.discoverable = b.dataset.disc; discPaint();
   }));
 
@@ -28069,61 +28344,90 @@ function openProfileHub(){
     }));
   }
 
-  /* notifications: reflect current state, then toggle on tap */
+  /* notifications: each switch shows where it stands, and a tap that the
+     server refuses says what did not change and leaves the switch where it was */
   const pushBtn = $('#phPushTog'), chatBtn = $('#phChatTog'), roundsBtn = $('#phRoundsTog');
-  const chatLabel = () => { chatBtn.textContent = 'Chat: ' + ((CS.profile?.notify_chat ?? true) ? 'ON' : 'OFF'); };
-  const roundsLabel = () => { if(roundsBtn) roundsBtn.textContent = 'Round posts: ' + ((CS.profile?.notify_rounds ?? true) ? 'ON' : 'OFF'); };
-  chatLabel(); roundsLabel();
+  const chatPaint = () => phSwitchSet(chatBtn, CS.profile?.notify_chat ?? true);
+  const roundsPaint = () => phSwitchSet(roundsBtn, CS.profile?.notify_rounds ?? true);
+  chatPaint(); roundsPaint();
   roundsBtn?.addEventListener('click', async () => {
     roundsBtn.disabled = true;
     const next = !(CS.profile?.notify_rounds ?? true);
     const { error } = await sb.rpc('set_notify_rounds', { p_on: next });
-    if(error) toast(humanError(error, 'Could not update.'));
-    else { if(CS.profile) CS.profile.notify_rounds = next; roundsLabel(); }
+    if(error) toast(humanError(error, 'Round posts didn’t change — try again.'));
+    else { if(CS.profile) CS.profile.notify_rounds = next; roundsPaint(); }
     roundsBtn.disabled = false;
   });
-  getPushSub().then(sub => { if(sub) pushBtn.textContent = 'Disable on this device'; });
-  pushBtn.addEventListener('click', async () => {
+  getPushSub().then(sub => phSwitchSet(pushBtn, !!sub));
+  pushBtn?.addEventListener('click', async () => {
     pushBtn.disabled = true;
     const sub = await getPushSub();
-    if(sub){ await disablePush(); pushBtn.textContent = 'Enable on this device'; }
-    else if(await enablePush()){ pushBtn.textContent = 'Disable on this device'; }
+    if(sub){ await disablePush(); }
+    else { await enablePush(); }
+    phSwitchSet(pushBtn, !!(await getPushSub()));
     pushBtn.disabled = false;
   });
-  chatBtn.addEventListener('click', async () => {
+  chatBtn?.addEventListener('click', async () => {
     chatBtn.disabled = true;
     const next = !(CS.profile?.notify_chat ?? true);
     const { error } = await sb.rpc('set_notify_chat', { p_on: next });
-    if(error) toast(humanError(error, 'Could not update.'));
-    else { CS.profile.notify_chat = next; chatLabel(); }
+    if(error) toast(humanError(error, 'Chat didn’t change — try again.'));
+    else { CS.profile.notify_chat = next; chatPaint(); }
     chatBtn.disabled = false;
   });
+  /* ONE NOTIFICATIONS SECTION (owner C): the three conversation switches the
+     inbox sheet carries are read and written here through the same RPCs
+     (social_notify_prefs / set_social_notify_prefs, D391), with the inbox's
+     own words. Skew-safe: an older server answers nothing and they stay out. */
+  const talk = $('#phTalk');
+  if(talk && typeof CS_INBOX !== 'undefined' && window.sb){
+    sb.rpc('social_notify_prefs').then(({ data, error }) => {
+      if(error || !data || !talk.isConnected) return;
+      talk.innerHTML = CS_INBOX.prefs.map(([k, name, sub]) => phSwitch('phTalk_' + k, name, sub)).join('');
+      talk.hidden = false;
+      CS_INBOX.prefs.forEach(([k]) => {
+        const el = document.getElementById('phTalk_' + k);
+        phSwitchSet(el, data[k] !== false);
+        el?.addEventListener('click', async () => {
+          const on = el.getAttribute('aria-checked') !== 'true';
+          el.disabled = true;
+          try{
+            const { data: d2, error: e2 } = await sb.rpc('set_social_notify_prefs', { ['p_' + k]: on });
+            if(e2) throw e2;
+            phSwitchSet(el, (d2 && d2[k] != null) ? d2[k] !== false : on);
+            if(typeof csInbox !== 'undefined' && csInbox) csInbox.prefs = d2 || Object.assign({}, csInbox.prefs || {}, { [k]: on });
+          }catch(err){ toast(humanError(err, 'That didn’t change — try again.')); }
+          el.disabled = false;
+        });
+      });
+    }).catch(() => {});
+  }
   /* R9 · the scan's yes, revocable. Off means the next scan asks again; the
      skew rules (a device flag where the profile cannot take it) live in
      csSetScanConsent, so this switch and the sheet can never disagree. */
   const scanTog = $('#phScanTog');
-  const scanLabel = () => { if(scanTog) scanTog.textContent = CS_SCAN_CONSENT.setting + ': ' + (csScanConsented() ? 'ON' : 'OFF'); };
-  scanLabel();
+  const scanPaint = () => phSwitchSet(scanTog, csScanConsented());
+  scanPaint();
   scanTog?.addEventListener('click', async () => {
     scanTog.disabled = true;
     if(!(await csSetScanConsent(!csScanConsented()))) toast(CS_SCAN_CONSENT.settingFailed);
-    scanLabel();
+    scanPaint();
     scanTog.disabled = false;
   });
   /* D68: the season-end email. set_email_recap reads with no argument and
-     writes with one, so the same RPC paints the label and flips it. Skew-safe:
-     before the migration the call fails and the button just hides itself. */
+     writes with one, so the same RPC paints the switch and flips it. Skew-safe:
+     before the migration the call fails and the switch just hides itself. */
   const mailBtn = $('#phMailTog');
   if(mailBtn){
-    const paint = on => { mailBtn.textContent = 'Season email: ' + (on ? 'ON' : 'OFF'); mailBtn.dataset.on = on ? '1' : ''; };
+    const paint = on => phSwitchSet(mailBtn, on);
     sb.rpc('set_email_recap', {}).then(({ data, error }) => {
       if(error) mailBtn.style.display = 'none'; else paint(data !== false);
     }).catch(()=>{ mailBtn.style.display = 'none'; });
     mailBtn.addEventListener('click', async () => {
       mailBtn.disabled = true;
-      const next = !mailBtn.dataset.on;
+      const next = mailBtn.getAttribute('aria-checked') !== 'true';
       const { data, error } = await sb.rpc('set_email_recap', { p_on: next });
-      if(error) toast(humanError(error, 'Could not update.'));
+      if(error) toast(humanError(error, 'Season email didn’t change — try again.'));
       else paint(data !== false);
       mailBtn.disabled = false;
     });
@@ -32415,29 +32719,34 @@ async function loadLeagueRecord(){
        declared fallback for a database without the function (skew only). */
     const rec = await sb.rpc('my_league_record');
     if(!rec.error && Array.isArray(rec.data)){
-      const ordR = n => { const s=['TH','ST','ND','RD'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+      const ordR = n => { const s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+      /* A SEASON STILL BEING PLAYED HAS NO FINISH (owner R, 2026-09-28). The
+         record printed two live seasons as "1ST"/"2ND" under FINISH, with the
+         podium mark a finished season earns — the table's place today called
+         a result. The FINISH column is a finished season's; a live one says
+         where it stands in its own line, in sentence case (§1.3 — a slat's
+         sub-line is a phrase). The phone's twin, LeagueRecord.rows(from:),
+         still ranks a live season (LeagueRecord.swift `ranked`). */
       window.leagueRecord = rec.data.slice().reverse().map(r => {
         const done = r.status === 'complete', solo = (r.structure || 'solo') === 'solo';
-        let line;
-        if(!done && r.phase === 'setup') line = STAGE_LABEL.forming;
-        else if(!done && r.phase === 'draft') line = STAGE_LABEL.drawing;
-        else {
-          const sd = localDate(r.starts_on);
-          let where = '—';
-          if(r.place != null && r.of != null){
-            where = (r.tied ? 'TIED ' : '') + `${ordR(r.place)} OF ${r.of}` + (solo ? '' : ' SQUADS');
-            if(solo && r.points != null) where += ` · ${r.points} PTS`;
-          }
-          line = !done && sd > new Date() ? `FIRST TEE ${DOW[sd.getDay()].toUpperCase()} ${MOS[sd.getMonth()].toUpperCase()} ${sd.getDate()}`
-               : done                      ? `FINISHED ${where}`
-               : r.status === 'cup_final'  ? `CUP FINAL · ${where}`
-               : where;
+        const sd = localDate(r.starts_on);
+        const forming = !done && (r.phase === 'setup' || r.phase === 'draft');
+        const before = !done && !forming && sd > new Date();
+        let where = null;
+        if(r.place != null && r.of != null){
+          where = (r.tied ? 'tied ' : '') + `${ordR(r.place)} of ${r.of}` + (solo ? '' : ' squads');
+          if(solo && r.points != null) where += ` · ${r.points} pts`;
         }
-        const ranked = done || !(r.phase === 'setup' || r.phase === 'draft');
+        const line = !done && r.phase === 'setup' ? STAGE_LABEL.forming
+             : !done && r.phase === 'draft'       ? STAGE_LABEL.drawing
+             : before                             ? `First tee ${DOW[sd.getDay()]} ${MOS[sd.getMonth()]} ${sd.getDate()}`
+             : done                               ? (where ? 'Finished ' + where : 'Finished')
+             : [r.status === 'cup_final' ? 'Cup Final' : null, where, 'in season'].filter(Boolean).join(' · ');
         return { id: r.league_id, league_id: r.league_id, season_id: r.season_id,
                  name: r.league_name, number: r.number || 1, line,
                  year: r.starts_on ? Number(String(r.starts_on).slice(0, 4)) : null,
-                 finish: ranked ? r.place : null, of: ranked ? r.of : null, won: !!r.won };
+                 finish: done ? r.place : null, of: done ? r.of : null, won: !!r.won,
+                 live: !done && !forming && !before };
       });
       renderIndStats();
       return;
