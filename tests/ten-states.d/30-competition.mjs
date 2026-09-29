@@ -301,6 +301,40 @@ const SEASON = [
         await page.evaluate((y) => window.scrollTo(0, y), y); await page.waitForTimeout(400)
         return r1 !== true ? 'scrolled to the top, ' + r1 : deskMenuIs('The rules')(page)
       }) },
+  /* TEN / W8 · W7-026 [X01] · UI_SYSTEM §13.3, keep what is on screen: the standings read fails on a REFRESH (the
+     season page was read once), and the table that was on screen stays, wearing "As of … · couldn't refresh", instead
+     of every squad drawn at 0 */
+  { family: 'season', id: 'standings-stale', variant: 'member', title: 'The season page, the table, after a refresh of the standings failed (the last table stays, under its dateline)', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toRoom(page, 'standings')
+      ctx.world.errors.table.v_squad_standings = { __error: 'fixture: the standings read failed', status: 503 }
+      await page.evaluate(() => window.loadStandingsAndFeed())
+      await until(page, () => !!document.getElementById('standingsStale'), null, 10000)
+      await page.waitForTimeout(400)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#standingsStale': 'text:^As of .* couldn.t refresh$' } },
+    check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
+      has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the last table stays (171 / 137), not every squad at 0'),
+      async (page) => page.evaluate(() => {
+        const t = document.getElementById('standingsStale')
+        return t.getBoundingClientRect().top > document.getElementById('standings').getBoundingClientRect().bottom - 2 ? true : 'the dateline is not under the table'
+      })) },
+  /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
+     the first week closes" (the phone's storyRead == .failed) */
+  { family: 'season', id: 'story-failed', variant: 'member', title: 'The season page, the story, when the story read failed', fullPage: false,
+    world: { errors: { rpc: { season_story: { __error: 'fixture: the story read failed', status: 503, code: 'XX000' } } } },
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => !!document.getElementById('seasonStoryRetry'), null, 10000)
+      await page.evaluate(() => document.getElementById('seasonStoryRetry').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#seasonStoryRetry': 'visible', '#seasonArc': 'text:Couldn.t load this' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => /starts when the first week closes/i.test(document.getElementById('seasonArc').innerText) ? 'a failed story read says the story has not started' : true)) },
   /* TEN / W8 · W7-011 [B2-season-12] · the week clock, cropped: the weeks played are ink, the live week brand
      and tall, the weeks ahead mut — never rule (§16.1), so each reads as a state on the page's ground */
   { family: 'season', id: 'month-clock', variant: 'member', title: 'The season page, the week clock (its own crop)', shot: '#monthClock',
