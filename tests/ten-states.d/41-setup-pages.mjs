@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked, temptyLead } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -109,13 +109,13 @@ const SCHEDULE = [
     drive: async (page) => { await toSchedule(page); await until(page, () => !!document.getElementById('schRetry'), null, 20000).catch(() => {}); await page.waitForTimeout(400) },
     expectConsole: [/status of 503/],
     expect: { view: 'view-schedule', selectors: { '#schRetry': 'visible', '#calDeclare': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(temptyLead('#view-schedule .tempty'), async (page) => page.evaluate(() => {
       const t = (document.getElementById('schNext') || {}).innerText || ''
       if (/Nothing on the schedule yet|Put a round up|Nothing of yours on the schedule/i.test(t)) return `a failed read reads as an empty schedule: ${JSON.stringify(t.slice(0, 80))}`
       if (!/The schedule didn.t load/i.test(t)) return `the lead does not say the read failed: ${JSON.stringify(t.slice(0, 80))}`
       const primaries = [...document.querySelectorAll('#view-schedule .btn')].filter((b) => b.getBoundingClientRect().width > 0)
       return primaries.length === 1 && primaries[0].id === 'calDeclare' ? true : `the page has ${primaries.length} filled buttons, not #calDeclare alone`
-    }) },
+    })) },
   /* ...and with rows on screen, a refresh that fails keeps them and says so once, above 'Coming up' */
   { family: 'schedule', id: 'refresh-failed', variant: 'member', fullPage: false, title: 'Schedule · a refresh failed (the plans stay, one line says so above Coming up)',
     drive: async (page, ctx) => {

@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, medallionOnPhotoOnly } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, medallionOnPhotoOnly, temptyLead } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -211,6 +211,13 @@ const YOU = [
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
     check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youRecentFive('ONE OF FIVE'), firstIsBaseline(0)) },
+  /* TEN / W8 · the .tempty sweep · a record with rounds and nothing earned: the trophy case says so in a headline that is a sentence, so it is the lead role in
+     sentence case (§1.3), not the name role's caps. The fixture derives an achievement from any round (rederive_achievements), so this world clears them */
+  { family: 'you', id: 'case-empty', variant: 'member', title: 'You · rounds posted, nothing earned: the trophy case is empty', fullPage: false,
+    prepare: async (W) => { W.tables.achievements = [] },
+    drive: async (page) => { await youSettled('some')(page); await page.evaluate(() => document.getElementById('trophyCase').scrollIntoView({ block: 'center' })); await page.waitForTimeout(400) },
+    expect: { view: 'view-stats', selectors: { '#trophyCase .tempty': 'visible' } },
+    check: all(recordState('some'), temptyLead('#trophyCase .tempty'), async (page) => page.evaluate(() => /The case is empty/i.test(document.getElementById('trophyCase').innerText) ? true : 'the empty case does not say so')) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
