@@ -119,7 +119,7 @@ import Foundation
   /// empty root asks is what you are playing for NOW.
   @Test func finishedSeasonsDoNotCountAsRunning() {
     let done = CompeteRoot.Row(id: "league:x", kind: .season, eyebrow: "SEASON 1",
-                               title: "The Dew Sweepers", sub: "Mike took it", clock: nil)
+                               title: "The Dew Sweepers", sub: "Gray took it", clock: nil)
     let list = CompeteRoot.List(seasons: [], moments: [], finished: [done])
     #expect(list.nothingRunning)
     #expect(!list.isEmpty)
@@ -162,32 +162,32 @@ import Foundation
     // capacity column and a printed one would count nothing (L-44).
     let none = CompeteRoot.planLine(plan(tagged: [], tee: "07:10:00"))
     #expect(none == "Your tee time, 7:10.")
-    #expect(CompeteRoot.planLine(plan(tagged: ["Galen"])) == "You and Galen.")
-    #expect(CompeteRoot.planLine(plan(tagged: ["Galen", "Jade", "Dev"])) == "You, Galen, Jade and Dev.")
-    for line in [none, CompeteRoot.planLine(plan(tagged: ["Galen"]))] {
+    #expect(CompeteRoot.planLine(plan(tagged: ["Blake"])) == "You and Blake.")
+    #expect(CompeteRoot.planLine(plan(tagged: ["Blake", "Emery", "Dev"])) == "You, Blake, Emery and Dev.")
+    for line in [none, CompeteRoot.planLine(plan(tagged: ["Blake"]))] {
       #expect(!line.lowercased().contains("seat"))
     }
   }
 
   /// Seen on a real account before it was fixed: `my_schedule.tagged_names`
   /// carries the VIEWER on a round a buddy booked with them, so the sentence
-  /// read "You and Jerecho Fischbeck." — the same person, twice, one of them by
+  /// read "You and Avery Fixture." — the same person, twice, one of them by
   /// name. My own name comes out, and a round I do not own names its host.
   @Test func aPlanNeverNamesTheViewerTwice() {
-    #expect(CompeteRoot.planLine(plan(tagged: ["Jerecho Fischbeck", "Galen"]), myName: "Jerecho Fischbeck")
-            == "You and Galen.")
-    #expect(CompeteRoot.planLine(plan(tagged: ["Jerecho"]), myName: "Jerecho Fischbeck")
-            == "Your tee time, 7:10." || CompeteRoot.planLine(plan(tagged: ["Jerecho"]), myName: "Jerecho Fischbeck") == "Yours, so far.")
+    #expect(CompeteRoot.planLine(plan(tagged: ["Avery Fixture", "Blake"]), myName: "Avery Fixture")
+            == "You and Blake.")
+    #expect(CompeteRoot.planLine(plan(tagged: ["Avery"]), myName: "Avery Fixture")
+            == "Your tee time, 7:10." || CompeteRoot.planLine(plan(tagged: ["Avery"]), myName: "Avery Fixture") == "Yours, so far.")
     // Somebody else's round: the host is the fact that makes it mine at all.
-    #expect(CompeteRoot.planLine(plan(tagged: ["Jerecho Fischbeck"], mine: false, host: "Galen Ross"), myName: "Jerecho Fischbeck")
-            == "Galen’s round. You’re on it.")
-    #expect(CompeteRoot.planLine(plan(tagged: ["Jerecho Fischbeck", "Jade", "Dev"], mine: false, host: "Galen Ross"), myName: "Jerecho Fischbeck")
-            == "Galen’s round. You, Jade and Dev.")
+    #expect(CompeteRoot.planLine(plan(tagged: ["Avery Fixture"], mine: false, host: "Blake Ross"), myName: "Avery Fixture")
+            == "Blake’s round. You’re on it.")
+    #expect(CompeteRoot.planLine(plan(tagged: ["Avery Fixture", "Emery", "Dev"], mine: false, host: "Blake Ross"), myName: "Avery Fixture")
+            == "Blake’s round. You, Emery and Dev.")
   }
 
   private func plan(tagged: [String], tee: String? = "07:10:00", mine: Bool = true, host: String? = nil) -> ScheduledRound {
     let json = """
-    {"id":"\(UUID().uuidString)","play_on":"2026-09-12","course_label":"Papago",
+    {"id":"\(UUID().uuidString)","play_on":"2026-09-12","course_label":"Saguaro Flats",
      "tee_time":\(tee.map { "\"\($0)\"" } ?? "null"),"mine":\(mine),
      "display_name":\(host.map { "\"\($0)\"" } ?? "null"),
      "tagged_names":[\(tagged.map { "\"\($0)\"" }.joined(separator: ","))]}
@@ -199,7 +199,7 @@ import Foundation
   /// it must not. One producer, two grains.
   @Test func theSeasonRowDoesNotSayTheWeekTwice() {
     let m = try! JSONDecoder().decode(Me.Membership.self, from: Data("""
-    {"league_id":"\(UUID().uuidString)","name":"The Fellas","phase":"season","role":"member",
+    {"league_id":"\(UUID().uuidString)","name":"North Grove (fixture)","phase":"season","role":"member",
      "member_id":"\(UUID().uuidString)",
      "season":{"id":"\(UUID().uuidString)","number":1,"starts_on":"2026-07-20","ends_on":"2027-01-17",
                "status":"active","week_no":7,"weeks_total":26},

@@ -258,9 +258,9 @@ struct LeagueWelcomeSheet: View {
 }
 
 #Preview("Covenant") {
-  CovenantSheet(covenant: Covenant(name: "the Fellas", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
-                                   proName: "Galen Fischbeck", rosterCount: 8,
-                                   rosterNames: ["Marcus Webb", "Dev Patel", "Tash Boyle", "Ravi Shah", "Jules Kerr"],
+  CovenantSheet(covenant: Covenant(name: "North Grove (fixture)", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
+                                   proName: "Blake Fixture", rosterCount: 8,
+                                   rosterNames: ["Casey Placeholder", "Devon Testwell", "Emery Mockridge", "Finley Stubbs", "Gray Dummett"],
                                    startsOn: "2026-09-12", weeks: 13, countingCap: 3,
                                    split: .init(champion: 60, runnerUp: 25, pointsKing: 15),
                                    hasPayNote: true, phase: "setup"),
@@ -268,5 +268,5 @@ struct LeagueWelcomeSheet: View {
 }
 
 #Preview("Welcome") {
-  LeagueWelcomeSheet(welcome: LeagueWelcome(name: "PIGL", code: "PIGL2026", buyinCents: 5000)).csTheme()
+  LeagueWelcomeSheet(welcome: LeagueWelcome(name: "North Grove (fixture)", code: "NGFX26", buyinCents: 5000)).csTheme()
 }

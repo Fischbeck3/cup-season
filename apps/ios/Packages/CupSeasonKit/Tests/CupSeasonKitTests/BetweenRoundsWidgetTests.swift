@@ -6,8 +6,8 @@ struct BetweenRoundsWidgetTests {
   let owner = UUID(), round = UUID()
   let now = Date(timeIntervalSince1970: 1_790_323_200)
   private func detail(tagged: Bool = true, status: String? = nil) -> RoundDetail {
-    .init(id: round, profileId: UUID(), ownerName: "Galen", ownerMarker: nil, mine: false, taggedMe: tagged,
-      playOn: "2030-09-26", teeTime: "07:10", note: nil, courseLabel: "Papago", courseId: nil,
+    .init(id: round, profileId: UUID(), ownerName: "Blake", ownerMarker: nil, mine: false, taggedMe: tagged,
+      playOn: "2030-09-26", teeTime: "07:10", note: nil, courseLabel: "Saguaro Flats", courseId: nil,
       myRsvp: status, course: nil, rsvp: [], comments: [])
   }
   private func suite() -> UserDefaults { UserDefaults(suiteName: "cs.widgets.tests.\(UUID())")! }
@@ -73,7 +73,7 @@ struct BetweenRoundsWidgetTests {
 
   @Test func theRecordNeverInventsTwoNines() {
     func record(_ holes: Int, _ out: Int?, _ inn: Int?) -> BetweenRoundsSnapshot.Record {
-      .init(id: round, headline: "Your round", course: "Papago", date: "Sep 26", gross: 79, holes: holes, out: out, inn: inn, earned: false)
+      .init(id: round, headline: "Your round", course: "Saguaro Flats", date: "Sep 26", gross: 79, holes: holes, out: out, inn: inn, earned: false)
     }
     #expect(record(18, 38, 41).out == 38)
     #expect(record(18, 39, 41).out == nil)
@@ -104,7 +104,7 @@ struct BetweenRoundsWidgetTests {
   }
 
   @Test func weeklyRivalryDoesNotBlendRyderWins() throws {
-    let data = Data("{\"opponent\":\"\(round)\",\"display_name\":\"Galen Marr\",\"meetings\":12,\"wins\":6,\"losses\":5,\"ties\":1,\"duel_wins\":9}".utf8)
+    let data = Data("{\"opponent\":\"\(round)\",\"display_name\":\"Blake Sample\",\"meetings\":12,\"wins\":6,\"losses\":5,\"ties\":1,\"duel_wins\":9}".utf8)
     let row = try JSONDecoder().decode(Rpc.my_rivalries.Row.self, from: data)
     let latest = try JSONDecoder().decode(Rpc.rivalry_weeks.Row.self, from: Data("{\"wk\":\"2026-09-21\",\"winner\":\"them\"}".utf8))
     let rival = try #require(BetweenRoundsCopy.rivalry(row, latest: latest))
@@ -112,7 +112,7 @@ struct BetweenRoundsWidgetTests {
     // X36 (1) · the widget reads season weeks and says so, as You's row does
     // (`RivalryCopy.seasonFacet`; the web's `renderRivalries`, bfce5aea)
     #expect(rival.scope == "In the season · 12 weeks")
-    #expect(rival.story == "Galen took the last one.")
+    #expect(rival.story == "Blake took the last one.")
   }
 
   @Test @MainActor func replyChangesOnlyAfterAcknowledgement() async throws {

@@ -63,7 +63,7 @@ final class CompeteExplorationSeason {
   var bookAvailable: Bool { squads || names.count >= 10 }
   var story: String {
     if upcoming { return "The first tee is October 5." }
-    if finished { return "Galen won the Summer Cup." }
+    if finished { return "Blake won the Summer Cup." }
     if kind == "tie" { return "Two golfers. The lead is shared." }
     guard let mine, let leader = standings.first else { return "The season is underway." }
     let gap = Int(leader.pts - mine.pts)
@@ -93,8 +93,8 @@ final class CompeteExplorationSeason {
   }
   init(_ kind: String) {
     self.kind = kind
-    title = ["tie": "The Saturday Cup", "field": "The Fellas", "squads": "Four at a Time", "upcoming": "The Autumn Cup", "finished": "The Summer Cup", "multi": "The Fellas"][kind] ?? "The Fellas"
-    names = kind == "tie" ? ["Galen Marr", "Jerecho"] : ["Galen Marr", "Jerecho", "Jade Okafor", "Dev Rana", "Tash Bell", "Mike Fenner", "Priya Raghunathan", "Sam Ridley", "Nora Vance", "Eli Brandt", "Ruth Salas", "Owen Pike", "Alex Park", "Cam Ellis", "Robin West", "Lee Santos"]
+    title = ["tie": "The Saturday Cup", "field": "North Grove (fixture)", "squads": "Four at a Time", "upcoming": "The Autumn Cup", "finished": "The Summer Cup", "multi": "North Grove (fixture)"][kind] ?? "North Grove (fixture)"
+    names = kind == "tie" ? ["Blake Sample", "Avery"] : ["Blake Sample", "Avery", "Emery Mockridge", "Finley Stubbs", "Devon Testwell", "Gray Dummett", "Noel Dryrun", "Casey Placeholder", "Lane Mockup", "Jules Sandbox", "Parker Sampleton", "Morgan Stand-In", "Harper Examplar", "Indigo Longname-Fixturington", "Oakley Proxy", "Kit Specimen"]
     let league = CompeteExploration.id(900)
     model = LeagueRoomModel(leagueId: league)
     var values: [SeasonBookEntry] = []

@@ -82,7 +82,7 @@ import Foundation
   @Test("a payload with EVERY optional key absent decodes, and nothing is left holding a value the server never sent")
   func everythingAbsent() throws {
     let json = """
-    {"items":[{"key":"bare","tier":"coming","eyebrow":"SAT","headline":"Galen has Saturday on the sheet.",
+    {"items":[{"key":"bare","tier":"coming","eyebrow":"SAT","headline":"Blake has Saturday on the sheet.",
                "route":{"kind":"composer"}}]}
     """
     let p = try JSONDecoder().decode(HomeDispatch.Payload.self, from: Data(json.utf8))
@@ -101,7 +101,7 @@ import Foundation
     let json = """
     {"me":null,"generated_at":null,"lead_suppress":null,
      "items":[{"key":"bare","tier":"coming","rank":null,"score":null,"rank_reason":null,"subject":null,
-               "human_subject":null,"eyebrow":"SAT","headline":"Galen has Saturday on the sheet.",
+               "human_subject":null,"eyebrow":"SAT","headline":"Blake has Saturday on the sheet.",
                "standfirst":null,"action":null,"league_id":null,"suppress":null,"spine":null,"at":null,
                "route":{"kind":"composer","id":null,"pane":null}}]}
     """
@@ -114,13 +114,13 @@ import Foundation
   @Test("a key this build has never heard of is IGNORED — a database ahead of the client cannot break it")
   func unknownKeysIgnored() throws {
     let json = """
-    {"items":[{"key":"future","tier":"circle","eyebrow":"E","headline":"Jade broke 90.",
+    {"items":[{"key":"future","tier":"circle","eyebrow":"E","headline":"Emery broke 90.",
                "human_subject":true,"route":{"kind":"composer"},
                "weather":"windy","confidence":0.9,"nested":{"a":[1,2,3]}}],
      "something_new":{"x":1}}
     """
     let p = try JSONDecoder().decode(HomeDispatch.Payload.self, from: Data(json.utf8))
-    #expect(p.items.count == 1 && p.items[0].headline == "Jade broke 90.")
+    #expect(p.items.count == 1 && p.items[0].headline == "Emery broke 90.")
   }
 
   @Test("every route kind the ranker writes resolves, and one it does not write resolves to NOTHING")
@@ -152,8 +152,8 @@ import Foundation
   @Test("the dispatch carries `me`, so Home makes ONE read and the strip and the cards describe one instant")
   func mePayloadRides() throws {
     let json = """
-    {"me":{"profile":{"id":"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb","display_name":"Jerecho",
-                      "handle":"jer","marker":"saguaro","rounds_count":9,"index_current":12.4,
+    {"me":{"profile":{"id":"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb","display_name":"Avery",
+                      "handle":"ave","marker":"saguaro","rounds_count":9,"index_current":12.4,
                       "last_round_on":"2026-09-04","last_gross":89},
            "memberships":[],"invites":[],"upcoming_rounds":[],"events":[],"open_duels":[]},
      "items":[],"generated_at":null}

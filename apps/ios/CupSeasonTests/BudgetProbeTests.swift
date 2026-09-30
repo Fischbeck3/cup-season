@@ -84,7 +84,7 @@ enum CSBudgetHarness {
     let b = await CSBudgetHarness.measure(
       VStack {
         Text("CUP SEASON").csType(.display)
-        Text("THE FELLAS").csType(.agate, caps: true)
+        Text("NORTH GROVE (FIXTURE)").csType(.agate, caps: true)
         Text("WEEK 12").csType(.agate, caps: true)
       }
     )
@@ -106,14 +106,14 @@ enum CSBudgetHarness {
     let ok = await CSBudgetHarness.measure(
       VStack {
         Text("CUP SEASON").csType(.display)
-        Text("The fellas held the line").csType(.lead)
-        Text("Papago").csType(.displayS)          // displayS is a different symbol
+        Text("North Grove (fixture) held the line").csType(.lead)
+        Text("Saguaro Flats").csType(.displayS)          // displayS is a different symbol
       }
     )
     #expect(ok.breaches.isEmpty, "\(ok.breaches)")
 
     let broken = await CSBudgetHarness.measure(
-      VStack { Text("CUP SEASON").csType(.display); Text("PAPAGO").csType(.display) }
+      VStack { Text("CUP SEASON").csType(.display); Text("SAGUARO FLATS").csType(.display) }
     )
     #expect(broken.display == 2)
     #expect(broken.breaches.contains { $0.hasPrefix("LINT-16") }, "two displays did not breach: \(broken.breaches)")

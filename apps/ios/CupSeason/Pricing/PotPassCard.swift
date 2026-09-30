@@ -105,12 +105,12 @@ struct PricingPotFinePrint: View {
 }
 #Preview("Pot pass · Founding · dark") {
   PricingPreview(.dark) {
-    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), isPro: true, yearStartsOn: "2026-05-03")
+    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.ngfx26, name: "North Grove (fixture)"), isPro: true, yearStartsOn: "2026-05-03")
   }
 }
 #Preview("Pot pass · Founding · light") {
   PricingPreview(.light) {
-    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), isPro: true, yearStartsOn: "2026-05-03")
+    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.ngfx26, name: "North Grove (fixture)"), isPro: true, yearStartsOn: "2026-05-03")
   }
 }
 #Preview("Pot pass · member (nothing) + today's fine print") {

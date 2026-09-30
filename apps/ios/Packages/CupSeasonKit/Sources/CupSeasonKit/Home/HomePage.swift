@@ -76,7 +76,7 @@ public struct HomeWireNotes: Sendable, Equatable {
     self.leagueNames = leagueNames; self.count = count; self.leagueId = leagueId
   }
 
-  /// "Fellas & Who's the bitch? · 14 league notes". Past two leagues the names
+  /// "North Grove (fixture) & Who's the bitch? · 14 league notes". Past two leagues the names
   /// stop being an aid and become the wall again, so it counts them instead.
   public var line: String {
     let noun = "league note" + (count == 1 ? "" : "s")
@@ -102,7 +102,7 @@ public struct HomeWireRow: Identifiable {
     /// A clash that is open, a standing that has moved, a plan on the books:
     /// these are the things the ranker put above every board note, and the
     /// shipped build drew all three at `bodyS` `mut` with a 34pt date column —
-    /// the same weight as "Fellas · 4 earlier league notes". They take the
+    /// the same weight as "North Grove (fixture) · 4 earlier league notes". They take the
     /// page's reading size in `ink`, and `stamp` is the item's own clock.
     case item(HomeDispatch.Item, stamp: String?)
     /// Weight 5 · one quiet line, with its date at the trailing edge.
@@ -305,9 +305,9 @@ public struct HomePage {
     // weight their kind earns — never as four smaller copies of it.
     //
     // **AND NOT WHEN THEY ARE THE LEAD'S OWN STORY AGAIN** (D321). The owner:
-    // *"Home page is too much."* On his own page the lead read *"You and Galen
+    // *"Home page is too much."* On his own page the lead read *"You and Blake
     // are both in. The week closes in 5 days"* with a `2ND / OF TWO` chip
-    // beside it, and the very next row read *"You are 4 back of Galen with 7
+    // beside it, and the very next row read *"You are 4 back of Blake with 7
     // weeks left."* Same rival, same league, one scroll apart — and **the
     // lead's chip has already printed the standing that second sentence spends
     // its words on.**
@@ -533,7 +533,7 @@ public struct HomePage {
   /// **D321 · IS THIS ITEM THE LEAD'S STORY, TOLD AGAIN?**
   ///
   /// Both halves are required. A subject alone is not enough — two different
-  /// leagues can both be about Galen and those are two facts. A league alone
+  /// leagues can both be about Blake and those are two facts. A league alone
   /// is not enough either: the season's clash and a buddy's round in the same
   /// league are not the same story. **Same person AND same season is.**
   ///

@@ -34,11 +34,11 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   /// F-9 · a solo season's row is a PERSON, so the verb agrees with him. D205
   /// made a solo league a season at two golfers and the line still read
-  /// "Galen lead by 4" — the one sentence V-4 requires to be a sentence.
+  /// "Blake lead by 4" — the one sentence V-4 requires to be a sentence.
   @Test func aGolferLeadsAndASquadLead() {
-    let solo = StandingsMath.story([Team(id: a, name: "Galen", pts: 30, ci: 0, solo: true),
-                                    Team(id: b, name: "Jerecho", pts: 18, ci: 1, solo: true)])
-    #expect(solo.text == "Galen leads by 12. Jerecho a good weekend back.")
+    let solo = StandingsMath.story([Team(id: a, name: "Blake", pts: 30, ci: 0, solo: true),
+                                    Team(id: b, name: "Avery", pts: 18, ci: 1, solo: true)])
+    #expect(solo.text == "Blake leads by 12. Avery a good weekend back.")
     #expect(!solo.text.contains(" · "))
     #expect(StandingsMath.story([team(a, "Squad 1", 30), team(b, "Squad 2", 18)]).text.contains("Squad 1 lead by"))
   }
@@ -539,15 +539,15 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueCopy.phaseHeader(clock("2026-10-01", status: "complete")) == "Season complete")
     #expect(LeagueCopy.phaseHeader(clock("2026-06-01")) == "Season live")
     let b = Bylaws.from(season)
-    #expect(LeagueCopy.phaseSub(clock("2026-05-10"), b: b, code: "PIGL", members: 8) == "Wk 2 / 21 · Points Race · Standard rules")
-    #expect(LeagueCopy.phaseSub(clock("2026-04-30"), b: b, code: "PIGL", members: 8) == "BEFORE FIRST TEE · SUN MAY 3 · 3 DAYS")
-    #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "PIGL", members: 8) == "SETUP · START THE SEASON TO OPEN INVITES")
+    #expect(LeagueCopy.phaseSub(clock("2026-05-10"), b: b, code: "NGFX26", members: 8) == "Wk 2 / 21 · Points Race · Standard rules")
+    #expect(LeagueCopy.phaseSub(clock("2026-04-30"), b: b, code: "NGFX26", members: 8) == "BEFORE FIRST TEE · SUN MAY 3 · 3 DAYS")
+    #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "NGFX26", members: 8) == "SETUP · START THE SEASON TO OPEN INVITES")
     #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "Kicks off in 1 day · squads are set"))
     // A-6 · a seat count counts nothing (`scheduled_rounds` has no capacity and
     // a roster's own minimum is the fact): the line names the roster and what
     // is still needed, never "3 SEATS OPEN".
-    #expect(LeagueCopy.seatFill(code: "PIGL", members: 5, min: 8) == "CODE PIGL · 5 IN · 3 MORE TO TEE OFF")
-    #expect(LeagueCopy.seatFill(code: "PIGL", members: 9, min: 8) == "CODE PIGL · 9 IN — THE LINK IS STILL LIVE")
+    #expect(LeagueCopy.seatFill(code: "NGFX26", members: 5, min: 8) == "CODE NGFX26 · 5 IN · 3 MORE TO TEE OFF")
+    #expect(LeagueCopy.seatFill(code: "NGFX26", members: 9, min: 8) == "CODE NGFX26 · 9 IN — THE LINK IS STILL LIVE")
     #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 golfers not on a squad yet")
     #expect(LeagueCopy.danger(clock("2026-06-01")).link == "Cancel this league" && LeagueCopy.danger(clock("2026-04-30")).preTee)
   }
@@ -638,7 +638,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let squads = [LeagueRoom.Squad(id: b, name: "Squad 1", color: 0, captain_member_id: m1, squad_members: [.init(member_id: m1)]),
                   LeagueRoom.Squad(id: c, name: "Squad 2", color: 1, captain_member_id: m2, squad_members: [.init(member_id: m2)])]
     model.seed(viewer: RoomViewer(id: p1, displayName: "Dan", marker: "saguaro", indexCurrent: 12.4, roundsCount: 5),
-               league: .init(id: a, name: "PIGL", code: "PIGL", phase: "season", commissioner_id: p2),
+               league: .init(id: a, name: "North Grove (fixture)", code: "NGFX26", phase: "season", commissioner_id: p2),
                settings: .init(league_id: a, preset: "standard", counting_cap: 4, participation_floor: 2, buyin_cents: 7500, structure: "squads2", finish: "cup_final"),
                season: .init(id: d, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "active"),
                members: members, squads: squads,
@@ -650,7 +650,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(model.story.text == "Squad 2 lead by 12. Squad 1 a good weekend back.")
     #expect(model.potTotal == 150 && model.paidCount == 1 && model.collectedDollars == 75 && model.proName == "Joe")
     #expect(model.clock.currentWeek == 5 && model.clock.totalWeeks == 21 && !model.clock.atStarter)
-    #expect(model.inviteURL?.absoluteString == "https://cupseason.app/?join=PIGL" && model.inviteText == "You're invited to PIGL on Cup Season")
+    #expect(model.inviteURL?.absoluteString == "https://cupseason.app/?join=NGFX26" && model.inviteText == "You're invited to NGFX26 on Cup Season")
     #expect(LeagueRoomModel.ceremonyKey(d) == "cs_cer_\(d.uuidString.lowercased())")
   }
 }
@@ -664,9 +664,9 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   {"status":"live","season_status":"cup_final","solo":false,"window_start":"2026-08-09","window_end":"2026-09-05",
    "cap_n":10000,"days_left":8,"seed_rung":"months won",
    "finalists":[
-     {"seed":1,"head_start":10,"seed_rung":null,"squad_id":"\(squadA.uuidString.lowercased())","member_id":null,"name":"Coyotes","color":0,
+     {"seed":1,"head_start":10,"seed_rung":null,"squad_id":"\(squadA.uuidString.lowercased())","member_id":null,"name":"Fixture Foxes","color":0,
       "window_points":21,"rounds_used":3,"last_round_on":"2026-08-27","total":31,
-      "rounds":[{"round_id":"\(UUID().uuidString.lowercased())","played_on":"2026-08-27","points":8,"month_rank":1,"pvi":1.2,"holes_played":18,"member_id":null,"golfer":"Galen"}]},
+      "rounds":[{"round_id":"\(UUID().uuidString.lowercased())","played_on":"2026-08-27","points":8,"month_rank":1,"pvi":1.2,"holes_played":18,"member_id":null,"golfer":"Blake"}]},
      {"seed":2,"head_start":0,"seed_rung":"months won","squad_id":"\(squadB.uuidString.lowercased())","member_id":null,"name":"Scorpions","color":1,
       "window_points":41,"rounds_used":7,"last_round_on":"2026-08-28","total":41,"rounds":[]}
    ]}
@@ -679,7 +679,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(race.seed_rung == "months won")
     #expect(race.finalists.map(\.seed) == [1, 2])
     #expect(race.finalists[0].total == 31 && race.finalists[0].head_start == 10)
-    #expect(race.finalists[0].rounds.first?.golfer == "Galen")
+    #expect(race.finalists[0].rounds.first?.golfer == "Blake")
   }
   @Test func raceOrderIsTheLeaderFirstNotTheSeed() throws {
     let v = try JSONDecoder().decode(JSONValue.self, from: Data(Self.json.utf8))

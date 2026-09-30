@@ -96,26 +96,26 @@ struct MembershipCard: View {
 #Preview("Membership · Founding + free · dark") {
   PricingPreview(.dark) {
     MembershipCard(flags: PricingSample.founding,
-                   memberships: [PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), PricingSample.membership(name: "The Back Nine")],
+                   memberships: [PricingSample.membership(id: PricingSample.ngfx26, name: "North Grove (fixture)"), PricingSample.membership(name: "The Back Nine")],
                    proNames: nil, rosters: [PricingSample.other: 8])
   }
 }
 #Preview("Membership · Founding + free · light") {
   PricingPreview(.light) {
     MembershipCard(flags: PricingSample.founding,
-                   memberships: [PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), PricingSample.membership(name: "The Back Nine")],
+                   memberships: [PricingSample.membership(id: PricingSample.ngfx26, name: "North Grove (fixture)"), PricingSample.membership(name: "The Back Nine")],
                    proNames: nil, rosters: [PricingSample.other: 8])
   }
 }
 #Preview("Membership · paid (future) · dark") {
   PricingPreview(.dark) {
-    MembershipCard(flags: PricingSample.visible, memberships: [PricingSample.membership(seasonNumber: 2)], proNames: [PricingSample.other: "Jerecho"],
+    MembershipCard(flags: PricingSample.visible, memberships: [PricingSample.membership(seasonNumber: 2)], proNames: [PricingSample.other: "Avery"],
                    paid: [PricingSample.other: PricingPaid(paidThrough: "2027-09-26", cents: 8900)])
   }
 }
 #Preview("Membership · paid (future) · light") {
   PricingPreview(.light) {
-    MembershipCard(flags: PricingSample.visible, memberships: [PricingSample.membership(seasonNumber: 2)], proNames: [PricingSample.other: "Jerecho"],
+    MembershipCard(flags: PricingSample.visible, memberships: [PricingSample.membership(seasonNumber: 2)], proNames: [PricingSample.other: "Avery"],
                    paid: [PricingSample.other: PricingPaid(paidThrough: "2027-09-26", cents: 7900)])
   }
 }

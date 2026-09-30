@@ -401,7 +401,7 @@ private struct PostRoundBody: View {
     .accessibilityHint(cardIsOpen ? "Closes the card" : "Opens the course, the tees, the day and your nines")
   }
 
-  /// "Papago · Blue · 71.2 / 128 · Today". A missing piece is an em dash, never
+  /// "Saguaro Flats · Blue · 71.2 / 128 · Today". A missing piece is an em dash, never
   /// a number nobody typed.
   private var inheritedParts: (course: String, figures: String, day: String) {
     let course = model.card.course.trimmingCharacters(in: .whitespaces)
@@ -945,7 +945,7 @@ private struct PostHeroContent: View {
     return s.prefix(1).uppercased() + s.dropFirst()
   }
 
-  /// "9 pts · PIGL" through the open league's lens; "posts to your rounds" without one.
+  /// "9 pts · NGFX26" through the open league's lens; "posts to your rounds" without one.
   private var pointsText: String {
     guard let p = model.preview else { return "" }
     if let name = model.membership?.name { return "\(p.points) pts · \(name)" }
@@ -1044,7 +1044,7 @@ enum PostPlanCopy {
   /// R6 · what changes on THIS card. It promised to change "date and course"
   /// whenever the plan named one — but the rule both clients keep is that a
   /// course the golfer already typed is LEFT ALONE, so a golfer agreeing to
-  /// start the Papago round could keep a different course and its tee details,
+  /// start the Saguaro Flats round could keep a different course and its tee details,
   /// having been told otherwise. The rule is unchanged; the sentence reads the
   /// actual draft now.
   static func explain(_ ctx: PlanContext?, typedCourse: String) -> String {

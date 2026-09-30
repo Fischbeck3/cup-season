@@ -58,7 +58,7 @@ struct DoorView: View {
             Group {
               // QB-08 · **THE INVITED STRANGER MEETS A SENTENCE, NOT A BOX.**
               //
-              // `PendingLink.doorLine()` produces "You're joining The Fellas.
+              // `PendingLink.doorLine()` produces "You're joining North Grove (fixture).
               // Sign in and you're on the roster.", is asserted verbatim by
               // `OnboardingTests`, and was called from no view — so somebody who
               // tapped a friend's link, installed, and came back met a bare email

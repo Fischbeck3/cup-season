@@ -13,11 +13,11 @@ import Foundation
 
   private let full = """
   {"key":"afterplan:c0000000-0000-4000-8000-0000000000a1","tier":"changed","rank":1,"score":806,
-   "subject":"you","human_subject":true,"eyebrow":"SAT · PAPAGO",
+   "subject":"you","human_subject":true,"eyebrow":"SAT · SAGUARO FLATS",
    "headline":"You planned a round for yesterday.","standfirst":"Nothing posted yet.",
    "action":"Add my round","route":{"kind":"composer"},"spine":"ember","at":"2026-09-12",
    "context":{"plan_id":"c0000000-0000-4000-8000-0000000000a1","play_on":"2026-09-12",
-              "course_label":"Papago","course_id":null,"tee_time":null}}
+              "course_label":"Saguaro Flats","course_id":null,"tee_time":null}}
   """
 
   @Test func theItemCarriesThePlanOutsideTheDisplayKey() throws {
@@ -25,7 +25,7 @@ import Foundation
     #expect(it.plan?.planId == UUID(uuidString: "c0000000-0000-4000-8000-0000000000a1"))
     #expect(it.plan?.playOn == "2026-09-12")
     // the RAW label, not the uppercased one inside the eyebrow
-    #expect(it.plan?.courseLabel == "Papago")
+    #expect(it.plan?.courseLabel == "Saguaro Flats")
     #expect(it.plan?.courseId == nil)
     #expect(it.answerable)
     #expect(it.route == .composer, "and the door stays one every shipped build knows")
@@ -105,7 +105,7 @@ import Foundation
 /// D354 · what a plan may write onto a card.
 @Suite struct PlanPrefillTests {
   private let ctx = PlanContext(planId: UUID(), playOn: "2026-09-12",
-                                courseLabel: "Papago", courseId: "gc-991", teeTime: "08:00")
+                                courseLabel: "Saguaro Flats", courseId: "gc-991", teeTime: "08:00")
 
   @Test func theDayThatWasPlayedIsTheOneFactThatClosesTheLoop() {
     var c = PostCard(); c.date = "2026-09-13"
@@ -118,7 +118,7 @@ import Foundation
   @Test func theCourseGoesInAsTextAndNeverAsAnIdentity() {
     var c = PostCard(); c.courseId = "stale"
     c.fill(plan: ctx)
-    #expect(c.course == "Papago")
+    #expect(c.course == "Saguaro Flats")
     #expect(c.courseId == nil)
     #expect(c.rating.isEmpty && c.slope.isEmpty, "no figures are invented")
   }
@@ -168,7 +168,7 @@ import Foundation
 
   /// R6 · the question describes THIS card. It promised to replace the course
   /// whenever the plan named one, while both clients leave a course the golfer
-  /// already typed alone — so somebody could agree to start the Papago round
+  /// already typed alone — so somebody could agree to start the Saguaro Flats round
   /// and keep a different course, having been told otherwise.
   @Test func theQuestionDescribesWhatActuallyChanges() {
     let blank = PostPlanCopyProbe.explain(ctx, typedCourse: "")

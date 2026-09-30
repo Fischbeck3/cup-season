@@ -26,13 +26,13 @@ enum CeremonyFixture {
     return PotMath.Settlement(
       potCents: 24000,
       collectedCents: 20000,
-      owing: ["Tash"],
+      owing: ["Devon"],
       rows: [
-        PotMath.SettlementRow(profileId: id(1), name: "Galen Marr", cents: 10000, why: ["Cup champion"]),
+        PotMath.SettlementRow(profileId: id(1), name: "Blake Sample", cents: 10000, why: ["Cup champion"]),
         PotMath.SettlementRow(profileId: id(2), name: "Dev Anand", cents: 4000, why: ["Runner-up"]),
         mine,
       ],
-      champName: "Galen Marr",
+      champName: "Blake Sample",
       runName: "Dev Anand",
       kingName: "You",
       mine: mine,

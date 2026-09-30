@@ -24,17 +24,17 @@ import Foundation
   // MARK: - 1 · normalisation
 
   @Test func emailNormalisationIsStableAndMatchesTheServer() {
-    #expect(ContactHash.normaliseEmail("  Jerecho@Example.COM ") == "jerecho@example.com")
-    #expect(ContactHash.normaliseEmail("jerecho@example.com") == "jerecho@example.com")
+    #expect(ContactHash.normaliseEmail("  Avery@Example.INVALID ") == "avery@example.invalid")
+    #expect(ContactHash.normaliseEmail("avery@example.invalid") == "avery@example.invalid")
     // NOT normalised away, deliberately: a plus-tag and a dot are part of the
     // address as far as this product is concerned. Guessing a provider's rules
     // silently WIDENS a match, which is the wrong direction to be wrong in.
     #expect(ContactHash.normaliseEmail("a.b+golf@gmail.com") == "a.b+golf@gmail.com")
     // and a non-address is not an address
     #expect(ContactHash.normaliseEmail("") == nil)
-    #expect(ContactHash.normaliseEmail("jerecho") == nil)
-    #expect(ContactHash.normaliseEmail("@example.com") == nil)
-    #expect(ContactHash.normaliseEmail("jerecho@") == nil)
+    #expect(ContactHash.normaliseEmail("avery") == nil)
+    #expect(ContactHash.normaliseEmail("@example.invalid") == nil)
+    #expect(ContactHash.normaliseEmail("avery@") == nil)
   }
 
   @Test func phoneNormalisationIsStableAndMatchesTheServer() {
@@ -68,8 +68,8 @@ import Foundation
   /// here, on the web (`String.trim()`) and now in `cs_normalise_email`, whose
   /// bare `btrim()` stripped spaces only.
   @Test func aTabPaddedAddressNormalisesTheSameWay() {
-    #expect(ContactHash.normaliseEmail("\tjerecho@example.com\n") == "jerecho@example.com")
-    #expect(ContactHash.normaliseEmail("  jerecho@example.com\t ") == "jerecho@example.com")
+    #expect(ContactHash.normaliseEmail("\tavery@example.invalid\n") == "avery@example.invalid")
+    #expect(ContactHash.normaliseEmail("  avery@example.invalid\t ") == "avery@example.invalid")
   }
 
   // MARK: - 2 · the client never holds a salt
@@ -80,8 +80,8 @@ import Foundation
     #expect(ContactHash.digest("abc")
             == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
     // deterministic, lower-case hex, 64 characters
-    let h = ContactHash.digest("jerecho@example.com")
-    #expect(h == ContactHash.digest("jerecho@example.com"))
+    let h = ContactHash.digest("avery@example.invalid")
+    #expect(h == ContactHash.digest("avery@example.invalid"))
     #expect(h.count == 64)
     #expect(h == h.lowercased())
     #expect(h.allSatisfy { $0.isHexDigit })
@@ -91,14 +91,14 @@ import Foundation
   }
 
   @Test func whatTravelsIsHashesAndOnlyHashes() {
-    let hs = ContactHash.hashes(emails: ["Galen@example.com", "galen@example.com", "nope"],
+    let hs = ContactHash.hashes(emails: ["Blake@example.invalid", "blake@example.invalid", "nope"],
                                 phones: ["(480) 555-0134", "4805550134", "555-0134"])
     // two distinct contacts, de-duplicated, and nothing that failed to normalise
     #expect(hs.count == 2)
     #expect(hs.allSatisfy { $0.count == 64 })
     // no raw contact survives anywhere in the payload
     let joined = hs.joined(separator: ",")
-    #expect(!joined.contains("galen"))
+    #expect(!joined.contains("blake"))
     #expect(!joined.contains("480"))
     #expect(!joined.contains("@"))
   }
@@ -108,7 +108,7 @@ import Foundation
     // send what the server will silently ignore — a "we checked" that quietly
     // checked two thirds of a contact book is the wrong kind of confident.
     #expect(ContactHash.maxHashes == 1000)
-    let many = (0..<1500).map { "golfer\($0)@example.com" }
+    let many = (0..<1500).map { "golfer\($0)@example.invalid" }
     #expect(ContactHash.hashes(emails: many, phones: []).count == ContactHash.maxHashes)
   }
 
@@ -130,7 +130,7 @@ import Foundation
     #expect(OnboardingCopy.contactsFound(0) == nil)
     #expect(OnboardingCopy.contactsFound(1) == "One of your friends is already here.")
     #expect(OnboardingCopy.contactsFound(3) == "3 of your friends are already here.")
-    let one = MatchedGolfer(id: UUID(), handle: "galen", display_name: "Galen Ortiz", city: nil,
+    let one = MatchedGolfer(id: UUID(), handle: "blake", display_name: "Blake Sample", city: nil,
                             home_course: nil, marker: "island", index_current: 8.1, rel: "contact")
     #expect(ContactMatchService.line(.matched([one])) == "One of your friends is already here.")
     // an empty array is never `.matched` — the service maps it to `.none`
@@ -138,13 +138,13 @@ import Foundation
   }
 
   @Test func aMatchedGolferKeepsTheirRelation() {
-    let friend = MatchedGolfer(id: UUID(), handle: "g", display_name: "Galen", city: "Tempe",
+    let friend = MatchedGolfer(id: UUID(), handle: "g", display_name: "Blake", city: "Mesa",
                                home_course: nil, marker: "island", index_current: nil, rel: "friend")
-    let stranger = MatchedGolfer(id: friend.id, handle: "g", display_name: "Galen", city: nil,
+    let stranger = MatchedGolfer(id: friend.id, handle: "g", display_name: "Blake", city: nil,
                                  home_course: nil, marker: "island", index_current: nil, rel: "contact")
     #expect(friend.person.rel == .friend)     // already buddies — no Add button over a buddy
     #expect(stranger.person.rel == .none)
-    #expect(stranger.person.name == "Galen")
+    #expect(stranger.person.name == "Blake")
   }
 
   // MARK: - 4 · consent, and declining

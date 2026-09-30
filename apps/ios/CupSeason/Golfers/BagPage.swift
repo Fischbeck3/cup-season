@@ -1,15 +1,15 @@
 // Cup Season — THE BAG, AS A PLACE (D312).
 //
 // The owner: *"I feel like we need a homebase for 'my bag' in the tour card.
-// Maybe a bag Icon in the corner. I should be able to click on Galen, click the
-// bag icon and see whats in it. Then 'galen updated his bag' can be on the feed
+// Maybe a bag Icon in the corner. I should be able to click on Blake, click the
+// bag icon and see whats in it. Then 'blake updated his bag' can be on the feed
 // and you can click in to see the card and associated info. Then its more built
 // out."*
 //
 // **THIS PAGE READS; `BagSheet` EDITS.** They are not two versions of one
 // screen. `BagSheet` is fourteen text fields and a save — it can only ever be
 // about YOUR bag, and it says so in its own header (*"the one place it is
-// edited"*). This shows ANYONE'S, yours and Galen's identically, and its one
+// edited"*). This shows ANYONE'S, yours and Blake's identically, and its one
 // action on your own is a door back to that editor. The alternative — one
 // screen that is two different things depending on whose it is — is how the
 // tour card got complicated, and §7.3 already says objects are pushed and
@@ -137,7 +137,7 @@ struct BagPage: View {
 
     // The differentiated half (D262): most bag features are a static fourteen,
     // and a 3-iron that replaces the 5-wood *sometimes* is what makes "is
-    // Galen bringing the new driver?" a question with an answer.
+    // Blake bringing the new driver?" a question with an answer.
     if !bag.sideline.isEmpty {
       CSSectionHead(BagCopy.sideline, count: "\(bag.sideline.count)")
       CSFine(BagCopy.sidelineWhat)

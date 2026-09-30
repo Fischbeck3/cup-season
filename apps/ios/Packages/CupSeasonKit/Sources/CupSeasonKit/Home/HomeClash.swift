@@ -59,7 +59,7 @@ public struct HomeClash: Sendable, Equatable {
   public var isTwo: Bool { roster == 2 }
 
   /// D216 · a clash with nothing posted on either side and more than a day
-  /// still to run has nothing to say yet — "You v Marcus. Nothing posted"
+  /// still to run has nothing to say yet — "You v Casey. Nothing posted"
   /// three mornings running is the noise the hard-look logged. The rung
   /// re-enters the moment either side posts, on the last-call day (one day or
   /// less left), or once settled.
@@ -141,7 +141,7 @@ public enum HomeClashCopy {
   /// of a two-person season says what the board says.
   ///
   /// **SA-2 · "I have posted, they have not" is its own sentence.** The
-  /// shipped line was symmetric ("You v Galen") and misattributed the
+  /// shipped line was symmetric ("You v Blake") and misattributed the
   /// pressure; where one side has posted the subject becomes the OPPONENT,
   /// which is where the clock actually sits.
   public static func line(_ c: HomeClash) -> String {

@@ -58,7 +58,7 @@ struct HomeLead: View {
     return e.contains(name.lowercased()) ? nil : name
   }
 
-  /// `CHAMPION · MIKE FENNER` — the gold slot, and the viewport's one gold
+  /// `CHAMPION · GRAY DUMMETT` — the gold slot, and the viewport's one gold
   /// object. It renders only for an EARNED item (`spine == .gold`) that has a
   /// champion to name; an earned item with nobody on the end of it prints no
   /// slot rather than an empty one.

@@ -74,9 +74,9 @@ import Foundation
   @Test func eachGolfersCardIsTheirOwn() {
     var l = HoleMomentLedger()
     _ = l.commit(player: "me", hole: 7, revision: 1, strokes: 3, par: 4, parIsKnown: true)
-    _ = l.commit(player: "galen", hole: 7, revision: 1, strokes: 3, par: 4, parIsKnown: true)
+    _ = l.commit(player: "blake", hole: 7, revision: 1, strokes: 3, par: 4, parIsKnown: true)
     #expect(l.tallyLine(player: "me") == "1 birdie")
-    #expect(l.tallyLine(player: "galen") == "1 birdie")
+    #expect(l.tallyLine(player: "blake") == "1 birdie")
     #expect(l.tallyLine(player: "nobody") == nil)
   }
 

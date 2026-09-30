@@ -276,7 +276,7 @@ public struct WizardDials: Sendable, Equatable, Codable {
   }
   public var canPublish: Bool { !payNoteMissing }
 
-  /// The name, pre-filled from the roster and asked LAST. "Galen & Jerecho" at
+  /// The name, pre-filled from the roster and asked LAST. "Blake & Avery" at
   /// two; the crew's own shape above that. Never minted for them — the field
   /// opens with this in it and the golfer may type over it.
   public static func suggestedName(_ names: [String]) -> String {

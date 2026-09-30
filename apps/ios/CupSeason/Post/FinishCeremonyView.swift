@@ -164,6 +164,6 @@ private struct PostCupRoll: View {
 }
 
 #Preview("ceremony") {
-  FinishCeremonyView(ceremony: PostCeremony(course: "Papago", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "The Pines",
-                                            inLeague: true, name: "Jerecho", marker: "saguaro", leagueName: "PIGL"), photo: nil, onBack: {})
+  FinishCeremonyView(ceremony: PostCeremony(course: "Saguaro Flats", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "Fixture Wrens",
+                                            inLeague: true, name: "Avery", marker: "saguaro", leagueName: "NGFX26"), photo: nil, onBack: {})
 }

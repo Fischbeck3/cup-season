@@ -21,8 +21,8 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
                   duels: [EventDuel] = [], score: [UUID: Double] = [:], lineage: [EventLineageRow] = []) -> EventRoom {
   EventRoom(event: EventRow(id: evId, name: "The Grudge", created_by: nil, status: status, session_count: sessionCount, winner_team_id: winner),
             teams: [team(teamA, slot: 0, "Red"), team(teamB, slot: 1, "Blue")],
-            players: [player(p1, "Jerecho", team: teamA, captain: true), player(p2, "Will", team: teamA),
-                      player(p3, "Jade", team: teamB), player(p4, "Isaak", team: teamB)],
+            players: [player(p1, "Avery", team: teamA, captain: true), player(p2, "Will", team: teamA),
+                      player(p3, "Emery", team: teamB), player(p4, "Isaak", team: teamB)],
             sessions: sessions, duels: duels, scoreboard: score, lineage: lineage)
 }
 
@@ -109,16 +109,16 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(RyderMath.sessionSlot(session(s1, 1, "2026-07-06", "2026-07-12", "closed")) == "Closed")
   }
   @Test func nagLine() {
-    #expect(RyderMath.nagLine(waiting: ["Will", "Jade"], closesOn: "2026-07-11", today: "2026-07-08", calendar: cal) == "Still to post: Will, Jade · 3d left.")
+    #expect(RyderMath.nagLine(waiting: ["Will", "Emery"], closesOn: "2026-07-11", today: "2026-07-08", calendar: cal) == "Still to post: Will, Emery · 3d left.")
     #expect(RyderMath.nagLine(waiting: ["Will"], closesOn: "2026-07-11", today: "2026-07-11", calendar: cal) == "Still to post: Will · closes tonight.")
     #expect(RyderMath.nagLine(waiting: [], closesOn: "2026-07-11", today: "2026-07-08", calendar: cal) == nil)
   }
   @Test func chipAndWaiting() {
     let d = EventDuel(id: UUID(), session_id: s1, a_player: p1, b_player: p3)
-    let open = RyderMath.chip(d, sessionOpen: true, target: EventTarget(a: 1.2, b: nil), aName: "Jerecho", bName: "Jade")
-    #expect(open.text == "+1.2 / —" && open.waiting == ["Jade"])
+    let open = RyderMath.chip(d, sessionOpen: true, target: EventTarget(a: 1.2, b: nil), aName: "Avery", bName: "Emery")
+    #expect(open.text == "+1.2 / —" && open.waiting == ["Emery"])
     let resolved = EventDuel(id: UUID(), session_id: s1, a_player: p1, b_player: p3, a_pvi: 2.1, b_pvi: -0.4, result: "a")
-    let chip = RyderMath.chip(resolved, sessionOpen: false, target: nil, aName: "Jerecho", bName: "Jade")
+    let chip = RyderMath.chip(resolved, sessionOpen: false, target: nil, aName: "Avery", bName: "Emery")
     #expect(chip.text == "+2.1 / -0.4" && chip.waiting.isEmpty)
     #expect(RyderMath.chip(d, sessionOpen: false, target: nil, aName: "a", bName: "b").text == nil)
   }
@@ -202,13 +202,13 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: 0, opensAhead: false, opensOn: nil) == "THE FINAL DAY")
     #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: -1, opensAhead: false, opensOn: nil) == "WAITING TO SETTLE")
     #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: nil, opensAhead: false, opensOn: nil) == "WAITING TO SETTLE")
-    #expect(MajorMath.statusChip(status: "complete", complete: true, championName: "Marcus", daysLeft: -2, opensAhead: false, opensOn: nil) == "MARCUS TAKES THE JUG")
+    #expect(MajorMath.statusChip(status: "complete", complete: true, championName: "Casey", daysLeft: -2, opensAhead: false, opensOn: nil) == "CASEY TAKES THE JUG")
     #expect(MajorMath.statusChip(status: "complete", complete: true, championName: nil, daysLeft: -2, opensAhead: false, opensOn: nil) == "SETTLED — NO CARDS")
   }
   @Test func lineageLine() {
     let e1 = UUID()
-    let chain = [EventLineageRow(eventId: e1, kind: "major", status: "complete", champion: "Marcus"), EventLineageRow(eventId: evId, kind: "major", status: "live")]
-    #expect(MajorMath.lineageLine(lineage: chain, eventId: evId, complete: false) == "THE 2ND ANNUAL · MARCUS DEFENDS")
+    let chain = [EventLineageRow(eventId: e1, kind: "major", status: "complete", champion: "Casey"), EventLineageRow(eventId: evId, kind: "major", status: "live")]
+    #expect(MajorMath.lineageLine(lineage: chain, eventId: evId, complete: false) == "THE 2ND ANNUAL · CASEY DEFENDS")
     #expect(MajorMath.lineageLine(lineage: chain, eventId: evId, complete: true) == "THE 2ND ANNUAL")
     #expect(MajorMath.lineageLine(lineage: [chain[1]], eventId: evId, complete: false) == nil)
   }
@@ -217,12 +217,12 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(MajorMath.cardsLine(gross: nil, cards: 1, prize: 60) == "1 card · $60")
     #expect(MajorMath.cardsLine(gross: 90, cards: 3, exhibition: true) == "90 · 3 cards · doesn’t count this year")
     // D252 · "still to post", not "still to card": one act, one verb (A-5).
-    #expect(MajorMath.stillToPost(["Tash", "Dev"], daysLeft: 2) == "Still to post: Tash, Dev · 2d left.")
-    #expect(MajorMath.stillToPost(["Tash"], daysLeft: 0) == "Still to post: Tash · cards in by tonight.")
+    #expect(MajorMath.stillToPost(["Devon", "Dev"], daysLeft: 2) == "Still to post: Devon, Dev · 2d left.")
+    #expect(MajorMath.stillToPost(["Devon"], daysLeft: 0) == "Still to post: Devon · cards in by tonight.")
     // and the leaderboard is a leaderboard, not "the clubhouse"
     #expect(MajorMath.noCardsLine(live: true) == "No cards yet — first one leads.")
     #expect(!MajorMath.noCardsLine(live: true).contains("clubhouse"))
-    #expect(MajorMath.shareText(name: "Marcus", jug: "The PIGL Championship", gross: 82, pvi: 4.2) == "Marcus takes The PIGL Championship — 82, 4.2 under their playing HCP · cupseason.app")
+    #expect(MajorMath.shareText(name: "Casey", jug: "The NGFX26 Championship", gross: 82, pvi: 4.2) == "Casey takes The NGFX26 Championship — 82, 4.2 under their playing HCP · cupseason.app")
   }
   /// N4-212 / PAR-28 · the room's head and section words come from one
   /// producer, and the desk reads the same words (it drops its "EX" mark).

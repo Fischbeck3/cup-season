@@ -275,9 +275,9 @@ final class LiveRoundStore {
   private func seedDevNearby() {
     var me = LivePlayer(n: "You", i: 8.4, ci: 1, guest: false, me: true, locked: true, team: "—")
     me.pid = UUID()
-    let jade = LivePlayer(id: "p:jade", n: "Jade", i: 11.2, ci: -1, guest: true, buddy: true,
+    let emery = LivePlayer(id: "p:emery", n: "Emery", i: 11.2, ci: -1, guest: true, buddy: true,
                           pid: UUID(), team: nil, regular: 0, nearby: true)
-    roster = [me, jade]
+    roster = [me, emery]
     sel = [0]
     rosterPrimed = true
     var fresh = LiveRoundState.fresh()
@@ -288,7 +288,7 @@ final class LiveRoundStore {
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_nearby_invite") {
       Task { @MainActor in
         try? await Task.sleep(for: .seconds(2))
-        self.incoming = NearbyInvite(from: UUID(), name: "Jerecho",
+        self.incoming = NearbyInvite(from: UUID(), name: "Avery",
                                      course: "Bajamar Golf Club", game: "Match play")
       }
     }

@@ -81,7 +81,7 @@ public enum MeStripCopy {
   /// deadline, its rank, both gaps WITH NAMES, and the endgame clause.
   public struct SeasonRow: Sendable, Equatable {
     public let leagueId: UUID
-    /// The row as it renders: `Fellas · 2nd of 8 · 4 back of Blake · 2 clear
+    /// The row as it renders: `North Grove (fixture) · 2nd of 8 · 4 back of Blake · 2 clear
     /// of Casey · Top 2 into the Final, opens Oct 6`.
     public let text: String
     /// The pieces, so a test can argue with one clause rather than a string.
@@ -418,7 +418,7 @@ public enum MeStripCopy {
 
   // MARK: - The season context row
 
-  /// `Fellas · 2nd of 8 · 4 back of Blake · 2 clear of Casey · Top 2 into the
+  /// `North Grove (fixture) · 2nd of 8 · 4 back of Blake · 2 clear of Casey · Top 2 into the
   /// Final, opens Oct 6`, for the season with the nearest deadline — in
   /// sentence case, which the strip sets in the `bodyS` role (the web's `.mesr`).
   ///

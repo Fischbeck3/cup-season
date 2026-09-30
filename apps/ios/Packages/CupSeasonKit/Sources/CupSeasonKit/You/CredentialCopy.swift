@@ -11,7 +11,7 @@ import Foundation
 
 public enum CredentialCopy {
 
-  /// `@galenm · Mesa, AZ · Papago` — handle, city, home course.
+  /// `@blake · Mesa, AZ · Saguaro Flats` — handle, city, home course.
   ///
   /// **`est. Jul 2026` is NOT in it** (`UI_SYSTEM` §6.5 row 5, YRS-21): the
   /// founding fact is already the gold slot, and the third telling is the
@@ -48,11 +48,11 @@ public enum CredentialCopy {
   /// never a regex over prose. `nil` when there is no round: the line is not
   /// drawn, and it is certainly not a dash (L-44).
   ///
-  ///     Posted {74} at Papago on Sunday.
+  ///     Posted {74} at Saguaro Flats on Sunday.
   ///
   /// `establishing` adds the second clause the blind review asked for, which
   /// moves the denominator out of two competing rails and into English:
-  /// *"Posted 79 at Papago on Aug 30. One more round sets her number."*
+  /// *"Posted 79 at Saguaro Flats on Aug 30. One more round sets her number."*
   public static func status(gross: Int?, course: String?, playedOn: String?,
                             roundsToEstablish: Int? = nil, isMe: Bool) -> String? {
     guard let gross else { return nil }

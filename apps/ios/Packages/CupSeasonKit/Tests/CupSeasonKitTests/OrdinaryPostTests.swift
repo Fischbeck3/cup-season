@@ -15,7 +15,7 @@ import Foundation
   let owner = UUID()
   let request = UUID()
 
-  func card(_ gross: String = "84", course: String = "Papago") -> PostCard {
+  func card(_ gross: String = "84", course: String = "Saguaro Flats") -> PostCard {
     var c = PostCard(); c.whole = gross; c.rating = "71.2"; c.slope = "128"; c.course = course; c.date = "2026-09-13"; return c
   }
   func payload(_ c: PostCard) -> PostPayload { PostPayload.build(c, seasonId: nil) }

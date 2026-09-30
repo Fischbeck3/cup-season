@@ -16,7 +16,7 @@
 // DEBUG launch argument, never written to the server, exactly the posture
 // `-cs_dev_home_state` and `-cs_dev_h2h_fixture` already take.
 //
-//   `-cs_dev_season_fixture`         the Fellas — eight in at $60, solo, Cup Final
+//   `-cs_dev_season_fixture`         North Grove (fixture) — eight in at $60, solo, Cup Final
 //   `-cs_dev_season_fixture squads`  the Dew Sweepers — twelve in, four squads
 //
 // The arithmetic is the blind review's own fixture (finding 3): **eight in at
@@ -56,9 +56,9 @@ enum SeasonFixture {
                        b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]))
   }
 
-  static let names = ["Galen Marr", "Jerecho", "Jade Okafor", "Dev Rana", "Tash Bell",
-                      "Mike Fenner", "Priya Raghunathan", "Sam Ridley",
-                      "Nora Vance", "Eli Brandt", "Ruth Salas", "Owen Pike"]
+  static let names = ["Blake Sample", "Avery", "Emery Mockridge", "Finley Stubbs", "Devon Testwell",
+                      "Gray Dummett", "Noel Dryrun", "Casey Placeholder",
+                      "Lane Mockup", "Jules Sandbox", "Parker Sampleton", "Morgan Stand-In"]
   /// **Real keys from `CSMarkers`, or every face falls back to the saguaro** —
   /// which is what the first fixture shot showed: eight golfers wearing one
   /// glyph, the exact defect §6 exists to prevent, arriving through a fixture
@@ -76,15 +76,15 @@ enum SeasonFixture {
     let points: [Double] = squads
       ? [19, 15, 10, 8, 6, 1, 12, 9, 7, 5, 4, 2]
       : [19, 15, 10, 7, 6, 4, 3, 1]
-    // last Sunday: you were third, Jade was second, Tash was ahead of Dev.
+    // last Sunday: you were third, Emery was second, Devon was ahead of Dev.
     // Two rows up, two rows down, four held — every state of `CSMovement` on
     // one board.
     let priorPoints: [Double] = [18, 9, 12, 7, 8, 4, 3, 1]
     model.seed(
-      viewer: RoomViewer(id: profiles[1], displayName: "Jerecho", marker: "saguaro",
+      viewer: RoomViewer(id: profiles[1], displayName: "Avery", marker: "saguaro",
                          indexCurrent: 12.4, roundsCount: 9),
-      league: .init(id: league, name: squads ? "The Dew Sweepers" : "The Fellas",
-                    code: "FELLAS", phase: "season", commissioner_id: profiles[0]),
+      league: .init(id: league, name: squads ? "The Dew Sweepers" : "North Grove (fixture)",
+                    code: "NORTH GROVE (FIXTURE)", phase: "season", commissioner_id: profiles[0]),
       settings: .init(league_id: league, preset: "standard", counting_cap: 4,
                       participation_floor: 2, buyin_cents: 6000,
                       structure: squads ? "squads4" : "solo", draft_type: "random",
@@ -97,7 +97,7 @@ enum SeasonFixture {
                              index_current: 8 + Double(i), handle: names[i].lowercased()))
       },
       squads: squads ? (0..<4).map { s in
-        .init(id: squadIds[s], name: ["Mudsharks", "Saguaros", "Coyotes", "Roadrunners"][s],
+        .init(id: squadIds[s], name: ["Fixture Wrens", "Fixture Owls", "Fixture Foxes", "Fixture Jays"][s],
               color: s, captain_member_id: members[s * 3],
               squad_members: (0..<3).map { .init(member_id: members[s * 3 + $0]) })
       } : [],
@@ -151,7 +151,7 @@ extension SeasonFixture {
         rounds_posted: f.memberEntries(i).filter(\.round).count)
     }
     f.model.seed(
-      viewer: RoomViewer(id: members[1], displayName: "Jerecho", marker: "saguaro", indexCurrent: 12.4, roundsCount: 9),
+      viewer: RoomViewer(id: members[1], displayName: "Avery", marker: "saguaro", indexCurrent: 12.4, roundsCount: 9),
       league: .init(id: lid, name: f.title, code: "LOCAL", phase: f.finished ? "complete" : "season", commissioner_id: members[0]),
       settings: .init(league_id: lid, preset: "custom", counting_cap: f.cap, participation_floor: f.kind == "tie" ? 0 : 2,
         floor_penalty: "deduct", structure: f.squads ? "squads4" : "solo", finish: "points"),
@@ -163,7 +163,7 @@ extension SeasonFixture {
           profile: .init(display_name: f.names[i], marker: markers[i % markers.count], index_current: nil, handle: nil))
       },
       squads: f.squads ? (0..<4).map { i in
-        .init(id: CompeteExploration.id(200 + i), name: ["Mudsharks", "Roadrunners", "Coyotes", "Saguaros"][i], color: i,
+        .init(id: CompeteExploration.id(200 + i), name: ["Fixture Wrens", "Fixture Jays", "Fixture Foxes", "Fixture Owls"][i], color: i,
           squad_members: (i * 4..<i * 4 + 4).map { .init(member_id: members[$0]) })
       } : [],
       squadStandings: f.squads ? (0..<4).map { i in

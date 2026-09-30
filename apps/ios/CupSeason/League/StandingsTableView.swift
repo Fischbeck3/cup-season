@@ -5,7 +5,7 @@
 // P0) — under column heads sitting 140–200px left of the columns they named
 // (CS-18). All of that is one `CSStandingsBoard` of `CSSlat`s now:
 //
-//   │ 01 │ ◍ GALEN MARR          │  —  │  19 │
+//   │ 01 │ ◍ BLAKE SAMPLE          │  —  │  19 │
 //   │gold│   Held since week three│     │     │
 //     44  12  38/30    flex        58    50
 //
@@ -221,7 +221,7 @@ struct StandingsTableView: View {
   }
 
   /// The viewer's own row reads **`YOU` alone**, product-wide: at the 375pt
-  /// measure the fixed columns leave 141pt and `YOU · SAM RIDLEY` measures 143.
+  /// measure the fixed columns leave 141pt and `YOU · CASEY PLACEHOLDER` measures 143.
   private func name(_ t: Team, mine: Bool, abbreviate: Bool) -> String {
     // **`YOU` is a person's row, never a squad's.** The viewer's own squad
     // keeps its name and says "yours" with the rail's field — a table whose

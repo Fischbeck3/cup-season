@@ -27,7 +27,7 @@ import Foundation
 
   @Test("THE BUG: locked ON its own first tee is no longer born dead")
   func bornDead() {
-    // Fellas: locked 2026-07-20, first tee 2026-07-20
+    // North Grove (fixture): locked 2026-07-20, first tee 2026-07-20
     let d = RosterDoor.of(lockedAt: day("2026-07-20"), closedAt: nil,
                           startsOn: "2026-07-20", today: "2026-07-20")
     #expect(d.isOpen, "a link created by lock must not be dead at lock")

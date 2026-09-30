@@ -8,7 +8,7 @@ import Foundation
 public struct RivalryTag: Sendable, Equatable {
   /// "“The Grudge” · " or ""
   public let name: String
-  /// "you lead 4–3 in the season · 7 weeks" · "Galen leads 4–3 in the season
+  /// "you lead 4–3 in the season · 7 weeks" · "Blake leads 4–3 in the season
   /// · 7 weeks" · "even 3–3 in the season · 6 weeks" · the duel forms
   public let record: String
   public var text: String { name + record }

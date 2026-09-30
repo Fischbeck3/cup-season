@@ -117,11 +117,11 @@ import CSDesign
 
 @Suite struct PostPayloadTests {
   @Test func eighteenHolePayload() {
-    var c = PostCard(); c.f9 = "41"; c.b9 = "43"; c.rating = "71.2"; c.slope = "128"; c.course = " Papago "; c.courseId = "abc"; c.date = "2026-08-22"
+    var c = PostCard(); c.f9 = "41"; c.b9 = "43"; c.rating = "71.2"; c.slope = "128"; c.course = " Saguaro Flats "; c.courseId = "abc"; c.date = "2026-08-22"
     let s = UUID()
     let p = PostPayload.build(c, seasonId: s)
     #expect(p.gross == 84 && p.rating == 71.2 && p.nine_rating == nil && p.slope == 128 && p.holes_played == 18)
-    #expect(p.source == "quick" && p.played_on == "2026-08-22" && p.course_label == "Papago" && p.api_course_id == "abc" && p.season_id == s)
+    #expect(p.source == "quick" && p.played_on == "2026-08-22" && p.course_label == "Saguaro Flats" && p.api_course_id == "abc" && p.season_id == s)
     #expect(p.photo_path == nil)
   }
 
@@ -202,19 +202,19 @@ import CSDesign
     #expect(c.side == 9 && c.rating9 && c.rating == "30.5" && c.slope == "95")
     c.loadPars([3, 3, 3, 3, 3, 3, 3, 3, 3], nineHoleTee: true)
     #expect(c.pars.prefix(9).allSatisfy { $0 == 3 } && c.pars[9] == 4)
-    c.teePicked(courseId: "papago", label: "Papago · Blue", rating: 71.2, slope: 128, nineHoleTee: false)
+    c.teePicked(courseId: "saguaro flats", label: "Saguaro Flats · Blue", rating: 71.2, slope: 128, nineHoleTee: false)
     #expect(c.pars == PostCard.parStd && c.side == 18 && !c.rating9)
     // re-picking the same course leaves a hand-typed card alone
     c.pars[0] = 5
-    c.teePicked(courseId: "papago", label: "Papago · White", rating: 69.0, slope: 120, nineHoleTee: false)
+    c.teePicked(courseId: "saguaro flats", label: "Saguaro Flats · White", rating: 69.0, slope: 120, nineHoleTee: false)
     #expect(c.pars[0] == 5)
   }
 
   @Test func theWaysOut() {
-    var c = PostCard(); c.f9 = "41"; c.course = "Papago"; c.mode = .holes; c.touched = true; c.side = 9; c.rating9 = true
+    var c = PostCard(); c.f9 = "41"; c.course = "Saguaro Flats"; c.mode = .holes; c.touched = true; c.side = 9; c.rating9 = true
     c.scan = PostScanContext(read: [], others: [])
     c.scrapScan()
-    #expect(c.mode == .total && !c.touched && c.scan == nil && c.course == "Papago")
+    #expect(c.mode == .total && !c.touched && c.scan == nil && c.course == "Saguaro Flats")
     c.clearAfterPost()
     #expect(c.isBlank && c.side == 18 && !c.rating9 && c.pars == PostCard.parStd)
   }
@@ -222,7 +222,7 @@ import CSDesign
 
 @Suite struct PostDraftTests {
   @Test func aDraftComesBackWithinADay() {
-    var c = PostCard(); c.f9 = "41"; c.course = "Papago"
+    var c = PostCard(); c.f9 = "41"; c.course = "Saguaro Flats"
     let data = PostDraft.encode(PostDraft(at: Date().addingTimeInterval(-3600), card: c))
     #expect(PostDraft.decode(data)?.card.f9 == "41")
   }
@@ -239,9 +239,9 @@ import CSDesign
 @Suite struct PostScanTests {
   func scan(players: Int = 1) -> PostScan {
     var holes = Array(repeating: 5, count: 18); holes[3] = 0; holes[16] = 0
-    let me = PostScanPlayer(name: "Jerecho", holes: holes, total: 84, holes_read: 16)
+    let me = PostScanPlayer(name: "Avery", holes: holes, total: 84, holes_read: 16)
     let other = PostScanPlayer(name: "Ed", holes: Array(repeating: 4, count: 18), total: 72, holes_read: 18)
-    return PostScan(courseName: "Papago", date: "2026-08-22", parRow: Array(repeating: 4, count: 18), players: players == 1 ? [me] : [me, other])
+    return PostScan(courseName: "Saguaro Flats", date: "2026-08-22", parRow: Array(repeating: 4, count: 18), players: players == 1 ? [me] : [me, other])
   }
 
   @Test func applyFlipsToTheGridAndParsTheUnread() {
@@ -250,7 +250,7 @@ import CSDesign
     #expect(misses == 2)
     #expect(c.mode == .holes && c.side == 18 && c.touched)
     #expect(c.scores[3] == 4 && c.scores[0] == 5)
-    #expect(c.course == "Papago" && c.date == "2026-08-22")
+    #expect(c.course == "Saguaro Flats" && c.date == "2026-08-22")
     #expect(c.scan?.others.count == 1 && c.scan?.others.first?.name == "Ed")
     #expect(PostScan.readToast(misses: 2) == "Card read — 2 holes I couldn’t make out are set to par")
     #expect(PostScan.readToast(misses: 0) == "Card read — check the grid, then post")
@@ -279,7 +279,7 @@ import CSDesign
 
   @Test func decodesTheFunctionsPayload() {
     let json: JSONValue = .object(["ok": .bool(true), "scan": .object([
-      "course_name": .string("Papago"), "date": .null, "par_row": .array((0..<18).map { _ in .number(4) }),
+      "course_name": .string("Saguaro Flats"), "date": .null, "par_row": .array((0..<18).map { _ in .number(4) }),
       "players": .array([.object(["name": .string("J"), "holes": .array((0..<18).map { _ in .number(5) }), "total": .number(90), "holes_read": .number(18)])]),
     ])])
     let s = PostScan(json: json)!
@@ -300,13 +300,13 @@ import CSDesign
   }
 
   @Test func goldOnlyWhenEarned() {
-    let earned = PostCeremony(course: "Papago", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "The Pines", inLeague: true, name: "J", marker: "saguaro", leagueName: "PIGL")
+    let earned = PostCeremony(course: "Saguaro Flats", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "Fixture Wrens", inLeague: true, name: "J", marker: "saguaro", leagueName: "NGFX26")
     // W4 twin · a sentence in ink, the web's words (points are not a trophy)
-    #expect(earned.earned && earned.pointsLine == "+9 points · counts for The Pines")
-    #expect(earned.eyebrow == "PAPAGO · SAT AUG 22")
+    #expect(earned.earned && earned.pointsLine == "+9 points · counts for Fixture Wrens")
+    #expect(earned.eyebrow == "SAGUARO FLATS · SAT AUG 22")
     #expect(earned.band == "beat your playing HCP by 2.4")
     #expect(earned.bandMarked == "beat your playing HCP by {2.4}")   // N4-082 · the ceremony's run
-    let solo = PostCeremony(course: "Papago", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: nil, inLeague: true, name: "J", marker: "saguaro", leagueName: nil)
+    let solo = PostCeremony(course: "Saguaro Flats", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: nil, inLeague: true, name: "J", marker: "saguaro", leagueName: nil)
     #expect(solo.pointsLine == "+9 points · counts this season")
     let card = PostCeremony(course: "", date: "2026-08-22", gross: 84, vs: -71.6, points: nil, squad: nil, inLeague: false, name: "J", marker: "saguaro", leagueName: nil)
     #expect(!card.earned && card.pointsLine == "Counts toward your number" && card.band == "" && card.bandMarked == "" && card.eyebrow == "A ROUND · SAT AUG 22")
@@ -314,15 +314,15 @@ import CSDesign
     // D122 · the audit's exact scenario: a league whose first tee is a week
     // out. The golfer was promised league points and shown zero with nothing
     // connecting the two facts; the card must now say WHY.
-    let preseason = PostCeremony(course: "Papago", date: "2026-08-29", gross: 84, vs: 2.4, points: nil,
-                                 squad: nil, inLeague: false, name: "You", marker: "saguaro", leagueName: "The Papago Grind",
+    let preseason = PostCeremony(course: "Saguaro Flats", date: "2026-08-29", gross: 84, vs: 2.4, points: nil,
+                                 squad: nil, inLeague: false, name: "You", marker: "saguaro", leagueName: "The Saguaro Flats Grind",
                                  seasonNote: "Practice · season starts Sat Sep 5")
     #expect(preseason.pointsLine == "Practice · season starts Sat Sep 5")
     #expect(!preseason.earned)
     // a round that DOES count is untouched
-    #expect(PostCeremony(course: "P", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "The Pines",
+    #expect(PostCeremony(course: "P", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "Fixture Wrens",
                          inLeague: true, name: "You", marker: "saguaro", leagueName: "L",
-                         seasonNote: "").pointsLine == "+9 points · counts for The Pines")
+                         seasonNote: "").pointsLine == "+9 points · counts for Fixture Wrens")
     #expect(PostCeremony(course: "P", date: "2026-08-22", gross: 84, vs: 2.4, points: 1, squad: nil,
                          inLeague: true, name: "You", marker: "saguaro", leagueName: "L").pointsLine == "+1 point · counts this season")
   }
@@ -346,11 +346,11 @@ import CSDesign
   }
 
   @Test func theRecapSpeaksInTheThirdPerson() {
-    let r = PostRecap(name: "Jerecho", marker: "saguaro", gross: 84, pvi: 2.4, points: 9, course: "Papago", date: "2026-08-22", badge: nil)
+    let r = PostRecap(name: "Avery", marker: "saguaro", gross: 84, pvi: 2.4, points: 9, course: "Saguaro Flats", date: "2026-08-22", badge: nil)
     // W4 twin · the card says the comparison, not the band's label
     #expect(r.bandLine == "BEAT THEIR PLAYING HCP BY 2.4" && r.vsLine == "beat their playing HCP by 2.4")
     #expect(r.whenLine == "SAT · AUG 22 · 9 PTS")
-    #expect(r.caption == "84 at Papago — beat their playing HCP by 2.4 · 9 pts · cupseason.app")
+    #expect(r.caption == "84 at Saguaro Flats — beat their playing HCP by 2.4 · 9 pts · cupseason.app")
     let bare = PostRecap(name: "", marker: "saguaro", gross: 99, pvi: -71.6, points: nil, course: "", date: "2026-08-22", badge: nil)
     #expect(bare.nameLine == "A GOLFER" && bare.bandLine == nil && bare.caption == "99 at the course · cupseason.app")
   }
@@ -420,8 +420,8 @@ import CSDesign
     #expect(granted.count == 1)
     #expect(granted[0] == .line(icon: "trophy:firstCard", title: "Your first round is on the board", sub: "Your number and record start here"))
     #expect(PostEpilogue.title(firstEver: true) == "Welcome to the season")
-    #expect(quiet.subtitle(course: "Papago") == "84 at PAPAGO" && quiet.subtitle(course: nil) == "THE ROUND, FOR YOU FIRST")
-    #expect(PostEpilogue.linkText(name: "Jerecho", gross: 84, course: nil) == "Jerecho — 84 at the course")
+    #expect(quiet.subtitle(course: "Saguaro Flats") == "84 at SAGUARO FLATS" && quiet.subtitle(course: nil) == "THE ROUND, FOR YOU FIRST")
+    #expect(PostEpilogue.linkText(name: "Avery", gross: 84, course: nil) == "Avery — 84 at the course")
   }
 
   /// X39 (2) · owner ruling 2026-09-29 (D399): a first round is a BASELINE, so
@@ -612,7 +612,7 @@ import CSDesign
                    { c in c.b9 = "43" },
                    { c in c.rating = "71.2" },
                    { c in c.slope = "128" },
-                   { c in c.course = "Papago" },
+                   { c in c.course = "Saguaro Flats" },
                    { c in c.touched = true }] {
       var c = PostCard(); c.date = today; mutate(&c)
       #expect(c.isUntouched(defaultDate: today) == false)
@@ -637,12 +637,12 @@ import CSDesign
   /// A draft that survives the round trip keeps the date, course and scores.
   @Test func aSavedDraftComesBackWhole() throws {
     var c = PostCard()
-    c.date = "2026-09-07"; c.course = "Papago"; c.f9 = "41"; c.b9 = "43"
+    c.date = "2026-09-07"; c.course = "Saguaro Flats"; c.f9 = "41"; c.b9 = "43"
     c.rating = "71.2"; c.slope = "128"
     let data = try #require(PostDraft.encode(PostDraft(card: c)))
     let back = try #require(PostDraft.decode(data))
     #expect(back.card.date == "2026-09-07")
-    #expect(back.card.course == "Papago")
+    #expect(back.card.course == "Saguaro Flats")
     #expect(back.card.f9 == "41" && back.card.b9 == "43")
     #expect(back.card.rating == "71.2" && back.card.slope == "128")
     #expect(back.card.isUntouched(defaultDate: today) == false, "and it still blocks a second restore")

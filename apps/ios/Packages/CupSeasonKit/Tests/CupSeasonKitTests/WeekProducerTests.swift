@@ -101,7 +101,7 @@ private func season(starts: String = "2026-07-05", ends: String = "2027-01-03", 
   /// The phase machine reads the producer, so Home and the Clubhouse cannot
   /// print two different week numbers for one season (the D213 defect, closed).
   @Test func thePhaseMachineReadsTheProducer() {
-    let m = Me.Membership(league_id: UUID(), name: "Fellas", code: nil, phase: "season", sandbox: false,
+    let m = Me.Membership(league_id: UUID(), name: "North Grove (fixture)", code: nil, phase: "season", sandbox: false,
                           role: "member", member_id: UUID(), marker: nil, commissioner_name: nil,
                           settings: nil, season: season(week: 9, weeks: 26), squad: nil, standing: nil, pulse: nil)
     guard case .season(let w, let of) = SeasonPhase.of(m, today: "2026-09-08") else {

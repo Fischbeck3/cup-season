@@ -30,16 +30,16 @@ private func membership(structure: String = "solo", finish: String = "cup_final"
                         of: Int = 8, phase: String = "season",
                         season s: Me.Season? = season()) -> Me.Membership {
   Me.Membership(
-    league_id: UUID(), name: "Fellas", code: "ABCD", phase: phase, sandbox: false, role: "member",
-    member_id: UUID(), marker: "saguaro", commissioner_name: "Galen Ortiz",
+    league_id: UUID(), name: "North Grove (fixture)", code: "ABCD", phase: phase, sandbox: false, role: "member",
+    member_id: UUID(), marker: "saguaro", commissioner_name: "Blake Ortiz",
     settings: Me.Settings(structure: structure, preset: nil, counting_cap: 3, participation_floor: 2,
                           floor_penalty: nil, handicap_allowance: 95, buyin_cents: 0,
                           payout_champ: 60, payout_runnerup: 25, payout_king: 15, finish: finish, locked_at: nil),
     season: s, squad: nil,
     standing: Me.Standing(rank: 2, of: of, points: 27, prev_rank: nil, leader_squad_id: nil, leader_points: 31,
-                          gap_to_leader: 4, gap_to_next: 4, leader_name: "Galen", runner_up_name: nil,
+                          gap_to_leader: 4, gap_to_next: 4, leader_name: "Blake", runner_up_name: nil,
                           runner_up_points: nil, seed: nil, finalists: nil, next_up: nil, next_down: nil),
-    pulse: nil, buy_in: nil, roster: of, members: of, pro_name: "Galen")
+    pulse: nil, buy_in: nil, roster: of, members: of, pro_name: "Blake")
 }
 
 /// A fixed calendar, so a date in a sentence is the same date on every machine.

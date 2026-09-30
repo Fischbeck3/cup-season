@@ -81,7 +81,7 @@ struct CoursesScreen: View {
           VStack(spacing: 0) {
             ForEach(0..<3, id: \.self) { _ in
               CSRule()
-              CourseRow(book: CourseModel.placeholder("Papago"), best: nil, open: {})
+              CourseRow(book: CourseModel.placeholder("Saguaro Flats"), best: nil, open: {})
             }
           }
           .csRedacted(true)

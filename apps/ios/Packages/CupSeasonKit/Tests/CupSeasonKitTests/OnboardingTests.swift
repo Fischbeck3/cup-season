@@ -55,7 +55,7 @@ import Foundation
   // MARK: - 2 · the defaults
 
   @Test func theHandleIsDerivedFromTheName() {
-    #expect(OnboardingGate.handle(from: "Jerecho Fischbeck") == "jerechofischbeck")
+    #expect(OnboardingGate.handle(from: "Avery Fixture") == "averyfixture")
     #expect(OnboardingGate.handle(from: "Ray O'Neill") == "rayoneill")
     // 20 characters, never more — `set_handle` refuses a longer one.
     #expect(OnboardingGate.handle(from: String(repeating: "a", count: 40)).count == 20)
@@ -65,19 +65,19 @@ import Foundation
     // A one-word nickname derives a handle the server refuses. The card asks
     // rather than failing at `set_handle` with a message about a regex.
     #expect(!OnboardingGate.handleIsLegal(OnboardingGate.handle(from: "JT")))
-    #expect(OnboardingGate.handleIsLegal("jer"))
+    #expect(OnboardingGate.handleIsLegal("ave"))
     #expect(OnboardingGate.handleIsLegal("a_b_9"))
-    #expect(!OnboardingGate.handleIsLegal("Jer"))        // upper case is not a handle
-    #expect(!OnboardingGate.handleIsLegal("jer ome"))
+    #expect(!OnboardingGate.handleIsLegal("ave"))        // upper case is not a handle
+    #expect(!OnboardingGate.handleIsLegal("ave ome"))
   }
 
   @Test func theMarkerIsDefaultedDeterministicallyAndIsOneOfTheFourteen() {
-    let a = MarkerDefault.assign(handle: "jerecho")
-    let b = MarkerDefault.assign(handle: "jerecho")
+    let a = MarkerDefault.assign(handle: "avery")
+    let b = MarkerDefault.assign(handle: "avery")
     #expect(a == b)                                    // a floor that moves is not a floor
     #expect(CSMarkerKeys.contains(a))
     // and different golfers do not all get the saguaro
-    let spread = Set(["jerecho", "galen", "jade", "tash", "dev", "ray", "cj", "lc"].map(MarkerDefault.assign(handle:)))
+    let spread = Set(["avery", "blake", "emery", "devon", "finley", "harper", "kit", "jules"].map(MarkerDefault.assign(handle:)))
     #expect(spread.count > 1)
     #expect(!MarkerDefault.name(a).isEmpty)
   }
@@ -89,10 +89,10 @@ import Foundation
     // golfer's marker is the same on their phone and at the desk — and if
     // either implementation drifts, one of the two suites fails loudly rather
     // than a floor quietly differing between a golfer's two screens.
-    #expect(MarkerDefault.assign(handle: "jerecho") == "island")
-    #expect(MarkerDefault.assign(handle: "galen") == "lighthouse")
-    #expect(MarkerDefault.assign(handle: "jade") == "shark")
-    #expect(MarkerDefault.assign(handle: "tash") == "dunes")
+    #expect(MarkerDefault.assign(handle: "avery") == "weebridge")
+    #expect(MarkerDefault.assign(handle: "blake") == "saguaro")
+    #expect(MarkerDefault.assign(handle: "emery") == "thistle")
+    #expect(MarkerDefault.assign(handle: "devon") == "dunes")
   }
 
   @Test func theMarkerFootnoteNamesWhatWasAssignedAndWhereToChangeIt() {
@@ -112,20 +112,20 @@ import Foundation
   // MARK: - 3 · the gate is marker AND handle
 
   @Test func theGateIsMarkerAndHandle() {
-    #expect(OnboardingGate.passes(marker: "saguaro", handle: "jer"))
-    #expect(!OnboardingGate.passes(marker: nil, handle: "jer"))
+    #expect(OnboardingGate.passes(marker: "saguaro", handle: "ave"))
+    #expect(!OnboardingGate.passes(marker: nil, handle: "ave"))
     #expect(!OnboardingGate.passes(marker: "saguaro", handle: nil))
     #expect(!OnboardingGate.passes(marker: nil, handle: nil))
     // Whitespace is not a value. The m001 trigger writes neither, but a seeder
     // or a backfill that writes " " would otherwise pass.
-    #expect(!OnboardingGate.passes(marker: "  ", handle: "jer"))
+    #expect(!OnboardingGate.passes(marker: "  ", handle: "ave"))
     #expect(!OnboardingGate.passes(marker: "saguaro", handle: " "))
   }
 
   @Test func aTriggerWrittenProfileDoesNotPass() {
     // The signup trigger creates a row with an email-derived display name and
     // neither a marker nor a handle. A row existing proves nothing.
-    let trigger = Me.Profile(id: UUID(), display_name: "jerecho", handle: nil, marker: nil, city: nil,
+    let trigger = Me.Profile(id: UUID(), display_name: "avery", handle: nil, marker: nil, city: nil,
                              home_course: nil, index_current: nil, index_source: nil, photo_path: nil,
                              rounds_count: 0, member_since: nil, is_founder: nil)
     #expect(!OnboardingGate.passes(trigger))
@@ -143,7 +143,7 @@ import Foundation
     #expect(StarterIndex.current(engineIndex: 11.2, defaults: d) == nil)   // spent at three rounds
 
     // and it renders as STARTER, never as YOUR NUMBER (L-14)
-    let p = Me.Profile(id: UUID(), display_name: "Jerecho", handle: "jer", marker: "saguaro", city: nil,
+    let p = Me.Profile(id: UUID(), display_name: "Avery", handle: "ave", marker: "saguaro", city: nil,
                        home_course: nil, index_current: nil, index_source: nil, photo_path: nil,
                        rounds_count: 0, member_since: nil, is_founder: nil)
     let slot = MeStripCopy.make(Me(profile: p), upcoming: [], today: "2026-09-05", starter: 13)
@@ -171,7 +171,7 @@ import Foundation
     // `set_profile` is called with a nil index by the card gate — which is a
     // fact about `CardGateView`, but this is the value that makes it checkable:
     // the strip's STARTER label is reachable with NO server index at all.
-    let p = Me.Profile(id: UUID(), display_name: "Jerecho", handle: "jer", marker: "saguaro", city: nil,
+    let p = Me.Profile(id: UUID(), display_name: "Avery", handle: "ave", marker: "saguaro", city: nil,
                        home_course: nil, index_current: nil, index_source: nil, photo_path: nil,
                        rounds_count: 0, member_since: nil, is_founder: nil)
     let s = MeStripCopy.make(Me(profile: p), upcoming: [], today: "2026-09-05", starter: 20)
@@ -210,10 +210,10 @@ import Foundation
     #expect(PendingLink.first(defaults: d) == nil)
     #expect(!PendingLink.invited(defaults: d))
 
-    JoinIntent.store("FELLAS", name: "The Fellas", defaults: d)
+    JoinIntent.store("NORTH GROVE (FIXTURE)", name: "North Grove (fixture)", defaults: d)
     #expect(PendingLink.first(defaults: d) == .join)
     #expect(PendingLink.invited(defaults: d))
-    #expect(PendingLink.doorLine(defaults: d) == "You're joining The Fellas. Sign in to review and join.")
+    #expect(PendingLink.doorLine(defaults: d) == "You're joining North Grove (fixture). Sign in to review and join.")
 
     // A claim outranks a join: a guest pencil is already holding a round.
     ClaimIntent.store(UUID().uuidString, defaults: d)
@@ -236,8 +236,8 @@ import Foundation
     #expect(PendingLink.doorLine(defaults: d, deferringClaim: true) == nil)
     #expect(PendingLink.first(defaults: d) == .claim)
     // a join still speaks on the plain door: only the claim was put off
-    JoinIntent.store("FELLAS", name: "The Fellas", defaults: d)
-    #expect(PendingLink.doorLine(defaults: d, deferringClaim: true) == "You're joining The Fellas. Sign in to review and join.")
+    JoinIntent.store("NORTH GROVE (FIXTURE)", name: "North Grove (fixture)", defaults: d)
+    #expect(PendingLink.doorLine(defaults: d, deferringClaim: true) == "You're joining North Grove (fixture). Sign in to review and join.")
   }
 
   @Test func everyClaimedLinkKindHasADoorSentence() {

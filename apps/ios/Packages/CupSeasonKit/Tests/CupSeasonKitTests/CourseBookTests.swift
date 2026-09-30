@@ -18,10 +18,10 @@ import Testing
     return CourseDisk(directory: dir)
   }
 
-  private func book(_ id: String, label: String = "Papago", tees: Int = 1, holes: Int = 18,
+  private func book(_ id: String, label: String = "Saguaro Flats", tees: Int = 1, holes: Int = 18,
                     used: Date = Date(), saved: Date = Date()) -> CourseBook {
     let card = (1...holes).map { CourseHole(hole: $0, par: $0 % 3 == 0 ? 3 : 4, si: $0) }
-    return CourseBook(id: id, clubName: label, courseName: nil, city: "Tempe", state: "AZ",
+    return CourseBook(id: id, clubName: label, courseName: nil, city: "Mesa", state: "AZ",
                       tees: (0..<tees).map { i in
                         CourseBookTee(teeName: ["Blue", "White", "Gold"][i % 3], gender: "male",
                                       rating: 71.2 + Double(i), slope: 128 + i,
@@ -36,7 +36,7 @@ import Testing
   @Test("a my_course_books row becomes a book, and a row with no id is dropped")
   func decodesTheRow() throws {
     let json = """
-    [{"id":"012345","club_name":"Papago","course_name":"Papago","city":"Phoenix","state":"AZ",
+    [{"id":"012345","club_name":"Saguaro Flats","course_name":"Saguaro Flats","city":"Phoenix","state":"AZ",
       "planned":true,"played":false,"next_play_on":"2026-09-12","last_played_on":null,
       "tees":[{"tee_name":"Blue","gender":"male","course_rating":71.2,"slope_rating":128,
                "number_of_holes":18,"par_total":72,"total_yards":6590,
@@ -47,7 +47,7 @@ import Testing
     let books = (v.array ?? []).compactMap(CourseBookStore.book(from:))
     #expect(books.count == 1)                       // the id-less row is DROPPED, never defaulted
     let b = try #require(books.first)
-    #expect(b.label == "Papago")                    // club == course, printed once
+    #expect(b.label == "Saguaro Flats")                    // club == course, printed once
     #expect(b.place == "Phoenix, AZ")
     #expect(b.planned && !b.played && b.nextPlayOn == "2026-09-12")
     #expect(b.tees.first?.rating == 71.2 && b.tees.first?.slope == 128)
@@ -115,7 +115,7 @@ import Testing
     await disk.save(book("a", used: used))
     // the server row came back with the course but no tees (the tee cache has
     // not been filled). A thinner read is not permission to forget (L-44).
-    let thin = CourseBook(id: "a", clubName: "Papago", courseName: nil, city: nil, state: nil,
+    let thin = CourseBook(id: "a", clubName: "Saguaro Flats", courseName: nil, city: nil, state: nil,
                           tees: [], planned: true, played: false, nextPlayOn: "2026-09-12",
                           lastPlayedOn: nil, savedAt: Date(), usedAt: Date())
     await disk.merge([thin])
@@ -135,10 +135,10 @@ import Testing
   @Test("the offline search answers off the phone, and only for what the phone kept")
   func searchesTheStore() async {
     let disk = tmpDisk()
-    await disk.save(book("a", label: "Papago Golf Course"))
+    await disk.save(book("a", label: "Saguaro Flats"))
     await disk.save(book("b", label: "Encanto 9"))
     #expect(await disk.search("papa").map(\.id) == ["a"])
-    #expect(await disk.search("tempe").count == 2)      // the place matches too
+    #expect(await disk.search("mesa").count == 2)      // the place matches too
     #expect(await disk.search("pebble").isEmpty)         // never played, never kept
     #expect(await disk.search("p").isEmpty)              // one letter is not a search
   }
@@ -187,12 +187,12 @@ import Testing
 
   @Test("R-N · the composer offers a kept course as an ordinary search row")
   func bookRendersAsASearchRow() {
-    let hit = book("a", label: "Papago", tees: 3).hit
+    let hit = book("a", label: "Saguaro Flats", tees: 3).hit
     #expect(hit.id == "a")
-    #expect(hit.label == "Papago")
+    #expect(hit.label == "Saguaro Flats")
     #expect(hit.tees.count == 3)                       // every tee keeps its rating and slope
     #expect(hit.tees.allSatisfy { $0.course_rating != nil && $0.slope_rating != nil })
-    #expect(hit.subline == "Tempe, AZ · 3 tees")
+    #expect(hit.subline == "Mesa, AZ · 3 tees")
   }
 }
 
@@ -241,9 +241,9 @@ import Testing
   /// have never played has **no line at all** — never "you have played here
   /// zero times".
   @Test func theHistoryLineIsAbsentRatherThanZero() {
-    #expect(PlanCourseCopy.history("Papago", played: []) == nil)
-    #expect(PlanCourseCopy.history("Papago", played: [82]) == "You have played here one time · best 82.")
-    #expect(PlanCourseCopy.history("Papago", played: [82, 78, 85, 80])
+    #expect(PlanCourseCopy.history("Saguaro Flats", played: []) == nil)
+    #expect(PlanCourseCopy.history("Saguaro Flats", played: [82]) == "You have played here one time · best 82.")
+    #expect(PlanCourseCopy.history("Saguaro Flats", played: [82, 78, 85, 80])
             == "You have played here four times · best 78.")
   }
 

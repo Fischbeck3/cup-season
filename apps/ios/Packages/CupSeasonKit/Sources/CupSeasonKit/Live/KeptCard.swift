@@ -46,7 +46,7 @@ public struct KeptCard: Sendable, Equatable, Identifiable {
   /// keeping and still worth showing — it is just not a round to post whole.
   public var isComplete: Bool { holesPlayed == holes }
 
-  /// "Papago Golf Course · Sunday · 14 of 18 holes" — what the row says.
+  /// "Saguaro Flats · Sunday · 14 of 18 holes" — what the row says.
   public var line: String {
     let holes = isComplete ? "\(total)" : "\(holesPlayed) of \(self.holes) holes"
     return [course.isEmpty ? "A round" : course, holes].joined(separator: " · ")

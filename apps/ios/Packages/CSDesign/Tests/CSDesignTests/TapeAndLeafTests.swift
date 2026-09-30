@@ -43,8 +43,8 @@ import SwiftUI
   @Test func theTapeSpeaksAsOneThing() {
     let tape = CSTape(meetings: [.init(id: 0, viewer: true)],
                       key: "One square is one win.",
-                      spoken: "Eleven meetings. You won six, Galen won five.")
-    #expect(tape.spokenLabel == "Eleven meetings. You won six, Galen won five.")
+                      spoken: "Eleven meetings. You won six, Blake won five.")
+    #expect(tape.spokenLabel == "Eleven meetings. You won six, Blake won five.")
     // with no sentence given, the key line is what it says
     #expect(CSTape(meetings: [], key: "One square is one win.").spokenLabel == "One square is one win.")
   }
@@ -59,7 +59,7 @@ import SwiftUI
 @Suite struct RecordLeafTests {
 
   private func row(finish: Int?, won: Bool, line: String? = nil) -> CSRecordLeaf.Row {
-    CSRecordLeaf.Row(id: "s", year: "2026", competition: "The Fellas", qualifier: "Season one",
+    CSRecordLeaf.Row(id: "s", year: "2026", competition: "North Grove (fixture)", qualifier: "Season one",
                      finish: finish, line: line, won: won)
   }
 
@@ -84,7 +84,7 @@ import SwiftUI
   /// `season_payouts` holds no rows in prod and four zeroes is not a table.
   @Test func theMoneyColumnDropsRatherThanZeroing() {
     #expect(CSRecordLeaf.showsMoney([row(finish: 2, won: false)]) == false)
-    let paid = CSRecordLeaf.Row(id: "s", year: "2026", competition: "The Fellas",
+    let paid = CSRecordLeaf.Row(id: "s", year: "2026", competition: "North Grove (fixture)",
                                 qualifier: nil, finish: 2, line: nil, won: false, money: "$40")
     #expect(CSRecordLeaf.showsMoney([paid]))
   }

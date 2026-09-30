@@ -118,7 +118,7 @@ public struct TourCard: Sendable {
     }
 
     /// X40 (1) · the round as the career block's Best round row says it:
-    /// "83 at Papago · Aug 24", each clause dropped rather than guessed. The
+    /// "83 at Saguaro Flats · Aug 24", each clause dropped rather than guessed. The
     /// web's `openTourCard` (`brSaid`, 6de9e7f8).
     public var said: String {
       var s = String(gross)
@@ -166,7 +166,7 @@ public struct TourCard: Sendable {
     }
   }
 
-  /// D150 · "you've both played Papago" — the reason two strangers start
+  /// D150 · "you've both played Saguaro Flats" — the reason two strangers start
   /// talking, fetched and thrown away until now.
   public struct SharedCourse: Sendable, Equatable, Identifiable {
     public let name: String
@@ -313,7 +313,7 @@ public struct TourCard: Sendable {
   /// `openTourCard` (c3187a81) and the record's tiles (148d6d0f).
   ///
   /// X40 (1) · off the lens the best is `career.best_round` — the lowest
-  /// 18-hole gross, where and when: "83 at Papago · Aug 24" — never the
+  /// 18-hole gross, where and when: "83 at Saguaro Flats · Aug 24" — never the
   /// differential (`career.best`), which stays on the receipt. With no round
   /// it is a dash, and `showsBestRow` says the row is not drawn (6de9e7f8).
   public var bestText: String {
@@ -354,7 +354,7 @@ public struct TourCard: Sendable {
   public static let rowBest       = "BEST"
   public static let rowTrophies   = "TROPHIES"
 
-  /// "YOU AND GALEN" — the row label with the name in it, which is what the
+  /// "YOU AND BLAKE" — the row label with the name in it, which is what the
   /// page actually prints; the bare form above is the fallback for a card
   /// whose profile carries no name.
   public static func youAndThem(_ name: String?) -> String {

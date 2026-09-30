@@ -39,14 +39,14 @@ import CupSeasonKit
     XCTAssertEqual(f.model.squads.map { $0.squad_members.count }, [4, 4, 4, 4])
     XCTAssertEqual(f.total(f.entries), f.standings.reduce(0) { $0 + Int($1.pts) })
     XCTAssertEqual(f.names.count, 16)
-    XCTAssertEqual(f.story, "Mudsharks leads.")
+    XCTAssertEqual(f.story, "Fixture Wrens leads.")
   }
   func testDroppedRoundsAreRetainedAndAdjustmentKindsAreReceipted() {
     let f = CompeteFixture.exploration("finished")
     XCTAssertEqual(f.entries.filter { !$0.counted }.count, 17)
     XCTAssertTrue(f.entries.filter { !$0.counted }.allSatisfy { $0.contribution == 0 && $0.points == 5 })
     XCTAssertEqual(Set(f.entries.filter { !$0.round }.map(\.kind)), ["bye", "floor_penalty", "matchup_bonus"])
-    XCTAssertEqual(f.standings.first?.name, "Galen Marr")
+    XCTAssertEqual(f.standings.first?.name, "Blake Sample")
   }
   func testFixtureCountFlagsRespectSettingsAndTheFieldIsNotAllTied() {
     for kind in ["field", "squads", "finished"] {

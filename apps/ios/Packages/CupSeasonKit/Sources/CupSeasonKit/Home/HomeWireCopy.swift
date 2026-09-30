@@ -52,9 +52,9 @@ public enum HomeWireCopy {
     return "Gross"
   }
 
-  /// `79 at Papago — a personal best.`
+  /// `79 at Saguaro Flats — a personal best.`
   ///
-  /// **The name is NOT in it.** `HomeDigest.line` opens with "Galen set a
+  /// **The name is NOT in it.** `HomeDigest.line` opens with "Blake set a
   /// personal best" because a digest has no face; a wire item at weight 2 is
   /// led by a 38pt `CSFace` and the golfer's name in `social` directly above,
   /// and repeating it in the sentence under its own name is the same fact
@@ -186,7 +186,7 @@ public enum HomeWireCopy {
     return "Of \(n >= 1 && n < words.count ? words[n] : String(n))"
   }
 
-  /// `Galen's round · Sun` — the credit on a photograph. A golfer's picture is
+  /// `Blake's round · Sun` — the credit on a photograph. A golfer's picture is
   /// credited, in agate, always: it is the difference between an image the
   /// product borrowed and an image somebody took.
   public static func photoCredit(_ r: HomeFeedRow, today: String = CSDate.today(),
@@ -218,13 +218,13 @@ public enum HomeWireCopy {
   /// **DEF-3 · ONE SCREEN, ONE NAME FOR ONE PERSON.** `round_to_board()` writes
   /// a moment in the third person because it writes it for a league BOARD,
   /// where everybody reading it is somebody else. On the wire the reader is
-  /// often its subject, and the shipped build printed *"Jerecho set a personal
-  /// best"* to Jerecho — the copy law's exact failure, on a surface addressed
+  /// often its subject, and the shipped build printed *"Avery set a personal
+  /// best"* to Avery — the copy law's exact failure, on a surface addressed
   /// to one golfer.
   ///
   /// The viewer's own name resolves to **You** in the subject seat and **you**
   /// in every other, and **second person takes its copula**: the elision that
-  /// carries a third-person clause ("Galen has posted six weeks running")
+  /// carries a third-person clause ("Blake has posted six weeks running")
   /// gains its own verb rather than printing "You has posted".
   ///
   /// It REWRITES the producer's sentence rather than composing a second one —
@@ -234,8 +234,8 @@ public enum HomeWireCopy {
   public static func viewerVoice(_ body: String, viewer name: String?) -> String {
     let full = (name ?? "").trimmingCharacters(in: .whitespaces)
     guard !full.isEmpty, !body.isEmpty else { return body }
-    // The producer writes the GIVEN name ("Jerecho set a personal best"); the
-    // session holds the display name ("Jerecho Fischbeck"). The full name goes
+    // The producer writes the GIVEN name ("Avery set a personal best"); the
+    // session holds the display name ("Avery Fixture"). The full name goes
     // first, so it is spent before its own first word is.
     let given = full.split(separator: " ").first.map(String.init) ?? full
     var out = body
@@ -254,14 +254,14 @@ public enum HomeWireCopy {
   private static func swapName(_ body: String, _ who: String) -> String {
     let esc = NSRegularExpression.escapedPattern(for: who)
     var out = body
-    // 1 · the possessive, either apostrophe: "Jerecho's buy-in" -> "Your buy-in".
+    // 1 · the possessive, either apostrophe: "Avery's buy-in" -> "Your buy-in".
     out = replaceAll(out, "\\b" + esc + "[\u{2019}']s\\b") { $0 ? "Your" : "your" }
     // 2 · the bare name — `You` when it opens a SENTENCE, `you` anywhere else.
     out = replaceAll(out, "\\b" + esc + "\\b") { $0 ? "You" : "you" }
     // 3 · the copula. **BOTH CASES AND ON A WORD BOUNDARY, and that is the fix.**
     // The first version replaced the literal "You has " — capital, and with a
     // trailing SPACE. It missed twice over: the producer's commonest sentence
-    // puts the name in the second clause ("The clash closes today. Jerecho has
+    // puts the name in the second clause ("The clash closes today. Avery has
     // answered."), which lowercases to `you`; and a verb can be followed by a
     // comma ("You is, by four") as easily as a space. Production read
     // "you has answered". A second person takes its verb wherever it stands and
@@ -275,7 +275,7 @@ public enum HomeWireCopy {
   ///
   /// **It used to ask `offset == 0`, and that is why production read "you has
   /// answered".** The producer's commonest shape puts the golfer in the second
-  /// clause ("The clash closes today. Jerecho has answered."), so the only
+  /// clause ("The clash closes today. Avery has answered."), so the only
   /// name that ever sat at offset 0 was the one in a single-clause sentence.
   /// A sentence also opens after `.`, `!` or `?` — and after a closing quote or
   /// bracket on the end of the clause before it.
@@ -319,7 +319,7 @@ public enum HomeWireCopy {
     return c == "." || c == "!" || c == "?"
   }
 
-  /// `Galen` → `Galen’s`, `Chris` → `Chris’`. The typographic apostrophe, and
+  /// `Blake` → `Blake’s`, `Chris` → `Chris’`. The typographic apostrophe, and
   /// the given name only — the feed already carries the full name on the face.
   static func possessive(_ name: String) -> String {
     let first = name.split(separator: " ").first.map(String.init) ?? name

@@ -1843,8 +1843,8 @@
        are asserted by `OnboardingTests` too — a floor that differs between a
        golfer's two screens is not a floor. */
     t('D247/L-24: the defaulted marker is the phone\'s marker',
-      ['avery','galen','jade','tash'].map(csMarkerDefault),
-      ['weebridge','lighthouse','shark','dunes']);   /* X37 · the first key is the synthetic cast's now; OnboardingTests' copy of this fixture moves with it */
+      ['avery','blake','emery','devon'].map(csMarkerDefault),
+      ['weebridge','saguaro','thistle','dunes']);   /* X37 · the first key is the synthetic cast's now; OnboardingTests' copy of this fixture moves with it */
     t('L-24: the footnote names it and says where to change it',
       csMarkerFootnote('The Island'),
       'Your marker is The Island — your face here until you add a photo, and your stamp on every round after. Tap it to pick another, or change it any time from You.');

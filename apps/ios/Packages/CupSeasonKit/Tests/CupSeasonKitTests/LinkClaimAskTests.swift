@@ -21,9 +21,9 @@ import Foundation
   }
 
   @Test func withoutAGrossItAsksForTheScorecard() {
-    #expect(card(["course_label": .string("Papago")]).question == "Add this scorecard from Papago to your record?")
+    #expect(card(["course_label": .string("Saguaro Flats")]).question == "Add this scorecard from Saguaro Flats to your record?")
     // a label with no club says nothing it was not given
-    #expect(card(["course_label": .string("Papago")]).facts == "")
+    #expect(card(["course_label": .string("Saguaro Flats")]).facts == "")
     #expect(card([:]).question == "Add this scorecard from the course to your record?")
     #expect(card(["gross": .number(84), "course_label": .string("")]).question == "Add this 84 at the course to your record?")
   }

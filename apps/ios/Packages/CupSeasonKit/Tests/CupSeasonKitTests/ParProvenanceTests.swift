@@ -74,7 +74,7 @@ import Foundation
                "starter_profile_id": .string(other.uuidString), "course_snapshot": .object(["pars": .array((0..<18).map { _ in .number(4) })]),
                "course_label": .string("Bajamar"),
                "live_round_players": .array([
-                 .object(["id": .string(UUID().uuidString), "position": .number(1), "guest_name": .string("Galen"), "guest_profile_id": .string(other.uuidString)]),
+                 .object(["id": .string(UUID().uuidString), "position": .number(1), "guest_name": .string("Blake"), "guest_profile_id": .string(other.uuidString)]),
                  .object(["id": .string(UUID().uuidString), "position": .number(2), "guest_name": .string("Me"),
                           "guest_profile_id": .string((seated ? me : UUID()).uuidString)])])])
     }

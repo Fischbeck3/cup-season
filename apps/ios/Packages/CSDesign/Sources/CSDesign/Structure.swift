@@ -334,7 +334,7 @@ public struct CSRecordLeaf: View {
     public let id: String
     /// `2026`. Absent rather than guessed.
     public let year: String?
-    /// `The Fellas`
+    /// `North Grove (fixture)`
     public let competition: String
     /// `Season one` — the qualifier, in agate beside the name.
     public let qualifier: String?

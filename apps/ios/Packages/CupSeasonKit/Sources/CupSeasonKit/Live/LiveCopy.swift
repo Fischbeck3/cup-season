@@ -551,7 +551,7 @@ public enum LiveCopy {
   /// D178 · the island has room for about ten characters. Say the STATE of the
   /// game, never the tail of the sentence describing it.
   ///
-  /// The hero is a LEADERBOARD — "GALEN 2 · JADE 1", "GALEN +3 · JADE -1 · …",
+  /// The hero is a LEADERBOARD — "BLAKE 2 · EMERY 1", "BLAKE +3 · EMERY -1 · …",
   /// "NO SKINS CLAIMED YET". Its last two words are the WORST ten characters in
   /// it: the tail of a skins round with nothing claimed is "CLAIMED YET", and
   /// the tail of a wolf round is whoever happens to sort last. The leader is
@@ -568,7 +568,7 @@ public enum LiveCopy {
       if lead.hasPrefix("NO SKINS") { return "NO SKINS" }
       return lead.count <= 12 ? lead : String(lead.prefix(12))
     case .match, .sunningdale:
-      // "ALL SQUARE" fits whole; "GALEN & JADE 2 UP" keeps its verdict
+      // "ALL SQUARE" fits whole; "BLAKE & EMERY 2 UP" keeps its verdict
       if hero.count <= 12 { return hero }
       let words = hero.split(separator: " ")
       return words.count >= 2 ? words.suffix(2).joined(separator: " ") : String(hero.prefix(12))

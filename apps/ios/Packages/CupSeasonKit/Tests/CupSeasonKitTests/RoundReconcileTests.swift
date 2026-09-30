@@ -25,7 +25,7 @@ import Foundation
   }
 
   @Test func postedSavedAndNotPostedAreThreeDifferentSentences() {
-    let posted = RoundReconcile.status(posted: [card("Jerecho", Self.me, round: Self.a)], skipped: [], casual: false, keptLocally: false, me: Self.me)
+    let posted = RoundReconcile.status(posted: [card("Avery", Self.me, round: Self.a)], skipped: [], casual: false, keptLocally: false, me: Self.me)
     #expect(posted == .posted)
     #expect(posted.title == "Round posted")
     #expect(posted.hasRound)
@@ -34,7 +34,7 @@ import Foundation
     #expect(local == .savedOnThisPhone)
     #expect(!local.hasRound, "a local card has no receipt to open yet")
 
-    let skipped = RoundReconcile.status(posted: [], skipped: [card("Jerecho", Self.me, reason: "No holes scored")],
+    let skipped = RoundReconcile.status(posted: [], skipped: [card("Avery", Self.me, reason: "No holes scored")],
                                         casual: false, keptLocally: false, me: Self.me)
     #expect(skipped == .notPosted(reason: "No holes scored"))
     #expect(!skipped.hasRound)
@@ -52,14 +52,14 @@ import Foundation
   /// Identities were reported and mine is not among them: not posted, and
   /// never inferred from a posted card that belongs to someone else.
   @Test func somebodyElsesPostIsNotMine() {
-    #expect(RoundReconcile.status(posted: [card("Galen", Self.alex, round: Self.b)], skipped: [], casual: false,
+    #expect(RoundReconcile.status(posted: [card("Blake", Self.alex, round: Self.b)], skipped: [], casual: false,
                                   keptLocally: false, me: Self.me) == .notPosted(reason: ""))
   }
 
   /// An OLD payload names nobody. That is uncertainty, and it is said as such
   /// until authoritative evidence confirms — one matching round of mine.
   @Test func aPayloadWithoutIdentitiesIsUnconfirmedUntilEvidence() {
-    let s = RoundReconcile.status(posted: [card("Jerecho", nil)], skipped: [], casual: false, keptLocally: false, me: Self.me)
+    let s = RoundReconcile.status(posted: [card("Avery", nil)], skipped: [], casual: false, keptLocally: false, me: Self.me)
     #expect(s == .unconfirmed)
     #expect(s.title == "Not confirmed yet")
     #expect(!s.hasRound)
@@ -72,7 +72,7 @@ import Foundation
 
   /// The kept card wins over everything.
   @Test func aKeptCardIsNeverReportedAsPosted() {
-    #expect(RoundReconcile.status(posted: [card("Jerecho", Self.me, round: Self.a)], skipped: [], casual: false,
+    #expect(RoundReconcile.status(posted: [card("Avery", Self.me, round: Self.a)], skipped: [], casual: false,
                                   keptLocally: true, me: Self.me) == .savedOnThisPhone)
   }
 
@@ -84,8 +84,8 @@ import Foundation
 
   /// The server named my round: no matching, no ambiguity.
   @Test func theServerNamesMyRound() {
-    #expect(RoundReconcile.namedRound(posted: [card("Alex", Self.alex, round: Self.b), card("Jerecho", Self.me, round: Self.a)], me: Self.me) == Self.a)
-    #expect(RoundReconcile.namedRound(posted: [card("Jerecho", nil, round: Self.a)], me: Self.me) == nil, "a round without an identity is not claimed")
+    #expect(RoundReconcile.namedRound(posted: [card("Alex", Self.alex, round: Self.b), card("Avery", Self.me, round: Self.a)], me: Self.me) == Self.a)
+    #expect(RoundReconcile.namedRound(posted: [card("Avery", nil, round: Self.a)], me: Self.me) == nil, "a round without an identity is not claimed")
   }
 
   // MARK: - which round is mine

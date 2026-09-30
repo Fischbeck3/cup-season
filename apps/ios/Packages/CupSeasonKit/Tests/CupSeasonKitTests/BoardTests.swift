@@ -51,7 +51,7 @@ import CSDesign
     #expect(CSBands.theirs("Beat your number") == "Beat their number")
     #expect(CSBands.theirs("BEAT YOUR NUMBER") == "BEAT THEIR NUMBER")
     #expect(CSBands.theirs("Your number") == "Their number")
-    #expect(CSBands.fn1("Jerecho Fischbeck") == "Jerecho")
+    #expect(CSBands.fn1("Avery Fixture") == "Avery")
     #expect(CSBands.fn1("   ") == "Someone")
     #expect(CSBands.pviChip(1.4) == "+1.4" && CSBands.pviChip(-0.35) == "-0.4" && CSBands.pviChip(0) == "+0.0")
   }
@@ -79,7 +79,7 @@ import CSDesign
   @Test func easeCapsReadsLikeASentence() {
     #expect(BoardText.easeCaps("ROSTERS LOCKED — THE SEASON IS LIVE") == "Rosters locked — The season is live")
     #expect(BoardText.easeCaps("Mixed Case passes through") == "Mixed Case passes through")
-    #expect(BoardText.easeCaps("JERECHO POSTED 92 AT ENCANTO GC.") == "Jerecho posted 92 at encanto gc.")
+    #expect(BoardText.easeCaps("AVERY POSTED 92 AT ENCANTO GC.") == "Avery posted 92 at encanto gc.")
     #expect(BoardText.easeCaps("MATCH WITH ED ON SAT · 3 UP") == "Match with Ed on Sat · 3 up")
     #expect(BoardText.easeCaps("A & B") == "A & B")
     var names = BoardText.NameRegistry()
@@ -139,7 +139,7 @@ import CSDesign
 
 @Suite struct BoardLogicTests {
   func round(_ id: UUID = UUID(), profile: UUID, pvi: Double?, on: String, rank: Int? = nil, gross: Int? = 84) -> BoardRound {
-    BoardRound(id: id, profileId: profile, gross: gross, courseLabel: "Papago", playedOn: on, holesPlayed: 18, pvi: pvi, points: 9, monthRank: rank)
+    BoardRound(id: id, profileId: profile, gross: gross, courseLabel: "Saguaro Flats", playedOn: on, holesPlayed: 18, pvi: pvi, points: 9, monthRank: rank)
   }
 
   @Test func streakWalksTheCache() {
@@ -181,7 +181,7 @@ import CSDesign
     #expect(BoardLogic.grossLine(mine, viewer: me) == "84 GROSS · BEAT YOUR NUMBER")
     #expect(BoardLogic.grossLine(theirs, viewer: me) == "84 GROSS · BEAT THEIR NUMBER")
     #expect(BoardLogic.grossLine(round(profile: them, pvi: nil, on: "2026-08-01"), viewer: me) == "84 GROSS")
-    #expect(BoardLogic.courseLine(mine) == "Papago · 18 holes · 2026-08-01")
+    #expect(BoardLogic.courseLine(mine) == "Saguaro Flats · 18 holes · 2026-08-01")
   }
 
   func item(_ kind: BoardKind, who: String = "", text: String, rid: UUID? = nil, at: Date) -> BoardItem {
@@ -194,7 +194,7 @@ import CSDesign
     let cache = [r.id: r]
     let t0 = Date(timeIntervalSince1970: 1_700_000_000)
     let items = [
-      item(.round, who: "Ed Metz", text: "ED POSTED 84 AT PAPAGO.", rid: r.id, at: t0),
+      item(.round, who: "Ed Metz", text: "ED POSTED 84 AT SAGUARO FLATS.", rid: r.id, at: t0),
       item(.system, text: "MITCH JOINED THE LEAGUE", at: t0.addingTimeInterval(60)),
       item(.chat, who: "Mitch", text: "who's in Saturday", at: t0.addingTimeInterval(120)),
     ]
@@ -202,14 +202,14 @@ import CSDesign
     let lines = BoardLogic.digest(items: items, cache: cache, names: .init(), marker: seenAfter, next: "Week closes Sun · 3d")
     // D277 · the digest's system line carries no typed glyph: the producer
     // emits the words and the row draws the mark (LINT-13).
-    #expect(lines == ["Ed Metz · Papago · Beat your number", "Mitch joined the league", "Week closes Sun · 3d"])
+    #expect(lines == ["Ed Metz · Saguaro Flats · Beat your number", "Mitch joined the league", "Week closes Sun · 3d"])
     // first-ever open: the feed itself is the reveal
     #expect(BoardLogic.digest(items: items, cache: cache, names: .init(), marker: 0, next: nil) == nil)
     // something new landed since the mark: the feed renders exactly as today
     let seenBefore = (t0.timeIntervalSince1970 + 30) * 1000
     #expect(BoardLogic.digest(items: items, cache: cache, names: .init(), marker: seenBefore, next: nil) == nil)
     // no cache entry: the eased post body carries the line
-    #expect(BoardLogic.digest(items: items, cache: [:], names: .init(), marker: seenAfter, next: nil)?.first == "Ed posted 84 at papago.")
+    #expect(BoardLogic.digest(items: items, cache: [:], names: .init(), marker: seenAfter, next: nil)?.first == "Ed posted 84 at saguaro flats.")
   }
 
   @Test func seasonDeadlineLine() {
@@ -240,31 +240,31 @@ import CSDesign
 
 @Suite struct ScorecardTests {
   static let json = """
-  {"round":{"game":"match","course_label":"Papago","course_snapshot":{"holes":18,"pars":[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5],"si":[7,3,15,1,9,11,17,5,13,8,16,2,10,4,12,18,6,14]},
-   "game_config":{"side_a":["Jerecho"],"side_b":["Ed"]},
-   "game_result":{"story":"Jerecho def. Ed 3&2","holes":{"mode":"sides","cells":["a",null,"b","a",null,"a","a",null,"b","a",null,"a","a","a","b","a",null,null]}},
+  {"round":{"game":"match","course_label":"Saguaro Flats","course_snapshot":{"holes":18,"pars":[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5],"si":[7,3,15,1,9,11,17,5,13,8,16,2,10,4,12,18,6,14]},
+   "game_config":{"side_a":["Avery"],"side_b":["Ed"]},
+   "game_result":{"story":"Avery def. Ed 3&2","holes":{"mode":"sides","cells":["a",null,"b","a",null,"a","a",null,"b","a",null,"a","a","a","b","a",null,null]}},
    "finished_at":"2026-08-22T18:10:00Z"},
-   "players":[{"name":"Jerecho","guest":false,"strokes":[4,4,4,5,4,3,3,4,6,4,3,4,5,4,5,3,4,null]},
+   "players":[{"name":"Avery","guest":false,"strokes":[4,4,4,5,4,3,3,4,6,4,3,4,5,4,5,3,4,null]},
               {"name":"Ed","guest":true,"strokes":[5,4,3,6,4,4,4,4,5,5,3,5,6,5,4,4,4,null]}]}
   """
 
   @Test func decodesTheCard() throws {
     let card = try #require(Scorecard(try JSONDecoder().decode(JSONValue.self, from: Data(Self.json.utf8))))
-    #expect(card.eyebrow == "MATCH PLAY · PAPAGO")
+    #expect(card.eyebrow == "MATCH PLAY · SAGUARO FLATS")
     #expect(card.holes == 18 && card.pars?.count == 18 && card.parOut == "36" && card.parIn == "36" && card.parTot == "72")
     let rows = card.rows
     #expect(rows.count == 2)
-    #expect(rows[0].cells[0].state == .won)          // ledger cell 'a' is Jerecho's
+    #expect(rows[0].cells[0].state == .won)          // ledger cell 'a' is Avery's
     #expect(rows[1].cells[0].state == .plain)
     #expect(rows[1].cells[2].state == .won)          // 'b' is Ed's
     #expect(rows[0].cells[5].state == .won)          // won beats bird on the same hole
     #expect(rows[1].cells[10].state == .plain)       // Ed 3 on a par 3
     #expect(rows[0].cells[17].state == .gap && rows[0].cells[17].text == "·")
     #expect(rows[0].out == "37" && rows[0].inn == "32" && rows[0].tot == "69")
-    #expect(card.gaps == ["Jerecho", "Ed"])
+    #expect(card.gaps == ["Avery", "Ed"])
     let f = card.footer
     #expect(f.prefix == "Aug 22 · Gold marks the holes that decided it. ")
-    #expect(f.note == "Not every hole was scored — Jerecho, Ed have gaps." && f.warning)
+    #expect(f.note == "Not every hole was scored — Avery, Ed have gaps." && f.warning)
   }
 
   @Test func birdiesReadGoldWhenNoLedgerOwnsTheHole() throws {

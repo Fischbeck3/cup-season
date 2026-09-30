@@ -234,9 +234,9 @@ struct DigestCard: View {
 struct BoardSkeleton: View {
   @Environment(\.cs) private var cs
   private static let sample = [
-    ("Galen Marr", "Posted 82 at Papago — two better than his playing HCP."),
+    ("Blake Sample", "Posted 82 at Saguaro Flats — two better than his playing HCP."),
     ("Dev Anand", "In for Saturday. Anyone else?"),
-    ("Tash", "Broke 90 for the first time."),
+    ("Devon", "Broke 90 for the first time."),
   ]
   var body: some View {
     VStack(spacing: 0) {

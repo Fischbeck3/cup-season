@@ -13,8 +13,8 @@ struct CredentialCopyTests {
 
   @Test("the identity line is handle · city · home course — and never carries est.")
   func identity() {
-    let s = CredentialCopy.identity(handle: "galenm", city: "Mesa, AZ", homeCourse: "Papago")
-    #expect(s == "@galenm · Mesa, AZ · Papago")
+    let s = CredentialCopy.identity(handle: "blake", city: "Mesa, AZ", homeCourse: "Saguaro Flats")
+    #expect(s == "@blake · Mesa, AZ · Saguaro Flats")
     // UI_SYSTEM §6.5 row 5 / YRS-21: the founding fact is already the gold slot,
     // and a third telling is the duplication GP-17 names.
     #expect(!s.lowercased().contains("est."))
@@ -31,22 +31,22 @@ struct CredentialCopyTests {
 
   @Test("the status sentence marks the gross as a figure run, with braces and not a regex")
   func status() {
-    let s = CredentialCopy.status(gross: 74, course: "Papago", playedOn: "2026-09-04", isMe: false)
-    #expect(s == "Posted {74} at Papago on September 4.")
+    let s = CredentialCopy.status(gross: 74, course: "Saguaro Flats", playedOn: "2026-09-04", isMe: false)
+    #expect(s == "Posted {74} at Saguaro Flats on September 4.")
     // a regex over prose would have restyled the 4 in "September 4" too
     #expect(s?.filter { $0 == "{" }.count == 1)
   }
 
   @Test("no round → the line is not drawn (L-44)")
   func statusAbsent() {
-    #expect(CredentialCopy.status(gross: nil, course: "Papago", playedOn: "2026-09-04", isMe: true) == nil)
+    #expect(CredentialCopy.status(gross: nil, course: "Saguaro Flats", playedOn: "2026-09-04", isMe: true) == nil)
   }
 
   @Test("the establishing clause reads as English, not as a second rail")
   func establishing() {
-    let s = CredentialCopy.status(gross: 79, course: "Papago", playedOn: "2026-08-30",
+    let s = CredentialCopy.status(gross: 79, course: "Saguaro Flats", playedOn: "2026-08-30",
                                   roundsToEstablish: 1, isMe: false)
-    #expect(s == "Posted {79} at Papago on August 30. One more round sets their number.")
+    #expect(s == "Posted {79} at Saguaro Flats on August 30. One more round sets their number.")
     let mine = CredentialCopy.status(gross: 79, course: nil, playedOn: nil,
                                      roundsToEstablish: 2, isMe: true)
     #expect(mine == "Posted {79}. Two more rounds set your number.")
@@ -56,8 +56,8 @@ struct CredentialCopyTests {
   func firstCard() {
     var c = DateComponents(); c.year = 2026; c.month = 8; c.day = 3
     let since = Calendar(identifier: .gregorian).date(from: c)!
-    let s = CredentialCopy.firstCard(name: "Tash Bell", since: since)
-    #expect(s == "Tash joined in August. It starts with a first round.")
+    let s = CredentialCopy.firstCard(name: "Devon Testwell", since: since)
+    #expect(s == "Devon joined in August. It starts with a first round.")
     // §13.1's test: could the golfer have prevented this sentence by doing
     // something? "hasn't posted a round yet" fails it; this must not say it.
     #expect(!s.contains("hasn’t") && !s.contains("hasn't") && !s.lowercased().contains("no rounds"))
@@ -128,8 +128,8 @@ struct CredentialCopyTests {
   @Test("the overlap sentence is D150's answer, and it degrades to nothing")
   func overlap() {
     #expect(CredentialCopy.overlap([]) == nil)
-    #expect(CredentialCopy.overlap(["Papago"]) == "You’ve both played Papago.")
-    #expect(CredentialCopy.overlap(["Papago", "Troon North"]) == "You’ve both played Papago and Troon North.")
+    #expect(CredentialCopy.overlap(["Saguaro Flats"]) == "You’ve both played Saguaro Flats.")
+    #expect(CredentialCopy.overlap(["Saguaro Flats", "Troon North"]) == "You’ve both played Saguaro Flats and Troon North.")
   }
 
   @Test("the folio names the marker, and the serial is not invented")
@@ -143,7 +143,7 @@ struct CredentialCopyTests {
 struct BoardColumnTests {
 
   private func row(rounds: Int, beats: Int) -> FriendsBoard.Row {
-    FriendsBoard.Row(profileId: UUID(), displayName: "Galen Marr", handle: "galenm",
+    FriendsBoard.Row(profileId: UUID(), displayName: "Blake Sample", handle: "blake",
                      marker: "saguaro", indexCurrent: 10.2, rounds: rounds, beats: beats,
                      avgVsNumber: -1.2, bestVsNumber: nil, lastRoundOn: "2026-09-02",
                      rankByForm: 1, rankByIndex: 1, isMe: false)
@@ -157,12 +157,12 @@ struct BoardColumnTests {
 
   @Test("the lead line names a subject, never a gender")
   func leadLabel() {
-    #expect(RivalryCopy.leadLabel(.down, them: "Galen Marr") == "GALEN LEADS")
-    #expect(RivalryCopy.leadLabel(.up, them: "Galen Marr") == "YOU LEAD")
-    #expect(RivalryCopy.leadLabel(.even, them: "Galen Marr") == "ALL SQUARE")
+    #expect(RivalryCopy.leadLabel(.down, them: "Blake Sample") == "BLAKE LEADS")
+    #expect(RivalryCopy.leadLabel(.up, them: "Blake Sample") == "YOU LEAD")
+    #expect(RivalryCopy.leadLabel(.even, them: "Blake Sample") == "ALL SQUARE")
     // never `HE LEADS` / `SHE LEADS` — nobody's gender is stored, and the one
     // sentence on the clash is addressed to every golfer in a mixed league
-    #expect(!RivalryCopy.leadLabel(.down, them: "Galen").contains("HE "))
+    #expect(!RivalryCopy.leadLabel(.down, them: "Blake").contains("HE "))
   }
 
   @Test("with no name it falls back to the bare form rather than inventing one")

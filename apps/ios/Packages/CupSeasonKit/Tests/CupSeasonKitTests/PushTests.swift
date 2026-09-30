@@ -126,7 +126,7 @@ private func userInfo(kind: String, v: Any = 1, category: String? = nil, _ ids: 
 @Suite struct PushDuelPlanTests {
   private static let me = UUID(), them = UUID()
   private static let myPlayer = EventPlayer(id: UUID(), profileId: me, teamId: nil, name: "Me")
-  private static let theirPlayer = EventPlayer(id: UUID(), profileId: them, teamId: nil, name: "Galen")
+  private static let theirPlayer = EventPlayer(id: UUID(), profileId: them, teamId: nil, name: "Blake")
   /// 2026-08-27 09:00 Phoenix (UTC−7 all year).
   private static let morning = ISO8601DateFormatter().date(from: "2026-08-27T16:00:00Z")!
 

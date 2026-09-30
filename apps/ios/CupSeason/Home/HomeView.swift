@@ -1030,7 +1030,7 @@ private struct A11yReactionActions: ViewModifier {
     case .live(let id):      presenter.scorecard = id
     case .round(let id):     presenter.receipt = id
     case .scheduled(let id): presenter.scheduledRound = id
-    // D312 · the line that had no door. "Galen put a new driver in the bag."
+    // D312 · the line that had no door. "Blake put a new driver in the bag."
     case .bag(let id):       presenter.bagOfName = nil; presenter.bagOf = id
     }
   }

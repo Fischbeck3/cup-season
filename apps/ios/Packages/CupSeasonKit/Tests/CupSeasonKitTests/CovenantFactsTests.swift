@@ -15,15 +15,15 @@ import Foundation
 
   /// Everything R9 returns, for a real $50 season.
   private static let full = Covenant(
-    name: "the Fellas", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
-    proName: "Casey Nguyen", rosterCount: 8,
-    rosterNames: ["Marcus Webb", "Dev Patel", "Tash Boyle", "Ravi Shah", "Jules Kerr"],
+    name: "North Grove (fixture)", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
+    proName: "Blake Sample", rosterCount: 8,
+    rosterNames: ["Casey Placeholder", "Devon Testwell", "Emery Mockridge", "Finley Stubbs", "Gray Dummett"],
     startsOn: "2026-09-12", weeks: 13, countingCap: 3,
     split: .init(champion: 60, runnerUp: 25, pointsKing: 15),
     hasPayNote: true, buyInDueOn: nil, phase: "setup")
 
   /// Exactly what the SHIPPED `join_covenant_info` returns — no R9 at all.
-  private static let today = Covenant(name: "the Fellas", buyinCents: 5000,
+  private static let today = Covenant(name: "North Grove (fixture)", buyinCents: 5000,
                                       preset: "standard", floor: 2, finish: "cup_final")
 
   // MARK: - the six added facts render
@@ -32,9 +32,9 @@ import Foundation
     let facts = Self.full.facts()
     #expect(facts.first?.0 == .who)
     let who = try? #require(Self.full.whoLine)
-    #expect(who?.hasPrefix("Casey Nguyen runs the season (the Pro).") == true)
+    #expect(who?.hasPrefix("Blake Sample runs the season (the Pro).") == true)
     // five named, eight in, so two more beyond me and the five
-    #expect(who?.contains("Marcus, Dev, Tash, Ravi, Jules and 2 more are in.") == true)
+    #expect(who?.contains("Casey, Dev, Devon, Finley, Jules and 2 more are in.") == true)
     // D132's noun, DEFINED at first contact rather than merely used
     #expect(who?.contains("(the Pro)") == true)
     // the money is after it
@@ -133,8 +133,8 @@ import Foundation
   /// The Pro alone. True, and not a lie about a crew.
   @Test func aSeasonOfOneSaysSo() {
     let solo = Covenant(name: "x", buyinCents: 0, preset: nil, floor: 0, finish: nil,
-                        proName: "Galen", rosterCount: 1)
-    #expect(solo.whoLine == "Galen runs the season (the Pro). Nobody else yet.")
+                        proName: "Blake", rosterCount: 1)
+    #expect(solo.whoLine == "Blake runs the season (the Pro). Nobody else yet.")
   }
 
   // MARK: - $0 renders, and it renders differently
@@ -142,8 +142,8 @@ import Foundation
   /// The defect this entry exists to close: at $0 the same screen renders,
   /// without the money lines, without the split, and the button names the season.
   @Test func aFreeSeasonStillPassesTheCovenant() {
-    let free = Covenant(name: "the Fellas", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final",
-                        proName: "Casey Nguyen", rosterCount: 3, rosterNames: ["Dev Patel", "Tash Boyle"],
+    let free = Covenant(name: "North Grove (fixture)", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final",
+                        proName: "Blake Sample", rosterCount: 3, rosterNames: ["Devon Testwell", "Emery Mockridge"],
                         startsOn: "2026-09-12", weeks: 13, countingCap: 3)
     let kinds = free.facts().map(\.0)
     #expect(kinds.contains(.who))
@@ -155,7 +155,7 @@ import Foundation
     #expect(!kinds.contains(.ledger))
     #expect(!kinds.contains(.split))
     #expect(!kinds.contains(.pay))
-    #expect(free.joinLabel == "Join the Fellas")
+    #expect(free.joinLabel == "Join North Grove (fixture)")
     #expect(Self.full.joinLabel == "Join — I’m in for $50")
   }
 
@@ -184,16 +184,16 @@ import Foundation
       try JSONDecoder().decode(JSONValue.self, from: Data(s.utf8))
     }
     let c = try #require(Covenant(try json("""
-      {"name":"the Fellas","buyin_cents":5000,"preset":"standard","floor":2,
+      {"name":"North Grove (fixture)","buyin_cents":5000,"preset":"standard","floor":2,
        "finish":"cup_final","phase":"setup",
-       "roster":{"count":8,"pro_name":"Casey Nguyen","names":["Marcus Webb","Dev Patel"],"markers":["azalea","island"]},
+       "roster":{"count":8,"pro_name":"Blake Sample","names":["Casey Placeholder","Devon Testwell"],"markers":["azalea","island"]},
        "starts_on":"2026-09-12","weeks":13,"counting_cap":3,
        "split":{"champion":60,"runner_up":25,"points_king":15},
        "pay":{"has_note":true,"due_on":null}}
       """)))
-    #expect(c.proName == "Casey Nguyen")
+    #expect(c.proName == "Blake Sample")
     #expect(c.rosterCount == 8)
-    #expect(c.rosterNames == ["Marcus Webb", "Dev Patel"])
+    #expect(c.rosterNames == ["Casey Placeholder", "Devon Testwell"])
     #expect(c.weeks == 13)
     #expect(c.countingCap == 3)
     #expect(c.split?.champion == 60)

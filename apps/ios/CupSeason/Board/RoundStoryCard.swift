@@ -169,11 +169,11 @@ struct RoundStoryCard: View {
 }
 
 #Preview("story card") {
-  let store = BoardStore(leagueId: UUID(), leagueName: "PIGL", membership: nil, profileId: nil)
-  let round = BoardRound(id: UUID(), profileId: UUID(), gross: 84, courseLabel: "Papago", playedOn: "2026-08-22",
+  let store = BoardStore(leagueId: UUID(), leagueName: "NGFX26", membership: nil, profileId: nil)
+  let round = BoardRound(id: UUID(), profileId: UUID(), gross: 84, courseLabel: "Saguaro Flats", playedOn: "2026-08-22",
                          holesPlayed: 18, pvi: 2.4, points: 9, monthRank: 2)
   let item = BoardItem(id: "p1", postId: UUID(), kind: .round, dateLabel: "Sat · Aug 22", ts: Date(), who: "Ed Metz", ci: 1,
-                       text: "Ed posted 84 at Papago.", roundId: round.id, reactions: ["🔥": ReactionState(n: 2, me: false, who: ["Mitch", "Logan"])])
+                       text: "Ed posted 84 at Saguaro Flats.", roundId: round.id, reactions: ["🔥": ReactionState(n: 2, me: false, who: ["Mitch", "Logan"])])
   ScrollView {
     RoundStoryCard(item: item, round: round, store: store, links: BoardLinks()).padding(20)
   }

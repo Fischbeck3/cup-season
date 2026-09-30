@@ -228,7 +228,7 @@ struct LivePlayView: View {
     .tint(cs.act)
   }
 
-  /// §5.2 · a 7pt `brand` dot and one line: `LIVE · PAPAGO · BLUE · 71.2 / 128`.
+  /// §5.2 · a 7pt `brand` dot and one line: `LIVE · SAGUARO FLATS · BLUE · 71.2 / 128`.
   /// **One line, never wrapped** — the tail is dropped before it orphans. The
   /// sync badge rides under it and only when it has something to say: a round
   /// held on a phone with no signal says so (D-offline).

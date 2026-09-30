@@ -24,7 +24,7 @@ public extension ScheduledRound {
   var who: String { isMine ? "You" : (display_name ?? "A golfer") }
   /// "IN YOUR SEASONS" / "BUDDY" / nil (10691).
   var relTag: String? { isMine ? nil : (shared_league == true ? "IN YOUR SEASONS" : (is_friend == true ? "BUDDY" : nil)) }
-  /// "With Galen & Marco" (12146). N4-135 · in the words' own case: it rides
+  /// "With Blake & Marco" (12146). N4-135 · in the words' own case: it rides
   /// the schedule's sub-lines, whose role sets the line's case (§1.3).
   var withLine: String? {
     guard let n = tagged_names, !n.isEmpty else { return nil }
@@ -32,7 +32,7 @@ public extension ScheduledRound {
   }
 
   // The Home hard-look (2026-09-02): a round a buddy booked WITH you is your
-  // plan — the audit's Jerecho was tagged into Gold Canyon and Home showed
+  // plan — the audit's Avery was tagged into Gold Canyon and Home showed
   // nothing, because the Next-round rung kept only rounds he owned.
 
   /// Someone else's booking that names you (`tagged_me`).
@@ -42,10 +42,10 @@ public extension ScheduledRound {
   /// Qualifies for the Up Next "Next round" rung: yours, or booked with you.
   var isMyPlan: Bool { isMine || withYou }
   /// The host's first name — SQL `firstname()`'s rule (`CSBands.fn1`), so the
-  /// chip says "with Galen" where the board says "Galen".
+  /// chip says "with Blake" where the board says "Blake".
   var hostFirstName: String { CSBands.fn1(display_name) }
   /// The Next-round chip for a round booked with you:
-  /// "Mon Sep 7 · Gold Canyon with Galen".
+  /// "Mon Sep 7 · Gold Canyon with Blake".
   var withYouChip: String? {
     guard withYou, let p = play_on else { return nil }
     return "\(ScheduleDates.long(p)) · \(courseShort ?? "A round") with \(hostFirstName)"
@@ -336,7 +336,7 @@ public struct WeekSnapshot: Decodable, Sendable {
 /// `#calWeeks` lines (12160–12170), newest first.
 public struct WeekLine: Sendable, Equatable, Identifiable {
   public let week: Int
-  public let text: String     // "WK 3 · THE PINES LED · BY 4"
+  public let text: String     // "WK 3 · FIXTURE WRENS LED · BY 4"
   public let points: String   // "41 PTS"
   public var id: Int { week }
 
@@ -395,7 +395,7 @@ public enum UpNext {
     // Next round — YOURS, or booked WITH you (9630; the Home hard-look). A
     // round you have DECLINED is not your plan, whether you were tagged on it
     // or booked it yourself (a host can RSVP out of their own booking —
-    // `canRsvp`): "Next round · with Galen" on a round you said you are not
+    // `canRsvp`): "Next round · with Blake" on a round you said you are not
     // playing is the chip lying. The web's `upcomingFromSchedule` differs on
     // both axes — it keeps the host's own declined booking AND drops rounds
     // booked WITH you (`if (r.mine === false) return;`, never reading
@@ -638,6 +638,6 @@ public struct CourseHit: Sendable, Equatable, Identifiable {
               tees: tees.filter { $0.course_rating != nil && $0.slope_rating != nil })
   }
 
-  /// "Papago · 3 tees"
+  /// "Saguaro Flats · 3 tees"
   public var subline: String { (place.isEmpty ? "" : place + " · ") + "\(tees.count) tee\(tees.count == 1 ? "" : "s")" }
 }

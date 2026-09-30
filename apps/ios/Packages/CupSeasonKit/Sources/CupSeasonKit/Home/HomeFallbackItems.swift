@@ -124,7 +124,7 @@ public enum HomeFallbackItems {
       let who = p.display_name.flatMap { CSBands.fn1($0) } ?? "A golfer"
       // DEF-2 (L-34) · the EYEBROW carries the where-and-when, so the headline
       // carries the who-and-what. It read `MON · GOLD CANYON — DINOSAUR
-      // MOUNTAIN · BLACK/BLUE` with `Galen has you down for Gold Canyon —
+      // MOUNTAIN · BLACK/BLUE` with `Blake has you down for Gold Canyon —
       // Dinosaur Mountain · Black/Blue.` immediately under it: the same fact,
       // in full, twice on one card. That is the whole reason the card grammar
       // has three slots.

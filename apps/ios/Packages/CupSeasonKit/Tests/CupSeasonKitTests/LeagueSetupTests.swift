@@ -6,7 +6,7 @@ import Testing
   @Test func suggestionOnlyChangesTheTwoOfferedRules() {
     var d = WizardDials(name: "Old teammates", preset: 2, stake: 50, durWeeks: 26,
       startISO: "2026-10-03", structure: "squads4", draftType: "assign", finish: "points_table")
-    d.buyInNote = "Pay Sam"; d.expectedRoster = 12; d.invitees = [UUID()]
+    d.buyInNote = "Pay Casey"; d.expectedRoster = 12; d.invitees = [UUID()]
     var expected = d; expected.cap = 0; expected.floor = 0
     d.applyBusyFriendsSuggestion()
     #expect(d == expected)
@@ -106,10 +106,10 @@ import Testing
   /// fourth name), and the payment note is the Pro's own words
   @Test func theSharesNameThePointsKing() throws {
     var d = WizardDials()
-    d.stake = 50; d.buyInNote = "  Pay Sam Fixture by the first tee "
+    d.stake = 50; d.buyInNote = "  Pay Casey Fixture by the first tee "
     let rows = WizardAgreement(d, today: "2026-09-18").rows
     #expect(rows.first { $0.k == "Pot split" }?.v == "60 / 25 / 15 · champion / runner-up / Points King")
-    #expect(rows.first { $0.k == "How to pay" }?.v == "Pay Sam Fixture by the first tee")
+    #expect(rows.first { $0.k == "How to pay" }?.v == "Pay Casey Fixture by the first tee")
     #expect(rows.first { $0.k == "Buy-in" }?.v == "$50 / golfer")
   }
 

@@ -164,7 +164,7 @@ public enum StandingsStory: Sendable, Equatable {
   /// F-9 · the VERB AGREES with its subject. This was written when a `Team`
   /// was always a squad — "Reds lead by 4" — and D205 made a solo season a
   /// season at two golfers, so `a.name` is a PERSON now and the line read
-  /// "Galen lead by 4". `Team.solo` is the answer the row already carries.
+  /// "Blake lead by 4". `Team.solo` is the answer the row already carries.
   ///
   /// And the two clauses are joined by a FULL STOP, not a middot: a middot
   /// between two independent clauses reads as two links rather than a
@@ -173,15 +173,15 @@ public enum StandingsStory: Sendable, Equatable {
   public var text: String { text(viewer: nil) }
 
   /// DEF-3 · **one screen, one name for one person.** The clash card above the
-  /// table says `you`, the story line said `Jerecho Fischbeck` and the row
-  /// under it said `Jerecho Fischbeck` again — three names for the golfer
+  /// table says `you`, the story line said `Avery Fixture` and the row
+  /// under it said `Avery Fixture` again — three names for the golfer
   /// reading them. The viewer's own SOLO row resolves to **You** in every
   /// sentence addressed to them; the full name stays on the Tour Card, where
   /// it identifies a person to somebody else. A SQUAD keeps its name: a squad
   /// is a thing the viewer is in, not the viewer.
   ///
   /// Second person takes a second-person verb, so the elision that carries a
-  /// third-person clause ("Galen out front", "Squad 2 a good weekend back")
+  /// third-person clause ("Blake out front", "Squad 2 a good weekend back")
   /// gains its copula rather than printing "You out front".
   public func text(viewer: UUID?) -> String {
     switch self {
@@ -519,7 +519,7 @@ public enum ClimbVoice: Sendable, Equatable {
     case .aheadOfYou(let d, let s): "\(CSCopy.points(d)) ahead of you" + (s.map { " — \($0)" } ?? "")
     case .levelWithYou(let n): "\(n) level with you"
     // the comma is load-bearing: the web parts name from number with bold, and
-    // a flat run reads "Marcus 10 behind you" as one garbled figure
+    // a flat run reads "Casey 10 behind you" as one garbled figure
     case .behindYou(let n, let d): "\(n), \(CSCopy.points(d)) behind you"
     }
   }

@@ -33,15 +33,15 @@ private let rid = "55555555-5555-5555-5555-555555555555"
     let me = try decode("""
     {
       "profile": {
-        "id": "\(pid)", "display_name": "Jerecho", "handle": "jer", "marker": "saguaro",
-        "city": "Tempe", "home_course": "Papago", "index_current": 12.4, "index_source": "app",
+        "id": "\(pid)", "display_name": "Avery", "handle": "ave", "marker": "saguaro",
+        "city": "Mesa", "home_course": "Saguaro Flats", "index_current": 12.4, "index_source": "app",
         "photo_path": null, "rounds_count": 9, "is_founder": true,
         "last_round_on": "2026-09-05", "last_gross": 78, "last_round_id": "\(rid)",
         "days_since_round": 3
       },
       "memberships": [{
-        "league_id": "\(lid)", "name": "Fellas", "code": "ABCD", "phase": "season", "sandbox": false,
-        "role": "member", "member_id": "\(mid)", "marker": "saguaro", "commissioner_name": "Galen Ortiz",
+        "league_id": "\(lid)", "name": "North Grove (fixture)", "code": "ABCD", "phase": "season", "sandbox": false,
+        "role": "member", "member_id": "\(mid)", "marker": "saguaro", "commissioner_name": "Blake Ortiz",
         "settings": {"structure": "solo", "buyin_cents": 5000, "finish": "cup_final", "counting_cap": 4},
         "season": {
           "id": "\(sid)", "number": 3, "starts_on": "2026-07-05", "ends_on": "2027-01-03",
@@ -54,13 +54,13 @@ private let rid = "55555555-5555-5555-5555-555555555555"
           "rank": 3, "of": 8, "points": 19, "prev_rank": 3,
           "leader_name": "Tommy", "gap_to_leader": 12, "gap_to_next": 4,
           "next_up": {"name": "Dre", "points": 23},
-          "next_down": {"name": "Jade", "points": 15}
+          "next_down": {"name": "Emery", "points": 15}
         },
         "pulse": null,
         "buy_in": {"paid": false, "note": "Venmo @ray-o", "players": 8, "paid_count": 6, "collected_cents": 30000},
         "roster": 8, "members": 8,
-        "pro_name": "Galen",
-        "last_season": {"number": 2, "ended_on": "2026-06-28", "champion_name": "Galen", "my_rank": 4, "of": 8},
+        "pro_name": "Blake",
+        "last_season": {"number": 2, "ended_on": "2026-06-28", "champion_name": "Blake", "my_rank": 4, "of": 8},
         "clash": {
           "week_no": 9, "ends_on": "2026-09-13", "days_left": 5, "closes_today": false,
           "them_name": "Dre Ortiz", "them_marker": "cholla",
@@ -79,8 +79,8 @@ private let rid = "55555555-5555-5555-5555-555555555555"
     #expect(p.days_since_round == 3)
 
     let m = try #require(me.memberships.first)
-    #expect(m.pro_name == "Galen")
-    #expect(m.last_season?.champion_name == "Galen")
+    #expect(m.pro_name == "Blake")
+    #expect(m.last_season?.champion_name == "Blake")
     #expect(m.last_season?.my_rank == 4)
     #expect(m.clash?.them_name == "Dre Ortiz")
     #expect(m.clash?.mine?.gross == 78)
@@ -97,7 +97,7 @@ private let rid = "55555555-5555-5555-5555-555555555555"
 
     let st = try #require(m.standing)
     #expect(st.next_up == Me.Standing.Neighbour(name: "Dre", points: 23))
-    #expect(st.next_down == Me.Standing.Neighbour(name: "Jade", points: 15))
+    #expect(st.next_down == Me.Standing.Neighbour(name: "Emery", points: 15))
   }
 
   /// The other order: the client is ahead of the migration. This is the exact
@@ -106,13 +106,13 @@ private let rid = "55555555-5555-5555-5555-555555555555"
     let me = try decode("""
     {
       "profile": {
-        "id": "\(pid)", "display_name": "Jerecho", "handle": "jer", "marker": "saguaro",
-        "city": "Tempe", "home_course": "Papago", "index_current": 12.4, "index_source": "app",
+        "id": "\(pid)", "display_name": "Avery", "handle": "ave", "marker": "saguaro",
+        "city": "Mesa", "home_course": "Saguaro Flats", "index_current": 12.4, "index_source": "app",
         "photo_path": null, "rounds_count": 9, "is_founder": true
       },
       "memberships": [{
-        "league_id": "\(lid)", "name": "Fellas", "code": "ABCD", "phase": "season", "sandbox": false,
-        "role": "member", "member_id": "\(mid)", "marker": "saguaro", "commissioner_name": "Galen Ortiz",
+        "league_id": "\(lid)", "name": "North Grove (fixture)", "code": "ABCD", "phase": "season", "sandbox": false,
+        "role": "member", "member_id": "\(mid)", "marker": "saguaro", "commissioner_name": "Blake Ortiz",
         "settings": {"structure": "solo", "buyin_cents": 5000, "finish": "cup_final", "counting_cap": 4},
         "season": {
           "id": "\(sid)", "number": 3, "starts_on": "2026-07-05", "ends_on": "2027-01-03",
@@ -135,7 +135,7 @@ private let rid = "55555555-5555-5555-5555-555555555555"
     let m = try #require(me.memberships.first)
     #expect(m.pro_name == nil && m.last_season == nil && m.clash == nil)
     // The v2 keys still land — the replace kept them byte for byte.
-    #expect(m.commissioner_name == "Galen Ortiz" && m.roster == 8 && m.buy_in?.paid == false)
+    #expect(m.commissioner_name == "Blake Ortiz" && m.roster == 8 && m.buy_in?.paid == false)
 
     let s = try #require(m.season)
     #expect(s.week_no == nil && s.weeks_total == nil && s.week_ends_on == nil)
@@ -158,7 +158,7 @@ private let rid = "55555555-5555-5555-5555-555555555555"
                   "rounds_count": 0, "is_founder": null, "last_round_on": null, "last_gross": null,
                   "last_round_id": null, "days_since_round": null},
       "memberships": [{
-        "league_id": "\(lid)", "name": "Fellas", "code": null, "phase": "setup", "sandbox": null,
+        "league_id": "\(lid)", "name": "North Grove (fixture)", "code": null, "phase": "setup", "sandbox": null,
         "role": "commissioner", "member_id": "\(mid)", "marker": null, "commissioner_name": null,
         "settings": null, "season": null, "squad": null, "standing": null, "pulse": null,
         "buy_in": null, "roster": null, "members": null,

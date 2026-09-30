@@ -12,7 +12,7 @@ import Foundation
 @Suite struct PostRoundRpcTests {
   func card(whole: String = "", f9: String = "", b9: String = "",
             rating: String = "71.2", slope: String = "128", side: Int = 18,
-            course: String = "Papago Golf Course", courseId: String? = "1234") -> PostCard {
+            course: String = "Saguaro Flats", courseId: String? = "1234") -> PostCard {
     var c = PostCard()
     c.whole = whole; c.f9 = f9; c.b9 = b9; c.rating = rating; c.slope = slope; c.side = side
     c.course = course; c.courseId = courseId; c.date = "2026-09-05"
@@ -31,7 +31,7 @@ import Foundation
     let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(call)) as! [String: Any]
     #expect(json["p_gross"] as? Int == 84)
     #expect(json["p_holes_played"] as? Int == 18)
-    #expect(json["p_course_label"] as? String == "Papago Golf Course")
+    #expect(json["p_course_label"] as? String == "Saguaro Flats")
     #expect(json["p_played_on"] as? String == "2026-09-05")
     // D229 · no league, no season. The server derives it from the date.
     #expect(json["p_season_id"] == nil && json["p_league_id"] == nil && json["p_league"] == nil)
@@ -171,14 +171,14 @@ import Foundation
       "round": .object([
         "id": .string(id.uuidString.lowercased()),
         "season_id": .string(season.uuidString.lowercased()),
-        "league_name": .string("Fellas"), "squad": .string("Mudsharks"),
+        "league_name": .string("North Grove (fixture)"), "squad": .string("Fixture Wrens"),
         "counts": .bool(true), "tagged": .number(1),
       ]),
       "epilogue": .object(["gross": .number(84), "rank_before": .number(3), "rank_after": .number(2)]),
     ])
     let out = try #require(PostService.PostOutcome(json: json))
     #expect(out.roundId == id && out.seasonId == season)
-    #expect(out.leagueName == "Fellas" && out.squad == "Mudsharks")
+    #expect(out.leagueName == "North Grove (fixture)" && out.squad == "Fixture Wrens")
     #expect(out.counts && out.tagged == 1 && !out.viaFallback)
     #expect(out.epilogue?.movement?.rankAfter == 2)
   }
@@ -202,12 +202,12 @@ import Foundation
   // MARK: - D229 · the allowance the composer previews at
 
   @Test func theAllowanceComesFromTheDateNotFromWhatHomeWasShowing() throws {
-    let a = try membership(name: "Fellas", starts: "2026-07-20", ends: "2026-12-06", status: "active", allowance: 95)
-    let b = try membership(name: "The Pines", starts: "2026-01-01", ends: "2026-03-01", status: "complete", allowance: 100)
+    let a = try membership(name: "North Grove (fixture)", starts: "2026-07-20", ends: "2026-12-06", status: "active", allowance: 95)
+    let b = try membership(name: "Fixture Wrens", starts: "2026-01-01", ends: "2026-03-01", status: "complete", allowance: 100)
     // a round played in September belongs to the season whose window holds it,
     // whichever league the golfer happened to be looking at
-    #expect(PostSeasonRule.membership(playedOn: "2026-09-05", memberships: [b, a])?.name == "Fellas")
-    #expect(PostSeasonRule.membership(playedOn: "2026-02-01", memberships: [a, b])?.name == "The Pines")
+    #expect(PostSeasonRule.membership(playedOn: "2026-09-05", memberships: [b, a])?.name == "North Grove (fixture)")
+    #expect(PostSeasonRule.membership(playedOn: "2026-02-01", memberships: [a, b])?.name == "Fixture Wrens")
     // outside every window there is no membership and no allowance — 100 %
     #expect(PostSeasonRule.membership(playedOn: "2026-06-01", memberships: [a, b]) == nil)
   }

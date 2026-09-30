@@ -20,8 +20,8 @@ private let me = UUID()
 private func profile(index: Double? = 12.4, source: String? = "app", rounds: Int? = 9,
                      lastOn: String? = "2026-09-05", lastGross: Int? = 78,   // Sat, three days back
                      lastId: UUID? = UUID()) -> Me.Profile {
-  Me.Profile(id: me, display_name: "Jerecho", handle: "jer", marker: "saguaro", city: "Tempe",
-             home_course: "Papago", index_current: index, index_source: source, photo_path: nil,
+  Me.Profile(id: me, display_name: "Avery", handle: "ave", marker: "saguaro", city: "Mesa",
+             home_course: "Saguaro Flats", index_current: index, index_source: source, photo_path: nil,
              rounds_count: rounds, member_since: nil, is_founder: nil,
              last_round_on: lastOn, last_gross: lastGross, last_round_id: lastId, days_since_round: 1)
 }
@@ -44,26 +44,26 @@ private func standing(rank: Int, of: Int, points: Double, leader: String? = nil,
               next_down: down.map { Me.Standing.Neighbour(name: $0.0, points: $0.1) })
 }
 
-private func membership(name: String = "Fellas", stake: Int = 5000, paid: Bool? = false, phase: String = "season",
+private func membership(name: String = "North Grove (fixture)", stake: Int = 5000, paid: Bool? = false, phase: String = "season",
                         structure: String = "solo", finish: String = "cup_final",
                         season s: Me.Season? = season(), standing st: Me.Standing? = nil,
                         squad: Me.Squad? = nil, due: String? = nil) -> Me.Membership {
   Me.Membership(
     league_id: UUID(), name: name, code: "ABCD", phase: phase, sandbox: false, role: "member",
-    member_id: UUID(), marker: "saguaro", commissioner_name: "Galen Ortiz",
+    member_id: UUID(), marker: "saguaro", commissioner_name: "Blake Ortiz",
     settings: Me.Settings(structure: structure, preset: nil, counting_cap: 4, participation_floor: 2,
                           floor_penalty: nil, handicap_allowance: 95, buyin_cents: stake,
                           payout_champ: 60, payout_runnerup: 25, payout_king: 15, finish: finish, locked_at: nil),
     season: s, squad: squad, standing: st, pulse: nil,
     buy_in: stake > 0 ? Me.BuyIn(paid: paid, note: "Venmo @ray-o", due_on: due, players: 8, paid_count: 6,
                                  collected_cents: 30000) : nil,
-    roster: 8, members: 8, pro_name: "Galen")
+    roster: 8, members: 8, pro_name: "Blake")
 }
 
 private func plan(_ playOn: String, tee: String? = "07:10:00", course: String? = "Gold Canyon",
                   mine: Bool? = true, rsvp: String? = "in") -> ScheduledRound {
   var json: [String: Any] = [
-    "id": UUID().uuidString, "profile_id": me.uuidString, "display_name": "Jerecho", "marker": "saguaro",
+    "id": UUID().uuidString, "profile_id": me.uuidString, "display_name": "Avery", "marker": "saguaro",
     "play_on": playOn, "rsvp_in": 2,
   ]
   if let course { json["course_label"] = course }
@@ -108,7 +108,7 @@ private let today = "2026-09-08"
   // L-44 · A FACT WITH NO READ RENDERS NOTHING. Not a dash, not a zero, not a
   // guess. This is the deploy-skew case: the client is ahead of the migration.
   @Test func aFactWithNoReadRendersNothing() {
-    let p = Me.Profile(id: me, display_name: "Jerecho", handle: "jer", marker: "saguaro", city: nil,
+    let p = Me.Profile(id: me, display_name: "Avery", handle: "ave", marker: "saguaro", city: nil,
                        home_course: nil, index_current: 12.4, index_source: "app", photo_path: nil,
                        rounds_count: 9, member_since: nil, is_founder: nil)   // v2: no last_round_on
     let s = MeStripCopy.make(Me(profile: p), upcoming: [], today: today)
@@ -231,7 +231,7 @@ private let today = "2026-09-08"
   /// the season with the nearest due date. There is no tap-cycle — that is the
   /// switcher, reintroduced in the tightest row on the screen.
   @Test func twoSeasonsOweOneSumAndOneDoor() {
-    let near = membership(name: "Fellas", stake: 5000, due: "2026-09-10")
+    let near = membership(name: "North Grove (fixture)", stake: 5000, due: "2026-09-10")
     let far = membership(name: "Desert Dogs", stake: 2500, due: "2026-11-01")
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [far, near]), upcoming: [], today: today)
     let slot = s.slots.first { $0.fact == .myMoney }
@@ -250,7 +250,7 @@ private let today = "2026-09-08"
                              upcoming: [], today: today)
     // TEN / W6 · a sentence, in sentence case: the golfers' names as they
     // typed them, never upper-cased by the string (D165)
-    #expect(s.seasonRow?.text == "Fellas · 2nd of 8 · 4 back of Blake · 2 clear of Casey · Top 2 into the Final, opens Dec 7")
+    #expect(s.seasonRow?.text == "North Grove (fixture) · 2nd of 8 · 4 back of Blake · 2 clear of Casey · Top 2 into the Final, opens Dec 7")
   }
 
   /// QB-03 · **THE CUT LINE IS NEVER THE CLAUSE THAT YIELDS.**
@@ -267,10 +267,10 @@ private let today = "2026-09-08"
   /// together.
   @Test func theEndgameClauseSurvivesAtEveryRank() {
     let st = standing(rank: 3, of: 8, points: 19, leader: "Devon", leaderGap: 12,
-                      up: ("Sam", 23), down: ("Casey", 15))
+                      up: ("Casey", 23), down: ("Casey", 15))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(name: "Desert Dogs", standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "Desert Dogs · 3rd of 8 · 4 back of Sam · 4 clear of Casey · Top 2 into the Final, opens Dec 7")
+    #expect(s.seasonRow?.text == "Desert Dogs · 3rd of 8 · 4 back of Casey · 4 clear of Casey · Top 2 into the Final, opens Dec 7")
     #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("Devon leads") == false)
   }
 
@@ -284,7 +284,7 @@ private let today = "2026-09-08"
                          gap_to_leader: 12, gap_to_next: 4, leader_name: "Devon")
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "Fellas · 3rd of 8 · Top 2 into the Final, opens Dec 7")
+    #expect(s.seasonRow?.text == "North Grove (fixture) · 3rd of 8 · Top 2 into the Final, opens Dec 7")
     #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("back of") == false)
     #expect(s.seasonRow?.text.contains("Devon") == false)
   }
@@ -304,7 +304,7 @@ private let today = "2026-09-08"
     let st = standing(rank: 2, of: 2, points: 27, up: ("Blake", 31))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "Fellas · 2nd of 2 · 4 back of Blake · A Final between the two of you, opens Dec 7")
+    #expect(s.seasonRow?.text == "North Grove (fixture) · 2nd of 2 · 4 back of Blake · A Final between the two of you, opens Dec 7")
     #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("top 2") == false)
   }
 
@@ -320,9 +320,9 @@ private let today = "2026-09-08"
   @Test func aSquadsRowNamesTheSquad() {
     let st = standing(rank: 1, of: 4, points: 61, down: ("The Frost", 55))
     let m = membership(structure: "squads2", standing: st,
-                       squad: Me.Squad(id: UUID(), name: "Mudsharks", color: 2))
+                       squad: Me.Squad(id: UUID(), name: "Fixture Wrens", color: 2))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [m]), upcoming: [], today: today)
-    #expect(s.seasonRow?.parts[1] == "Mudsharks 1st of 4")
+    #expect(s.seasonRow?.parts[1] == "Fixture Wrens 1st of 4")
     #expect(s.seasonRow?.text.localizedCaseInsensitiveContains("you ") == false)
   }
 
@@ -419,7 +419,7 @@ struct LongCourseNameTests {
     #expect(MeStripCopy.shortCourse("Troon North Golf Course — Pinnacle Course · Gold") == "Troon North Golf Course")
     #expect(MeStripCopy.shortCourse("Raven Golf Club-Phoenix · Silver") == "Raven Golf Club-Phoenix")
     // a plain name is left exactly as it is
-    #expect(MeStripCopy.shortCourse("Papago Golf Course") == "Papago Golf Course")
+    #expect(MeStripCopy.shortCourse("Saguaro Flats") == "Saguaro Flats")
     // and nothing is invented from nothing
     #expect(MeStripCopy.shortCourse(nil) == nil)
     #expect(MeStripCopy.shortCourse("   ") == nil)
@@ -467,7 +467,7 @@ struct LongCourseNameTests {
   /// tee time and who else is in.
   @Test func theLeadCardNeverSaysItsCourseTwice() throws {
     let row: [String: Any] = [
-      "id": UUID().uuidString, "display_name": "Galen Fischbeck", "play_on": "2026-09-07",
+      "id": UUID().uuidString, "display_name": "Blake Fixture", "play_on": "2026-09-07",
       "course_label": Self.longest, "tee_time": "07:10:00", "rsvp_in": 2,
       "mine": false, "tagged_me": true,
     ]
@@ -478,7 +478,7 @@ struct LongCourseNameTests {
     let items = HomeFallbackItems.make(me, feed: [], today: "2026-09-05")
     let lead = items.first { $0.key.hasPrefix("plan:") }
     #expect(lead != nil)
-    #expect(lead?.headline == "Galen has you down for Monday.")
+    #expect(lead?.headline == "Blake has you down for Monday.")
     #expect(lead?.eyebrow.contains("GOLD CANYON") == true)          // the venue, once
     #expect(lead?.headline.contains("Gold Canyon") == false)        // and not twice
     #expect(lead?.standfirst == "7:10 tee · 2 of you in.")
@@ -524,7 +524,7 @@ struct LongCourseNameTests {
   @Test("the season row stands down when the column already said where I stand")
   func theStandingIsSaidOnce() {
     let me = Me(profile: profile(), memberships: [membership(standing: standing(rank: 2, of: 8, points: 30,
-                                                                                leader: "Galen", leaderGap: 4))])
+                                                                                leader: "Blake", leaderGap: 4))])
     #expect(MeStripCopy.make(me, upcoming: [], today: today).seasonRow != nil)
     #expect(MeStripCopy.make(me, upcoming: [], today: today, standingSaid: true).seasonRow == nil)
   }
@@ -534,7 +534,7 @@ struct LongCourseNameTests {
   @Test("money never outranks the standing")
   func moneyDoesNotMaskTheSeason() {
     let me = Me(profile: profile(), memberships: [membership(standing: standing(rank: 2, of: 8, points: 30,
-                                                                                leader: "Galen", leaderGap: 4))])
+                                                                                leader: "Blake", leaderGap: 4))])
     let s = MeStripCopy.make(me, upcoming: [], today: today)
     #expect(s.oweRow != nil)
     #expect(s.seasonRow != nil)

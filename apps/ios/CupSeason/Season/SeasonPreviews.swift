@@ -12,13 +12,13 @@ enum LeagueRoomSample {
   static func model(status: String = "active", today: String = "2026-06-01") -> LeagueRoomModel {
     let m = LeagueRoomModel(leagueId: league)
     m.seed(
-      viewer: RoomViewer(id: p1, displayName: "Jerecho", marker: "saguaro", indexCurrent: 12.4, roundsCount: 5),
-      league: .init(id: league, name: "PIGL", code: "PIGL", phase: status == "complete" ? "complete" : "season", commissioner_id: p1),
+      viewer: RoomViewer(id: p1, displayName: "Avery", marker: "saguaro", indexCurrent: 12.4, roundsCount: 5),
+      league: .init(id: league, name: "North Grove (fixture)", code: "NGFX26", phase: status == "complete" ? "complete" : "season", commissioner_id: p1),
       settings: .init(league_id: league, preset: "standard", counting_cap: 4, participation_floor: 2, buyin_cents: 7500, structure: "squads2",
                       draft_type: "random", payout_champ: 60, payout_runnerup: 25, payout_king: 15, finish: "cup_final"),
       season: .init(id: season, starts_on: "2026-05-03", ends_on: "2026-09-26", status: status, champion_squad_id: s1, runnerup_squad_id: s2,
                     points_king_member_id: m1, champion_score: status == "complete" ? 112 : nil, runnerup_score: status == "complete" ? 98.5 : nil),
-      members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Jerecho", marker: "saguaro", index_current: 12.4, handle: "jerecho")),
+      members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Avery", marker: "saguaro", index_current: 12.4, handle: "avery")),
                 .init(id: m2, role: "player", profile_id: p2, profile: .init(display_name: "Sandy Wedge", marker: "shark", index_current: 8.1, handle: "sandy"))],
       squads: [.init(id: s1, name: "Squad 1", color: 0, captain_member_id: m1, squad_members: [.init(member_id: m1)]),
                .init(id: s2, name: "Squad 2", color: 1, captain_member_id: m2, squad_members: [.init(member_id: m2)])],
@@ -40,12 +40,12 @@ enum LeagueRoomSample {
   /// §3 · a season with the money in and nobody on the table yet.
   static func empty() -> LeagueRoomModel {
     let m = LeagueRoomModel(leagueId: league)
-    m.seed(viewer: RoomViewer(id: p1, displayName: "Jerecho", marker: "saguaro", indexCurrent: 12.4, roundsCount: 0),
-           league: .init(id: league, name: "PIGL", code: "PIGL", phase: "season", commissioner_id: p1),
+    m.seed(viewer: RoomViewer(id: p1, displayName: "Avery", marker: "saguaro", indexCurrent: 12.4, roundsCount: 0),
+           league: .init(id: league, name: "North Grove (fixture)", code: "NGFX26", phase: "season", commissioner_id: p1),
            settings: .init(league_id: league, preset: "standard", counting_cap: 4, participation_floor: 2, buyin_cents: 7500,
                            structure: "solo", draft_type: "random", payout_champ: 60, payout_runnerup: 25, payout_king: 15, finish: "cup_final"),
            season: .init(id: season, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "active"),
-           members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Jerecho", marker: "saguaro"))],
+           members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Avery", marker: "saguaro"))],
            today: "2026-06-01")
     return m
   }
@@ -54,12 +54,12 @@ enum LeagueRoomSample {
   /// not a `$0` (L-10).
   static func free() -> LeagueRoomModel {
     let m = LeagueRoomModel(leagueId: league)
-    m.seed(viewer: RoomViewer(id: p1, displayName: "Jerecho", marker: "saguaro", indexCurrent: 12.4, roundsCount: 5),
-           league: .init(id: league, name: "PIGL", code: "PIGL", phase: "season", commissioner_id: p1),
+    m.seed(viewer: RoomViewer(id: p1, displayName: "Avery", marker: "saguaro", indexCurrent: 12.4, roundsCount: 5),
+           league: .init(id: league, name: "North Grove (fixture)", code: "NGFX26", phase: "season", commissioner_id: p1),
            settings: .init(league_id: league, preset: "standard", counting_cap: 4, participation_floor: 2, buyin_cents: 0,
                            structure: "solo", draft_type: "random", payout_champ: 60, payout_runnerup: 25, payout_king: 15, finish: "points_table"),
            season: .init(id: season, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "active"),
-           members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Jerecho", marker: "saguaro")),
+           members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Avery", marker: "saguaro")),
                      .init(id: m2, role: "player", profile_id: p2, profile: .init(display_name: "Sandy Wedge", marker: "shark"))],
            indiv: [.init(member_id: m1, points: 30, rounds_posted: 3), .init(member_id: m2, points: 18, rounds_posted: 2)],
            today: "2026-06-01")

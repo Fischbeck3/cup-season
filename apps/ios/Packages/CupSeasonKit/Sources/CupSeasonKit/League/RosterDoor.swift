@@ -3,7 +3,7 @@
 // cannot drift.
 //
 // Five of the seven locked leagues in production were born with a DEAD join
-// code — Fellas locked 2026-07-20 with a first tee of 2026-07-20, and its code
+// code — North Grove (fixture) locked 2026-07-20 with a first tee of 2026-07-20, and its code
 // has never worked once. D161 wrote the window as [lock, first tee) assuming
 // lock comes BEFORE first tee, and never handled lock >= first tee. Meanwhile
 // nothing in the schema could CLOSE a code, so a league that filled on day one

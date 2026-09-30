@@ -122,7 +122,7 @@ import Foundation
     #expect(ForfeitCopy.purpose.contains("nobody is asked to accept"))
     #expect(ForfeitCopy.who("Alex Rivera") == "You and Alex")
     #expect(ForfeitCopy.who(nil).hasPrefix("You and the field"))
-    #expect(ForfeitCopy.context(ForfeitHome(leagueId: Self.a), name: "the Fellas") == "On the Fellas — the result never touches its points.")
+    #expect(ForfeitCopy.context(ForfeitHome(leagueId: Self.a), name: "North Grove (fixture)") == "On North Grove (fixture) — the result never touches its points.")
     #expect(ForfeitCopy.context(ForfeitHome(opponent: Self.him)) == "Between the two of you — no season or round attached.")
     #expect(ForfeitCopy.context(ForfeitHome(scheduledRoundId: Self.b)) == "On this planned round.")
     #expect(ForfeitCopy.confirm("Alex Rivera").contains("either of you settles it with a tap"))

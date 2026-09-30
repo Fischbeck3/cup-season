@@ -89,18 +89,18 @@ import Foundation
   /// sentence is TRUE. Not one of them is what two buddies who bet on Saturday
   /// are owed — which is why the callout has its own copy.
   @Test func theRyderRoomIsWrongForAFieldOfTwo() {
-    let open = Self.room(sessions: 1, closed: 0, status: "live", aName: "Jerecho", bName: "Galen",
+    let open = Self.room(sessions: 1, closed: 0, status: "live", aName: "Avery", bName: "Blake",
                          aPts: 0, bPts: 0, perSide: 1)
-    let settled = Self.room(sessions: 1, closed: 1, status: "complete", aName: "Jerecho", bName: "Galen",
+    let settled = Self.room(sessions: 1, closed: 1, status: "complete", aName: "Avery", bName: "Blake",
                             aPts: 1, bPts: 0, perSide: 1, winner: 0)
 
     // 1 · a countdown over a thing that is one week long by construction
     #expect(RyderMath.statusChip(open) == "Live · week 1 of 1")
     // 2 · a "first to" over a single point
-    #expect(RyderMath.clinchLine(open) == "First to 1. Jerecho need 1, Galen need 1.")
+    #expect(RyderMath.clinchLine(open) == "First to 1. Avery need 1, Blake need 1.")
     // 3 · a CUP, and a series score, between two men
-    #expect(RyderMath.statusChip(settled) == "Jerecho take the cup")
-    #expect(RyderMath.clinchLine(settled) == "Final. Jerecho took it 1–0.")
+    #expect(RyderMath.statusChip(settled) == "Avery take the cup")
+    #expect(RyderMath.clinchLine(settled) == "Final. Avery took it 1–0.")
     // 4 · and the rule sentence talks about pairing "everyone"
     #expect(RyderMath.ruleSentence(RyderMath.target(open)).contains("pairs everyone"))
   }

@@ -12,8 +12,8 @@ import Foundation
   }
 
   @Test func emailShape() {
-    #expect(AuthRules.looksLikeEmail("  Jerecho@Example.com ") == true)
-    #expect(AuthRules.normalizeEmail("  Jerecho@Example.com ") == "jerecho@example.com")
+    #expect(AuthRules.looksLikeEmail("  Avery@Example.com ") == true)
+    #expect(AuthRules.normalizeEmail("  Avery@Example.com ") == "avery@example.com")
     #expect(AuthRules.looksLikeEmail("@nope") == false)
     #expect(AuthRules.looksLikeEmail("nope@") == false)
     #expect(AuthRules.isReviewer("Reviewer@CupSeason.app"))
@@ -65,7 +65,7 @@ import Foundation
   func membership(phase: String, status: String?, starts: String, ends: String) -> Me.Membership {
     let season = status.map { Me.Season(id: UUID(), number: 1, starts_on: starts, ends_on: ends, status: $0, timezone: nil, grace_hours: nil,
                                         champion_squad_id: nil, champion_member_id: nil, points_king_member_id: nil, tiebreak_rung: nil) }
-    return Me.Membership(league_id: UUID(), name: "PIGL", code: "ABC", phase: phase, sandbox: false, role: "player", member_id: UUID(), marker: "saguaro",
+    return Me.Membership(league_id: UUID(), name: "North Grove (fixture)", code: "ABC", phase: phase, sandbox: false, role: "player", member_id: UUID(), marker: "saguaro",
                          commissioner_name: nil, settings: nil, season: season, squad: nil, standing: nil, pulse: nil)
   }
 
@@ -95,9 +95,9 @@ import Foundation
     #expect(SeasonPhase.of(wtb, today: "2026-09-02") == .season(week: 5, of: 13))
     #expect(SeasonPhase.of(wtb, today: "2026-08-03") == .season(week: 1, of: 13))
     #expect(SeasonPhase.of(wtb, today: "2026-11-02") == .season(week: 13, of: 13))
-    let fellas = membership(phase: "season", status: "active", starts: "2026-07-20", ends: "2027-01-18")
+    let north grove (fixture) = membership(phase: "season", status: "active", starts: "2026-07-20", ends: "2027-01-18")
     #expect(LeagueDates.totalWeeks(start: "2026-07-20", end: "2027-01-18") == 26)
-    #expect(SeasonPhase.of(fellas, today: "2026-09-02") == .season(week: 7, of: 26))
+    #expect(SeasonPhase.of(north grove (fixture), today: "2026-09-02") == .season(week: 7, of: 26))
     // an exact one, every day of a week: week 2 runs Aug 10 → Aug 16
     for d in ["2026-08-10", "2026-08-13", "2026-08-16"] {
       guard case .season(let w, let n) = SeasonPhase.of(wtb, today: d) else { Issue.record("expected season on \(d)"); continue }

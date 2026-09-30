@@ -74,7 +74,7 @@ public enum RoundWorth {
   /// "This round" because its own header already carries the day and the
   /// course, and a card that prints one fact twice is the defect DEF-2 was
   /// filed for (L-34). A surface with no such context passes the day and the
-  /// place — *"Tomorrow at Papago"* — which is R-K's own sentence.
+  /// place — *"Tomorrow at Saguaro Flats"* — which is R-K's own sentence.
   ///
   /// `season` names the season when a round counts in more than one, and is
   /// left nil when there is only one to name.

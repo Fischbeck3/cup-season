@@ -198,7 +198,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
 
   // MARK: - the six facts, as sentences. A missing fact renders NOTHING (L-44).
 
-  /// 1 · WHO COMES BEFORE THE MONEY. "Galen runs the season (the Pro). Marcus,
+  /// 1 · WHO COMES BEFORE THE MONEY. "Blake runs the season (the Pro). Casey,
   /// Dev and two more are in." D132's noun, finally DEFINED at first contact.
   public var whoLine: String? {
     var parts: [String] = []
@@ -412,7 +412,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// The head, and the order the screen draws the facts in. WHO comes before the
   /// money, and that order is a value rather than the way a View happens to be
   /// written.
-  /// `csCovenantTitle`: "Season 2 of the Fellas" for a re-up, else the first-join head.
+  /// `csCovenantTitle`: "Season 2 of North Grove (fixture)" for a re-up, else the first-join head.
   public var head: String {
     isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name == Covenant.unnamed ? "your league" : name)" : "Before you join \(name)"
   }
