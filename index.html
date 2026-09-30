@@ -8718,6 +8718,8 @@ function csRenderComposerEyebrow(){
     pi.innerHTML = x.fig != null ? `<b class="cs-fig-s">${esc(x.fig)}</b>` : `<span class="cs-body-s">${esc(x.line)}</span>`; }
   const cn = document.getElementById('postCountingNote');
   if(cn) cn.textContent = csCountingNote();
+  /* Q38 · an empty card says what the round can add (the ceiling), on entry */
+  if(typeof postEntry === 'function' && !postEntry() && typeof csWorthBeforeGross === 'function') csWorthBeforeGross();
   /* F09 · before a gross is typed the figure's label already says what the
      golfer's round can do — recalc() paints the same three labels once it runs */
   const ss = seasonState();
@@ -13703,6 +13705,21 @@ function csPostBlockAnswered(){
     if(g && g.getAttribute('aria-invalid') && typeof postEntry === 'function' && postEntry()){ g.removeAttribute('aria-invalid'); g.classList.remove('bad'); } }
   const dEl = $('#inDate'); if(dEl && dEl.value) clear(dEl);
 }
+/* TEN / W6 · Q38 · the empty card's worth line, painted from recalc's
+   no-gross branch AND on every entry (csRenderComposerEyebrow), because the
+   composer opens without running recalc */
+function csWorthBeforeGross(){
+  const sn0=$('#calcSeason'); if(!sn0) return;
+  const live = seasonState() === 'live' && typeof csComposerWorthLine === 'function';
+  const on = $('#inDate')?.value || null;
+  sn0.textContent = live ? (csComposerWorthLine(on, undefined, null) || '') : '';
+  if(live) csLoadMyCounters(on).then(c => {
+    if(!c || c.rows==null || postEntry()) return;   /* a gross landed meanwhile: its arithmetic owns the line */
+    const now = $('#inDate')?.value || null;
+    if(String(now||isoOf(new Date())).slice(0,10) !== c.on) return;
+    const w = csComposerWorthLine(now, undefined, null); if(w && sn0.isConnected) sn0.textContent = w;
+  });
+}
 function recalc(){
   csPostBlockAnswered();
   if(typeof savePostDraft==='function') savePostDraft();   /* every card change mirrors to the draft */
@@ -13776,9 +13793,17 @@ function recalc(){
   } else {
     $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter your gross.';
     $('#calcGross').textContent='–'; $('#calcVs').textContent='–';
-    const sn0=$('#calcSeason'); if(sn0) sn0.textContent='';   /* the worth line speaks for a card, and there is none */
     state.postBlocked='card';
-    state.lastPost=null; return;
+    state.lastPost=null;
+    /* TEN / W6 · Q38 (root's ruling; D362's "said before") · before a gross, a
+       live season says what this round CAN add: the ceiling, under the league's
+       own cap, from the engine's rows. The counting rule is the bands' own line
+       below it (#postCountingNote, open in a live season). Once a gross is typed
+       the card's own arithmetic replaces the ceiling (W1), and the ceiling never
+       stays under a real score: the late answer writes only while the card is
+       still empty. Outside a live season the line stays empty, as before. */
+    csWorthBeforeGross();
+    return;
   }
   state.postBlocked=null;
   $('#calcGross').textContent=Math.round(gross);
@@ -13815,6 +13840,7 @@ function recalc(){
     /* and ask the server; when its answer lands for this same date, say it */
     if(_ss === 'live') csLoadMyCounters(on).then(c => {
       if(!c || c.rows==null) return;
+      if(state.postBlocked && state.postBlocked !== 'card') return;   /* Q38 · no worth line under a card that cannot be scored */
       const now = $('#inDate')?.value || null;
       if(String(now||isoOf(new Date())).slice(0,10) !== c.on) return;
       const w = csComposerWorthLine(now, undefined, state.lastPost ? state.lastPost.pts : null); if(w && _sn.isConnected) _sn.textContent = w;

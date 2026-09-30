@@ -471,6 +471,21 @@ const playIsWhereYouAre = async (page) => page.evaluate(() => {
   if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
   return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
 })
+/* TEN / W6 · Q38 (root's ruling; D362 "said before") · in a live season the preview says what the round CAN add before a
+   gross (the ceiling, under the league's cap), and once a gross is typed the card's own arithmetic replaces it: the
+   ceiling never stays under a real score (critique B's fix) */
+const worthBeforeGross = async (page) => {
+  await page.waitForFunction(() => /can score up to \d+/.test((document.getElementById('calcSeason') || {}).textContent || ''), null, { timeout: 4000 }).catch(() => {})
+  return page.evaluate(() => {
+    const t = ((document.getElementById('calcSeason') || {}).textContent || '').trim()
+    return /can score up to \d+/.test(t) ? true : 'before a gross the preview does not say the ceiling: ' + JSON.stringify(t)
+  })
+}
+const worthAfterGross = async (page) => page.evaluate(() => {
+  const t = ((document.getElementById('calcSeason') || {}).textContent || '').trim()
+  if (/can score up to/.test(t)) return 'the ceiling stayed under a real score: ' + JSON.stringify(t)
+  return /^(This \d+ (counts|replaces)|Your best \d+)/.test(t) ? true : 'with a gross the preview does not say the card\u2019s arithmetic: ' + JSON.stringify(t)
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
     drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^Builds at 3 rounds$' } },   /* Q48 */
@@ -681,15 +696,15 @@ const COMPOSER = [
   { family: 'composer', id: 'member', variant: 'member', short: true, title: 'Composer · a league member (the inherit line holds the last course)',
     drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^14\\.2$' } },   /* Q48 */
     /* TEN / W6 · AW2-17: the primary's type is the token's own (bg0 on act), never a typed hex */
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const i = document.createElement('i'); i.style.color = 'var(--bg0)'; document.body.appendChild(i); const bg0 = getComputedStyle(i).color; i.remove()
       const c = getComputedStyle(document.getElementById('postBtn')).color
       return c === bg0 ? true : `Add my round's type is ${c}, not --bg0 ${bg0}`
-    }) },
+    }), worthBeforeGross) },
   { family: 'composer', id: 'filled', variant: 'member', title: 'Composer · a full card entered, before Post',
     drive: async (page) => { await toComposer(page); await fillCard(page) },
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
-    check: async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' && document.getElementById('inB9').value === '41' ? true : 'the card did not take the nines') },
+    check: all(async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' && document.getElementById('inB9').value === '41' ? true : 'the card did not take the nines'), worthAfterGross) },
   /* the server refuses the card: the golfer is told nothing posted and the
      card stays on the form.
      W1 (2026-09-28): the refusal is no longer a 2.4 s toast. It stays inline
