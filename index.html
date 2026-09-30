@@ -4802,8 +4802,9 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* D289 · the rail is a CONTROL. The fill is a second copy of the same five
    stars behind a clipping window whose width IS the value, so setting a rating
    is a width change and §22's 180ms left-to-right sweep is the transition on
-   it. `--star` is the instance's size; the ten half-star buttons are absolute
-   over it, 48pt tall so the target clears 44 in the axis that can. */
+   it. `--star` is the instance's size; the five whole-star buttons are absolute
+   over it, each as wide as its star (44) and 60 tall, so every target clears
+   44 × 44 (Q34 (3): the half-star carve-out is struck). */
 .cs-stars{position:relative; display:inline-flex; gap:var(--s1); vertical-align:middle;
   line-height:0; --star:22px;}
 .cs-stars .csr-base,.cs-stars .csr-inner{display:inline-flex; gap:var(--s1); flex:0 0 auto;}
@@ -4815,12 +4816,16 @@ body:not(.noleague) #hubLeagueless{display:none;}
   pointer-events:none; transition:clip-path 180ms cubic-bezier(.2,.7,.3,1);}
 .cs-stars svg{width:var(--star); height:var(--star); flex:0 0 auto;}
 .cs-stars .csh{position:absolute; top:-8px; height:calc(var(--star) + 16px);
-  width:calc(var(--star) / 2); padding:0; margin:0; border:0; background:none;
+  width:var(--star); padding:0; margin:0; border:0; background:none;
   cursor:pointer; -webkit-appearance:none; appearance:none;}
 .cs-stars .csh:focus-visible{outline:2px solid var(--ink); outline-offset:2px; border-radius:var(--p);}
 /* AW2-19 · §16.2 · the rail between its −½ / +½ pair: bare glyphs in the
    figure face at 44 × 44, the way RateCourseSheet draws them */
 .cs-rate-ctl{display:flex; align-items:center; gap:var(--s3);}
+/* Q34 (3) · a column that cannot hold −½, five 44 stars and +½ (348) puts the pair on its own row under the rail, both at 44, rather than shrinking a star. The COLUMN decides, not
+   the viewport: at the desk a course card's column is narrower than a phone's. */
+.cs-rating{container-type:inline-size;}
+@container (max-width:347px){ .cs-rate-ctl{flex-wrap:wrap; row-gap:0;} .cs-rate-ctl .cs-stars{order:-1; flex:0 0 100%;} }
 .cs-step{flex:none; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center;
   padding:0; margin:0; background:none; border:0; color:var(--ink); cursor:pointer; -webkit-appearance:none; appearance:none;}
 .cs-step[aria-disabled="true"]{color:var(--mut); cursor:default;}
@@ -19116,10 +19121,10 @@ async function csUnrateCourse(id){
    of the same five stars behind a clipping window whose width is the value —
    so setting a rating is a WIDTH change and §22's 180ms left-to-right sweep is
    the transition on it, with nothing else on the page moving. `rate` turns on
-   ten half-star buttons, each 48pt tall over a 16pt-wide half; below this
-   system's 44 in one axis, which is the same carve-out `RateCourseSheet`
-   carries by name (`UI_SYSTEM` §16.2) and the reason the value is also
-   reversible in one tap rather than only draggable. */
+   FIVE whole-star buttons, each a 44 × 44 target or more (Q34 (3), owner,
+   2026-09-29: the half-star carve-out in §16.2 is struck). The halves are the
+   −½ / +½ pair's (at 44 too), and a tap on your own value takes the rating
+   off, as before. */
 const CS_STAR_PATH = 'M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z';
 function csStarsWidth(value){
   const v = Math.max(0, Math.min(5, Number(value) || 0));
@@ -19136,11 +19141,10 @@ function csStarsSvg(value, unrated, opts){
             : `<path d="${CS_STAR_PATH}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`)
     + `</svg>`;
   const five = fill => one(fill) + one(fill) + one(fill) + one(fill) + one(fill);
-  const taps = o.rate ? [1,2,3,4,5,6,7,8,9,10].map(i=>{
-    const val = i / 2, idx = Math.floor((i-1)/2), half = (i-1) % 2;
-    const left = `calc(${idx} * (var(--star) + var(--s1)) + ${half} * var(--star) / 2)`;
-    return `<button type="button" class="csh" data-csrate="${esc(String(o.rate))}" data-csval="${val}"`
-      + ` style="left:${left}" aria-label="${val} star${val===1?'':'s'}"></button>`;
+  const taps = o.rate ? [1,2,3,4,5].map(i=>{
+    const left = `calc(${i-1} * (var(--star) + var(--s1)))`;
+    return `<button type="button" class="csh" data-csrate="${esc(String(o.rate))}" data-csval="${i}"`
+      + ` style="left:${left}" aria-label="${i} star${i===1?'':'s'}"></button>`;
   }).join('') : '';
   return `<span class="cs-stars${o.rate?' is-rate':''}${unrated?' is-unrated':''}"`
     + ` style="--star:${starLen}"${o.rate?` role="group" aria-label="Your rating"`:' aria-hidden="true"'}>`
@@ -19153,10 +19157,9 @@ function csStarsSvg(value, unrated, opts){
    ½ and has nothing to take from an unrated course; + stops at 5. At a bound
    the button says so with aria-disabled and keeps its focus — `disabled`
    dropped a keyboard golfer's focus to <body> on the step that reached it. */
-/* the rate control's star: the sheet's 40, and never wider than the pair and
-   the rail can share a phone column — 5 stars + 4 gaps + 2 × 44 + 2 × 12 = 5s + 128,
-   inside the 16px gutters, so 40 at 375 and on the desk, 32 at 320 (AW2-19) */
-const CS_RATE_STAR = 'min(40px, calc((100vw - 160px) / 5))';
+/* the rate control's star: 44, the target's own size (Q34 (3)). 5 stars + 4 gaps + 2 × 44 + 2 × 12 = 348, so a column narrower than that gives the −½ / +½ pair its own
+   row under the rail instead of shrinking the stars (AW2-19 shrank them to 40, and to 32 at 320, which is what the owner struck) */
+const CS_RATE_STAR = '44px';   /* Q34 (3): a whole star is a 44 × 44 target, so the star is 44 wide; the −½ / +½ pair drops under the rail where the column cannot hold both (CSS) */
 function csStepOff(mine, dir){
   return dir < 0 ? !(mine != null && mine > 0.5) : (mine != null && mine >= 5);
 }

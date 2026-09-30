@@ -453,6 +453,21 @@ const teeSaid = (want) => async (page) => page.evaluate((want) => {
   if (said) { const facts = sec.querySelector('.cs-facts'), sel = sec.querySelector('select[data-cstee]'); if (!(facts.compareDocumentPosition(said) & Node.DOCUMENT_POSITION_FOLLOWING) || (sel && !(said.compareDocumentPosition(sel) & Node.DOCUMENT_POSITION_FOLLOWING))) return 'the sentence is not between the facts and the tee picker' }
   return true
 }, want)
+/* TEN / W8 · Q34 (3) (owner, 2026-09-29) · every star-rail target meets 44 x 44: FIVE whole stars, each at least 44 wide and tall (the half-star buttons, 16 wide, are gone); the halves are the
+   -1/2 / +1/2 pair's, also 44; and in a column that cannot hold pair, rail and pair (348) the pair sits under the rail, nothing running past the edge */
+const starRailTargets = async (page) => page.evaluate(() => {
+  const rail = document.querySelector('#youCourses .cs-stars.is-rate')
+  if (!rail) return 'no rating rail is drawn'
+  const stars = [...rail.querySelectorAll('.csh')]
+  if (stars.length !== 5) return `${stars.length} star targets, not five whole stars`
+  for (const b of stars) { const r = b.getBoundingClientRect(); if (r.width < 43.5 || r.height < 43.5) return `a star target is ${Math.round(r.width)}x${Math.round(r.height)}, under 44x44 (${b.getAttribute('aria-label')})` }
+  const ctl = rail.closest('.cs-rate-ctl'), steps = [...ctl.querySelectorAll('.cs-step')]
+  if (steps.length !== 2 || steps.some((b) => { const r = b.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5 })) return 'the half-star pair is not two 44px targets'
+  if ([...stars, ...steps].some((b) => b.getBoundingClientRect().right > innerWidth + 0.5 || b.getBoundingClientRect().left < -0.5)) return 'the rating control runs past the edge of the screen'
+  const rr = rail.getBoundingClientRect()
+  if (ctl.closest('.cs-rating').getBoundingClientRect().width < 348 && steps.some((b) => b.getBoundingClientRect().top < rr.bottom - 1)) return 'the pair shares the rail\u2019s row in a column that cannot hold both'
+  return true
+})
 const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
@@ -465,7 +480,7 @@ const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee)),
+    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee), starRailTargets),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -473,7 +488,7 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: all(courseBookWide, rowYours, teeSaid(true), async (page) => page.evaluate(() => {
+    check: all(courseBookWide, rowYours, teeSaid(true), starRailTargets, async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
