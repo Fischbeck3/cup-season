@@ -15078,17 +15078,18 @@ function csCourseLabel(b){
 function csCoursePlace(b){ return [b.city,b.state].filter(Boolean).join(', '); }
 /* "Saved on your phone today" — the ONLY sanctioned rendering of provenance,
    and it is never omitted beside a figure it qualifies (L-32). */
-function csCourseSavedLine(b){
+function csCourseSavedWhen(b){
   const at = new Date(b.savedAt || Date.now());
   const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const now = new Date();
-  let when;
-  if(iso(at)===iso(now)) when = 'today';
-  else if(iso(at)===iso(new Date(now.getTime()-86400000))) when = 'yesterday';
-  else when = `${DOW[at.getDay()]} ${MOS[at.getMonth()]} ${at.getDate()}`;
+  if(iso(at)===iso(now)) return 'today';
+  if(iso(at)===iso(new Date(now.getTime()-86400000))) return 'yesterday';
+  return `${DOW[at.getDay()]} ${MOS[at.getMonth()]} ${at.getDate()}`;
+}
+function csCourseSavedLine(b){
   /* D364 (F2) · leads with what the copy is FOR; "saved", never "updated" or
      "live" — the device wrote a copy that day, and that is all it knows */
-  return `Available offline · saved ${when}`;
+  return `Available offline · saved ${csCourseSavedWhen(b)}`;
 }
 function csCourseSearch(q){
   const needle = String(q||'').trim().toLowerCase();
@@ -19312,6 +19313,12 @@ function renderCourseBooks(){
   const dmd = iso => { try{ const d=localDate(iso); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return iso; } };
   const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const mineOf = b => { const r = csRatingOf(b.id); return r && r.mine != null ? Number(r.mine) : null; };
+  /* Q15 (2) · owner ruling 2026-09-29, a one-line amendment to D364: a saved course LIST says "Available offline · saved today" ONCE, at its head, not under every course (the phrase
+     repeated down the page, category courses Sp 7). D364's reason holds either way (L-32: say what the copy is and when it is from): the list's one line is true because every course on it
+     was saved the same day; where the days differ, each course keeps its own line and the list says none, so no date is ever left off a course it qualifies. */
+  const savedWhens = new Set(books.map(csCourseSavedWhen));
+  const savedOnce = savedWhens.size === 1 ? `Available offline · saved ${[...savedWhens][0]}` : null;
+  const savedHere = b => savedOnce ? null : csCourseSavedLine(b);
 
   const row = (b, liked) => {
     const tee = csBookTee(b);
@@ -19333,7 +19340,7 @@ function renderCourseBooks(){
        qualifies rather than as the first paragraph a golfer reads. */
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
-                   csCourseSavedLine(b)].filter(Boolean).join(' · ');
+                   savedHere(b)].filter(Boolean).join(' · ');
     const best = csBestAt(b.id);
     const played = csRoundsAt(b.id);
     const history = [
@@ -19418,7 +19425,7 @@ function renderCourseBooks(){
     const hardest = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si)[0];
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
-                   csCourseSavedLine(b)].filter(Boolean).join(' · ');
+                   savedHere(b)].filter(Boolean).join(' · ');
     /* W7-098 · while no tee has been NAMED the longest rated 18 leads, and the record says so (the phone does): said only where it is true and useful, i.e. the tee on show is an 18 and the picker is drawn
        (two or more rated tees); a pick, or a nine-hole course, prints nothing extra */
     const ratedTees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
@@ -19465,7 +19472,8 @@ function renderCourseBooks(){
      place above the head and the count is already honest. */
   const leadLiked = !!lead && mineOf(lead) != null;
   const likedHead = head('Courses you like', (liked.length + (leadLiked?1:0)) + ' rated');
-  box.innerHTML = (leadLiked ? likedHead : '')
+  box.innerHTML = (savedOnce ? `<p class="cs-agate-s is-phrase" data-csprov style="color:var(--mut); padding:0 0 var(--s2)">${esc(savedOnce)}</p>` : '')
+    + (leadLiked ? likedHead : '')
     + (lead ? leadHtml(lead) : '')
     + (leadLiked ? liked.map(b=>row(b,true)).join('')
        : (liked.length ? likedHead + liked.map(b=>row(b,true)).join('') : ''))

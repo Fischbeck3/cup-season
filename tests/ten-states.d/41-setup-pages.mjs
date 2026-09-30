@@ -476,6 +476,17 @@ const starRailTargets = async (page) => page.evaluate(() => {
   if (ctl.closest('.cs-rating').getBoundingClientRect().width < 348 && steps.some((b) => b.getBoundingClientRect().top < rr.bottom - 1)) return 'the pair shares the rail\u2019s row in a column that cannot hold both'
   return true
 })
+/* TEN / W8 · Q15 (2) (owner, 2026-09-29; a one-line amendment to D364) · a saved course LIST says "Available offline · saved today" ONCE, at its head, and not under every course: the phrase is on the page
+   one time (where every course was saved the same day, as here), it is the list's own line (data-csprov), and no course's label repeats it */
+const savedOncePerList = async (page) => page.evaluate(() => {
+  const box = document.getElementById('youCourses'), t = box.innerText.replace(/\s+/g, ' ')
+  const n = (t.match(/Available offline/g) || []).length
+  if (n !== 1) return `the course list says 'Available offline' ${n} times, not once`
+  const prov = box.querySelector('[data-csprov]')
+  if (!prov || prov.textContent.trim() !== 'Available offline \u00b7 saved today') return `the list's one line reads ${JSON.stringify(prov && prov.textContent.trim())}`
+  if (box.firstElementChild !== prov) return 'the list\u2019s provenance is not at its head'
+  return [...box.querySelectorAll('.cs-agate-s.is-phrase')].some((e) => e !== prov && /saved/i.test(e.textContent)) ? 'a course still carries its own saved line' : true
+})
 const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
@@ -488,7 +499,7 @@ const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee), starRailTargets),
+    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee), starRailTargets, savedOncePerList),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -496,7 +507,7 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: all(courseBookWide, rowYours, teeSaid(true), starRailTargets, async (page) => page.evaluate(() => {
+    check: all(courseBookWide, rowYours, teeSaid(true), starRailTargets, savedOncePerList, async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
