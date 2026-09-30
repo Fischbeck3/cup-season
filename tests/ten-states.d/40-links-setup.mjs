@@ -233,7 +233,20 @@ const LINKS = [
   /* signed in: the card asks before anything is claimed (R5) */
   { family: 'links', id: 'claim-signed-in-ask', variant: 'member', url: `/?claim=${CLAIM.valid}`,
     settle: async (page) => { await bootDone(page, 600); await until(page, () => document.getElementById('sheet').classList.contains('open') && /A scorecard link/.test(document.getElementById('shTitle').textContent), null, 12000); await page.waitForTimeout(500) },
-    expect: { sheet: '^A scorecard link$', selectors: { '#lnkYes': 'text:^Add it to my record$', '#lnkNo': 'visible', '#lnkAsk .lead': 'text:Add this 91 at Mesquite Wash' } } },
+    expect: { sheet: '^A scorecard link$', selectors: { '#lnkYes': 'text:^Add it to my record$', '#lnkNo': 'visible', '#lnkAsk .lead': 'text:Add this 91 at Mesquite Wash' } },
+    /* TEN / W8 · W7-169 [A2-claim-invite-2] · the guest's name (Kit) and the golfer's (Avery Fixture) differ, so the ask says both, in INK, between the facts and the note;
+       whose the scorecard is is said once (the facts line does not repeat 'Scored as') */
+    check: async (page) => page.evaluate(() => {
+      const fines = [...document.querySelectorAll('#lnkAsk p.fine')], mm = fines.find((p) => /you.re signed in as/.test(p.textContent))
+      if (!mm) return 'the ask names no mismatch: ' + JSON.stringify(fines.map((p) => p.textContent))
+      if (mm.textContent.trim() !== 'Scored as Kit — you’re signed in as Avery Fixture. Add it only if it’s yours.') return `the mismatch line reads ${JSON.stringify(mm.textContent.trim())}`
+      const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+      if (getComputedStyle(mm).color !== probe('--ink')) return `the mismatch line is ${getComputedStyle(mm).color}, not ink`
+      const note = fines.find((p) => /posts to your rounds/.test(p.textContent))
+      if (!note || !(mm.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the mismatch line is not above the note'
+      if (fines.some((p) => p !== mm && /Scored as/.test(p.textContent))) return 'whose the scorecard is is said twice (the facts line repeats Scored as)'
+      return true
+    }) },
 
   /* the league invite link, /?join=CODE (the format shareInvite writes, index.html:27224) */
   /* W4 · the invitation leads the door (#obLink) and the status keeps the next

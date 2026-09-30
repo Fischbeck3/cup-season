@@ -1469,6 +1469,23 @@
        csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
       [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
+    /* W7-169 · a guest's scorecard offered to a golfer signed in as someone else says whose it is, in ink, once; alike or unknown names say nothing new */
+    t('W7-169: the claim ask names both when the names differ',
+      [csLinkClaimMismatch('Kit', 'Avery Fixture'),
+       csLinkClaimMismatch('Avery', 'Avery Fixture'),
+       csLinkClaimMismatch('avery quinn', 'Avery Fixture'),
+       csLinkClaimMismatch('', 'Avery Fixture'),
+       csLinkClaimMismatch('Kit', ''),
+       csLinkClaimMismatch(null, null)],
+      ['Scored as Kit — you’re signed in as Avery Fixture. Add it only if it’s yours.', '', '', '', '', '']);
+    t('W7-169: whose it is is said once, in the mismatch line and not again in the facts',
+      [csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Kit', played_on: '2026-09-27' }, 'Avery Fixture').facts,
+       csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Kit', played_on: '2026-09-27' }, 'Avery Fixture').mismatch,
+       csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Avery', played_on: '2026-09-27' }, 'Avery Fixture').facts,
+       csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Avery', played_on: '2026-09-27' }, 'Avery Fixture').mismatch],
+      ['Black · Sun Sep 27', 'Scored as Kit — you’re signed in as Avery Fixture. Add it only if it’s yours.',
+       'Scored as Avery · Black · Sun Sep 27', '']);
+
     /* L-32 · a kind the CHECK does not admit yet is NOT an error the golfer
        caused, and the row removes itself rather than offering a door that fails */
     t('D241: an undeployed kind is "not yet", not a failure',

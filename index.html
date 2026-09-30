@@ -24431,7 +24431,9 @@ const CS_LINK_ASK = {
   no: 'Not now',
   person: { title: 'A buddy link', yes: 'Add as a buddy', note: 'Buddies see each other’s rounds and plans.' },
   plan:   { title: 'A plan link', yes: 'Take the seat' },
-  claim:  { title: 'A scorecard link', yes: 'Add it to my record', note: 'It posts to your rounds and counts in your seasons.' },
+  claim:  { title: 'A scorecard link', yes: 'Add it to my record', note: 'It posts to your rounds and counts in your seasons.',
+            /* W7-169 · a guest's scorecard offered to a golfer signed in as someone else names both, in ink: {guest} and {me} are the two names as written */
+            mismatch: 'Scored as {guest} — you’re signed in as {me}. Add it only if it’s yours.' },
 };
 function csLinkName(s, dflt){ return String(s == null ? '' : s).trim() || dflt; }
 function csFirstName(s){ return String(s == null ? '' : s).trim().split(/\s+/)[0] || ''; }
@@ -24448,6 +24450,15 @@ function csLinkClub(course){ return String(course == null ? '' : course).split('
 function csLinkAskClaim(gross, course){
   const at = csLinkName(csLinkClub(course), 'the course'), g = csLinkName(gross, '');
   return (g ? 'Add this ' + g + ' at ' + at : 'Add this scorecard from ' + at) + ' to your record?';
+}
+/* W7-169 [A2-claim-invite-2] · the ask ('Add this 91 at … to your record?') never said whose the scorecard is except in its quietest line (mut, 'Scored as Kit'), so a
+   signed-in golfer opening a link meant for someone else was one filled button from taking it. When the guest's first word and the golfer's differ, one line says both
+   names in ink and what to do (R5: the card asks first, from the preview alone; spec §16: a round is its golfer's own record). A first-word match is a heuristic: a nickname
+   shows the line, which is the safe error. With either name missing, or the two alike, nothing new prints (L-44). Twin: LinkConfirmation.swift owes the same producer. */
+function csLinkClaimMismatch(guest, me){
+  const g = csFirstName(guest), m = csFirstName(me);
+  if(!g || !m || g.toLowerCase() === m.toLowerCase()) return '';
+  return CS_LINK_ASK.claim.mismatch.replace('{guest}', String(guest).trim()).replace('{me}', String(me).trim());
 }
 
 /* R8 (S7, Guideline 1.2) · MUTE BECOMES BLOCK, and it is one real thing. The
@@ -39075,6 +39086,7 @@ async function csLinkAskOnce(card){
       openSheet(card.title, CS_LINK_ASK.eyebrow, `<div id="lnkAsk">
         <p class="lead" style="padding-top:0">${card.mark ? card.mark + ' ' : ''}${esc(card.ask)}</p>
         ${card.facts ? `<p class="fine" style="padding-top:4px">${esc(card.facts)}</p>` : ''}
+        ${card.mismatch ? `<p class="fine" style="padding-top:4px; color:var(--ink)">${esc(card.mismatch)}</p>` : ''}
         ${card.note ? `<p class="fine" style="padding-top:4px">${esc(card.note)}</p>` : ''}
         <button class="btn" id="lnkYes" style="margin-top:12px">${esc(card.yes)}</button>
         <button class="btn dark" id="lnkNo" data-decline style="margin-top:8px">${esc(CS_LINK_ASK.no)}</button>
@@ -39099,7 +39111,7 @@ async function csLinkAskOnce(card){
 /* R5 · the card, from the preview alone. Every line is a fact the preview
    returned — a line it did not carry is left out, never guessed (L-44). */
 function csLinkDay(iso){ return /^\d{4}-\d{2}-\d{2}$/.test(String(iso || '')) ? csDowMonDay(iso) : ''; }
-function csLinkCard(kind, info){
+function csLinkCard(kind, info, me){
   const i = info || {};
   if(kind === 'person'){
     const n = Number(i.rounds_n || 0);
@@ -39116,11 +39128,14 @@ function csLinkCard(kind, info){
              facts: [tee ? tee + ' tee' : '', csPlanWhoLine(i)].filter(Boolean).join(' · ') };
   }
   const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
+  /* W7-169 · whose it is is said ONCE: in ink under the facts when the names differ, in the facts' own 'Scored as' otherwise */
+  const mismatch = csLinkClaimMismatch(i.guest_name, me === undefined ? window.CS?.profile?.display_name : me);
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
-           mark: '', ask: csLinkAskClaim(i.gross, i.course_label),
-           facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
+           mark: '', ask: csLinkAskClaim(i.gross, i.course_label), mismatch,
+           facts: [i.guest_name && !mismatch ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
 }
 window.csLinkCard = csLinkCard;
+window.csLinkClaimMismatch = csLinkClaimMismatch;   /* W7-169 · the pins reach the producer through window */
 /* R5 · what a claim link is, before anything is claimed. The two sources
    answer a token they do not know differently — claim_round_info with null,
    scan_claim_info with a raise — so DEAD is said only when both have
