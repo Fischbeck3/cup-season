@@ -363,7 +363,7 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
     return "+\(points) point\(points == 1 ? "" : "s")" + (squad.map { " · counts for \($0)" } ?? " · counts this season")
   }
   public static let shareLabel = "Share the card"
-  public static let backLabel = "Back to the board"
+  public static let backLabel = "Close"
 
   /// The exact payload the recap-card path expects (matches the epilogue).
   public var recap: PostRecap {

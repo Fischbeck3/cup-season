@@ -11,4 +11,6 @@ import Testing
     #expect(LiveCopy.stepperLabel(s, player: 0, by: 1) == "One more stroke for Avery Fixture, hole 1, now 5")
   }
 
+  @Test func ceremonyExitNamesTheClose() { #expect(PostCeremony.backLabel == "Close") }
+
 }
