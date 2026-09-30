@@ -3574,6 +3574,9 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .msgrow .bar{width:3.5px; align-self:stretch; border-radius:2px; flex:none;}
 .msgrow .mtxt{font-size:13.5px; line-height:1.6; color:var(--ink); letter-spacing:.01em;}
 .msgrow .mtxt b{color:var(--ink); font-weight:650; margin-right:6px;}
+/* TEN / W7-132 · the composer's foot (the answer and Add my round) sticks above the tab band below the desk, at the board composer's
+   own offset; an opaque ground so the card never shows through; in flow at the desk, where the tab band is gone */
+@media(max-width:959px){ .postfoot{position:sticky; bottom:84px; z-index:10; background:var(--bg0); padding-top:var(--s2);} }
 .composer{
   position:sticky; bottom:84px; z-index:10;
   display:flex; gap:8px; padding:10px 0 6px; margin-top:14px;
@@ -7035,8 +7038,14 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                    take stays here, tied to the button (aria-describedby), until
                    the card changes. It was a 2.4 s toast, and focus fell to the
                    page. -->
+              <!-- TEN / W7-132 · the action and its answer ride one foot, sticky
+                   above the tab band below the desk, so Add my round stays in
+                   reach while the golfer types the gross or scrolls the
+                   partner row; #postReset stays below it, outside the foot -->
+              <div class="postfoot">
               <p class="posterr" id="postErr" role="alert" hidden></p>
               <button class="btn" id="postBtn">Add my round</button>
+              </div>
               <!-- abandonment is a real path, not a refresh (pilot: a tested,
                    half-filled composer lingered for days) — and it is armed
                    (N4-022, §7.1): it clears the card, the photo and the draft

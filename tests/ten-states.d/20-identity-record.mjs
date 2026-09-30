@@ -613,7 +613,12 @@ const COMPOSER = [
       const f = document.getElementById('postCardFold')
       if (!f || f.offsetParent === null || getComputedStyle(f).display === 'none') return 'the course fold is shut on first open'
       const chips = [...document.querySelectorAll('#courseChips button, #courseChips [data-ci], #courseChips .chip')].filter((c) => c.getBoundingClientRect().height > 0)
-      return chips.length ? true : 'the recent courses are not on show under the course search'
+      if (!chips.length) return 'the recent courses are not on show under the course search'
+      /* TEN / W7-132 · below the desk, Add my round is in reach on the first screen, above the tab band */
+      if (innerWidth >= 960) return true
+      const b = document.getElementById('postBtn').getBoundingClientRect(), tabs = document.querySelector('nav.tabbar')
+      const floor = tabs && tabs.getBoundingClientRect().height > 0 ? tabs.getBoundingClientRect().top : innerHeight
+      return b.top >= 0 && b.bottom <= floor + 0.5 ? true : `Add my round is out of reach (top ${Math.round(b.top)}, bottom ${Math.round(b.bottom)}, tab band at ${Math.round(floor)})`
     }) },
   /* a tee picked from the course search: the course, the rating and the slope
      arrive together, so nothing blocks and the preview scores the card */
