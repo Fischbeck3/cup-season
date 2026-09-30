@@ -2483,6 +2483,14 @@ body.guestlive #onboard{display:none !important;}
    height), so the hole and its arrows stay on screen with the rows — one
    navigator, never a second copy of it. */
 #playEntry .holehdr{position:sticky; top:0; z-index:15;}   /* over the rows, under the board (60) and the header (20) */
+/* TEN / W7-119 · D368: one ember object, a 2px stroke, beside the card for one hole; an eagle is larger,
+   never a second colour. The tally under the strip is facts in agate */
+.holemoment{display:flex; align-items:baseline; gap:8px; margin:8px 0 4px; padding-left:8px; border-left:2px solid var(--brand);}
+.holemoment[hidden], .holetally[hidden]{display:none;}
+.holemoment b{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); text-transform:uppercase; color:var(--brand);}
+.holemoment.is-eagle b{font-size:22px;}
+.holemoment span, .holetally{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
+.holetally{margin:4px 0 0;}
 .holenextfoot{min-height:50px; margin-top:var(--s3);}
 .holenextfoot[hidden]{display:none;}   /* .btn is display:flex, which the UA's [hidden] cannot beat */
 @media(min-width:740px){ .holenextfoot{display:none;} }   /* W7-056 · a phone held upright only */
@@ -6926,7 +6934,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               </div>
               <button id="holeNext" aria-label="Next hole"><svg class="ic r" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
             </div>
+            <!-- TEN / W7-119 [A2-play-11] · D368's web half: the good hole, said once, for one hole, beside
+                 the header (csMomentLeave); never a modal, never over the next-hole target -->
+            <div class="holemoment" id="holeMoment" role="status" aria-live="polite" hidden></div>
             <div class="holedots" id="holeDots" aria-hidden="true"></div>
+            <p class="holetally" id="holeTally" hidden></p>
             <div id="playerRows"></div>
             <!-- TEN / W7-056 [A2-play-9] · the next hole where the thumb is: under
                  the last golfer's row, on a phone held upright. It never
@@ -16618,6 +16630,7 @@ window.liveRecv = function(m){
     if((L.scts[pi][h]||0) >= cts) return;
     L.scores[pi][h] = m.s==null ? null : Number(m.s);
     L.scts[pi][h]=cts;
+    if(pi===csMomentSeat() && _csMoment.ledger && _csMoment.lr===L.lr){ _csMoment.ledger.seen('me', h+1, cts, L.scores[pi][h], PAR[h], csMomentKnown()); csMomentTally(); }   /* TEN / W7-119 · an echo of my card arms, never speaks */
   } else if(m.t==='wolf'){
     const h=(m.h|0)-1;
     if(h<0 || h>17) return;
@@ -16642,7 +16655,9 @@ window.liveRecvState = function(d){
     if((L.scts[pi][h]||0) >= cts) return;
     L.scores[pi][h] = s.strokes==null ? null : Number(s.strokes);
     L.scts[pi][h]=cts;
+    if(pi===csMomentSeat() && _csMoment.ledger && _csMoment.lr===L.lr) _csMoment.ledger.seen('me', h+1, cts, L.scores[pi][h], PAR[h], csMomentKnown());   /* TEN / W7-119 · a reconcile arms, never speaks */
   });
+  csMomentTally();
   const gs=d.round.game_state||{};
   Object.keys(gs).forEach(k=>{
     const h=parseInt(k.slice(1),10)-1;
@@ -17490,7 +17505,46 @@ function renderPlanBridge(){
       : (sr.course_label?'Course loaded — pick your group below':'Pick your group below'));
   });
 }
+/* TEN / W7-119 [A2-play-11] · D368's web half, the phone's LiveHoleMoment + LiveMomentTally
+   (LiveRoundStore.commitMoment / primeMomentLedger): the viewing golfer's own seat only. Leaving a hole
+   commits its score once; hydration, a reconnect and a remote echo arm the ledger silently, so nothing
+   already on the card replays. Par must be known (PARS_VERIFIED). Nothing scores, posts or notifies.
+   `var`, not `let`: renderPlay can run during the classic boot chain. */
+var _csMoment = { ledger:null, lr:null };
+function csMomentSeat(){ return (typeof LIVE!=='undefined' && Array.isArray(LIVE)) ? LIVE.findIndex(p=>p && p.me) : -1; }
+function csMomentKnown(){ return !!(window.csParsVerified && window.csParsVerified()); }
+function csMomentRev(pi, h){ const L=state.live; return (L && L.scts && L.scts[pi] && L.scts[pi][h]) || 0; }
+function csMomentTally(){
+  const t=document.getElementById('holeTally'); if(!t) return;
+  const line=_csMoment.ledger ? _csMoment.ledger.tallyLine('me') : null;
+  t.textContent=line||''; t.hidden=!line;
+}
+function csMomentPaint(m, hole){
+  const box=document.getElementById('holeMoment'); if(!box) return;
+  if(!m){ box.hidden=true; box.textContent=''; return; }
+  box.className='holemoment'+(m==='eagle'?' is-eagle':'');
+  box.innerHTML=`<b>${esc(CS_MOMENT_WORD[m])}</b><span>on ${hole}</span>`;
+  box.hidden=false;
+}
+function csMomentArm(){
+  const L=state.live; if(!L || !L.active) return;
+  if(_csMoment.lr!==L.lr || !_csMoment.ledger){ _csMoment.ledger=csMomentLedger(); _csMoment.lr=L.lr; csMomentPaint(null); }
+  const pi=csMomentSeat(); if(pi<0) return;
+  const known=csMomentKnown();
+  (L.scores[pi]||[]).forEach((v,h)=>_csMoment.ledger.seen('me', h+1, csMomentRev(pi,h), v, PAR[h], known));
+  csMomentTally();
+}
+function csMomentLeave(h){
+  const L=state.live; if(!L || !L.active) return;
+  csMomentPaint(null);   /* the moment is for one hole: leaving it clears the last one */
+  if(_csMoment.lr!==L.lr || !_csMoment.ledger){ csMomentArm(); return; }   /* a ledger armed now never speaks */
+  const pi=csMomentSeat(); if(pi<0 || h<0 || h>=(L.scores[pi]||[]).length) return;
+  const m=_csMoment.ledger.commit('me', h+1, csMomentRev(pi,h), L.scores[pi][h], PAR[h], csMomentKnown());
+  csMomentTally();
+  if(m){ csMomentPaint(m, h+1); try{ if(navigator.vibrate) navigator.vibrate(m==='eagle'?[12,40,12]:12); }catch(_){} }
+}
 function renderPlay(){
+  if(state.live && state.live.active && _csMoment.lr!==state.live.lr) csMomentArm();   /* TEN / W7-119 · arm silently on a round's first paint (tee-off, a reload) */
   const setup = state.live.stage==='setup';
   if(setup && document.body.classList.contains('cardview')) setCardView(false);
   $('#playSetup').style.display = setup ? '':'none';   /* W7-054 · '' lets the desk's grid apply */
@@ -17938,11 +17992,11 @@ function csLiveSticky(){
   const hh=document.querySelector('#playEntry .holehdr');
   if(hh){ const line = (top + sb.offsetHeight + 6) + 'px'; if(hh.style.top !== line) hh.style.top = line; }
 }
-$('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
-$('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
+$('#holePrev').addEventListener('click',()=>{csMomentLeave(state.live.hole);state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
+$('#holeNext').addEventListener('click',()=>{csMomentLeave(state.live.hole);state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
 /* W7-056 · the foot's Next hole is the header's, then the rest at the top of
    the new hole (the first golfer's row, under the board), as tee off rests */
-$('#holeNextFoot')?.addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();csLiveRest();});
+$('#holeNextFoot')?.addEventListener('click',()=>{csMomentLeave(state.live.hole);state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();csLiveRest();});
 
 /* the tee-off match preview: sides + who gets strokes WHERE — the first-tee
    argument, settled before anyone hits (§2.2). Recomputed on every roster,

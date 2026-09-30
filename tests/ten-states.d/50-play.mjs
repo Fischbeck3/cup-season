@@ -290,6 +290,47 @@ export default [
         return !scrolls || stuck ? true : 'the page scrolls but the scoreboard did not stick'
       })) },
 
+  /* TEN / W7-119 [A2-play-11] · D368's web half: my birdie on the sixth, committed by leaving the hole, is said
+     once beside the header ('BIRDIE on 6', one 2px ember stroke, never over Next hole) and tallied under the
+     strip; going back and leaving again with the same score does not replay it */
+  { family: 'play', id: 'moment', variant: 'member', fullPage: false, title: 'Live round · a birdie on the sixth, said once as the golfer leaves the hole',
+    drive: async (page) => {
+      await toSetup(page)
+      await pickCourse(page, 'Saguaro', 'Saguaro Flats', 'Blue')
+      await addGolfers(page, ['Devon Testwell', 'Blake Sample'])
+      await teeOff(page)
+      await scoreHoles(page, 6, 3)
+      await toastGone(page)
+      await click(page, '#holeNext')
+      await until(page, () => document.getElementById('holeNum').textContent.trim() === 'HOLE 7')
+      /* as the scoring state rests: the rows in view, the scoreboard stuck (at 375 a page resting at its
+         top never settles for the screenshot) */
+      await page.locator('#holeDots').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 7$' } },
+    check: async (page) => {
+      const r = await page.evaluate(() => {
+        const m = document.getElementById('holeMoment'), t = document.getElementById('holeTally'), nx = document.getElementById('holeNext')
+        if (!m || m.hidden) return 'no moment beside the header after a birdie'
+        if (!/^birdie\s*on 6$/i.test(m.textContent.replace(/\s+/g, ' ').trim())) return 'the moment reads ' + JSON.stringify(m.textContent)
+        const probe = document.createElement('i'); probe.style.color = 'var(--brand)'; m.appendChild(probe); const ember = getComputedStyle(probe).color; probe.remove()
+        const st = getComputedStyle(m)
+        if (st.borderLeftWidth !== '2px' || st.borderLeftColor !== ember) return 'the moment has no 2px ember stroke'
+        const a = m.getBoundingClientRect(), b = nx.getBoundingClientRect()
+        if (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) return 'the moment covers Next hole'
+        if (!t || t.hidden || !/^1 birdie$/i.test(t.textContent.trim())) return 'the tally reads ' + JSON.stringify(t && t.textContent)
+        return true
+      })
+      if (r !== true) return r
+      /* back to the sixth and off it again, the score unchanged: no replay; then restore the capture's hole */
+      await click(page, '#holePrev'); await click(page, '#holeNext')
+      await page.waitForTimeout(150)
+      const again = await page.evaluate(() => document.getElementById('holeMoment').hidden)
+      await page.evaluate(() => { csMomentPaint('birdie', 6) })
+      return again ? true : 'leaving the sixth again replayed the birdie'
+    } },
+
   /* the same round with the score writes failing: the scores stay on this
      phone, queued, and the line under the scoreboard says so.
      W1 (2026-09-28): the line says it in words now — "6 scores saved on this
