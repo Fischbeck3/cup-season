@@ -554,11 +554,13 @@ public enum LeagueCopy {
       return LeagueDates.dowMonDay(LeagueDates.cupFinalStart(end: e, calendar: calendar), calendar: calendar)
     }
     let from = when.map { " from \($0)" } ?? ""
+    // Q35 (a) · the Cup Final still fits the monthly counting limit (the wizard's words; web CS_FINAL_COUNTING)
+    let counting = "Final rounds must also fit the monthly counting limit; an earlier round can take a place."
     if structure == "squads2" {
-      return "Both squads play a four-week Cup Final\(from) — scored fresh, and the leader carries +10 in. \(tiebreak)"
+      return "Both squads play a four-week Cup Final\(from) — scored fresh, and the leader carries +10 in. \(counting) \(tiebreak)"
     }
     let who = structure == "solo" ? "The top 2 golfers" : "The top 2 squads"
-    return "\(who) go into a four-week Cup Final\(from) — scored fresh, so the weeks before it decide who is in, not who wins. \(tiebreak)"
+    return "\(who) go into a four-week Cup Final\(from) — scored fresh, so the weeks before it decide who is in, not who wins. \(counting) \(tiebreak)"
   }
 
   // MARK: - Q-27 · the floor sentence

@@ -139,7 +139,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
   @Test("the defaults are the web's: cup_final and squads2; no season → no date clause")
   func defaults() {
     #expect(LeagueCopy.endgame(finish: nil, structure: nil, startsOn: nil, endsOn: nil)
-            == "Both squads play a four-week Cup Final — scored fresh, and the leader carries +10 in. Level on points? Months won breaks it.")
+            == "Both squads play a four-week Cup Final — scored fresh, and the leader carries +10 in. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Level on points? Months won breaks it.")
     #expect(LeagueCopy.endgame(finish: "points_table", structure: "solo", startsOn: nil, endsOn: nil)
             == "The points table crowns it — every round counts to the last day. Level on points? Months won breaks it.")
     let m = heroMembership(structure: "squads2")

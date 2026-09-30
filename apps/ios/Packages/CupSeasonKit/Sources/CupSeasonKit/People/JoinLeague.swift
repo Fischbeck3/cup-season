@@ -318,9 +318,11 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     // five-week season. The words stay the phone's (root's covenant ruling).
     let shortSeason = (weeks ?? 0) > 0 && (weeks ?? 0) < 6
     if finish == "points_table" || shortSeason { return "The season's points decide it. No reset." }
-    if finish == "cup_final", structure == "squads2" { return "Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start." }
+    // Q35 (a) · the Cup Final still fits the monthly counting limit (web csCovenantFacts + CS_FINAL_COUNTING)
+    let counting = "Final rounds must also fit the monthly counting limit; an earlier round can take a place."
+    if finish == "cup_final", structure == "squads2" { return "Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start. \(counting)" }
     if finish == "cup_final", let structure {
-      return structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh." : "The top two squads qualify for a four-week Cup Final, scored fresh."
+      return structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh. \(counting)" : "The top two squads qualify for a four-week Cup Final, scored fresh. \(counting)"
     }
     if finish == "cup_final" { return "It ends with a four-week Cup Final between the top two." }
     return "The season’s ending will appear here when its rules are set."

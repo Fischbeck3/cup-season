@@ -45,7 +45,7 @@ struct HomeStateFixtureTests {
     let card = try #require(p.items.first { $0.key.hasPrefix("afterplan:") })
     #expect(card.answerable, "the fixture must exercise the two ways out, not just the door")
     #expect(card.route == .composer)
-    #expect(card.plan?.courseLabel == "Papago")
+    #expect(card.plan?.courseLabel == "Saguaro Flats")   // X37: the fixture's course is the cast's
     #expect(card.plan?.courseId == nil, "a plan with no catalogue course invents none")
     #expect(card.action == "Add my round")
     // the day is a token, so the fixture never reads stale
