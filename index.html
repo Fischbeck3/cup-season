@@ -6237,8 +6237,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <button class="btn quiet" id="obJoin">I have a league code</button>
       <div class="joinbox" id="joinbox">
       <label class="f" for="joinCode">League code</label>
-      <input id="joinCode" maxlength="8" autocomplete="off" aria-describedby="obStatus">
-      <button class="btn" id="joinGo">Join</button>
+      <!-- W7-166 [A2-door-8, B2-door-6, B2-door-11] · the field shows the SHAPE of a code (codeFor mints four letters of the league's name, then four letters or digits) and asks for the characters keyboard, as the phone's field does; the button says what a tap does, not 'Join' before anything is joined (DoorView: 'That's my code') -->
+      <input id="joinCode" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="NORT4K7Q" aria-describedby="obStatus">
+      <button class="btn" id="joinGo">That’s my code</button>
     </div>
 <!-- D83: the demo season retired — the door sells with its own splash -->
     <p class="fine" style="text-align:left; margin-top:20px">By continuing you agree to the <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Terms</a> &amp; <a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Privacy Policy</a>.</p>
@@ -34602,6 +34603,9 @@ $('#obJoin').addEventListener('click', () => {
   $('#codebox').classList.remove('open');
   const rs=$('#obResend'); if(rs) rs.style.display='none';
   $('#joinbox').classList.add('open');
+  /* W7-166 · the status line follows THIS box (as openEmailBox does for its own) so an answer sits under the field it is about, and it says where a code comes from */
+  $('#joinbox').insertAdjacentElement('afterend', $('#obStatus'));
+  authStatus('From your Pro’s invite.');
   $('#joinCode').focus();
   /* W7-161 [B2-door-2] · with the keyboard up (a 380px view) the league-code field and Join sat sheared by the bottom edge: this branch placed nothing, and the email
      branch reaches authStatus, which lands its sentence. The box lands mid-view as that sentence does, so the field, Join and the line under them are whole (§13.2a). */
@@ -34986,14 +34990,15 @@ function showCovenant(info){
 
 $('#joinGo').addEventListener('click', async () => {
   const code = $('#joinCode').value.trim().toUpperCase();
-  if(!code) return toast('Enter the league code');
+  /* W7-166 · a refusal is said under the field it is about (authStatus marks #joinCode invalid, and the typed code stays in view), not in a toast that covers it */
+  if(!code) return authStatus('Enter the league code.', 'err');
   if(!CS.user){
     /* validate BEFORE the email round-trip: a typo fails here, not after the
        code arrives. `undefined` = RPC not deployed yet \u2192 arm anyway (degrade). */
     let name;
     try { const { data } = await sb.rpc('league_by_code', { p_code: code }); name = data; }
     catch(e){ name = undefined; }
-    if(name === null){ toast(CS_NO_LEAGUE); return; }
+    if(name === null){ authStatus(CS_NO_LEAGUE, 'err'); return; }
     localStorage.setItem('cs_code', code);
     if(name) localStorage.setItem('cs_code_name', name); else localStorage.removeItem('cs_code_name');
     openEmailBox($('#joinbox'), name

@@ -140,6 +140,24 @@ const doorHeld = (secs) => async (page) => page.evaluate((secs) => {
   if (!/Have a code from an earlier email\? Enter it below\.$/.test(st.textContent.trim())) return `the status does not offer the code field: ${JSON.stringify(st.textContent.trim())}`
   return true
 }, secs)
+/* TEN / W8 · W7-166 [A2-door-8, B2-door-6, B2-door-11] · the league-code branch: the field shows the SHAPE of a code (placeholder NORT4K7Q) and asks for the characters keyboard, the button says
+   what a tap does ("That's my code", not "Join" before anything is joined), and the status line FOLLOWS the box: it says where a code comes from until an answer replaces it, and a refusal is
+   said there (never a toast over the field) with the field marked invalid and the typed code kept */
+const doorCodeBranch = (want) => async (page) => page.evaluate((want) => {
+  const f = document.getElementById('joinCode'), b = document.getElementById('joinGo'), st = document.getElementById('obStatus'), box = document.getElementById('joinbox')
+  if (f.getAttribute('placeholder') !== 'NORT4K7Q') return `the field's placeholder is ${JSON.stringify(f.getAttribute('placeholder'))}, not the shape of a code`
+  if (f.getAttribute('autocapitalize') !== 'characters') return 'the field does not ask for the characters keyboard'
+  if (b.textContent.trim() !== 'That’s my code') return `the button reads ${JSON.stringify(b.textContent.trim())}`
+  if (box.nextElementSibling !== st) return 'the status line does not follow the league-code box'
+  const said = st.textContent.trim(), err = st.classList.contains('err')
+  if (want.said !== undefined && said !== want.said) return `the status reads ${JSON.stringify(said)}, not ${JSON.stringify(want.said)}`
+  if (want.err !== undefined && err !== want.err) return want.err ? 'the answer is not marked as a refusal' : 'the helper line is marked as an error'
+  if (f.getAttribute('aria-invalid') !== (want.err ? 'true' : 'false')) return `the field is aria-invalid=${f.getAttribute('aria-invalid')}`
+  if (want.kept !== undefined && f.value !== want.kept) return `the typed code was lost: ${JSON.stringify(f.value)}`
+  const toast = document.getElementById('toast')
+  if (toast && toast.classList.contains('show') && toast.textContent.trim()) return `a toast covers the field: ${JSON.stringify(toast.textContent.trim())}`
+  return true
+}, want)
 const CORE = [
   /* ------------------------------------------------------------ door */
   { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } }, check: async (page) => { const r = await doorEdgesMut(['#obJoin'])(page); return r === true ? doorHelp(false)(page) : r } },
@@ -199,12 +217,21 @@ const CORE = [
       const e = await doorEdgesMut(['#joinCode'])(page); if (e !== true) return e
       /* TEN / W8 · W7-161 [B2-door-2] · with the keyboard up (the 375x380 proxy) the league-code field and Join land WHOLE, mid-view, as the email branch's sentence does: the
          box's bottom edge clears the view by a 44px target (§13.2a: whole or clearly half-scrolled, never sheared) */
-      return page.evaluate(() => {
+      const cut = await page.evaluate(() => {
         if (innerHeight > 400) return true
         const b = document.getElementById('joinbox').getBoundingClientRect()
         return b.bottom + 44 <= innerHeight + 0.5 && b.top >= 0 ? true : `the league-code box is cut by the ${innerHeight}px view: top ${Math.round(b.top)}, bottom ${Math.round(b.bottom)}`
       })
+      return cut === true ? doorCodeBranch({ said: 'From your Pro’s invite.', err: false })(page) : cut
     } },
+  /* W7-166 · an empty tap on 'That's my code' is answered under the field, in the refusal's own line */
+  { family: 'door', id: 'league-code-empty', variant: 'signed_out', url: '/', short: true, expectConsole: [/^\[cs\] Enter the league code/],
+    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await click(page, '#joinGo'); await until(page, () => /err/.test(document.getElementById('obStatus').className)); await page.waitForTimeout(700) },
+    expect: { door: true, selectors: { '#obStatus.err': 'text:^Enter the league code\\.$' } }, check: doorCodeBranch({ said: 'Enter the league code.', err: true, kept: '' }) },
+  /* W7-166 · a code that matches no league is answered there too, and the typed code stays under the sentence */
+  { family: 'door', id: 'league-code-wrong', variant: 'signed_out', url: '/', short: true, expectConsole: [/^\[cs\] No league with that code/],
+    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await page.fill('#joinCode', 'ZZZZ9999'); await click(page, '#joinGo'); await until(page, () => /err/.test(document.getElementById('obStatus').className)); await page.waitForTimeout(700) },
+    expect: { door: true, selectors: { '#obStatus.err': 'text:^No league with that code\\. Check with your Pro\\.$' } }, check: doorCodeBranch({ said: 'No league with that code. Check with your Pro.', err: true, kept: 'ZZZZ9999' }) },
 
   /* ---------------------------------------------------- onboarding gate */
   { family: 'onboarding', id: 'card-gate', variant: 'no_card', short: true,
