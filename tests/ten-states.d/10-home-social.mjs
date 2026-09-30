@@ -179,6 +179,12 @@ const onScreen = (re, what) => async (page) => page.evaluate(({ re, what }) => {
   const t = ['homeLead', 'homeDeck'].map((i) => (document.getElementById(i) || {}).innerText || '').join(' ').replace(/\s+/g, ' ')
   return new RegExp(re).test(t) ? true : `${what} is not on Home`
 }, { re, what })
+/* TEN / W8 · W7-105 [B2-home-18] · the sidebar's five destinations run the tab bar's order (D222, the phone's NavSlot): Home, Compete, Play, Golfers, You; at the desk width, where it is drawn */
+const sidebarOrder = async (page) => page.evaluate(() => {
+  const side = [...document.querySelectorAll('aside.side .navitem[data-v]:not(.sub)')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => b.dataset.v)
+  if (!side.length) return true
+  return side.slice(0, 5).join(',') === 'home,compete,record,golfers,stats' ? true : `the sidebar runs ${side.slice(0, 5).join(', ')}, not Home, Compete, Play, Golfers, You`
+})
 /* TEN / W8 · W7-075 [A2-home-13, B2-home-12] · one day, one format: every round on Home's wire prints its day as HomeWireCopy.dayMarker does (Today, a weekday inside six days, else 'Sep 25'), on the record's
    line and on the photo plate alike; a stamped card said 'FRI' over an unstamped card that said 'SEP 25' for the same Friday */
 const dayMarkers = async (page) => page.evaluate(() => {
@@ -201,7 +207,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

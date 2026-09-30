@@ -880,8 +880,9 @@
     const nav = [...document.querySelectorAll('.side .navitem[data-v]')].map(b => b.dataset.v);
     const tabs = [...document.querySelectorAll('.tabbar .tab[data-v]')].map(b => b.dataset.v);
 
-    t('D222: the sidebar leads with the five destinations',
-      nav.slice(0, 4), ['home', 'compete', 'golfers', 'record']);
+    t('D222 + W7-105: the sidebar leads with the five destinations, in the tab bar\'s and the phone\'s order (Play before Golfers)',
+      nav.slice(0, 5), ['home', 'compete', 'record', 'golfers', 'stats']);
+    t('W7-105: the sidebar\'s five are the tab bar\'s five, in the same order', nav.slice(0, 5), tabs.slice(0, 5));
     /* WAVE 11 / D280 · the disclosure is gone: a 900px column has no reason to
        hide four destinations behind a caret, and the caret's label was the one
        word LV-12 ruled out. The section is a LIST below a rule now, and two of
