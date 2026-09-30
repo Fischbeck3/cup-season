@@ -137,7 +137,7 @@ import Testing
     let disk = tmpDisk()
     await disk.save(book("a", label: "Saguaro Flats"))
     await disk.save(book("b", label: "Encanto 9"))
-    #expect(await disk.search("papa").map(\.id) == ["a"])
+    #expect(await disk.search("saguaro").map(\.id) == ["a"])
     #expect(await disk.search("mesa").count == 2)      // the place matches too
     #expect(await disk.search("pebble").isEmpty)         // never played, never kept
     #expect(await disk.search("p").isEmpty)              // one letter is not a search

@@ -158,7 +158,7 @@ struct PersonHomedKudosTests {
     let rx = HomeSocial.fold(kudos: kudos, names: names, me: me, myMemberIds: [myMemA], memberToProfile: roster)
     #expect(rx[postOnPerson]?["azalea"]?.n == 2)
     #expect(rx[postOnPerson]?["azalea"]?.me == true)
-    #expect(rx[postOnPerson]?["azalea"]?.who.sorted() == ["Blake", "Avery"])
+    #expect(rx[postOnPerson]?["azalea"]?.who.sorted() == ["Avery", "Blake"])
     // D309 · the vocabulary is the four tokens now, and the rule survives the
     // change intact: an eagle stays an eagle and never becomes the quick token
     #expect(rx[postOnPerson]?["eagle"]?.n == 1)

@@ -280,7 +280,7 @@ import Foundation
     let c = WizardLockCall(d, leagueId: league, name: "North Grove (fixture)", today: "2026-08-27")
     let j = try json(c)
     #expect(j["p_league"] as? String == league.uuidString.lowercased() || j["p_league"] as? String == league.uuidString)
-    #expect(j["p_name"] as? String == "NGFX26" && j["p_preset"] as? String == "cutthroat" && j["p_handicap_allowance"] as? Int == 90)
+    #expect(j["p_name"] as? String == "North Grove (fixture)" && j["p_preset"] as? String == "cutthroat" && j["p_handicap_allowance"] as? Int == 90)
     #expect(j["p_verification"] as? String == "ghin" && j["p_floor_penalty"] as? String == "forfeit")
     #expect(j["p_counting_cap"] as? Int == 2 && j["p_participation_floor"] as? Int == 3 && j["p_buyin_cents"] as? Int == 5000)
     #expect(j["p_season_months"] as? Int == 3)           // 13 weeks say 3, never a clamped minimum

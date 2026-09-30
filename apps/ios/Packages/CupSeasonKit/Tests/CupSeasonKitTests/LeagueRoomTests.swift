@@ -659,7 +659,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(model.story.text == "Squad 2 lead by 12. Squad 1 a good weekend back.")
     #expect(model.potTotal == 150 && model.paidCount == 1 && model.collectedDollars == 75 && model.proName == "Joe")
     #expect(model.clock.currentWeek == 5 && model.clock.totalWeeks == 21 && !model.clock.atStarter)
-    #expect(model.inviteURL?.absoluteString == "https://cupseason.app/?join=NGFX26" && model.inviteText == "You're invited to NGFX26 on Cup Season")
+    #expect(model.inviteURL?.absoluteString == "https://cupseason.app/?join=NGFX26" && model.inviteText == "You're invited to North Grove (fixture) on Cup Season")
     #expect(LeagueRoomModel.ceremonyKey(d) == "cs_cer_\(d.uuidString.lowercased())")
   }
 }

@@ -126,7 +126,7 @@ import Foundation
     // no re-casing of the label at large: a small word stays small, a lowercase
     // name stays lowercase, and only the acronym moves
     #expect(RoundCopy.course("lone tree at the ranch") == "lone tree at the ranch")
-    #expect(RoundCopy.course("saguaro flats") == "Saguaro Flats")
+    #expect(RoundCopy.course("saguaro flats") == "saguaro flats")
     #expect(RoundCopy.course("Whisper Rock G&cc") == "Whisper Rock G&CC")          // punctuation splits the runs
     #expect(RoundCopy.course(nil) == "" && RoundCopy.course("") == "")
   }

@@ -40,7 +40,7 @@ struct DeveloperHarnessView: View {
   @State private var chip = 0
   @State private var segment = 0
   @State private var gross = "89"
-  @State private var code = "NORTH GROVE (FIXTURE)-24"
+  @State private var code = "NORT4K7Q"
   @State private var strokes = 4
   @State private var budget = CSBudget()
 
@@ -346,7 +346,7 @@ struct DeveloperHarnessView: View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
       CSField(label: "Your gross", placeholder: "89", text: $gross,
               caption: "Front and back, or the whole card.", kind: .code)
-      CSField(label: "League code", placeholder: "NORTH GROVE (FIXTURE)-24", text: $code,
+      CSField(label: "League code", placeholder: "NORT4K7Q", text: $code,
               error: "That code has expired. Ask the Pro for a new one.",
               limit: 12, kind: .code)
       CSField(label: "Disabled", placeholder: "Nothing to type", text: .constant(""),

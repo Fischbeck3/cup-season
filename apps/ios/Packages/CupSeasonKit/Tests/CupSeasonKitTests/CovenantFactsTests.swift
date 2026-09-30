@@ -34,7 +34,7 @@ import Foundation
     let who = try? #require(Self.full.whoLine)
     #expect(who?.hasPrefix("Blake Sample runs the season (the Pro).") == true)
     // five named, eight in, so two more beyond me and the five
-    #expect(who?.contains("Casey, Dev, Devon, Finley, Jules and 2 more are in.") == true)
+    #expect(who?.contains("Casey, Devon, Emery, Finley, Gray and 2 more are in.") == true)
     // D132's noun, DEFINED at first contact rather than merely used
     #expect(who?.contains("(the Pro)") == true)
     // the money is after it

@@ -67,7 +67,7 @@ import Foundation
     #expect(!OnboardingGate.handleIsLegal(OnboardingGate.handle(from: "JT")))
     #expect(OnboardingGate.handleIsLegal("ave"))
     #expect(OnboardingGate.handleIsLegal("a_b_9"))
-    #expect(!OnboardingGate.handleIsLegal("ave"))        // upper case is not a handle
+    #expect(!OnboardingGate.handleIsLegal("AVE"))        // upper case is not a handle
     #expect(!OnboardingGate.handleIsLegal("ave ome"))
   }
 

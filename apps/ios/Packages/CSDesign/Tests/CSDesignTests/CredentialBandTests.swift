@@ -26,7 +26,7 @@ import SwiftUI
   /// fits under the slot once the name drops a size — and it must, because
   /// this is the default reading size on the default device.
   @Test func aTwoLineNameOverAThreeClauseIdentityStaysUnderTheSlot() {
-    let name = "Avery Fixture"
+    let name = "Indigo Longname-Fixturington"
     // it genuinely does not set on one line at `display`
     #expect(CSCredential<EmptyView>.PlateBand.nameRole(name, measure: measure, size: .large) == .displayS)
     let band = CSCredential<EmptyView>.PlateBand.height(

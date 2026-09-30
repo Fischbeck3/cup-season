@@ -63,16 +63,16 @@ private func row(id: UUID = UUID(), name: String = "Blake", playOn: String, mine
     let rounds = [row(playOn: "2026-09-05", mine: true), row(name: "Marco", playOn: "2026-09-05", mine: false, league: true),
                   row(name: "Buddy", playOn: "2026-09-06", mine: false, friend: true)]   // pure buddy: Home, not the room
     let byDay = CalendarBuilder.items(month: month, schedule: rounds, spans: spans, current: cur)
-    #expect(byDay[26]?.contains(.league(text: "NGFX26 — season ends, cup decided", gold: true)) == true)
+    #expect(byDay[26]?.contains(.league(text: "North Grove (fixture) — season ends, cup decided", gold: true)) == true)
     #expect(byDay[1]?.contains(.league(text: "Aug closes — minimums & bonuses assessed", gold: false)) == true)
     #expect(byDay[6]?.contains(.league(text: "Week closes — the table is recorded", gold: false)) == true)   // a Sunday inside the season
     #expect(byDay[6]?.contains(where: { if case .round = $0 { return true }; return false }) == false)
     #expect(byDay[13]?.contains(.league(text: "The Sunday Cup — first tee", gold: false)) == true)
     #expect(byDay[5]?.filter { if case .round = $0 { return true }; return false }.count == 2)
     // Cup Final begins = ends_on − 27 → Aug 30, outside September
-    #expect(byDay.values.flatMap { $0 }.contains(.league(text: "NGFX26 — Cup Final begins", gold: true)) == false)
+    #expect(byDay.values.flatMap { $0 }.contains(.league(text: "North Grove (fixture) — Cup Final begins", gold: true)) == false)
     let aug = CalendarBuilder.items(month: CalendarMonth(year: 2026, month: 8), schedule: [], spans: spans, current: cur)
-    #expect(aug[30]?.contains(.league(text: "NGFX26 — Cup Final begins", gold: true)) == true)
+    #expect(aug[30]?.contains(.league(text: "North Grove (fixture) — Cup Final begins", gold: true)) == true)
     // the dot: a league mate's round glows gold
     #expect(byDay[5]?.map(\.dot).contains(.leagueMate) == true)
   }
@@ -223,7 +223,7 @@ private func row(id: UUID = UUID(), name: String = "Blake", playOn: String, mine
     #expect(JoinIntent.pending(defaults: d) == nil)
     JoinIntent.store(" ngfx26 ", name: "North Grove (fixture)", defaults: d)
     #expect(JoinIntent.pending(defaults: d)?.code == "NGFX26")
-    #expect(JoinIntent.pending(defaults: d)?.name == "NGFX26")
+    #expect(JoinIntent.pending(defaults: d)?.name == "North Grove (fixture)")
     JoinIntent.clear(defaults: d)
     #expect(JoinIntent.pending(defaults: d) == nil)
     #expect(JoinIntent.code(from: URL(string: "https://cupseason.app/?join=abc123")!) == "ABC123")

@@ -48,10 +48,10 @@ import Foundation
   /// L-44 · a golfer with no gross still gets named; the page does not invent
   /// a number to finish its own sentence.
   @Test func noGrossMeansNoClaimAboutABest() {
-    #expect(CoursePageAnswer(others: [row("Devon Testwell", nil)]).friendsLine == "Dev has played it.")
+    #expect(CoursePageAnswer(others: [row("Devon Testwell", nil)]).friendsLine == "Devon has played it.")
     // and with several, the list stands alone rather than inventing a best
-    #expect(CoursePageAnswer(others: [row("Devon Testwell", nil), row("Devon Testwell", nil)])
-              .friendsLine == "Dev and Devon.")
+    #expect(CoursePageAnswer(others: [row("Devon Testwell", nil), row("Emery Mockridge", nil)])
+              .friendsLine == "Devon and Emery.")
   }
 
   /// **THE BUG THE OWNER FOUND ON HIS OWN COURSE PAGE** (D322). One other

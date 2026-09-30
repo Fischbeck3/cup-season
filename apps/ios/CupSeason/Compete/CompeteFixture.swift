@@ -74,7 +74,7 @@ enum CompeteFixture {
         },
         {
           "league_id": "C50F0000-0000-4000-8000-000000000020",
-          "name": "North Grove (fixture)", "code": "NORTH GROVE (FIXTURE)", "phase": "season", "sandbox": false,
+          "name": "North Grove (fixture)", "code": "NGFX26", "phase": "season", "sandbox": false,
           "role": "commissioner", "member_id": "C50F0000-0000-4000-8000-000000000021",
           "marker": "lonetree", "commissioner_name": "Avery", "members": 8, "roster": 8,
           "settings": { "structure": "solo", "buyin_cents": 6000, "counting_cap": 4,

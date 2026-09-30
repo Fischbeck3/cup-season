@@ -60,7 +60,7 @@ struct ContourTests {
     // literal reading of the spec would have given one course two plots in one
     // day. This asserts the value, not merely the equality of two calls in one
     // process — a per-process seed passes the equality test and fails this one.
-    #expect(abs(CSContour.hash01("saguaro flats-golf-course", 2, 3) - 0.4756) < 0.0002)
+    #expect(abs(CSContour.hash01("saguaro flats-golf-course", 2, 3) - 0.4572) < 0.0002)
   }
 
   @Test("two courses draw two places")

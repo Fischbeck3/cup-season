@@ -84,7 +84,7 @@ enum SeasonFixture {
       viewer: RoomViewer(id: profiles[1], displayName: "Avery", marker: "saguaro",
                          indexCurrent: 12.4, roundsCount: 9),
       league: .init(id: league, name: squads ? "The Dew Sweepers" : "North Grove (fixture)",
-                    code: "NORTH GROVE (FIXTURE)", phase: "season", commissioner_id: profiles[0]),
+                    code: "NGFX26", phase: "season", commissioner_id: profiles[0]),
       settings: .init(league_id: league, preset: "standard", counting_cap: 4,
                       participation_floor: 2, buyin_cents: 6000,
                       structure: squads ? "squads4" : "solo", draft_type: "random",

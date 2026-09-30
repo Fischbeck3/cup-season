@@ -34,7 +34,7 @@ private func membership(phase: String = "season", buyin: Int = 0, role: String =
                                                              next_up: nil, next_down: nil),
                         last: Me.Membership.LastSeason? = nil) -> Me.Membership {
   Me.Membership(
-    league_id: UUID(), name: "North Grove (fixture)", code: "NORTH GROVE (FIXTURE)", phase: phase, sandbox: false, role: role,
+    league_id: UUID(), name: "North Grove (fixture)", code: "NGFX26", phase: phase, sandbox: false, role: role,
     member_id: UUID(), marker: "saguaro", commissioner_name: "Blake",
     settings: Me.Settings(structure: "solo", preset: nil, counting_cap: 4, participation_floor: 2,
                           floor_penalty: nil, handicap_allowance: 95, buyin_cents: buyin,
