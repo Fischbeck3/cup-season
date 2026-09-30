@@ -323,7 +323,7 @@ Peers, nearest clock first. **Finished ones fold under "Finished" with the champ
 > *Your next competition starts here — a season, a weekend, or one guy you want to beat.*
 > **Start something →**   *I have a code →*
 
-With buddies and no competition the true fact above the door is real and is used: *"Five buddies, and none of you is playing for anything."* (`my_friends` count, A). With no buddies the line is omitted rather than guessed, and the second door becomes **Find golfers**.
+**Amended 2026-09-29, Q41 / QB-21 ([OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md)):** With buddies and no competition, the counted sentence **leads as the head**: *"Five buddies, and none of you is playing for anything."* (`my_friends` count, A). Do not also print "Nothing running." or repeat the count beneath it. With no buddies the head is **Nothing running.**, the count is omitted rather than guessed, and the second door becomes **Find golfers**. The explanatory line and primary door stay as above.
 
 ### 6.2 The intent sheet
 
