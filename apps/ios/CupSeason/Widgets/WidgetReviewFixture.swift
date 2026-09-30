@@ -36,10 +36,10 @@ import CupSeasonKit
             action: "See the clash", spine: "ember", route: "season", routeId: id, pane: "table"),
       .init(key: "circle:1", eyebrow: "Your circle", headline: "Jade posted 78 at Papago. Her best this year.",
             action: "See the round", spine: "gold", route: "receipt", routeId: id, pane: nil),
-      .init(key: "plan:1", eyebrow: "Coming up", headline: "Saturday 7:10 at Papago with Galen and Jade.",
+      .init(key: "plan:1", eyebrow: "Sat · Papago", headline: "Saturday 7:10 at Papago with Galen and Jade.",
             action: "Reply", spine: "mut", route: "plan", routeId: id, pane: nil),
-      .init(key: "floor:1", eyebrow: "The Fellas", headline: "One round to your October minimum.",
-            action: "Post a round", spine: "mut", route: "home", routeId: nil, pane: nil),
+      .init(key: "floor:1", eyebrow: "October closes Sat", headline: "One round to your October minimum.",
+            action: "Add my round", spine: "mut", route: "home", routeId: nil, pane: nil),
     ]), at: now)
     return s
   }
