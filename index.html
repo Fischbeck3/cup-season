@@ -25482,7 +25482,6 @@ function renderCareer(){
         {played_on:'2026-05-31', course_label:'Aguila',        gross:84, differential:10.3, holes_played:18, pvi:2.1,  beat:true} ] }
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
-  const sign = v => (v>=0?'+':'') + v.toFixed(1);
   const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY, { head:'eyebrow' }) : '';
   /* F10 · the page knows which of four things it is showing: still loading, a
      read that failed, a record with nothing in it yet, or a record */
@@ -25511,8 +25510,10 @@ function renderCareer(){
     return;
   }
   set('#clR', c.rounds);
-  set('#clBest', c.best!=null ? sign(c.best) : '—');
-  set('#clAvg',  c.avg !=null ? sign(c.avg)  : '—');
+  /* Q39 (a) · All time's figures are tiles under a head that names the lens, so they take the SHORT words
+     (vsShort: "beat by 2.4", "played to it", "2.6 over"), never a sign (D1, Q-23 phase 2) */
+  set('#clBest', c.best!=null ? vsShort(c.best) : '—');
+  set('#clAvg',  c.avg !=null ? vsShort(c.avg)  : '—');
   /* Y-28 · when the cell is a dash, the sub says why it is one.
      Y-14 · WITH its denominator, and on BOTH figures: the best and the average
      are read off the same counting set, and with one counting round they are
@@ -25562,7 +25563,10 @@ function renderCareer(){
           const when = r.played_on ? csMonthDay(r.played_on) : '';
           const course = esc(r.course_label||'') || 'Somewhere out there';
           const fig = r.pvi!=null ? Number(r.pvi) : null;
-          const sub = [when, fig!=null ? sign(fig)+' vs your playing HCP' : null,
+          /* Q39 (a) · the line says it in WORDS, as the composer and the receipt do (D1, Q-23 phase 2): a
+             signed "+2.4 vs your playing HCP" read backwards to six of seven blind testers, and nothing on the
+             page said plus is better. The sign stays only in the receipt's arithmetic row (D2). */
+          const sub = [when, fig!=null ? vsPhrase(fig) : null,
                        r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
           const bk = bookOf(r.api_course_id);
           const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
@@ -25675,7 +25679,7 @@ function renderIndStats(){
   const me=rows.find(p=>p.me) || rows.find(p=>p.n==='You') || rows[0];
   $('#msR').textContent=me.r;
   $('#msAvg').textContent=vsShort(me.avg);   /* Q-23 */
-  $('#msBest').textContent='+'+me.best.toFixed(1);
+  $('#msBest').textContent=vsShort(me.best);   /* Q39 */
   $('#msDelta').textContent='\u2212'+Math.abs(me.d).toFixed(1);   /* D276 · a sign, not a verdict */
   $('#msAvgSub').textContent=countingScope(me.r);
   $('#msBestSub').textContent=countingScope(me.r);
@@ -25740,8 +25744,10 @@ function renderIndStatsReal(){
   const sgn=v=>(v>=0?'+':'')+v.toFixed(1);
   const cnt = (me && me.hist) ? me.hist.length : 0;
   $('#msR').textContent = me ? me.r : '—';
-  $('#msAvg').textContent = me && me.r ? sgn(me.avg) : '—';
-  $('#msBest').textContent = me && me.best!=null ? sgn(me.best) : '—';
+  /* Q39 (a) · This season's tiles speak as All time's do (vsShort), so the two strips stay one grammar and
+     csYouStripsDedupe can still read them as the same three figures */
+  $('#msAvg').textContent = me && me.r ? vsShort(me.avg) : '—';
+  $('#msBest').textContent = me && me.best!=null ? vsShort(me.best) : '—';
   /* Y-28 · "Held" is not "—". A dash means there is no second round to
      measure from; two rounds that bracket no move at all are a real answer,
      and the sub says which of the two you are looking at. */

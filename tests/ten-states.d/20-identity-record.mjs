@@ -186,8 +186,8 @@ const YOU = [
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
     check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), liveLine, notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
-      /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
-      readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]]),
+      /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3); Q39 (a): in words (vsPhrase) */
+      readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 (beat your playing HCP by \\d+\\.\\d|played to your playing HCP|\\d+\\.\\d over your playing HCP)', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */
       noRetiredGlyph()) },
   /* the career read fails both ways (the full select and its skew retry):
@@ -243,10 +243,25 @@ const heroState = (want) => async (page) => page.evaluate((want) => {
   return !img && !!h.querySelector('.rm-topo') && !h.classList.contains('has-photo') && !!h.querySelector('.rm-fig')
     ? true : 'the moment did not keep its no-photo face: ' + h.className
 }, want)
+/* Q39 (a) · the owner's ruling, 2026-09-29: every record line says the comparison in WORDS, as the composer and
+   the receipt do: vsPhrase in a Recent rounds line, vsShort in the All time and This season tiles. The signed
+   figure ("+2.4 vs your playing HCP") stays only in the receipt's arithmetic row (D2). */
+const recordInWords = async (page) => page.evaluate(() => {
+  const shown = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 }
+  const signed = /(^|[\s·])[+\u2212-]\d+\.\d/
+  const lines = [...document.querySelectorAll('#youRecent .yrow small')].map((el) => el.textContent.replace(/\s+/g, ' ').trim())
+  if (!lines.length) return 'no Recent rounds line is drawn'
+  const bad = lines.filter((t) => signed.test(t) || !/(beat your playing HCP by \d+\.\d|played to your playing HCP|\d+\.\d over your playing HCP)/.test(t))
+  if (bad.length) return 'a Recent rounds line is not in words: ' + JSON.stringify(bad[0])
+  const tiles = ['#clBest', '#clAvg', '#msBest', '#msAvg'].map((id) => document.querySelector(id)).filter((el) => el && shown(el))
+  if (!tiles.some((el) => el.id === 'clBest') || !tiles.some((el) => el.id === 'clAvg')) return 'All time draws no best or average'
+  const off = tiles.filter((el) => !/^(beat by \d+\.\d|played to it|\d+\.\d over)$/.test(el.textContent.trim()))
+  return off.length ? `${off[0].id} reads ${JSON.stringify(off[0].textContent.trim())}, not vsShort's words` : true
+})
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: recordState('some') },
+    check: all(recordState('some'), recordInWords) },
   { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
     title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
     drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
