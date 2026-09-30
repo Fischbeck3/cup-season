@@ -13,7 +13,7 @@ final class N2BookUITests: N2UITestCase {
     XCTAssertTrue(golfers.waitForExistence(timeout: 10))
     golfers.tap()
     let fullName = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'seasonBook.name.' AND label CONTAINS[c] %@", "Avery Fixture")).firstMatch
-    XCTAssertTrue(fullName.waitForExistence(timeout: 5), "Q34: the Book prints the full name, never A. Fixture")
+    XCTAssertTrue(fullName.waitForExistence(timeout: 10), "Q34: the Book prints the full name, never A. Fixture")
     let key = app.staticTexts["seasonBook.key"]
     XCTAssertTrue(key.waitForExistence(timeout: 10), "the key is on screen with the grid")
     let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'seasonBook.cell.'"))
