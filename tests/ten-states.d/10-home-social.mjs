@@ -163,6 +163,14 @@ const HOME_HATCH = HOME_STATE_IDS.map((id) => {
    below as what that golfer actually sees: the hero card, not the ranked
    lead. A finding for root, recorded in the WX report. */
 const DISPATCH_VARIANT = {}
+/* TEN / W6 · W7-095 · 'Later' and 'Didn’t play' wear §7.1's in-content rule: 2px of mut, not a 1px rule-coloured hairline (inert where no answer is drawn) */
+const answersRule = async (page) => page.evaluate(() => {
+  const bs = [...document.querySelectorAll('.csans-b')].filter((b) => b.getBoundingClientRect().height > 0)
+  if (!bs.length) return true
+  const i = document.createElement('i'); i.style.color = 'var(--mut)'; document.body.appendChild(i); const mut = getComputedStyle(i).color; i.remove()
+  const bad = bs.find((b) => { const cs = getComputedStyle(b); return cs.borderBottomWidth !== '2px' || cs.borderBottomColor !== mut })
+  return bad ? `an answer's rule is ${getComputedStyle(bad).borderBottomWidth} ${getComputedStyle(bad).borderBottomColor}, not 2px of mut` : true
+})
 const DISPATCH_IDS = ['preseason', 'event_live', 'invited', 'round_morning', 'round_evening',
   'after_golf', 'after_golf_wire', 'ceremony_night', 'between_seasons', 'inactive']
 const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
@@ -173,7 +181,7 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
     world: { flags: { homeState: id } },
     drive: homePainted,
     expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => ex), meStripShown, lastOnce),
+    check: all(arrangementCheck(() => ex), meStripShown, lastOnce, answersRule),
   }
 })
 

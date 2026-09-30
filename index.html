@@ -583,7 +583,11 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .csans{display:flex; flex-wrap:wrap; gap:20px; margin-top:12px;}
 .csans-b{
   background:none; border:0; padding:12px 0; min-height:44px; cursor:pointer;
-  color:var(--mut); border-bottom:1px solid var(--rule);
+  /* TEN / W7-095 · the answers' only affordance is their rule, so it is §7.1's
+     in-content link rule: 2px of mut (7.07:1 dark, 5.85:1 light), never a 1px
+     rule-coloured hairline under 3:1 (WCAG 1.4.11). The phone's
+     AfterGolfAnswers draws the same CSDoor(.link). */
+  color:var(--mut); border-bottom:2px solid var(--mut);
 }
 .csans-b:disabled{opacity:.5; cursor:default;}
 .csans-b.is-armed{color:var(--neg); border-bottom-color:var(--neg);}   /* W7-077 · the armed 'Didn’t play': it ends the plan for good, so it says so in neg until the second tap */
