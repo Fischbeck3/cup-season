@@ -192,3 +192,21 @@ struct BetweenRoundsWidgetTests {
     #expect(TrophyMeta.headline(bare, marked: true) == "Personal best")
   }
 }
+
+/// X39 (2) · owner ruling 2026-09-29 (D399): a first round is a BASELINE. The
+/// Record widget never heads a debut "Broke 90": a BESTS row sharing the first
+/// round's round is FIRST ROUND's, as the trophy case folds it. The web has no
+/// widget; the rule is the case's (`renderTrophyCase`, da806ce1).
+@Suite struct WidgetMilestoneFoldTests {
+  @Test func theWidgetsMilestoneFoldsADebut() {
+    let debut = UUID(), later = UUID()
+    let a = [Achievement(kind: "first_round", label: nil, earned_on: "2026-08-11", meta: nil, round_id: debut),
+             Achievement(kind: "sub_90", label: nil, earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut)]
+    #expect(BetweenRoundsCopy.milestone(a)?.kind == "first_round")
+    // a later round's milestone is still the newest one
+    let b = a + [Achievement(kind: "sub_80", label: nil, earned_on: "2026-09-01", meta: .object(["gross": .number(79)]), round_id: later)]
+    #expect(BetweenRoundsCopy.milestone(b)?.kind == "sub_80")
+    // a milestone that names no round is never the widget's
+    #expect(BetweenRoundsCopy.milestone([Achievement(kind: "sub_90", label: nil, earned_on: "2026-08-11", meta: nil)]) == nil)
+  }
+}

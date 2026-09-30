@@ -79,9 +79,12 @@ public enum HomeWireCopy {
   /// A missing gross is not a milestone or a performance claim.
   public static func roundDetail(_ r: HomeFeedRow, holes: Int? = nil) -> String? {
     guard r.gross != nil else { return nil }
+    // X39 (2) · a first round is a BASELINE (D399): `is_first` is said before
+    // a personal best or a first time under 80 — a debut is the first round,
+    // not the first time under anything. The web's `homeRoundDetail` (da806ce1).
+    if r.is_first == true { return r.is_me == true ? "your first round posted." : "their first round posted." }
     if r.is_pr == true { return "a personal best." }
     if claimsSub80(r, holes: holes) { return "broke 80 for the first time." }
-    if r.is_first == true { return r.is_me == true ? "your first round posted." : "their first round posted." }
     if let p = r.pvi {
       let phrase = r.is_me == true ? CSBands.vsPhrase(p) : CSBands.theirs(CSBands.vsPhrase(p))
       return "\(phrase)."

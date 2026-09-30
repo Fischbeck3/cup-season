@@ -424,6 +424,26 @@ import CSDesign
     #expect(PostEpilogue.linkText(name: "Jerecho", gross: 84, course: nil) == "Jerecho — 84 at the course")
   }
 
+  /// X39 (2) · owner ruling 2026-09-29 (D399): a first round is a BASELINE, so
+  /// on a first round no BESTS row is said — "You broke 90 for the first time"
+  /// is not a debut's line — and a later round still says it. Pins the web's
+  /// `showEpilogue` (da806ce1).
+  @Test func aFirstRoundSaysNoBests() {
+    let debut = PostEpilogue(gross: 85, pvi: nil, points: nil, monthRank: nil,
+                             earned: [.init(kind: "first_round", label: nil), .init(kind: "sub_100", label: nil),
+                                      .init(kind: "sub_90", label: nil), .init(kind: "personal_best", label: nil)])
+    let only: [PostEpilogueRow] = [.line(icon: "trophy:firstCard", title: "Your first round is on the board", sub: "Your number and record start here")]
+    #expect(debut.rows(cap: 4, firstEver: true) == only)
+    // the grant alone marks a first round, even when the client missed firstEver
+    #expect(debut.rows(cap: 4, firstEver: false) == only)
+    // firstEver alone does too, and the safety-net row still draws once
+    let ungranted = PostEpilogue(gross: 85, pvi: nil, points: nil, monthRank: nil, earned: [.init(kind: "sub_90", label: nil)])
+    #expect(ungranted.rows(cap: 4, firstEver: true) == only)
+    // the control: a later round keeps its milestone
+    #expect(ungranted.rows(cap: 4, firstEver: false)
+            == [.line(icon: "trophy:threshold:90", title: "You broke 90 for the first time", sub: "In your trophy case")])
+  }
+
   @Test func parsesTheRpc() {
     let json: JSONValue = .object(["gross": .number(84), "pvi": .number(2.4), "points": .number(9), "month_rank": .number(1),
                                    "earned": .array([.object(["kind": .string("personal_best")])]),

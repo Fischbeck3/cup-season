@@ -344,6 +344,38 @@ import Foundation
     #expect(tiles[0].roundId == rows[0].round_id && tiles[1].roundId == nil)
   }
 
+  /// X39 (2) · owner ruling 2026-09-29 (D399): a first round is a BASELINE. A
+  /// BESTS row that shares the first round's `round_id` folds INTO the FIRST
+  /// ROUND slat, which then names its round; keyed on `round_id` only. Pins
+  /// the web's `renderTrophyCase` (da806ce1).
+  @Test func aFirstRoundsBestsFoldIntoFirstRound() throws {
+    let debut = UUID(), later = UUID()
+    let ach = [
+      Achievement(kind: "first_round", label: "First round", earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut),
+      Achievement(kind: "sub_100", label: "Broke 100", earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut),
+      Achievement(kind: "sub_90", label: "Broke 90", earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut),
+      Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-09-01", meta: .object(["gross": .number(79)]), round_id: later),
+      Achievement(kind: "streak_4", label: "Four weeks running", earned_on: "2026-09-01", meta: .object(["weeks": .number(4)])),
+    ]
+    let inHand: (UUID) -> MilestoneRound? = { id in
+      id == debut ? MilestoneRound(gross: 85, courseLabel: "Papago GC", playedOn: "2026-08-11") : nil
+    }
+    let tiles = TrophyCase.tiles(trophies: [], achievements: ach, round: inHand)
+    #expect(tiles.map(\.title) == ["First round", "Broke 80", "4-week streak"])
+    let first = try #require(tiles.first)
+    #expect(first.shelf == .along && first.sub == "85 at Papago GC · Aug 11")
+    // with the round not in hand the slat still names it, off the grant's gross
+    #expect(TrophyCase.tiles(trophies: [], achievements: ach).first?.sub == "85 · Aug 11")
+    // a later round's best keeps its own slat and its own line
+    #expect(tiles[1].shelf == .bests && tiles[1].sub == "79 · Sep 1")
+    // no round_id on the rows: nothing folds, and FIRST ROUND keeps its quiet line
+    let bare = [Achievement(kind: "first_round", label: nil, earned_on: "2026-08-11", meta: nil),
+                Achievement(kind: "sub_90", label: nil, earned_on: "2026-08-11", meta: .object(["gross": .number(85)]))]
+    let unfolded = TrophyCase.tiles(trophies: [], achievements: bare)
+    #expect(unfolded.map(\.title) == ["First round", "Broke 90"])
+    #expect(unfolded[0].sub == "Posted · '26")
+  }
+
   /// Y-02 · one empty state. The record strip has nothing to draw, so the
   /// case's own words are the only ones a new golfer reads — and D291 makes
   /// them a head and a lead beside four uncut marks, not a 118-character

@@ -285,7 +285,23 @@ public enum TrophyCase {
                             shelf: .hardware,
                             trail: TrophyMeta.yearTrail(seasonYear: t.season_year)))
     }
-    for a in achievements {
+    // X39 (2) · owner ruling 2026-09-29 (D399): A FIRST ROUND IS A BASELINE.
+    // A debut 85 minted Broke 100 and Broke 90 (and, on the rederive path, a
+    // personal best) on the same round as FIRST ROUND, so one round earned
+    // three slats and the case said "the first time under 90" of a golfer's
+    // first time at all. A BESTS row that shares the first round's `round_id`
+    // folds INTO the FIRST ROUND slat, which then names the round it was
+    // (`milestoneSub`). Keyed on `round_id` only: rows without one fold
+    // nothing. The web's `renderTrophyCase` (da806ce1).
+    let firstAt = achievements.firstIndex { $0.kind == "first_round" && $0.round_id != nil }
+    let firstRid = firstAt.flatMap { achievements[$0].round_id }
+    func foldsIntoFirst(_ a: Achievement) -> Bool {
+      guard let firstRid, a.kind != "first_round", a.round_id == firstRid else { return false }
+      return TrophyMeta.shelf(kind: a.kind, isHardware: false) == .bests
+    }
+    let folded = achievements.contains(where: foldsIntoFirst)
+    for (i, a) in achievements.enumerated() {
+      if foldsIntoFirst(a) { continue }   // it rides in the FIRST ROUND slat
       let key = "\(a.label ?? a.kind ?? "")|\(a.earned_on ?? "")"
       let m = TrophyMeta.meta(kind: a.kind, label: a.label)
       // `low_round` carries its gross INSIDE the mark — the numeral is the
@@ -293,11 +309,18 @@ public enum TrophyCase {
       let numeral = m.glyph == "lowRound" ? (a.meta?["gross"]?.int).map(String.init) : m.numeral
       let shelf = TrophyMeta.shelf(kind: a.kind, isHardware: false)
       // A BESTS slat names its round; the quiet shelf keeps the dated line it
-      // has always had, because "Posted · '26" is the whole of that fact.
-      let sub = shelf == .bests
-        ? TrophyMeta.milestoneSub(kind: a.kind, label: a.label, meta: a.meta,
-                                  earnedOn: a.earned_on, round: a.round_id.flatMap(round))
-        : TrophyMeta.achSubtitle(kind: a.kind, label: a.label, meta: a.meta) + TrophyMeta.yearTag(earnedOn: a.earned_on)
+      // has always had, because "Posted · '26" is the whole of that fact —
+      // except the FIRST ROUND a best folded into, which names its round.
+      let sub: String
+      if shelf == .bests {
+        sub = TrophyMeta.milestoneSub(kind: a.kind, label: a.label, meta: a.meta,
+                                      earnedOn: a.earned_on, round: a.round_id.flatMap(round))
+      } else if folded, i == firstAt {
+        sub = TrophyMeta.milestoneSub(kind: a.kind, label: a.label, meta: a.meta,
+                                      earnedOn: a.earned_on, round: firstRid.flatMap(round))
+      } else {
+        sub = TrophyMeta.achSubtitle(kind: a.kind, label: a.label, meta: a.meta) + TrophyMeta.yearTag(earnedOn: a.earned_on)
+      }
       out.append(TrophyTile(id: "a" + key, glyph: m.glyph, numeral: numeral, title: m.title,
                             sub: sub, roundId: a.round_id, shelf: shelf))
     }

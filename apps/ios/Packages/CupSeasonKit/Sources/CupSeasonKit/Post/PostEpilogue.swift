@@ -241,7 +241,13 @@ public struct PostEpilogue: Sendable, Equatable {
       if sub.hasPrefix(" · ") { sub = String(sub.dropFirst(3)) }
       rows.append(.line(icon: "", title: title, sub: sub))
     }
+    // X39 (2) · a first round is a BASELINE (D399): "You broke 90 for the
+    // first time" (and its siblings, and a personal best of one) is not said
+    // of a golfer's first round at all. The case folds the same rows into
+    // FIRST ROUND (`TrophyCase.tiles`). The web's `showEpilogue` (da806ce1).
+    let isFirstRound = firstEver || earned.contains { $0.kind == "first_round" }
     for a in earned {
+      if isFirstRound, a.kind != "first_round", TrophyMeta.shelf(kind: a.kind, isHardware: false) == .bests { continue }
       // **D329 · THE FALLBACK IS THE CASE'S FALLBACK.** A kind this build has
       // no row for drew `✦` here and the DRAWN medal in the trophy case, so an
       // achievement the server grants before the client knows its name wore two
