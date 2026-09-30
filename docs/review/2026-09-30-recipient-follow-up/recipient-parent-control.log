@@ -1,0 +1,103 @@
+FAIL 375 dark person: direct sign-in with the same token {"href":"/get","text":"GET THE APP"}
+PASS 375 dark person: target is at least 44pt
+FAIL 375 dark person: installation remains available undefined
+FAIL 375 dark plan: direct sign-in with the same token {"href":"/","text":"TAKE THE SEAT"}
+PASS 375 dark plan: target is at least 44pt
+FAIL 375 dark plan: installation remains available undefined
+FAIL 375 dark door: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 375 dark welcome: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 375 dark sheet: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+PASS 375 dark read: failed navigation keeps the invitation; no join
+PASS 375 dark open: failed navigation keeps the invitation; no join
+PASS 375 dark missing: failed navigation keeps the invitation; no join
+FAIL 375 dark: retry opens and consumes the kept invitation undefined
+FAIL 375 dark: a newer invitation is never consumed by an older read undefined
+FAIL 375 dark: failed terms read leaves the sheet retry enabled undefined
+PASS 375 dark: no unhandled exceptions
+PASS 375 dark: no unconfirmed request, seat or join RPC
+FAIL 375 light person: direct sign-in with the same token {"href":"/get","text":"GET THE APP"}
+PASS 375 light person: target is at least 44pt
+FAIL 375 light person: installation remains available undefined
+FAIL 375 light plan: direct sign-in with the same token {"href":"/","text":"TAKE THE SEAT"}
+PASS 375 light plan: target is at least 44pt
+FAIL 375 light plan: installation remains available undefined
+FAIL 375 light door: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 375 light welcome: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 375 light sheet: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+PASS 375 light read: failed navigation keeps the invitation; no join
+PASS 375 light open: failed navigation keeps the invitation; no join
+PASS 375 light missing: failed navigation keeps the invitation; no join
+FAIL 375 light: retry opens and consumes the kept invitation undefined
+FAIL 375 light: a newer invitation is never consumed by an older read undefined
+FAIL 375 light: failed terms read leaves the sheet retry enabled undefined
+PASS 375 light: no unhandled exceptions
+PASS 375 light: no unconfirmed request, seat or join RPC
+FAIL 402 dark person: direct sign-in with the same token {"href":"/get","text":"GET THE APP"}
+PASS 402 dark person: target is at least 44pt
+FAIL 402 dark person: installation remains available undefined
+FAIL 402 dark plan: direct sign-in with the same token {"href":"/","text":"TAKE THE SEAT"}
+PASS 402 dark plan: target is at least 44pt
+FAIL 402 dark plan: installation remains available undefined
+FAIL 402 dark door: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 402 dark welcome: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 402 dark sheet: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+PASS 402 dark read: failed navigation keeps the invitation; no join
+PASS 402 dark open: failed navigation keeps the invitation; no join
+PASS 402 dark missing: failed navigation keeps the invitation; no join
+FAIL 402 dark: retry opens and consumes the kept invitation undefined
+FAIL 402 dark: a newer invitation is never consumed by an older read undefined
+FAIL 402 dark: failed terms read leaves the sheet retry enabled undefined
+PASS 402 dark: no unhandled exceptions
+PASS 402 dark: no unconfirmed request, seat or join RPC
+FAIL 402 light person: direct sign-in with the same token {"href":"/get","text":"GET THE APP"}
+PASS 402 light person: target is at least 44pt
+FAIL 402 light person: installation remains available undefined
+FAIL 402 light plan: direct sign-in with the same token {"href":"/","text":"TAKE THE SEAT"}
+PASS 402 light plan: target is at least 44pt
+FAIL 402 light plan: installation remains available undefined
+FAIL 402 light door: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 402 light welcome: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 402 light sheet: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+PASS 402 light read: failed navigation keeps the invitation; no join
+PASS 402 light open: failed navigation keeps the invitation; no join
+PASS 402 light missing: failed navigation keeps the invitation; no join
+FAIL 402 light: retry opens and consumes the kept invitation undefined
+FAIL 402 light: a newer invitation is never consumed by an older read undefined
+FAIL 402 light: failed terms read leaves the sheet retry enabled undefined
+PASS 402 light: no unhandled exceptions
+PASS 402 light: no unconfirmed request, seat or join RPC
+FAIL 1280 dark person: direct sign-in with the same token {"href":"/get","text":"GET THE APP"}
+PASS 1280 dark person: target is at least 44pt
+FAIL 1280 dark person: installation remains available undefined
+FAIL 1280 dark plan: direct sign-in with the same token {"href":"/","text":"TAKE THE SEAT"}
+PASS 1280 dark plan: target is at least 44pt
+FAIL 1280 dark plan: installation remains available undefined
+FAIL 1280 dark door: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 1280 dark welcome: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 1280 dark sheet: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+PASS 1280 dark read: failed navigation keeps the invitation; no join
+PASS 1280 dark open: failed navigation keeps the invitation; no join
+PASS 1280 dark missing: failed navigation keeps the invitation; no join
+FAIL 1280 dark: retry opens and consumes the kept invitation undefined
+FAIL 1280 dark: a newer invitation is never consumed by an older read undefined
+FAIL 1280 dark: failed terms read leaves the sheet retry enabled undefined
+PASS 1280 dark: no unhandled exceptions
+PASS 1280 dark: no unconfirmed request, seat or join RPC
+FAIL 1280 light person: direct sign-in with the same token {"href":"/get","text":"GET THE APP"}
+PASS 1280 light person: target is at least 44pt
+FAIL 1280 light person: installation remains available undefined
+FAIL 1280 light plan: direct sign-in with the same token {"href":"/","text":"TAKE THE SEAT"}
+PASS 1280 light plan: target is at least 44pt
+FAIL 1280 light plan: installation remains available undefined
+FAIL 1280 light door: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 1280 light welcome: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+FAIL 1280 light sheet: already agreed opens the correct season and retires pending code {"open":[],"joins":0,"code":"NGFX26","name":"North Grove (fixture)"}
+PASS 1280 light read: failed navigation keeps the invitation; no join
+PASS 1280 light open: failed navigation keeps the invitation; no join
+PASS 1280 light missing: failed navigation keeps the invitation; no join
+FAIL 1280 light: retry opens and consumes the kept invitation undefined
+FAIL 1280 light: a newer invitation is never consumed by an older read undefined
+FAIL 1280 light: failed terms read leaves the sheet retry enabled undefined
+PASS 1280 light: no unhandled exceptions
+PASS 1280 light: no unconfirmed request, seat or join RPC
+42 passed; 60 failed
