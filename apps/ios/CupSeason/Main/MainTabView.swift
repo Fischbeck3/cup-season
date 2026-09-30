@@ -829,6 +829,19 @@ struct MainTabView: View {
       guard let destination = WidgetRouter.shared.pending, let owner = store.me?.profile?.id else { return }
       WidgetRouter.shared.pending = nil
       guard destination.owner == owner else { return }
+      // D400 · What's On opens the card's own door; one it cannot name is Home
+      if destination.kind == .whatsOn {
+        if destination.route == .live { presenter.showLive = true; return }
+        if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
+        switch (destination.route, destination.id) {
+        case (.receipt?, let id?): await apply(.receipt(id))
+        case (.plan?, let id?): await apply(.scheduledRound(id))
+        case (.season?, let id?): openCompetition(id, pane: SeasonPane.named(destination.pane))
+        case (.people?, _): openGolfers()
+        default: tab = .home; homePath = NavigationPath()
+        }
+        return
+      }
       guard let id = destination.id else {
         if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
         switch destination.kind {
@@ -836,6 +849,7 @@ struct MainTabView: View {
         case .nextTee: tab = .compete; competePath = NavigationPath(); competePath.append(CompeteRoute.schedule)
         case .record: openPlay()
         case .rivalry: openGolfers()
+        case .whatsOn: tab = .home
         }
         return
       }
@@ -849,6 +863,7 @@ struct MainTabView: View {
         if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
         tab = .you
         presenter.widgetRivalry = id
+      case .whatsOn: break
       }
     }
     .sheet(item: Binding(get: { presenter.linkConfirmation }, set: { value in

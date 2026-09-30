@@ -24,6 +24,12 @@ struct BetweenRoundsWidgetView: View {
   private var stale: Bool { snapshot?.isStale(kind, at: date) ?? true }
 
   var body: some View {
+    // D400 · What's On has its own layout; the gallery reaches it through here
+    if kind == .whatsOn { WhatsOnWidgetView(previewFamily: previewFamily, snapshot: snapshot, date: date) }
+    else { standard }
+  }
+
+  private var standard: some View {
     Group {
       if family == .accessoryRectangular { accessory }
       else {
@@ -51,6 +57,9 @@ struct BetweenRoundsWidgetView: View {
     switch kind {
     case .race:
       if let race = snapshot?.race?.value { raceView(race) }
+      // D400 · a golfer WITH a season whose table has no row for them yet is
+      // not told to start one (the owner's widget said so over three seasons)
+      else if snapshot?.hasSeason == true { empty("Your place shows once the table has you.", action: "Open your season") }
       // N4-193 · a golfer with no season is told how the race arrives, not
       // to "catch up" on one they do not have
       else { empty("Start a season and the race lands here.", action: "Start a season") }
@@ -63,6 +72,7 @@ struct BetweenRoundsWidgetView: View {
     case .rivalry:
       if let rival = snapshot?.rivalry?.value { rivalryView(rival) }
       else { empty("Every rivalry starts somewhere.", action: "See your golfers") }
+    case .whatsOn: EmptyView()
     }
   }
 
@@ -113,6 +123,7 @@ struct BetweenRoundsWidgetView: View {
             .accessibilityLabel("\(rival.wins) wins, \(rival.losses) losses, \(rival.ties) ties")
           accessibleLabel("You and \(rival.name)")
         } else { accessibleEmpty }
+      case .whatsOn: EmptyView()
       }
     }
   }

@@ -813,6 +813,8 @@ final class HomeModel {
     if case .live = lead?.route { HomeLeadFlag.shared.liveIsLead = true }
     else { HomeLeadFlag.shared.liveIsLead = false }
     DispatchSnapshotFeed.publish(strip: strip, lead: usedFallback ? nil : lead, owner: m.profile?.id)
+    // D400 · What's On carries the served arrangement only, never the fallback's
+    if !usedFallback { BetweenRoundsFeed.shared.publishWhatsOn(lead: r.lead, deck: r.deck, owner: m.profile?.id) }
   }
 
   /// One load per payload. A pull and `.task(id:)` share a key; the second

@@ -14,6 +14,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     metrics.start()
     UNUserNotificationCenter.current().delegate = self
     PushCategories.register()
+    // D400 · the widgets' background read is registered before launch ends
+    WidgetRefreshTask.register()
     // a cold start from a notification tap: stash it; the tab shell drains it at `.ready`
     if let info = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
       PushRouter.shared.open(userInfo: info)
