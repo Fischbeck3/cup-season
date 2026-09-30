@@ -1078,6 +1078,7 @@ two positions plus an xmark circle plus nothing at all. One grammar:
 - **Dismiss is one thing: `Close`**, a **toolbar** tertiary link at `topBarTrailing` (§7.1 — `mut`,
   1px rule, **never ember**), in every sheet and every cover. No xmark circle, no coloured "Done", no
   bare gesture-only sheet. A sheet's loudest control is never the one that closes it.
+- **Web amendment, Q51 / [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29):** the shared 44px **×**, accessible name **Close**, is the web shape of this one dismiss (D234); the phone keeps the toolbar text link.
 - **The confirming action lives in the body**, at the foot, as the sheet's one primary. A toolbar never
   carries a consequential verb.
 - **Detents**: `.medium` for a question, `.large` for a list, `CSFittedSheet` for anything measured.
