@@ -1139,11 +1139,7 @@ defect in the set, and two of them proposed the same remedy. The row is therefor
    name column needs. Merging them returns ~28pt directly, and the header row loses its `Δ` column.
 2. **A held row prints ONE mark.** `— —` (an em dash for the gap and a held bar for the delta) reads as
    a rendering error; a leader with no gap and no movement prints the held bar alone.
-3. **At a field of ten or more, the given name abbreviates to an initial before any name is ever
-   truncated** — `P. Raghunathan`, not `Priya Raghu…`. The rule is per-board, not per-row, so the
-   column keeps one grammar: at ten or more, *every* row abbreviates, including `G. Marr`. Below ten,
-   full names, because they fit. Tail ellipsis remains the last resort and now fires on a surname of
-   14+ characters rather than on a first name plus a space.
+3. **Names wrap whole on the slat and the Book, at every field size.** Let the row grow; do not abbreviate a given name, truncate a surname or add a tail ellipsis. **Amended 2026-09-29 — Q34(1), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md).**
 4. **The header row ships at every field size.** It was present on the six- and twelve-row boards and
    absent on `season-top` and the two-row board; two reviewers filed the inconsistency and one called
    the unlabelled `+4 / +9 / +12` column "the single most confusing element in the set". `POS ·
@@ -1153,8 +1149,7 @@ defect in the set, and two of them proposed the same remedy. The row is therefor
   when the position was earned (1st), `panel` when the row is yours, unpainted otherwise.
 - **Player** — a 30pt disc, then `name` 17 caps, then an agate sub-line **in sentence case** and in the
   product's voice ("3 rounds · held", "1 of 4 counting · one short" — never *floor*, which is the
-  schema's word, `TERMINOLOGY` §4 pattern 2). The name column is `min-width: 0` and **truncates with a
-  tail ellipsis** — the one long-name policy, product-wide, replacing the shipped wrap/wrap/clip split.
+  schema's word, `TERMINOLOGY` §4 pattern 2). The name column is `min-width: 0` and **wraps the full name**, growing the row vertically (Q34(1)).
   **The viewer's own row reads `YOU` alone**, product-wide: at the 375pt measure the fixed columns
   leave 141pt and `YOU · SAM RIDLEY` at `name` 17 with caps tracking measures 143pt, so the first row a
   golfer sees on an SE would ellipsise their own name at the default text size.
@@ -1385,7 +1380,7 @@ widened to catch, aimed at a third object.
 3. **The contour plate.** A deterministic topographic plot seeded from the course id — a **seeded
    value-noise field sampled at 5–7 isolevels** (marching squares over a 32 × 32 grid; cheap in a
    SwiftUI `Canvas`/`Path`), at 1.2pt in `mut`, **cropped hard off its own centre**, carrying a routing
-   line and one `brand` dot on the hardest hole by stroke index. Same course, same plot, forever.
+   line and one **`ink` dot** on the hardest hole by stroke index. **Q34(2), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29), confirms D359: the contour is not a live competition and spends no ember.** Same course, same plot, forever.
    **Not nested ellipses**: six near-concentric circles with a radial line is a radar sweep, and it is
    the same "three near-identical concentric ovals" failure §10.2 uses to ban the contour at thumbnail
    scale, arriving at plate and hero scale instead. A noise field is what makes two courses look like
@@ -1927,14 +1922,8 @@ character is **rhythm** and rhythm is only visible where a golfer actually scrol
 - **Every role is `relativeTo:` a text style.** Growth caps exist on **`figure`, `display` and
   `agate`** (§1.2 gives the mechanism and the arithmetic for each); `body`, `column`, `social`, `lead`
   and `story` **never cap**, because those are the roles a golfer reads for meaning.
-- **The star rail is the one target carve-out, and it is stated rather than asserted.** Five stars ×
-  two halves is ten discrete targets; ten × 44pt is 440pt against a 362pt measure (335 on an SE), so
-  "44pt minimum per half" is a sentence the geometry cannot deliver and Phase 3 would build the
-  geometry. **The rail is a continuous 362 × 56 drag target** (`DragGesture(minimumDistance: 0)`
-  mapping *x* to the nearest half) with a **−½ / +½ stepper pair at 44pt beside it** for the tap case;
-  the half-star hit region is 28pt, above WCAG 2.5.8's 24 × 24 and below this document's own 44, and
-  the stepper is what makes that legal. `.accessibilityAdjustable` with 0.5 increments, plus
-  `.accessibilityValue("four and a half stars")`.
+- **Every star-rail target meets 44 × 44pt.** The former half-star carve-out is struck by **Q34(3), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29)**. Preserve half-star values and an adjustable accessibility action in 0.5 increments; small screens must reflow controls instead of reducing their targets. A neighbouring stepper does not exempt a smaller star target.
+
 
 ## 16.3 AX3, per layout — stated as layouts, not as principles
 
