@@ -13,7 +13,7 @@ struct LaunchSheetFixture: View {
   var body: some View {
     Color.clear.overlay {
       if opened { Text("North Grove (fixture) opened").accessibilityIdentifier("recipient.opened") }
-    }.sheet(isPresented: $presented) {
+    }.csSheet(isPresented: $presented) {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_launch_ruling") {
         RulingSheet(member: LeagueRoom.Member(id: UUID(), role: "member", profile_id: UUID()))
           .environment(model).presentationDetents([.medium, .large])

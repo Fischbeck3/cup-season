@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import SwiftUI
+import UIKit
 import CSDesign
 import CupSeasonKit
 @testable import CupSeason
@@ -42,11 +43,18 @@ import CupSeasonKit
     }
   }
   @Test func theAgreedSheetShowsAnAccessibleSeasonDoorWithoutJoinTerms() throws {
+    // In a focused run the app scene may not be active when tests begin.
+    for _ in 0..<100 where !UIApplication.shared.connectedScenes.contains(where: { $0.activationState == .foregroundActive }) {
+      RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+    }
+    try #require(UIApplication.shared.connectedScenes.contains(where: { $0.activationState == .foregroundActive }))
     for theme: ColorScheme in [.dark,.light] {
       for width: CGFloat in [375,402] {
         let host=HostedLayout(CovenantSheet(covenant:terms(true),onJoin:{},onNo:{},onOpen:{}),
                               width:width,height:1800,typeSize:.accessibility3,scheme:theme)
         defer { host.tearDown() }
+        // The automation tree may arrive after the first hosted layout pass.
+        for _ in 0..<10 where host.elements(prefix:"covenant.openSeason").isEmpty { host.settle() }
         let door=try #require(host.elements(prefix:"covenant.openSeason").first)
         // CS name type renders uppercase; the spoken words must stay exact.
         #expect(door.label.lowercased()=="open the season", "Actual accessible label: \(door.label)")
