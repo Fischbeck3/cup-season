@@ -251,6 +251,16 @@ const promoQuiet = async (page) => page.evaluate(() => {
   if (cs.color !== probe('--ink')) return 'the promo’s door is not ink: ' + cs.color
   return /underline/.test(sp.textDecorationLine) && parseFloat(sp.textDecorationThickness) === 2 ? true : 'the promo’s door has no 2px rule'
 })
+/* TEN / W6 · W7-081 · the month is a fact, not a chip: no "Month closes" in Up next, and ONE quiet month line under the season row
+   in the strip on screen, in SeasonFacts.monthRow's words ("Best 4 a month count · 5/2 toward the minimum · 1 day left in September") */
+const monthFact = async (page) => page.evaluate(() => {
+  const up = (document.getElementById('homeUpNext') || {}).innerText || ''
+  if (/month closes/i.test(up)) return 'the "Month closes" chip is still drawn'
+  const lines = [...document.querySelectorAll('#sideMe .memonth, #homeMe .memonth')].filter((p) => p.getBoundingClientRect().height > 0)
+  if (lines.length !== 1) return `${lines.length} month line(s) on screen, expected one`
+  const t = lines[0].textContent.trim()
+  return /^(Best \d+ a month count|Every round counts) · (.+ · )?(\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
+})
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
@@ -346,7 +356,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

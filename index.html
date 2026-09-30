@@ -465,6 +465,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .sideme .mesr:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
 /* TEN / W6 · LAST and NEXT as dated rows, the wire's weight-5 row (`.cswire`) */
 .sideme .medays{margin-top:var(--s2);}
+.memonth{margin:var(--s1) 0 0; color:var(--mut);}   /* W7-081 · the month's fact, quiet, under the season row */
 .sideme .medays .cswire:first-child{border-top:var(--hair) solid var(--rule);}
 .sideme .medays .cswire .ln{color:var(--ink);}
 .sideme .mesay{margin:0; color:var(--ink);}
@@ -8067,6 +8068,28 @@ const capNum   = () => { const n = capDB(); return n == null ? Infinity : n; }; 
    posted 2". The phone's `LeagueCopy.countingRule` is the same rule said the
    same way; the two may not drift. `n` is the league's stored cap, not the
    picker's rung, so an off-ladder rule states itself (D347). */
+/* TEN / W7-081 · THE MONTH'S FACT, the twin of SeasonFacts.monthRow: the
+   counting label, the credits toward the minimum only where a minimum exists
+   (a solo season, a short edge month and a mid-month joiner owe none), and
+   the days left in the month. Every day of a live season, in the strip's
+   quiet type. An unread credit count prints nothing rather than a zero. */
+function csMonthRow(){
+  if(state.demo || !(window.CS?.memberships||[]).length || typeof seasonState !== 'function' || seasonState() !== 'live') return null;
+  const cap = (typeof capDB === 'function') ? capDB() : null;
+  const head = cap ? `Best ${cap} a month count` : 'Every round counts';
+  const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), left = last - now.getDate();
+  const month = now.toLocaleString('en-US', { month:'long' });
+  const clock = left <= 0 ? `last day of ${month}` : left === 1 ? `1 day left in ${month}` : `${left} days left in ${month}`;
+  const floor = Number(state.floor) || 0;
+  const pulse = window.leaguePulse || [], me = pulse.find(r => r && r.is_me) || null;
+  const partial = !!(pulse[0] && pulse[0].partial);
+  const credits = window.myMonth ? Number(window.myMonth.credits) : null;
+  if(!(floor > 0) || partial || credits == null || isNaN(credits)) return `${head} \u00b7 ${clock}`;
+  if(me && me.joined_this_month === true) return `${head} \u00b7 no minimum this month, you joined this month \u00b7 ${clock}`;
+  const fmt = n => n % 1 ? n.toFixed(1) : String(n);   /* a nine is a half credit */
+  return `${head} \u00b7 ${fmt(credits)}/${floor} toward the minimum \u00b7 ${clock}`;
+}
+window.csMonthRow = csMonthRow;
 function csCountingRule(n){
   if(n == null) return 'Every round you post counts.';
   return Number(n) === 1 ? 'Your best round each month counts.' : `Your best ${csWord(Number(n))} each month count.`;
@@ -22785,15 +22808,11 @@ function renderUpNext(){
     }
     /* D297 / ruling row 30 · no 'Needs you' chip: the invite rows above carry
        Accept themselves; a count of them sent the golfer to a third screen. */
-    /* D122 · a month close only means something once rounds are scoring. The
-       audit's Home showed "MONTH CLOSES in 2 days" beside "7 days to first
-       tee", which reads as a deadline the golfer is already missing — two
-       testers logged it as the app contradicting itself. */
-    if((window.CS?.memberships||[]).length && seasonState() === 'live'){
-      const now=new Date(); const eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
-      const days=Math.max(0, Math.round((eom-now)/86400000));
-      if(days<=10) chips.push(upChip('Month closes', days===0?'today':'in '+days+' day'+(days===1?'':'s'), 'hub', days<=3));
-    }
+    /* TEN / W7-081 · the "Month closes" chip is gone: a machinery label with
+       no solo guard, at the foot of the page. The month is a FACT now
+       (csMonthRow, under the season row in the strip), and the alarm stays the
+       ranker's floor item, which carries the consequence and the solo guard.
+       The phone retired the same chip (UpNext.chips has no caller). */
   }
   box.innerHTML = chips.join('');
   box.querySelectorAll('[data-upgo]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.upgo)));
@@ -24603,6 +24622,7 @@ function renderMeStrip(){
   const row = strip.seasonRow;
   const sideRowText = !row ? '' : (row.parts && row.parts.length > 1 && window.CS?.league && row.parts[0] === String(CS.league.name||''))
     ? row.parts.slice(1).join(' · ') : row.text;
+  const monthRow = row ? csMonthRow() : null;   /* W7-081 · the month's fact, under the season row */
   const onlyPlaceholders = slots.length > 0 && !real.length && !row;
   const html = onlyPlaceholders ? `
     <p class="mesay cs-body-s">${esc(CS_ME_EMPTY.line)}</p>
@@ -24611,7 +24631,8 @@ function renderMeStrip(){
     ${rail.length ? `<div class="mefacts">${rail.map(s => csMeCell(s, s.fact==='my_money' ? ' owed' : '')).join('')}</div>` : ''}
     ${dated.length ? `<div class="medays">${dated.map(csMeDated).join('')}</div>` : ''}
     ${doors.length ? `<div class="hstart medoors">${doors.map(([k, t]) => `<a href="#" data-mego="${k}">${esc(t)}</a>`).join('')}</div>` : ''}
-    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(sideRowText)}</button>` : ''}`;
+    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(sideRowText)}</button>` : ''}
+    ${monthRow ? `<p class="memonth cs-body-s">${esc(monthRow)}</p>` : ''}`;
   /* MW-02 · below the desk the strip is COMPACT: the number, the last round
      and the season row. The next round has its own row further down
      (`#homeUpNext`) and the money owed has its own page (the pot), where the
@@ -24623,7 +24644,8 @@ function renderMeStrip(){
   const compactSlots = strip.slots.filter(s => !s.ph && !homeSays(s) && (s.fact === 'my_number' || s.fact === 'my_last_round'));
   const compact = (!compactSlots.length && !row) ? '' : `
     <div class="mefacts">${compactSlots.map(s => csMeCell(s)).join('')}</div>
-    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(row.text)}</button>` : ''}`;
+    ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(row.text)}</button>` : ''}
+    ${monthRow ? `<p class="memonth cs-body-s">${esc(monthRow)}</p>` : ''}`;
   ['#sideMe', '#homeMe'].forEach(sel => {
     const box = document.querySelector(sel);
     if(!box) return;
