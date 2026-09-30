@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, phraseAsSaid, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, phraseAsSaid, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown, namesWrapWhole } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -667,6 +667,19 @@ const SEASON = [
       return /Couldn.t load this/i.test(arc) && document.getElementById('seasonStoryRetry') ?   /* innerText carries the head's caps */
         true : 'the second league\'s story pane does not say the read failed'
     }) },
+  /* Q34 (1) · owner ruling 2026-09-29: on the slat a long name wraps whole — no "abbreviate first, ellipsis last" (§9.1 yields
+     to the program brief). South Wash Weekday is solo and seats the fixture's longest name, Indigo Longname-Fixturington. */
+  { family: 'season', id: 'slat-long-name', variant: 'member', title: 'The season page of South Wash Weekday (solo): the slat with the longest name', fullPage: false,
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await page.evaluate((id) => window.enterLeagueById(id, false), SW.league)
+      await until(page, () => /South Wash/.test((document.getElementById('seasonTitle') || {}).textContent || '') && /Longname/i.test((document.getElementById('view-hub') || {}).textContent || ''), null, 15000).catch(() => {})
+      await page.waitForTimeout(500)
+      await page.evaluate(() => { const n = [...document.querySelectorAll('#view-hub .tbl .tn')].find((el) => /Longname/i.test(el.textContent)); if (n) n.scrollIntoView({ block: 'center' }) })
+      await scrollSettled(page)
+    },
+    expect: { view: 'view-hub' },
+    check: namesWrapWhole('#view-hub .tbl .tn', 'Longname') },
   /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
      the first week closes" (the phone's storyRead == .failed) */
   { family: 'season', id: 'story-failed', variant: 'member', title: 'The season page, the story, when the story read failed', fullPage: false,
@@ -1106,7 +1119,9 @@ const BOOK = [
         const rows = document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr').length
         if (rows !== 16) return `${rows} golfer rows, expected 16`
         return document.querySelector('#seasonBookDialog .sb-matrix th.sb-current') ? 'a complete season marks a current week' : true
-      })) },
+      }),
+      /* Q34 (1) · the Book's pinned names wrap whole: no initial, no ellipsis, no word broken or run past the column */
+      namesWrapWhole('#seasonBookDialog .sb-matrix tbody th button', 'Longname')) },
   { family: 'book', id: 'error', variant: 'rounds_no_league', title: 'The Book when its read fails: the error and Try again', fullPage: false,
     prepare: adopt('squads'), localStorage: BOOK_LS('squads'),
     world: { errors: { rpc: { season_book: { __error: 'fixture: the Book read failed', status: 503, code: 'XX000' } } } },

@@ -517,3 +517,38 @@ export const medallionOnPhotoOnly = (needPhoto = false) => async (page) => page.
   }
   return needPhoto && !photos ? 'the state draws no photographed card' : true
 }, needPhoto)
+
+/* Q34 (1) · owner ruling 2026-09-29: a long name WRAPS WHOLE — on the slat and in the Book there is no "abbreviate first,
+ * ellipsis last" (UI_SYSTEM §9.1 yields to the program brief). `namesWrapWhole(sel, needLong)` reads every drawn name in
+ * `sel`: it is never cut (an ellipsis, a clipped overflow, a word run past its column), never abbreviated to an initial,
+ * and it breaks only at its spaces or its own hyphen: no part of a word ("Longname-", "Fixturington") breaks across two
+ * lines. `needLong` fails a state that draws no long name. Below `minWidth` (360: a 320 screen, where the slat's CSS lets
+ * a part break as the last resort rather than push the table off the page) the check stands down. */
+export const namesWrapWhole = (sel, needLong = null, minWidth = 360) => async (page) => page.evaluate(({ sel, needLong, minWidth }) => {
+  if (innerWidth < minWidth) return true
+  const els = [...document.querySelectorAll(sel)].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+  if (!els.length) return `${sel} draws no name`
+  const bad = []
+  let longSeen = !needLong
+  for (const el of els) {
+    const said = el.textContent.replace(/\s+/g, ' ').trim()
+    if (/…|\.\.\./.test(said)) bad.push(`an ellipsis in ${JSON.stringify(said)}`)
+    if (/^[A-Z]\.\s/.test(said)) bad.push(`an initial in ${JSON.stringify(said)}`)
+    if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') bad.push(`${JSON.stringify(said)} is clipped`)
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+    for (let t = walker.nextNode(); t; t = walker.nextNode()) {
+      const re = /[^\s\-\u2011]+[\-\u2011]?/g
+      let m
+      while ((m = re.exec(t.textContent))) {
+        const r = document.createRange(); r.setStart(t, m.index); r.setEnd(t, m.index + m[0].length)
+        const tops = new Set([...r.getClientRects()].filter((q) => q.width > 0).map((q) => Math.round(q.top)))
+        if (tops.size > 1) bad.push(`"${m[0]}" breaks across two lines (${JSON.stringify(said.slice(0, 40))}, ${Math.round(el.getBoundingClientRect().width)}px)`)
+        const box = el.getBoundingClientRect(), wr = r.getBoundingClientRect()
+        if (wr.right > box.right + 1) bad.push(`"${m[0]}" runs past its column`)
+        if (needLong && new RegExp(needLong, 'i').test(m[0])) longSeen = true
+      }
+    }
+  }
+  if (!longSeen) return `the state draws no ${needLong}`
+  return bad.length ? 'a name is not whole: ' + [...new Set(bad)].slice(0, 4).join('; ') : true
+}, { sel, needLong, minWidth })

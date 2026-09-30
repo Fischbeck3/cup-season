@@ -1280,7 +1280,14 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .tbl .sw{width:4px; height:14px; border-radius:0; display:inline-block; vertical-align:-2px;}
 .tbl .sw.side{width:6px; height:30px;}
 .tbl .tn{font-family:var(--board); font-size:15px; font-weight:600; line-height:1.16;
-  letter-spacing:.035em; text-transform:uppercase; overflow-wrap:anywhere;}
+  letter-spacing:.035em; text-transform:uppercase; overflow-wrap:break-word;}
+/* Q34 (1) · owner ruling 2026-09-29: on the slat a long name WRAPS WHOLE, at its spaces and its own hyphen. `anywhere`
+   let a table cell's min-content fall to one letter, so the auto table squeezed the name column (88px at 375 beside
+   the Avg column's words) and cut FIXTURINGTON mid-word; `break-word` keeps the longest part of a name as the
+   column's floor and leaves the words beside it to wrap. Still never an ellipsis and never an initial.
+   Below 360 (a 320 screen) the longest part of a surname beside the table's figures is wider than the page allows,
+   so there, and only there, a part may break as the last resort rather than push the table off the screen. */
+@media (max-width:359px){ .tbl .tn{overflow-wrap:anywhere;} }
 /* the name and its line WRAP. They were nowrap + ellipsis, but an ellipsis
    cannot act inside an auto-width table cell, so a long line widened the
    column instead and, whenever the board face had not arrived yet (a slow
@@ -23425,8 +23432,12 @@ function csSeasonBookBody(b,selection){
      own row says "You" — a mark in words, never colour alone (§16.4) */
   const standingOf=r=>[r.mine?'You':null,SeasonBook.standing(r)].filter(Boolean).join(' · ');
   /* a name breaks at its spaces, never at its own hyphen ("Stand-" / "In"):
-     the pinned column is narrow on a phone, and a name wraps whole */
-  const nameOf=r=>esc(r.name).replace(/-/g,'\u2011');
+     the pinned column is narrow on a phone, and a name wraps whole.
+     Q34 (1) · owner ruling 2026-09-29 (a long name wraps whole; §9.1's "abbreviate first, ellipsis last" yields
+     to the program brief): a hyphenated word too long for the pinned column's line keeps its hyphen as a break
+     ("Longname-" / "Fixturington" at 375), where the non-breaking one ran it past the column into the week cells.
+     A short one ("Stand-In") still never splits. Never an initial, never an ellipsis. */
+  const nameOf=r=>esc(r.name).split(' ').map(w=>w.length>=14?w:w.replace(/-/g,'\u2011')).join(' ');
   const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${nameOf(r)}<small${r.mine?' class="sb-you"':''}>${esc(standingOf(r))}</small><strong${r.points_rank===1?' class="sb-lead"':''}>${csBookNum(r.points)} pts</strong></button>`;
   if(!prominent || mode==='Race'){
     if(mode==='Race')h+=csSeasonBookRace(b,rows,follow,selection.width);
