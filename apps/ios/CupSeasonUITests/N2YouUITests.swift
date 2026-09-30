@@ -51,8 +51,9 @@ final class N2YouUITests: N2UITestCase {
         .matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", "43, ", "nine holes")).firstMatch
       XCTAssertTrue(nine.waitForExistence(timeout: 15), "\(size): the nine says it is a nine")
       for _ in 0..<8 where !nine.isHittable { app.swipeUp() }
-      XCTAssertFalse(nine.label.contains("their best"), "\(size): a nine is never the best — \(nine.label)")
-      let best = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", ", their best"))
+      // W7-111 · on the golfer's own card the gold is "your best"
+      XCTAssertFalse(nine.label.contains("your best"), "\(size): a nine is never the best — \(nine.label)")
+      let best = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", ", your best"))
       XCTAssertEqual(best.count, 1, "\(size): one column is the best")
       XCTAssertFalse(best.firstMatch.label.contains("nine holes"), "\(size): the best is an 18 — \(best.firstMatch.label)")
       attach(app, "form-\(size)")
