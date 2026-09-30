@@ -2046,7 +2046,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    the figure stays on the rule. */
 .hfr-title{position:relative; isolation:isolate; display:flex; align-items:flex-end; justify-content:space-between; gap:var(--s3);
   margin-top:var(--s2); padding-bottom:var(--s1); border-bottom:1px solid var(--rule);}
-.hfr-title>b{flex:1; min-width:0; color:var(--ink); overflow-wrap:anywhere; text-wrap:balance; padding-bottom:var(--s1);}
+.hfr-title>b, .hfr-title>.hfrcpt{flex:1; min-width:0; color:var(--ink); overflow-wrap:anywhere; text-wrap:balance; padding-bottom:var(--s1);}   /* W7-083 put the title inside its receipt button, so the button is the flex item now: it takes the title's width, ink and wrap (a long club wraps whole, never past the gross) */
 .hfr-title .hfr-tee{color:var(--mut);}
 .hfr-topo{position:absolute; left:34%; top:50%; transform:translateY(-50%); width:min(30%, 130px); height:auto; z-index:-1; pointer-events:none; color:var(--mut);}
 .hfr-topo .t-sur{stroke-width:1.2; opacity:.08;}
