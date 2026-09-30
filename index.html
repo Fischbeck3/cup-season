@@ -3290,7 +3290,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .rs-cinput{display:flex; gap:8px; margin-top:10px;}
 .rs-cinput .f{flex:1;}
 .managebar2{display:flex; gap:8px; margin-top:16px;}
-.mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px; min-height:44px;}
+.mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--ink); background:transparent; border:1px solid var(--rule); border-radius:9px; padding:9px; min-height:44px;}
 /* D81 hero — ONE card, dispatched on lifecycle. Ember spine = live states,
    champagne spine + figure = earned (rank 1, the wrapped season). The figure
    is the serif number idiom the standings already speak. */
@@ -5163,6 +5163,9 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .sfc{overflow:hidden; height:1.25em; line-height:1.25em; min-width:.74em;
   background:var(--bg2); border:1px solid var(--rule); border-radius:4px;
   padding:0 .08em; font-variant-numeric:tabular-nums; text-align:center;}
+/* R3 P1 (Codex triage): on a painted rank rail (the leader's gold, the viewer's panel) the flap takes the rail's own ground
+   and ink; its bg2 tile under panel-ink measured unreadable */
+.tbl tr.lead .rk .sfc, .tbl tr.mine .rk .sfc{background:transparent; border-color:transparent;}
 .sfc > i{display:block; font-style:normal; white-space:pre;}
 .sfc > i::before{content:attr(data-d);}
 .sfc.go > i{animation:sfFlip .55s steps(3,end) forwards; animation-delay:var(--d,0s);}
@@ -39177,7 +39180,9 @@ async function renderShareView(tok, _testInfo){
     /* the result in the lead serif: each pair's names stay together on a line
        (critique B: "…beat Casey / & Gray"), and the margin is a figure run */
     let story;
-    if(r.story){
+    /* X38 · a stranger never reads money: a story that still carries it (a server before 20261218090000) falls
+       through to the winner line, the same fail-closed test as csPublicSettlementText */
+    if(r.story && !/\$|\b(?:pays?|owes?|from each|settle up)\b/i.test(String(r.story))){
       story = esc(String(r.story));
       [A, B].filter(Boolean).forEach(n => { const e = esc(n); story = story.split(e).join(`<span class="nw">${e}</span>`); });
       const st = r.status ? esc(String(r.status)) : '';
