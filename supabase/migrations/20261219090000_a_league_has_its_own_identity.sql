@@ -40,7 +40,8 @@ create or replace function public.league_media_access(p_name text, p_write boole
 returns boolean language plpgsql stable security definer set search_path = public as $$
 declare v_league uuid;
 begin
-  if auth.uid() is null or p_name is null or p_name !~
+  if auth.uid() is null or not exists (select 1 from public.profiles where id = auth.uid() and deleted_at is null)
+    or p_name is null or p_name !~
     '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png)$'
     then return false; end if;
   v_league := split_part(p_name, '/', 1)::uuid;
@@ -73,7 +74,8 @@ declare v_description text := nullif(btrim(p_description), '');
         v_owner uuid;
 begin
   perform 1 from public.leagues where id = p_league for update;
-  if not found or not public.is_commissioner(p_league) then
+  if not found or not public.is_commissioner(p_league)
+    or not exists (select 1 from public.profiles where id = auth.uid() and deleted_at is null) then
     raise exception 'Only the Pro can change the league identity.' using errcode = '42501';
   end if;
   if char_length(v_description) > 160 then
@@ -170,7 +172,8 @@ returns jsonb language sql stable security definer set search_path = public as $
        where m.league_id = l.id and m.suspended_at is null and m.left_at is null and p.deleted_at is null
        order by (p.id = auth.uid()) desc, m.joined_at, m.id limit 3) x)
   ) order by l.id), '[]'::jsonb)
-  from public.leagues l where public.is_league_member(l.id);
+  from public.leagues l where public.is_league_member(l.id)
+    and exists (select 1 from public.profiles where id = auth.uid() and deleted_at is null);
 $$;
 revoke all on function public.league_identities() from public, anon;
 grant execute on function public.league_identities() to authenticated;

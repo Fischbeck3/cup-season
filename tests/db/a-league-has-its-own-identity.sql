@@ -166,4 +166,18 @@ do $$ begin
  exception when check_violation then null; end;
  raise notice 'PASS hard-deletion privacy and row-level image namespace';
 end $$;
+-- A still-valid token cannot re-publish after deletion, even if its old Pro
+-- role remains in a historical record.
+update leagues set commissioner_id = '00000000-0000-4000-8000-00000000a401' where code = 'SPD401';
+set local role authenticated;
+do $$ begin
+ if league_identities() <> '[]'::jsonb or public.league_media_access(
+   '00000000-0000-4000-8000-00000000b401/00000000-0000-4000-8000-00000000e404.png', true)
+   then raise exception 'Deleted account still receives identity access'; end if;
+ begin
+  perform set_league_identity('00000000-0000-4000-8000-00000000b401', 'resurrected', '', '');
+  raise exception 'Deleted Pro republished identity';
+ exception when insufficient_privilege then null; end;
+ raise notice 'PASS deleted-account token cannot re-publish identity';
+end $$;
 rollback;
