@@ -80,23 +80,31 @@ const youBuilding = (kind) => async (page) => page.evaluate((kind) => {
   return said === '' && !shown(row) ? true : `an empty record: clause ${JSON.stringify(said)}, scope line drawn: ${shown(row)}`
 }, kind)
 
-/* TEN / W8 · W7-047 [A2-identity-10] · You's Form head is the page's eyebrow with the window in its label ('Form · last five', Q21), a count slot only
-   under five rounds ('One of five'), and every column's day is the month and day ('SEP 27', 'SEP 13 · NINE'), the day form the Recent rounds below print */
-const youFormGrammar = (slot) => async (page) => page.evaluate((slot) => {
-  const head = document.querySelector('#youForm h2.eyebrow')
-  if (!head) return "You's Form head is not the eyebrow"
-  const t = head.innerText.replace(/\s+/g, ' ').trim()
-  if (t !== (slot ? `FORM · LAST FIVE ${slot}` : 'FORM · LAST FIVE')) return `You's Form head reads ${JSON.stringify(t)}`
-  const days = [...document.querySelectorAll('#youForm .dfcol small')].map((e) => e.innerText.trim())
-  const bad = days.filter((d) => !/^[A-Z]{3} \d{1,2}( · NINE)?( · BEST)?$/.test(d))
-  if (!days.length || bad.length) return `the Form columns mix day forms: ${JSON.stringify(days)}`
-  /* TEN / W8 · W7-111 [A2-identity-7]: the row is not one role=img (a screen reader lost every number in it); each column is named by its own facts, and the best has a word as well as a hue */
-  const row = document.querySelector('#youForm .dform'), cols = [...document.querySelectorAll('#youForm .dfcol')], won = cols.filter((c) => c.classList.contains('won'))
-  if (row.getAttribute('role') === 'img') return 'the Form row is still one image'
-  const unnamed = cols.filter((c) => !/^\d+, [A-Z][a-z]+ \d{1,2}/.test(c.getAttribute('aria-label') || ''))
-  if (unnamed.length) return `${unnamed.length} Form column(s) are not named by their own facts: ${JSON.stringify(unnamed[0].getAttribute('aria-label'))}`
-  if (won.length && !won.every((c) => /best of the five/.test(c.getAttribute('aria-label')) && /BEST/.test(c.querySelector('small').innerText))) return 'the best is marked by hue alone'
+/* (W7-047 / W7-111's youFormGrammar retired with You's Form row, Q40 (b); the row-naming half rides in youRecentFive) */
+/* Q40 (b) · owner ruling 2026-09-29: the web's You prints each gross once. No Form row above Recent rounds; the
+   head is 'Recent rounds · Last five' with a count slot only under five ('One of five'); at most five rows; and
+   the best 18-hole gross of the five (a field of two or more) takes the gold on its own row, with the words
+   'best of the five' as the second channel, in the line and in the row's name. The rows stay receipt doors. */
+const youRecentFive = (slot) => async (page) => page.evaluate((slot) => {
+  if (document.querySelector('#youForm .dform, #youForm .dfcol')) return 'You still draws the Form row above Recent rounds'
+  const head = document.getElementById('youRecentHead')
+  const t = head ? head.innerText.replace(/\s+/g, ' ').trim() : ''
+  if (t !== (slot ? `RECENT ROUNDS · LAST FIVE ${slot}` : 'RECENT ROUNDS · LAST FIVE')) return `the Recent rounds head reads ${JSON.stringify(t)}`
   const rows = [...document.querySelectorAll('#youRecent .yrow')].filter((r) => r.getBoundingClientRect().width > 0)
+  if (!rows.length || rows.length > 5) return `Recent rounds draws ${rows.length} rows`
+  if (rows.some((r) => r.getAttribute('role') !== 'button' || r.dataset.rcptI == null)) return 'a Recent rounds row is not a receipt door'
+  const nine = (r) => /9 holes/.test(r.querySelector('small') ? r.querySelector('small').textContent : '')
+  const grossOf = (r) => Number(r.querySelector('.yrowg').textContent.trim())
+  const field = rows.filter((r) => !nine(r) && isFinite(grossOf(r)))
+  const best = rows.filter((r) => r.classList.contains('best'))
+  if (field.length < 2) return best.length ? 'a best is marked with no field to be best of' : true
+  if (best.length !== 1) return `${best.length} rows take the gold, expected one`
+  const b = best[0], low = Math.min(...field.map(grossOf))
+  if (nine(b) || grossOf(b) !== low) return `the gold is on ${grossOf(b)}, not the best 18-hole gross (${low})`
+  const probe = document.createElement('i'); probe.style.color = 'var(--gold)'; document.body.appendChild(probe); const gold = getComputedStyle(probe).color; probe.remove()
+  if (getComputedStyle(b.querySelector('.yrowg')).color !== gold) return 'the best row’s gross is not gold'
+  if (rows.some((r) => r !== b && getComputedStyle(r.querySelector('.yrowg')).color === gold)) return 'another gross is gold'
+  if (!/best of the five/.test(b.querySelector('small').textContent) || !/best of the five/.test(b.getAttribute('aria-label') || '')) return 'the best is marked by hue alone'
   const thin = rows.filter((r) => !/, \d+, [A-Z][a-z]{2} \d{1,2}/.test(r.getAttribute('aria-label') || ''))
   return thin.length ? `a Recent rounds row is named 'course, gross' only: ${JSON.stringify(thin[0].getAttribute('aria-label'))}` : true
 }, slot)
@@ -181,11 +189,11 @@ const YOU = [
       standsDown(['#sideMe [data-mego="add_round"]', '#sideMe .medoors']), footStays) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youFormGrammar('ONE OF FIVE')) },
+    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youRecentFive('ONE OF FIVE')) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
-    check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), liveLine, notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
+    check: all(recordState('some'), youIndex(5), youBuilding('many'), youRecentFive(''), liveLine, notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3); Q39 (a): in words (vsPhrase) */
       readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 (beat your playing HCP by \\d+\\.\\d|played to your playing HCP|\\d+\\.\\d over your playing HCP)', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */

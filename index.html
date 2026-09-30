@@ -5396,6 +5396,9 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 /* no min-width: two grosses right-flush in a flex row already share an edge,
    and 2.6em at `figure` 27 reserved 70px for a two-digit number. */
 .yrowg{flex:0 0 auto; color:var(--ink); text-align:right;}
+/* Q40 (b) · the best 18-hole gross of the five takes the gold on its OWN row, with the word as the second channel
+   (§2.4 "the best of the last five"; W7-111: never hue alone) */
+.yrow.best .yrowg, .yrow.best .yrowbest{color:var(--gold);}
 /* THE RECORD, printed on a leaf — `year · competition · finish`. The money
    column is DROPPED rather than zeroed: `season_payouts` holds no rows in
    prod, and four zeroes is not a table (profile.md §14.2). A WIN takes the
@@ -25483,7 +25486,11 @@ function renderCareer(){
         {played_on:'2026-05-31', course_label:'Aguila',        gross:84, differential:10.3, holes_played:18, pvi:2.1,  beat:true} ] }
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
-  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY, { head:'eyebrow' }) : '';
+  /* Q40 (b) · owner ruling 2026-09-29: the web's You says each gross ONCE. The Form row printed the same five
+     grosses a hand's width above Recent rounds (AW2-16), so it is not drawn here; Recent rounds carries the five
+     under "Recent rounds · Last five", and the best 18-hole gross takes the gold on its own row. The phone keeps
+     its Form row (profile §5); the person page keeps formRowHtml. */
+  const yf=$('#youForm'); if(yf) yf.innerHTML = '';
   /* F10 · the page knows which of four things it is showing: still loading, a
      read that failed, a record with nothing in it yet, or a record */
   const view = $('#view-stats');
@@ -25557,8 +25564,16 @@ function renderCareer(){
        opens the receipt, confirmed by the browser's confirm(). It lives on the
        receipt now, labelled and armed (csReceiptDeleteRow). */
     const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
-    yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map((r,ri)=>{
+    /* Q40 (b) · the head names the window, as the Form head did ("Recent rounds · Last five"), with a count slot
+       only under five; the best is formRowHtml's rule: the lowest 18-hole gross, and only with a field of two */
+    const five = (c.recent || []).slice(0, 5);
+    const rh = $('#youRecentHead');
+    if(rh) rh.innerHTML = five.length ? 'Recent rounds · Last five' + (five.length < 5 ? `<span>${esc(csCapFirst(csSpelled(five.length)))} of five</span>` : '') : 'Recent rounds';
+    const comparable = five.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross);
+    const bestGross = comparable.length >= 2 ? Math.min(...comparable) : null;
+    let bestSeen = false;
+    yr.innerHTML = five.length
+      ? five.map((r,ri)=>{
           /* TEN / W6 · TP-11 · case is the role's (§1.3, LINT-14): the name role
              sets the course in caps; the sub-line is an agate PHRASE */
           const when = r.played_on ? csMonthDay(r.played_on) : '';
@@ -25569,12 +25584,13 @@ function renderCareer(){
              page said plus is better. The sign stays only in the receipt's arithmetic row (D2). */
           const sub = [when, fig!=null ? vsPhrase(fig) : null,
                        r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
+          const isBest = !bestSeen && bestGross != null && r.gross === bestGross && !csFormNine(r); if(isBest) bestSeen = true;
           const bk = bookOf(r.api_course_id);
           const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
           /* W7-111 · the row is named by its own facts, not 'course, gross': the day, the score and what it was against your number, and a nine says so */
-          const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null].filter(Boolean).join(', ');
-          return `<div class="yrow" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${spoken}">
-            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}</small>`:''}</span>
+          const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null, isBest ? 'best of the five' : null].filter(Boolean).join(', ');
+          return `<div class="yrow${isBest ? ' best' : ''}" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${spoken}">
+            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}${isBest ? ' · <span class="yrowbest">best of the five</span>' : ''}</small>`:''}</span>
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
             <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
         }).join('')
