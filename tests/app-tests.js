@@ -1469,6 +1469,12 @@
        csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
       [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
+    /* Q15 (3) · the covenant's terms sit under three heads, in order, and an empty head is not drawn */
+    t('Q15: the covenant groups its terms under Who, How it scores and The money',
+      [csCovenantGroups([{k:'season'},{k:'who'},{k:'length'},{k:'joining'},{k:'structure'},{k:'rules'},{k:'ending'},{k:'stake'},{k:'ledger'},{k:'split'},{k:'pay'},{k:'starter'}]).map(g => g.label + ':' + g.facts.map(f => f.k).join('+')),
+       csCovenantGroups([{k:'who'},{k:'length'},{k:'rules'},{k:'ending'}]).map(g => g.label)],
+      [['Who:season+who+structure', 'How it scores:length+joining+rules+ending+starter', 'The money:stake+ledger+split+pay'],
+       ['Who', 'How it scores']]);
     /* Q37 (a) · the clash head's rider is the Kit's ClashCopy.rider (WeekClash.swift's own four samples, WeekClashTests.swift:80-83) */
     t('Q37: the clash head\u2019s rider is the Kit\u2019s',
       [csClashRider(false, '', false, 'Thu'), csClashRider(true, 'Blake Fixture', false, 'Thu'), csClashRider(true, 'Avery Fixture', true, 'Thu'), csClashRider(true, '', false, 'Thu')],

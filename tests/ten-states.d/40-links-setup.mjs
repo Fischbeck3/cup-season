@@ -192,6 +192,19 @@ const inviteDeclineOnItem = async (page) => page.evaluate(() => {
   if (b.classList.contains('btn')) return 'Decline is a filled button beside the one primary'
   return true
 })
+/* TEN / W8 · Q15 (3) (owner, 2026-09-29) [craft claim-invite D 7] · the covenant's terms sit under THREE HEADS in this order, "Who", "How it scores", "The money", each with terms under it and nothing
+   between heads but its own paragraphs; a free season has no money head (L-10). `want` is the heads this season has */
+const covenantHeads = (want) => async (page) => page.evaluate((want) => {
+  const hs = [...document.querySelectorAll('#shBody [data-covhead]')]
+  const got = hs.map((h) => h.textContent.trim())
+  if (got.join('|') !== want.join('|')) return `the covenant's heads read ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`
+  for (const h of hs) { const n = h.nextElementSibling; if (!n || n.tagName !== 'P') return `the head '${h.textContent.trim()}' has no terms under it` }
+  const body = document.getElementById('shBody').innerText
+  if (want.includes('The money') && !/\$75 each\./.test(body)) return 'the stake is not in the covenant'
+  const money = document.querySelector('#shBody [data-covhead="money"]')
+  if (money && !/\$75 each\./.test(money.nextElementSibling.textContent)) return 'the money head does not open on the stake'
+  return true
+}, want)
 const LINKS = [
   /* W4 · the round LEADS the door (#obLink, the lead serif) and the status line
      keeps the next step: the same ruled sentence (TERMINOLOGY §6), split,
@@ -268,12 +281,12 @@ const LINKS = [
     settle: async (page) => { await until(page, () => document.getElementById('sheet').classList.contains('open') && /Before you join/.test(document.getElementById('shTitle').textContent), null, 15000); await page.waitForTimeout(600) },
     expect: { allowDoor: true, sheet: '^Before you join North Grove \\(fixture\\)$',
       selectors: { '#covJoin': 'text:^Join — I’m in for \\$75$', '#covNo': 'visible', '#shBody': 'text:Blake Sample runs the season \\(the Pro\\)' } },
-    check: covenantAnswersInView },
+    check: async (page) => { const r = await covenantAnswersInView(page); return r === true ? covenantHeads(['Who', 'How it scores', 'The money'])(page) : r } },
   { family: 'links', id: 'join-covenant-free', variant: 'brand_new', url: `/?join=${JOIN.free}`,
     settle: async (page) => { await until(page, () => document.getElementById('sheet').classList.contains('open') && /Before you join/.test(document.getElementById('shTitle').textContent), null, 15000); await page.waitForTimeout(600) },
     expect: { allowDoor: true, sheet: '^Before you join South Wash Weekday \\(fixture\\)$',
       selectors: { '#covJoin': 'text:^Join South Wash Weekday \\(fixture\\)$', '#shBody': 'text:every round counts' } },
-    check: covenantAnswersInView },
+    check: async (page) => { const r = await covenantAnswersInView(page); return r === true ? covenantHeads(['Who', 'How it scores'])(page) : r } },
   /* signed in and already in: the covenant is not shown again; the line says so */
   { family: 'links', id: 'join-already-in', variant: 'member', url: `/?join=${JOIN.season}`,
     settle: async (page) => { await bootDone(page, 300); await until(page, () => /already in for season 1/.test((document.getElementById('toast') || {}).textContent || ''), null, 8000) },
