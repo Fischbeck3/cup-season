@@ -343,13 +343,7 @@ struct DoorView: View {
         .padding(.vertical, CSTokens.Space.s3)
         .frame(maxWidth: .infinity, minHeight: 64)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        // §7.2 · a field has NO border; focus is the one 2px brand ring
-        .overlay {
-          if focus == .code {
-            RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-              .stroke(cs.act, lineWidth: 2)   // D359 · a focus ring is an ordinary interactive state
-          }
-        }
+        .csFieldEdge(focused: focus == .code)
         .focused($focus, equals: .code)
         .onChange(of: vm.code) { _, new in
           let clean = AuthRules.normalizeCode(new)
@@ -385,6 +379,7 @@ struct DoorView: View {
         .accessibilityLabel("Review password")
         .padding(.horizontal, 14).frame(minHeight: 48)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .csFieldEdge(focused: focus == .password)
         .focused($focus, equals: .password)
         .onSubmit { reviewer() }
       Button("Sign in") { reviewer() }.buttonStyle(.csPrimary(busy: vm.busy)).id(DoorLayout.action)

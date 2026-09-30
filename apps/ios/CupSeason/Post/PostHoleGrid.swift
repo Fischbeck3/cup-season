@@ -276,7 +276,7 @@ struct PostParsSheet: View {
         .foregroundStyle(bad ? cs.neg : cs.ink)
         .padding(.horizontal, 14).frame(minHeight: 56)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(bad ? cs.neg : (focus == f ? cs.act : cs.rule), lineWidth: focus == f ? 2 : 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(bad ? cs.neg : (focus == f ? cs.act : cs.mut), lineWidth: focus == f ? 2 : 1))
         .focused($focus, equals: f)
         .onChange(of: v) { _, n in
           let c = PostPars.clean(n)

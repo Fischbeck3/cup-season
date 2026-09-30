@@ -56,7 +56,7 @@ struct CommentSafetySheet: View {
             Text("Reported — thanks. We’ll take a look.").csType(.body).accessibilityIdentifier("comment-reported")
           } else {
             Text("Your note goes to the founder desk with the comment.").csType(.bodyS).foregroundStyle(cs.mut)
-            TextField("Say what’s wrong…", text: $reason, axis: .vertical).csType(.body)
+            CSField(placeholder: "Say what’s wrong…", text: $reason, multiline: true)
               .onChange(of: reason) { _, value in reason = String(value.prefix(500)) }
               .accessibilityIdentifier("comment-report-reason")
             Button("Send the report") { Task { await report() } }.buttonStyle(.csPrimary(busy: busy))

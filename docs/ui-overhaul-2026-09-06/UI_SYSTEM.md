@@ -1054,9 +1054,11 @@ underline *is* the affordance, taking it below 3:1 stops it being a control. `CS
 |---|---|---|---|---|
 | **Chip** | 28pt tall, `p` 3, `agate` label, `s3` horizontal padding | `bg2` fill, `mut` label | **inverts to the panel** — `panel` fill, `panelInk` label | `bg1`, `dim` |
 | **Segment** | 44pt row, **no pill** | `agate` in `mut`, 2px transparent underline | `ink` label, 2px **`ink`** underline — never ember, because a tab is not live | — |
-| **Field** | 50pt, `rc` 10, `bg2` fill, **no border** | value in `body` 17 (SF) — `column` 17 only for a code, handle, time or score | focus: **2px `brand`** ring | `bg1` fill, `mut` value |
+| **Field** | 50pt, `rc` 10, `bg2` fill, **opaque `mut` edge (Q46)** | value in `body` 17 (SF) — `column` 17 only for a code, handle, time or score | focus: **2px `act`** ring (D359) | `bg1` fill, `mut` value |
 | **Stepper** | 44pt, `bg2`, value in `figure` 20, **bare — no ring and no box** (§9.4: the score mark and the input are not the same object; a circled numeral between a − and a + reads as *selected*, not as a birdie). The field is the numeral's own underline | `.selection` haptic per step | — | — |
 | **Sheet** | `rs` 24 top corners, `bg0` ground, drag pill in `rule`, a `rule` under the header | — | — | — |
+
+**Q46 amendment (2026-09-29), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md):** filled fields on both clients keep an opaque `mut` edge with at least 3:1 contrast against their adjacent grounds. Focus is an additional state, not the only way to find the field.
 
 **The field family, in full** (the audit's "inputs" item, which the product answers with two states and
 a cliff between them): **label** in agate above · **value** · **caption** in `body` 15 at `mut` beneath,

@@ -31,13 +31,7 @@ struct AnnounceSheet: View {
           .lineLimit(3...8)
           .padding(CSTokens.Space.s3)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-          // §7.2 · no border; focus is the one 2px brand ring
-          .overlay {
-            if focused {
-              RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-                .stroke(cs.act, lineWidth: 2)   // D359 · a focus ring is an ordinary interactive state
-            }
-          }
+          .csFieldEdge(focused: focused)
           .focused($focused)
           .onChange(of: text) { _, v in if v.count > 280 { text = String(v.prefix(280)) } }
         Text("\(text.count) / 280").csType(.agateS).foregroundStyle(text.count >= 280 ? cs.neg : cs.mut)
@@ -98,6 +92,7 @@ struct ReportSheet: View {
           .lineLimit(2...6)
           .padding(CSTokens.Space.s3)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+          .csFieldEdge()
           .onChange(of: why) { _, v in if v.count > 500 { why = String(v.prefix(500)) } }
         Button("Send the report") {
           busy = true
