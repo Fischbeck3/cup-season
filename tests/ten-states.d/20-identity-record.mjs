@@ -336,7 +336,14 @@ const RECORD = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'hidden' } },
-    check: medallionOnPhotoOnly(true) },
+    check: all(medallionOnPhotoOnly(true),
+      /* X36 (1) · the tour card's head-to-head chip names its facet: tour_card.vs_you counts season weeks */
+      async (page) => page.evaluate(() => {
+        const c = document.getElementById('tcVs')
+        if (!c) return 'the tour card draws no head-to-head chip (Blake is a rival)'
+        const t = c.textContent.replace(/\s+/g, ' ').trim()
+        return /^IN THE SEASON · \d+–\d+(–\d+)? · \S/.test(t) ? true : 'the chip does not name its facet: ' + JSON.stringify(t)
+      })) },
   /* a withdrawn photograph: the public link Avery withdrew when the photo
      consent changed answers dead -- the photo is gone with it */
   { family: 'record', id: 'photo-withdrawn', variant: 'signed_out', url: '/?share=fe200000-0000-4000-8000-000000000004',

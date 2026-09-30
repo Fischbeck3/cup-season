@@ -30974,7 +30974,8 @@ async function openTourCard(profileId){
   if(vs && (vs.wins+vs.losses+vs.ties)>0){
     const rec2 = `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`;
     const lead = csLeadLabel(vs.wins, vs.losses);
-    vsChip = `<button class="cvs" id="tcVs">VS YOU · ${rec2} · ${lead}</button>`;
+    /* X36 (1) · root's ruling 2026-09-29: tour_card.vs_you counts season weeks, so the chip names that facet */
+    vsChip = `<button class="cvs" id="tcVs">IN THE SEASON · ${rec2} · ${lead}</button>`;
   }
   const mkMeta = (typeof MARKERS!=='undefined' && (MARKERS[p.marker]||MARKERS.saguaro)) || null;
   const est = estSince(p.member_since);
