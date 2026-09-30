@@ -159,19 +159,14 @@ struct SystemRow: View {
   }
 }
 
-/// `.msgrow` — the squad-colour spine beside a text column. Chat carries the
-/// name (+ the founder tag); a compact round line carries its eased body.
+/// `.msgrow` — chat carries the name (+ the founder tag), with no squad mark.
+/// N4-094: squad identity belongs to a named round-post label, never a chat spine.
 /// A row on ground, parted from the next by a rule (IOS-019 rule 2).
 struct MessageRow<Content: View>: View {
-  @Environment(\.cs) private var cs
-  let ci: Int
   @ViewBuilder let content: Content
   var body: some View {
-    HStack(alignment: .top, spacing: CSTokens.Space.s3) {
-      Rectangle().fill(cs.squad(ci)).frame(width: 3)
-      VStack(alignment: .leading, spacing: CSTokens.Space.s1) { content }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) { content }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, CSTokens.Space.s3)
     .overlay(alignment: .bottom) { CSRule() }
   }
@@ -183,7 +178,7 @@ struct ChatRow: View {
   let store: BoardStore
   let links: BoardLinks
   var body: some View {
-    MessageRow(ci: item.ci) {
+    MessageRow {
       HStack(spacing: CSTokens.Space.s2) {
         Button { if let p = item.profileId { links.openTourCard(p) } } label: {
           Text(item.who).csType(.name).foregroundStyle(cs.ink).a11yHitSlop()   // the name is a 44pt door
@@ -207,7 +202,7 @@ struct CompactRoundRow: View {
   let item: BoardItem
   let store: BoardStore
   var body: some View {
-    MessageRow(ci: item.ci) {
+    MessageRow {
       Text(BoardText.easeCaps(item.text, names: store.names)).csType(.body).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
       if item.social { ReactionBar(item: item, store: store) }
@@ -245,8 +240,8 @@ struct BoardSkeleton: View {
   ]
   var body: some View {
     VStack(spacing: 0) {
-      ForEach(Array(Self.sample.enumerated()), id: \.offset) { i, s in
-        MessageRow(ci: i) {
+      ForEach(Array(Self.sample.enumerated()), id: \.offset) { _, s in
+        MessageRow {
           Text(s.0).csType(.name).foregroundStyle(cs.ink)
           Text(s.1).csType(.body).foregroundStyle(cs.ink)
         }
