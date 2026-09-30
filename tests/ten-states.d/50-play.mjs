@@ -89,6 +89,15 @@ const noLiveGold = async (page) => page.evaluate(() => {
   if (fs && fs.getBoundingClientRect().height > 0 && getComputedStyle(fs).color === gold) return 'the finish line turns gold'
   return true
 })
+/* TEN / W6 · W7-092 · below 640px every one of the five games is on screen with no scroll: the phone's wrapping chip flow */
+const gamesOnScreen = async (page) => page.evaluate(() => {
+  if (innerWidth > 640) return true
+  const seg = document.getElementById('gameSeg'), bs = [...seg.querySelectorAll('button')]
+  if (bs.length !== 5) return `the picker has ${bs.length} games`
+  if (seg.scrollWidth > seg.clientWidth + 1) return 'the game picker still scrolls sideways'
+  const off = bs.find((b) => { const r = b.getBoundingClientRect(); return r.left < 0 || r.right > innerWidth + 0.5 || r.height < 43.5 })
+  return off ? `"${off.textContent.trim()}" is not whole on screen at 44` : true
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -159,7 +168,7 @@ export default [
   { family: 'play', id: 'setup-empty', variant: 'member', title: 'Live setup · before a course is picked',
     drive: toSetup,
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#playLive': 'hidden', '#teeOffBtn': 'visible', '#lrCourse': 'visible' } },
-    check: all(destMarked('record'),   /* TEN / W8 · W7-108: the live setup is a room of PLAY, so PLAY stays marked */
+    check: all(destMarked('record'), gamesOnScreen,   /* TEN / W8 · W7-108: the live setup is a room of PLAY, so PLAY stays marked; W7-092: every game on screen below 640 */
       async (page) => page.evaluate(() => {
       /* TEN / W6 · AW2-14: Play's "Score it live" door is an action — its word and dot are act, never ember */
       const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }

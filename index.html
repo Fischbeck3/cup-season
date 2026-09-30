@@ -1872,6 +1872,17 @@ button.payer{cursor:pointer;}
 .lrheld{color:var(--ink); margin:0 0 var(--s3);}
 .lrback{margin:0 0 var(--s4);}   /* the way back is on the first screen, under the line that says the round is held */
 #gameSeg[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
+/* TEN / W7-092 · below 640px the five games wrap, as the phone's chip flow
+   does (LiveSetupView.swift:392): every game on screen with no scroll, no
+   container ground or border, and no edge mask. Each game keeps its 44px
+   target; the chosen keeps .on's ink on bg1. No new filled chip is drawn (a
+   filled rounded box is LINT-10's boxed surface). From 641 the single row
+   stays. */
+@media(max-width:640px){
+  #gameSeg{flex-wrap:wrap; gap:var(--s1); overflow:visible; background:none; border:0; padding:0;}
+  #gameSeg[data-more]{-webkit-mask-image:none; mask-image:none;}
+  #gameSeg button{flex:0 0 auto;}
+}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}   /* TEN / W6 · AW2-06: a dateline, agateS */
