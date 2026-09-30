@@ -19,13 +19,13 @@ const HOSTILE = '<a/href="https://evil.example/verify">Verify&nbsp;your&nbsp;acc
 
 test('escapeHtml neutralises every markup character, and nothing else', () => {
   assert.equal(escapeHtml(`<img/src=x onerror='a'>&"`), '&lt;img/src=x onerror=&#39;a&#39;&gt;&amp;&quot;');
-  assert.equal(escapeHtml('Jerecho'), 'Jerecho');
+  assert.equal(escapeHtml('Avery'), 'Avery');
   assert.equal(escapeHtml(null), '');
   assert.doesNotMatch(escapeHtml(HOSTILE), /[<>"']/);
 });
 
 test('a requester is named by letters only: no link, no number, nothing to click', () => {
-  assert.equal(mailName('Jerecho Fischbeck'), 'Jerecho');
+  assert.equal(mailName('Avery Fixture'), 'Avery');
   assert.equal(mailName("O'Brien-Smith"), "O'Brien-Smith");
   assert.equal(mailName('José'), 'José');
   assert.equal(mailName('https://evil.example/login'), 'httpsevilexamplelogi');
@@ -201,7 +201,7 @@ async function apnsKey() {
   return { APNS_P8: `-----BEGIN PRIVATE KEY-----\n${der}\n-----END PRIVATE KEY-----`, APNS_KEY_ID: 'K', APNS_TEAM_ID: 'T' };
 }
 const league = () => ({
-  leagues: [{ id: 'L', name: 'PIGL', notify_system: true }],
+  leagues: [{ id: 'L', name: 'North Grove', notify_system: true }],
   league_members: [
     { id: 'm1', profile_id: 'attacker', league_id: 'L', profiles: {} },
     { id: 'm2', profile_id: 'alice', league_id: 'L', profiles: {} },
@@ -214,7 +214,7 @@ const league = () => ({
     { id: 'gone', profile_id: 'bob', endpoint: 'https://fcm.googleapis.com/fcm/send/gone', p256dh: 'k', auth: 'a' },
   ],
 });
-const post = { table: 'posts', type: 'INSERT', record: { id: 'p1', league_id: 'L', member_id: 'm2', kind: 'round', body: 'Alice posted 79 at Papago.' } };
+const post = { table: 'posts', type: 'INSERT', record: { id: 'p1', league_id: 'L', member_id: 'm2', kind: 'round', body: 'Alice posted 79 at Saguaro Flats.' } };
 
 test('C-08 · a web-push endpoint that never answers cannot hold APNs, and a dead one is still pruned', async () => {
   const w = world({ tables: league(), env: await apnsKey(), webpush: { send: (sub) =>

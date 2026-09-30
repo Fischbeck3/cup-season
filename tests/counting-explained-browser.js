@@ -86,12 +86,12 @@
     const realRpc=window.sb?.rpc, realSb=window.sb;
     window.sb = Object.assign({}, realSb||{}, { rpc: async (fn, args) => fn==='counting_rounds'
       ? { data:{ league_name:'Fellas', golfer:'Sam Fixture', is_me:true, cap:4, month:args.p_month, rounds:[
-          { round_id:'r1', played_on:month+'-03', gross:80, course_label:'Aguila', points:9, month_rank:1, counting:true },
-          { round_id:'r2', played_on:month+'-12', gross:92, course_label:'Encanto', points:2, month_rank:5, counting:false } ] } }
+          { round_id:'r1', played_on:month+'-03', gross:80, course_label:'Dry Creek', points:9, month_rank:1, counting:true },
+          { round_id:'r2', played_on:month+'-12', gross:92, course_label:'Mesquite Wash', points:2, month_rank:5, counting:false } ] } }
       : { data:null, error:{ message:'stub' } } });
     await csOpenCountingRounds('m-me','s1',month,'Fellas');
     const sheet=document.getElementById('shBody').innerHTML;
-    check(/80 at Aguila/.test(sheet) && /BUMPED/.test(sheet) && /Bumped rounds still happened/.test(sheet),'the counting sheet did not list the rounds: '+sheet.replace(/<[^>]+>/g,'|').slice(0,200));
+    check(/80 at Dry Creek/.test(sheet) && /BUMPED/.test(sheet) && /Bumped rounds still happened/.test(sheet),'the counting sheet did not list the rounds: '+sheet.replace(/<[^>]+>/g,'|').slice(0,200));
     check(document.getElementById('shTitle').textContent.includes('Your rounds that count'),'the sheet is not titled for the golfer');
     check((sheet.match(/data-histround=/g)||[]).length===2,'the rounds do not open their receipts');
     /* the composer, from the served counters, one sentence per season */

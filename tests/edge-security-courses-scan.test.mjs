@@ -30,7 +30,7 @@ function load(rel, allowed, globals) {
 
 test('a search books its search call plus every detail fetch it may make', () => {
   assert.equal(SEARCH_DETAIL_FETCHES, 3);
-  assert.equal(unitsFor('search', { q: 'papago' }), 4);
+  assert.equal(unitsFor('search', { q: 'sandbox' }), 4);
   assert.equal(unitsFor('search', { q: 12345 }), 4);
   assert.equal(unitsFor('cache', { id: '1001' }), 1);
 });
@@ -40,7 +40,7 @@ test('a request that cannot reach the provider books nothing', () => {
   assert.equal(unitsFor('search', { q: '  pa  ' }), 0);
   assert.equal(unitsFor('search', {}), 0);
   assert.equal(unitsFor('cache', { id: '   ' }), 0);
-  assert.equal(unitsFor('delete-everything', { q: 'papago' }), 0);
+  assert.equal(unitsFor('delete-everything', { q: 'sandbox' }), 0);
   assert.equal(unitsFor(undefined, null), 0);
 });
 
@@ -88,7 +88,7 @@ function courses({ verdict = 'ok', rpcError = null } = {}) {
 
 test('C-04 · a search reserves its worst case BEFORE the first upstream call, once', async () => {
   const c = courses();
-  const r = await c.call({ action: 'search', q: 'papago' });
+  const r = await c.call({ action: 'search', q: 'sandbox' });
   assert.equal(r.status, 200);
   assert.deepEqual(c.log.reserve, [{ p_profile: 'u1', p_action: 'search', p_units: 4 }]);
   assert.equal(c.log.order[0], 'reserve', 'booked before the first upstream call');
@@ -105,7 +105,7 @@ test('C-04 · a refused or unreadable reservation spends nothing upstream', asyn
     [{ verdict: null }, 503, 'course lookup unavailable'],
   ]) {
     const c = courses(opts);
-    const r = await c.call({ action: 'search', q: 'papago' });
+    const r = await c.call({ action: 'search', q: 'sandbox' });
     assert.equal(r.status, status, JSON.stringify(opts));
     assert.equal((await r.json()).error, err);
     assert.equal(c.log.upstream, 0, `${JSON.stringify(opts)} made an upstream call`);

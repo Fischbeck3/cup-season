@@ -17,7 +17,7 @@ import { homedir } from 'node:os'
 const require = createRequire(import.meta.url)
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d }
 const BASE = arg('base', 'http://127.0.0.1:8801')
-const { chromium } = require(process.env.CS_PLAYWRIGHT || '/Users/fischbeck3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
+const { chromium } = require(process.env.CS_PLAYWRIGHT || (process.env.HOME || '') + '/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
 const shell = () => { const r = join(homedir(), 'Library', 'Caches', 'ms-playwright'); for (const d of readdirSync(r).filter(d => d.startsWith('chromium_headless_shell')).sort().reverse()) { const p = join(r, d, 'chrome-headless-shell-mac-arm64', 'chrome-headless-shell'); if (existsSync(p)) return p } }
 const results = []
 const check = (name, ok, got) => { results.push({ ok: !!ok }); console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : '  got: ' + JSON.stringify(got).slice(0, 600))) }
@@ -100,7 +100,7 @@ for (const width of [320, 375, 1280]) for (const theme of ['dark', 'light']) {
        rows fall to the list this suite reads. */
     const soon = n => isoOf(new Date(Date.now() + n * 864e5))
     window.watchAll = [
-      { id: 'm1', profile_id: 'me', display_name: 'Me', mine: true, shared_league: false, tagged_me: false, play_on: soon(1), course_label: 'Papago', marker: 'saguaro' },
+      { id: 'm1', profile_id: 'me', display_name: 'Me', mine: true, shared_league: false, tagged_me: false, play_on: soon(1), course_label: 'Saguaro Flats', marker: 'saguaro' },
       { id: 'w1', profile_id: 'pf2', display_name: 'Devon Example', mine: false, shared_league: true, tagged_me: true, my_rsvp: 'in', play_on: soon(5), course_label: 'Mesquite Wash', marker: 'saguaro' },
       { id: 'w2', profile_id: 'pf2', display_name: 'Devon Example', mine: false, shared_league: true, tagged_me: true, my_rsvp: null, play_on: soon(6), course_label: 'Mesquite Wash', marker: 'saguaro' }]
     window.renderWatchList()

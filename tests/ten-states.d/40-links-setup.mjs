@@ -175,7 +175,7 @@ const LINKS = [
       '#obLink .sub': 'text:^Mesquite Wash · Black · Sun, Sep 27$', '#obStatus': 'text:^Enter your email to keep it\\.$' }),
   claimDoor('claim-scan-partner', CLAIM.scan,
     () => /Enter your email to keep it/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#emailbox.open': 'visible', '#obLink h1': 'text:^Kit Specimen — 94 at Papago Fixture Links\\.$', '#obLink .sub': 'text:^North · Gold · Fri, Sep 25$' },
+    { '#emailbox.open': 'visible', '#obLink h1': 'text:^Kit Specimen — 94 at Sandbox Fixture Links\\.$', '#obLink .sub': 'text:^North · Gold · Fri, Sep 25$' },
     { world: { errors: { rpc: { guest_live_state: { __error: 'No such round', status: 400 } } } }, expectConsole: [/status of 400/] }),
   claimDoor('claim-used', CLAIM.used,
     () => { try { return localStorage.getItem('cs_claim') === null && (window.__tenNet || []).some((e) => /rpc\/claim_round_info/.test(e.url) && e.status === 200) } catch (_) { return false } },

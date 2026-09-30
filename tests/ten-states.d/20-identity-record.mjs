@@ -677,7 +677,7 @@ const COMPOSER = [
       await click(page, '#postBtn')
       await until(page, () => { const e = document.getElementById('postCourseErr'); return !!e && !e.hidden }, null, 6000)
       await page.evaluate(snap, 'pressed')
-      await page.locator('#inCourse').fill('Pinecrest Muni (fixture)')
+      await page.locator('#inCourse').fill('Specimen Muni (fixture)')
       await page.waitForTimeout(400)
       await page.evaluate(snap, 'course')
       await click(page, '#postBtn')
@@ -933,6 +933,28 @@ const shareRowHiddenFirst = async (page) => page.evaluate(() => {
   const from = [...k.cssRules].find((x) => x.keyText === '0%' || x.keyText === 'from')
   return from && from.style.visibility === 'hidden' ? true : `the share row is hittable while invisible (${anim} never hides it)`
 })
+/* TEN / W7-145 [A2-share-3, B2-share-3] · on a phone the ceremony's preview enlarges in place so the card's words can be
+   read (a button, named for it, expanded to the row's measure up to 402px), and shrinks again; the desk keeps an image */
+const previewEnlarges = async (page) => {
+  const before = await page.evaluate(() => {
+    const b = document.getElementById('finPreview')
+    if (!b || b.hidden) return 'no preview'
+    if (innerWidth >= 960) return b.getAttribute('role') === 'img' && !b.hasAttribute('tabindex') ? 'desk' : 'the desk preview is not a plain image'
+    if (b.getAttribute('role') !== 'button' || b.tabIndex !== 0) return 'the phone preview is not a button'
+    if (b.getAttribute('aria-expanded') !== 'false' || !/Tap to enlarge\.$/.test(b.getAttribute('aria-label') || '')) return 'the phone preview does not offer to enlarge: ' + JSON.stringify([b.getAttribute('aria-expanded'), b.getAttribute('aria-label')])
+    return { w: b.getBoundingClientRect().width, y: window.scrollY, st: document.getElementById('finish').scrollTop }
+  })
+  if (before === 'desk') return true
+  if (typeof before === 'string') return before
+  await page.evaluate(() => document.getElementById('finPreview').click())
+  await page.waitForTimeout(150)
+  const open = await page.evaluate(() => { const b = document.getElementById('finPreview'); return { w: b.getBoundingClientRect().width, x: b.getAttribute('aria-expanded'), row: getComputedStyle(b.closest('.finish-share-row')).flexDirection, vw: innerWidth } })
+  await page.evaluate((st) => { document.getElementById('finPreview').click(); document.getElementById('finish').scrollTop = st }, before.st)
+  await page.waitForTimeout(150)
+  const shut = await page.evaluate(() => document.getElementById('finPreview').getAttribute('aria-expanded'))
+  if (open.x !== 'true' || open.row !== 'column' || open.w < Math.min(402, open.vw - 48) - 1) return 'the preview did not enlarge in place: ' + JSON.stringify(open)
+  return shut === 'false' ? true : 'the preview did not shrink again'
+}
 function shareState(id, title, card, extra = {}) {
   return {
     family: 'share', id, variant: 'member', fullPage: false, title,
@@ -992,6 +1014,21 @@ function shareState(id, title, card, extra = {}) {
           const mut = getComputedStyle(probe).color; probe.remove()
           if (getComputedStyle(ff).color !== mut) return 'the fine print is not ceremony-mut: ' + getComputedStyle(ff).color
         } else if (!ff.hidden) return 'fine print with no switch to explain'
+        /* TEN / W7-142 [B2-share-4] · the words that travel with the card are on screen, under the phone's head,
+           and they are exactly what Share handed over (csShareRoundText) */
+        const fc = document.getElementById('finCaption'), fct = document.getElementById('finCaptionText')
+        if (!fc || fc.hidden || !fct) return 'the ceremony never shows the message that leaves with the card'
+        if (!/^Message included with the card/.test(fc.textContent.trim())) return 'the message has no head: ' + JSON.stringify(fc.textContent.trim().slice(0, 80))
+        const sent = csShareRoundText(_finishShare.gross, _finishShare.course)
+        if (fct.textContent !== sent) return 'the shown message is not the one sent: ' + JSON.stringify([fct.textContent, sent])
+        /* TEN / W7-146 [A2-share-8] · D336: the card that leaves is the public round card: its facts line has the
+           played year and no points, and it carries no milestone badge, even when the caller passes both */
+        const drawn = [], P = CanvasRenderingContext2D.prototype, keep = P.fillText
+        P.fillText = function (t, ...rest) { drawn.push(String(t)); return keep.call(this, t, ...rest) }
+        try { drawRecapCard({ name: 'Avery Fixture', marker: 'saguaro', gross: 83, pvi: 1.5, points: 9, badge: 'FIXTURE BADGE', course: 'Saguaro Flats (fixture)', date: new Date(2026, 8, 27) }) } finally { P.fillText = keep }
+        if (drawn.some((t) => /\bPTS\b/.test(t))) return 'the shared card still prints points: ' + JSON.stringify(drawn.filter((t) => /PTS/.test(t)))
+        if (drawn.includes('FIXTURE BADGE')) return 'the shared card still draws a milestone badge'
+        if (!drawn.includes('SUN \u00b7 SEP 27 \u00b7 2026')) return 'the shared card\u2019s date has no year: ' + JSON.stringify(drawn.filter((t) => /SEP/.test(t)))
         return true
       }).then(async (r) => {
         if (r !== true) return r
@@ -1008,6 +1045,8 @@ function shareState(id, title, card, extra = {}) {
         /* TEN / W7-144 · the exported card's address clears its frame */
         const addr = await recapAddressClears(page); if (addr !== true) return addr
         const row = await shareRowHiddenFirst(page); if (row !== true) return row
+        /* TEN / W7-145 · on a phone the preview enlarges in place, and shrinks again */
+        const pv = await previewEnlarges(page); if (pv !== true) return pv
         /* TEN / W7-139 · the ceremony's way out is Close, the one dismiss word */
         return page.evaluate(() => { const b = document.getElementById('finBack'); return b && b.textContent.trim() === 'Close' ? true : 'the ceremony’s way out reads ' + JSON.stringify(b && b.textContent.trim()) })
       })

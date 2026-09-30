@@ -118,6 +118,36 @@ const deskCardDash = async (page) => page.evaluate(() => {
   if (cells.some((c) => c.textContent.trim() === '\u00b7')) return 'THE CARD draws a dot for a hole not played'
   return cells.some((c) => c.textContent.trim() === '\u2013') ? true : 'THE CARD shows no unplayed hole, so its dash cannot be read'
 })
+/* TEN / W7-128 [B2-play-7] · the stepper's names say what a tap does: an empty seat's first tap enters par,
+   so both buttons say so; a scored seat's say one stroke fewer and one more. The empty seat is an em dash
+   in mut on a 2px line (the phone's) */
+const stepperNamed = async (page) => page.evaluate(() => {
+  const steps = [...document.querySelectorAll('#playerRows .lrow .step')]
+  if (!steps.length) return 'no steppers'
+  const probe = (el, v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; el.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  for (const st of steps) {
+    const sv = st.querySelector('.sv'), [minus, plus] = st.querySelectorAll('button'), v = sv.textContent.trim()
+    const a = [minus.getAttribute('aria-label'), plus.getAttribute('aria-label')]
+    if (!/^\d+$/.test(v)) {
+      if (v !== '\u2014') return `an empty seat reads ${JSON.stringify(v)}, not an em dash`
+      if (!a.every((l) => /^Enter par \(\d\) for .+, hole \d+$/.test(l))) return 'an empty seat’s buttons are named ' + JSON.stringify(a)
+      const cs = getComputedStyle(sv)
+      if (cs.color !== probe(sv.parentElement, '--mut')) return 'the empty seat is not mut'
+      if (cs.borderBottomWidth !== '2px' || cs.borderBottomColor !== probe(sv.parentElement, '--rule')) return 'the empty seat has no 2px rule line'
+    } else if (!/^One stroke fewer for /.test(a[0]) || !/^One more stroke for /.test(a[1])) return 'a scored seat’s buttons are named ' + JSON.stringify(a)
+  }
+  return true
+})
+/* TEN / W7-122 [B2-play-5] · a settlement is a sentence about who pays whom (LiveCopy.settleRows), never a
+   typed arrow (§5.2, LINT-13) */
+const settlePays = async (page) => page.evaluate(() => {
+  const rows = [...document.querySelectorAll('#settle .srow span')].map((s) => s.textContent.trim())
+  if (!rows.length) return 'the settlement has no rows'
+  const arrow = rows.filter((t) => /[\u2190-\u21ff]|->|<-/.test(t))
+  if (arrow.length) return 'the settlement types an arrow: ' + JSON.stringify(arrow)
+  const pays = rows.filter((t) => /\bpays\b/i.test(t))
+  return pays.length ? true : 'no settlement row says who pays whom: ' + JSON.stringify(rows)
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -189,6 +219,9 @@ export default [
     drive: toSetup,
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#playLive': 'hidden', '#teeOffBtn': 'visible', '#lrCourse': 'visible' } },
     check: all(destMarked('record'), gamesOnScreen,   /* TEN / W8 · W7-108: the live setup is a room of PLAY, so PLAY stays marked; W7-092: every game on screen below 640 */
+      /* TEN / W7-116 [A2-play-8] · your scorecard, the course's pars, and 'tap + to start at par' (TERMINOLOGY :88, :153) */
+      has('#gameNote', '^Stroke play \u2014 your scorecard, your pace\\.', 'the game note'),
+      has('#cardNote', '^Standard par 72\\. Tap \\+ to start each hole at par', 'the pars note'),
       async (page) => page.evaluate(() => {
       /* TEN / W6 · AW2-14: Play's "Score it live" door is an action — its word and dot are act, never ember */
       const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
@@ -212,6 +245,7 @@ export default [
     },
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#selCount': 'text:^3$', '#teeOffBtn': 'visible' } },
     check: all(teeFieldsNamed,
+      has('#cardNote', '^Pars loaded: 18-hole pars and stroke index from the course\\.$', 'the pars note'),   /* TEN / W7-116 */
       async (page) => page.evaluate(() => {
         const [c, t, r, s] = ['lrCourse', 'lrTee', 'lrRate', 'lrSlope'].map((id) => document.getElementById(id).value)
         return /Saguaro Flats/.test(c) && t === 'Blue' && r === '70.1' && s === '121' ? true : `the fields read ${JSON.stringify([c, t, r, s])}`
@@ -220,7 +254,7 @@ export default [
       /* TEN / W7-127: the course's pars loaded, so the pars button checks them, never asks for them */
       async (page) => page.evaluate(() => {
         const n = (document.getElementById('cardNote') || {}).textContent || '', b = document.getElementById('editCard').textContent.trim()
-        if (!/^Card loaded/.test(n)) return 'the card did not load its pars here, so the button cannot be read: ' + JSON.stringify(n.slice(0, 60))
+        if (!/^Pars loaded/.test(n)) return 'the card did not load its pars here, so the button cannot be read: ' + JSON.stringify(n.slice(0, 60))   /* W7-116 renamed the note */
         return b === 'Check the pars' ? true : 'the pars button still asks for work already done: ' + JSON.stringify(b)
       }),
       /* TEN / W7-054 [A2-play-4]: the desk sets up on two columns; below 960 course, group, game read down */
@@ -258,7 +292,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, deskCardDash, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, deskCardDash, stepperNamed, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {
@@ -266,6 +300,47 @@ export default [
         const stuck = document.getElementById('scoreBoard').classList.contains('stuck')
         return !scrolls || stuck ? true : 'the page scrolls but the scoreboard did not stick'
       })) },
+
+  /* TEN / W7-119 [A2-play-11] · D368's web half: my birdie on the sixth, committed by leaving the hole, is said
+     once beside the header ('BIRDIE on 6', one 2px ember stroke, never over Next hole) and tallied under the
+     strip; going back and leaving again with the same score does not replay it */
+  { family: 'play', id: 'moment', variant: 'member', fullPage: false, title: 'Live round · a birdie on the sixth, said once as the golfer leaves the hole',
+    drive: async (page) => {
+      await toSetup(page)
+      await pickCourse(page, 'Saguaro', 'Saguaro Flats', 'Blue')
+      await addGolfers(page, ['Devon Testwell', 'Blake Sample'])
+      await teeOff(page)
+      await scoreHoles(page, 6, 3)
+      await toastGone(page)
+      await click(page, '#holeNext')
+      await until(page, () => document.getElementById('holeNum').textContent.trim() === 'HOLE 7')
+      /* as the scoring state rests: the rows in view, the scoreboard stuck (at 375 a page resting at its
+         top never settles for the screenshot) */
+      await page.locator('#holeDots').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 7$' } },
+    check: async (page) => {
+      const r = await page.evaluate(() => {
+        const m = document.getElementById('holeMoment'), t = document.getElementById('holeTally'), nx = document.getElementById('holeNext')
+        if (!m || m.hidden) return 'no moment beside the header after a birdie'
+        if (!/^birdie\s*on 6$/i.test(m.textContent.replace(/\s+/g, ' ').trim())) return 'the moment reads ' + JSON.stringify(m.textContent)
+        const probe = document.createElement('i'); probe.style.color = 'var(--brand)'; m.appendChild(probe); const ember = getComputedStyle(probe).color; probe.remove()
+        const st = getComputedStyle(m)
+        if (st.borderLeftWidth !== '2px' || st.borderLeftColor !== ember) return 'the moment has no 2px ember stroke'
+        const a = m.getBoundingClientRect(), b = nx.getBoundingClientRect()
+        if (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) return 'the moment covers Next hole'
+        if (!t || t.hidden || !/^1 birdie$/i.test(t.textContent.trim())) return 'the tally reads ' + JSON.stringify(t && t.textContent)
+        return true
+      })
+      if (r !== true) return r
+      /* back to the sixth and off it again, the score unchanged: no replay; then restore the capture's hole */
+      await click(page, '#holePrev'); await click(page, '#holeNext')
+      await page.waitForTimeout(150)
+      const again = await page.evaluate(() => document.getElementById('holeMoment').hidden)
+      await page.evaluate(() => { csMomentPaint('birdie', 6) })
+      return again ? true : 'leaving the sixth again replayed the birdie'
+    } },
 
   /* the same round with the score writes failing: the scores stay on this
      phone, queued, and the line under the scoreboard says so.
@@ -379,7 +454,7 @@ export default [
     /* AW2-16 · the match state is said once, by the scoreboard hero; the card
        keeps the terms (who, strokes, stake) and its status line stays hidden */
     expect: { view: 'view-play', selectors: { '#matchCard': 'visible', '#matchStatus': 'hidden', '#sbHero': 'visible' } },
-    check: all(scoredCheck(4), async (page) => { const f = await liveFacts(page); return f.game === 'match' ? true : 'the game is ' + f.game },
+    check: all(scoredCheck(4), stepperNamed, async (page) => { const f = await liveFacts(page); return f.game === 'match' ? true : 'the game is ' + f.game },
       has('#matchMeta', 'THRU 4', 'the match line'),
       /* TEN / W6 · AW2-15: the side games' gloss is a phrase, in sentence case (§1.3) */
       readsAsWritten([['p.eb-gloss.sg-head', 'Tracked live, settled between friends']]),
@@ -399,7 +474,7 @@ export default [
   { family: 'play', id: 'skins-scoring', variant: 'member', title: 'Live round · Skins, three golfers, $2 a skin, through five',
     drive: async (page) => {
       await toSetup(page)
-      await pickCourse(page, 'Papago', 'Papago Fixture Links', 'Gold')
+      await pickCourse(page, 'Sandbox', 'Sandbox Fixture Links', 'Gold')
       await addGolfers(page, ['Devon Testwell', 'Casey Placeholder'])
       await click(page, '#gameSeg [data-g="skins"]')
       await page.locator('#lrStake').fill('2')
@@ -410,7 +485,8 @@ export default [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-play', selectors: { '#skinsCard': 'visible', '#skinsStatus': 'visible' } },
-    check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game },
+    check: all(settlePays,   /* TEN / W7-122: who pays whom, in words */
+      scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game },
       /* TEN / W6 · DX2 OB2-02: the meta line's caps are its role's, not typed into the string */
       capsFromRole(['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'], ['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'])) },
 
@@ -446,11 +522,14 @@ export default [
       await until(page, () => document.getElementById('sheet').classList.contains('open') && /Finish the round/.test(document.getElementById('shTitle').textContent))
       await page.waitForTimeout(400)
     },
-    expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 cards to the season$', '#lrCasual': 'text:^This one was casual — post nothing$' } },
-    check: async (page) => { const f = await liveFacts(page); if (f.holes !== 9) return `the round is ${f.holes} holes, expected the nine`; return noLiveGold(page) } },
+    /* TEN / W7-116 [A2-play-8] · what posts is rounds and what is complete is a scorecard: a card is the golfer (T-01) */
+    expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 rounds to the season$', '#lrCasual': 'text:^This one was casual — post nothing$' } },
+    check: all(async (page) => { const f = await liveFacts(page); return f.holes === 9 ? true : `the round is ${f.holes} holes, expected the nine` },
+      noLiveGold,   /* TEN / W6 · W7-096 */
+      has('#shBody', 'Complete scorecards post to the season[\\s\\S]*A partial scorecard is skipped, not lost', 'the finish sheet\u2019s fine print')) },
 
   /* Post: finish_live_round answers, the settlement sheet (the ceremony) */
-  { family: 'play', id: 'finish', variant: 'member', fullPage: false, title: 'Live round · posted: the round’s settlement (two cards to the season)',
+  { family: 'play', id: 'finish', variant: 'member', fullPage: false, title: 'Live round · posted: the round’s settlement (two rounds to the season)',
     drive: async (page) => {
       await toSetup(page)
       await pickCourse(page, 'Dry Creek', 'Dry Creek Nine', 'Forward')
@@ -464,7 +543,7 @@ export default [
       await page.waitForTimeout(700)
     },
     expect: { view: 'view-play', sheet: 'Round posted', selectors: { '#sheet.room-dusk': 'visible', '#lrMine': 'text:Round posted', '#lrViewRound': 'visible' } },
-    check: all(has('#shSub', '2 CARDS TO THE SEASON', 'the card count'),
+    check: all(has('#shSub', '2 ROUNDS TO THE SEASON', 'the round count'),   /* TEN / W7-116 */
       async (page) => { const f = await liveFacts(page); return !f.active ? true : 'the round is still live after the finish' }) },
   /* X38 / D397 · exercise the real finish and export, with the private
      settlement still present. Observe the canvas ink, not its input object. */

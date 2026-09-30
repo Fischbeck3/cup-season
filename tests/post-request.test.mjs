@@ -52,7 +52,7 @@ const eq = (got, want, label) => {
 };
 
 const payload = { gross: 84, rating: 71.2, nine_rating: null, slope: 128, holes_played: 18, source: 'quick',
-                  played_on: '2026-09-13', course_label: 'Papago', api_course_id: null };
+                  played_on: '2026-09-13', course_label: 'Saguaro Flats', api_course_id: null };
 const env = { payload, holes: [], playedWith: [] };
 
 /* ---- the request record: one intent, one id, never rotated ---- */

@@ -109,8 +109,8 @@ const ok = (cond, label) => eq(!!cond, true, label);
   const { csMilestoneSub } = env;
   const a = { kind: 'sub_80', label: 'Broke 80', earned_on: '2026-08-24', meta: { gross: 79 } };
 
-  eq(csMilestoneSub(a, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }),
-     '79 at Papago · Aug 24', 'the round in hand names its course');
+  eq(csMilestoneSub(a, { gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }),
+     '79 at Saguaro Flats · Aug 24', 'the round in hand names its course');
 
   // THE DEGRADE IS THE POINT. The desk holds 400 rounds and the phone holds
   // five; a milestone older than that window keeps its figure and its date
@@ -133,12 +133,12 @@ const ok = (cond, label) => eq(!!cond, true, label);
   // the meta, it is the date alone — never "4.1 vs course".
   const pb = { kind: 'personal_best', label: 'Personal best', earned_on: '2026-08-24', meta: { diff: 4.1 } };
   eq(csMilestoneSub(pb, null), 'Aug 24', 'a personal best never prints its differential');
-  eq(csMilestoneSub(pb, { gross: 83, course_label: 'Papago', played_on: '2026-08-24' }),
-     '83 at Papago · Aug 24', 'a personal best names its round: the gross, the course, the day');
+  eq(csMilestoneSub(pb, { gross: 83, course_label: 'Saguaro Flats', played_on: '2026-08-24' }),
+     '83 at Saguaro Flats · Aug 24', 'a personal best names its round: the gross, the course, the day');
   // one round that earned both reads the same under both; the CASE prints the
   // line once (renderTrophyCase's saidRound, pinned in tests/app-tests.js)
-  eq(csMilestoneSub(a, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }),
-     csMilestoneSub(pb, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }), 'one round, one sentence');
+  eq(csMilestoneSub(a, { gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }),
+     csMilestoneSub(pb, { gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }), 'one round, one sentence');
 }
 
 /* ── 5 · the lookup is absent, never wrong ──────────────────────────────── */
@@ -146,7 +146,7 @@ const ok = (cond, label) => eq(!!cond, true, label);
   const { csMilestoneRound, window: w } = env;
   eq(csMilestoneRound(null), null, 'no round id, no round');
   eq(csMilestoneRound('r1'), null, 'an id with nothing behind it is null, not undefined');
-  w.career.rows = [{ id: 'r1', gross: 79, course_label: 'Papago', played_on: '2026-08-24' }];
+  w.career.rows = [{ id: 'r1', gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }];
   eq(csMilestoneRound('r1').gross, 79, 'the id finds its round');
   // ids come back from the server as strings and live in memory as strings,
   // but a uuid compared loosely is a class of bug worth one assertion

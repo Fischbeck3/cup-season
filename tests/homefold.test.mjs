@@ -52,8 +52,8 @@ const rows = f => f.buckets.map(b => [b.key, b.items.length]);
   // `round_to_board()` fans one round into every league the golfer is in.
   // Two leagues → two identical posts → ONE line carrying both names.
   const f = fold({ posts: [
-    post({ id: 'a', lg: L1, kind: 'moment', body: 'Jerecho set a personal best.', at: '2026-09-07T15:00:00Z', rid: 'R1' }),
-    post({ id: 'b', lg: L2, kind: 'moment', body: 'Jerecho set a personal best.', at: '2026-09-07T15:00:00Z', rid: 'R1' }),
+    post({ id: 'a', lg: L1, kind: 'moment', body: 'Avery set a personal best.', at: '2026-09-07T15:00:00Z', rid: 'R1' }),
+    post({ id: 'b', lg: L2, kind: 'moment', body: 'Avery set a personal best.', at: '2026-09-07T15:00:00Z', rid: 'R1' }),
   ] });
   eq(f.buckets[0].items.length, 1, 'a moment fanned to two leagues is one moment');
   eq(f.buckets[0].items[0].leagues.map(s => s.name), ['Fellas', "Who's the bitch?"],
@@ -135,8 +135,8 @@ const rows = f => f.buckets.map(b => [b.key, b.items.length]);
   const f = fold({ posts: [
     post({ id: 'a', lg: L1, body: 'The clash closes today.', at: '2026-09-07T06:00:00Z' }),
     post({ id: 'b', lg: L2, body: 'The clash closes today.', at: '2026-09-07T06:00:00Z' }),
-    post({ id: 'c', lg: L1, body: 'THIS WEEK: Galen v Jerecho.', at: '2026-09-06T06:00:00Z' }),
-    post({ id: 'd', lg: L2, body: 'THIS WEEK: Galen v Jerecho.', at: '2026-09-06T06:00:00Z' }),
+    post({ id: 'c', lg: L1, body: 'THIS WEEK: Galen v Avery.', at: '2026-09-06T06:00:00Z' }),
+    post({ id: 'd', lg: L2, body: 'THIS WEEK: Galen v Avery.', at: '2026-09-06T06:00:00Z' }),
   ] });
   eq(f.buckets.length, 0, 'a league note is never a row');
   eq(f.notes.count, 2, 'four notes across two leagues count as the two notes they are');

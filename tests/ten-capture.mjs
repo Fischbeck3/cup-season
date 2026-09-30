@@ -54,15 +54,15 @@ if (REF) {
   ROOT = SNAPSHOT
 }
 const PORT = parseInt(arg('port', '8802'), 10)
-const OUT = resolve(arg('out', '/Users/fischbeck3/cup-season-claude-ten-gallery/wx/run'))
+const OUT = resolve(arg('out', (process.env.HOME || '') + '/cup-season-claude-ten-gallery/wx/run'))
 const ONLY = (arg('only', '') || '').split(',').filter(Boolean)
 const ONLY_STATES = (arg('states', '') || '').split(',').filter(Boolean)
 const WIDTHS = (arg('widths', '375,402,1280,1600')).split(',').map(Number).filter(Boolean)
 const THEMES = (arg('themes', 'dark,light')).split(',').filter(Boolean)
 const DSF = Number(arg('dsf', '1'))
-const CDN_DIR = resolve(arg('cdn-cache', '/Users/fischbeck3/cup-season-claude-ten-gallery/wx/cdn-cache'))
-const PW = arg('playwright', process.env.TEN_PLAYWRIGHT || '/Users/fischbeck3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
-const CHROME = arg('chrome', process.env.TEN_CHROME || '/Users/fischbeck3/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell')
+const CDN_DIR = resolve(arg('cdn-cache', (process.env.HOME || '') + '/cup-season-claude-ten-gallery/wx/cdn-cache'))
+const PW = arg('playwright', process.env.TEN_PLAYWRIGHT || (process.env.HOME || '') + '/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
+const CHROME = arg('chrome', process.env.TEN_CHROME || (process.env.HOME || '') + '/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell')
 const SERVE = arg('serve', 'http')   /* http: python3 http.server on --port (the default, the lane's own port) · route: files answered from --root in-process, no port bound */
 const HEIGHTS = { 375: 667, 402: 874, 1280: 1000, 1600: 1000 }
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css',

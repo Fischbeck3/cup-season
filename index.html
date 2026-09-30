@@ -2496,6 +2496,14 @@ body.guestlive #onboard{display:none !important;}
    height), so the hole and its arrows stay on screen with the rows — one
    navigator, never a second copy of it. */
 #playEntry .holehdr{position:sticky; top:0; z-index:15;}   /* over the rows, under the board (60) and the header (20) */
+/* TEN / W7-119 · D368: one ember object, a 2px stroke, beside the card for one hole; an eagle is larger,
+   never a second colour. The tally under the strip is facts in agate */
+.holemoment{display:flex; align-items:baseline; gap:8px; margin:8px 0 4px; padding-left:8px; border-left:2px solid var(--brand);}
+.holemoment[hidden], .holetally[hidden]{display:none;}
+.holemoment b{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); text-transform:uppercase; color:var(--brand);}
+.holemoment.is-eagle b{font-size:22px;}
+.holemoment span, .holetally{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
+.holetally{margin:4px 0 0;}
 .holenextfoot{min-height:50px; margin-top:var(--s3);}
 .holenextfoot[hidden]{display:none;}   /* .btn is display:flex, which the UA's [hidden] cannot beat */
 @media(min-width:740px){ .holenextfoot{display:none;} }   /* W7-056 · a phone held upright only */
@@ -2573,6 +2581,7 @@ body.guestlive #onboard{display:none !important;}
    A gold ring between − and + read as "selected", and gold is earned only
    (D359, D368); the strip above draws the ring for a birdie. */
 .step .sv{font-family:var(--board); font-size:20px; font-weight:700; min-width:28px; text-align:center; font-variant-numeric:tabular-nums; color:var(--ink);}
+.step .sv.is-empty{color:var(--mut); border-bottom:2px solid var(--rule); line-height:1.1;}   /* TEN / W7-128 · the phone's empty seat */
 .gamecard{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:14px; margin-bottom:10px; position:relative; overflow:hidden;
@@ -4904,7 +4913,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-roster .who{text-align:center;}
 /* D262 / R-O · the bag. The desk's half is DESKTOP-FIRST (R-C): on a 1440 the
    bag and the sideline sit side by side, because the whole question the
-   sideline answers ("is Alex bringing the new driver?") is a comparison, and
+   sideline answers ("is Jules bringing the new driver?") is a comparison, and
    a comparison down one column is not one. Under 900px they stack. */
 .bagcols{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start;}
 @media (max-width:900px){ .bagcols{grid-template-columns:1fr; gap:10px;} }
@@ -5356,6 +5365,13 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .finish-preview{flex:none; width:128px; aspect-ratio:4/5; border-radius:8px; overflow:hidden; background:var(--ceremony); box-shadow:0 0 0 1px var(--rule);}
 .finish-preview[hidden]{display:none;}
 .finish-preview canvas{display:block; width:100%; height:100%;}
+/* TEN / W7-145 · below 960 the preview is a button that enlarges the card in place (csFinPreviewMode) */
+@media (max-width:959px){
+  .finish-preview[role="button"]{cursor:zoom-in;}
+  .finish-preview[role="button"]:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
+  .finish-share-row.is-open{flex-direction:column; align-items:stretch;}
+  .finish-share-row.is-open .finish-preview{width:100%; max-width:402px; margin:0 auto; cursor:zoom-out;}
+}
 .finish-controls{flex:1; min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:var(--s2);}
 .finish-photoopt{
   display:flex; align-items:center; justify-content:space-between; gap:var(--s3); min-height:44px; width:100%;
@@ -5380,6 +5396,9 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .finish-status{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut); overflow-wrap:anywhere;}
 .finish-fine{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut);}   /* TEN / W7-006 · the switch's fine print, the status line's voice */
 .finish-status:empty{display:none;}
+/* TEN / W7-142 · the message that leaves with the card: the status line's voice, under a head in the same */
+.finish-caption{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut); overflow-wrap:anywhere;}
+.finish-caption-h{display:block; font-weight:600;}
 .finish-back{align-self:flex-start; min-height:44px; padding:0; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
   text-decoration:underline; text-decoration-color:var(--ceremony-mut); text-decoration-thickness:2px; text-underline-offset:4px;}
@@ -6869,7 +6888,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div id="planBridge" style="display:none; margin-bottom:10px"></div>
           <div class="card" style="margin-bottom:10px">
             <label class="f" for="lrCourse">Course</label>
-            <input class="f" id="lrCourse" value="Encanto GC" placeholder="Search a course, or type your own" autocomplete="off" style="font-family:var(--sans);">
+            <input class="f" id="lrCourse" value="Saguaro Flats" placeholder="Search a course, or type your own" autocomplete="off" style="font-family:var(--sans);">
             <div style="height:12px"></div>
             <!-- F08 web · each value keeps its own name once filled: three
                  persistent labels, each tied to its input, under the group's
@@ -6879,8 +6898,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <legend class="f">Tee &amp; rating<span class="f-gloss cs-agate-s is-phrase">From your scorecard</span></legend>
               <div class="teegrid">
                 <label class="teefield"><span class="f">Tee</span><input class="f" id="lrTee" value="Blue" placeholder="—" autocomplete="off"></label>
-                <label class="teefield"><span class="f">Rating</span><input class="f" id="lrRate" type="number" step="0.1" value="70.2" placeholder="—" inputmode="decimal"></label>
-                <label class="teefield"><span class="f">Slope</span><input class="f" id="lrSlope" type="number" value="123" placeholder="—" inputmode="numeric"></label>
+                <label class="teefield"><span class="f">Rating</span><input class="f" id="lrRate" type="number" step="0.1" value="70.1" placeholder="—" inputmode="decimal"></label>
+                <label class="teefield"><span class="f">Slope</span><input class="f" id="lrSlope" type="number" value="121" placeholder="—" inputmode="numeric"></label>
               </div>
             </fieldset>
             <!-- D73: playing a nine? the whole round — scorecard, match/wolf/skins
@@ -6890,7 +6909,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <button data-lh="18" class="on" type="button">18 holes</button>
               <button data-lh="9" type="button">9 holes</button>
             </div>
-            <p class="fine" style="padding-top:10px" id="cardNote">Standard par-72 card. The stepper opens on each hole's par — pick your course above and the real pars load.</p>
+            <p class="fine" style="padding-top:10px" id="cardNote">Standard par 72. Tap + to start each hole at par — pick your course above and the real pars load.</p>
             <button class="mini" id="editCard" style="margin-top:2px">Enter the pars</button>
           </div>
           <div class="card lrgroup" style="margin-bottom:10px">
@@ -6918,7 +6937,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <button data-g="skins">Skins</button>
               <button data-g="sunningdale">Sunningdale Rules</button>
             </div>
-            <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four golfers; post when you’re done.</p>
+            <p class="fine" id="gameNote">Stroke play — your scorecard, your pace. One to four golfers; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--rule); padding-top:12px;">
               <label class="f" for="lrStake">Stake per side<span class="f-gloss cs-agate-s is-phrase">$0 is bragging rights</span></label>
               <!-- max=200 to match the season buy-in ladder's own ceiling. The
@@ -6953,7 +6972,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div id="holeCard"></div>
         <div class="playgrid" id="playEntry">
           <div class="pgentry">
-            <div class="eyebrow"><span id="lrEyebrowTxt">Live round · Encanto GC — Blue · 70.2/123</span> <a href="#" id="backToSetup">Change setup</a></div>
+            <div class="eyebrow"><span id="lrEyebrowTxt">Live round · Saguaro Flats — Blue · 70.1/121</span> <a href="#" id="backToSetup">Change setup</a></div>
             <div class="holehdr">
               <button id="holePrev" aria-label="Previous hole"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
               <div style="text-align:center">
@@ -6962,7 +6981,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               </div>
               <button id="holeNext" aria-label="Next hole"><svg class="ic r" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
             </div>
+            <!-- TEN / W7-119 [A2-play-11] · D368's web half: the good hole, said once, for one hole, beside
+                 the header (csMomentLeave); never a modal, never over the next-hole target -->
+            <div class="holemoment" id="holeMoment" role="status" aria-live="polite" hidden></div>
             <div class="holedots" id="holeDots" aria-hidden="true"></div>
+            <p class="holetally" id="holeTally" hidden></p>
             <div id="playerRows"></div>
             <!-- TEN / W7-056 [A2-play-9] · the next hole where the thumb is: under
                  the last golfer's row, on a phone held upright. It never
@@ -6978,18 +7001,18 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div class="pggames">
             <div class="eyebrow sg-head">Side games</div><p class="cs-agate-s is-phrase eb-gloss sg-head">Tracked live, settled between friends</p>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
-              <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
+              <div class="gk" id="matchTeams">Match play · net best ball · You + Gray vs Kit + Indigo</div>
               <!-- AW2-16 · one fact, one place (D201): the card shows only for a
                    match or a Sunningdale, and in both the scoreboard hero IS this
                    line (D85 — renderScoreboard reads it from here), sticky at every
                    width and kept on the stuck face. The card says who is playing
                    and on what terms; the hero says who is winning. -->
               <div class="gs" id="matchStatus" hidden>All square</div>
-              <div class="gm" id="matchMeta">Thru 0 · strokes off low man (Danny)</div>
+              <div class="gm" id="matchMeta">Thru 0 · strokes off low man (Gray)</div>
             </div>
             <div class="gamecard" id="wolfCard" style="--acc:var(--gold)">
               <div class="gk">Wolf · lone wolf plays for 3</div>
-              <div class="gs" id="wolfWho">Chuck is the wolf</div>
+              <div class="gs" id="wolfWho">Kit is the wolf</div>
               <div class="gm" id="wolfMeta"></div>
               <div class="wolfbtns" id="wolfBtns"></div>
               <div class="wolftally" id="wolfTally"></div>
@@ -7533,7 +7556,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <button class="livebanner" id="liveBanner" data-go="play">
           <div class="lk"><span class="dot"></span>Live round in progress</div>
           <div class="ln" id="lbStatus">ALL SQUARE</div>
-          <div class="lm" id="lbHole">HOLE 7 · ENCANTO GC</div>
+          <div class="lm" id="lbHole">HOLE 7 · SAGUARO FLATS</div>
           
         </button>
         <!-- D223 / L-34 · three of these four figures are said elsewhere on this
@@ -8040,6 +8063,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              (D380; RoundCopy.photoIncludeFine under the phone's toggle) -->
         <p class="finish-fine" id="finFine" hidden></p>
         <button class="finish-share" id="finShare" type="button">Share your round</button>
+        <!-- TEN / W7-142 [B2-share-4] · the words that travel with the card, shown before they leave,
+             under the phone's own head (RoundSharePreview: "Message included with the card") -->
+        <p class="finish-caption" id="finCaption" hidden><span class="finish-caption-h">Message included with the card</span><span id="finCaptionText"></span></p>
         <p class="finish-status" id="finStatus" role="status" aria-live="polite"></p>
         <!-- TEN / W7-139 · Close, the one dismiss word for every sheet and cover: "Back to the board" closed onto Home, and a golfer with no league has no board -->
         <button class="finish-back" id="finBack" type="button">Close</button>
@@ -8122,29 +8148,29 @@ function csEvDowMonDay(iso){
   catch(_){ return String(iso); }
 }
 /* the demo diorama is THE CREW — the seven players who pilot this thing */
-const DEMO_ME='Jerecho';
+const DEMO_ME='Avery';
 const teams = [
-  {name:'Mudsharks',   cap:'Jerecho', pts:241, ci:0},
-  {name:'Sandbaggers', cap:'Ed',      pts:216, ci:1},
+  {name:'Wrens',   cap:'Avery', pts:241, ci:0},
+  {name:'Javelinas', cap:'Jules',      pts:216, ci:1},
 ];
 const feed = [
-  {d:dAgo(4), msg:true, who:'Ed', ci:1, txt:'Reminder: minimum is 2 rounds this month. No excuses, Garrett.'},
-  {d:dAgo(4), who:'Logan', team:'Mudsharks', ci:0, meta:'79 GROSS · AGUILA', pvi:3.4, pts:12, kud:5, mine:false, cm:[{w:'Ed',t:'sandbagger alert 🚨'},{w:'Mitch',t:'ok tour pro'}]},
-  {d:dAgo(3), who:'Garrett', team:'Sandbaggers', ci:1, meta:'96 GROSS · SIM ROUND', pvi:-2.2, pts:6, kud:2, mine:false, cm:[{w:'Ed',t:'sim rounds… we\u2019ll allow it'},{w:'Garrett',t:'scoreboard talks 🤷'}]},
-  {d:dAgo(2), who:'Metz', team:'Mudsharks', ci:0, meta:'92 GROSS · PAPAGO', pvi:0.4, pts:7, kud:1, mine:false, cm:[]},
-  {d:dAgo(2), ann:true, txt:'Buy-ins close Sunday. The pot is waiting on Blake and Garrett.'},
-  {d:dAgo(1), who:'Ed', team:'Sandbaggers', ci:1, meta:'81 GROSS · ENCANTO', pvi:2.4, pts:9, kud:3, mine:false, cm:[{w:'Jerecho',t:'putts were rolling today'}]},
-  {d:dAgo(1), sys:true, txt:'Sandbaggers close the gap — 25 back'},
-  {d:dAgo(0), msg:true, who:'Mitch', ci:1, txt:'Who\u2019s in for Papago Saturday AM? Two carts locked.'},
+  {d:dAgo(4), msg:true, who:'Jules', ci:1, txt:'Reminder: minimum is 2 rounds this month. No excuses, Finley.'},
+  {d:dAgo(4), who:'Casey', team:'Wrens', ci:0, meta:'79 GROSS · DRY CREEK', pvi:3.4, pts:12, kud:5, mine:false, cm:[{w:'Jules',t:'sandbagger alert 🚨'},{w:'Devon',t:'ok tour pro'}]},
+  {d:dAgo(3), who:'Finley', team:'Javelinas', ci:1, meta:'96 GROSS · SIM ROUND', pvi:-2.2, pts:6, kud:2, mine:false, cm:[{w:'Jules',t:'sim rounds… we\u2019ll allow it'},{w:'Finley',t:'scoreboard talks 🤷'}]},
+  {d:dAgo(2), who:'Emery', team:'Wrens', ci:0, meta:'92 GROSS · SAGUARO FLATS', pvi:0.4, pts:7, kud:1, mine:false, cm:[]},
+  {d:dAgo(2), ann:true, txt:'Buy-ins close Sunday. The pot is waiting on Harper and Finley.'},
+  {d:dAgo(1), who:'Jules', team:'Javelinas', ci:1, meta:'81 GROSS · MESQUITE WASH', pvi:2.4, pts:9, kud:3, mine:false, cm:[{w:'Avery',t:'putts were rolling today'}]},
+  {d:dAgo(1), sys:true, txt:'Javelinas close the gap — 25 back'},
+  {d:dAgo(0), msg:true, who:'Devon', ci:1, txt:'Who\u2019s in for Saguaro Flats Saturday AM? Two carts locked.'},
 ];
 const TODAY=dAgo(0);
-const captains = ['Jerecho','Ed'];
-const squadNames = ['Mudsharks','Sandbaggers'];
+const captains = ['Avery','Jules'];
+const squadNames = ['Wrens','Javelinas'];
 const poolSeed = [
-  {n:'Logan',i:8.1},{n:'Mitch',i:14.9},{n:'Metz',i:15.3},{n:'Blake',i:19.8},{n:'Garrett',i:22.4},
+  {n:'Casey',i:8.1},{n:'Devon',i:14.9},{n:'Emery',i:15.3},{n:'Harper',i:19.8},{n:'Finley',i:22.4},
 ];
 const payersSeed = [
-  ['Jerecho',1],['Ed',1],['Logan',1],['Mitch',1],['Metz',1],['Blake',0],['Garrett',0],
+  ['Avery',1],['Jules',1],['Casey',1],['Devon',1],['Emery',1],['Harper',0],['Finley',0],
 ];
 
 /* ================= state ================= */
@@ -8427,20 +8453,20 @@ setInterval(function(){
      one comparison producer (vsPhrase, third person, never a guessed his or
      her) and the points are pointsFor's band — the same arithmetic the
      server's cup_points() pays. `theirs` is a later const (TDZ here), so the
-     third person is made in place. A nine is not an 18-hole score: Encanto's
+     third person is made in place. A nine is not an 18-hole score: the course's
      18, not its 9. */
   const FEED = [
-    {n:'Marcus', c:'Papago GC', g:82, vs:2.4, sq:'--sq0'},
-    {n:'Dana', c:'Encanto 18', g:91, vs:-3.6, sq:'--sq1'},
-    {n:'Ray', c:'Aguila', g:78, vs:4.1, sq:'--sq2'},
-    {n:'Priya', c:'Ken McDonald', g:87, vs:0.3, sq:'--sq3'},
-    {n:'Cole', c:'Dobson Ranch', g:84, vs:1.2, sq:'--sq0'}
+    {n:'Gray', c:'Saguaro Flats', g:82, vs:2.4, sq:'--sq0'},
+    {n:'Indigo', c:'Mesquite Wash', g:91, vs:-3.6, sq:'--sq1'},
+    {n:'Jules', c:'Dry Creek', g:78, vs:4.1, sq:'--sq2'},
+    {n:'Kit', c:'Whispering Fixture Pines', g:87, vs:0.3, sq:'--sq3'},
+    {n:'Harper', c:'North Grove', g:84, vs:1.2, sq:'--sq0'}
   ].map(r => Object.assign(r, { b: vsPhrase(r.vs).replace(/\byour\b/g, 'their'), p: '+' + pointsFor(r.vs)[0] + ' pts' }));
   const LBT = [
-    {n:'Dew Sweepers', sq:'--sq3', p:184},
-    {n:'The Grinders', sq:'--sq0', p:178},
-    {n:'Mulligan Militia', sq:'--sq1', p:171},
-    {n:'Cart Path Only', sq:'--sq2', p:166}
+    {n:'Fixture Wrens', sq:'--sq3', p:184},
+    {n:'Fixture Javelinas', sq:'--sq0', p:178},
+    {n:'Fixture Quail', sq:'--sq1', p:171},
+    {n:'Fixture Gilas', sq:'--sq2', p:166}
   ];
   const SLOT=88;
   /* D84: the board is bounded and every rung moves. Before this, lbTick only
@@ -8586,8 +8612,8 @@ window.paintLedgerLines = paintLedgerLines;
 const CS_STAKE_MAX = 200;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 /* TEN / W6 · AW2-07 · THE FIGURE RUN (UI_SYSTEM §1.6; CSFigureRun's twin). The
-   PRODUCER marks a figure inside a sentence with braces — "Galen posted {74}
-   at Papago." — and this sets each marked run in the board face at the
+   PRODUCER marks a figure inside a sentence with braces — "Casey posted {74}
+   at Saguaro Flats." — and this sets each marked run in the board face at the
    sentence's own size (`.cfrun`). The braces never render, and nothing is
    found by a regex over prose, which would also restyle dates, money and a
    digit inside a course's name. A string with no braces is only escaped. */
@@ -9285,7 +9311,7 @@ function csSeasonStoryLine(p){
   /* rung 2 · somebody has led three weeks or more */
   const lead = f.leader;
   if(lead && csStorySourceOk(lead.source) && Number(lead.run_weeks||0) >= 3 && csClean(lead.name)){
-    /* a squad is a THEY — "Mudsharks has led" is the engine talking */
+    /* a squad is a THEY — "Wrens has led" is the engine talking */
     const who = lead.is_me ? 'You have' : (solo ? `${lead.name} has` : `${lead.name} have`);
     return { rung:2, text:`${who} led for ${csWord(Number(lead.run_weeks))} straight weeks.`, source: lead.source };
   }
@@ -10206,7 +10232,7 @@ function renderStandings(){
       .forEach((row,idx)=>{ priorRank[solo?row.member_id:row.squad_id]=idx; });
   }
   /* DEF-3 · ONE SCREEN, ONE NAME FOR ONE PERSON. The clash card above this
-     table says `you`; the story line said `Jerecho Fischbeck` and the row under
+     table says `you`; the story line said `Avery Fixture` and the row under
      it said it a third time. The viewer's own SOLO rung resolves to **You**
      here and in the row; the full name stays on the Tour Card, where it
      identifies a person to somebody else. A squad keeps its name — a squad is
@@ -10490,12 +10516,12 @@ const easeCaps = s => {
 
    round_to_board() writes a moment in the third person because it writes it
    for a league BOARD, where everybody reading it is somebody else. On Home the
-   reader is often its subject, and both clients printed "Jerecho set a personal
-   best" to Jerecho.
+   reader is often its subject, and both clients printed "Avery set a personal
+   best" to Avery.
 
    The viewer's own name resolves to `You` in the subject seat and `you` in
    every other, and SECOND PERSON TAKES ITS COPULA — the elision that carries a
-   third-person clause ("Alex has posted six weeks running") gains its own
+   third-person clause ("Jules has posted six weeks running") gains its own
    verb rather than printing "You has posted". The only name it will ever touch
    is the viewer's own. */
 const CS_COPULA = { has:'have', is:'are', was:'were', does:'do',
@@ -10522,7 +10548,7 @@ function csYouVoice(body, post){
     out = out.replace(new RegExp('\\b'+esc+'\\b','g'),      (m,o,str)=> csOpensSentence(str,o) ? 'You'  : 'you');
     /* BOTH CASES. The first version corrected only "You has", and the
        producer's commonest sentence puts the name in the SECOND clause
-       ("The clash closes today. Jerecho has answered."), which lowercased to
+       ("The clash closes today. Avery has answered."), which lowercased to
        `you` and sailed past a rule that only knew `You`. It reached production
        reading "you has answered". */
     for(const [third,second] of Object.entries(CS_COPULA)){
@@ -11043,7 +11069,7 @@ function boardSeenKey(){ return 'cs_board_seen_' + (window.CS?.league?.id || (st
    `RoundCopy.course`. The label is not ours and it is not consistent:
    GolfCourseAPI title-cases its club names upstream, so a picked course lands
    in `rounds.course_label` as "Palo Verde Gc · Back" while a hand-typed one
-   keeps "Encanto GC". Re-casing the whole string would break every real name
+   keeps "Saguaro Flats". Re-casing the whole string would break every real name
    with a small word in it ("Lone Tree at the Ranch"), so the repair is the
    narrowest one that reads right: fix the acronyms, touch nothing else. */
 const CS_COURSE_ACRONYMS = new Set(['GC','CC','CG','GCC','TPC','PGA','USGA']);
@@ -11779,7 +11805,7 @@ $('#chatIn').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#chatSend').
 $('#chatInFull').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#chatSendFull').click(); });
 
 /* ================= draft ================= */
-/* who am I in this draft? demo: I captain the Sandbaggers (index 1) */
+/* who am I in this draft? demo: I captain the Javelinas (index 1) */
 function canPick(teamIdx){
   const d=state.draft;
   return d.isCommish || teamIdx===d.meCaptain;
@@ -12191,7 +12217,7 @@ window.vsPhraseMarked = vsPhraseMarked;
    whose (pilot). Always they/them — never guess pronouns from a name. */
 const theirs = s => String(s||'').replace(/YOUR/g,'THEIR').replace(/Your/g,'Their').replace(/your/g,'their');
 /* D77 · first names leave the app, full names stay in it. A feed row has the
-   app's context around it and can carry "Jerecho Fischbeck"; a text message in
+   app's context around it and can carry "Avery Fixture"; a text message in
    a group thread cannot — nobody writes a friend's legal name to that friend's
    group. One reducer, never ad-hoc in a template, so every builder shortens the
    same way. Falls back rather than emptying: a blank name would silently
@@ -12383,7 +12409,7 @@ function drawRecapCard(d){
        phone. */
   }
   /* TEN / W7-144 · the lower block rides 40 higher, so the signature's address clears the frame's inner edge (y 1313) by more than the frame's own 36 inset */
-  if(d.badge) ctr(d.badge, 932, `600 31px ${BOARD}`, GOLD, 5);
+  /* TEN / W7-146 · D336: no milestone badge on the public round card (PostRecap.publicRoundCard strips it) */
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,980); x.lineTo(W-280,980); x.stroke();
   /* one line on the date's own rule, or two that start 14px under the hairline
@@ -12398,7 +12424,9 @@ function drawRecapCard(d){
   }
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
-  const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
+  /* TEN / W7-146 [A2-share-8] · D336: the card that leaves is the public round card, so its facts line
+     carries no points (a league the reader is not in) and gains the played year */
+  const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()} · ${dt.getFullYear()}`;
   ctr(when, whenY, `600 29px ${BOARD}`, MUT, 4);
   csArtifactSignature(x, W, 1140, { ink:INK, mut:MUT });
   return cv;
@@ -13253,7 +13281,7 @@ function csNextAct(epi, ctx){
   if(!epi || epi.pvi==null) return { key:'no_points', sentence:CS_NO_POINTS_NOTE, label:'Done', door:'done', ref:null };
   return { key:'on_the_board', sentence:'That is in your rounds.', label:'Done', door:'done', ref:null };
 }
-/* D239 - "Played with Alex - he hasn't confirmed yet." A tag is never a vouch
+/* D239 - "Played with Jules - he hasn't confirmed yet." A tag is never a vouch
    (L-19): the line says who, and whether they have answered, and nothing about
    attestation. */
 function csPlayedWithLine(people){
@@ -13510,6 +13538,10 @@ function finishCeremony(o){
      "card" is the person (T-01). Counted before this post reloads the career,
      as the epilogue counts it. */
   const fsb=$('#finShare'); if(fsb) fsb.textContent = csShareRoundLabel(!state.demo && !!window.career && Number(window.career.rounds) === 0);
+  $('#finPreview')?.closest('.finish-share-row')?.classList.remove('is-open');   /* TEN / W7-145 · every post opens on the small card */
+  /* TEN / W7-142 · the caption Share hands over (csShareRoundText, the one producer), shown before it leaves */
+  const fc=$('#finCaption'), fct=$('#finCaptionText');
+  if(fc && fct){ fct.textContent = csShareRoundText(_finishShare.gross, _finishShare.course); fc.hidden = false; }
   finishPreview();
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
@@ -13535,7 +13567,22 @@ async function finishPreview(){
   let cv=null; try{ cv=csPaintRecap(d); }catch(_){ cv=null; }
   if(!cv){ box.hidden=true; return; }
   box.replaceChildren(cv); box.hidden=false;
-  box.setAttribute('aria-label', `The card that will be shared: ${d.gross!=null?d.gross:''} at ${d.course||'the course'}${d._img?', over your round photo':''}.`);
+  box.dataset.label = `The card that will be shared: ${d.gross!=null?d.gross:''} at ${d.course||'the course'}${d._img?', over your round photo':''}.`;
+  csFinPreviewMode();
+}
+/* TEN / W7-145 [A2-share-3, B2-share-3] · below 960 the preview is 128px wide, so the words on the card that is
+   about to leave draw at 3-6px: it is a button that enlarges the card in place (the row stacks and the card takes
+   the measure, up to 402px) and shrinks it again. The desk already draws it at a readable size and keeps an image */
+function csFinPreviewMode(){
+  const box=document.getElementById('finPreview'), row=box && box.closest('.finish-share-row'); if(!box || !row) return;
+  const base = box.dataset.label || 'The card that will be shared.';
+  if(matchMedia('(min-width:960px)').matches){
+    row.classList.remove('is-open'); box.setAttribute('role','img'); box.removeAttribute('tabindex'); box.removeAttribute('aria-expanded');
+    box.setAttribute('aria-label', base); return;
+  }
+  const open=row.classList.contains('is-open');
+  box.setAttribute('role','button'); box.tabIndex=0; box.setAttribute('aria-expanded', open ? 'true' : 'false');
+  box.setAttribute('aria-label', open ? base : base + ' Tap to enlarge.');
 }
 function finishDismiss(){
   const el=document.getElementById('finish');
@@ -13548,6 +13595,16 @@ function finishDismiss(){
 }
 (function wireFinish(){
   const el=document.getElementById('finish'); if(!el) return;
+  /* TEN / W7-145 · the phone-width preview enlarges in place, and shrinks again */
+  const fp=$('#finPreview');
+  const fpToggle=()=>{
+    if(!fp || fp.getAttribute('role')!=='button') return;
+    fp.closest('.finish-share-row')?.classList.toggle('is-open'); csFinPreviewMode();
+    try{ fp.scrollIntoView({ block:'nearest' }); }catch(_){}
+  };
+  fp?.addEventListener('click', fpToggle);
+  fp?.addEventListener('keydown', e=>{ if(fp.getAttribute('role')==='button' && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); fpToggle(); } });
+  try{ matchMedia('(min-width:960px)').addEventListener('change', csFinPreviewMode); }catch(_){}
   $('#finPhoto')?.addEventListener('click',e=>{
     const b=e.currentTarget;
     b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
@@ -14694,8 +14751,8 @@ $('#postBtn').addEventListener('click', async ()=>{
   }
   /* SF-6: sf tags THIS push as the arrival — renderFeed flips its gross once,
      then deletes the tag, so every re-render (and the diorama) stays static */
-  feed.push({d:TODAY, sess:true, sf:1, who:(state.demo?DEMO_ME:'You'),team:(state.demo?'Mudsharks':'\u2014'),ci:(state.demo?0:1),meta:`${label} · ${$('#inCourse').value.toUpperCase()}`,pvi:vs,pts,kud:0,mine:false,cm:[]});
-  const snd=teams.find(t=>t.name==='Mudsharks');
+  feed.push({d:TODAY, sess:true, sf:1, who:(state.demo?DEMO_ME:'You'),team:(state.demo?'Wrens':'\u2014'),ci:(state.demo?0:1),meta:`${label} · ${$('#inCourse').value.toUpperCase()}`,pvi:vs,pts,kud:0,mine:false,cm:[]});
+  const snd=teams.find(t=>t.name==='Wrens');
   if(snd) snd.pts+=pts;   /* demo: my squad banks the points */
   teams.sort((a,b)=>b.pts-a.pts);
   renderClimb(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
@@ -14705,13 +14762,13 @@ $('#postBtn').addEventListener('click', async ()=>{
     course: $('#inCourse').value.trim() || 'A round',
     date: $('#inDate').value ? localDate($('#inDate').value) : new Date(),
     gross: parseInt(label,10)||0, vs, points: pts,
-    squad: state.demo ? 'Mudsharks' : null,
+    squad: state.demo ? 'Wrens' : null,
     inLeague: state.demo || !!window.CS?.league,
     name: state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
     marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
     leagueName: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
     photo: state.demo ? null : (window._lastPostPhoto||null),
-  }); else { stampPosted('POSTED'); toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`); }
+  }); else { stampPosted('POSTED'); toast(`Round posted: +${pts} pts to ${state.demo?'Wrens':'your squad'}`); }
 });
 
 /* ============ photos arc (#13, D36): photo attach + scorecard scan ============
@@ -15044,7 +15101,7 @@ $('#postScanBack')?.addEventListener('click',e=>{
 /* D150 · free text still posts — a muni the catalogue lacks, a friend's club —
    but it is DEMOTED, not equal: a typed course cannot feed course history or
    the "you've both played here" line, because a string is not an identity (our
-   own data held Papago under three spellings). Say so at the moment of typing,
+   own data held Saguaro Flats under three spellings). Say so at the moment of typing,
    and be explicit that the ROUND is unaffected: points, floors and the index
    all count exactly the same. The golfer is not punished; the claim about where
    they played is just not made. */
@@ -15513,7 +15570,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
     }
     recomputeStrokes();
     const cn = $('#cardNote');
-    if(cn) cn.textContent = `Card loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course's card.`;
+    if(cn) cn.textContent = `Pars loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course.`;   /* TEN / W7-116 · the course's pars, never its card */
     /* TEN / W7-127 · the pars are in, so the button checks them rather than
        asking for work already done (the phone's CSMini, LiveSetupView.swift:197) */
     { const ec = $('#editCard'); if(ec) ec.textContent = 'Check the pars'; }
@@ -15952,13 +16009,13 @@ function estimateSI(n){
   SIEST=true;
 }
 const ROSTER=[
-  {n:'Jerecho', i:12.4, ci:0, team:'Mudsharks', guest:false, locked:true, me:true},
-  {n:'Logan',   i:8.1,  ci:0, team:'Mudsharks', guest:false},
-  {n:'Ed',      i:10.2, ci:1, team:'Sandbaggers', guest:false},
-  {n:'Mitch',   i:14.9, ci:1, team:'Sandbaggers', guest:false},
-  {n:'Blake',   i:19.8, ci:0, team:'Mudsharks', guest:false},
-  {n:'Chuck',   i:14.2, ci:-1, team:null, guest:true,  est:false},
-  {n:'Gary',    i:20.0, ci:-1, team:null, guest:true,  est:true},
+  {n:'Avery', i:12.4, ci:0, team:'Wrens', guest:false, locked:true, me:true},
+  {n:'Casey',   i:8.1,  ci:0, team:'Wrens', guest:false},
+  {n:'Jules',      i:10.2, ci:1, team:'Javelinas', guest:false},
+  {n:'Devon',   i:14.9, ci:1, team:'Javelinas', guest:false},
+  {n:'Harper',   i:19.8, ci:0, team:'Wrens', guest:false},
+  {n:'Kit',   i:14.2, ci:-1, team:null, guest:true,  est:false},
+  {n:'Indigo',    i:20.0, ci:-1, team:null, guest:true,  est:true},
 ];
 let sel=[0,1,2,5];
 let LIVE=sel.map(i=>ROSTER[i]);
@@ -16267,7 +16324,7 @@ function primeRealRoster(){
   estimateSI();
   recomputeStrokes();
   state.live=freshLive();
-  /* pilot: the demo's Encanto scenery must not greet a real account — blank
+  /* pilot: the demo's course scenery must not greet a real account — blank
      course/tee so the search leads (rating/slope fall back to 72/113) */
   ['lrCourse','lrTee','lrRate','lrSlope'].forEach(id=>{ const e=$('#'+id); if(e) e.value=''; });
   const lrc=$('#lrCourse'); if(lrc) lrc.dataset.courseId='';
@@ -16629,7 +16686,7 @@ function renderResumeBanner(){
   let thru=0; for(let k=0;k<18;k++){ if(holeDone(k)) thru=k+1; else break; }
   const course=($('#lrCourse')?.value||'Your round');
   const gl={score:'Stroke play', match:'Match play', wolf:'Wolf', skins:'Skins', sunningdale:'Sunningdale Rules'}[L.game]||'Live round';
-  /* D86 · two faces. Someone else's round is an INVITATION ("Marcus put you on
+  /* D86 · two faces. Someone else's round is an INVITATION ("Gray put you on
      the tee sheet"), not a resumption — "Continue your round" was a lie on a
      round you had never opened. Named host when we have it, unnamed otherwise;
      a round nobody has scored yet says so instead of "THRU 0". */
@@ -16705,6 +16762,7 @@ window.liveRecv = function(m){
     if((L.scts[pi][h]||0) >= cts) return;
     L.scores[pi][h] = m.s==null ? null : Number(m.s);
     L.scts[pi][h]=cts;
+    if(pi===csMomentSeat() && _csMoment.ledger && _csMoment.lr===L.lr){ _csMoment.ledger.seen('me', h+1, cts, L.scores[pi][h], PAR[h], csMomentKnown()); csMomentTally(); }   /* TEN / W7-119 · an echo of my card arms, never speaks */
   } else if(m.t==='wolf'){
     const h=(m.h|0)-1;
     if(h<0 || h>17) return;
@@ -16729,7 +16787,9 @@ window.liveRecvState = function(d){
     if((L.scts[pi][h]||0) >= cts) return;
     L.scores[pi][h] = s.strokes==null ? null : Number(s.strokes);
     L.scts[pi][h]=cts;
+    if(pi===csMomentSeat() && _csMoment.ledger && _csMoment.lr===L.lr) _csMoment.ledger.seen('me', h+1, cts, L.scores[pi][h], PAR[h], csMomentKnown());   /* TEN / W7-119 · a reconcile arms, never speaks */
   });
+  csMomentTally();
   const gs=d.round.game_state||{};
   Object.keys(gs).forEach(k=>{
     const h=parseInt(k.slice(1),10)-1;
@@ -17577,7 +17637,46 @@ function renderPlanBridge(){
       : (sr.course_label?'Course loaded — pick your group below':'Pick your group below'));
   });
 }
+/* TEN / W7-119 [A2-play-11] · D368's web half, the phone's LiveHoleMoment + LiveMomentTally
+   (LiveRoundStore.commitMoment / primeMomentLedger): the viewing golfer's own seat only. Leaving a hole
+   commits its score once; hydration, a reconnect and a remote echo arm the ledger silently, so nothing
+   already on the card replays. Par must be known (PARS_VERIFIED). Nothing scores, posts or notifies.
+   `var`, not `let`: renderPlay can run during the classic boot chain. */
+var _csMoment = { ledger:null, lr:null };
+function csMomentSeat(){ return (typeof LIVE!=='undefined' && Array.isArray(LIVE)) ? LIVE.findIndex(p=>p && p.me) : -1; }
+function csMomentKnown(){ return !!(window.csParsVerified && window.csParsVerified()); }
+function csMomentRev(pi, h){ const L=state.live; return (L && L.scts && L.scts[pi] && L.scts[pi][h]) || 0; }
+function csMomentTally(){
+  const t=document.getElementById('holeTally'); if(!t) return;
+  const line=_csMoment.ledger ? _csMoment.ledger.tallyLine('me') : null;
+  t.textContent=line||''; t.hidden=!line;
+}
+function csMomentPaint(m, hole){
+  const box=document.getElementById('holeMoment'); if(!box) return;
+  if(!m){ box.hidden=true; box.textContent=''; return; }
+  box.className='holemoment'+(m==='eagle'?' is-eagle':'');
+  box.innerHTML=`<b>${esc(CS_MOMENT_WORD[m])}</b><span>on ${hole}</span>`;
+  box.hidden=false;
+}
+function csMomentArm(){
+  const L=state.live; if(!L || !L.active) return;
+  if(_csMoment.lr!==L.lr || !_csMoment.ledger){ _csMoment.ledger=csMomentLedger(); _csMoment.lr=L.lr; csMomentPaint(null); }
+  const pi=csMomentSeat(); if(pi<0) return;
+  const known=csMomentKnown();
+  (L.scores[pi]||[]).forEach((v,h)=>_csMoment.ledger.seen('me', h+1, csMomentRev(pi,h), v, PAR[h], known));
+  csMomentTally();
+}
+function csMomentLeave(h){
+  const L=state.live; if(!L || !L.active) return;
+  csMomentPaint(null);   /* the moment is for one hole: leaving it clears the last one */
+  if(_csMoment.lr!==L.lr || !_csMoment.ledger){ csMomentArm(); return; }   /* a ledger armed now never speaks */
+  const pi=csMomentSeat(); if(pi<0 || h<0 || h>=(L.scores[pi]||[]).length) return;
+  const m=_csMoment.ledger.commit('me', h+1, csMomentRev(pi,h), L.scores[pi][h], PAR[h], csMomentKnown());
+  csMomentTally();
+  if(m){ csMomentPaint(m, h+1); try{ if(navigator.vibrate) navigator.vibrate(m==='eagle'?[12,40,12]:12); }catch(_){} }
+}
 function renderPlay(){
+  if(state.live && state.live.active && _csMoment.lr!==state.live.lr) csMomentArm();   /* TEN / W7-119 · arm silently on a round's first paint (tee-off, a reload) */
   const setup = state.live.stage==='setup';
   if(setup && document.body.classList.contains('cardview')) setCardView(false);
   $('#playSetup').style.display = setup ? '':'none';   /* W7-054 · '' lets the desk's grid apply */
@@ -17708,15 +17807,19 @@ function renderPlay(){
     const strokesWord = STROKES[pi] ? `${STROKES[pi]} stroke${STROKES[pi]===1?'':'s'}` : 'No strokes';
     const sub = [state.live.game==='sunningdale' ? 'No HCP · straight up' : strokesWord,
                  dots ? `${dots>1 ? dots+' shots' : 'a shot'} on this hole` : null].filter(Boolean).join(' · ');
+    /* TEN / W7-128 [B2-play-7] · an empty seat's first tap enters the hole's par whichever button is
+       pressed (the click handler below), so both are named for that act until a score exists; the seat
+       is the phone's (LivePlayView's scoreObject): an em dash in mut over a rule-coloured 2px line */
+    const _who = (guestView && p.me) ? 'you' : p.n;
     const row=document.createElement('div'); row.className='lrow';
     row.innerHTML=`
       <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" aria-hidden="true"></span>'.repeat(dots)}</b>
       <small>${esc(sub)}</small></div>
       <div class="tot">${done.length ? `<b>${vp===0?'E':`${vp>0?'+':'\u2212'}${Math.abs(vp)}`}</b>${gross} gross \u00b7 thru ${done.length}` : '—'}</div>
       <div class="step">
-        <button aria-label="One stroke fewer for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="-1">−</button>
-        <span class="sv">${s===null?'–':s}</span>
-        <button aria-label="One more stroke for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="1">+</button>
+        <button aria-label="${s===null ? `Enter par (${PAR[h]}) for ${esc(_who)}, hole ${h+1}` : `One stroke fewer for ${esc(_who)}, hole ${h+1}, now ${s}`}" data-pi="${pi}" data-d="-1">−</button>
+        <span class="sv${s===null?' is-empty':''}">${s===null?'\u2014':s}</span>
+        <button aria-label="${s===null ? `Enter par (${PAR[h]}) for ${esc(_who)}, hole ${h+1}` : `One more stroke for ${esc(_who)}, hole ${h+1}, now ${s}`}" data-pi="${pi}" data-d="1">+</button>
       </div>`;
     rows.appendChild(row);
   });
@@ -18021,11 +18124,11 @@ function csLiveSticky(){
   const hh=document.querySelector('#playEntry .holehdr');
   if(hh){ const line = (top + sb.offsetHeight + 6) + 'px'; if(hh.style.top !== line) hh.style.top = line; }
 }
-$('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
-$('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
+$('#holePrev').addEventListener('click',()=>{csMomentLeave(state.live.hole);state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
+$('#holeNext').addEventListener('click',()=>{csMomentLeave(state.live.hole);state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
 /* W7-056 · the foot's Next hole is the header's, then the rest at the top of
    the new hole (the first golfer's row, under the board), as tee off rests */
-$('#holeNextFoot')?.addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();csLiveRest();});
+$('#holeNextFoot')?.addEventListener('click',()=>{csMomentLeave(state.live.hole);state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();csLiveRest();});
 
 /* the tee-off match preview: sides + who gets strokes WHERE — the first-tee
    argument, settled before anyone hits (§2.2). Recomputed on every roster,
@@ -18154,13 +18257,13 @@ function renderRoster(){
     });
     wrap.appendChild(b);
   };
-  const homeTeam = state.demo ? 'Mudsharks' : 'Your squad';
+  const homeTeam = state.demo ? 'Wrens' : 'Your squad';
   /* D154 · the regulars lead. A golfer appears in exactly ONE group, so the
      later tests exclude anyone an earlier one already claimed — a name in two
      lists is a worse picker, not a better one. */
   const reg = p => p.regular != null;
   const groups=[
-    {label: state.demo ? 'Your squad · Mudsharks' : 'You', test:p=>!p.guest && p.team===homeTeam},
+    {label: state.demo ? 'Your squad · Wrens' : 'You', test:p=>!p.guest && p.team===homeTeam},
     {label:'You play with', test:p=>reg(p) && !(!p.guest && p.team===homeTeam)},
     {label:'League', test:p=>!p.guest && p.team!==homeTeam && !reg(p)},
     {label:'Buddies', test:p=>p.guest && p.buddy && !reg(p)},
@@ -18250,7 +18353,7 @@ function renderLiveBanner(){
     st=`SKINS · ${sk.carry} CARRIED OVER · YOU ${me>=0?sk.won[me]:0}`;
   }
   $('#lbStatus').textContent=st;
-  $('#lbHole').textContent=`HOLE ${state.live.hole+1} · ${($('#lrCourse').value||'Encanto GC').toUpperCase()} · THRU ${thru}`;
+  $('#lbHole').textContent=`HOLE ${state.live.hole+1} · ${($('#lrCourse').value||'Saguaro Flats').toUpperCase()} · THRU ${thru}`;
 }
 function syncTeeInputs(){
   CRATE=parseFloat($('#lrRate').value)||72;
@@ -18272,7 +18375,7 @@ $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   try{ b.scrollIntoView({ block:'nearest', inline:'nearest' }); }catch(_){}   /* W1 · the row scrolls: the chosen game stays in view */
   state.live.game=b.dataset.g;
   renderRoster();   /* match extras (stake, strokes preview, side swap) follow the game */
-  const GN={score:'Stroke play — your card, your pace. One to four golfers; post when you’re done.',
+  const GN={score:'Stroke play — your scorecard, your pace. One to four golfers; post when you’re done.',
     match:'Singles (2) or 2v2 net best ball (4). Keep scoring; we tally the match as you go.',
     wolf:'A round of Wolf — needs four. We run the rotation and the side tally; scores still post.',
     skins:'Low net takes the hole’s skin; ties carry the pot. Two to four golfers; scores still post.',
@@ -18641,14 +18744,14 @@ function finishRealLiveRound(){
          const m=missingOf(x.i); if(!m.length) return `${who} — has scores past hole ${liveHoles()}`;
          const shown=m.slice(0,5).join(', ');
          return `${who} — missing hole${m.length===1?'':'s'} ${shown}${m.length>5?` +${m.length-5} more`:''}`;
-       }).join(' · ')}. ${open.length===1?'That card':'Those cards'} won’t post — go back and ${anyStray?'fix it':'fill in'}, or finish without.</p>`
+       }).join(' · ')}. ${open.length===1?'That scorecard':'Those scorecards'} won’t post — go back and ${anyStray?'fix it':'fill in'}, or finish without.</p>`
     : '';
   const result = gameResult();
   openSheet('Finish the round', 'ONE FINISH FOR THE WHOLE GROUP',
-    `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, vouched by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a scorecard link`:''}. A partial card is skipped, not lost.</p>
+    `<p class="fine" style="padding-top:0">${_lg?'Complete scorecards post to the season':'Every complete scorecard posts to its golfer'}, vouched by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a scorecard link`:''}. A partial scorecard is skipped, not lost.</p>
      ${warn}
      <button class="btn" id="lrPost" style="margin-top:12px">${done.length
-       ? `Post ${done.length} card${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`
+       ? `Post ${done.length} round${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`   /* TEN / W7-116 · a card is the golfer (T-01): what posts is rounds */
        : 'Finish the round'}</button>
      <p class="lrcasual-row"><button type="button" class="lrcasual cs-body-s" id="lrCasual">${esc(CS_LIVE_CASUAL.label)}</button></p>`);
   const go = async (casual) => {
@@ -18711,7 +18814,7 @@ function showLiveRecap(d, result, lrId){
   const isTeamMatch = !!result && result.mode!=='solo' && (result.game==='match' || isSunnTeam);
   /* a two-man side takes a plural verb — every team game rendered
      "WILL & ISAAK PAYS" until this existed, and singles rendered
-     "JERECHO TAKE THE BANK" */
+     "AVERY TAKE THE BANK" */
   /* the settlement card needs the same money line the sheet shows, and it is
      computed inside whichever branch runs — hoisted so the button can reach it */
   let settleMoney='';
@@ -18831,7 +18934,7 @@ function showLiveRecap(d, result, lrId){
     <span class="fine" style="padding:0;display:block">${esc(st.detail)}</span>
     <span id="lrMineDoors" style="display:flex;gap:8px;margin-top:8px"></span></div></div>`);
   openSheet(d.casual?'Casual — nothing posted':st.title,
-    `${posted.length} CARD${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
+    `${posted.length} ROUND${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
     rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
   $('#sheet').classList.add('room-dusk');   /* the post-round settlement is a ceremony - dusk for every viewer, like #finish */
   (async()=>{
@@ -18969,7 +19072,7 @@ $('#finishBtn').addEventListener('click',()=>{
   const left=18-[...Array(18).keys()].filter(h=>holeDone(h)).length;
   if(left>0){toast(left+' holes left to score');return;}
   let posted=0;
-  const courseUp=($('#lrCourse').value||'Encanto GC').toUpperCase();
+  const courseUp=($('#lrCourse').value||'Saguaro Flats').toUpperCase();
   LIVE.forEach((p,pi)=>{
     if(p.guest) return;
     const gross=state.live.scores[pi].reduce((a,b)=>a+b,0);
@@ -19029,7 +19132,7 @@ function csDrawnCardSvg(holes, opts){
   /* `bare` · eighteen holes, no numerals. A row's plate is 40pt tall, and at
      that height an 18-numeral row scales to five pixels — the same illegible
      comb §10.2 bans the contour at thumbnail scale for. The SHAPE survives,
-     which is the part that says "that is Papago". */
+     which is the part that says "that is Saguaro Flats". */
   const W = 1000, H = (o.nine || o.bare) ? 180 : 220, GAP = o.nine ? 6 : 10,
         LAB = (o.nine || o.bare) ? 0 : 26;
   const wOf = p => p<=3 ? 0.78 : (p>=5 ? 1.30 : 1);
@@ -19526,7 +19629,7 @@ function renderCourseBooks(){
   csCourseCircleFill(lead ? [String(lead.id)] : []);   /* W7-052 · who of yours has played the course on show */
 }
 
-/* "You have played Papago 4 times · best 78 · last Aug 24" — the fact §4 and
+/* "You have played Saguaro Flats 4 times · best 78 · last Aug 24" — the fact §4 and
    §5 both want the night before, drawn from the 400 rounds `loadCareer`
    already holds. Absent, never dashed, when nothing produced it (L-44). */
 function csCourseHistoryLine(b){
@@ -20221,9 +20324,9 @@ function openCardSheet(){
        holes in play so a nine's SI is 1-9. */
     estimateSI(nine?9:18); SI_LOADED=null;
     closeSheet();
-    $('#cardNote').textContent=`Card saved: par ${sumStr(f)+(nine?0:sumStr(b))}${nine?' · 9 holes':''}. The stepper opens on each hole's par.`;
+    $('#cardNote').textContent=`Pars saved: par ${sumStr(f)+(nine?0:sumStr(b))}${nine?' · 9 holes':''}. Tap + to start each hole at par.`;   /* TEN / W7-116 */
     renderPlay();
-    toast('Card saved: every league gets it from here', 'pos');
+    toast('Pars saved: every league gets it from here', 'pos');
   });
   refresh();
   f9.focus();
@@ -20232,14 +20335,14 @@ $('#editCard').addEventListener('click', openCardSheet);
 
 /* ================= individual stats (Stats tab) ================= */
 const PLAYERS=[
-  /* squad sums + ADJ reconcile with teams[]: MUD 226+15=241 · SND 206+15−5=216 */
-  {n:'Jerecho', me:true, ci:0, sq:'MUD', r:11, avg:0.6,  best:2.9, pts:61, d:-0.3},
-  {n:'Logan',   ci:0, sq:'MUD', r:14, avg:1.1,  best:3.4, pts:63, d:-0.8},
-  {n:'Metz',    ci:0, sq:'MUD', r:9,  avg:0.4,  best:2.2, pts:55, d:-1.4},
-  {n:'Blake',   ci:0, sq:'MUD', r:8,  avg:-0.3, best:1.5, pts:47, d:0.3},
-  {n:'Ed',      ci:1, sq:'SND', r:13, avg:1.3,  best:4.1, pts:75, d:-1.1},
-  {n:'Mitch',   ci:1, sq:'SND', r:11, avg:0.8,  best:2.6, pts:70, d:-0.5},
-  {n:'Garrett', ci:1, sq:'SND', r:9,  avg:-0.9, best:0.8, pts:61, d:0.6},
+  /* squad sums + ADJ reconcile with teams[]: WRN 226+15=241 · JAV 206+15−5=216 */
+  {n:'Avery', me:true, ci:0, sq:'WRN', r:11, avg:0.6,  best:2.9, pts:61, d:-0.3},
+  {n:'Casey',   ci:0, sq:'WRN', r:14, avg:1.1,  best:3.4, pts:63, d:-0.8},
+  {n:'Emery',    ci:0, sq:'WRN', r:9,  avg:0.4,  best:2.2, pts:55, d:-1.4},
+  {n:'Harper',   ci:0, sq:'WRN', r:8,  avg:-0.3, best:1.5, pts:47, d:0.3},
+  {n:'Jules',      ci:1, sq:'JAV', r:13, avg:1.3,  best:4.1, pts:75, d:-1.1},
+  {n:'Devon',   ci:1, sq:'JAV', r:11, avg:0.8,  best:2.6, pts:70, d:-0.5},
+  {n:'Finley', ci:1, sq:'JAV', r:9,  avg:-0.9, best:0.8, pts:61, d:0.6},
 ];
 /* D4: the You tab's league record — one line per membership: league, season,
    where you sit. Real rows come from window.leagueRecord (module); the demo
@@ -20614,7 +20717,7 @@ function renderHomeHero(){
            not be the champion at all. Reading teams[0] here named the wrong
            winner on the one screen a whole league is guaranteed to open
            (season sim 2026-08-30: the engine crowned Vic Slice 28-26 and this
-           card said "Ray Fairway took it"), and told the table leader "your
+           card said "Jules Sandbox took it"), and told the table leader "your
            name goes on the cup" when it did not. csSettlement() resolves both
            from seasons.champion_* — the same source the ceremony uses. */
         const S = window.CS?.season || {};
@@ -20999,13 +21102,13 @@ window.OCCASIONS = OCCASIONS; window.occInWindow = occInWindow;   /* QA bridge �
 /* relative dates spread across the feed's time buckets: today / this week /
    earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
-  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true,
-   rx:{'azalea':{n:2,me:false,who:['Rosa','Marco']},'rake':{n:1,me:false,who:['Marco']}}},
-  {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true, holes_played:18,   /* the milestone is an 18-hole fact (csSub80) */
-   rx:{'eagle':{n:1,me:false,who:['Diego']}}},
-  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true,
-   rx:{'jug':{n:1,me:false,who:['Rosa']}}},
-  {golfer:'Marco', marker:'weebridge', gross:90, pvi:0.4, course:'Encanto', played_on:isoAgo(9)},
+  {golfer:'Casey', marker:'saguaro', gross:79, pvi:5.2, course:'Saguaro Flats', played_on:isoAgo(0), is_pr:true,
+   rx:{'azalea':{n:2,me:false,who:['Devon','Emery']},'rake':{n:1,me:false,who:['Emery']}}},
+  {golfer:'Devon',  marker:'azalea',  gross:74, pvi:3.8, course:'North Grove',  played_on:isoAgo(2), is_sub80:true, holes_played:18,   /* the milestone is an 18-hole fact (csSub80) */
+   rx:{'eagle':{n:1,me:false,who:['Casey']}}},
+  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Dry Creek',    played_on:isoAgo(4), is_me:true,
+   rx:{'jug':{n:1,me:false,who:['Devon']}}},
+  {golfer:'Emery', marker:'weebridge', gross:90, pvi:0.4, course:'Mesquite Wash', played_on:isoAgo(9)},
 ];
 /* founder badge — FOUNDER_ID is loaded by loadProfile via the founder_id() RPC.
    Badges the one founder wherever their name shows. Demo badges DEMO_ME so the
@@ -21783,8 +21886,8 @@ function dgItems(){
   return (window.homeFeedRows||[]).map(r=>({ t:(r.created_at||r.played_on||''), kind:'round', r }))
     .concat((window.homePosts||[]).map(p=>({ t:(p.created_at||''), kind:'post', p })));
 }
-/* serial comma is load-bearing here: "a personal best from Diego and Rosa broke
-   80" reads as one clause about two people. "…from Diego, and Rosa broke 80"
+/* serial comma is load-bearing here: "a personal best from Casey and Devon broke
+   80" reads as one clause about two people. "…from Casey, and Devon broke 80"
    doesn't. */
 function dgJoin(a){
   if(a.length<2) return a[0]||'';
@@ -21894,7 +21997,7 @@ function renderHomeDigest(){
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
     if(posts.length) bits.push(`${posts.length} league note${posts.length>1?'s':''}`);
-    /* D365 · applause is grouped by round and distinct people — "Alex and 2
+    /* D365 · applause is grouped by round and distinct people — "Jules and 2
        others applauded your round" — never listed tap by tap; whatever else
        landed (a comment, an earlier reaction) keeps the old shape. */
     const apByRound={}, apOrder=[];
@@ -21904,7 +22007,7 @@ function renderHomeDigest(){
     if(rest.length){
       const m=rest[0];
       /* D311 · a reaction is a word, not a verb. This built
-         "Alex 🔥’d your 90" — a glyph used as a verb, which no language does,
+         "Jules 🔥’d your 90" — a glyph used as a verb, which no language does,
          and which D309 makes impossible anyway: you cannot verb a drawn
          azalea. One authored sentence per token; an unknown key falls to the
          neutral line rather than naming a reaction it cannot read. */
@@ -22983,7 +23086,7 @@ function csPostVals(){ return postReadFields(); }
 /* R6 · **the question describes THIS card, not the general case.** It promised
    to replace "the date and course" whenever the plan named one — but the rule
    both clients keep is that a course the golfer already typed is LEFT ALONE. A
-   golfer agreeing to start the Papago round could keep a different course and
+   golfer agreeing to start the Saguaro Flats round could keep a different course and
    its tee details, having been told otherwise. The approved rule is unchanged;
    only the sentence is, and it now reads the actual draft. */
 function csPlanChanges(ctx){
@@ -23180,8 +23283,8 @@ function renderHomeRounds(){
   const box=$('#homeRounds'), head=$('#homeRoundsHead'); if(!box||!head) return;
   if(state.demo){
     head.style.display='';
-    box.innerHTML = homeRoundCard({mine:true, _whenTxt:'IN 2 DAYS', course_label:'Papago GC', tee_time:'07:40', rsvp_in:3, comment_n:2, marker:'saguaro'}, true)
-      + homeRoundCard({_whenTxt:'SATURDAY', display_name:'Logan', is_friend:true, course_label:'Encanto GC', rsvp_in:2, marker:'saguaro'}, true);
+    box.innerHTML = homeRoundCard({mine:true, _whenTxt:'IN 2 DAYS', course_label:'Saguaro Flats', tee_time:'07:40', rsvp_in:3, comment_n:2, marker:'saguaro'}, true)
+      + homeRoundCard({_whenTxt:'SATURDAY', display_name:'Casey', is_friend:true, course_label:'Mesquite Wash', rsvp_in:2, marker:'saguaro'}, true);
     return;
   }
   const today=new Date(); today.setHours(0,0,0,0);
@@ -23211,7 +23314,7 @@ async function fillHomeWeather(sr){
     el.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#${csWxGlyph(w)}"/></svg> ${w.hi}\u00b0${w.wind?` \u00b7 ${w.wind}mph`:''}`; el.style.display='';
   }catch(_){ /* no glance is fine — never a blank */ }
 }
-const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'weebridge'}];
+const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Kit', handle:'kit', marker:'weebridge'}];
 /* incoming friend requests, front and center on Home — used to hide in the
    Tour Card and nobody found them. */
 /* D93: one renderer, two homes. Requests stay on Home (D81 put them there and
@@ -23571,7 +23674,7 @@ function csCompeteSort(rows){
 /* A plan's own sentence — the twin of `CompeteRoot.planLine`, and it carries
    the same two rules, the first of which cost a real screenshot to find.
    `my_schedule.tagged_names` INCLUDES ME on a round a buddy booked with me, so
-   the naive sentence read "You and Jerecho Fischbeck." — the viewer, twice, one
+   the naive sentence read "You and Avery Fixture." — the viewer, twice, one
    of them by name. My own name comes out, and a round I do not own names its
    HOST, which is the fact that makes it mine at all. And IA §8.4 rule 1: NO
    SEAT COUNT, anywhere — `scheduled_rounds` has no capacity column and a
@@ -25306,7 +25409,7 @@ window.renderPulse=renderPulse; window.loadPulse=loadPulse;
 /* the display case — real trophies come from window.trophies (module loader);
    the demo shows a filled case so the diorama sells the feature. */
 const DEMO_TROPHIES = [
-  {kind:'league', title:'PIGL Cup',   subtitle:'Champion',  season_year:2025},
+  {kind:'league', title:'North Grove Cup', subtitle:'Champion',  season_year:2025},
   {kind:'ryder',  title:'The Grudge', subtitle:'The Ryder', season_year:2026},
   {kind:'major',  title:'The Bloom',  subtitle:'Major',     season_year:2026},
 ];
@@ -25385,7 +25488,7 @@ function openStakeSettle(id){
     <p class="fine" style="padding:0 0 6px">${s.party_b?'Who took it?':'Who hit it? Anyone in the crew.'}</p>
     <div>${opts}</div>
     <label class="f" style="margin-top:12px" for="stNote">A line for the archive <span style="color:var(--mut)">(optional)</span></label>
-    <input class="f" id="stNote" placeholder="Settled on the 18th at Papago" style="font-family:var(--sans)">
+    <input class="f" id="stNote" placeholder="Settled on the 18th green" style="font-family:var(--sans)">
   `);
   document.querySelectorAll('[data-stw]').forEach(b=>b.addEventListener('click', async ()=>{
     await window.stakeSettle?.(id, b.dataset.stw, document.getElementById('stNote')?.value||null);
@@ -25600,14 +25703,14 @@ function csMilestoneRound(rid){
   if(!rid) return null;
   return (window.career?.rows || []).find(r => String(r.id) === String(rid)) || null;
 }
-/* D291 · a BESTS slat says the round it was won on — `79 at Papago · Aug 24`.
+/* D291 · a BESTS slat says the round it was won on — `79 at Saguaro Flats · Aug 24`.
    Every part is dropped rather than faked: no round in hand → `79 · Aug 24`;
    no gross anywhere → `achSubtitle`'s own words. Twin: `milestoneSub`. */
 function csMilestoneSub(a, round){
   const m = a.meta || {};
   const c = round && round.course_label ? csCourse(round.course_label) : null;
   let lead = '';
-  /* X40 (1) · owner ruling 2026-09-29: A MILESTONE PRINTS THE ROUND THE GOLFER REMEMBERS — `83 at Papago ·
+  /* X40 (1) · owner ruling 2026-09-29: A MILESTONE PRINTS THE ROUND THE GOLFER REMEMBERS — `83 at Saguaro Flats ·
      Aug 24` — a personal best as much as a threshold. D291 printed the PB's DIFFERENTIAL ("4.1 vs course"),
      and the differential lives on the receipt beside its arithmetic and nowhere else (TERMINOLOGY row 92,
      P-16, L-14). D291's own worry, one sentence under BROKE 80 and PERSONAL BEST, is answered in the case:
@@ -25902,11 +26005,11 @@ function renderCareer(){
   /* diorama form is fabricated coherently (index 12.4: beat = 12.4−diff ≥ 1) */
   const c = state.demo
     ? { rounds:42, best:4.8, avg:1.2, counting:42, played:3, recent:[
-        {played_on:'2026-06-30', course_label:'Papago GC',    gross:82, differential:9.1,  holes_played:18, pvi:3.3,  beat:true},
-        {played_on:'2026-06-22', course_label:'Ken McDonald', gross:86, differential:11.2, holes_played:18, pvi:1.2,  beat:true},
-        {played_on:'2026-06-14', course_label:'Grayhawk',      gross:80, differential:7.8,  holes_played:18, pvi:4.6,  beat:true},
-        {played_on:'2026-06-07', course_label:'Encanto',       gross:93, differential:14.6, holes_played:18, pvi:-2.2, beat:false},
-        {played_on:'2026-05-31', course_label:'Aguila',        gross:84, differential:10.3, holes_played:18, pvi:2.1,  beat:true} ] }
+        {played_on:'2026-06-30', course_label:'Saguaro Flats',    gross:82, differential:9.1,  holes_played:18, pvi:3.3,  beat:true},
+        {played_on:'2026-06-22', course_label:'Whispering Fixture Pines', gross:86, differential:11.2, holes_played:18, pvi:1.2,  beat:true},
+        {played_on:'2026-06-14', course_label:'North Grove',      gross:80, differential:7.8,  holes_played:18, pvi:4.6,  beat:true},
+        {played_on:'2026-06-07', course_label:'Mesquite Wash',       gross:93, differential:14.6, holes_played:18, pvi:-2.2, beat:false},
+        {played_on:'2026-05-31', course_label:'Dry Creek',        gross:84, differential:10.3, holes_played:18, pvi:2.1,  beat:true} ] }
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
   /* Q40 (b) · owner ruling 2026-09-29: the web's You says each gross ONCE. The Form row printed the same five
@@ -26087,7 +26190,7 @@ function renderIndStats(){
      (real accounts fill this from CS.profile via refreshWhoChip) */
   if(state.demo){
     const set=(id,v,html)=>{ const e=$(id); if(e){ if(html) e.innerHTML=v; else e.textContent=v; } };
-    set('#youName','Jerecho'); set('#youMeta','@jerecho · Tempe, AZ · Papago GC');
+    set('#youName','Avery'); set('#youMeta','@avery · Mesa, AZ · Saguaro Flats');
     set('#youIdx', (state.myIndex||12.4).toFixed(1));
     set('#youRds', String(feed.filter(f=>f.gross!=null).length || 0));
     set('#youFolio','Cup Season · The Saguaro');
@@ -26099,7 +26202,7 @@ function renderIndStats(){
     const dp = $('#youPlate');
     if(dp && !dp.querySelector('.ccont') && typeof csContourSvg === 'function')
       dp.insertAdjacentHTML('afterbegin',
-        csContourSvg('papago-golf-course', true)
+        csContourSvg('saguaro-flats', true)
         + (window.MARKERS && MARKERS.saguaro
             ? `<span class="ccrest" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${MARKERS.saguaro.p}"/></svg></span>` : ''));
   }
@@ -27343,7 +27446,7 @@ const CS_INBOX = {
 };
 const CS_RELATION = { me:'You', friend:'Friend', league:'In your seasons', event:'In your Ryders and Majors' };
 function csTalkFirst(name){ return String(name||'').trim().split(/\s+/)[0] || 'Someone'; }
-/* "Theo", "Theo and Mara", "Theo, Mara and Alex" — CourseNames.list's twin */
+/* "Theo", "Theo and Mara", "Theo, Mara and Jules" — CourseNames.list's twin */
 function csTalkNames(n){ return n.length<2 ? (n[0]||'') : n.slice(0,-1).join(', ') + ' and ' + n[n.length-1]; }
 /* the server does not have D391 yet: hide the door instead of failing at it */
 function csTalkSkew(e){
@@ -27806,16 +27909,16 @@ function csCoursePeopleRender(courseId, d){
 /* ================= drill-down receipts ================= */
 /* Every points figure descends toward raw rounds. Nothing is asserted
    without showing the arithmetic that produced it. */
-const SQABBR=['MUD','SND','SHK','CPO'];
+const SQABBR=['WRN','JAV','SQ3','SQ4'];
 const ADJ = [   /* demo adjustments — mirrors season_adjustments (migration 003) */
-  {sq:'Sandbaggers', month:M3[1], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
-  {sq:'Mudsharks',   month:M3[0], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
-  {sq:'Sandbaggers', month:M3[0], kind:'floor_penalty', pts:-5, who:'Garrett', why:'September — 2 a month, posted 1. The bye was already used.'},
+  {sq:'Javelinas', month:M3[1], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
+  {sq:'Wrens',   month:M3[0], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
+  {sq:'Javelinas', month:M3[0], kind:'floor_penalty', pts:-5, who:'Finley', why:'September — 2 a month, posted 1. The bye was already used.'},
 ];
 /* demo round history — the receipts behind each player's number */
 const HIST = {};
 function seedHistory(){
-  const courses=['ENCANTO','PAPAGO','AGUILA','CAVE CREEK','GRAND CANYON'];
+  const courses=['MESQUITE WASH','SAGUARO FLATS','DRY CREEK','NORTH GROVE','WHISPERING FIXTURE PINES'];
   PLAYERS.forEach(p=>{
     const rows=[];
     for(let k=0;k<p.r;k++){
@@ -28848,7 +28951,7 @@ function csPlanMe(sr){
   return (r === 'in' || r === 'maybe' || r === 'out') ? r : 'asked';
 }
 const CS_PLAN_ME = { in:'You’re in', maybe:'Maybe', out:'You’re out', asked:'Asked' };
-/* A-7 · the tag names the crew ("IN THE FELLAS"), never the retired compound.
+/* A-7 · the tag names the crew ("IN THE WRENS"), never the retired compound.
    `my_schedule` says only THAT a season is shared (`shared_league`), never
    which, so the name is read from rosters this client already holds: the
    league on screen, or the one league the golfer is in. Where neither can
@@ -31163,7 +31266,7 @@ function openNameRivalry(oppId, oppName, cur){
    phone's twin is `CSCredential` in CSDesign/Person.swift, and every value
    below comes from tokens.json through tokens.css. */
 
-/* @alex - Phoenix, AZ - Papago. Handle, city, home course. `est. Jul 2026` is
+/* @jules - Phoenix, AZ - Saguaro Flats. Handle, city, home course. `est. Jul 2026` is
    NOT in it: the founding fact is already the gold slot, and a third telling
    is the duplication YRS-21 names. The phone's twin is
    `CredentialCopy.identity`. Uppercased by the ROLE, in CSS, never here. */
@@ -31466,7 +31569,7 @@ async function openTourCard(profileId){
       ${p.home_course?`<div class="mathrow"><span>Home course</span><b>${esc(csCourse(p.home_course))}</b></div>`:''}
       ${p.ghin?`<div class="mathrow"><span>GHIN</span><b>${esc(p.ghin)}</b></div>`:''}${signsLine}`;
   /* D150 · the two questions the card could not answer. `shared` leads, because
-     "you have both played Papago" is the reason two strangers start talking —
+     "you have both played Saguaro Flats" is the reason two strangers start talking —
      the courses list underneath is the evidence for it. Only PICKED courses
      appear: a free-typed round has no identity and makes no claim. It is a
      sentence in body text, the one the golfer's page prints (csBothPlayed) and
@@ -31746,7 +31849,7 @@ function csH2HParse(j){
     rivalryName: j.rivalry_name || null,
   };
 }
-/* "You lead 6-5." / "Alex leads 6-5." / "All square, 5-5." Nothing decided,
+/* "You lead 6-5." / "Jules leads 6-5." / "All square, 5-5." Nothing decided,
    no sentence - a record of nought is not a headline (L-44). */
 /* X36 (1) · the sum says what it sums: "across every meeting", so it never reads as the one record beside
    You's season weeks. Twin: HeadToHeadCopy.headline. */
@@ -31885,7 +31988,7 @@ function csBoardFormLine(r){
 /* the BAND, never the float (L-14 / T-07); nothing over no rounds (L-44).
    `bandName` is written from the golfer's OWN point of view ("Beat your
    number"), which is right on a receipt and wrong on a list of other people -
-   a real screenshot caught the board telling me Tash had beaten MY number. The
+   a real screenshot caught the board telling me Devon had beaten MY number. The
    band table stays the one band table; only the possessive turns. */
 function csBoardBand(r){
   if(!Number(r.rounds_30d || 0) || r.avg_vs_number_30d == null) return null;
@@ -35294,7 +35397,7 @@ window.openFeedback = function(){
     </div>
     <textarea class="f" id="fbBody" rows="4" placeholder="Where did the app get in your way? Even a half-formed thought helps." style="font-family:var(--sans); resize:vertical; width:100%"></textarea>
     <button class="btn" id="fbGo" style="margin-top:12px">Send</button>
-    <p class="fine">Goes straight to Jerecho. We attach which screen you are on so we can find it fast.</p>
+    <p class="fine">Goes straight to the founder. We attach which screen you are on so we can find it fast.</p>
   `);
   let cat = '';
   $('#shBody').querySelectorAll('.fbcat').forEach(b => b.addEventListener('click', () => {
@@ -36579,7 +36682,7 @@ async function openMajorSetup(){
   const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
   openSheet('Start a Major', 'One window · every card on one board · one name on the jug', `
     <label class="f" for="mjName">Name the jug</label>
-    <input class="f" id="mjName" placeholder="The PIGL Championship" autocomplete="off" style="font-family:var(--sans)">
+    <input class="f" id="mjName" placeholder="The Club Championship" autocomplete="off" style="font-family:var(--sans)">
     <label class="f" style="margin-top:10px" for="mjFinal">The final day</label>
     <input class="f" id="mjFinal" type="date" value="${nextSundayISO()}">
     <label class="f" style="margin-top:10px; display:block">Window</label>
@@ -38418,7 +38521,7 @@ $('#wCreate').addEventListener('click', () => {
      The name is the first commitment — ask for it, THEN create the row. */
   const carried = window._runItBack?.name || '';
   openSheet('Name your league', 'The banner everything hangs under', `
-    <input class="f" id="nlName" placeholder="The Big Slice, The Sunday Cup, Dew Sweepers…" autocomplete="off" maxlength="40" style="font-family:var(--sans); font-size:16px" value="${esc(carried)}">
+    <input class="f" id="nlName" placeholder="North Grove, The Saturday Fixture Cup, The Early Fixture Sweepers…" autocomplete="off" maxlength="40" style="font-family:var(--sans); font-size:16px" value="${esc(carried)}">
     <p class="fine" style="padding-top:8px">You can rename it any time before the season starts.</p>
     <button class="btn" id="nlGo" style="margin-top:12px">Start the season</button>`);
   const go = async () => {
@@ -38970,7 +39073,7 @@ async function renderShareView(tok, _testInfo){
     wrap.classList.add('sv-plan');
     kind('A round');
     /* a name is singular, a list takes "and" — the same conjugation bug that
-       produced "Alex lead by 4" on the season page (csPlanWhoLine; W7-001:
+       produced "Jules lead by 4" on the season page (csPlanWhoLine; W7-001:
        who is IN once the payload can say it) */
     const whoLine = csPlanWhoLine(info);
     card.className = 'sv-short';
