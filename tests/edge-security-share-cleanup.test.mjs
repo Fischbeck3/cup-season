@@ -15,12 +15,17 @@ const source = stripTypeScriptTypes(readFileSync(new URL('../supabase/functions/
   .replace("import { createClient } from 'npm:@supabase/supabase-js@2';", ''));
 const A = '0b6f3a52-1c2d-4e5f-8a9b-0c1d2e3f4a5b', B = '9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a', C = '11111111-2222-4333-8444-555555555555';
 
-function worker({ objects = [], due = [], dueError = null, listFails = new Set(), removeFailsOnce = false } = {}) {
+function worker({ objects = [], leagueObjects = {}, due = [], dueError = null, listFails = new Set(), removeFailsOnce = false } = {}) {
   const media = new Set(objects);
+  const leagueMedia = new Map(Object.entries(leagueObjects).flatMap(([owner, paths]) => paths.map((path) => [path, owner])));
   const log = { lists: [], batches: [], reports: [] };
   let removeFailed = false;
   const bucket = (name) => ({
     remove: async (paths) => {
+      if (name === 'league-media') {
+        const gone = paths.filter((p) => leagueMedia.delete(p));
+        return { data: gone.map((p) => ({ name: p })), error: null };
+      }
       if (name !== 'media') return { data: [], error: null };
       log.batches.push(paths.length);
       if (removeFailsOnce && !removeFailed) { removeFailed = true; return { data: null, error: { message: 'storage busy' } }; }
@@ -46,9 +51,13 @@ function worker({ objects = [], due = [], dueError = null, listFails = new Set()
       if (name === '_expire_share_attempts') return { error: null };
       if (name === '_share_cleanup_due') return { data: [] };
       if (name === '_media_cleanup_due') return dueError ? { data: null, error: { message: dueError } } : { data: due, error: null };
+      if (name === '_league_media_cleanup_paths') {
+        return { data: [...leagueMedia].filter(([, owner]) => owner === args.p_profile).map(([path]) => path), error: null };
+      }
       if (name === '_media_cleanup_report') {
         log.reports.push({ ...args });
-        const left = [...media].some((o) => o.startsWith(args.p_profile + '/'));
+        const left = [...media].some((o) => o.startsWith(args.p_profile + '/')) ||
+          [...leagueMedia.values()].includes(args.p_profile);
         return { data: left ? 'error' : 'completed', error: null };
       }
       throw Error(name);
@@ -58,9 +67,21 @@ function worker({ objects = [], due = [], dueError = null, listFails = new Set()
   vm.runInNewContext(source, { createClient: () => sb, Response, console: { log: () => {} },
     Deno: { env: { get: (k) => (k === 'SHARE_CLEANUP_SECRET' ? 'test-secret' : 'local') }, serve: (fn) => { handler = fn; } } });
   const run = () => handler(new Request('http://localhost/cleanup', { method: 'POST', headers: { 'x-cleanup-secret': 'test-secret' } }));
-  return { run, media, log };
+  return { run, media, leagueMedia, log };
 }
 const range = (n, f) => Array.from({ length: n }, (_, i) => f(i));
+
+test('account deletion reclaims that uploader’s league images alongside their personal photos', async () => {
+  const league = '22222222-3333-4444-8555-666666666666';
+  const mine = [league + '/mine.png', league + '/retired.jpg'], theirs = league + '/another-pro.png';
+  const w = worker({ objects: [A + '/avatar.jpg', B + '/avatar.jpg'],
+    leagueObjects: { [A]: mine, [B]: [theirs] }, due: [A] });
+  const j = await (await w.run()).json();
+  assert.deepEqual([...w.media], [B + '/avatar.jpg']);
+  assert.deepEqual([...w.leagueMedia.keys()], [theirs]);
+  assert.equal(j.media.objects_removed, 3);
+  assert.equal(j.media.completed, 1);
+});
 
 test('a deleted account loses every photo, nested folders and all, in batches of at most 100', async () => {
   const mine = [...range(250, (i) => `${A}/p${String(i).padStart(3, '0')}.jpg`), `${A}/avatar.jpg`,
