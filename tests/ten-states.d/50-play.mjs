@@ -109,6 +109,14 @@ const rowTotals = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W6 · W7-103 · on the desk a dot means only 'level' (the strip's): THE CARD draws a hole not played as the en dash */
+const deskCardDash = async (page) => page.evaluate(() => {
+  if (innerWidth < 960) return true
+  const cells = [...document.querySelectorAll('#deskCard td')].filter((c) => c.getBoundingClientRect().height > 0)
+  if (!cells.length) return 'THE CARD is not drawn on the desk'
+  if (cells.some((c) => c.textContent.trim() === '\u00b7')) return 'THE CARD draws a dot for a hole not played'
+  return cells.some((c) => c.textContent.trim() === '\u2013') ? true : 'THE CARD shows no unplayed hole, so its dash cannot be read'
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -249,7 +257,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, deskCardDash, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {

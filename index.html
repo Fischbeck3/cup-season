@@ -17702,14 +17702,15 @@ function renderDeskCard(){
     const hs=[]; for(let k=lo;k<=hi;k++) hs.push(k);
     const row=(cls,k,cells,tot)=>`<tr class="${esc(cls)}"><td class="k">${esc(k)}</td>${cells.join('')}<td class="tot">${esc(String(tot))}</td></tr>`;
     let html = row('key','Hole', hs.map(k=>td(k)), label);
-    html += row('quiet','Par', hs.map(k=>td(PAR[k-1] ?? '\u00b7')), hs.reduce((a,k)=>a+(Number(PAR[k-1])||0),0));
-    if(siReal) html += row('quiet','HCP', hs.map(k=>td(SI[k-1] ?? '\u00b7')), '');
+    /* TEN / W7-103 · an empty cell is the en dash, as renderHoleCard and the phone's LiveCardView draw it: on the desk a dot means only 'level' (the strip's) */
+    html += row('quiet','Par', hs.map(k=>td(PAR[k-1] ?? '\u2013')), hs.reduce((a,k)=>a+(Number(PAR[k-1])||0),0));
+    if(siReal) html += row('quiet','HCP', hs.map(k=>td(SI[k-1] ?? '\u2013')), '');
     LIVE.forEach((p,pi)=>{
       const sc=state.live.scores[pi]||[];
       let sum=0, any=false;
       const cells=hs.map(k=>{
         const v=sc[k-1];
-        if(v==null) return td('\u00b7');
+        if(v==null) return td('\u2013');
         any=true; sum+=v;
         const d=v-PAR[k-1], mk=d<=-2?'eg':d===-1?'bd':d===1?'bg':d>=2?'db':'';
         return mk ? `<td class="${mk}"><span class="mk">${esc(String(v))}</span></td>` : td(v);
