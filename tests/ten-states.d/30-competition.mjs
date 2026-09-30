@@ -175,6 +175,38 @@ const datelineOk = async (page) => page.evaluate(() => {
 })
 /* TEN / W8 · W7-071 [A2-season-7] · the clinch line is SENTENCES in sentence case, in the body role (sans 15px), with the unit named: 'Fixture Javelinas clinch the top seed with 351 more points.', never a tracked
    mono-era caps run ('FIXTURE JAVELINAS · 351 MORE CLINCHES THE TOP SEED · +10'); joined by a space and not ' · ' */
+/* Q50 (A) · owner ruling 2026-09-29 (D24 unchanged): the clinch number is a receipt door. The number is a tertiary link in
+   its sentence; a tap opens a sheet whose arithmetic is season_scenarios' own: the other squad's ceiling less the
+   leader's points, plus one, is the number on the line. The sheet is closed again so the capture is the page. */
+const clinchDoor = async (page) => {
+  const r = await page.evaluate(() => {
+    const d = document.getElementById('scenClinchDoor')
+    if (!d || d.tagName !== 'BUTTON') return 'the clinch number is not a door'
+    const m = d.textContent.trim().match(/^(\d+) more points?$/)
+    if (!m) return 'the door is not the number with its unit: ' + JSON.stringify(d.textContent)
+    const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+    const cs = getComputedStyle(d)
+    if (!/underline/.test(cs.textDecorationLine) || parseFloat(cs.textDecorationThickness) !== 2 || cs.textDecorationColor !== mut) return 'the door is not the tertiary link (a 2px mut rule under the words)'
+    d.click()
+    return Number(m[1])
+  })
+  if (typeof r === 'string') return r
+  await page.waitForFunction(() => document.getElementById('sheet').classList.contains('open'), null, { timeout: 5000 }).catch(() => {})
+  const got = await page.evaluate((n) => {
+    if (!document.getElementById('sheet').classList.contains('open')) return 'the door opened no sheet'
+    const rows = [...document.querySelectorAll('#shBody .mathrow')].map((el) => ({ cls: el.className, t: el.querySelector('span').textContent, b: el.querySelector('b').textContent.replace('\u2212', '-') }))
+    const num = (re) => { const x = rows.find((row) => re.test(row.t)); return x ? Number(x.b.replace(/[^\d-]/g, '')) : null }
+    const reach = num(/can still reach/), less = num(/^Less /), one = num(/^One more/), tot = rows.find((row) => /tot/.test(row.cls))
+    if (reach == null || less == null || one == null || !tot) return 'the receipt does not show the arithmetic: ' + JSON.stringify(rows.map((row) => row.t))
+    const total = Number(tot.b)
+    if (reach + less + one !== total) return `the receipt does not add up: ${reach} ${less} +${one} ≠ ${total}`
+    return total === n ? true : `the receipt's total ${total} is not the line's ${n}`
+  }, r)
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.evaluate(() => { if (typeof window.closeSheet === 'function') window.closeSheet() })
+  await page.waitForTimeout(400)
+  return got
+}
 const clinchSentence = async (page) => page.evaluate(() => {
   const b = document.getElementById('scenarioLine')
   if (!b || !(b.getBoundingClientRect().width > 0)) return 'the season page draws no clinch line'
@@ -328,7 +360,7 @@ const SEASON = [
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
       /* W7-071 (C): the clinch line is a body sentence now, so it leaves the role-caps check for clinchSentence */
-      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence,
+      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence, clinchDoor,
       /* TEN / W6 · W7-024 [B2-season-5] (D's delta): the clash head and its sides' lines were built with toUpperCase(); the
          words are typed as said and the caps are the roles' (.tbl th, #clashTbl .tc) */
       capsFromRole(['#clashTbl th', '#clashTbl .tc'], ['#clashTbl th', '#clashTbl .tc']),

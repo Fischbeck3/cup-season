@@ -500,3 +500,21 @@ export const noHeadingSkips = (scope = 'body') => async (page) => page.evaluate(
   }
   return all.some((h) => root.contains(h)) ? true : `${scope} has no headings`
 }, scope)
+
+/* Q47 · owner ruling 2026-09-29, UI_SYSTEM §6.5 row 3: the gold-ringed medallion is PRESENT ONLY WHEN THE PLATE
+ * IS A PHOTOGRAPH ("the crest or the corner, never both"). `medallionOnPhotoOnly(needPhoto)` reads every drawn
+ * credential: a crest plate shows no medallion; a photographed plate shows it. `needPhoto` fails a state that
+ * draws no photographed card, so a photo state cannot pass without one. */
+export const medallionOnPhotoOnly = (needPhoto = false) => async (page) => page.evaluate((needPhoto) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden' }
+  const cards = [...document.querySelectorAll('.cred')].filter(shown)
+  if (!cards.length) return 'no credential is drawn'
+  let photos = 0
+  for (const c of cards) {
+    const plate = c.querySelector('.cplate'), photo = plate && [...plate.children].some((el) => el.tagName === 'IMG')
+    const med = [...c.querySelectorAll('.cmed')].find(shown)
+    if (photo) { photos++; if (!med) return 'a photographed plate lost its medallion' }
+    else if (med) return 'a crest card wears the gold-ringed medallion (§6.5 row 3: the crest or the corner, never both)'
+  }
+  return needPhoto && !photos ? 'the state draws no photographed card' : true
+}, needPhoto)

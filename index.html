@@ -1233,6 +1233,12 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .scenLine .clinch{color:var(--pos);}
 .scenLine .out{color:var(--mut);}
 .scenLine b{color:var(--ink); font-weight:600;}
+/* Q50 (A) · the clinch number is a receipt door inside its sentence: the tertiary link (a 2px mut rule under the
+   words, §16A.5), with a 44px hit area that does not move the line */
+.scenLine .scendoor{font:inherit; color:var(--ink); background:none; border:0; padding:0; position:relative; cursor:pointer;
+  text-decoration:underline; text-decoration-thickness:2px; text-decoration-color:var(--mut); text-underline-offset:3px;}
+.scenLine .scendoor::after{content:''; position:absolute; inset:-12px 0;}   /* the 44px target, off the line's layout */
+.scenLine .scendoor:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 /* A-4: the label carries its own clock, so it is a line under the rank
    rather than a glyph beside it - the rank column keeps its width. */
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
@@ -2105,7 +2111,13 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred .ccredit{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em;
   text-transform:uppercase; color:var(--scrim-ink); text-align:right;}
 /* the medallion: the ceremony disc, a 1px gold ring, the marker in gold. One
-   slot, one size, one treatment - on every card, photograph or crest. */
+   slot, one size, one treatment.
+   Q47 · owner ruling 2026-09-29 (UI_SYSTEM §6.5 row 3; IOS-047a's "every card" is
+   reverted): PRESENT ONLY WHEN THE PLATE IS A PHOTOGRAPH. On a crest card the crest is
+   the mark, "the crest or the corner, never both", and a card with nothing earned wears
+   no gold ring (gold is for what was won, §2.4). The rule below holds wherever a
+   photograph has not (yet) landed on the plate; the producers draw none on a crest. */
+.cred .cplate:not(:has(> img)) .cmed{display:none;}
 .cred .cmed{position:absolute; right:20px; bottom:72px; width:44px; height:44px; border-radius:50%;
   background:var(--ceremony); border:1px solid var(--ceremony-gold); display:grid; place-items:center;}
 .cred .cmed svg{width:24px; height:24px; fill:none; stroke:var(--ceremony-gold);
@@ -5397,6 +5409,9 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 /* no min-width: two grosses right-flush in a flex row already share an edge,
    and 2.6em at `figure` 27 reserved 70px for a two-digit number. */
 .yrowg{flex:0 0 auto; color:var(--ink); text-align:right;}
+/* Q40 (b) · the best 18-hole gross of the five takes the gold on its OWN row, with the word as the second channel
+   (§2.4 "the best of the last five"; W7-111: never hue alone) */
+.yrow.best .yrowg, .yrow.best .yrowbest{color:var(--gold);}
 /* THE RECORD, printed on a leaf — `year · competition · finish`. The money
    column is DROPPED rather than zeroed: `season_payouts` holds no rows in
    prod, and four zeroes is not a table (profile.md §14.2). A WIN takes the
@@ -12973,7 +12988,8 @@ function csNextAct(epi, ctx){
   const partners=(epi && epi.played_with) || [];
   if(ctx.clash){
     const running = (ctx.clash.weeks_running>=2) ? ` ${csCapFirst(csPlace(ctx.clash.weeks_running))} week running.` : '';
-    return { key:'clash', sentence:`That takes the clash.${running}`, label:'See the head-to-head', door:'head_to_head', ref:ctx.clash.id||null };
+    /* X36 (1) · the settled spotlight is named as the weekly clash, the head-to-head's own facet for it */
+    return { key:'clash', sentence:`That takes the weekly clash.${running}`, label:'See the head-to-head', door:'head_to_head', ref:ctx.clash.id||null };
   }
   const moved = csMovementSentence(epi && {
     rank_before: epi.rank_before, rank_after: epi.rank_after,
@@ -13053,7 +13069,11 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     const sub = (said + epiCounting(epi.month_rank)).replace(/^ \u00b7 /, '').replace(/^ · /, '');
     rows.push(`<div class="check"><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`);
   }
+  /* X39 (2) · a first round is a BASELINE: "You broke 90 for the first time" (and its siblings, and a personal
+     best of one) is not said of a golfer's first round at all. The case folds the same rows into FIRST ROUND. */
+  const isFirstRound = !!firstEver || (epi.earned||[]).some(a=>a && a.kind==='first_round');
   (epi.earned||[]).forEach(a=>{
+    if(isFirstRound && a && a.kind!=='first_round' && csTrophyShelf(a.kind, false)==='bests') return;
     /* D329 · the fallback is the CASE's fallback, on both clients. A kind this
        build has no row for drew a flag here, a star on the phone and the drawn
        medal in the trophy case — one unknown achievement, three marks. It is
@@ -20920,9 +20940,10 @@ function csGrossUnit(r){ const h = csRoundHoles(r); return h != null && h < 18 ?
 /* D340 · HomeWireCopy.roundDetail's copy cases, kept on both clients. */
 function homeRoundDetail(r){
   if(r.gross==null) return '';
+  /* X39 (2) · a first round is a baseline: is_first is said before a personal best or a first time under 80 */
+  if(r.is_first) return r.is_me ? 'your first round posted.' : 'their first round posted.';
   if(r.is_pr) return 'a personal best.';
   if(csSub80(r)) return 'broke 80 for the first time.';
-  if(r.is_first) return r.is_me ? 'your first round posted.' : 'their first round posted.';
   if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
   return '';
 }
@@ -21495,15 +21516,15 @@ function dgBest(items){
   const recent=items.filter(i=> i.kind==='round' && !(i.r && i.r.round_id && spent.has(String(i.r.round_id)))
                                 && (now - dgTime(i.t)) <= 14*864e5);
   if(!recent.length) return null;
-  const rank=i=> i.r.is_pr?4 : csSub80(i.r)?3 : i.r.is_first?2 : 1;
+  const rank=i=> i.r.is_first?2 : i.r.is_pr?4 : csSub80(i.r)?3 : 1;   /* X39 · a first round ranks, and reads, as one */
   return recent.slice().sort((a,b)=>
     rank(b)-rank(a) || (Number(b.r.pvi||0)-Number(a.r.pvi||0)) || dgTime(b.t)-dgTime(a.t))[0];
 }
 function dgLine(i){
   const r=i.r, who=dgWho(r), course=esc(r.course||'a round');
+  if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;   /* X39 */
   if(r.is_pr)    return `<b>${who}</b> set a personal best — ${r.gross} at ${course}`;
   if(csSub80(r)) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
-  if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;
   return `<b>${who}</b> posted ${r.gross} at ${course}`;
 }
 /* what landed on YOUR rounds since the mark — reactions and comments, the
@@ -21578,7 +21599,7 @@ function renderHomeDigest(){
     }
     const bits=[];
     if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
-    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>csSub80(i.r)), fst=rounds.find(i=>i.r.is_first);
+    const pr=rounds.find(i=>i.r.is_pr && !i.r.is_first), s80=rounds.find(i=>csSub80(i.r) && !i.r.is_first), fst=rounds.find(i=>i.r.is_first);   /* X39 */
     if(pr)  bits.push(`a personal best from ${dgWho(pr.r)}`);
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
@@ -21900,7 +21921,7 @@ function homeLead(){
   const today=`${nowD.getFullYear()}-${pad2(nowD.getMonth()+1)}-${pad2(nowD.getDate())}`;
   const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||csSub80(r)||r.is_first));
   if(m){
-    const line = m.is_pr?'\ud83d\udd25 Personal best' : csSub80(m)?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';
+    const line = m.is_first?'\ud83c\udf89 First round posted' : m.is_pr?'\ud83d\udd25 Personal best' : csSub80(m)?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';   /* X39 */
     return { eb:'Around your buddies', ln:`${esc((m.golfer||'A golfer').split(' ')[0])} \u2014 ${line}`,
              act:'See the round', go:()=> m.round_id && window.openRoundSheet ? window.openRoundSheet(m.round_id) : switchView('home') };
   }
@@ -22112,7 +22133,7 @@ function csFallbackItems(){
   /* the circle's freshest round — the one CIRCLE item, never mine */
   const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
   if(r){
-    const mile = r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
+    const mile = r.is_first ? 'Their first round posted.' : r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : null;   /* X39 */
     push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
            eyebrow:'AROUND YOUR BUDDIES',
            headline:`${(r.golfer||'A golfer').split(' ')[0]} posted {${r.gross}}${r.course?` at ${r.course}`:''}.`,
@@ -24258,8 +24279,13 @@ function csEmptyRoot(which, opts){
   }
   const n = o.buddies;
   const has = (n||0) > 0;
-  return { state:'empty', head:'Nothing running.',
-    fact: has ? `${n} ${n===1?'buddy':'buddies'}, and none of you is playing for anything.` : null,
+  /* Q41 (a) · owner ruling 2026-09-29, amending IA §6.1 to QB-21 on both clients: the COUNTED sentence is the head
+     when there is a count (two blind readers read "Nothing running." as "leave"), and "Nothing running." leads only
+     when there is nothing true to count (L-44). Said once: no fact line under a head that already says it. Twin:
+     CompeteRoot.empty (head: counted ?? "Nothing running.", fact: nil). */
+  return { state:'empty',
+    head: has ? `${n} ${n===1?'buddy':'buddies'}, and none of you is playing for anything.` : 'Nothing running.',
+    fact: null,
     sub:'Your next competition starts here — a season, a weekend, or going head to head.',
     /* L-26 · the code door is promised everywhere a golfer might arrive with a
        code, so it is always here; IA §6.1's first two doors keep their places */
@@ -25241,6 +25267,15 @@ function renderTrophyCase(){
         : o.rid?`<span class="tgo cs-agate-s" aria-hidden="true">›</span>` : ''}
     </div>`;
   const tiles = [], ids = [];
+  /* X39 (2) · owner ruling 2026-09-29: A FIRST ROUND IS A BASELINE. A debut 85 minted Broke 100 and Broke 90 (and on
+     the rederive path a personal best) on the same round as FIRST ROUND, so one round earned three slats and the
+     case said "the first time under 90" of a golfer's first time at all. A BESTS row that shares the first round's
+     round_id folds INTO the FIRST ROUND slat, which then names the round it was. Keyed on round_id only: with no
+     round_id on the rows (a server before Y-20) nothing folds. Twin: TrophyMeta (the phone). */
+  const firstAch = ach.find(a => a && a.kind === 'first_round' && a.round_id);
+  const firstRid = firstAch ? String(firstAch.round_id) : null;
+  const foldsIntoFirst = a => !!firstRid && a.kind !== 'first_round' && csTrophyShelf(a.kind, false) === 'bests' && String(a.round_id || '') === firstRid;
+  const folded = ach.some(foldsIntoFirst);
   hw.forEach(t=>{
     const id='t'+keyOf(t); ids.push(id);
     tiles.push({ shelf:'hardware', glyph:trophyGlyph(t.kind, t.placement), numeral:null,
@@ -25248,6 +25283,7 @@ function renderTrophyCase(){
       trail: t.season_year ? '’'+String(t.season_year).slice(2) : null });
   });
   ach.forEach(a=>{
+    if(foldsIntoFirst(a)) return;   /* X39 (2) · it rides in the FIRST ROUND slat */
     const m = ACH_META[a.kind] || {glyph:'medal', title:a.label||'Milestone'};
     const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
     const id='a'+keyOf(a); ids.push(id);
@@ -25265,7 +25301,9 @@ function renderTrophyCase(){
     tiles.push({ shelf, glyph:m.glyph, numeral, title:m.title, mint:fresh(id), rid, trail:null,
       /* a BESTS slat names the round it was won on; the quiet shelf keeps the
          dated line it has always had — "Posted · '26" is the whole of it. */
-      sub: shelf==='bests' ? csMilestoneSub(a, csMilestoneRound(rid)) : achSubtitle(a)+yr });
+      sub: shelf==='bests' ? csMilestoneSub(a, csMilestoneRound(rid))
+         : (folded && a === firstAch) ? csMilestoneSub(a, csMilestoneRound(firstRid))   /* X39 · the slat names its round */
+         : achSubtitle(a)+yr });
   });
   _trophySeen = new Set(ids);
   if(!tiles.length){
@@ -25480,8 +25518,11 @@ function renderCareer(){
         {played_on:'2026-05-31', course_label:'Aguila',        gross:84, differential:10.3, holes_played:18, pvi:2.1,  beat:true} ] }
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
-  const sign = v => (v>=0?'+':'') + v.toFixed(1);
-  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY, { head:'eyebrow' }) : '';
+  /* Q40 (b) · owner ruling 2026-09-29: the web's You says each gross ONCE. The Form row printed the same five
+     grosses a hand's width above Recent rounds (AW2-16), so it is not drawn here; Recent rounds carries the five
+     under "Recent rounds · Last five", and the best 18-hole gross takes the gold on its own row. The phone keeps
+     its Form row (profile §5); the person page keeps formRowHtml. */
+  const yf=$('#youForm'); if(yf) yf.innerHTML = '';
   /* F10 · the page knows which of four things it is showing: still loading, a
      read that failed, a record with nothing in it yet, or a record */
   const view = $('#view-stats');
@@ -25509,8 +25550,10 @@ function renderCareer(){
     return;
   }
   set('#clR', c.rounds);
-  set('#clBest', c.best!=null ? sign(c.best) : '—');
-  set('#clAvg',  c.avg !=null ? sign(c.avg)  : '—');
+  /* Q39 (a) · All time's figures are tiles under a head that names the lens, so they take the SHORT words
+     (vsShort: "beat by 2.4", "played to it", "2.6 over"), never a sign (D1, Q-23 phase 2) */
+  set('#clBest', c.best!=null ? vsShort(c.best) : '—');
+  set('#clAvg',  c.avg !=null ? vsShort(c.avg)  : '—');
   /* Y-28 · when the cell is a dash, the sub says why it is one.
      Y-14 · WITH its denominator, and on BOTH figures: the best and the average
      are read off the same counting set, and with one counting round they are
@@ -25553,21 +25596,33 @@ function renderCareer(){
        opens the receipt, confirmed by the browser's confirm(). It lives on the
        receipt now, labelled and armed (csReceiptDeleteRow). */
     const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
-    yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map((r,ri)=>{
+    /* Q40 (b) · the head names the window, as the Form head did ("Recent rounds · Last five"), with a count slot
+       only under five; the best is formRowHtml's rule: the lowest 18-hole gross, and only with a field of two */
+    const five = (c.recent || []).slice(0, 5);
+    const rh = $('#youRecentHead');
+    if(rh) rh.innerHTML = five.length ? 'Recent rounds · Last five' + (five.length < 5 ? `<span>${esc(csCapFirst(csSpelled(five.length)))} of five</span>` : '') : 'Recent rounds';
+    const comparable = five.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross);
+    const bestGross = comparable.length >= 2 ? Math.min(...comparable) : null;
+    let bestSeen = false;
+    yr.innerHTML = five.length
+      ? five.map((r,ri)=>{
           /* TEN / W6 · TP-11 · case is the role's (§1.3, LINT-14): the name role
              sets the course in caps; the sub-line is an agate PHRASE */
           const when = r.played_on ? csMonthDay(r.played_on) : '';
           const course = esc(r.course_label||'') || 'Somewhere out there';
           const fig = r.pvi!=null ? Number(r.pvi) : null;
-          const sub = [when, fig!=null ? sign(fig)+' vs your playing HCP' : null,
+          /* Q39 (a) · the line says it in WORDS, as the composer and the receipt do (D1, Q-23 phase 2): a
+             signed "+2.4 vs your playing HCP" read backwards to six of seven blind testers, and nothing on the
+             page said plus is better. The sign stays only in the receipt's arithmetic row (D2). */
+          const sub = [when, fig!=null ? vsPhrase(fig) : null,
                        r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
+          const isBest = !bestSeen && bestGross != null && r.gross === bestGross && !csFormNine(r); if(isBest) bestSeen = true;
           const bk = bookOf(r.api_course_id);
           const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
           /* W7-111 · the row is named by its own facts, not 'course, gross': the day, the score and what it was against your number, and a nine says so */
-          const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null].filter(Boolean).join(', ');
-          return `<div class="yrow" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${spoken}">
-            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}</small>`:''}</span>
+          const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null, isBest ? 'best of the five' : null].filter(Boolean).join(', ');
+          return `<div class="yrow${isBest ? ' best' : ''}" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${spoken}">
+            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}${isBest ? ' · <span class="yrowbest">best of the five</span>' : ''}</small>`:''}</span>
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
             <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
         }).join('')
@@ -25673,7 +25728,7 @@ function renderIndStats(){
   const me=rows.find(p=>p.me) || rows.find(p=>p.n==='You') || rows[0];
   $('#msR').textContent=me.r;
   $('#msAvg').textContent=vsShort(me.avg);   /* Q-23 */
-  $('#msBest').textContent='+'+me.best.toFixed(1);
+  $('#msBest').textContent=vsShort(me.best);   /* Q39 */
   $('#msDelta').textContent='\u2212'+Math.abs(me.d).toFixed(1);   /* D276 · a sign, not a verdict */
   $('#msAvgSub').textContent=countingScope(me.r);
   $('#msBestSub').textContent=countingScope(me.r);
@@ -25738,8 +25793,10 @@ function renderIndStatsReal(){
   const sgn=v=>(v>=0?'+':'')+v.toFixed(1);
   const cnt = (me && me.hist) ? me.hist.length : 0;
   $('#msR').textContent = me ? me.r : '—';
-  $('#msAvg').textContent = me && me.r ? sgn(me.avg) : '—';
-  $('#msBest').textContent = me && me.best!=null ? sgn(me.best) : '—';
+  /* Q39 (a) · This season's tiles speak as All time's do (vsShort), so the two strips stay one grammar and
+     csYouStripsDedupe can still read them as the same three figures */
+  $('#msAvg').textContent = me && me.r ? vsShort(me.avg) : '—';
+  $('#msBest').textContent = me && me.best!=null ? vsShort(me.best) : '—';
   /* Y-28 · "Held" is not "—". A dash means there is no second round to
      measure from; two rounds that bracket no move at all are a real answer,
      and the sub says which of the two you are looking at. */
@@ -30359,7 +30416,10 @@ function refreshWhoChip(){
     bld.hidden = !say; bld.textContent = say ? csBuildingClause(true, nRounds) : '';
   }
   /* the medallion: the ceremony disc, the gold ring, the marker in gold. One
-     slot, one size, one treatment - the same one every other card carries. */
+     slot, one size, one treatment - the same one every other card carries.
+     Q47 · drawn only on a photographed plate (§6.5 row 3): the CSS rule
+     `.cplate:not(:has(> img)) .cmed` stands it down on a crest, and it comes
+     back by itself when a photograph lands. */
   const mkEl = $('#youMk');
   if(mkEl && window.MARKERS){
     const mk = MARKERS[p.marker] || MARKERS.saguaro;
@@ -30567,8 +30627,10 @@ async function renderRivalries(){
     /* the faceted record (batch-3 #18): clashes and Ryder clashes side by side,
        never one blended number */
     const dTot=(r.duel_wins||0)+(r.duel_losses||0)+(r.duel_halves||0);
+    /* X36 (1) · the row NAMES ITS FACET: my_rivalries counts season weeks, so the row says "In the season",
+       the head-to-head's own name for that facet, and never reads as the one record the person page sums */
     const facets=[
-      r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
+      r.meetings?`In the season · ${r.meetings} week${r.meetings===1?'':'s'}`:null,
       dTot?`Ryder clashes ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
     /* M3: a christened rivalry wears its name above the opponent — in the
@@ -30639,14 +30701,15 @@ async function openRivalrySheet(oppId, name, rec){
     return `<div class="check"><span class="num mono" style="font-size:11px; line-height:1.25">WK OF<br>${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
       <small>BEST ROUND VS YOUR PLAYING HCP THAT WEEK</small></div></div>`;
-  }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
+  }).join('') : '<p class="fine">No weeks in the season yet. A week counts when you both post in a season you share.</p>';   /* X36 · a season week is not a clash */
   /* M3/D18: name the rivalry — either rival can name, rename, or clear it */
   const eyebrow = curName?`<div class="eyebrow" style="color:var(--gold); margin-bottom:10px">“${esc(curName.toUpperCase())}”</div>`:'';
   const nameBtn = `<button class="btn dark" id="rivNameBtn" style="margin-top:12px">${curName?`Rename “${esc(curName)}”`:'Name this rivalry'}</button>`;
   /* D209 · `rivalry_weeks` builds my_pvi/opp_pvi from max(rr.pvi) over
      v_rounds_ranked — the ALLOWANCE figure — so both captions name the playing
      HCP, not the index (R-M). Verbatim with the phone's RivalryCopy. */
-  openSheet(`You and ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS YOUR PLAYING HCP TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
+  /* X36 (1) · these are season weeks (rivalry_weeks), not the settled weekly clash (D52/D108): the sub names the facet */
+  openSheet(`You and ${name}`, `${rec||''} · IN THE SEASON · BETTER ROUND VS YOUR PLAYING HCP TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
   document.getElementById('rivNameBtn')?.addEventListener('click', ()=>openNameRivalry(oppId, name, curName));
 }
 window.openRivalrySheet = openRivalrySheet;
@@ -30846,7 +30909,7 @@ function csCredentialHtml(profileId, card){
         ${slot ? `<span class="cslot">${esc(slot)}</span>` : '<span></span>'}
         ${credit ? `<span class="ccredit">${esc(credit)}</span>` : ''}
       </div>
-      ${mk ? `<span class="cmed" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}
+      ${mk && photo ? `<span class="cmed" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}
       <div class="cname">
         <b>${esc(p.display_name || '—')}</b>
         <small>${esc(csIdentityLine(p))}</small>
@@ -31264,12 +31327,14 @@ function csH2HParse(j){
 }
 /* "You lead 6-5." / "Alex leads 6-5." / "All square, 5-5." Nothing decided,
    no sentence - a record of nought is not a headline (L-44). */
+/* X36 (1) · the sum says what it sums: "across every meeting", so it never reads as the one record beside
+   You's season weeks. Twin: HeadToHeadCopy.headline. */
 function csH2HHeadline(h){
   if(!h || !h.settled) return null;
   const rec = `${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}`;
-  if(h.lead === 'up')   return `You lead ${rec}.`;
-  if(h.lead === 'down') return `${h.name} leads ${h.losses}–${h.wins}${h.ties ? '–' + h.ties : ''}.`;
-  return `All square, ${rec}.`;
+  if(h.lead === 'up')   return `You lead ${rec} across every meeting.`;
+  if(h.lead === 'down') return `${h.name} leads ${h.losses}–${h.wins}${h.ties ? '–' + h.ties : ''} across every meeting.`;
+  return `All square, ${rec}, across every meeting.`;
 }
 /* every clause dropped rather than guessed */
 function csH2HStandfirst(h){
@@ -31308,9 +31373,10 @@ function csH2HPersonClause(h){
   /* TEN · a level record is said as level. "Devon Testwell has beaten you
      five times out of ten" framed a 5–5 as a loss over a record the same
      page calls all square (owner E). Twin: HeadToHeadCopy.personClause. */
-  if(h.lead === 'even' && h.wins === h.losses) return `All square between you, ${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}.`;
-  if(h.losses > 0) return `${h.name} has beaten you ${csSpelled(h.losses)} ${h.losses === 1 ? 'time' : 'times'} out of ${csSpelled(h.settled)}.`;
-  return `You have taken all ${csSpelled(h.settled)} of them.`;
+  /* X36 (1) · every clause names its facet, "across every meeting" (twin: HeadToHeadCopy.personClause) */
+  if(h.lead === 'even' && h.wins === h.losses) return `All square between you, ${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}, across every meeting.`;
+  if(h.losses > 0) return `${h.name} has beaten you ${csSpelled(h.losses)} ${h.losses === 1 ? 'time' : 'times'} out of ${csSpelled(h.settled)}, across every meeting.`;
+  return `You have taken all ${csSpelled(h.settled)}, across every meeting.`;
 }
 window.csH2HParse = csH2HParse; window.csH2HHeadline = csH2HHeadline;
 window.csH2HStandfirst = csH2HStandfirst; window.csH2HFacetSub = csH2HFacetSub;
@@ -31582,12 +31648,12 @@ async function openPerson(profileId){
     const object = csCredentialHtml(profileId, card) + (status ? `<p class="cstatus">${status}</p>` : '');
     if(h2h && (h2h.settled > 0 || h2h.facets.length)){
       aside.innerHTML = object + `
-        <div class="eyebrow" style="margin-top:24px">The record between you</div>
+        <div class="eyebrow" style="margin-top:24px">Between you</div>
         ${csH2HHeadline(h2h) ? `<p class="perhl"><b>${esc(csH2HHeadline(h2h))}</b></p>` : ''}
         ${csH2HStandfirst(h2h) ? `<p class="fine" style="padding-top:0">${esc(csH2HStandfirst(h2h))}</p>` : ''}
         ${h2h.facets.map(f => `<div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>`).join('')}
         ${csH2HUsesHeuristic(h2h) ? `<p class="fine">${esc(CS_H2H_HEURISTIC)}</p>` : ''}
-        <p class="hstart"><a href="#" id="perOpenH2H">See the whole record</a></p>` + playDoor;
+        <p class="hstart"><a href="#" id="perOpenH2H">See every meeting</a></p>` + playDoor;   /* X36 · nothing claims to be "the" record */
       document.getElementById('perOpenH2H')?.addEventListener('click', (e) => { e.preventDefault(); openHeadToHead(profileId, name); });
     } else {
       aside.innerHTML = object + `<div class="eyebrow" style="margin-top:24px">The record between you</div>
@@ -33427,7 +33493,12 @@ function renderScenarioLine(){
   if(lead.clinched){
     parts.push(`<b>${nm(lead.name)}</b> ${plural?'have':'has'} clinched ${sw}.`);   /* D126 */
   } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
-    parts.push(`<b>${nm(lead.name)}</b> ${plural?'clinch':'clinches'} ${sw} with ${lead.needs} more point${Number(lead.needs)===1?'':'s'}.`);   /* the unit is named: '351 MORE' had none */
+    /* Q50 (A) · owner ruling 2026-09-29, D24 unchanged: the number is a RECEIPT DOOR. Its arithmetic is
+       season_scenarios' own: the K-th best other ceiling (max_final) less the leader's points, plus one to be
+       clear of it. A door is drawn only when those figures add up to the number printed (L-44). */
+    const unit = `${lead.needs} more point${Number(lead.needs)===1?'':'s'}`;
+    const bar = csClinchBar(rows, meta);
+    parts.push(`<b>${nm(lead.name)}</b> ${plural?'clinch':'clinches'} ${sw} with ${bar ? `<button type="button" class="scendoor" id="scenClinchDoor">${unit}</button>` : unit}.`);   /* the unit is named: '351 MORE' had none */
   }
   const out = rows.filter(r=>r.eliminated).map(r=>nm(r.name));
   if(out.length){
@@ -33436,8 +33507,38 @@ function renderScenarioLine(){
   if(!parts.length){ return hide(); }
   box.innerHTML = parts.join(' ');
   box.style.display='block';
+  $('#scenClinchDoor')?.addEventListener('click', () => openClinchReceipt(rows, meta));
 }
 window.renderScenarioLine = renderScenarioLine;
+/* Q50 (A) · the bar the leader must clear NOW to lock the seat: season_scenarios' clinch_bar, the K-th best
+   ceiling among the OTHER rows (20261204090000). Null unless its arithmetic gives exactly the `needs` printed. */
+function csClinchBar(rows, meta){
+  const lead = (rows||[])[0], k = Number(meta && meta.k) || 1;
+  if(!lead) return null;
+  const others = rows.filter(r => r !== lead && r.id !== lead.id && r.max_final != null)
+                     .slice().sort((a,b) => Number(b.max_final) - Number(a.max_final));
+  const bar = others[k-1];
+  if(!bar) return null;
+  const need = Number(bar.max_final) - Number(lead.points) + 1;
+  return need === Number(lead.needs) ? { row: bar, lead, k, need } : null;
+}
+/* Q50 (A) · the clinch number's receipt, in showFinalist's grammar: the ceiling, less the leader's points, plus
+   one, is the number on the line. The ceiling is D24's (every round still possible at the top band), said so. */
+function openClinchReceipt(rows, meta){
+  const b = csClinchBar(rows, meta); if(!b) return;
+  const sw = scenSeedWord(meta), plural = meta.level === 'squad';
+  const other = esc(String(b.row.name||'')), lead = esc(String(b.lead.name||''));
+  const head = Number(b.row.max_final) - Number(b.row.points);
+  let h = `<div class="mathrow"><span>${other} can still reach</span><b>${b.row.max_final}</b></div>`
+    + `<div class="mathrow sub"><span>${b.row.points} now, and ${head} more if every round left scores the top band</span><b></b></div>`
+    + `<div class="mathrow"><span>Less ${lead}’s points</span><b>\u2212${b.lead.points}</b></div>`
+    + `<div class="mathrow"><span>One more, to be clear of it</span><b>+1</b></div>`
+    + `<div class="mathrow tot"><span>${plural?'Clinch':'Clinches'} ${esc(sw)} with</span><b>${b.need}</b></div>`
+    + `<p class="fine">${b.k > 1 ? `That is the ${b.k === 2 ? 'second' : csPlace(b.k)}-highest ceiling behind the leader: a seat is locked once only ${b.k - 1} other${b.k - 1 === 1 ? '' : 's'} could still pass. ` : ''}`
+    + `A ceiling counts every round still possible at the top band, so the number is what no run of results can take back, not a pace.</p>`;
+  openSheet(`${b.need} more point${b.need===1?'':'s'}`, `How ${String(b.lead.name||'')} ${plural?'clinch':'clinches'} ${sw}`, h);
+}
+window.openClinchReceipt = openClinchReceipt;
 
 /* ---------- squad formation (Random draw / Assign) ---------- */
 function unassignedMembers(){
@@ -35585,15 +35686,18 @@ function rivalryTag(pid){
   if(!r) return null;
   const first = esc((r.display_name||'They').split(' ')[0]);
   let rec = null;
+  /* X36 (1) · the tag names what it counts: season weeks are "in the season · N weeks", and the fallback's
+     duels are Ryder clashes, never a bare "clashes" (which also names the weekly clash) */
   if(r.meetings > 0){
-    rec = r.wins > r.losses ? `you lead ${r.wins}–${r.losses}`
-        : r.wins < r.losses ? `${first} leads ${r.losses}–${r.wins}`
-        : `even ${r.wins}–${r.losses}`;
+    const wks = ` in the season · ${r.meetings} week${r.meetings===1?'':'s'}`;
+    rec = r.wins > r.losses ? `you lead ${r.wins}–${r.losses}${wks}`
+        : r.wins < r.losses ? `${first} leads ${r.losses}–${r.wins}${wks}`
+        : `even ${r.wins}–${r.losses}${wks}`;
   } else {
     const dw = r.duel_wins||0, dl = r.duel_losses||0;
-    if(dw||dl) rec = dw>dl ? `you lead clashes ${dw}–${dl}`
-                    : dw<dl ? `${first} leads clashes ${dl}–${dw}`
-                    : `even in clashes ${dw}–${dl}`;
+    if(dw||dl) rec = dw>dl ? `you lead ${dw}–${dl} in Ryder clashes`
+                    : dw<dl ? `${first} leads ${dl}–${dw} in Ryder clashes`
+                    : `even ${dw}–${dl} in Ryder clashes`;
   }
   if(!rec) return null;
   const nm = r.rivalry_name ? `“${esc(r.rivalry_name)}” · ` : '';
