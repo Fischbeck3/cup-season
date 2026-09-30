@@ -209,9 +209,11 @@ import Foundation
     let c = Career.compute(rows: rows, ranked: ranked, preferredSeason: s, played: 3)
     #expect(c.rounds == 6)
     #expect(c.counting == 5)                              // the sixth round has no lens
-    #expect(c.best == 4.0 && c.bestText == "+4.0")        // best AGAINST the playing number
+    // Q39 (a) · the tiles say it in words — the web's `renderCareer`
+    // #clBest / #clAvg through `vsShort` (148d6d0f)
+    #expect(c.best == 4.0 && c.bestText == "beat by 4.0")  // best AGAINST the playing number
     #expect(abs((c.avg ?? 0) - 1.2) < 0.0001)             // (2.7 + 0.6 + 4.0 − 2.8 + 1.5) / 5
-    #expect(c.avgText == "+1.2")
+    #expect(c.avgText == "beat by 1.2")
     #expect(c.figureScope == "across 5 rounds that count")   // Y-14 · the figures name their denominator
     #expect(c.played == 3)
     #expect(c.recent.count == 5)
@@ -416,7 +418,9 @@ import Foundation
     let s = SeasonStats.compute(rows: rows, standings: [IndividualStanding(season_id: sid, member_id: me, points: 16, rounds_posted: 2)], myMemberId: me)
     /* D276 · `deltaText` is a SIGNED FIGURE now, with U+2212 for the minus —
        `▼ 0.3` put the board's "you fell" mark on an index that improved. */
-    #expect(s.roundsText == "2" && s.avgText == "+0.4" && s.bestText == "+1.4")
+    // Q39 (a) · This season speaks as All time does, in words — the web's
+    // `renderIndStatsReal` #msAvg / #msBest through `vsShort` (148d6d0f)
+    #expect(s.roundsText == "2" && s.avgText == "played to it" && s.bestText == "beat by 1.4")
     #expect(s.deltaText == "\u{2212}0.3", "a fall in the index reads as a minus, not as a verdict")
     #expect(SeasonStats(rounds: 2, counting: 2, avg: 0, best: 0, delta: 0.4).deltaText == "+0.4")
     #expect(s.counting == 2 && s.figureScope == "across 2 rounds that count" && s.deltaSub == YouCopy.seasonToDate)
@@ -474,7 +478,8 @@ import Foundation
     let c = TourCard.parse(json)
     #expect(c.visible && c.profile.displayName == "Garrett" && c.profile.ghin == "123")
     #expect(c.profile.memberSince != nil)
-    #expect(c.bestText == "7.8" && c.avgText == "-0.4")
+    // Q39 (a) · the 100% average says it in words too (`openTourCard`, c3187a81)
+    #expect(c.bestText == "7.8" && c.avgText == "played to it")
     #expect(c.trophies.first?.kind == "sub_90")
     #expect(c.recent.first?.beat == true)
     #expect(c.vsYou?.chip == "VS YOU · 3–2 · YOU LEAD")
@@ -495,7 +500,9 @@ import Foundation
     }
     let on = card(.object(["rounds": .number(12), "best": .number(7.8), "avg_pvi": .number(2.6),
                            "best_pvi": .number(4.0), "avg_vs_index": .number(-0.4)]))
-    #expect(on.playingLens && on.bestText == "+4.0" && on.avgText == "+2.6")
+    // Q39 (a) · the card's career figures in words — the web's `openTourCard`
+    // (c3187a81): 'Best round' and 'Avg' take `vsShort`
+    #expect(on.playingLens && on.bestText == "beat by 4.0" && on.avgText == "beat by 2.6")
     #expect(TourCard.bestLabel(playingLens: true) == "Best round")
     #expect(TourCard.avgLabel(playingLens: true, isMe: true) == "Avg")
     #expect(TourCard.careerEyebrow(playingLens: true, isMe: true) == "Career · vs your playing HCP")
@@ -507,7 +514,31 @@ import Foundation
     let leagueless = card(.object(["rounds": .number(2), "best": .number(21.5), "avg_pvi": .null,
                                    "best_pvi": .null, "avg_vs_index": .number(-13.3)]))
     #expect(leagueless.playingLens == false)
-    #expect(leagueless.bestText == "21.5" && leagueless.avgText == "-13.3")
+    #expect(leagueless.bestText == "21.5" && leagueless.avgText == "13.3 over")
+  }
+
+  /// Q39 (a) · owner ruling 2026-09-29: the record's figures are WORDS and the
+  /// sign stays only where it is the fact. `vsShort` is the web's `vsShort`
+  /// verbatim ('beat by 2.4' / 'played to it' / '2.6 over', and a dash for a
+  /// missing figure, never 'played to it'); `vsSigned` is the web's
+  /// `vsSigned`, kept for the receipt's arithmetic row (D2) and the clash side.
+  @Test func theRecordSaysItInWordsAndTheReceiptKeepsItsSign() {
+    #expect(CSBands.vsShort(2.4) == "beat by 2.4")
+    #expect(CSBands.vsShort(1.0) == "beat by 1.0")
+    #expect(CSBands.vsShort(0.4) == "played to it")
+    #expect(CSBands.vsShort(-0.99) == "played to it")
+    #expect(CSBands.vsShort(-1.0) == "1.0 over")    // Q-20 · the −1.0 edge is loose, as cup_points
+    #expect(CSBands.vsShort(-2.6) == "2.6 over")
+    #expect(CSBands.vsShort(nil) == "—" && CSBands.vsShort(Double.nan) == "—")
+    #expect(CSBands.vsSigned(2.4) == "+2.4" && CSBands.vsSigned(0.4) == "level" && CSBands.vsSigned(-1.8) == "-1.8")
+    #expect(CSBands.vsSigned(nil) == "")
+    // no record tile carries a sign any more
+    for t in [Career(rounds: 1, best: 2.4, avg: -2.6, counting: 1, played: 0, recent: [], figures: [:], points: [:]).bestText,
+              Career(rounds: 1, best: 2.4, avg: -2.6, counting: 1, played: 0, recent: [], figures: [:], points: [:]).avgText,
+              SeasonStats(rounds: 1, counting: 1, avg: -2.6, best: 2.4, delta: nil).avgText,
+              SeasonStats(rounds: 1, counting: 1, avg: -2.6, best: 2.4, delta: nil).bestText] {
+      #expect(!t.hasPrefix("+") && !t.hasPrefix("-"), "a record tile carries a sign: \(t)")
+    }
   }
   @Test func relation() {
     let pid = UUID(), fid = UUID()

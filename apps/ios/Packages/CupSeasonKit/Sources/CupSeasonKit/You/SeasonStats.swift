@@ -37,9 +37,11 @@ public struct SeasonStats: Sendable, Equatable {
   }
 
   public var roundsText: String { String(rounds) }
-  /// `me.r ? sgn(me.avg) : '—'`
-  public var avgText: String { rounds > 0 ? (avg.map(RoundCopy.signed) ?? "—") : "—" }
-  public var bestText: String { best.map(RoundCopy.signed) ?? "—" }
+  /// `me && me.r ? vsShort(me.avg) : '—'` — Q39 (a) · This season's tiles
+  /// speak as All time's do, in words, so the two strips stay one grammar
+  /// (the web's `renderIndStatsReal` #msAvg / #msBest, 148d6d0f)
+  public var avgText: String { rounds > 0 ? CSBands.vsShort(avg) : "—" }
+  public var bestText: String { CSBands.vsShort(best) }
   /// Y-14 · what the best and the average are computed OVER — the same line on
   /// both, because they are read off the same set (`Career.figureScope` is its
   /// all-time twin; the two panels speak one grammar).

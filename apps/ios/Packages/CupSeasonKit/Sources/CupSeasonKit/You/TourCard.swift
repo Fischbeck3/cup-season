@@ -291,17 +291,23 @@ public struct TourCard: Sendable {
   /// D209 · true once the server sends the allowance figures.
   public var playingLens: Bool { career.playingLens }
 
-  /// The best round. Under the allowance lens it is a delta and signs like
-  /// every other figure on the card; before it, the old course score, which
-  /// runs the other way and is never given a `+`.
+  /// The best round. Under the allowance lens it is the playing-HCP figure,
+  /// said in words; before it, the old course score, which runs the other
+  /// way and is never given a `+`.
+  ///
+  /// Q39 (a) · owner ruling 2026-09-29: the card's career figures say the
+  /// comparison in WORDS (`CSBands.vsShort`: "beat by 1.6", "1.0 over"),
+  /// never a sign a reader has to be told the direction of. The web's
+  /// `openTourCard` (c3187a81) and the record's tiles (148d6d0f).
   public var bestText: String {
-    career.playingLens ? (career.bestPvi.map(RoundCopy.signed) ?? "—") : (career.best.map(RoundCopy.f1) ?? "—")
+    career.playingLens ? CSBands.vsShort(career.bestPvi) : (career.best.map(RoundCopy.f1) ?? "—")
   }
   /// Under the lens, the allowance average; before it, the 100% one — which
   /// is a real number for a golfer no season has ever ranked, and the reason
-  /// this row does not go to a dash the day the migration lands.
+  /// this row does not go to a dash the day the migration lands. Both in
+  /// words (Q39 a).
   public var avgText: String {
-    (career.playingLens ? career.avgPvi : career.avgVsIndex).map(RoundCopy.signed) ?? "—"
+    CSBands.vsShort(career.playingLens ? career.avgPvi : career.avgVsIndex)
   }
 
   /// D209 · the lens is named ONCE, in the section's eyebrow, instead of being
@@ -392,12 +398,10 @@ public struct TourCard: Sendable {
     playingLens ? "Avg" : "Avg vs \(isMe ? "your" : "their") playing HCP"
   }
 
-  /// The two OLD figures run opposite ways — a course score where lower wins
-  /// sits beside a delta where `+` wins — and one table cannot sign both the
-  /// same way. So the table says which is which. It goes with them.
-  public static func careerSignsLine(isMe: Bool) -> String {
-    "Lower is better against the course; against \(isMe ? "your" : "their") playing HCP, + is better."
-  }
+  // Q39 (a) · `careerSignsLine` ("Lower is better against the course; against
+  // your playing HCP, + is better.") is GONE. It explained two signed figures
+  // that ran opposite ways; the playing-HCP figures are words now, so no sign
+  // is left for a line to explain (the web's signs line went in c3187a81).
 }
 
 /// The buddy relationship with the card's golfer, from `my_friends`.

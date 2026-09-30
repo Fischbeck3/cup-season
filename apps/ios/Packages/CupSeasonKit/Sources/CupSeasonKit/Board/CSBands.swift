@@ -102,15 +102,35 @@ public enum CSBands {
     return mine ? sentence : theirs(sentence)
   }
 
-  /// D176 · the compact form for a card that has no room for a sentence:
-  /// "+2.4" / "level" / "-1.8", against your playing HCP. Same half-open boundary
+  /// D176 · the SIGNED compact form, for the two places a sign is the fact:
+  /// "+2.4" / "level" / "-1.8", against your playing HCP — the receipt's
+  /// arithmetic row (D2) and the clash's side line. Same half-open boundary
   /// as `bandName` and `cup_points`, so the short form and the long form can
   /// never disagree about which side of "played to it" a round sits on.
-  public static func vsShort(_ v: Double?) -> String {
+  ///
+  /// Q39 (a) · this was named `vsShort`, while the web's `vsShort` is the
+  /// WORDS form below and this one is the web's `vsSigned`. The memo read the
+  /// phone's name and assumed the words; the names now say what each returns,
+  /// on both clients.
+  public static func vsSigned(_ v: Double?) -> String {
     guard let vs = v, vs.isFinite else { return "" }
     if vs >= 1 { return "+" + fixed1(vs) }
     if vs > -1 { return "level" }   // Q-20
     return fixed1(vs)
+  }
+
+  /// Q39 (a) · owner ruling 2026-09-29: a record's figures say the comparison
+  /// in WORDS — "beat by 2.4" / "played to it" / "2.6 over" — never a sign a
+  /// reader has to be told the direction of (D1; Q-23's sign sweep, which
+  /// six of seven blind testers misread). For a tile or a row under a head
+  /// that already names the lens; `vsPhrase` is the sentence. A missing
+  /// figure is a dash, never "played to it" (an absent number must not read
+  /// as a decent round). The web's `vsShort`, verbatim (148d6d0f, c3187a81).
+  public static func vsShort(_ v: Double?) -> String {
+    guard let vs = v, vs.isFinite else { return "—" }
+    if vs >= 1 { return "beat by " + fixed1(vs) }
+    if vs > -1 { return "played to it" }   // Q-20
+    return fixed1(abs(vs)) + " over"
   }
 
   /// Third-person form for SOMEONE ELSE's round. Always they/them — never a
