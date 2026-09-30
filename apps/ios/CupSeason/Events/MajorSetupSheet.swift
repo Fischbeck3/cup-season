@@ -76,7 +76,7 @@ struct MajorSetupSheet: View {
   var body: some View {
     SheetFrame("Start a Major", sub: "A championship window — every card on one board, one name on the jug") {
       EventFieldLabel(text: "Name the jug")
-      CSField("The PIGL Championship", text: $name, font: CSFont.body).accessibilityLabel("Name the jug")
+      CSField("The Club Championship", text: $name, font: CSFont.body).accessibilityLabel("Name the jug")
       EventFieldLabel(text: "The final day")
       DatePicker("The final day", selection: $final, displayedComponents: .date).labelsHidden().tint(cs.act)
         .frame(maxWidth: .infinity, alignment: .leading)

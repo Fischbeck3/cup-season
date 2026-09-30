@@ -52,7 +52,7 @@ struct FeedbackSheet: View {
           }
         Button("Send") { Task { await send() } }
           .buttonStyle(.csPrimary(busy: busy))
-        Text("Goes straight to Jerecho. We attach which screen you are on so we can find it fast.")
+        Text("Goes straight to the founder. We attach which screen you are on so we can find it fast.")   // X37 · the owner ruled: the founder, by role
           .csType(.bodyS).foregroundStyle(cs.mut)
         Spacer()
       }
