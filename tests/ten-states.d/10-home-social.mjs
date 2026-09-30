@@ -691,6 +691,7 @@ const GOLFERS = [
        two Accepts */
     expect: { view: 'view-golfers', selectors: { '#glfBoard .fbrow.mine': 'visible', '#peopleRequests': 'text:Kit Specimen', '#crBud': 'text:Buddies · 5' } },
     check: all(
+      async (page) => page.evaluate(() => document.querySelector('#glfShareDisclosure')?.textContent === window.CS_PERSON_SHARE_DISCLOSURE && !!window.CS_PERSON_SHARE_DISCLOSURE ? true : 'card link disclosure missing'),
       /* TEN / W8 · W7-023 [B2-desk-9]: from 1100 up the ranking's rows sit inside one reading measure (760), not the whole track */
       async (page) => page.evaluate(() => {
         if (innerWidth < 1100) return true
@@ -712,6 +713,7 @@ const GOLFERS = [
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },
     check: all(async (page) => page.evaluate(() => document.querySelectorAll('#glfBoard .fbrow').length === 0 ? true : 'a board rendered for a golfer with no buddies'),
+      async (page) => page.evaluate(() => { const notes = [...document.querySelectorAll('#view-golfers .fine')].filter(e => e.getBoundingClientRect().height > 0 && e.textContent === window.CS_PERSON_SHARE_DISCLOSURE); return notes.length === 1 ? true : 'empty-root card link disclosures: ' + notes.length }),
       /* TEN / W6 · N4-063 (TERMINOLOGY §1 row 7): the sub is the lead, and the definition is said once, under it,
          word for word the phone's GolfersRoot.buddyDefinition, in the body role (sans, never mono or serif) */
       async (page) => page.evaluate(() => {

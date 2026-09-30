@@ -81,13 +81,14 @@ numbers.**
 | **The Forge, the ceremonies, the Tracer mark** | Kept | The strongest sequence and the strongest asset in the product. The Forge's heat ramp survives as three private constants inside the door, not as palette tokens (§2.6). |
 | **The voice · band words · the ledger line · "the Pro"** | Kept verbatim | The audit calls the copy the strongest asset in the product; it was only ever wrong in its *size*, which the display tier fixes. |
 | **The five destinations** — Home · Compete · ⊕ Play · Golfers · You | Kept | `OWNER_RULINGS` **R-A / D222** is a flow ruling, not a visual one, and it overrides D82, D93, D94 and IOS-011. What changes is the chrome around it. §12 |
-| **A visible build identity** | Kept | `v23 · <sha>` in Settings and at the foot of the desk's sidebar. |
+| **A diagnostic build identity** | Amended 2026-09-29 — Q5, [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) | Settings keeps its build line and developer door. The Door stamp is hidden from its face (phone: reveal by long-press on the pennant); the web caption stays readable by diagnostics and feedback. The sidebar stamp is removed. |
 
 ### Changed — each naming the row it overrides
 
 | Change | The row it overrides | Why |
 |---|---|---|
 | **The 3.5pt spine leaves the card edge and becomes the 44pt rank rail** | §1 "The spine — 3.5px left accent bar as the card grammar" | 13 of 20 `CSCard` sites draw a border and a spine 2px apart, and the spine rides paragraphs, menus and option lists — so it means "a box", not "live" or "earned". As a rail it means *position*, which is a thing the product actually has. (Audit D1.) The **three-state spine is replaced by a two-state rail**: painted means something, unpainted means nothing — audit D2's finding that `line2` at 1.80:1 is a third state below the threshold of sight. |
+| **Moment rails are retired, including live moments** | The former live-moment spine exception | **Q36, [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29):** a live competition moment uses an ember dot and an agate eyebrow. Non-live moments use neither the live signal nor an ember rail. |
 | **The card and its border are deleted outright** | §1 "the card grammar" | The fill is 1.084:1 and the border 1.443:1; on eight of fifteen screens in the card census, deleting every border costs zero information. The system has **no border token**. §3 |
 | **The serif is New York; Charter is retired** | §1 "Serif: Charter ships on iOS as a system face" | Charter has no display cut, no optical sizes and one weight step, and it must be addressed by PostScript string — the exact defect class of D258, which rendered 296 mono sites in SF Pro for weeks. New York is free, has four optical masters, needs no string, and is unusual enough in 2026 to read as a choice. Ruled by the owner-eye judge; two of three directions arrived at it independently. §1.1 |
 | **A condensed grotesk is bundled and becomes the voice of the board** | §1 "Three type voices with jobs" | §5 of the brief says typography must carry a significant portion of the brand; that cannot be done with system faces alone, and the shipped display tier is 2% of type sites. IBM Plex Sans Condensed is a **cut of the family already bundled**, so the family count stays at three (§1.1 answers the "no fourth family" fence head-on). |
@@ -192,7 +193,7 @@ honoured**; the table says where.
 |---|---|---|---|---|
 | **The board** — display, names, ranks, every numeral, agate | **IBM Plex Sans Condensed** | SemiBold 600, Bold 700 | **BUNDLED** — 2 static TTFs | ~124 KB each ≈ **248 KB**. OFL 1.1 (Bold Monday for IBM). PostScript names `IBMPlexSansCondensed-SemiBold`, `IBMPlexSansCondensed-Bold` |
 | **The record** — columns of figures, codes, handles, times | **IBM Plex Mono** | Regular 400, Medium 500 | already bundled | already paid. OFL 1.1 |
-| **Now** — prose, standfirsts, controls, inputs | **SF Pro Text / Display** | 400, 600 | system (`Font.system`) | — |
+| **Now** — prose, standfirsts, inputs | **SF Pro Text / Display** | 400, 600 | system (`Font.system`) | — |
 | **Memory** — one sentence a surface | **New York** (Apple's system serif) | Regular 400, Bold 700 | system (`Font.system(design: .serif)`) — four optical masters, chosen automatically by point size | — |
 
 **Three families, and the fence is answered rather than dodged.** `brand-canon` §4 says "no fourth
@@ -237,7 +238,7 @@ shipped eighteen does.
 | **`social`** | `CSType.social` | Plex Cond SemiBold | **17** | 600 | `flat` 0 | Title Case | 1.16 | `.headline` | none |
 | **`lead`** | `CSType.lead` | New York Bold | **28** | 700 | `tight` −1% | Sentence | 1.14 | `.title1` | ×1.5 |
 | **`story`** | `CSType.story` | New York Regular | **20** | 400 | `flat` 0 | Sentence | 1.34 | `.title3` | ×1.6 |
-| **`body`** | `CSType.body` / `.bodyS` | SF Pro Text | **17 · 15** | 400 (600 for buttons) | `flat` 0 | Sentence | 1.45 | `.body` / `.subheadline` | none |
+| **`body`** | `CSType.body` / `.bodyS` | SF Pro Text | **17 · 15** | 400 | `flat` 0 | Sentence | 1.45 | `.body` / `.subheadline` | none |
 | **`agate`** | `CSType.agate` / `.agateS` | Plex Cond SemiBold | **12 · 11** | 600 | `agate` +9% / +8% | UPPER *(or Sentence — §1.3)* | 1.20 | `.caption1` / `.caption2`, **both floored at 11pt** | **×2.2** |
 | **`column`** | `CSType.column` / `.columnM` / `.columnS` | Plex Mono | **17 · 14 · 12**, tabular at 14 and 12 | 500 (400 at 12) | −1% at 14, 0 elsewhere | — | 1.30 / 1.25 / 1.20 | `.body` / `.subheadline` / `.caption1` floored at 11 | none |
 
@@ -1023,15 +1024,14 @@ button a pressed state for free, and lets `ShareLink`, `NavigationLink` and `Men
 
 | Control | Geometry | Rest | Pressed | Disabled | Busy |
 |---|---|---|---|---|---|
-| **Primary** | 50pt, `rc` 10, full-width or intrinsic, label `name` 17 | `brand` fill, `bg0` label (5.27:1 / 5.39:1) | fill darkens by `a16`, label to 92% | `bg1` fill, `mut` label — **a disabled primary is never ember** | label replaced by **three mono dots that tally** — never a spinner |
+| **Primary** | 50pt, `rc` 10, full-width or intrinsic, label `name` 17 | `act` fill, `actInk` label (D359) | fill darkens by `a16`, label to 92% | `bg1` fill, `mut` label — **a disabled primary is never ember** | label replaced by **three mono dots that tally** — never a spinner |
 | **Secondary** | 50pt, `rc` 10 | `bg2` fill, `ink` label | fill → `rule`, label 92% | `bg1`, `mut` | as above |
 | **Tertiary — the link, LIVE** | intrinsic, 44pt target | `name` 15 in `ink`, **2px `brand` rule** beneath | rule darkens, label 92% | `mut` label, `mut` underline | — |
 | **Tertiary — the link, in content** | intrinsic, 44pt target | `name` 15 in `ink`, **2px `mut` rule** beneath (7.07 / 5.85) | rule → `ink`, label 92% | `mut` label, `mut` underline | — |
 | **Tertiary — the link, in a TOOLBAR** | intrinsic, 44pt target | `name` 15 in `ink`, **1px `mut` rule** beneath | rule → `ink` | `mut` label | — |
 | **Destructive, armed** | 50pt | `bg2` fill, `neg` label, copy **"Sure?"** (never an `alert()`) | fill → `neg` at `a16` | — | — |
 
-**One primary per screen**, and it is ember because ember means *the live thing you can do now*
-(§2.4). **There is no gold button** — the tier does not exist, and `CSButtonStyle.gold` is deleted.
+**One primary per screen**, using `act` / `actInk` (D359). **Q25, [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29):** primary and secondary labels use `name` 17 at a 50pt minimum height. The conflicting button assignment in §1.1/§1.2 is struck; SF remains the prose and input face. **There is no gold button** — the tier does not exist, and `CSButtonStyle.gold` is deleted.
 
 **The tertiary's rule is where ember kept leaking back, so the tier is split into three and the split
 is a ruling, not a preference.** §2.4 gives ember exactly two jobs; a *dismiss* verb is neither, a
@@ -1078,6 +1078,7 @@ two positions plus an xmark circle plus nothing at all. One grammar:
 - **Dismiss is one thing: `Close`**, a **toolbar** tertiary link at `topBarTrailing` (§7.1 — `mut`,
   1px rule, **never ember**), in every sheet and every cover. No xmark circle, no coloured "Done", no
   bare gesture-only sheet. A sheet's loudest control is never the one that closes it.
+- **Web amendment, Q51 / [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29):** the shared 44px **×**, accessible name **Close**, is the web shape of this one dismiss (D234); the phone keeps the toolbar text link.
 - **The confirming action lives in the body**, at the foot, as the sheet's one primary. A toolbar never
   carries a consequential verb.
 - **Detents**: `.medium` for a question, `.large` for a list, `CSFittedSheet` for anything measured.
@@ -1138,11 +1139,7 @@ defect in the set, and two of them proposed the same remedy. The row is therefor
    name column needs. Merging them returns ~28pt directly, and the header row loses its `Δ` column.
 2. **A held row prints ONE mark.** `— —` (an em dash for the gap and a held bar for the delta) reads as
    a rendering error; a leader with no gap and no movement prints the held bar alone.
-3. **At a field of ten or more, the given name abbreviates to an initial before any name is ever
-   truncated** — `P. Raghunathan`, not `Priya Raghu…`. The rule is per-board, not per-row, so the
-   column keeps one grammar: at ten or more, *every* row abbreviates, including `G. Marr`. Below ten,
-   full names, because they fit. Tail ellipsis remains the last resort and now fires on a surname of
-   14+ characters rather than on a first name plus a space.
+3. **Names wrap whole on the slat and the Book, at every field size.** Let the row grow; do not abbreviate a given name, truncate a surname or add a tail ellipsis. **Amended 2026-09-29 — Q34(1), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md).**
 4. **The header row ships at every field size.** It was present on the six- and twelve-row boards and
    absent on `season-top` and the two-row board; two reviewers filed the inconsistency and one called
    the unlabelled `+4 / +9 / +12` column "the single most confusing element in the set". `POS ·
@@ -1152,8 +1149,7 @@ defect in the set, and two of them proposed the same remedy. The row is therefor
   when the position was earned (1st), `panel` when the row is yours, unpainted otherwise.
 - **Player** — a 30pt disc, then `name` 17 caps, then an agate sub-line **in sentence case** and in the
   product's voice ("3 rounds · held", "1 of 4 counting · one short" — never *floor*, which is the
-  schema's word, `TERMINOLOGY` §4 pattern 2). The name column is `min-width: 0` and **truncates with a
-  tail ellipsis** — the one long-name policy, product-wide, replacing the shipped wrap/wrap/clip split.
+  schema's word, `TERMINOLOGY` §4 pattern 2). The name column is `min-width: 0` and **wraps the full name**, growing the row vertically (Q34(1)).
   **The viewer's own row reads `YOU` alone**, product-wide: at the 375pt measure the fixed columns
   leave 141pt and `YOU · SAM RIDLEY` at `name` 17 with caps tracking measures 143pt, so the first row a
   golfer sees on an SE would ellipsise their own name at the default text size.
@@ -1384,7 +1380,7 @@ widened to catch, aimed at a third object.
 3. **The contour plate.** A deterministic topographic plot seeded from the course id — a **seeded
    value-noise field sampled at 5–7 isolevels** (marching squares over a 32 × 32 grid; cheap in a
    SwiftUI `Canvas`/`Path`), at 1.2pt in `mut`, **cropped hard off its own centre**, carrying a routing
-   line and one `brand` dot on the hardest hole by stroke index. Same course, same plot, forever.
+   line and one **`ink` dot** on the hardest hole by stroke index. **Q34(2), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29), confirms D359: the contour is not a live competition and spends no ember.** Same course, same plot, forever.
    **Not nested ellipses**: six near-concentric circles with a radial line is a radar sweep, and it is
    the same "three near-identical concentric ovals" failure §10.2 uses to ban the contour at thumbnail
    scale, arriving at plate and hero scale instead. A noise field is what makes two courses look like
@@ -1926,14 +1922,8 @@ character is **rhythm** and rhythm is only visible where a golfer actually scrol
 - **Every role is `relativeTo:` a text style.** Growth caps exist on **`figure`, `display` and
   `agate`** (§1.2 gives the mechanism and the arithmetic for each); `body`, `column`, `social`, `lead`
   and `story` **never cap**, because those are the roles a golfer reads for meaning.
-- **The star rail is the one target carve-out, and it is stated rather than asserted.** Five stars ×
-  two halves is ten discrete targets; ten × 44pt is 440pt against a 362pt measure (335 on an SE), so
-  "44pt minimum per half" is a sentence the geometry cannot deliver and Phase 3 would build the
-  geometry. **The rail is a continuous 362 × 56 drag target** (`DragGesture(minimumDistance: 0)`
-  mapping *x* to the nearest half) with a **−½ / +½ stepper pair at 44pt beside it** for the tap case;
-  the half-star hit region is 28pt, above WCAG 2.5.8's 24 × 24 and below this document's own 44, and
-  the stepper is what makes that legal. `.accessibilityAdjustable` with 0.5 increments, plus
-  `.accessibilityValue("four and a half stars")`.
+- **Every star-rail target meets 44 × 44pt.** The former half-star carve-out is struck by **Q34(3), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) (2026-09-29)**. Preserve half-star values and an adjustable accessibility action in 0.5 increments; small screens must reflow controls instead of reducing their targets. A neighbouring stepper does not exempt a smaller star target.
+
 
 ## 16.3 AX3, per layout — stated as layouts, not as principles
 
