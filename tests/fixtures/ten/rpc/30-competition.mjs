@@ -793,7 +793,11 @@ export function cupFinalOn(W, seasonId) {
    resolved by resolve_session's own rule (20261012090000: the best PvI in the
    window at the event allowance, a missing card loses, two missing halve),
    the cup is decided by its clinch/points rule, and every board line is the
-   sentence that function writes. The open week's chips are
+   sentence that function writes. D398 (Q44 A, 20261215090000): a closed
+   week's "is up" ask is gone -- its result replaced it -- so only the open
+   week keeps one, stamped a moment after the result the same tick wrote
+   (event_post's clock_timestamp); and the cup post says the cup without the
+   score the last week's result already printed. The open week's chips are
    event_session_targets over the same rounds. */
 const evhalf = (n) => (n - Math.floor(n) >= 0.5 ? Math.floor(n) + '½' : String(Math.floor(n)))
 const r4 = (x) => (x == null ? null : Math.round(x * 1e4) / 1e4)
@@ -827,7 +831,8 @@ export function ryderWorld(W) {
       const s = { id: ids.session(ed.n * 10 + k + 1), event_id: E, session_no: k + 1, opens_on: opens, closes_on: closes, status, weight: 1 }
       sessions.push(s)
       if (status === 'upcoming') continue
-      posts.push({ body: `Week ${k + 1} is up. 4 clashes — find yours.`, at: `${opens}T07:20:00+00:00` })
+      /* D398: the result replaces the ask, so only a week still open keeps it */
+      if (status !== 'closed') posts.push({ body: `Week ${k + 1} is up. 4 clashes — find yours.`, at: `${opens}T07:20:01+00:00` })
       const A = side(0), B = side(1)
       const ds = A.map((a, i) => ({ id: ids.duel(ed.n * 100 + (k + 1) * 10 + i + 1), event_id: E, session_id: s.id, a_player: a.id, b_player: B[(i + k) % 4].id,
         a_round: null, b_round: null, a_pvi: null, b_pvi: null, a_points: 0, b_points: 0, result: 'pending', resolved_at: null }))
@@ -869,11 +874,11 @@ export function ryderWorld(W) {
           const h = mine.filter((d) => d.result === 'halve').length
           return { p, w, l, h, tot: mine.reduce((s2, d) => s2 + ((d.a_player === p.id ? d.a_pvi : d.b_pvi) || 0), 0) }
         }).sort((x, y) => y.w - x.w || y.tot - x.tot)[0]
-        const hi = Math.max(pa, pb), lo = Math.min(pa, pb)
+        /* D398: the week's result just above already says the score */
         const win = teams.find((t) => t.id === ev.winner_team_id)
-        const head = !win ? `${teams[0].name} and ${teams[1].name} share ${NAME}, ${evhalf(pa)}–${evhalf(pb)}.`
-          : ev.decided_by ? `Level at ${evhalf(hi)}–${evhalf(lo)} — ${win.name} take ${NAME} on ${ev.decided_by}.`
-          : `${win.name} take ${NAME} ${evhalf(hi)}–${evhalf(lo)}.`
+        const head = !win ? `${teams[0].name} and ${teams[1].name} share ${NAME}.`
+          : ev.decided_by ? `${win.name} take ${NAME} on ${ev.decided_by}.`
+          : `${win.name} take ${NAME}.`
         posts.push({ body: `${head}${rec ? ` ${nameOf(rec.p)} is MVP at ${rec.w}-${rec.l}-${rec.h}.` : ''}`, at: `${addDays(closes, 1)}T07:21:00+00:00` })
       }
     }
