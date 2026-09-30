@@ -320,6 +320,14 @@ const WIZARD = [
     /* TEN / W6 · DX2 TP-22: the Pro row is a row, not a card whose content
        touched its sides (delta G6's inset patched the card; the card is gone) */
     check: all(destMarked('compete'), isRow('#commishChip', 'the Pro row'),   /* TEN / W8 · W7-108: the wizard is a room of COMPETE, so COMPETE stays marked */
+    /* TEN / W8 · Q27 (a) (owner, 2026-09-29): a Pro who resumes setup finds the league's CURRENT name in step 1's field, editable (the field, not a caption), and the name is the league's, so saving writes the same league */
+    async (page) => page.evaluate(() => {
+      const f = document.getElementById('setName')
+      if (!f) return 'step 1 has no name field'
+      if (f.value !== 'Desert Setup League (fixture)') return `the name field holds ${JSON.stringify(f.value)}, not the league's current name`
+      if (f.disabled || f.readOnly) return 'the resumed name is not editable'
+      return (document.getElementById('sideLeague') || {}).textContent === f.value ? true : 'the field and the sidebar name different leagues'
+    }),
     /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
     async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
     noRetiredGlyph()) },

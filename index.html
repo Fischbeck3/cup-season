@@ -8904,7 +8904,7 @@ function switchView(v){
   } else window._postFoldShutByHand = false;   /* W7-151 · a new visit starts unshut */
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
-  if(v==='wizard' && !state.demo) window.renderProChip?.();
+  if(v==='wizard' && !state.demo){ window.renderProChip?.(); csPrefillLeagueName(); }   /* Q27 · and a resumed league's own name is in step 1's field: every entry path lands here */
   if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
   if(v==='hub'){
     if(typeof renderClubGroups==='function') renderClubGroups();
@@ -29889,7 +29889,19 @@ function csRenderWizStep(){
   });
 }
 window.csRenderWizStep = csRenderWizStep;
+/* Q27 (a) · owner ruling 2026-09-29 (OWNER-QUESTIONS §R, the recommendation as written): a Pro who comes back to a league still in setup finds step 1's name field showing the league's CURRENT
+   name, editable, not empty over a league the desk's sidebar already names. Confirmed first (D346's "known created league"): resuming writes to the league already created, since the lock
+   goes through lock_league({ p_league: CS.league.id, p_name: the field, else the current name }) and createLeague runs only with no league at all. The scaffold 'My Cup' is not a choice (D5) and
+   is never shown as one; a name the Pro has typed or cleared in this session is theirs (data-touched) and is not put back. */
+function csPrefillLeagueName(){
+  const nm = document.getElementById('setName'), L = window.CS && window.CS.league;
+  if(!nm || nm.value || nm.dataset.touched || state.demo || !L || L.phase !== 'setup') return;
+  const n = String(L.name || '').trim();
+  if(!n || n === 'My Cup') return;
+  nm.value = n;
+}
 function renderWizard(){
+  csPrefillLeagueName();
   csRenderWizStep();
   if(state.wiz===2){
     if(!state.startISO) state.startISO=isoOf(seasonStartDate());
@@ -29969,6 +29981,7 @@ $('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(2,state.wiz+1);re
    re-renders from current state. */
 $('#wizFastPath')?.addEventListener('click',()=>{ renderBylaws(); state.wiz=2; renderWizard(); });
 $('#setName').addEventListener('input',e=>{
+  e.target.dataset.touched = '1';   /* Q27 · a name typed or cleared here is the Pro's, not a resume's to put back */
   const n=e.target.value.trim()||'Your league';
   $('#leagueName').textContent=n; $('#sideLeague').textContent=n;
 });
@@ -32808,7 +32821,7 @@ function resetWizard(){
      a REAL league starts at bragging rights; the Pro dials money up on
      purpose ("$0 is bragging rights" is the dial's own promise). */
   state.stake = 0;
-  const nm = document.getElementById('setName'); if(nm) nm.value = '';
+  const nm = document.getElementById('setName'); if(nm){ nm.value = ''; delete nm.dataset.touched; }   /* Q27 · a fresh league starts from a clean field */
   if(typeof updateInviteNote === 'function') updateInviteNote();
 }
 window.resetWizard = resetWizard;
