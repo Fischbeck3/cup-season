@@ -64,7 +64,12 @@ struct HomeView: View {
 
   /// The payload the strip and the wire are drawn from: the dispatch's own
   /// `me` when it served one (one read, one instant), the session's otherwise.
-  private var me: Me? { vm.me ?? store.me }
+  private var me: Me? {
+    #if DEBUG
+    if MatchProgrammeFixture.on { return vm.me ?? MatchProgrammeFixture.payload?.me }
+    #endif
+    return vm.me ?? store.me
+  }
 
   var body: some View {
     ScrollView {
@@ -299,7 +304,7 @@ struct HomeView: View {
     // the defect the capability exists to prevent.
     case .block(let item):
       VStack(alignment: .leading, spacing: 0) {
-        HomeLead(item: item, membership: league(item), act: { take(item) }, compact: item.key.hasPrefix("clash:") || item.key.hasPrefix("move:"))
+        HomeLead(item: item, membership: league(item), act: { take(item) })
         answers(item)
       }
       .padding(.horizontal, CSTokens.Space.gutter)
@@ -452,9 +457,9 @@ struct HomeView: View {
       let rows = page.rows.filter { $0.period == period }
       if !rows.isEmpty {
         if headed.contains(period) {
-          CSSectionHead(period.head, weight: .display)
+          CSSectionHead(period.head, weight: .label)
             .padding(.horizontal, CSTokens.Space.gutter)
-            .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s3 : CSTokens.Space.s5)
+            .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s2 : CSTokens.Space.s4)
             .padding(.bottom, CSTokens.Space.s2)
         }
         ForEach(Array(rows.enumerated()), id: \.element.id) { i, row in
@@ -462,7 +467,7 @@ struct HomeView: View {
           // the first row of a headless period takes one too — unless it
           // brings its own edge (a photograph, a card).
           if (i > 0 || !headed.contains(period)), row.leadsWithRule { CSRule() }
-          wireRow(row, context: page.wireContext)
+          wireRow(row, context: page.wireContext, showRoundDay: !(period == .today && headed.contains(period)))
         }
       }
     }
@@ -476,13 +481,51 @@ struct HomeView: View {
     }
   }
 
+  /// One supporting line at reading sizes, separate 44pt controls at every
+  /// size. The course belongs to this round, not to a second face-bearing row.
+  @ViewBuilder private func roundSupport(_ r: HomeFeedRow) -> some View {
+    if let rid = r.round_id {
+      A11yStack(alignment: .leading, rowAlignment: .center,
+                spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
+        if let state = vm.social.state(for: rid) {
+          HomeWireReactions(state: state, day: nil,
+                            commentCount: vm.roundSocial[rid]?["comment_count"]?.int,
+                            openComments: vm.roundSocial[rid] == nil ? nil : { discussion = RoundDiscussionDoor(roundId: rid) }) { emoji in
+            react(r, emoji)
+          }
+        } else if vm.roundSocial[rid] != nil {
+          Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
+            Label("Comments", systemImage: "bubble.left").csType(.bodyS)
+              .foregroundStyle(cs.ink).frame(minHeight: CSTokens.Space.rail).contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+        }
+        if let course = vm.roundSocial[rid]?["course"],
+           let courseId = course["api_course_id"]?.string, !courseId.isEmpty {
+          NavigationLink { CourseScreen(courseId: courseId, label: r.course) } label: {
+            HStack(spacing: CSTokens.Space.s1) {
+              Text("Course").csType(.bodyS)
+              CSGlyph(.chevron, size: .inline)
+            }
+            .foregroundStyle(cs.mut)
+            .frame(minWidth: CSTokens.Space.rail, minHeight: CSTokens.Space.rail)
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("View course: \(course["name"]?.string ?? r.course ?? "this course")")
+          .accessibilityIdentifier("home.round.course.\(rid.uuidString)")
+        }
+      }
+    }
+  }
+
   /// Which dateline opens the wire, so the first head sits on the section
   /// head's own spacing rather than adding a second gap to it.
   private func firstFilled(_ page: HomePage) -> HomeWirePeriod? {
     [HomeWirePeriod.today, .week, .earlier, .ahead].first { p in page.rows.contains { $0.period == p } }
   }
 
-  @ViewBuilder private func wireRow(_ row: HomeWireRow, context: [String: String] = [:]) -> some View {
+  @ViewBuilder private func wireRow(_ row: HomeWireRow, context: [String: String] = [:], showRoundDay: Bool = true) -> some View {
     switch row.body {
     case .round(let r, let url):
       VStack(alignment: .leading, spacing: 0) {
@@ -492,51 +535,19 @@ struct HomeView: View {
         // what it has. Only a round with no attachment is a record from here.
         if url != nil || (r.photo_path.map { !$0.isEmpty } ?? false) {
           HomeWireBand(row: r, photo: url, photos: HomePhotoStore.shared,
-                       denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false,
+                       denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false, showDay: showRoundDay,
                        open: { if let id = r.round_id { presenter.receipt = id } },
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
+            .padding(.horizontal, CSTokens.Space.gutter)
         } else {
-          HomeWireSlat(row: r,
+          HomeWireSlat(row: r, showDay: showRoundDay,
                        open: { if let id = r.round_id { presenter.receipt = id } },
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
             .padding(.horizontal, CSTokens.Space.gutter)
         }
-        if let rid = r.round_id, let state = vm.social.state(for: rid) {
-          // one fact, one place: a record's identity row already carries the day
-          HomeWireReactions(state: state, day: url == nil ? nil : HomeWireCopy.dayMarker(r.played_on),
-                            commentCount: vm.roundSocial[rid]?["comment_count"]?.int,
-                            openComments: vm.roundSocial[rid] == nil ? nil : { discussion = RoundDiscussionDoor(roundId: rid) }) { emoji in
-            react(r, emoji)
-          }
+        roundSupport(r)
           .padding(.horizontal, CSTokens.Space.gutter)
-        } else if let rid = r.round_id, vm.roundSocial[rid] != nil {
-          Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
-            Label("Comments", systemImage: "bubble.left").csType(.bodyS)
-              .foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
-          }
-          .buttonStyle(.plain).padding(.horizontal, CSTokens.Space.gutter)
-        }
-        if let rid = r.round_id, let course = vm.roundSocial[rid]?["course"],
-           let courseId = course["api_course_id"]?.string, !courseId.isEmpty {
-          NavigationLink { CourseScreen(courseId: courseId, label: r.course) } label: {
-            HStack(spacing: CSTokens.Space.s2) {
-              let people = (course["faces"]?.array ?? []).compactMap(SocialPerson.init)
-              if !people.isEmpty {
-                CSFaceRow(people.map { .init(id: $0.id, marker: $0.marker) }, style: .overlapped)
-              }
-              Text("View course").csType(.bodyS)
-              Spacer()
-              CSGlyph(.chevron, size: .inline)
-            }
-            .foregroundStyle(cs.mut)
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .padding(.horizontal, CSTokens.Space.gutter)
-          .accessibilityLabel("View course: \(course["name"]?.string ?? r.course ?? "this course")")
-          .accessibilityIdentifier("home.round.course.\(rid.uuidString)")
-        }
+
       }
       .contextMenu {
         // D365 · one act on a long press, the same write path as the control.
@@ -605,6 +616,9 @@ struct HomeView: View {
   }
 
   private func react(_ r: HomeFeedRow, _ emoji: String) {
+    #if DEBUG
+    if MatchProgrammeFixture.on { return }
+    #endif
     Task {
       guard let me = store.me else { return }
       if let error = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") {
@@ -867,6 +881,13 @@ final class HomeModel {
     // still needed a real account — and the states it exists to photograph are
     // exactly the ones no account this product has can reach. A build machine
     // signed out got a blank screen and no explanation.
+    if MatchProgrammeFixture.on {
+      runFixture(MatchProgrammeFixture.mode == "empty" ? "brand_new" : "event_live")
+      items = MatchProgrammeFixture.items
+      social = MatchProgrammeFixture.social
+      roundSocial = MatchProgrammeFixture.roundSocial
+      return
+    }
     if let want = CSDevHatch.homeState { runFixture(want); return }
     #endif
     guard let sessionMe else { return }

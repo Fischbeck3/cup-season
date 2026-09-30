@@ -169,7 +169,7 @@ public struct CSSectionHead: View {
   /// `display` and the masthead has it. `count:` and `trailing:` belong to
   /// `.label`; a `.display` head is the title alone, because a 24pt line with
   /// an 11pt rider beside it is two heads.
-  public enum Weight: Sendable { case label, display }
+  public enum Weight: Sendable { case label, display, programme }
 
   let title: String
   let count: String?
@@ -196,6 +196,19 @@ public struct CSSectionHead: View {
     switch weight {
     case .display: displayHead
     case .label:   labelHead
+    case .programme:
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule(.heavy)
+        displayHead
+        if la.active {
+          HStack(spacing: 0) {
+            Rectangle().fill(la.accent)
+            Rectangle().fill(la.accent2)
+          }
+          .frame(height: CSTokens.Space.hair)
+          .accessibilityHidden(true)
+        } else { CSRule() }
+      }
     }
   }
 

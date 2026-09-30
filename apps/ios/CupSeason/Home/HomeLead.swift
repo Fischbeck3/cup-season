@@ -1,25 +1,4 @@
-// Cup Season — THE LEAD, weight 1 (IOS-046, `surfaces/home.md` §1.2).
-//
-// The rank-1 item as a **block on the ground**: the sentence in the left
-// column, the chip in the right, and nothing drawn around either of them. It
-// replaces `HomeLeadCard`'s `CSHero(spine:)` frame — the ember-spine reasoning
-// and the two-up clash survive as DATA, the frame does not — and it deletes
-// `HomeDeckCard` outright: ranked items 2–5 enter the wire at the weight their
-// kind earns rather than as four smaller copies of the lead (audit H-01).
-//
-// **THE CHIP CARRIES THE RANK, AND IT IS THE ONLY THING THAT DOES** (§16A.4).
-// The first draft said the reader's rank three times inside 400pt — in the
-// headline, in a chip, and in a `▲2 SPOTS` rule-and-figure sharing a baseline
-// with the schedule link. All three blind reviewers filed it. The chip now
-// carries the figure, the ordinal and the movement in ONE 84 × 90 block, the
-// `SPOTS` rule-and-figure is deleted, and the copy runs the full column.
-//
-// **THE CHIP'S NUMBER IS A CLIENT-SIDE JOIN, NOT NEW DATA.** The dispatch item
-// carries no figure; `item.leagueId` → `me.memberships[].standing` reads
-// `rank` / `of` / `prev_rank`, two facts the payload already ships. **A chip
-// is never invented to fill the column**: an invitation, a buddy request and a
-// first round have no figure, and the sentence takes the whole measure.
-
+// Match Programme narrative; current copy, competition classification and telemetry remain.
 import SwiftUI
 import CSDesign
 import CupSeasonKit
@@ -31,7 +10,6 @@ struct HomeLead: View {
   let membership: Me.Membership?
   /// The one door the ranker put under it.
   let act: () -> Void
-  var compact = false
 
   /// F11 applies to the full lead as well as the compact row. The server's
   /// ember spine also labels plain plans; those are not live competitions.
@@ -73,7 +51,7 @@ struct HomeLead: View {
     // §1.5's one-ember rule: the lead's door wears the live metal only while
     // the lead IS live. Between seasons nothing is running, so the same door
     // is a `mut` rule and the floor's lit door becomes the screen's one ember.
-    return live ? .liveLink(a, act) : .link(a, act)
+    return live ? .primary(a, act) : .link(a, act)
   }
 
   var body: some View {
@@ -81,62 +59,60 @@ struct HomeLead: View {
     // interaction is the next fact. One event per clash per day, by a
     // deterministic attempt id the server de-duplicates.
     let _ = { () -> Void in
+      #if DEBUG
+      guard !MatchProgrammeFixture.on else { return }
+      #endif
       guard item.key.hasPrefix("clash:") else { return }
       let day = CSDate.iso(Date(), calendar: ScheduleDates.gregorian)
       CSTelemetry.event("clash_seen", ["attempt_id": .string("\(item.key):\(day)"),
                                        "league_id": .string(item.leagueId?.uuidString.lowercased() ?? "")])
     }()
-    if compact {
-      Button(action: act) {
-        HStack(spacing: CSTokens.Space.s3) {
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            HStack(spacing: CSTokens.Space.s2) {
-              // F11 · the SAME competition carries the same mark here as in the
-              // season room — and it carries it whether the contest is
-              // upcoming, live or finished, because ember identifies a
-              // competition now rather than announcing that one is running.
-              // The state is a WORD, right of the eyebrow, never the colour.
-              if competition {
-                CSGlyph(.dot, points: 23).foregroundStyle(cs.brand)
-                  .accessibilityHidden(true)
-                  .csBudget(ember: 1)
-              }
-              // W7-074 · a line of clauses breaks on its separators, never
-              // inside one ('CLOSES IN' / '5 DAYS'), as the story card's does
-              CSClauseLine(item.eyebrow, role: .agate, caps: true, colour: cs.ink)
-              if let chip = HomeLeadChip.make(membership) {
-                Text(CSCopy.ordinal(chip.rank)).csType(.name)
-              }
-              if let word = stateWord {
-                Text(word).csType(.agateS, caps: true).foregroundStyle(cs.brand)
-              }
-            }.foregroundStyle(cs.ink)
 
-          }
-          Spacer(minLength: 0)
-          Image(systemName: "chevron.right").foregroundStyle(cs.mut)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+        if live {
+          CSGlyph(.dot, points: 23).foregroundStyle(cs.brand)
+            .alignmentGuide(.firstTextBaseline) { $0[.bottom] - CSTokens.Space.s2 }
+            .accessibilityHidden(true)
         }
-        .padding(.vertical, CSTokens.Space.s3)
-        .frame(minHeight: CSTokens.Space.rail)
-        .contentShape(Rectangle())
-      }.buttonStyle(.plain)
-        .accessibilityLabel(spoken)
-        .accessibilityHint(item.action ?? "Opens the competition")
-    } else {
-    CSStoryCard(eyebrow: item.eyebrow, live: live, tag: tag, credit: credit,
-                headline: item.localHeadlineMarked(), standfirst: item.standfirst, door: door) {
-      if let chip = HomeLeadChip.make(membership) { chip }
+        CSClauseLine(leadEyebrow, role: .agate, caps: true, colour: live ? cs.brand : cs.mut)
+      }
+      .csBudget(ember: live ? 1 : 0)
+      if let tag { Text(tag).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
+      if let credit {
+        HStack(spacing: CSTokens.Space.s2) {
+          CSSlot(credit.slot)
+          Text(credit.name).csType(.social).foregroundStyle(cs.ink)
+        }
+      }
+      Text(item.localHeadlineMarked()).csType(.lead).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      if let text = item.standfirst, !text.isEmpty {
+        Text(text).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      if let chip = HomeLeadChip.make(membership) {
+        // The full-measure story keeps its standing, once, as supporting text.
+        Text("\(CSCopy.ordinal(chip.rank)) of \(chip.of)"
+             + (chip.move.map { " · \($0.spokenPhrase)" } ?? ""))
+          .csType(.bodyS).foregroundStyle(cs.mut)
+      }
+      if let door {
+        CSDoor(door).accessibilityIdentifier("home.lead.action")
+      }
     }
-    // §7 · ONE VoiceOver element for the whole block, in the product's voice,
-    // with the door as its action — never eyebrow, headline, standfirst, chip
-    // and movement as five stops down one page.
     .accessibilityElement(children: .contain)
     .accessibilityLabel(spoken)
-    }
+  }
+
+  private var leadEyebrow: String {
+    guard let state = stateWord ?? (live ? "Live" : nil),
+          !item.eyebrow.localizedCaseInsensitiveContains(state) else { return item.eyebrow }
+    return "\(state) · \(item.eyebrow)"
   }
 
   private var spoken: String {
-    var parts = [live ? "Live" : nil, item.eyebrow, item.localHeadline(), item.standfirst].compactMap { $0 }
+    var parts = [leadEyebrow, item.localHeadline(), item.standfirst].compactMap { $0 }
     if let chip = HomeLeadChip.make(membership) {
       parts.append("You are \(CSCopy.ordinal(chip.rank)) of \(chip.of)")
       if let m = chip.move { parts.append(m.spokenPhrase) }

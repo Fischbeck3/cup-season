@@ -25,6 +25,7 @@ struct CompeteScreen: View {
   @State private var buddies: Int?
   @State private var readFailed = false
   @State private var loaded = false
+  @State private var showsFinished = false
 
   /// The payload the tab draws. `-cs_dev_compete_fixture` substitutes ONE
   /// VALUE — the `Me` — and nothing else changes: the same `CompeteRoot.make`,
@@ -55,26 +56,7 @@ struct CompeteScreen: View {
     CSTokens.dark.wearing(looks.personalLook(), theme: .dark)
   }
 
-  private var masthead: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      // N4-115 · the brand line ("ANY TIME. ANYWHERE.") was the tab's
-      // subtitle. It is the Door's and the artifacts' line, not a page's
-      // description, and it said nothing about what is running.
-      CSPageHeader("Compete") { EmptyView() }
-    }
-    .padding(CSTokens.Space.gutter)
-    .padding(.vertical, CSTokens.Space.s2)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background {
-      ZStack {
-        mastheadPalette.bg1
-        CSTopoField(tint: mastheadPalette.mut.opacity(CSTokens.Alpha.a24))
-      }
-    }
-    .environment(\.cs, mastheadPalette)
-    .padding(.horizontal, -CSTokens.Space.gutter)
-    .padding(.bottom, CSTokens.Space.s2)
-  }
+  private var masthead: some View { CSPageHeader("Compete") { EmptyView() } }
 
   var body: some View {
     ScrollView {
@@ -97,31 +79,15 @@ struct CompeteScreen: View {
           EmptyRootView(root: root, object: .scoreboard, take: take)
           // Finished seasons still render under an empty root: "nothing
           // running" is true and "you have never played one" is not.
-          section(CompeteRoot.Head.finished, list.finished)
+          finishedSection
         case .list:
           invitations
-          // F11 · THE SCOREBOARD. The season a golfer is actually in leads the
-          // tab as one broad ember band with dark ink — the competition room
-          // the owner's board asked for — and the rest of the list stays the
-          // quiet fescue it already was. One band, not a repainted tab.
-          if let lead = leadSeason { leadBand(lead) }
-          // the band IS that season, so the list below does not say it again
-          section(CompeteRoot.Head.seasons, list.seasons.filter { $0.id != leadSeason?.id }, first: true)
-          Button { presenter.showIntent = true } label: {
-            HStack(spacing: CSTokens.Space.s3) {
-              Text("Start something").csType(.name)
-              Spacer(minLength: CSTokens.Space.s2)
-              CSGlyph(.chevron, size: .row)
-            }
-            .padding(.horizontal, CSTokens.Space.s4)
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
-          }
-          .buttonStyle(.csPrimary())
-          .padding(.top, CSTokens.Space.s3)
-          .accessibilityLabel("Start something")
+          section(CompeteRoot.Head.seasons, list.seasons, first: true)
+          CSDoor(.primary("Start something") { presenter.showIntent = true })
+            .padding(.top, CSTokens.Space.s3)
+            .accessibilityIdentifier("compete.start")
           section(CompeteRoot.Head.moments, list.moments, first: list.seasons.isEmpty)
-          section(CompeteRoot.Head.finished, list.finished,
-                  first: list.seasons.isEmpty && list.moments.isEmpty)
+          finishedSection
           foot
         }
       }
@@ -171,21 +137,9 @@ struct CompeteScreen: View {
     .padding(.top, CSTokens.Space.s4)
   }
 
-  /// F11 · the competition band for the season that leads the tab. The figure
-  /// is the standing when there is one — an upcoming season has none, and the
-  /// band says so in words rather than drawing a nought.
-  @ViewBuilder private func leadBand(_ row: CompeteRoot.Row) -> some View {
-    if let state = row.state {
-      Button { open(row) } label: {
-        CompeteScoreboard(title:row.title, eyebrow:row.eyebrow,
-                          story:row.competitionLine ?? row.sub,
-                          points:row.points.map(CSCopy.points), standing:row.pointsStanding,
-                          live:state == .live)
-      }
-      .buttonStyle(.plain)
-      .padding(.top, CSTokens.Space.s4)
-      .accessibilityHint("Opens the season")
-      .environment(\.csLook, look(row))
+  /// Keep the current Book destination beside the season that leads the tab.
+  @ViewBuilder private func seasonBookDoor(_ row: CompeteRoot.Row) -> some View {
+    if row.id == leadSeason?.id {
       if let member=me?.memberships.first(where: { "league:"+$0.league_id.uuidString.lowercased() == row.id.lowercased() }), let season=member.season {
         NavigationLink {
           SeasonBookPage(leagueID:member.league_id,seasonID:season.id,openRound: { presenter.receipt = $0 })
@@ -200,13 +154,32 @@ struct CompeteScreen: View {
   /// remain the same quiet navigation landmarks. No change to peer ordering.
   @ViewBuilder private func section(_ head: String, _ rows: [CompeteRoot.Row], first: Bool = false) -> some View {
     if !rows.isEmpty {
-      CSSectionHead(head, weight: .label)
+      CSSectionHead(head, weight: .programme)
         .padding(.top, first ? CSTokens.Space.s4 : CSTokens.Space.s5)
         .padding(.bottom, CSTokens.Space.s2)
       ForEach(rows) { row in
         CompeteRowView(row: row) { open(row) }
           .environment(\.csLook, look(row))
+        seasonBookDoor(row)
       }
+    }
+  }
+
+  @ViewBuilder private var finishedSection: some View {
+    if !list.finished.isEmpty {
+      DisclosureGroup(isExpanded: $showsFinished) {
+        ForEach(list.finished) { row in
+          CompeteRowView(row: row) { open(row) }
+            .environment(\.csLook, look(row))
+        }
+      } label: {
+        Text(CompeteRoot.Head.finished).csType(.agate, caps: true)
+          .foregroundStyle(cs.ink)
+          .frame(minHeight: CSTokens.Space.rail, alignment: .leading)
+      }
+      .tint(cs.ink)
+      .padding(.top, CSTokens.Space.s4)
+      .accessibilityIdentifier("compete.finished")
     }
   }
 
@@ -264,6 +237,9 @@ struct CompeteScreen: View {
   /// guessed at (L-44) — but the tab itself is not called failed for it: the
   /// seasons come from a payload that already landed.
   private func countBuddies() async {
+    #if DEBUG
+    if MatchProgrammeFixture.on { return }
+    #endif
     guard store.me != nil else { return }
     if let l = try? await PeopleService().friends() { buddies = l.buddies.count }
   }
@@ -275,7 +251,7 @@ struct CompeteScreen: View {
   /// this page is about to render, in the same type at the same size.
   private var skeleton: some View {
     VStack(alignment: .leading, spacing: 0) {
-      CSSectionHead(CompeteRoot.Head.seasons, weight: .label)
+      CSSectionHead(CompeteRoot.Head.seasons, weight: .programme)
         .padding(.top, CSTokens.Space.s4)
         .padding(.bottom, CSTokens.Space.s2)
       ForEach(0..<2, id: \.self) { i in
@@ -313,40 +289,54 @@ private struct CompeteRowView: View {
     row.rank.map { " \(CSCopy.ordinal($0.place))\($0.tied ? " · Tied" : "") of \($0.of)." }
   }
 
+  private var support: String { row.points != nil ? row.competitionLine ?? row.sub : row.sub }
+
   var body: some View {
     Button(action: onTap) {
-      A11yStack(alignment: .leading, rowAlignment: .center,
-                spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-          Text(row.title).csType(row.kind == .season ? .displayS : .name).foregroundStyle(cs.ink)
-          Text(row.eyebrow).csEyebrow()
-          Text(row.sub).csType(.bodyS).foregroundStyle(row.kind == .season ? cs.ink : cs.mut)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+          Text(row.title).csType(row.kind == .season ? .displayS : .social)
+            .foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Image(systemName: "chevron.right").foregroundStyle(cs.mut)
+            .accessibilityHidden(true)
+        }
+        A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline,
+                  spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+          Text(row.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          if let points = row.points {
+            CSFigure(CSCopy.points(points), size: .m, label: "points")
+          }
+        }
+        if let standing = row.pointsStanding {
+          Text(standing).csType(.bodyS).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+        } else if let rank = row.rank {
+            HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s1) {
+              CSFigure("\(rank.place)", size: .m, label: nil,
+                       ordinal: CSOrdinal.suffix(rank.place))
+              Text("\(rank.tied ? "Tied · " : "")of \(rank.of)").csType(.bodyS).foregroundStyle(cs.mut)
+            }
+            .fixedSize(horizontal: true, vertical: false)
+        }
+        if !support.isEmpty {
+          Text(support).csType(.bodyS).foregroundStyle(cs.mut)
             .fixedSize(horizontal: false, vertical: true)
         }
-        .multilineTextAlignment(.leading)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        if let r = row.rank {
-          // `fixedSize(horizontal: true)` is the same line the round slat
-          // needed: `CSRule` is a bare `Rectangle`, so a figure's stack reads
-          // as FLEXIBLE inside an `HStack` and takes an equal share of it —
-          // the 2pt rule then runs half the page and the sentence beside it
-          // breaks over four lines. The rule is the width of its column (§0.2).
-          CSFigure("\(r.place)", size: row.kind == .season ? .l : .m, label: r.tied ? "Tied · of \(r.of)" : "of \(r.of)",
-                   ordinal: CSOrdinal.suffix(r.place))
-            .fixedSize(horizontal: true, vertical: false)
-            .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)
-        }
       }
-      .padding(.vertical, row.kind == .season ? CSTokens.Space.s4 : CSTokens.Space.s3)
-      .frame(minHeight: 68)
-      .overlay(alignment: .bottom) { CSRule() }
+      .multilineTextAlignment(.leading)
+      .padding(.vertical, CSTokens.Space.s3)
+      .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
       .contentShape(Rectangle())
+      .overlay(alignment: .bottom) { CSRule() }
     }
     .buttonStyle(.plain)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(row.title), \(row.eyebrow).\(spokenRank ?? "") \(row.sub)")
+    .accessibilityLabel("\(row.title), \(row.eyebrow). \(row.points.map { "\(CSCopy.points($0)) points. " } ?? "")\(row.pointsStanding ?? spokenRank ?? "") \(support)")
     .accessibilityHint(row.kind == .season ? "Opens the season" : "Opens it")
-    .accessibilityIdentifier("compete.row." + row.id)
+    .accessibilityIdentifier("compete.row.\(row.id)")
   }
 }
 

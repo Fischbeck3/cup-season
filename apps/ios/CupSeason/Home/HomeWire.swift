@@ -1,389 +1,203 @@
-// Cup Season — THE WIRE, and its five weights (IOS-046, `surfaces/home.md` §1.4).
-//
-// **The wave is one sentence: do not make every feed item visually equal.**
-// The audit's finding is that ceremony night and a brand-new account render as
-// the same card with a different eyebrow word, and four `N league notes` rows
-// with chevrons are a database's GROUP BY drawn as a feed.
-//
-// So five weights, and what differs between them is **how much of the page an
-// item is allowed to take** and **what kind of object leads it**:
-//
-//   1 · a competition moment  a serif sentence with a bone chip — THE LEAD,
-//                             and it is `HomeLead`, not this file
-//   2 · a friend's round      a full-bleed photograph, a 38pt face, a gross
-//                             panel — or, with no photograph, a 68pt slat with
-//                             a right-flush rule-and-figure
-//   3 · a ranked item         a 56pt row at `body` 17 in `ink` with its own
-//                             clock — a clash, a standing, a plan; and a
-//                             course discovery, the day a producer emits one
-//   4 · a season moment       a full-bleed ceremony band, `ceremonyInk` in
-//                             BOTH themes, because a ceremony is a physical
-//                             object and does not re-print when the room does
-//   5 · minor activity        one 44pt line at `bodyS` 15 in `mut`, its date
-//                             stamped at the trailing edge
-//
-// Nothing differs in colour language, radius or container between them,
-// **because there are no containers**. The rhythm is rule · type · photograph ·
-// rule · quiet line, so scrolling reads as a rundown rather than a stack.
-//
-// D280 · AND THE OWNER READ THE SHIPPED WIRE AS A WALL OF TEXT, BECAUSE FOUR
-// OF THE FIVE WEIGHTS HAD NO DATA AND THE FIFTH DREW EVERYTHING. Weights 2 and
-// 4 need a photograph and a finished season; weight 3 has no producer at all
-// (`BUILD_REPORT` §3). So a clash, a standing, a milestone and four `N league
-// notes` counts all rendered as weight 5, ten deep, each behind a 34pt date
-// column. The three answers are here and in `HomePage`: the wire runs under
-// **datelines** with a real size step, the ranked items take **weight 3**, and
-// every league note on the page folds into **one** line at the foot.
+// Cup Season — Home round records. Identity, course and result share the
+// full measure; an optional photograph sits below rather than squeezing facts.
+// The remaining story weights, reactions, and earned ceremonies keep their jobs.
 
 import SwiftUI
+#if DEBUG
+import UIKit
+#endif
 import CSDesign
 import CupSeasonKit
 
 // MARK: - The section head
 
-/// Home's own **block name** — `agate` at `mut` with a 1px rule running to the
-/// margin. Home draws this one rather than taking `CSSectionHead(.label)`,
-/// which still sets its title through `csEyebrow` and the old tracked-mono
-/// voice; that component belongs to every other surface until Wave 8 migrates
-/// it, and changing it here would restyle nine screens that have not had their
-/// wave yet.
-///
-/// **THE HEAVY HEAD IS NOT HERE.** The wire's dateline and Compete's YOUR
-/// SEASONS are the same object — `CSSectionHead(…, weight: .display)` — and
-/// it lives in `CSDesign` because there is ONE section-head idiom in the
-/// product and the surface that proves it is the second one to use it (D286).
+/// Home landmarks stay quiet beside the people and photographs they file.
 struct HomeSectionRule: View {
-  @Environment(\.cs) private var cs
   let title: String
   init(_ title: String) { self.title = title }
-  var body: some View {
-    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-      Text(title).csType(.agate, caps: true).foregroundStyle(cs.mut)
-        .fixedSize()
-        .accessibilityAddTraits(.isHeader)
-      CSRule()
-    }
-  }
+  var body: some View { CSSectionHead(title, weight: .label) }
 }
 
-// MARK: - Weight 2 · a friend's round, with a photograph
+// MARK: - Weight 2 · the programme round, with an optional photograph
 
-/// A full-bleed 2.1:1 band. The face leads it, the sentence sets over the
-/// scrim's own leading anchor, and the gross sits in the **bone** panel in both
-/// themes — a photograph carries its own dusk, and the light theme's ink panel
-/// would vanish into it.
-///
-/// D361 · **THE BAND READS ITS PICTURE FROM `HomePhotoStore`, KEYED BY THE
-/// ROUND'S OWN PATH.** `AsyncImage(url:)` was the only memory the picture had,
-/// and it forgot on every change of URL — which every refresh caused — and on
-/// every transient failure, which it drew as "no photograph". Now: a loading
-/// band keeps the last good picture, or shows its frame with the score and
-/// course in place at the same height; a transient miss keeps the last good
-/// picture; only a round with no attachment, a removed one, or a withdrawn
-/// grant becomes the record. Loading one round's picture cannot touch another's.
 struct HomeWireBand: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
   let row: HomeFeedRow
   let photo: URL?
   var photos: HomePhotoStore = .shared
-  /// the storage refused this path on the last load — the object is gone or not ours
-  var denied: Bool = false
-  /// W3 twin · the round's hole count when this client knows it (`KnownHoles`);
-  /// nil claims no sub-80 and prints a plain GROSS
+  var denied = false
+  var showDay = true
   var holes: Int? = nil
   let open: () -> Void
   let openPerson: () -> Void
-
-  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared, denied: Bool = false, holes: Int? = nil,
-       open: @escaping () -> Void, openPerson: @escaping () -> Void) {
-    self.row = row; self.photo = photo; self.photos = photos; self.denied = denied; self.holes = holes
-    self.open = open; self.openPerson = openPerson
-  }
   private var credential: HomePhotoStore.Credential {
     if let photo { return .url(photo) }
     return denied ? .denied : .unavailable
   }
-
-  private var name: String { HomeCopy.who(row) }
-  private var line: String { HomeWireCopy.roundLine(row, holes: holes) }
-  private var state: HomePhotoStore.State { photos.state(for: row.photo_path) }
-
-  /// §16.3 · **AT THE ACCESSIBILITY SIZES THE COPY LEAVES THE PHOTOGRAPH.** A
-  /// 168pt band holds a name, a line and a gross at the reading sizes. At AX3
-  /// the line alone runs five lines, and a long name that wraps whole — as a
-  /// name must — broke INSIDE its words in the column between the face and
-  /// the gross (`Maximili / an`) and printed through the credit at the band's
-  /// head. So the picture keeps its 168 and its credit, and the copy sets
-  /// under it on the page's own ground: the face and the gross on one row,
-  /// then the name and the line at the full measure — the credential's own
-  /// rule for its identity at these sizes (§6.7, §6.8).
-  private var copyLeavesThePicture: Bool { typeSize.isA11y }
-
-  var body: some View {
-    Group {
-      switch state {
-      case .loaded(let img):
-        band(Image(uiImage: img))
-      case .loading(let prior):
-        if let prior { band(Image(uiImage: prior), loading: true) } else { frame }
-      case .failed(let prior):
-        if let prior { band(Image(uiImage: prior)) }
-        else { HomeWireSlat(row: row, open: open, openPerson: openPerson, holes: holes).padding(.horizontal, CSTokens.Space.gutter) }
-      case .none, .removed:
-        HomeWireSlat(row: row, open: open, openPerson: openPerson, holes: holes).padding(.horizontal, CSTokens.Space.gutter)
-      }
-    }
-    .task(id: credential) { photos.load(path: row.photo_path, credential: credential) }
+  @ViewBuilder var body: some View {
+    #if DEBUG
+    if let photo, photo.isFileURL, let image = UIImage(contentsOfFile: photo.path) {
+      record(Image(uiImage: image))
+    } else { cachedRecord }
+    #else
+    cachedRecord
+    #endif
   }
-
-  /// The band's own geometry while the first fetch is out: the same 168pt,
-  /// the copy row in place — name, line and gross — over the raised ground.
-  /// The score and the course never wait for the picture.
-  private var frame: some View {
-    Button(action: open) {
-      Group {
-        if copyLeavesThePicture {
-          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-            cs.bg1.frame(maxWidth: .infinity).frame(height: 168)
-            copyRow(onPhoto: false)
-          }
-        } else {
-          ZStack(alignment: .bottomLeading) {
-            cs.bg1.frame(maxWidth: .infinity).frame(height: 168)
-            copyRow(onPhoto: false)
-          }
-        }
-      }
-      .frame(maxWidth: .infinity)
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(name). \(line)")
-    .accessibilityHint("Photo loading. Opens the round")
-    .accessibilityAction(named: Text("Open golfer"), openPerson)
-    .accessibilityIdentifier("home.round.photo-loading")
+  private var cachedRecord: some View {
+    // Keep D361's last good image through expired credentials/transient misses.
+    // Until a picture exists, the complete programme record owns the space.
+    record(photos.state(for: row.photo_path).image.map { Image(uiImage: $0) })
+      .task(id: credential) { photos.load(path: row.photo_path, credential: credential) }
   }
-
-  @ViewBuilder private func copyRow(onPhoto: Bool) -> some View {
-    if copyLeavesThePicture {
-      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-        HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-          face
-          Spacer(minLength: CSTokens.Space.s3)
-          if let g = row.gross { gross(g, onPhoto: false) }
-        }
-        words(onPhoto: false)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, CSTokens.Space.gutter)
-      .padding(.bottom, CSTokens.Space.s3)
-    } else {
-      HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
-        face
-        words(onPhoto: onPhoto)
-          .frame(maxWidth: .infinity, alignment: .leading)
-        if let g = row.gross { gross(g, onPhoto: onPhoto) }
-      }
-      .padding(.horizontal, CSTokens.Space.gutter)
-      .padding(.bottom, CSTokens.Space.s3)
-    }
+  private func record(_ image: Image?) -> some View {
+    HomeProgrammeRound(row: row, photo: image, showDay: showDay, holes: holes,
+                       open: open, openPerson: openPerson)
   }
-
-  private var face: some View {
-    CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
-      .frame(width: 44, height: 44)
-      .contentShape(Rectangle())
-      .onTapGesture { openPerson() }
-  }
-
-  private func words(onPhoto: Bool) -> some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-      // §1.3 · a person in a wire row is never caps. A long name WRAPS WHOLE
-      // (never an ellipsis): the band printed `Maximilian Placeholder-Wor…`.
-      Text(name).csType(.social).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
-      Text(line).csType(.bodyS).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-  }
-
-  private func gross(_ g: Int, onPhoto: Bool) -> some View {
-    CSPanel(onPhoto ? .overPhoto : .page, unit: HomeWireCopy.grossUnit(holes: holes), width: 60, height: 60) {
-      Text("\(g)").csType(.figureM)
-    }
-  }
-
-  /// The picture alone, at its 168, with the credit riding its head — the
-  /// accessibility sizes' band, whose copy sets under it.
-  private func picture(_ image: Image) -> some View {
-    ZStack(alignment: .top) {
-      image.resizable().scaledToFill()
-        .frame(maxWidth: .infinity)
-        .frame(height: 168)
-        .clipped()
-      CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
-      Text(HomeWireCopy.photoCredit(row)).csType(.agateS, caps: true)
-        .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
-        .multilineTextAlignment(.trailing)
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(CSTokens.Space.s3)
-    }
-    .frame(height: 168)
-    .clipped()
-  }
-
-  func band(_ image: Image, loading: Bool = false) -> some View {
-    Button(action: open) {
-      if copyLeavesThePicture {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-          picture(image)
-          copyRow(onPhoto: false)
-        }
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
-      } else {
-        ZStack(alignment: .bottomLeading) {
-          image.resizable().scaledToFill()
-            .frame(maxWidth: .infinity)
-            .frame(height: 168)
-            .clipped()
-          // the two named geometries, used as named: `.band` for the copy at the
-          // leading edge, `.top` for the credit riding the head of the picture
-          CSPhotoScrim.layer(CSPhotoScrim.band, leading: true)
-          CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
-            .frame(maxHeight: .infinity, alignment: .top)
-          VStack(alignment: .trailing) {
-            Text(HomeWireCopy.photoCredit(row)).csType(.agateS, caps: true)
-              // §10.3's sixth conflict: `.top` reaches only a72, so a caption
-              // under it takes `scrimInk` and not `scrimMut`.
-              .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
-            Spacer(minLength: 0)
-          }
-          .frame(maxWidth: .infinity, alignment: .trailing)
-          .padding(CSTokens.Space.s3)
-          copyRow(onPhoto: true)
-        }
-        .frame(maxWidth: .infinity)
-        .clipped()
-        .contentShape(Rectangle())
-      }
-    }
-    .buttonStyle(.plain)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(name). \(line)")
-    .accessibilityHint(loading ? "Photo refreshing. Opens the round" : "Opens the round")
-    .accessibilityAction(named: Text("Open golfer"), openPerson)
-    .accessibilityIdentifier("home.round.photo")
-  }
+  #if DEBUG
+  // Existing visual probes inject a loaded picture through this entry point.
+  func band(_ image: Image) -> some View { record(image) }
+  #endif
 }
 
-/// D360 · **A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD**, complete and
-/// worth keeping. D340 gave it course and gross; this gives it the shape the
-/// desk's `.hfrecord` has: a quiet identity row (face, name, day), the course
-/// as the title with the gross on the same rule in the tournament figure and
-/// labelled, ONE story under the rule, and the reactions row that follows in
-/// the wire as its foot. Fine rules, the receipt's contour behind the title
-/// at the `.cs-topohead` opacity, tighter than the tall treatment it
-/// replaces — the figure at `l` rather than `xl`, the story in body rather
-/// than the serif, no heavy bar. No slot for the picture that is not there,
-/// no invented achievement, no decorative ember.
 struct HomeWireSlat: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
   let row: HomeFeedRow
+  var showDay = true
   let open: () -> Void
   let openPerson: () -> Void
-  /// The competition's consequence, when the caller holds it (see
-  /// `HomeWireCopy.roundStory`). Home has none to pass today.
   var points: Int? = nil
   var monthRank: Int? = nil
   var cap: Int? = nil
-  /// W3 twin · see `HomeWireBand.holes`
   var holes: Int? = nil
+  var body: some View {
+    HomeProgrammeRound(row: row, showDay: showDay, holes: holes,
+                       points: points, monthRank: monthRank, cap: cap,
+                       open: open, openPerson: openPerson)
+  }
+}
+
+/// Full-measure facts, with optional imagery below. Golfer and round remain
+/// independent targets; large text reflows identity before the result.
+private struct HomeProgrammeRound: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
+  let row: HomeFeedRow
+  var photo: Image? = nil
+  var showDay = true
+  var holes: Int? = nil
+  var points: Int? = nil
+  var monthRank: Int? = nil
+  var cap: Int? = nil
+  let open: () -> Void
+  let openPerson: () -> Void
 
   private var name: String { HomeCopy.who(row) }
-  private var course: String {
-    row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded"
+  private var day: String? { HomeWireCopy.dayMarker(row.played_on) }
+  private var course: (club: String, tee: String?) {
+    HomeWireCopy.courseTitle(row.course ?? "")
   }
-  private var story: String? { HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes) }
+  private var story: String? {
+    HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes)
+  }
+  private var spoken: String {
+    let line: String
+    if let points, let monthRank,
+       let story = HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes),
+       let gross = row.gross {
+      line = "\(gross) at \(course.club.isEmpty ? "Course not recorded" : row.course ?? course.club). \(story)"
+    } else { line = HomeWireCopy.roundLine(row, holes: holes) }
+    return [name, line, day].compactMap { $0 }.joined(separator: ". ")
+  }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      // the quiet identity row · the person is a door of their own
-      HStack(spacing: CSTokens.Space.s2) {
-        Button(action: openPerson) {
-          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .slat, name: name)
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      HStack(alignment: .top, spacing: CSTokens.Space.s2) {
+        person
+        Button(action: open) {
+          A11yStack(alignment: .leading, rowAlignment: .top,
+                    spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+              Text(name).csType(.social).foregroundStyle(cs.ink)
+                .fixedSize(horizontal: false, vertical: true)
+              if showDay, let day {
+                Text(day).csType(.agateS).foregroundStyle(cs.mut)
+              }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if let gross = row.gross {
+              VStack(alignment: .trailing, spacing: CSTokens.Space.s1) {
+                CSFigure("\(gross)", size: .l, label: nil)
+                Text(HomeWireCopy.grossUnit(holes: holes)).csType(.agateS, caps: true)
+                  .foregroundStyle(cs.mut)
+              }
+              .fixedSize(horizontal: !typeSize.isA11y, vertical: true)
+            }
+          }
+          .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Open golfer card: \(name)")
-        // a long name wraps whole, as on the band above
-        Text(name).csType(.social).foregroundStyle(cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
-          .frame(maxWidth: .infinity, alignment: .leading)
-        if let day = HomeWireCopy.dayMarker(row.played_on) {
-          Text(day).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-        }
+        .multilineTextAlignment(.leading)
+        .accessibilityLabel(spoken)
+        .accessibilityHint("Opens the round")
+        .accessibilityIdentifier("home.round.\(row.round_id?.uuidString ?? "unknown")")
       }
-      .padding(.vertical, -CSTokens.Space.s1)
-
-      // the scorecard's header row and everything under it opens the round
       Button(action: open) {
-        VStack(alignment: .leading, spacing: 0) {
-          A11yStack(alignment: .leading, rowAlignment: .bottom, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-            // W3 twin · the club in `social`, the tee after it in `mut`
-            let title = HomeWireCopy.courseTitle(course)
-            (Text(title.club).foregroundStyle(cs.ink)
-              + Text(title.tee.map { " · \($0)" } ?? "").foregroundStyle(cs.mut))
-              .csType(.social)
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(course.club.isEmpty ? "Course not recorded" : course.club)
+            .csType(.bodyS).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+          if let tee = course.tee {
+            Text(tee).csType(.bodyS).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .padding(.bottom, CSTokens.Space.s1)
-            if let gross = row.gross {
-              HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-                Text("\(gross)").csType(.figureL).foregroundStyle(cs.ink)
-                Text(HomeWireCopy.grossUnit(holes: holes)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-              }
-              .fixedSize()
-            }
           }
-          .padding(.top, CSTokens.Space.s2)
-          .padding(.bottom, CSTokens.Space.s1)
-          .background(alignment: .leading) {
-            // restrained: the receipt's own contour, the section head's opacity,
-            // behind the title and never behind the figure (§10.2)
-            CSTopoField(.page, tint: cs.mut.opacity(CSTokens.Alpha.a16))
-              .frame(width: 130, height: 56)
-              .padding(.leading, 120)
+          if let story {
+            Text(story).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
           }
-          CSRule()
-          // the one story, and the way in — said, not only hinted
-          HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
-            if let story {
-              Text(story).csType(.bodyS).foregroundStyle(cs.mut)
-                .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-            Text("Receipt ›").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-              .fixedSize()
-          }
-          .padding(.top, CSTokens.Space.s2)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityIdentifier("home.round.no-photo")
-      .accessibilityElement(children: .ignore)
-      .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row, holes: holes))")
-      .accessibilityHint("Opens the round")
+      .multilineTextAlignment(.leading)
+      // The adjacent round control speaks the complete course, tee and story.
+      .accessibilityHidden(true)
+      if let photo {
+        Button(action: open) {
+          Color.clear
+            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .overlay {
+              GeometryReader { proxy in
+                photo.resizable().scaledToFill()
+                  .frame(width: proxy.size.width, height: proxy.size.height)
+                  .clipped()
+              }
+              // A fill image can extend beyond its drawn crop. Only the
+              // bounded photo control owns touches, never that image overlay.
+              .allowsHitTesting(false)
+            }
+            .clipped()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHidden(true)
+      }
     }
-    .padding(.top, CSTokens.Space.s2)
+    .padding(.vertical, CSTokens.Space.s3)
+    .accessibilityElement(children: .contain)
+  }
+
+  private var person: some View {
+    Button(action: openPerson) {
+      CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+        .frame(minWidth: CSTokens.Space.rail, minHeight: CSTokens.Space.rail)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("View \(name)'s golfer card")
+    .accessibilityIdentifier("home.round.person.\(row.profile_id?.uuidString ?? "unknown")")
   }
 }
+
 
 /// The reaction line under a round — the tokens GIVEN with their counts, a
 /// `+` that reveals the rest, and the day flush right.
