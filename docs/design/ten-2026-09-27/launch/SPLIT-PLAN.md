@@ -150,13 +150,31 @@ that is already wired, refuses and writes nothing, naming the file. All of it is
 - `readFileSync(… 'index.html' …)` becomes `readAppSource(root)` in:
   - `tests/attribution-trace.test.mjs`, `homefold.test.mjs`, `post-request.test.mjs`, `rating.test.mjs`,
     `sunningdale.test.mjs`, `trophycase.test.mjs`, `season-book.test.mjs`, `share-consent-flow.test.mjs`,
-    `ten-report.mjs` (disk path), `ten-lock-probe.mjs`;
+    `ten-lock-probe.mjs`;
   - `tools/build-markers.mjs`, `tools/extract-strings.mjs`.
+- `package.json`'s description: "a single static index.html" becomes "a static index.html plus
+  app/classic.js and app/module.js". It is only true after the split, so it rides the apply.
   Put each import directly after the file's FIRST `import` line. `build-markers.mjs` emits an
   `import SwiftUI` inside a template string, and an import placed after the "last import line" landed in
   the generated Swift. Preflight caught that as "Markers.swift is stale".
 - `tools/deploy-status.mjs`: add `'app'` to the client paths, or an `app/*.js`-only change reads as "no
   client push owed".
+
+**Already split-aware on this branch, and unchanged on an unsplit tree** (no `wire` step needed):
+- `tests/ten-capture.mjs`
+  - **Served bytes:** it hashes each `/app/*.js` it serves into the row's `documentsServed`, keyed
+    `/app/classic.js` / `/app/module.js` with the query dropped. D's `provenance-r3.py` maps that key to
+    `git show <sha>:app/<file>`, so it proves every served byte against the commit with no change to D's
+    tool.
+  - **Disk and dirty:** `indexSha256Disk` keeps its meaning. `appSha256Disk`, `appSha256DiskAfter` and
+    `joinedSha256Disk` are added (split trees only), and `indexDirty` now covers `app/` too.
+  - **Console attribution:** a frame in `/app/<file>` gets `indexLine` in the joined numbering
+    (`joinedLineOffsets`), so the report's source column survives the split.
+- `tests/ten-report.mjs`: both source paths read the joined file. The disk path uses
+  `readAppSource(root, { strict: false })`. The `--ref` path uses `git show <sha>:index.html` plus
+  `git show <sha>:app/<file>` through `appSourceOf`.
+- `tests/fixtures/season-book/build-review.py`: on a split tree it reads
+  `node tools/split-scripts.mjs join`.
 
 **Everything above lands with the apply**: `split` + `wire` in one commit. The follow-ups below are
 not exercised by tonight's proof.
@@ -165,11 +183,11 @@ not exercised by tonight's proof.
 |---|---|---|
 | CLAUDE.md's Architecture wording (proposal in §9) | **with the apply** (owner / root) | Otherwise every session starts from "single-file PWA, four blocks", which is false after the split. |
 | AGENTS.md line 101 ("single-file PWA in `index.html`") | **with the apply** (root) | Same reason, for Codex sessions. |
-| `tests/ten-capture.mjs` provenance (`diskIndexSha`, `gitDirty`) | **before the first capture round on a split tree** (the first post-launch round) | Tomorrow's proof pair compares PNG bytes directly and does not rely on it. A gallery built after the split would claim provenance over `index.html` only. |
-| `tests/ten-capture.mjs` `indexLine` / `ten-report.mjs` columns | can wait | Triage only. Pass/fail and the normal/exception counts are unchanged. |
-| `tests/ten-report.mjs` `git show <sha>:index.html` path | can wait | Only `--ref` reports on split commits hit it. |
-| `tests/fixtures/season-book/build-review.py` | can wait | Run by hand (its README); no gate calls it. It breaks the first time it runs on a split tree, so fix it before that. |
-| `package.json` description ("ships as a single static index.html") | can wait | Documentation. |
+| `tests/ten-capture.mjs` provenance + `indexLine` | **built on this branch** (lands with the branch) | Proven: `provenance-r3.py` holds every served byte, `app/*.js` included, to `git show` of the scratch split commit (§7). |
+| `tests/ten-report.mjs` both source paths | **built on this branch** | Reads the joined source from disk or from `git show`. |
+| `tests/fixtures/season-book/build-review.py` | **built on this branch** | Byte-identical output on the split and unsplit trees. |
+| `package.json` description | **in `wire`** (with the apply) | True only after the split. |
+| `season-book.test.mjs` into CI's unit step | root's call (not done here) | It is the only `tests/*.test.mjs` CI does not run, which is why it went red unseen at `561d5c12`. Its fix is on this branch (`a9ed6d06`). |
 
 Details:
 - `tests/ten-capture.mjs`
@@ -221,7 +239,7 @@ cd <integration worktree>              # clean tree, every lane merged
 git log -1 --format=%H                 # record the head the split is applied to
 node tools/split-scripts.mjs split --dry           # refuses on any other shape; prints sizes
 node tools/split-scripts.mjs split                 # writes index.html + app/*.js; re-joins from disk and compares sha256
-node tools/split-scripts.mjs wire --dry            # lists the 16 files it will edit; refuses on any moved anchor
+node tools/split-scripts.mjs wire --dry            # lists the 16 files it will edit (15 + package.json); refuses on any moved anchor
 node tools/split-scripts.mjs wire                  # §4's edits: stamp-version.sh, sw.js (never its VERSION line), preflight, the readers
 git diff --stat                                    # index.html, app/ (new), and exactly those 16 files
 node tools/split-scripts.mjs check                 # [split] ok · round trip exact · joined sha256 …
@@ -238,6 +256,9 @@ Then the proof pair, with the pre-split head as the control:
 2. `node tests/ten-capture.mjs --root <split tree> --port <p> --out <A> --only door,home --widths 402 --themes dark --workers 1`,
    then the same with `--root <pre-split scratch>` and `--out <B>`. Pass: 0 errors and 0 page errors on
    both, and every PNG in A byte-identical to B (tonight: 85/85).
+   Then, with the split commit's sha: `python3 <gallery>/evidence/r3-prep/tools/provenance-r3.py --sha <split sha> --gallery <A> --snap <split tree> --repo <integration checkout>`.
+   Pass: `usable: true`, with `documents` listing `/`, `/app/classic.js` and `/app/module.js`, each
+   `match: true`. It is D's tool, unchanged.
 3. `node tools/split-scripts-measure.mjs --before <pre-split scratch> --after <split tree> --out <M> --cpu 4 --runs 3`.
    Pass: no errors or gaps, both files served, main-thread compile lower, CLS unchanged.
 4. One commit, `Q12 · split index.html's two script blocks into app/ (tools/split-scripts.mjs)`, with the
@@ -273,6 +294,41 @@ and one in the module block came back as exactly those two hunks in `app/classic
 moved.
 
 ## 7 · Evidence tonight (prototype on `git archive e033161d`, scratch only)
+
+**Capture provenance and attribution on a split tree (19:28–20:00 MST).** The split of `e033161d`,
+wired, was committed in a scratch git repo (`8610ce87`, then `333258df` with the final harness). Nothing
+there is a real commit.
+- **Provenance.** `ten-capture` ran door + home at 402 dark: 50 captures, 0 errors. D's
+  `provenance-r3.py`, unchanged, run with `--sha <scratch commit> --snap <tree> --repo <scratch repo>`,
+  reports **`usable: true`**:
+  - 50/50 rows served the commit's `index.html`;
+  - `documents` holds `/`, `/app/classic.js` and `/app/module.js`, each with `match: true` over 50 rows
+    against `git show <sha>:<file>`;
+  - `indexDirty` is false and no harness file is dirty.
+  - The manifest's `joinedSha256Disk` is `4cd3173c0c75…`: the pre-split `index.html`'s hash, carried by
+    the split tree.
+- **Controls.** Both runs used one byte appended to `app/module.js`, uncommitted:
+  - the new harness gives `usable: false`, "served documents differ from the commit: /app/module.js"
+    plus "manifest says index.html was dirty";
+  - the harness at `e033161d` gives **`usable: true`**, having served and checked only `/`. The tampered
+    script goes unseen: this is the gap the change closes.
+- **Attribution.** Of 209 console messages, 183 carry `indexLine`, the same count as the unsplit run
+  (was 50 before the change). The (text, `indexLine`, call chain) triples are identical on all 50 rows.
+  `ten-report`'s console table is **identical** to the unsplit report's, through the disk path and
+  through the `git show` path. The report tool at `e033161d`, run on the same manifest, differs in 12
+  lines (wrong source text). Item 1 alone (served-bytes hashing, attribution untouched) attributes 3 of
+  12 messages on the three-state check, against 12 of 12 with item 2.
+- **Unsplit trees are unchanged.** On `e033161d` the new harness writes the same manifest keys and the same
+  rows as the harness at `e033161d`. The only difference is one row's `supabaseRequests` (80 vs 79), a
+  count that also moves between 79 and 80 across runs of the old harness alone on the same tree.
+- **Pixels.** 83/85 PNGs are byte-identical to the unsplit tree's. The two that are not
+  (`door/code-error` at 375×380 and 402) also differ between two runs of the old harness on the unsplit
+  tree itself: timed states, not the split.
+- **Cost.** Reading the two script bodies from the response takes 122–196 ms per file, in parallel, and
+  only on a split tree. The machine's load average was 185–220 during these runs, so wall times are noise.
+- **`build-review.py`.** Its output is byte-identical on the split tree, on the unsplit tree, and against
+  the original script on the unsplit tree (868,460 B). Control: the original script on the split tree
+  fails with `ValueError: substring not found`.
 
 **Re-proof with the R13 bridge (19:14–19:16 MST, the committed tool).** On a fresh
 `git archive e033161d`, run `split` + `wire`:
