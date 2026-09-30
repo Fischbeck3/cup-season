@@ -1,6 +1,19 @@
 import XCTest
 
 final class N2DoorUITests: N2UITestCase {
+  @MainActor func testQ5BuildIsHiddenUntilThePennantIsHeld() {
+    let app = launch("signed-out", "door")
+    _ = root(app, "door")
+    XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "v1 · build")).firstMatch.exists)
+    let pennant = app.descendants(matching: .any)["door.buildReveal"].firstMatch
+    XCTAssertTrue(pennant.waitForExistence(timeout: 10))
+    pennant.press(forDuration: 1)
+    XCTAssertTrue(app.alerts["Build"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.alerts["Build"].staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "v1 · build")).firstMatch.exists)
+    app.alerts["Build"].buttons["Close"].tap()
+    XCTAssertFalse(app.alerts["Build"].exists)
+  }
+
   // MARK: R02 · the Door
 
   /// The email action names what it does, one fact sits beside it, and every

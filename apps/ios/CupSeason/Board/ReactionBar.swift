@@ -107,8 +107,9 @@ struct ReactionBar: View {
           .foregroundStyle(cs.ink)
           .padding(.horizontal, CSTokens.Space.s3)
           .frame(minHeight: 44)
-          // §7.2 · a field has no border
+          // Q46 · the field keeps its visible mut edge
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+          .csFieldEdge()
           .submitLabel(.send)
           .onSubmit(send)
         Button("Send", action: send).buttonStyle(.csTertiary(.content))

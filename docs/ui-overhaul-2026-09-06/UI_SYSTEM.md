@@ -1054,9 +1054,11 @@ underline *is* the affordance, taking it below 3:1 stops it being a control. `CS
 |---|---|---|---|---|
 | **Chip** | 28pt tall, `p` 3, `agate` label, `s3` horizontal padding | `bg2` fill, `mut` label | **inverts to the panel** — `panel` fill, `panelInk` label | `bg1`, `dim` |
 | **Segment** | 44pt row, **no pill** | `agate` in `mut`, 2px transparent underline | `ink` label, 2px **`ink`** underline — never ember, because a tab is not live | — |
-| **Field** | 50pt, `rc` 10, `bg2` fill, **no border** | value in `body` 17 (SF) — `column` 17 only for a code, handle, time or score | focus: **2px `brand`** ring | `bg1` fill, `mut` value |
+| **Field** | 50pt, `rc` 10, `bg2` fill, **opaque `mut` edge (Q46)** | value in `body` 17 (SF) — `column` 17 only for a code, handle, time or score | focus: **2px `act`** ring (D359) | `bg1` fill, `mut` value |
 | **Stepper** | 44pt, `bg2`, value in `figure` 20, **bare — no ring and no box** (§9.4: the score mark and the input are not the same object; a circled numeral between a − and a + reads as *selected*, not as a birdie). The field is the numeral's own underline | `.selection` haptic per step | — | — |
 | **Sheet** | `rs` 24 top corners, `bg0` ground, drag pill in `rule`, a `rule` under the header | — | — | — |
+
+**Q46 amendment (2026-09-29), [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md):** filled fields on both clients keep an opaque `mut` edge with at least 3:1 contrast against their adjacent grounds. Focus is an additional state, not the only way to find the field.
 
 **The field family, in full** (the audit's "inputs" item, which the product answers with two states and
 a cliff between them): **label** in agate above · **value** · **caption** in `body` 15 at `mut` beneath,
@@ -1609,7 +1611,7 @@ and `SUN · SEP 6` at `agate` 11 measures 65pt — 234 of the 362pt measure, com
 wordmark is capped at ×1.6 (48pt → 271pt) and even a capped `agate` dateline is 141pt: 412 into 362, so
 the single row fails at AX2. **At AX1 and above the dateline leaves the wordmark's line and sets flush
 left beneath it**, with the 2pt rule following both; the wordmark **wraps to two lines rather than
-truncating**, because it is the product's name and §9.1's tail-ellipsis policy must never reach it.
+truncating**, because it is the product's name and §9.1 requires full names to wrap too.
 
 ---
 
@@ -1931,7 +1933,7 @@ No Phase-2 direction rendered an AX3 artboard; `cs-system-c` does, and this is w
 
 | Layout | Default | AX1 | AX3 |
 |---|---|---|---|
-| **The masthead** | pennant + wordmark + dateline flush right, on one baseline over the 2pt rule | **the dateline leaves the line** and sets flush left beneath the wordmark; the rule follows both | as AX1, and the wordmark **wraps to two lines rather than truncating** — it is the product's name, and §9.1's tail-ellipsis policy never reaches it |
+| **The masthead** | pennant + wordmark + dateline flush right, on one baseline over the 2pt rule | **the dateline leaves the line** and sets flush left beneath the wordmark; the rule follows both | as AX1, and the wordmark **wraps to two lines rather than truncating** — it is the product's name, and full names wrap under §9.1 too |
 | **Any `agate` line** | one line, `·`-separated clauses | capped at ×2.2 (11 → 24.2pt) | capped; a multi-clause line that still does not fit **breaks on its `·` separators into stacked lines** and the block grows the page |
 | **The lead block** | headline + standfirst left, panel right | panel drops below the standfirst | **the panel goes full width, above the headline**, its numeral and label side by side with the movement mark; the headline follows |
 | **The ME strip / any figures-on-a-rule** | 4 cells on one rule | 2 × 2, each pair on its own rule | a stacked list, each cell a slat with the label leading and the figure trailing |
@@ -2190,7 +2192,7 @@ code.**
 | **the course plate** | `CSCoursePlate` | the course hero: plate + `CSPhotoScrim.title` + the reversed name + the credit | the course page |
 | **the course facts line** | `CSFactsLine` | `72 PAR · 7,068 YDS · 72.5 RTG · 130 SLOPE`, one line of type | the course page |
 | **the rating** | `CSRating` | the rule-and-figure at 40 in `ink` + `CSStarRail` + the sentence + the link (§9.11) | the course page, the rating sheet |
-| **the star rail** | `CSStarRail` | five drawn stars, filled `ink` / unfilled `rule`, half by clipping; the 362 × 56 drag target + a 44pt stepper pair (§16.2) | ratings |
+| **the star rail** | `CSStarRail` | five drawn stars, filled `ink` / unfilled `rule`, half by clipping; five 44pt star targets + 44pt half-step controls, reflowing as needed (§16.2, Q34) | ratings |
 | **the pull quote** | `CSQuote` | the course page's one serif appearance | the course page |
 | **the folio** | `CSFolio` | the credential's rule + serial line, `folioRule` | the credential, the share PNG |
 | **the tick row** | *retired* | see `CSSeasonCalendar` | — |
@@ -2272,7 +2274,7 @@ material changes to the set, each traceable to two or three independent findings
 (a) On `cs-season` the ledger line's second line sits under the scroll fade at the default size — the
 band is correct but wants ~14pt more room, or the ledger line wants to be one line on the phone.
 (b) On `cs-season` row 02 the points column touches the right gutter because the mockup's name is at
-full width; on a device the tail-ellipsis policy in §9.1 takes effect first, and the column keeps its
+full width; on a device names wrap whole under §9.1 (Q34), and the column keeps its
 20pt margin.
 (c) On `cs-system-a` the pigment row is clipped by the artboard's foot; all six discs and the medallion
 are in the HTML and render at full height in a taller frame.
@@ -2281,7 +2283,7 @@ are in the HTML and render at full height in a taller frame.
 photo (§10.4) — the contour, at plate scale, under the measured scrim. No face is fabricated anywhere
 in the set.
 (f) On `season-squads` Tash Bell's clause line (`Roadrunners · 3 rounds · held`) clips at the mockup's
-fixed column width; on a device §9.1's tail-ellipsis policy takes effect first and the clause truncates
+fixed column width; on a device §9.1 (Q34) wraps the full name and the row grows
 cleanly. The channel it is proving — swatch plus squad name — renders correctly on all six rows.
 (g) On `player-card-in-list` the lower third is deliberately empty: it is a clash with nothing under
 it, and it looks sparse in a 402 × 874 frame that cannot scroll. `home-new`'s void was filled after the
@@ -2340,11 +2342,11 @@ in the artboards. These are the findings **declined**, each with its reason.*
 | blind-1 | "Drop the emoji reaction row (fire/club counts) and render reactions as small-caps counts in the system's own type — it is the only place in 34 renders where another app's language got pasted in." | **Emoji reactions are canon** (`spec/`, the owner's brief's own constraint, and §5.3 which already fences them to exactly this one site). The reviewer is right that it is the only place another product's language appears; that is deliberate, because a reaction is the one thing in this product a golfer *sends* rather than reads, and inventing a proprietary glyph for it would be the over-design §33 bans. **The craft half is taken**: the count beside each emoji is now `agateS` in the system's own face, baseline-aligned, instead of `colS` mono — so the emoji is the only foreign object, and the number beside it is ours. |
 | blind-2 | "Give the friend-round row a real face. Photo first, topo only as the empty state." | **Half-taken, half-declined, and the half declined is canon.** The row now leads with a *photograph* (the round photo, rung 1) rather than the contour — that is the reviewer's substance and it is done. **A face is not drawn**, in this deck or in the product's demo diorama, because the no-fabricated-faces rule is canon and §6.3/§6.4 make the marker the guaranteed floor. A real golfer's avatar renders there when one exists; a mockup that invented one would be flattering the design with an asset the product cannot produce. |
 | blind-3 | "Replace the every-meeting bar chart with eleven W/L pills in a row, tappable to the round." | **Declined in favour of the cheaper fix the other two reviewers asked for.** blind-1 called the same graphic "an original scoreboard graphic … one caption away from being unambiguous" and blind-2 asked only for a key. It now carries one: `One square is one win.` under the axis. Eleven pills is a different, more conventional object; the tape is the surface's one proprietary chart and the review says it works once labelled. |
-| blind-3 | "Drop the steppers from the rating sheet — tap-and-drag the stars." | **Declined on the accessibility floor.** Ten half-star targets do not fit a 362pt measure (10 × 44 = 440), so the drag rail's half-star hit region is 28pt — below §16.2's 44pt floor. The stepper pair *is* the accessible path and is why the drag rail is legal at all. **The other half of the finding is taken**: the sheet's three exits became two (`TAKE MY RATING OFF` is gone from a sheet where no rating exists yet). |
+| blind-3 | "Drop the steppers from the rating sheet — tap-and-drag the stars." | **Historical response, superseded by Q34 / [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md), 2026-09-29:** every star target now meets 44pt; half steps remain on 44pt controls. The old carve-out below no longer governs. **Originally declined on the accessibility floor.** Ten half-star targets do not fit a 362pt measure (10 × 44 = 440), so the drag rail's half-star hit region is 28pt — below §16.2's 44pt floor. The stepper pair *is* the accessible path and is why the drag rail is legal at all. **The other half of the finding is taken**: the sheet's three exits became two (`TAKE MY RATING OFF` is gone from a sheet where no rating exists yet). |
 | blind-2 | "The 'THE WIRE' hairline label over what is self-evidently a feed." | **Declined.** It is not self-evident: on Home the wire sits directly under a four-figure stat rail and a lead block, and without the head the first wire item reads as a fifth element of the lead. The head also carries the surface's one named object, which §15.1 uses to keep HOME's character distinct from COMPETE's. It costs 14pt. |
 | blind-3 | "Label the money column: '−$20' alone on a personal profile with no adjacent word is a support ticket." | **Declined as already done.** The column sits under a `MONEY` head in the record table, which is exactly what §16A.3 requires. The reviewer read the figure in isolation; in the artboard it is the fourth column of a headed table. |
 | blind-1 | "Say the ledger line on money surfaces only" *and* blind-3 "print it once, small, at the bottom of money surfaces only" — **plural**. | **Taken further than filed.** It is printed **once in the product**, not once per money surface (§16A.1). Three money-adjacent surfaces would have meant three printings, which is the disease at a smaller dose. |
-| blind-2 | "Abbreviate to 'P. Raghunathan' before you ever ellipsize, tighten rows from ~100px to ~76px so eleven fit cleanly." | **First half taken, second declined.** The abbreviation is now §9.1's rule. **The row does not shrink**: 50pt is the slat's height at the default size and it is what makes the rail's 44pt figure and the two-line name/sub-line legal at AX3 (§16.3). Fitting one more row by shrinking every row is the trade §25 forbids. The twelfth row fits because the ledger sentence left the header, which cost the design nothing. |
+| blind-2 | "Abbreviate to 'P. Raghunathan' before you ever ellipsize, tighten rows from ~100px to ~76px so eleven fit cleanly." | **Historical response, superseded by Q34 / [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md), 2026-09-29:** names wrap whole and rows grow. **Originally first half taken, second declined.** The abbreviation is now §9.1's rule. **The row does not shrink**: 50pt is the slat's height at the default size and it is what makes the rail's 44pt figure and the two-line name/sub-line legal at AX3 (§16.3). Fitting one more row by shrinking every row is the trade §25 forbids. The twelfth row fits because the ledger sentence left the header, which cost the design nothing. |
 | blind-2 | "ADD MY ROUND as the orange pill on a team-match screen where the natural next action is reading the matches." | **Declined.** Posting the round is what moves the event; reading the matches is what the page already is. The reviewer's underlying complaint — that the same orange pill carries five different meanings across five screens — is answered instead by §16A.5's count rule and by the pill's label always naming its own verb. One primary per surface is the system; one primary per *product* is not. |
 | blind-3 | "Split season-top in two. It runs ten modules before the table fills." | **Declined as an IA change, not a visual one.** `COMPONENT_SYSTEM.md` fixes what the season page carries and in what order; §31 asks each surface to keep its own character, and SEASON's is narrative-then-table. What is taken from the finding is everything visual inside it: the duplicated pot caption is gone, the clash is one object, the table now carries a header, and the trailing nav menu is deleted — which removes three of the ten modules the reviewer counted. |
 

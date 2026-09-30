@@ -810,7 +810,7 @@ private struct PostHeroContent: View {
   var body: some View {
     let p = model.preview
     VStack(alignment: .leading, spacing: 8) {
-      Text(model.eyebrow).csEyebrow()
+      Text(model.eyebrow).csEyebrow().accessibilityIdentifier("post.eyebrow")
       // IOS-066 · THE NUMBER AND THE PICTURE, THE SAME SIZE, SIDE BY SIDE. The
       // figure column was 150pt wide with the rest of the measure empty, and
       // the camera was four sections below the fold. `PostCameraColumn` is the
@@ -827,6 +827,17 @@ private struct PostHeroContent: View {
         Spacer(minLength: CSTokens.Space.s3)
         PostCameraColumn(model: model, pickPhoto: pickPhoto, pickScan: pickScan)
       }
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule()
+        if let index = model.myIndex {
+          CSFigure(CSCopy.index(index), size: .s, metal: .ink, label: "Your index")
+        } else {
+          Text("Your index").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          Text("Builds at 3 rounds").csType(.bodyS).foregroundStyle(cs.mut)
+        }
+      }
+      .accessibilityElement(children: .combine)
+      .accessibilityIdentifier("post.index")
       // §6.5 · the sentence, and a number inside it is in the number's voice.
       CSFigureRun(sentence, role: .body).foregroundStyle(p == nil ? cs.mut : cs.ink)
       if let p {

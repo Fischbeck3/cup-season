@@ -1,6 +1,23 @@
 import XCTest
 
 final class N2ComposerUITests: N2UITestCase {
+  @MainActor func testQ48IndexHasItsOwnPreviewRail() {
+    for scene in ["brand-new", "season-live"] {
+      let app = launch(scene, "postround")
+      _ = root(app, "composer")
+      let eyebrow = app.staticTexts["post.eyebrow"]
+      XCTAssertTrue(eyebrow.waitForExistence(timeout: 10))
+      XCTAssertEqual(eyebrow.label.lowercased(), "add my round")
+      let index = app.descendants(matching: .any)["post.index"].firstMatch
+      XCTAssertTrue(index.exists)
+      XCTAssertTrue(index.label.lowercased().contains("your index"))
+      XCTAssertEqual(index.label.contains("Builds at 3 rounds"), scene == "brand-new")
+      XCTAssertGreaterThan(index.frame.minY, eyebrow.frame.maxY)
+      attach(app, "q48-index-" + scene)
+      app.terminate()
+    }
+  }
+
   // MARK: F09 · the first round leads with the score
 
   @MainActor func testF09FirstRoundBandsWaitBehindHowPointsWork() {

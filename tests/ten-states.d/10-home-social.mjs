@@ -709,6 +709,52 @@ const GOLFERS = [
     readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']]),
     /* TEN / W7-044 [B2-golfers-3]: one golfer, one disc, on the board and in the buddies list */
     oneDisc) },
+  { family: 'golfers', id: 'card-link-off', variant: 'member', title: 'Card link · two taps retire the old link; the next share makes a new one',
+    drive: async (page, ctx) => {
+      await toGolfers(page)
+      await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => {} } }))
+      await click(page, '#glfInviteBtn')
+      await click(page, '[data-invperson]')
+      await until(page, () => !document.getElementById('glfInviteBtn').disabled)
+      const token = ctx.world.tables.shares.find(s => s.kind === 'person' && !s.revoked)?.token
+      if (!token) throw new Error('the share control did not mint the original card link')
+      const off = '#glfPersonLink [data-person-link-off]'
+      await click(page, off)
+      if (ctx.world.tables.shares.find(s => s.token === token)?.revoked) throw new Error('the first tap revoked without arming')
+      if (!(await page.locator(off).innerText()).startsWith('Sure?')) throw new Error('the first tap did not state its consequence')
+      const armed = await page.locator(off).evaluate(el => {
+        const probe = document.createElement('span'); probe.style.color = 'var(--neg)'; el.append(probe)
+        const neg = getComputedStyle(probe).color; probe.remove()
+        return { height: el.getBoundingClientRect().height, color: getComputedStyle(el).color,
+          neg, after: getComputedStyle(el, '::after').content }
+      })
+      if (armed.height < 44 || armed.color !== armed.neg || !['none', 'normal', '""'].includes(armed.after))
+        throw new Error(`card-link action lost its 44px armed tertiary treatment: ${JSON.stringify(armed)}`)
+      await click(page, off)
+      await until(page, () => document.querySelector('#glfPersonLink [data-person-link-status]')?.textContent.startsWith('Your card link is off.'))
+      if (!ctx.world.tables.shares.find(s => s.token === token)?.revoked) throw new Error('the old token remains live')
+      await click(page, '[data-invperson]')
+      await until(page, () => !document.getElementById('glfInviteBtn').disabled)
+      const fresh = ctx.world.tables.shares.find(s => s.kind === 'person' && !s.revoked)?.token
+      if (!fresh || fresh === token) throw new Error('sharing again did not mint a fresh token')
+      await page.locator(off).scrollIntoViewIfNeeded()
+    },
+    expect: { view: 'view-golfers', selectors: { '#glfPersonLink [data-person-link-off]': 'visible', '#glfPersonLink [data-person-link-status]': 'hidden' } } },
+  { family: 'golfers', id: 'card-link-off-failure', variant: 'member', title: 'Card link · failed revocation leaves the existing link and offers retry',
+    drive: async (page, ctx) => {
+      await toGolfers(page)
+      ctx.world.handlers.revoke_share = () => ({ __error: 'fixture: could not revoke', status: 503, code: 'XX000' })
+      const off = '#glfPersonLink [data-person-link-off]'
+      await click(page, off); await click(page, off)
+      await until(page, () => {
+        const note = document.querySelector('#glfPersonLink [data-person-link-status]')
+        return note && !note.hidden && !document.querySelector('#glfPersonLink [data-person-link-off]').disabled
+      })
+      if (!ctx.world.tables.shares.some(s => s.kind === 'person' && !s.revoked)) throw new Error('failed revoke lost its live-token control')
+      if ((await page.locator('#glfPersonLink [data-person-link-status]').innerText()).startsWith('Your card link is off.')) throw new Error('a failed revoke claimed success')
+      await page.locator(off).scrollIntoViewIfNeeded()
+    },
+    expect: { view: 'view-golfers', selectors: { '#glfPersonLink [data-person-link-off]': 'visible', '#glfPersonLink [data-person-link-status]': 'visible' } } },
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },

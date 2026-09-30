@@ -23,6 +23,7 @@ struct SeasonBookPage: View {
   @State private var gridWidth: CGFloat = 0
   @State private var week = 1
   @ScaledMetric(relativeTo: .body) private var rowHeight = 64.0
+  @State private var nameHeights: [String: CGFloat] = [:]
   /// F11 · how far a cell's status marks sit above the figure's baseline — a
   /// record note beside the number, never another digit of it.
   @ScaledMetric(relativeTo: .caption2) private var marksLift = 5.0
@@ -163,10 +164,14 @@ struct SeasonBookPage: View {
         ForEach(rows) { row in
           NavigationLink { receipts(row.name,row.entries) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
-              Text(short(row.name,squad:group == "squad")).csType(.nameS).lineLimit(2)
+              Text(row.name).csType(.nameS).fixedSize(horizontal: false, vertical: true)
               // W5 twin · the reader's own row is marked, as the web's is
               Text((row.mine ? "You · " : "") + "\(SeasonBookSnapshot.num(row.points)) pts").csType(.columnS)
-            }.frame(maxWidth:.infinity,alignment:.leading).frame(height:rowHeight)
+            }
+            .padding(.vertical, CSTokens.Space.s2)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { nameHeights[row.id] = $0 }
+            .frame(maxWidth:.infinity,alignment:.leading).frame(height: max(rowHeight, nameHeights[row.id] ?? 0))
               .padding(.horizontal,CSTokens.Space.s2).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
           }.buttonStyle(.plain).accessibilityIdentifier("seasonBook.name.\(row.id)")
         }
@@ -191,7 +196,7 @@ struct SeasonBookPage: View {
               ForEach(row.cells,id:\.week) { cell in
                 NavigationLink { receipts("\(row.name) · Week \(cell.week)",SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:mode == "Totals"),week:true) } label: {
                   cellFace(SeasonBookSnapshot.parts(row:row,cell:cell,cumulative:mode == "Totals"))
-                    .frame(width:width,height:rowHeight).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
+                    .frame(width:width,height:max(rowHeight, nameHeights[row.id] ?? 0)).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(cell.future)
                   // F11 · the cell SAYS its status: a mark is never only a letter
                   .accessibilityLabel("\(row.name), \(SeasonBookSnapshot.spoken(row:row,cell:cell,cumulative:mode == "Totals"))")
@@ -388,10 +393,7 @@ struct SeasonBookPage: View {
   private func receipts(_ title: String,_ entries: [SeasonBookSnapshot.Entry],week: Bool = false) -> some View {
     SeasonBookReceipts(title:title,entries:entries,inWeek:week,names:Dictionary((store.snapshot?.rows ?? []).filter { $0.kind == "golfer" }.compactMap { row in row.member_id.map { ($0,row.name) } },uniquingKeysWith:{ a,_ in a }),openRound:openRound)
   }
-  private func short(_ name: String,squad: Bool) -> String {
-    let parts=name.split(separator:" ")
-    return squad || parts.count < 2 ? name : "\(parts[0].prefix(1)). \(parts.dropFirst().joined(separator:" "))"
-  }
+
 }
 
 struct SeasonBookReceipts: View {

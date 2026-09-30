@@ -3933,6 +3933,10 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .lrcasual.is-armed{color:var(--neg); text-decoration-color:var(--neg);}
 .lrcasual:disabled{color:var(--mut); cursor:default;}
 .lrcasual:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+/* X38 · retiring a card link is a tertiary action, with the armed consequence
+   in neg. It has no navigation chevron. */
+.person-link-control{margin-top:var(--s2);}
+.person-link-control .lrcasual.is-armed:active{background:color-mix(in srgb, var(--neg) 16%, transparent);}
 /* S9 · the photo row's one sentence, in the body face and the quiet ink */
 .rcpt-photogone{color:var(--mut); flex:1 1 180px;}
 /* TEN / W6 · AW2-06: a math row's label is words, so it is `body` (sans, sentence
@@ -12536,7 +12540,7 @@ function drawSettlementCard(d){
     fit(String(r.side_a||'').toUpperCase(), 600, 46, BOARD, INK, 2, W-240, 700);
     fit(String(r.side_b||'').toUpperCase(), 660, 46, BOARD, INK, 2, W-240, 700);
   } else {
-    fit(String(r.share||'Settled'), 470, 76, SERIF, INK, 0, W-200, 700);
+    fit(csPublicSettlementText(r), 470, 76, SERIF, INK, 0, W-200, 700);
     fit(String(d.game||'').toUpperCase(), 600, 32, BOARD, MUT, 8);
   }
 
@@ -12595,11 +12599,24 @@ function drawSettlementCard(d){
 }
 /* the five moves a card share makes: blob, file, capability gate, share,
    download+clipboard fallback. AbortError is a user cancel, never an error. */
+/* X38 · a result's public sentence keeps its game outcome, never its money.
+   These are the money clauses emitted by the existing game copy producers;
+   no scoring is recomputed here. Unknown payout wording fails closed. */
+function csPublicSettlementText(result){
+  const text=String(result?.share || 'Settled on the course')
+    .replace(/\s+and\s+\$[\d.,]+\s+from each\b/gi, '')
+    .replace(/\s+for\s+\$[\d.,]+/gi, '')
+    .replace(/,\s+up\s+\$[\d.,]+/gi, '')
+    .replace(/\s+and\s+\$[\d.,]+/gi, '');
+  return /\$|\b(?:pays?|owes?|from each|settle up)\b/i.test(text) ? 'Settled on the course' : text;
+}
+window.csPublicSettlementText = csPublicSettlementText;
+
 async function shareSettlementCard(d){
   try{
     const blob=await new Promise(res=>drawSettlementCard(d).toBlob(res,'image/png'));
     const file=new File([blob],'cup-season-settlement.png',{type:'image/png'});
-    const text=d.result?.share || 'Settled on the course';
+    const text=csPublicSettlementText(d.result);
     if(navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({files:[file], text});
       return;
@@ -12947,6 +12964,7 @@ async function csShareIntentLink(kind, ref, text){
     toast(humanError(e, 'Could not make that link.'), 'neg');
     return { ok:false };
   }
+  if(kind === 'person') document.querySelectorAll('[data-person-link-status]').forEach(el=>{ el.textContent=''; el.hidden=true; });
   const url = location.origin + '/?' + (kind === 'person' ? 'p' : 'plan') + '=' + data;
   /* D385 §5 · `how` is what actually happened; a cancel is not a delivery */
   const how = await csDeliverLink({ text, url, kindLabel: kind === 'person' ? 'card link' : 'plan link' });
@@ -12955,6 +12973,42 @@ async function csShareIntentLink(kind, ref, text){
   return { ok:true, url, how };
 }
 window.csShareIntentLink = csShareIntentLink;
+
+/* X38 · the card owner can retire the link from either share surface.
+   create_share returns the current own token; after revocation the next share
+   mints a different token. Person cards publish no photo copies here. */
+const CS_CARD_LINK_OFF = {
+  label: 'Turn off my card link', armed: 'Sure? The old link stops working',
+  done: 'Your card link is off. Sharing your card again makes a new link.'
+};
+function csCardLinkOffControl(){
+  return `<div class="person-link-control"><button type="button" class="lrcasual cs-body-s" data-person-link-off>${CS_CARD_LINK_OFF.label}</button><p class="fine" role="status" data-person-link-status hidden></p></div>`;
+}
+async function csTurnOffCardLink(button){
+  if(button.disabled || !window.CS?.profile?.id || !window.sb) return;
+  if(!csArmTap(button, CS_CARD_LINK_OFF.label, CS_CARD_LINK_OFF.armed)) return;
+  button.disabled=true;
+  const status=button.parentElement.querySelector('[data-person-link-status]');
+  try{
+    const minted=await sb.rpc('create_share', { p_kind:'person', p_ref:CS.profile.id });
+    if(minted.error || !minted.data) throw minted.error || new Error('No card link was returned.');
+    const revoked=await sb.rpc('revoke_share', { p_token:minted.data });
+    if(revoked.error || revoked.data !== true) throw revoked.error || new Error('The card link was not turned off.');
+    if(status){ status.textContent=CS_CARD_LINK_OFF.done; status.hidden=false; }
+  }catch(e){
+    if(status){ status.textContent=humanError(e, 'Could not turn off your card link. Try again.'); status.hidden=false; }
+  }finally{ button.disabled=false; }
+}
+document.addEventListener('click', e=>{
+  const off=e.target.closest('[data-person-link-off]');
+  if(off){ e.preventDefault(); void csTurnOffCardLink(off); return; }
+  const share=e.target.closest('[data-person-link-share]');
+  if(share && !share.disabled){
+    e.preventDefault(); share.disabled=true;
+    csShareIntentLink('person', window.CS?.profile?.id, 'Come and play. Cup Season keeps score for a group of friends.')
+      .finally(()=>{ share.disabled=false; });
+  }
+});
 
 /* revoke within the same three-RPC surface: create_share re-returns the live
    token for this artifact, revoke_share kills it. A fresh share later mints a
@@ -18810,7 +18864,7 @@ function showLiveRecap(d, result, lrId){
     game: GAME_LABEL[result?.game] || 'SETTLED',
     course: ($('#lrCourse')?.value || ''), date: new Date() }));
   document.getElementById('lrShareLink')?.addEventListener('click',()=>csShareLink('settlement', lrId,
-    (result?.share || 'The match is settled').slice(0,70),
+    csPublicSettlementText(result).slice(0,70),
     /* the same card the button above shares as a file — published at mint time
        so the LINK's preview is the card too, not the generic brand image */
     result ? { result, money: settleMoney,
@@ -24571,7 +24625,7 @@ function csEmptyRootHtml(root){
     + (root.def ? `<p class="def cs-body-s">${esc(root.def)}</p>` : '')
     /* TEN / W6 · one primary, the rest quiet links (W5's empty-Compete shape) */
     + `<div class="doors">${root.doors.map((d, i)=>`<button type="button" class="${i===0?'btn':'alt'}" data-erdoor="${esc(d.k)}">${esc(d.t)}</button>`).join('')}</div>`
-    + (root.doors.some(d => d.k === 'personLink') ? `<p class="fine">${esc(CS_PERSON_SHARE_DISCLOSURE)}</p>` : '') + '</div>';
+    + (root.doors.some(d => d.k === 'personLink') ? `<p class="fine">${esc(CS_PERSON_SHARE_DISCLOSURE)}</p>${csCardLinkOffControl()}` : '') + '</div>';
 }
 
 function csPeerRowHtml(r){
@@ -24756,6 +24810,7 @@ function renderGolfers(){
         <small class="cs-agate-s is-phrase">Works for anyone, account or not</small>
       </button>
       <p class="fine" id="glfShareDisclosure">${esc(CS_PERSON_SHARE_DISCLOSURE)}</p>
+      ${csCardLinkOffControl()}
       <div id="glfInvitePick" class="invpick" hidden role="group" aria-label="Invite them"></div>`;
     const btn=plink.querySelector('#glfInviteBtn'), pick=plink.querySelector('#glfInvitePick');
     const person=async()=>{
@@ -32214,6 +32269,11 @@ function openProfileHub(){
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
     <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>`}
+
+    <div class="eyebrow" style="margin-top:20px">Your card link</div>
+    <button type="button" class="lrcasual cs-body-s" data-person-link-share>Share my card link</button>
+    <p class="fine">${esc(CS_PERSON_SHARE_DISCLOSURE)}</p>
+    ${csCardLinkOffControl()}
 
     <div class="eyebrow" style="margin-top:20px">Your seasons</div>
     ${leagues}

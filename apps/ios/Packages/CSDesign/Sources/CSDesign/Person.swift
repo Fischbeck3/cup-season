@@ -439,10 +439,8 @@ public struct CSCredential<Plate: View>: View {
 
   let golfer: Golfer
   let presentation: Presentation
-  /// The plate: the golfer's photograph, or `CSCrestPlate`. The medallion is
-  /// notched into the lower right of **both** — one slot, one size, one
-  /// treatment (§6.2a, after the blind review), and the crest card additionally
-  /// carries the same glyph magnified, which is the point of the frozen pair.
+  /// Q47 / UI_SYSTEM §6.5: a photographed plate gets the corner medallion;
+  /// the crest already carries the marker and needs no second gold ring.
   let plate: Plate
   let hasPhoto: Bool
 
@@ -738,27 +736,17 @@ public struct CSCredential<Plate: View>: View {
       }
     }
     .overlay(alignment: .topLeading) { plateHead }
-    // **The medallion is on every card, in the same slot, at the same size.**
-    // All three blind reviewers filed the shipped split ("on Galen it is a
-    // small gold-ringed medallion in the corner; on Tash it is a giant flat
-    // glyph filling a third of the card"), and §19(i) accepts the crest and
-    // the medallion drawing the same glyph at two scales as the point of the
-    // frozen pair rather than as a duplication. §6.5's older "crest or corner,
-    // never both" is the rule this supersedes, and it is named in IOS-047.
+    // Q47 · photo only, as ruled in OWNER-QUESTIONS §R.
     .overlay(alignment: .bottomTrailing) {
-      CSMedallion(golfer.face.marker)
-        .padding(.trailing, CSTokens.Space.s4)
-        .padding(.bottom, plateMedallionDrop)
-        .accessibilityLabel("Their marker, the \(CSMarkers.marker(golfer.face.marker).name)")
-        .accessibilityHidden(false)
-        // §17's NAMED WHITELIST, and this is one of the exactly two.
-        // `LINT-17` allows one gold object per viewport; a card that has earned
-        // a slot carries the slot AND this medallion, and the paragraph above
-        // is the ruling that puts both here. So the medallion declares itself
-        // as the paired half rather than the budget quietly failing on every
-        // credential in the product — which is what the probe reported the
-        // first time anything read it. A THIRD gold mark on a card still fails.
-        .csBudget(goldPaired: golfer.slot != nil ? 1 : 0)
+      if hasPhoto {
+        CSMedallion(golfer.face.marker)
+          .padding(.trailing, CSTokens.Space.s4)
+          .padding(.bottom, plateMedallionDrop)
+          .accessibilityLabel("Their marker, the \(CSMarkers.marker(golfer.face.marker).name)")
+          .accessibilityHidden(false)
+          .accessibilityIdentifier("credential.medallion")
+          .csBudget(goldPaired: golfer.slot != nil ? 1 : 0)
+      }
     }
     .frame(height: plateHeight)
     .clipped()
@@ -984,7 +972,7 @@ public struct CSCrestPlate: View {
       CSTokens.dark.ceremony
       CSContour(seed: seed, levels: 6, lineWidth: 1.2,
                 tint: CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a24),
-                mark: hasCourse ? CSTokens.dark.ceremonyBrand : nil,
+                mark: hasCourse ? CSTokens.dark.ceremonyInk : nil,
                 // **The credential's plate carries COPY.** The name sets
                 // bottom-left, the slot top-left, the medallion bottom-right;
                 // the upper right is the quadrant nothing else uses, and it is

@@ -107,13 +107,7 @@ struct BoardScreen: View {
         .padding(.horizontal, CSTokens.Space.s3).padding(.vertical, CSTokens.Space.s3)
         .frame(minHeight: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        // §7.2 · no border; focus is the one 2px brand ring
-        .overlay {
-          if composing {
-            RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-              .stroke(cs.act, lineWidth: 2)   // D359 · a focus ring is an ordinary interactive state
-          }
-        }
+        .csFieldEdge(focused: composing)
         .focused($composing)
         .submitLabel(.send)
         .frame(maxWidth: .infinity)
