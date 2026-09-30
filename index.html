@@ -12536,7 +12536,7 @@ function drawSettlementCard(d){
     fit(String(r.side_a||'').toUpperCase(), 600, 46, BOARD, INK, 2, W-240, 700);
     fit(String(r.side_b||'').toUpperCase(), 660, 46, BOARD, INK, 2, W-240, 700);
   } else {
-    fit(String(r.share||'Settled'), 470, 76, SERIF, INK, 0, W-200, 700);
+    fit(csPublicSettlementText(r), 470, 76, SERIF, INK, 0, W-200, 700);
     fit(String(d.game||'').toUpperCase(), 600, 32, BOARD, MUT, 8);
   }
 
@@ -12595,11 +12595,24 @@ function drawSettlementCard(d){
 }
 /* the five moves a card share makes: blob, file, capability gate, share,
    download+clipboard fallback. AbortError is a user cancel, never an error. */
+/* X38 · a result's public sentence keeps its game outcome, never its money.
+   These are the money clauses emitted by the existing game copy producers;
+   no scoring is recomputed here. Unknown payout wording fails closed. */
+function csPublicSettlementText(result){
+  const text=String(result?.share || 'Settled on the course')
+    .replace(/\s+and\s+\$[\d.,]+\s+from each\b/gi, '')
+    .replace(/\s+for\s+\$[\d.,]+/gi, '')
+    .replace(/,\s+up\s+\$[\d.,]+/gi, '')
+    .replace(/\s+and\s+\$[\d.,]+/gi, '');
+  return /\$|\b(?:pays?|owes?|from each|settle up)\b/i.test(text) ? 'Settled on the course' : text;
+}
+window.csPublicSettlementText = csPublicSettlementText;
+
 async function shareSettlementCard(d){
   try{
     const blob=await new Promise(res=>drawSettlementCard(d).toBlob(res,'image/png'));
     const file=new File([blob],'cup-season-settlement.png',{type:'image/png'});
-    const text=d.result?.share || 'Settled on the course';
+    const text=csPublicSettlementText(d.result);
     if(navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({files:[file], text});
       return;
@@ -18810,7 +18823,7 @@ function showLiveRecap(d, result, lrId){
     game: GAME_LABEL[result?.game] || 'SETTLED',
     course: ($('#lrCourse')?.value || ''), date: new Date() }));
   document.getElementById('lrShareLink')?.addEventListener('click',()=>csShareLink('settlement', lrId,
-    (result?.share || 'The match is settled').slice(0,70),
+    csPublicSettlementText(result).slice(0,70),
     /* the same card the button above shares as a file — published at mint time
        so the LINK's preview is the card too, not the generic brand image */
     result ? { result, money: settleMoney,

@@ -152,11 +152,11 @@ async function teeOff(page) {
 /* score `holes` holes through the steppers: the first tap writes par, the
    pattern then adds or takes strokes, so the card is a real card */
 const PATTERN = [[0, 1, 0, 1], [1, 0, 0, 2], [0, 0, -1, 0], [1, 1, 0, 0], [0, 2, 1, 0], [-1, 0, 0, 1], [0, 1, 1, 0], [1, 0, 0, 0], [0, 0, 1, 1]]
-async function scoreHoles(page, holes, players) {
+async function scoreHoles(page, holes, players, pattern = PATTERN) {
   for (let h = 0; h < holes; h++) {
     for (let pi = 0; pi < players; pi++) {
       await click(page, `#playerRows [data-pi="${pi}"][data-d="1"]`)
-      const extra = PATTERN[h % PATTERN.length][pi % 4]
+      const extra = pattern[h % pattern.length][pi % 4]
       for (let k = 0; k < Math.abs(extra); k++) await click(page, `#playerRows [data-pi="${pi}"][data-d="${extra > 0 ? 1 : -1}"]`)
     }
     if (h < holes - 1) { await click(page, '#holeNext'); await until(page, (n) => /HOLE\s+/.test(document.getElementById('holeNum').textContent) && document.getElementById('holeNum').textContent.trim() === 'HOLE ' + n, h + 2) }
@@ -468,22 +468,25 @@ export default [
       async (page) => { const f = await liveFacts(page); return !f.active ? true : 'the round is still live after the finish' }) },
   /* X38 / D397 · exercise the real finish and export, with the private
      settlement still present. Observe the canvas ink, not its input object. */
-  { family: 'play', id: 'settlement-share-private', variant: 'member', fullPage: false,
+  ...['match', 'sunningdale'].map(game => ({ family: 'play', id: game === 'match' ? 'settlement-share-private' : 'settlement-share-private-solo', variant: 'member', fullPage: false,
     title: 'Settlement · the shared card omits who pays whom; the app keeps it',
     drive: async (page, ctx) => {
       await toSetup(page)
       await pickCourse(page, 'Dry Creek', 'Dry Creek Nine', 'Forward')
-      await addGolfers(page, ['Devon Testwell'])
-      await click(page, '#gameSeg [data-g="match"]')
+      await addGolfers(page, game === 'match' ? ['Devon Testwell'] : ['Devon Testwell', 'Blake Sample', 'Casey Placeholder'])
+      await click(page, `#gameSeg [data-g="${game}"]`)
+      if (game === 'sunningdale') await click(page, '#modeSeg [data-mode="solo"]')
       await page.locator('#lrStake').fill('5')
       await teeOff(page)
-      await scoreHoles(page, 9, 2)
+      await scoreHoles(page, 9, game === 'match' ? 2 : 4, game === 'match' ? PATTERN : [[0, 4, 4, 4]])
       await click(page, '#finishBtn')
       await until(page, () => !!document.getElementById('lrPost'))
       await click(page, '#lrPost')
       await until(page, () => !!document.getElementById('lrShareCard'))
       await page.evaluate(() => {
         window.__settlementInk = []
+        window.__settlementCaption = null
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => { window.__settlementCaption = text } } })
         const proto = CanvasRenderingContext2D.prototype, original = proto.fillText
         window.__restoreSettlementInk = () => { proto.fillText = original }
         proto.fillText = function(text, ...args) { window.__settlementInk.push(String(text)); return original.call(this, text, ...args) }
@@ -491,21 +494,23 @@ export default [
       const dir = `${ctx.out}/artifacts`; mkdirSync(dir, { recursive: true })
       try {
         const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), click(page, '#lrShareCard')])
-        const file = `${dir}/settlement-private--${ctx.vp.width}--${ctx.theme}.png`
+        const file = `${dir}/settlement-private-${game}--${ctx.vp.width}--${ctx.theme}.png`
         await dl.saveAs(file); ctx.artifacts.push(file)
       } finally { await page.evaluate(() => window.__restoreSettlementInk()) }
       await page.locator('#lrShareLink').scrollIntoViewIfNeeded()
     },
     expect: { view: 'view-play', selectors: { '#lrShareCard': 'visible', '#lrShareLink': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: async (page) => page.evaluate(game => {
       const ink = window.__settlementInk || []
-      if (!ink.some(t => /MATCH PLAY/.test(t))) return 'the settlement PNG was not rendered'
+      if (!ink.some(t => /MATCH PLAY|SUNNINGDALE/i.test(t))) return 'the settlement PNG was not rendered'
       if (ink.some(t => /PAYS? |SETTLE UP|FROM EACH|TAKES? THE BANK|HOLDS THE BANK/i.test(t))) return 'outbound PNG exposes the private settlement: ' + ink.join(' | ')
       const privateText = document.getElementById('shBody').innerText
-      if (!/PAYS? .*\$5.*SETTLE UP/i.test(privateText)) return 'the in-app settlement lost who pays whom: ' + privateText
+      if (game === 'match' && !/PAYS? .*\$5.*SETTLE UP/i.test(privateText)) return 'the in-app settlement lost who pays whom: ' + privateText
+      if (game === 'sunningdale' && !/from each/i.test(privateText)) return 'the private solo result lost its payout control: ' + privateText
+      if (!window.__settlementCaption || /\$|from each|pays? |owes?/i.test(window.__settlementCaption)) return 'the public caption leaks money: ' + window.__settlementCaption
       const note = document.getElementById('lrShareDisclosure')
       return note && note.textContent === 'Anyone with this link sees the game, the course and every gross. Who pays whom stays in the app.'
         ? true : 'the settlement share control is missing its disclosure'
-    }) },
+    }, game) })),
 
 ]
