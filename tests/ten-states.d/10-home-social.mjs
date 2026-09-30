@@ -269,7 +269,7 @@ const promoQuiet = async (page) => page.evaluate(() => {
   return /underline/.test(sp.textDecorationLine) && parseFloat(sp.textDecorationThickness) === 2 ? true : 'the promo’s door has no 2px rule'
 })
 /* TEN / W6 · W7-081 · the month is a fact, not a chip: no "Month closes" in Up next, and ONE quiet month line under the season row
-   in the strip on screen, in SeasonFacts.monthRow's words ("Best 4 a month count · 5/2 toward the minimum · 1 day left in September") */
+   in the strip on screen, in SeasonFacts.monthRow's words ("Best 4 a month count · minimum cleared · 1 day left in September") */
 const monthFact = async (page) => page.evaluate(() => {
   const up = (document.getElementById('homeUpNext') || {}).innerText || ''
   if (/month closes/i.test(up)) return 'the "Month closes" chip is still drawn'

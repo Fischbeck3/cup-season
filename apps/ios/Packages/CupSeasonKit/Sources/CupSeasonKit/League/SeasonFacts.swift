@@ -236,7 +236,9 @@ public enum SeasonFacts {
     // D354 · a mid-month joiner owes nothing this month, and the row says so
     // rather than printing a figure toward a minimum the server will waive.
     if m.pulse?.joined_this_month == true { return "\(head) · no minimum this month, you joined this month · \(clock)" }
-    return "\(head) · \(CSCopy.points(credits))/\(floor) toward the minimum · \(clock)"
+    // a met minimum is said as met: "5/2 toward the minimum" read as a fraction (owner, 2026-09-30; web twin csMonthRow)
+    if credits >= Double(floor) { return "\(head) · minimum cleared · \(clock)" }
+    return "\(head) · \(CSCopy.points(credits)) of \(floor) toward the minimum · \(clock)"
   }
 
   /// D126 · how the season ends — `LeagueCopy.endgame`. nil until a season exists.

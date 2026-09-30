@@ -8312,7 +8312,9 @@ function csMonthRow(){
   if(!(floor > 0) || solo || !confirmed || partial || credits == null || isNaN(credits)) return `${head} \u00b7 ${clock}`;
   if(me.joined_this_month === true) return `${head} \u00b7 no minimum this month, you joined this month \u00b7 ${clock}`;
   const fmt = n => n % 1 ? n.toFixed(1) : String(n);   /* a nine is a half credit */
-  return `${head} \u00b7 ${fmt(credits)}/${floor} toward the minimum \u00b7 ${clock}`;
+  /* a met minimum is said as met: "5/2 toward the minimum" read as a fraction (owner, 2026-09-30). Twin: SeasonFacts.monthRow */
+  if(credits >= floor) return `${head} \u00b7 minimum cleared \u00b7 ${clock}`;
+  return `${head} \u00b7 ${fmt(credits)} of ${floor} toward the minimum \u00b7 ${clock}`;
 }
 window.csMonthRow = csMonthRow;
 function csCountingRule(n){

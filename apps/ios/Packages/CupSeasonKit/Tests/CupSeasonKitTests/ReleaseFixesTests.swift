@@ -164,7 +164,7 @@ import Foundation
     // an older payload: no fact, and the figure toward the minimum stands as before
     let old = heroMembership(structure: "squads2", credits: 0, floor: 2)
     #expect(SeasonFacts.footRule(old, today: "2026-09-13") == "2 a month · 2 to go")
-    #expect(SeasonFacts.monthRow(old, today: "2026-09-13") == "Best 4 a month count · 0/2 toward the minimum · 17 days left in September")
+    #expect(SeasonFacts.monthRow(old, today: "2026-09-13") == "Best 4 a month count · 0 of 2 toward the minimum · 17 days left in September")
     // said false: the same as unsaid, no waiver invented
     let stayed = heroMembership(structure: "squads2", credits: 0, floor: 2, joinedThisMonth: false)
     #expect(SeasonFacts.footRule(stayed, today: "2026-09-13") == "2 a month · 2 to go")
@@ -222,9 +222,9 @@ import Foundation
     let five = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", weeks: 5, structure: "solo")
     #expect(five.endingLine == "The season's points decide it. No reset.")
     let six = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", weeks: 6, structure: "solo")
-    #expect(six.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh. " + LeagueCopy.finalCounting)
+    #expect(six.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh. Final rounds must also fit the monthly counting limit; an earlier round can take a place.")
     // no length in the payload is not a short season
     let unknown = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", structure: "solo")
-    #expect(unknown.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh. " + LeagueCopy.finalCounting)
+    #expect(unknown.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh. Final rounds must also fit the monthly counting limit; an earlier round can take a place.")
   }
 }

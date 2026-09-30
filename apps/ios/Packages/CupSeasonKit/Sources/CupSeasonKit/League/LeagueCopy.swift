@@ -557,6 +557,7 @@ public enum LeagueCopy {
       return LeagueDates.dowMonDay(LeagueDates.cupFinalStart(end: e, calendar: calendar), calendar: calendar)
     }
     let from = when.map { " from \($0)" } ?? ""
+    // Q35 (a) · the Cup Final still fits the monthly counting limit (the wizard's words; web CS_FINAL_COUNTING)
     if structure == "squads2" {
       return "Both squads play a four-week Cup Final\(from) — scored fresh, and the leader carries +10 in. \(finalCounting) \(tiebreak)"
     }
