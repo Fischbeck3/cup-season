@@ -13387,6 +13387,9 @@ function finishDismiss(){
   $('#finPhoto')?.addEventListener('click',e=>{
     const b=e.currentTarget;
     b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
+    /* TEN / W7-141 · the last outcome described the card as it was; a new
+       preview is not yet shared, so the old line goes with the switch */
+    { const st=$('#finStatus'); if(st) st.textContent=''; }
     finishPreview();   /* the preview follows the switch */
   });
   /* the OUTPUT carries the photograph only while the control says so; the

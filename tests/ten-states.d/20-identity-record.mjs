@@ -821,8 +821,24 @@ function shareState(id, title, card, extra = {}) {
     ...extra,
   }
 }
+/* TEN / W6 · W7-141 · after a share, a flip of the photo switch clears the old outcome: the new preview has not been shared */
+const flipState = (() => {
+  const st = shareState('recap-photo-flip', 'Share · the photo switch flipped after the card was shared (the old outcome goes)', {}, { photo: true })
+  const d0 = st.drive
+  st.drive = async (page, ctx) => {
+    await d0(page, ctx)
+    await page.locator('#finPhoto').click()
+    await page.waitForTimeout(400)
+  }
+  st.check = async (page) => page.evaluate(() => {
+    const t = (document.getElementById('finStatus').textContent || '').trim()
+    return t === '' ? true : 'the old outcome stays beside the new preview: ' + JSON.stringify(t)
+  })
+  return st
+})()
 const SHARE = [
   shareState('recap-no-photo', 'Share · the recap card for a posted 83 (no photo)', {}),
+  flipState,
   shareState('recap-photo', 'Share · the recap card carrying the round photograph', {}, { photo: true }),
   shareState('recap-long-course', 'Share · the recap card, the longest course and tee', { course: 'The Championship Course at Whispering Fixture Pines Country Club · Tournament Tips (Championship Black)', rating: '73.4', slope: '138', f9: '44', b9: '45' }),
 ]
