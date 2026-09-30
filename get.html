@@ -88,6 +88,8 @@
   h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s3);}
   p{margin:0 0 var(--s3); text-wrap:pretty;} p:last-child{margin-bottom:0;}
   b,strong{font-weight:650;}
+  ol,ul{margin:0 0 var(--s3); padding-left:var(--s4);} li{margin:0 0 var(--s2);}   /* W7-160 · support.html's own list rule */
+  .lead-in{margin:0 0 var(--s2);}
   /* TEN / W6 · ONE CTA GRAMMAR (craft C; UI_SYSTEM §7.1: a primary's label is the
      `name` role — board 600, 17, caps): the public pages' action says "OPEN CUP
      SEASON" in it, and this page said "Open Cup Season" at weight 700. */
@@ -132,7 +134,20 @@
       <div><h2>Any phone, today</h2><p class="sub">The web app</p></div>
     </div>
     <a class="btn" href="/">Open Cup Season</a>
-    <p>To keep it on your Home Screen: on iPhone, open it in Safari and choose Add to Home Screen from the share sheet. On Android, choose Add to Home screen from Chrome’s menu. It opens like an app, on the same account and the same seasons.</p>
+    <!-- W7-160 [A2-get-3, B2-get-1] · the Home Screen steps, as steps: two ordered lists, each OPENING Cup Season first, so nobody pins this install page instead of the app (this page carries no
+         manifest). The iPhone words are the app's own install sheet's (index.html: 'the square with the arrow'). -->
+    <p><b>To keep it on your Home Screen:</b></p>
+    <p class="lead-in"><b>iPhone</b></p>
+    <ol>
+      <li>Open Cup Season in Safari.</li>
+      <li>Tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.</li>
+    </ol>
+    <p class="lead-in"><b>Android</b></p>
+    <ol>
+      <li>Open Cup Season in Chrome.</li>
+      <li>Open Chrome’s menu and tap <b>Add to Home screen</b>.</li>
+    </ol>
+    <p>It opens like an app, on the same account and the same seasons.</p>
   </section>
 
   <section id="iphone">

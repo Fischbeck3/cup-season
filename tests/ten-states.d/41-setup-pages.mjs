@@ -828,12 +828,28 @@ const staticPage = (id, url, title, want) => ({
     return tc.content.toUpperCase() === (light ? '#F4F1E9' : '#0F1A15') ? true : `theme-color is ${tc.content} on the ${light ? 'light' : 'dark'} printing`
   }, want),
 })
+/* TEN / W8 · W7-160 [A2-get-3, B2-get-1] · the Home Screen instructions are STEPS: an iPhone list and an Android list, each opening Cup Season first (this page carries no manifest, so a visitor who
+   followed the old one-paragraph sentence pinned /get, the install page), the iPhone words the app's own install sheet's; the closing sentence stays */
+const homeScreenSteps = async (page) => page.evaluate(() => {
+  const lists = [...document.querySelectorAll('#web ol')]
+  if (lists.length !== 2) return `the Home Screen instructions are ${lists.length} ordered lists, not two (iPhone, Android)`
+  const first = lists.map((l) => (l.querySelector('li') || {}).textContent)
+  if (first[0] !== 'Open Cup Season in Safari.' || first[1] !== 'Open Cup Season in Chrome.') return `the lists do not open Cup Season first: ${JSON.stringify(first)}`
+  const t = document.getElementById('web').innerText.replace(/\s+/g, ' ')
+  if (!/Tap the Share button \(the square with the arrow\), scroll down, tap Add to Home Screen\./.test(t)) return 'the iPhone step is not the app\'s own install words'
+  if (!/Open Chrome.s menu and tap Add to Home screen\./.test(t)) return 'the Android step is missing'
+  if (/choose Add to Home Screen from the share sheet/.test(t)) return 'the one-paragraph instructions are still on the page'
+  if (!/It opens like an app, on the same account and the same seasons\./.test(t)) return 'the closing sentence is gone'
+  if (!lists.every((l) => parseFloat(getComputedStyle(l).paddingLeft) >= 16)) return 'the lists are not indented as steps'
+  return true
+})
 const STATIC = [
   /* TEN / W8 · W7-159 [A2-get-1, B2-get-4] · at a desk pointer the page says how to get to the phone: 'On your phone, open cupseason.app/get' in the page's h2 role, the sentence in mut and the
      address in ink, directly under the summary; on a phone it is not drawn (a phone is already where the page is going) */
   { ...staticPage('get', '/get.html', 'get.html · the install page', 'Cup Season'),
     check: async (page) => {
       const base = await staticPage('get', '/get.html', '', 'Cup Season').check(page); if (base !== true) return base
+      const steps = await homeScreenSteps(page); if (steps !== true) return steps
       return page.evaluate(() => {
         const h = document.querySelector('.handoff'), desk = matchMedia('(min-width:720px) and (pointer:fine)').matches
         if (!h) return 'the page has no hand-off line'
