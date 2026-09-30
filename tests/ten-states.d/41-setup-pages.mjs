@@ -865,7 +865,27 @@ const STATIC = [
         return prev && prev.classList.contains('sum') ? true : 'the hand-off is not directly under the summary'
       })
     } },
-  staticPage('support', '/support.html', 'support.html', 'Cup Season'),
+  /* TEN / W8 · W7-162 [A2-support-1, B2-support-2] · the contents rows are marked as links: ink text under a 2px mut underline, in a 44px row, and no chevron (§16.4, §2.5, §5.1) */
+  { ...staticPage('support', '/support.html', 'support.html', 'Cup Season'),
+    check: async (page) => {
+      const base = await staticPage('support', '/support.html', '', 'Cup Season').check(page); if (base !== true) return base
+      return page.evaluate(() => {
+        const links = [...document.querySelectorAll('nav[aria-label="On this page"] .toc a')]
+        if (!links.length) return 'the support page has no contents rows'
+        const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+        const mut = probe('--mut'), ink = probe('--ink')
+        for (const a of links) {
+          const cs = getComputedStyle(a), r = a.getBoundingClientRect(), label = JSON.stringify(a.textContent.trim().slice(0, 30))
+          if (!/underline/.test(cs.textDecorationLine)) return `the contents row ${label} has no underline`
+          if (parseFloat(cs.textDecorationThickness) !== 2) return `the contents row ${label} is underlined ${cs.textDecorationThickness}, not 2px`
+          if (cs.textDecorationColor !== mut) return `the contents row ${label} is underlined ${cs.textDecorationColor}, not mut`
+          if (cs.color !== ink) return `the contents row ${label} is ${cs.color}, not ink`
+          if (r.height < 43.5) return `the contents row ${label} is ${Math.round(r.height)}px tall, not 44`
+          if (/[›»>→]|&rsaquo;/.test(a.textContent)) return `the contents row ${label} carries a chevron`
+        }
+        return true
+      })
+    } },
   staticPage('legal', '/legal.html', 'legal.html · terms and privacy', 'Privacy'),
 ]
 

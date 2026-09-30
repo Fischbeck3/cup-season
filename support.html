@@ -95,7 +95,11 @@
   /* the questions on this page, as questions (craft H), each 44px tall */
   .toc{list-style:none; margin:var(--s5) 0 0; padding:0; border-top:var(--hair) solid var(--rule);}
   .toc li{margin:0; border-bottom:var(--hair) solid var(--rule);}
-  .toc a{display:flex; align-items:center; min-height:44px; padding:var(--s2) 0; text-decoration:none; color:var(--ink);}
+  /* W7-162 [A2-support-1, B2-support-2] · a contents row is a LINK and says so: ink text under a 2px mut underline (UI_SYSTEM §16.4: a link's second channel is the rule beneath it, at 3:1,
+     mut and never rule; §2.5: links are underlined ink in content). The row hairlines were the only mark, at 2.66:1 dark and 2.30:1 light. No chevron: a row whose whole surface is the
+     target carries none (§5.1). */
+  .toc a{display:flex; align-items:center; min-height:44px; padding:var(--s2) 0; color:var(--ink);
+    text-decoration:underline; text-decoration-thickness:2px; text-decoration-color:var(--mut); text-underline-offset:.22em;}
   .toc a:hover{color:var(--act);}
   .up{margin-top:var(--s3);}
   .up a{display:inline-flex; align-items:center; min-height:44px; font-size:15px; color:var(--mut);}
