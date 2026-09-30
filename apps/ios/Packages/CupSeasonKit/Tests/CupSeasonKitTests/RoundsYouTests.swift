@@ -441,11 +441,17 @@ import Foundation
                                  lead: "up", duel_wins: 3, duel_losses: 2, duel_halves: 0, rivalry_name: "The Grudge")
     let line = RivalryLine.from(r)!
     #expect(line.record == "4–2–1" && line.lead == .up)
-    #expect(line.facets == "7 weeks head-to-head · Ryder clashes 3–2")
+    // X36 (1) · the row names its facet — the web's `renderRivalries` (bfce5aea)
+    #expect(line.facets == "In the season · 7 weeks · Ryder clashes 3–2")
     #expect(line.rivalryName == "The Grudge")
     let quiet = RivalryLine.from(Rpc.my_rivalries.Row(opponent: UUID(), display_name: nil, handle: nil, marker: nil, wins: 0, losses: 1, ties: 0, meetings: 1,
                                                       lead: "down", duel_wins: 0, duel_losses: 0, duel_halves: 0, rivalry_name: ""))!
-    #expect(quiet.record == "0–1" && quiet.facets == "1 week head-to-head" && quiet.rivalryName == nil && quiet.name == "—")
+    #expect(quiet.record == "0–1" && quiet.facets == "In the season · 1 week" && quiet.rivalryName == nil && quiet.name == "—")
+    // X36 · the sheet names the facet too, and a season week is never a clash
+    // (the web's `openRivalrySheet`, bfce5aea)
+    #expect(RivalryCopy.sheetSub == "IN THE SEASON · BETTER ROUND VS YOUR PLAYING HCP TAKES THE WEEK")
+    #expect(RivalryCopy.noWeeks == "No weeks in the season yet. A week counts when you both post in a season you share.")
+    #expect(!RivalryCopy.sheetSub.contains("CLASH") && !RivalryCopy.noWeeks.contains("clash"))
   }
   @Test func weekRows() {
     let w = RivalryWeek.from(Rpc.rivalry_weeks.Row(wk: "2026-07-06", my_pvi: 1.2, opp_pvi: -0.4, winner: "me"), opponentName: "Garrett")!

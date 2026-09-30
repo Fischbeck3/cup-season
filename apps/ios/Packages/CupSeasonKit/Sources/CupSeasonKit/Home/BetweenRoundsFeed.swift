@@ -140,7 +140,11 @@ public enum BetweenRoundsCopy {
     case "tie", "halve", "halved", "draw": story = "The last week was tied."
     default: story = RivalryCopy.leadLabel(wins: row.wins ?? 0, losses: row.losses ?? 0).capitalized + "."
     }
-    return .init(opponent: opponent, name: name, scope: "Weekly clashes · All time", story: story,
+    // X36 (1) · the widget reads `my_rivalries`, which counts SEASON WEEKS, so
+    // its scope names that facet the way You's row does — never "weekly
+    // clashes", the settled D52/D108 spotlight (OWNER-QUESTIONS X36 lists the
+    // widget's scope among the phone's surfaces; the web has no widget)
+    return .init(opponent: opponent, name: name, scope: RivalryCopy.seasonFacet(row.meetings ?? 0), story: story,
       detail: latest?.wk.map { "Week of \(CSDate.short($0))" }, wins: row.wins ?? 0, losses: row.losses ?? 0, ties: row.ties ?? 0)
   }
 }

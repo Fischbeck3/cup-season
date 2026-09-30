@@ -1,10 +1,18 @@
-// Cup Season — rivalries: the lifetime weekly-clash record vs your league
+// Cup Season — rivalries: the lifetime record IN THE SEASON vs your league
 // mates (index.html `renderRivalries` 13215–13242, `openRivalrySheet`
 // 13244–13264, `openNameRivalry` 13268–13290).
 //
 // `my_rivalries()` → summary rows; `rivalry_weeks()` → the receipts (§16).
-// The faceted record: clashes and Ryder clashes side by side, never one blended
-// number. A christened rivalry (M3/D18) wears its name in gold.
+// The faceted record: season weeks and Ryder clashes side by side, never one
+// blended number. A christened rivalry (M3/D18) wears its name in gold.
+//
+// X36 (1) · owner ruling 2026-09-29: every surface NAMES ITS FACET and nothing
+// claims to be "the" record. `my_rivalries` counts season weeks (one per week
+// both golfers had a ranked round in a season they share), so these rows say
+// "In the season", the head-to-head's own name for that facet — never "weekly
+// clash", which is the settled D52/D108 spotlight, and never a bare
+// "head-to-head", which the person page sums across every meeting. Web twin:
+// bfce5aea (`renderRivalries`, `rivalryTag`, `openRivalrySheet`).
 
 import Foundation
 
@@ -31,7 +39,7 @@ public struct RivalryLine: Sendable, Identifiable, Equatable {
     let dw = r.duel_wins ?? 0, dl = r.duel_losses ?? 0, dh = r.duel_halves ?? 0
     let meetings = r.meetings ?? 0
     let facets = [
-      meetings > 0 ? "\(meetings) week\(meetings == 1 ? "" : "s") head-to-head" : nil,
+      meetings > 0 ? RivalryCopy.seasonFacet(meetings) : nil,
       (dw + dl + dh) > 0 ? "Ryder clashes \(dw)–\(dl)\(dh > 0 ? "–\(dh)" : "")" : nil,
     ].compactMap { $0 }.joined(separator: " · ")
     let lead: RivalryLead = r.lead == "up" ? .up : r.lead == "down" ? .down : .even
@@ -69,6 +77,13 @@ public enum RivalryCopy {
   /// `${wins}–${losses}${ties?'–'+ties:''}`
   public static func record(wins: Int, losses: Int, ties: Int) -> String {
     "\(wins)–\(losses)" + (ties > 0 ? "–\(ties)" : "")
+  }
+
+  /// X36 (1) · the facet `my_rivalries` counts, named: "In the season · 7
+  /// weeks". One producer for You's row and the widget's scope, so the count
+  /// always says what it counts. Web twin: `renderRivalries` (bfce5aea).
+  public static func seasonFacet(_ meetings: Int) -> String {
+    "In the season · \(meetings) week\(meetings == 1 ? "" : "s")"
   }
   /// `YOU LEAD` / `THEY LEAD` / `ALL SQUARE` (the Tour Card's vs chip).
   public static func leadLabel(wins: Int, losses: Int) -> String {
@@ -126,8 +141,11 @@ public enum RivalryCopy {
   /// figure. Both captions used to name the 100% lens for a 95% number; the
   /// words come from `YouCopy.vsPlayingNumber` now, so there is one source.
   public static let weekSub = "BEST ROUND \(YouCopy.vsPlayingNumber.uppercased()) THAT WEEK"
-  public static let sheetSub = "WEEKLY CLASH · BETTER ROUND \(YouCopy.vsPlayingNumber.uppercased()) TAKES THE WEEK"
-  public static let noWeeks = "No head-to-head weeks yet. A clash counts a week you both post."
+  /// X36 (1) · these are season weeks (`rivalry_weeks`), not the settled
+  /// weekly clash (D52/D108): the sub names the facet (`openRivalrySheet`, bfce5aea).
+  public static let sheetSub = "IN THE SEASON · BETTER ROUND \(YouCopy.vsPlayingNumber.uppercased()) TAKES THE WEEK"
+  /// X36 · a season week is not a clash (`openRivalrySheet`'s empty line, bfce5aea).
+  public static let noWeeks = "No weeks in the season yet. A week counts when you both post in a season you share."
   public static let nameHelp = "Give it a name your crew would actually say — “The Grudge,” “Border War.” Either of you can change it later."
   public static let namePlaceholder = "The Grudge"
 }

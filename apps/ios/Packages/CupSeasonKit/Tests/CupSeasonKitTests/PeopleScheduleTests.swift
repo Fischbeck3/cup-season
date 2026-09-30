@@ -292,14 +292,28 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(!w.line.contains("☀") && !w.glance.contains("☀"))
   }
 
+  /// X36 (1) · the tag names what it counts: season weeks are "in the season
+  /// · N weeks", and the duel fallback is "in Ryder clashes", never a bare
+  /// "clashes". Pins the web's `rivalryTag` (bfce5aea) word for word.
   @Test func rivalryTag() {
     let pid = UUID()
-    let r = Rpc.my_rivalries.Row(opponent: pid, display_name: "Galen Ortiz", handle: nil, marker: nil, wins: 3, losses: 1, ties: 0, meetings: 4, lead: nil,
-                                 duel_wins: nil, duel_losses: nil, duel_halves: nil, rivalry_name: "The Grudge")
-    #expect(RivalryTag.of(pid, rivals: [r])?.text == "“The Grudge” · you lead 3–1")
-    let d = Rpc.my_rivalries.Row(opponent: pid, display_name: "Galen Ortiz", handle: nil, marker: nil, wins: 0, losses: 0, ties: 0, meetings: 0, lead: nil,
-                                 duel_wins: 0, duel_losses: 2, duel_halves: nil, rivalry_name: nil)
-    #expect(RivalryTag.of(pid, rivals: [d])?.text == "Galen leads clashes 2–0")
+    let row = { (w: Int, l: Int, n: Int, name: String?) in
+      Rpc.my_rivalries.Row(opponent: pid, display_name: "Galen Ortiz", handle: nil, marker: nil, wins: w, losses: l, ties: 0, meetings: n, lead: nil,
+                           duel_wins: nil, duel_losses: nil, duel_halves: nil, rivalry_name: name)
+    }
+    let r = row(3, 1, 4, "The Grudge")
+    #expect(RivalryTag.of(pid, rivals: [r])?.text == "“The Grudge” · you lead 3–1 in the season · 4 weeks")
+    #expect(RivalryTag.of(pid, rivals: [row(4, 3, 7, nil)])?.text == "you lead 4–3 in the season · 7 weeks")
+    #expect(RivalryTag.of(pid, rivals: [row(3, 4, 7, nil)])?.text == "Galen leads 4–3 in the season · 7 weeks")
+    #expect(RivalryTag.of(pid, rivals: [row(3, 3, 6, nil)])?.text == "even 3–3 in the season · 6 weeks")
+    #expect(RivalryTag.of(pid, rivals: [row(1, 0, 1, nil)])?.text == "you lead 1–0 in the season · 1 week")
+    let duels = { (dw: Int, dl: Int) in
+      Rpc.my_rivalries.Row(opponent: pid, display_name: "Galen Ortiz", handle: nil, marker: nil, wins: 0, losses: 0, ties: 0, meetings: 0, lead: nil,
+                           duel_wins: dw, duel_losses: dl, duel_halves: nil, rivalry_name: nil)
+    }
+    #expect(RivalryTag.of(pid, rivals: [duels(0, 2)])?.text == "Galen leads 2–0 in Ryder clashes")
+    #expect(RivalryTag.of(pid, rivals: [duels(3, 1)])?.text == "you lead 3–1 in Ryder clashes")
+    #expect(RivalryTag.of(pid, rivals: [duels(1, 1)])?.text == "even 1–1 in Ryder clashes")
     #expect(RivalryTag.of(UUID(), rivals: [r]) == nil)
   }
 

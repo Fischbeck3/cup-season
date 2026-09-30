@@ -109,7 +109,9 @@ struct BetweenRoundsWidgetTests {
     let latest = try JSONDecoder().decode(Rpc.rivalry_weeks.Row.self, from: Data("{\"wk\":\"2026-09-21\",\"winner\":\"them\"}".utf8))
     let rival = try #require(BetweenRoundsCopy.rivalry(row, latest: latest))
     #expect(rival.wins == 6 && rival.losses == 5 && rival.ties == 1)
-    #expect(rival.scope == "Weekly clashes · All time")
+    // X36 (1) · the widget reads season weeks and says so, as You's row does
+    // (`RivalryCopy.seasonFacet`; the web's `renderRivalries`, bfce5aea)
+    #expect(rival.scope == "In the season · 12 weeks")
     #expect(rival.story == "Galen took the last one.")
   }
 
