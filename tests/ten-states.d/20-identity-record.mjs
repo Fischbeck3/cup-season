@@ -391,6 +391,14 @@ const RECEIPT = [
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
     check: all(heroState('photo'), receiptActions,
+      /* Q45 · the private receipt's plate is signed with the pennant alone: no tagline on it (the exported card and the Door keep theirs) */
+      async (page) => page.evaluate(() => {
+        const f = document.querySelector('#rcptHero .rm-foot')
+        if (!f) return 'the receipt plate has no foot'
+        if (!f.querySelector('.rm-mark')) return 'the receipt plate lost its pennant'
+        const said = f.textContent.replace(/\s+/g, ' ').trim()
+        return said === '' && !/any time\. anywhere/i.test(document.getElementById('rcptHero').innerText) ? true : 'the receipt plate still signs itself with a line: ' + JSON.stringify(said || document.getElementById('rcptHero').innerText.slice(0, 80))
+      }),
       /* TEN / W8 · W7-086: while the photo opens, Share asks about it (the tick is there, checked) */
       async (page) => page.evaluate(() => { const ok = document.getElementById('rcptPhotoOk'); return ok && ok.checked ? true : 'the receipt of a round whose photo opens does not offer Include round photo' }),
       /* S9 · a picture that is showing says nothing */
@@ -405,7 +413,8 @@ const RECEIPT = [
     }),
     /* TEN / W6 · AW2-06: a math row's label is body and the words in its value
        are agateS; only the figures keep mono, in the column role (§1.4) */
-    notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag']),
+    /* Q45 · the plate's tagline (.rm-tag) is gone from the private receipt, so it leaves this pair */
+    notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw']),
     /* TEN / W6 · AW2-07: the moment's sentence sets its figure as a run (vsPhraseMarked), never the serif */
     noSerifFigure(['#rcptHero .rm-say'], ['#rcptHero .rm-say .cfrun']),
     noRetiredGlyph()) },
