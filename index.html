@@ -38684,7 +38684,7 @@ window.csPlanWhoLine = csPlanWhoLine;
    (and a second one hides it): the diagnostic stays one gesture away without
    sitting on the welcome's face. The phone's Door follows (E). */
 (function(){
-  const pen = document.querySelector('.ob-sig .cs-mark-door'); if(!pen) return;
+  const pen = document.querySelector('.ob-sig .cs-mark'); if(!pen) return;   /* Q24 drew the Door's pennant as the lockup's mark: the hold lives on the mark */
   let held = null;
   const cancel = () => { clearTimeout(held); held = null; };
   pen.addEventListener('pointerdown', () => { cancel(); held = setTimeout(() => {

@@ -26,7 +26,7 @@ const stampOffTheDoor = async (page) => {
     return c.getBoundingClientRect().height === 0 ? true : 'the build stamp is on the Door\u2019s face'
   })
   if (first !== true) return first
-  const pen = await page.$('.ob-sig .cs-mark-door')
+  const pen = await page.$('.ob-sig .cs-mark')
   if (!pen) return 'no pennant'
   const b = await pen.boundingBox()
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); await page.waitForTimeout(750); await page.mouse.up()
@@ -132,7 +132,9 @@ const doorHelp = (shown) => async (page) => {
     return true
   }, shown)
   if (r !== true || !shown) return r
-  /* the Door's own quiet link (.cs-tskip, as Back and Resend code are): a word in opaque mut under an underline, in a 44px box (§7.1, §16.2) */
+  /* the Door's own quiet link (.cs-tskip, as Back and Resend code are): a word in opaque mut under an underline, in a 44px box (§7.1, §16.2).
+     Measured at rest: the pointer that tapped Send code can sit where the link now draws, and :hover is ink */
+  await page.mouse.move(1, 1)
   return page.evaluate(() => {
     const a = document.getElementById('obHelp'), cs = getComputedStyle(a), r = a.getBoundingClientRect()
     const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()

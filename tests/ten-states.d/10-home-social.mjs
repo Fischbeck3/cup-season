@@ -926,7 +926,7 @@ const GOLFERS = [
       const t = document.getElementById('view-person').innerText.replace(/\s+/g, ' ')
       /* X36 (1) · the sum names its facet, "across every meeting", and nothing claims to be "the" record */
       if (/the (whole )?record/i.test(aside)) return 'the aside still claims to be the record: ' + aside.slice(0, 160)
-      return /Between you/i.test(aside) && /(You lead|Devon Testwell leads|All square)[^.]*across every meeting\./.test(t) && /See every meeting/.test(aside) ? true : `the record is missing or unnamed: ${t.slice(0, 160)}`
+      return /Between you/i.test(aside) && /(You lead|Devon Testwell leads|All square|Devon Testwell has beaten you|You have taken all)[^.]*across every meeting\./.test(t) && /See every meeting/.test(aside) ? true : `the record is missing or unnamed: ${t.slice(0, 160)}`
     }),
     /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
     notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
