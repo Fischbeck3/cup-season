@@ -67,13 +67,13 @@ export default function install(W) {
     return { kind: 'round', name: p ? p.display_name : 'A golfer', marker: p ? p.marker : null, gross: r.gross, holes: r.holes_played,
       course: r.course_label, played_on: r.played_on, pvi: rr ? rr.pvi : null, points: rr ? rr.points : null, photo: false, ...over }
   }
+  /* X38 · D397 · HELD with 20261214090000: a stranger holding a person link
+     reads the stranger shape of D394 (a name, a marker, rounds played). No
+     index, no best, no dated course rounds. */
   function personCard(n) {
     const p = prof(uid(n)); if (!p) return null
-    const mine = T.rounds.filter((r) => r.profile_id === p.id).sort((a, b) => (a.played_on < b.played_on ? 1 : a.played_on > b.played_on ? -1 : a.id < b.id ? -1 : 1))
-    const eighteens = mine.filter((r) => r.holes_played === 18 && r.gross != null)
-    return stripNulls({ kind: 'person', name: p.display_name, marker: p.marker, index: p.index_current, rounds_n: mine.length,
-      best: eighteens.length ? Math.min(...eighteens.map((r) => r.gross)) : null,
-      rounds: mine.slice(0, 3).map((r) => ({ gross: r.gross, holes: r.holes_played, course: r.course_label, played_on: r.played_on })) })
+    const mine = T.rounds.filter((r) => r.profile_id === p.id)
+    return stripNulls({ kind: 'person', name: p.display_name, marker: p.marker, rounds_n: mine.length })
   }
   const SHARES = () => {
     const devon = latestRound(4), blake = latestRound(2), jules = latestRound(10), casey = latestRound(3)
@@ -100,8 +100,9 @@ export default function install(W) {
       [SHARE.roundNoBand]: roundCard(jules, { pvi: null, points: null }),
       [SHARE.roundBroken]: roundCard(latestRound(8), { photo: true }),
       [SHARE.settlement]: { kind: 'settlement', game: 'match', course: pickerLabel(COURSE.wash, 'Black'), played_on: W.iso(-2),
+        /* X38 · D397 · HELD with 20261214090000: the game stays public, who
+           pays whom does not (no `transfers`) */
         result: stripNulls({ side_a: 'Blake & Devon', side_b: 'Casey & Gray', status: '3&2', winner: '0', stake: '10',
-          transfers: [{ from: 'Casey', to: 'Blake', amt: 10 }, { from: 'Gray', to: 'Devon', amt: 10 }],
           /* one result, told once: the cells close the match 3 up with 2 to play
              on 16 (3&2, the status), never earlier — 7 won, 4 lost, 5 halved.
              Hole 14 was a win, which made the strip 4&2 against its own
