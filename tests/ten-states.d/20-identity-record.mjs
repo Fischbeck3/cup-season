@@ -109,6 +109,27 @@ const youRecentFive = (slot) => async (page) => page.evaluate((slot) => {
   return thin.length ? `a Recent rounds row is named 'course, gross' only: ${JSON.stringify(thin[0].getAttribute('aria-label'))}` : true
 }, slot)
 
+/* X39 (2) · owner ruling 2026-09-29: a first round is a BASELINE. A BESTS row that shares the first round's round_id
+   folds into the FIRST ROUND slat (one round, one slat), and that slat names the round it was ('90 at … · Aug 11').
+   `wantBests` is how many BESTS slats remain. */
+const firstIsBaseline = (wantBests) => async (page) => page.evaluate((wantBests) => {
+  const ach = window.achievements || []
+  const first = ach.find((a) => a.kind === 'first_round' && a.round_id)
+  if (!first) return 'the fixture has no first round with a round id'
+  const shared = ach.filter((a) => a.kind !== 'first_round' && String(a.round_id) === String(first.round_id) && ['sub_80', 'sub_90', 'sub_100', 'personal_best'].includes(a.kind))
+  if (!shared.length) return 'no milestone shares the first round: this state cannot show the fold'
+  const slats = [...document.querySelectorAll('#trophyCase .tslat')]
+  const doors = slats.filter((el) => el.dataset.achr === String(first.round_id))
+  if (doors.length) return `${doors.length} BESTS slat(s) still open the first round`
+  const bests = slats.filter((el) => el.classList.contains('is-bests')).length
+  if (bests !== wantBests) return `the BESTS shelf holds ${bests} slat(s), expected ${wantBests}`
+  const fr = slats.find((el) => /first round/i.test(el.querySelector('b').textContent))
+  if (!fr) return 'no FIRST ROUND slat'
+  const sub = ((fr.querySelector('small') || {}).textContent || '').trim()
+  /* the round's gross and day, and its course when the career rows are in hand (csMilestoneSub's own degrade) */
+  return /^\d+( at .+)? · [A-Z][a-z]+ \d{1,2}$/.test(sub) ? true : 'the FIRST ROUND slat does not name its round: ' + JSON.stringify(sub)
+}, wantBests)
+
 /* the sidebar's foot stays pinned to the column's bottom when its block stands down: display:none took #sideMe's margin-top:auto with it
    (B's find on 51211947; W7-030's check, col.bottom − foot.bottom ≤ 48). The yields below collapse #sideMe or hide its children, never #sideMe. */
 const footStays = async (page) => page.evaluate(() => {
@@ -189,7 +210,7 @@ const YOU = [
       standsDown(['#sideMe [data-mego="add_round"]', '#sideMe .medoors']), footStays) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youRecentFive('ONE OF FIVE')) },
+    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youRecentFive('ONE OF FIVE'), firstIsBaseline(0)) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
@@ -276,7 +297,7 @@ const recordInWords = async (page) => page.evaluate(() => {
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: all(recordState('some'), recordInWords) },
+    check: all(recordState('some'), recordInWords, firstIsBaseline(2)) },
   { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
     title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
     drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },

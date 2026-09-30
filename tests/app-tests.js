@@ -851,6 +851,26 @@
     t('P-3: the clash outranks everything',
       csNextAct(epi({ rank_before: 4, rank_after: 2, passed: ['Jade'] }), { clash: { id: 'x', weeks_running: 2 } }).sentence,
       'That takes the weekly clash. Second week running.');   /* X36 (1) · the facet is named */
+    /* X39 (2) · a first round is a baseline: the epilogue does not say "You broke 90 for the first time" (or its
+       siblings) of a golfer's first round, and still says it of a later one */
+    {
+      const epiText = (e, first) => {
+        showEpilogue(Object.assign({ gross: 85, pvi: null, points: null, rivals: [], played_with: [] }, e), 'Papago', first, null, {});
+        const host = document.getElementById('epiPanel'), sh = document.getElementById('shBody');
+        const said = ((host && host.style.display === 'block') ? host.textContent : (sh ? sh.textContent : '')).replace(/\s+/g, ' ');
+        if(host){ host.style.display = 'none'; host.innerHTML = ''; }
+        if(typeof closeSheet === 'function') closeSheet();
+        return said;
+      };
+      const first = epiText({ earned: [{ kind: 'first_round' }, { kind: 'sub_100' }, { kind: 'sub_90' }] }, true);
+      t('X39: a first round is a baseline in the epilogue',
+        [/broke (90|100) for the first time/.test(first), /Your first round is on the board/.test(first)], [false, true]);
+      t('X39: a later round still broke 90 for the first time',
+        /You broke 90 for the first time/.test(epiText({ earned: [{ kind: 'sub_90' }] }, false)), true);
+    }
+    t('X39: the feed says a first round before a personal best',
+      [homeRoundDetail({ gross: 84, is_first: true, is_pr: true, is_me: true }), homeRoundDetail({ gross: 84, is_pr: true, is_me: true })],
+      ['your first round posted.', 'a personal best.']);
     t('P-3: the movement is the second rung',
       csNextAct(epi({ rank_before: 3, rank_after: 2, passed: ['Jade'] }), {}).key, 'movement');
     t('D239: a partner with no shared season is offered one',

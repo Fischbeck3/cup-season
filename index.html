@@ -13059,7 +13059,11 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     const sub = (said + epiCounting(epi.month_rank)).replace(/^ \u00b7 /, '').replace(/^ · /, '');
     rows.push(`<div class="check"><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`);
   }
+  /* X39 (2) · a first round is a BASELINE: "You broke 90 for the first time" (and its siblings, and a personal
+     best of one) is not said of a golfer's first round at all. The case folds the same rows into FIRST ROUND. */
+  const isFirstRound = !!firstEver || (epi.earned||[]).some(a=>a && a.kind==='first_round');
   (epi.earned||[]).forEach(a=>{
+    if(isFirstRound && a && a.kind!=='first_round' && csTrophyShelf(a.kind, false)==='bests') return;
     /* D329 · the fallback is the CASE's fallback, on both clients. A kind this
        build has no row for drew a flag here, a star on the phone and the drawn
        medal in the trophy case — one unknown achievement, three marks. It is
@@ -20926,9 +20930,10 @@ function csGrossUnit(r){ const h = csRoundHoles(r); return h != null && h < 18 ?
 /* D340 · HomeWireCopy.roundDetail's copy cases, kept on both clients. */
 function homeRoundDetail(r){
   if(r.gross==null) return '';
+  /* X39 (2) · a first round is a baseline: is_first is said before a personal best or a first time under 80 */
+  if(r.is_first) return r.is_me ? 'your first round posted.' : 'their first round posted.';
   if(r.is_pr) return 'a personal best.';
   if(csSub80(r)) return 'broke 80 for the first time.';
-  if(r.is_first) return r.is_me ? 'your first round posted.' : 'their first round posted.';
   if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
   return '';
 }
@@ -21501,15 +21506,15 @@ function dgBest(items){
   const recent=items.filter(i=> i.kind==='round' && !(i.r && i.r.round_id && spent.has(String(i.r.round_id)))
                                 && (now - dgTime(i.t)) <= 14*864e5);
   if(!recent.length) return null;
-  const rank=i=> i.r.is_pr?4 : csSub80(i.r)?3 : i.r.is_first?2 : 1;
+  const rank=i=> i.r.is_first?2 : i.r.is_pr?4 : csSub80(i.r)?3 : 1;   /* X39 · a first round ranks, and reads, as one */
   return recent.slice().sort((a,b)=>
     rank(b)-rank(a) || (Number(b.r.pvi||0)-Number(a.r.pvi||0)) || dgTime(b.t)-dgTime(a.t))[0];
 }
 function dgLine(i){
   const r=i.r, who=dgWho(r), course=esc(r.course||'a round');
+  if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;   /* X39 */
   if(r.is_pr)    return `<b>${who}</b> set a personal best — ${r.gross} at ${course}`;
   if(csSub80(r)) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
-  if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;
   return `<b>${who}</b> posted ${r.gross} at ${course}`;
 }
 /* what landed on YOUR rounds since the mark — reactions and comments, the
@@ -21584,7 +21589,7 @@ function renderHomeDigest(){
     }
     const bits=[];
     if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
-    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>csSub80(i.r)), fst=rounds.find(i=>i.r.is_first);
+    const pr=rounds.find(i=>i.r.is_pr && !i.r.is_first), s80=rounds.find(i=>csSub80(i.r) && !i.r.is_first), fst=rounds.find(i=>i.r.is_first);   /* X39 */
     if(pr)  bits.push(`a personal best from ${dgWho(pr.r)}`);
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
@@ -21906,7 +21911,7 @@ function homeLead(){
   const today=`${nowD.getFullYear()}-${pad2(nowD.getMonth()+1)}-${pad2(nowD.getDate())}`;
   const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||csSub80(r)||r.is_first));
   if(m){
-    const line = m.is_pr?'\ud83d\udd25 Personal best' : csSub80(m)?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';
+    const line = m.is_first?'\ud83c\udf89 First round posted' : m.is_pr?'\ud83d\udd25 Personal best' : csSub80(m)?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';   /* X39 */
     return { eb:'Around your buddies', ln:`${esc((m.golfer||'A golfer').split(' ')[0])} \u2014 ${line}`,
              act:'See the round', go:()=> m.round_id && window.openRoundSheet ? window.openRoundSheet(m.round_id) : switchView('home') };
   }
@@ -22118,7 +22123,7 @@ function csFallbackItems(){
   /* the circle's freshest round — the one CIRCLE item, never mine */
   const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
   if(r){
-    const mile = r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
+    const mile = r.is_first ? 'Their first round posted.' : r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : null;   /* X39 */
     push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
            eyebrow:'AROUND YOUR BUDDIES',
            headline:`${(r.golfer||'A golfer').split(' ')[0]} posted {${r.gross}}${r.course?` at ${r.course}`:''}.`,
@@ -25247,6 +25252,15 @@ function renderTrophyCase(){
         : o.rid?`<span class="tgo cs-agate-s" aria-hidden="true">›</span>` : ''}
     </div>`;
   const tiles = [], ids = [];
+  /* X39 (2) · owner ruling 2026-09-29: A FIRST ROUND IS A BASELINE. A debut 85 minted Broke 100 and Broke 90 (and on
+     the rederive path a personal best) on the same round as FIRST ROUND, so one round earned three slats and the
+     case said "the first time under 90" of a golfer's first time at all. A BESTS row that shares the first round's
+     round_id folds INTO the FIRST ROUND slat, which then names the round it was. Keyed on round_id only: with no
+     round_id on the rows (a server before Y-20) nothing folds. Twin: TrophyMeta (the phone). */
+  const firstAch = ach.find(a => a && a.kind === 'first_round' && a.round_id);
+  const firstRid = firstAch ? String(firstAch.round_id) : null;
+  const foldsIntoFirst = a => !!firstRid && a.kind !== 'first_round' && csTrophyShelf(a.kind, false) === 'bests' && String(a.round_id || '') === firstRid;
+  const folded = ach.some(foldsIntoFirst);
   hw.forEach(t=>{
     const id='t'+keyOf(t); ids.push(id);
     tiles.push({ shelf:'hardware', glyph:trophyGlyph(t.kind, t.placement), numeral:null,
@@ -25254,6 +25268,7 @@ function renderTrophyCase(){
       trail: t.season_year ? '’'+String(t.season_year).slice(2) : null });
   });
   ach.forEach(a=>{
+    if(foldsIntoFirst(a)) return;   /* X39 (2) · it rides in the FIRST ROUND slat */
     const m = ACH_META[a.kind] || {glyph:'medal', title:a.label||'Milestone'};
     const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
     const id='a'+keyOf(a); ids.push(id);
@@ -25271,7 +25286,9 @@ function renderTrophyCase(){
     tiles.push({ shelf, glyph:m.glyph, numeral, title:m.title, mint:fresh(id), rid, trail:null,
       /* a BESTS slat names the round it was won on; the quiet shelf keeps the
          dated line it has always had — "Posted · '26" is the whole of it. */
-      sub: shelf==='bests' ? csMilestoneSub(a, csMilestoneRound(rid)) : achSubtitle(a)+yr });
+      sub: shelf==='bests' ? csMilestoneSub(a, csMilestoneRound(rid))
+         : (folded && a === firstAch) ? csMilestoneSub(a, csMilestoneRound(firstRid))   /* X39 · the slat names its round */
+         : achSubtitle(a)+yr });
   });
   _trophySeen = new Set(ids);
   if(!tiles.length){
