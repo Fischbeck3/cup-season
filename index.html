@@ -1050,10 +1050,6 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
   font-family:var(--board); font-size:11px; color:var(--mut); margin-top:12px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
 }
-.side .foot .bld{
-  font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:12px;
-  letter-spacing:calc(var(--agate-s) * 1em);
-}
 
 /* ============ main column ============ */
 .main{min-width:0; padding-bottom:140px;} /* clears the tabbar AND the floating Post tee */
@@ -1769,10 +1765,16 @@ html[data-theme="light"] #inDate{color-scheme:light;}
 /* ============ buttons ============ */
 .btn{
   display:flex; align-items:center; justify-content:center; gap:8px;
-  width:100%; min-height:46px; border:none; border-radius:var(--rc); cursor:pointer;
+  width:100%; min-height:50px; border:none; border-radius:var(--rc); cursor:pointer;
   /* the ordinary primary action is the ACTION GREEN. Ember stays for live and
      urgent states and for the identity's hairline (owner board, 2026-09-14). */
-  font-size:14px; font-weight:600; color:var(--bg0); background:var(--act);
+  /* TEN / W6 · Q25 (owner, 2026-09-29, OWNER-QUESTIONS §R) · the label is
+     UI_SYSTEM §7.1's `name` role, 17 at 50px, as the phone's primary and
+     secondary already set it (`.csType(.name)`): Plex Sans Condensed
+     SemiBold in caps. It was system sans 14/600 at 46, and 14 is no role. */
+  font-family:var(--board); font-size:17px; font-weight:600; line-height:1.16;
+  text-transform:uppercase; letter-spacing:calc(var(--caps) * 1em);
+  color:var(--bg0); background:var(--act);
   transition:filter .2s var(--roll), transform .2s var(--roll);
 }
 .btn:hover{filter:brightness(1.06);}
@@ -2984,7 +2986,8 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 /* Back and Cancel are the alternative, so they are links, never a second
    button beside the one primary (§16A.5) */
 #view-wizard .wiznav .btn.dark{flex:0 0 auto; width:auto; min-height:44px; padding:0 var(--s2); background:none; border:0; box-shadow:none;
-  font-family:var(--sans); font-size:15px; font-weight:500; color:var(--ink);
+  /* Q25 · §7.1's in-content tertiary: `name` 15 in ink over the 2px mut rule */
+  font-family:var(--board); font-size:15px; font-weight:600; letter-spacing:calc(var(--caps2) * 1em); color:var(--ink);
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
 #view-wizard .wiznav .btn.dark:hover{filter:none; text-decoration-color:var(--ink);}
 #view-wizard #lockBtn:disabled{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}
@@ -3622,7 +3625,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 }
 @media(min-width:960px){ .composer{bottom:0;} }
 .composer input{flex:1; font-family:var(--sans); font-weight:500; min-height:46px;}
-.composer .btn{width:auto; padding:0 20px; min-height:46px; margin:0;}
+.composer .btn{width:auto; padding:0 20px; min-height:46px; margin:0;}   /* Q25 · level with its 46px field */
 .selchip{
   display:inline-flex; align-items:center; gap:7px;
   font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em;
@@ -4294,6 +4297,11 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .ob-hero h1 em{font-style:normal; color:var(--brand);}
 .ob-hero p{font-size:14.5px; color:var(--mut); line-height:1.65; max-width:36ch; margin-left:auto; margin-right:auto;}
 .ob-caption{text-align:left; font-family:var(--mono); font-size:11.5px; color:var(--mut); margin-top:12px; letter-spacing:.04em;}
+/* TEN / W6 · Q5 (owner, 2026-09-29 §R: B1) · the build stamp is off the
+   Door's face. #obCaption stays in the DOM: the curl diagnostic (CLAUDE.md),
+   the feedback sheet's version and the Door test all read it. A long-press
+   on the pennant shows it. */
+.ob-caption:not(.is-shown){display:none;}
 /* UI_SYSTEM §16.1: secondary text uses opaque mut; dim is non-text. */
 .onboard #obDoor .fine{color:var(--mut);}
 /* D339 · the quiet secondary entry: the same 46 tall, a hairline, the ink — not a second filled button */
@@ -4928,6 +4936,15 @@ body:not(.noleague) #hubLeagueless{display:none;}
    lead still coming keeps its room. */
 .view#view-home[data-held]{display:none;}
 #homeLead[data-coming]{min-height:224px; margin:0 0 14px;}
+/* TEN / W6 · Q14 · the install nudge in league-less Home's page: the reason on
+   its own line, then the in-content door (ink over a 2px mut rule, W7-080's
+   promo rule) and Not now, on a rule, at the head of the page */
+#homeInstall{display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--s4); margin:0 0 var(--s4); padding:0 0 var(--s1); border-bottom:1px solid var(--rule);}
+#homeInstall[hidden]{display:none;}
+#homeInstall p{flex:1 1 100%; margin:0; color:var(--ink);}
+#homeInstall .go{flex:none; background:none; border:0; border-bottom:2px solid var(--mut); padding:var(--s3) 0 var(--s1); min-height:44px; color:var(--ink); cursor:pointer;}
+#homeInstall .x{flex:none; margin-left:auto; background:none; border:0; min-width:44px; min-height:44px; color:var(--mut); cursor:pointer; display:flex; align-items:center; justify-content:center;}
+#homeInstall .go:focus-visible, #homeInstall .x:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
 /* F15 · on a phone the grid reaches into its card's padding so every day is a
@@ -6411,9 +6428,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         </div>
       </div>
       <div class="lgline"><span id="sideLeague">The Sunday Cup</span> &middot; <span id="sideMeta">7 golfers</span></div>
-      <!-- the deploy's own stamp. NEVER hand-edited: stamp-version.sh does
-           the substitution at build time (CLAUDE.md rule 2). -->
-      <div class="bld">v23 &middot; __CS_VERSION__</div>
+      <!-- TEN / W6 · Q5 (owner, 2026-09-29 §R: B1) · the build stamp left the
+           sidebar's foot; Settings keeps its line, and the Door keeps it in
+           the DOM behind a long-press on the pennant. -->
     </div>
   </aside>
 
@@ -6488,6 +6505,15 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              fold and D218's head kept). Below 960 the two stack in the
              phone's own order. This is not the phone's lane in a browser —
              it is the same producer in the shape a desk earns. -->
+        <!-- TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · D186's install nudge on
+             league-less Home: IN THE PAGE, at its head, drawn with Home's first
+             paint (csInstallInPage), never an overlay above the header 3.4 s
+             after landing. League-less Home is the slot's only page. -->
+        <div id="homeInstall" class="hinstall" hidden>
+          <p class="cs-body-s" data-install-why></p>
+          <button type="button" class="go cs-name-s" data-install-go>Add to Home Screen</button>
+          <button type="button" class="x" data-install-x aria-label="Not now"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+        </div>
         <div id="homeHub" class="deskbody">
           <div class="deskmain">
             <!-- TEN / W7-050 [A2-home-11] · THE DOM IS THE PAGE'S ORDER. Below
@@ -8002,7 +8028,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- TEN / W7-006 · what a yes publishes, under the switch that asks
              (D380; RoundCopy.photoIncludeFine under the phone's toggle) -->
         <p class="finish-fine" id="finFine" hidden></p>
-        <button class="finish-share" id="finShare" type="button">Share the card</button>
+        <button class="finish-share" id="finShare" type="button">Share your round</button>
         <p class="finish-status" id="finStatus" role="status" aria-live="polite"></p>
         <!-- TEN / W7-139 · Close, the one dismiss word for every sheet and cover: "Back to the board" closed onto Home, and a golfer with no league has no board -->
         <button class="finish-back" id="finBack" type="button">Close</button>
@@ -8169,6 +8195,31 @@ const capNum   = () => { const n = capDB(); return n == null ? Infinity : n; }; 
    posted 2". The phone's `LeagueCopy.countingRule` is the same rule said the
    same way; the two may not drift. `n` is the league's stored cap, not the
    picker's rung, so an off-ladder rule states itself (D347). */
+/* TEN / W6 · Q20 (owner, 2026-09-29 §R: 1) · ONE WAY TO COUNT DAYS. A count
+   of days EXCLUDES today (0 is the last day: "closes tonight", "last day"),
+   in calendar days, on the league's timezone (`seasons.timezone`) or the
+   event's (`events.tz`), never the device's: D246, and every server field
+   (`native_home.season.days_left`) already counts this way. The month clocks
+   included today, three month counts rounded an instant (so they changed with
+   the time of day), and every count read the device's clock. */
+const CS_TZ_DEFAULT = 'America/Phoenix';   /* CLAUDE.md: the league default, no DST */
+function csTz(tz){ return tz || window.CS?.season?.timezone || CS_TZ_DEFAULT; }
+function csTodayIn(tz, now){
+  try{ return new Intl.DateTimeFormat('en-CA', { timeZone: csTz(tz), year:'numeric', month:'2-digit', day:'2-digit' }).format(now || new Date()); }
+  catch(_){ return isoOf(now || new Date()); }   /* an unknown zone name: the device's day */
+}
+function csDaysLeft(endIso, tz, now){
+  if(!endIso) return null;
+  const [y1,m1,d1] = csTodayIn(tz, now).split('-').map(Number);
+  const [y2,m2,d2] = String(endIso).slice(0,10).split('-').map(Number);
+  return Math.round((Date.UTC(y2, m2-1, d2) - Date.UTC(y1, m1-1, d1)) / 864e5);
+}
+function csMonthDaysLeft(tz, now){
+  const [y,m] = csTodayIn(tz, now).split('-').map(Number);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return csDaysLeft(`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`, tz, now);
+}
+window.csDaysLeft = csDaysLeft; window.csMonthDaysLeft = csMonthDaysLeft; window.csTodayIn = csTodayIn;
 /* TEN / W7-081 · THE MONTH'S FACT, the twin of SeasonFacts.monthRow: the
    counting label, the credits toward the minimum only where a minimum exists
    (a solo season, a short edge month and a mid-month joiner owe none), and
@@ -8178,15 +8229,27 @@ function csMonthRow(){
   if(state.demo || !(window.CS?.memberships||[]).length || typeof seasonState !== 'function' || seasonState() !== 'live') return null;
   const cap = (typeof capDB === 'function') ? capDB() : null;
   const head = cap ? `Best ${cap} a month count` : 'Every round counts';
-  const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), left = last - now.getDate();
-  const month = now.toLocaleString('en-US', { month:'long' });
+  const left = csMonthDaysLeft();   /* Q20 · excluding today, on the league's clock */
+  const month = new Date(Date.UTC(2000, Number(csTodayIn().slice(5,7)) - 1, 15)).toLocaleString('en-US', { month:'long', timeZone:'UTC' });
   const clock = left <= 0 ? `last day of ${month}` : left === 1 ? `1 day left in ${month}` : `${left} days left in ${month}`;
   const floor = Number(state.floor) || 0;
   const pulse = window.leaguePulse || [], me = pulse.find(r => r && r.is_me) || null;
   const partial = !!(pulse[0] && pulse[0].partial);
   const credits = window.myMonth ? Number(window.myMonth.credits) : null;
-  if(!(floor > 0) || partial || credits == null || isNaN(credits)) return `${head} \u00b7 ${clock}`;
-  if(me && me.joined_this_month === true) return `${head} \u00b7 no minimum this month, you joined this month \u00b7 ${clock}`;
+  /* TEN / W6 · Codex on 113b7209 (P2) · THE MINIMUM WAITS FOR ITS WAIVERS.
+     An absent pulse read as "not partial" and "not a joiner", and beside the
+     loaded credits it printed a minimum that D354 waives (the joined month)
+     or the partial month waives: a failed pulse did it, and so could Home
+     shown by AW2-01's watchdog before the pulse landed. L-44: an unknown fact
+     stays absent. So the minimum is said only once the viewer's own pulse row
+     has CONFIRMED the waiver facts (the month is not partial, and whether
+     they joined this month is known), and never in a solo season, which
+     carries no minimum (the pulse card's own rule). Until then: the cap and
+     the clock. */
+  const solo = ((window.CS && CS.settings && CS.settings.structure != null) ? CS.settings.structure : state.structure) === 'solo';
+  const confirmed = !!me && typeof me.joined_this_month === 'boolean';
+  if(!(floor > 0) || solo || !confirmed || partial || credits == null || isNaN(credits)) return `${head} \u00b7 ${clock}`;
+  if(me.joined_this_month === true) return `${head} \u00b7 no minimum this month, you joined this month \u00b7 ${clock}`;
   const fmt = n => n % 1 ? n.toFixed(1) : String(n);   /* a nine is a half credit */
   return `${head} \u00b7 ${fmt(credits)}/${floor} toward the minimum \u00b7 ${clock}`;
 }
@@ -10009,9 +10072,8 @@ function renderMonthClock(hide){
   const weeks = Number(totalWeeks()) || 0;
   if(hide || !start || !weeks){ el.style.display='none'; return; }
   el.style.display='';
-  const t0=new Date(); t0.setHours(0,0,0,0);
-  const liveKey = t0.getFullYear()+'-'+String(t0.getMonth()+1).padStart(2,'0');
-  const left = Math.round((new Date(t0.getFullYear(), t0.getMonth()+1, 1) - t0)/864e5);
+  const liveKey = csTodayIn().slice(0,7);   /* Q20 · the league's month */
+  const left = csMonthDaysLeft();           /* Q20 · it counted today; 0 is the last day */
   const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const nowWk = Math.max(0, (Number(currentWeek()) || 1) - 1);
   const played = nowWk;
@@ -10029,7 +10091,7 @@ function renderMonthClock(hide){
       const i = g.first + k;
       ticks += `<i class="t ${i===nowWk?'now':(i<played?'played':'')}"></i>`;
     }
-    const note = live && left>0 ? ' \u00b7 '+left+' day'+(left===1?'':'s') : '';
+    const note = live ? (left>0 ? ' \u00b7 '+left+' day'+(left===1?'':'s') : ' \u00b7 last day') : '';
     return `<div class="mg"><div class="ticks">${ticks}</div><div class="ml${live?' live':''}">${g.label}${note}</div></div>`;
   }).join('');
   el.setAttribute('aria-label', 'Week '+(nowWk+1)+' of '+weeks+', the live week');
@@ -13432,6 +13494,11 @@ function finishCeremony(o){
     ff.hidden = !says; ff.textContent = says ? CS_SHARE_PHOTO_FINE : '';
   }
   const fs=$('#finStatus'); if(fs) fs.textContent='';
+  /* TEN / W6 · Q23 (owner, 2026-09-29 §R: 1) · "Share your round", the
+     epilogue's own producer: D380 shares the round (the card AND the link), and
+     "card" is the person (T-01). Counted before this post reloads the career,
+     as the epilogue counts it. */
+  const fsb=$('#finShare'); if(fsb) fsb.textContent = csShareRoundLabel(!state.demo && !!window.career && Number(window.career.rounds) === 0);
   finishPreview();
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
@@ -13883,7 +13950,11 @@ function recalc(){
     const on = $('#inDate')?.value || null;
     const known = _shows ? pts : null;
     const worth = _ss === 'live' ? csComposerWorthLine(on, undefined, known) : null;
-    _sn.textContent = worth || seasonNote('long') || 'Counts in every league you\u2019re in.';
+    /* TEN / W6 · Q38 · a nine in a season that counts eighteens only: the
+       note below it said "Counts in every league you're in", which is the
+       one thing that nine does not do. Nothing is promised instead. */
+    const nineOut = _ss === 'live' && !!entry && entry.holes === 9 && window.CS?.settings?.nine_hole_allowed === false;
+    _sn.textContent = nineOut ? '' : (worth || seasonNote('long') || 'Counts in every league you\u2019re in.');
     /* and ask the server; when its answer lands for this same date, say it */
     if(_ss === 'live') csLoadMyCounters(on).then(c => {
       if(!c || c.rows==null) return;
@@ -20455,8 +20526,8 @@ function heroFloorFoot(){
   if(!rows.length || rows[0].partial) return '';
   const isPro = window.CS?.member?.role==='commissioner';
   const floor = rows[0].floor ?? 2;
-  const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
-  const days=Math.max(0, Math.round((eom-now)/864e5));
+  const days=Math.max(0, csMonthDaysLeft());   /* Q20 · it rounded an instant */
+  const now=new Date(csTodayIn()+'T12:00:00');   /* Q20 · the league's month names the bar */
   const closes = days===0?'today':days+'d';
   if(isPro){
     const short=rows.filter(r=>!r.at_floor);
@@ -21904,6 +21975,14 @@ function renderHomeFeed(){
      hidden row never earns a whole "show 1 more" button. */
   const CAP=8;
   let html='';
+  /* TEN / W6 · Q19 (owner, 2026-09-29 §R; TERMINOLOGY §2.2 amended) · the
+     head names what the list holds: "Your rounds" when rounds are listed and
+     none of them is a buddy's, "Around your buddies" otherwise (its true
+     scope, D217/D218). A golfer with no buddies read "Around your buddies"
+     over a list of their own rounds. */
+  { const hd = document.getElementById('homeFeedHead');
+    if(hd){ const rs = fold.buckets.flatMap(b => b.items).filter(x => x.kind === 'round');
+      hd.textContent = rs.length && rs.every(x => x.r && x.r.is_me) ? 'Your rounds' : 'Around your buddies'; } }
   /* L-34 · one course's circle per course, on its newest round (the fold
      orders newest first). TEN / W7-051 [B2-home-3] · per WIRE, not per
      section: declared inside the loop, the same sentence landed once under
@@ -22112,8 +22191,7 @@ function homeLead(){
      waives the floor for them, so the alarm must not fire. */
   if(row && !row.partial && row.joined_this_month !== true && state.phase==='season'){
     const floor=Number(row.floor||0), credits=Number(row.credits||0);
-    const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
-    const days=Math.max(0, Math.round((eom-now)/86400000));
+    const days=Math.max(0, csMonthDaysLeft());   /* Q20 · it rounded an instant */
     if(floor>0 && credits<floor && days<=3){
       const short=Math.round((floor-credits)*10)/10;
       return { eb: days===0?'The month closes today':days===1?'The month closes tomorrow':`The month closes in ${days} days`,
@@ -22325,9 +22403,8 @@ function csFallbackItems(){
   const pr = (!state.demo && (window.leaguePulse||[]).find(x=>x.is_me)) || null;
   if(pr && !pr.partial && state.structure !== 'solo' && state.phase === 'season'){
     const fl = Number(pr.floor||0), cr = Number(pr.credits||0);
-    const t0 = new Date(); t0.setHours(0,0,0,0);
-    const eom = new Date(t0.getFullYear(), t0.getMonth()+1, 0);
-    const left = Math.max(0, Math.round((eom - t0)/864e5));
+    const left = Math.max(0, csMonthDaysLeft());   /* Q20 · the league's clock */
+    const eom = (() => { const [y, m] = csTodayIn().split('-').map(Number); return new Date(y, m, 0); })();   /* Q20 · the league's month's last day */
     if(fl > 0 && cr < fl && left <= 3){
       const short = Math.round((fl - cr) * 10) / 10;
       const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -25036,6 +25113,7 @@ function renderHomeHub(){
    if(bg) bg.style.display = (!state.demo && window.CS?.league) ? '' : 'none';}
   /* AW2-01 · held: Home's containers wait for csHomeRelease's one paint */
   if(window.__homeHold){ renderClubGroups(); return; }
+  window.csInstallInPage?.();   /* Q14 · league-less Home's install nudge, in the page, with this paint */
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
   renderMeStrip();        /* D236: my number, my last round, my next round, my money */
   renderHomeDispatch();   /* D228/D231: the lead and the deck, ranked, one read */
@@ -25116,8 +25194,7 @@ function renderPulse(){
   const isPro=CS.member?.role==='commissioner';
   const floor=rows[0].floor ?? 2;
   const mName=MOS[new Date().getMonth()];
-  const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
-  const days=Math.max(0, Math.round((eom-now)/86400000));
+  const days=Math.max(0, csMonthDaysLeft());   /* Q20 · it rounded an instant */
   const closes=`closes ${days===0?'today':'in '+days+'d'}`;
   const fmt=n=>{ n=Number(n); return n%1 ? n.toFixed(1) : String(n); };
 
@@ -26541,7 +26618,10 @@ async function csRemoveRoundPhoto(rid, oldPath){
 const CS_CARD = {
   head: 'The card',
   strokesOnly: 'Hole by hole',
-  share: 'Share the card',
+  /* TEN / W6 · Q23 (owner, 2026-09-29 §R: 1) · the receipt's one Share sends
+     the round (card and link, D380): it says so, as the ceremony and the
+     epilogue do. RoundCopy.share on the phone owes the same words (E). */
+  share: 'Share your round',
   shareFailed: 'That card didn\u2019t render. Try again.',
 };
 
@@ -29076,7 +29156,7 @@ function renderEvent(){
   const live = ev.status!=='complete' && ev.status!=='setup';
   let brow = statusChip;
   if(live && openS){
-    const dd=Math.round((new Date(openS.closes_on+'T00:00:00') - new Date().setHours(0,0,0,0))/864e5);
+    const dd=csDaysLeft(openS.closes_on, ev.tz);   /* Q20 · the event's clock */
     if(dd>=0) brow += dd===0 ? ' · closes tonight' : ` · ${dd} day${dd===1?'':'s'} left`;
   }
   if(ev.status==='complete'){
@@ -29305,8 +29385,7 @@ function renderEvent(){
       </div>`;
     });
     if(s.status==='open' && waiting.length){
-      const d1b=new Date(s.closes_on+'T00:00:00');
-      const days=Math.max(0, Math.round((d1b-new Date().setHours(0,0,0,0))/864e5));
+      const days=Math.max(0, csDaysLeft(s.closes_on, ev.tz));   /* Q20 · the event's clock */
       body+=`<div class="fine" style="padding:4px 0 0">Still to post: <b>${waiting.map(esc).join(', ')}</b> · ${days===0?'closes tonight':days+(days===1?' day':' days')+' left'}.</div>`;
     }
     if(iAmOrg && ds.length && s.status!=='closed'){
@@ -29406,7 +29485,7 @@ function renderMajorRoom(el, E){
   const d0=s?new Date(s.opens_on+'T00:00:00'):null, d1=s?new Date(s.closes_on+'T00:00:00'):null;
   const when=s?`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`:'';
   const todayMid=new Date(); todayMid.setHours(0,0,0,0);
-  const daysLeft=d1?Math.round((d1-todayMid)/864e5):null;   /* 0 = the final day */
+  const daysLeft=d1?csDaysLeft(s.closes_on, ev.tz):null;   /* 0 = the final day · Q20: the event's clock */
   const days=s?Math.round((d1-d0)/864e5)+1:0;
   const complete=ev.status==='complete';
   const champCard=cards.find(c=>c.rank===1)||null;
@@ -29896,34 +29975,55 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
   var n = document.getElementById('installNudge');
   var deferred = null, shown = false;
   function eligible(){ try{ return !standalone && !localStorage.getItem('cs_nudge_done'); }catch(_){ return !standalone; } }
+  /* TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · ONE sentence for both shapes
+     (D186's reason), painted into each, and one dismissal for both. On
+     league-less Home the nudge is IN THE PAGE (#homeInstall), drawn with
+     Home's first paint; the overlay stays for the other two earned moments
+     (the first round, joining by invite) and stands down while the page's
+     own is showing. */
+  var WHY = 'Safari signs you out after a week away. On your home screen, you stay signed in.';
+  if(n){ var sp = n.querySelector('span'); if(sp) sp.textContent = WHY; }
+  function slot(){ return document.getElementById('homeInstall'); }
+  function inPage(){ var s = slot(); return !!s && !s.hidden; }
+  window.csInstallInPage = function(){
+    var s = slot(); if(!s) return;
+    var on = eligible() && !state.demo && !!(window.CS && window.CS.user) && !((window.CS.memberships || []).length);
+    s.hidden = !on;
+    if(on){ var w = s.querySelector('[data-install-why]'); if(w) w.textContent = WHY; if(n) n.style.display = 'none'; }
+  };
   /* never over a full-screen working surface: the live round, the composer,
      the wizard and squad formation each own the whole viewport */
   /* B25 (code audit 2026-08-30): the composer is `view-post`; the list named
      only `view-record`, so the nudge could sit over the card being typed */
   var BUSY = ['view-play','view-post','view-record','view-wizard','view-draft'];
   function busy(){ return BUSY.some(function(id){ var v=document.getElementById(id); return v && v.classList.contains('active'); }); }
-  function show(){ if(shown || !eligible() || !n || busy()) return; shown = true; n.style.display = 'flex'; }
+  function show(){ if(shown || !eligible() || !n || busy() || inPage()) return; shown = true; n.style.display = 'flex'; }
   window.csHideInstallNudge = function(){
     if(!n) return;
-    if(busy()) n.style.display = 'none';
+    if(busy() || inPage()) n.style.display = 'none';
     else if(shown && eligible()) n.style.display = 'flex';
   };
   /* B25 · a dismissal is final for the session too: `shown` stood true, so the
      next view switch (csHideInstallNudge) painted the banner back (D186: once) */
-  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; shown = false; if(n) n.style.display = 'none'; }
+  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; shown = false; if(n) n.style.display = 'none';
+    var s = slot(); if(s) s.hidden = true; }
   window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; });  /* hold — don't show until earned */
   window.csEarnInstallNudge = function(){ show(); };
+  function install(){
+    if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
+    openSheet('Add to your home screen', 'Installs like an app, no App Store needed',
+      '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.'
+      + '<br><br>Full screen, your icon, your leagues one tap away — and you stay signed in. '
+      + 'Safari clears a site’s data after a week away; a home-screen app keeps yours.</p>');
+    dismiss();
+  }
   if(n){
-    document.getElementById('nudgeGo').addEventListener('click', function(){
-      if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
-      openSheet('Add to your home screen', 'Installs like an app, no App Store needed',
-        '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.'
-        + '<br><br>Full screen, your icon, your leagues one tap away — and you stay signed in. '
-        + 'Safari clears a site’s data after a week away; a home-screen app keeps yours.</p>');
-      dismiss();
-    });
+    document.getElementById('nudgeGo').addEventListener('click', install);
     document.getElementById('nudgeX').addEventListener('click', dismiss);
   }
+  (function(){ var s = slot(); if(!s) return;
+    s.querySelector('[data-install-go]')?.addEventListener('click', install);
+    s.querySelector('[data-install-x]')?.addEventListener('click', dismiss); })();
 })();
 $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
   e.preventDefault(); e.stopPropagation();
@@ -33242,7 +33342,7 @@ async function enterLeague(m, nav=true, opts={}){
        missing column on a sealed table doesn't name itself). */
     const SEASON_COLS = 'id, number, starts_on, ends_on, status, champion_squad_id, '
       + 'champion_member_id, runnerup_squad_id, runnerup_member_id, points_king_member_id, '
-      + 'champion_score, runnerup_score, tiebreak_rung, pot_cents, collected_cents';
+      + 'champion_score, runnerup_score, tiebreak_rung, pot_cents, collected_cents, timezone';   /* Q20 · the league's clock; baseline column, and the legacy retry below drops it */
     let { data: season, error: sErr } = await sb.from('seasons')
       .select(SEASON_COLS).eq('league_id', m.league.id)
       .order('number', { ascending:false }).limit(1).maybeSingle();
@@ -37480,10 +37580,25 @@ function csComposerWorthLine(playedOn, capGiven, pts){
   const on = String(playedOn || isoOf(new Date())).slice(0,10);
   /* the shared producer first: one sentence per season the date falls in,
      the season named only when there is more than one */
-  /* D364 (F3) · the card's own side — a nine is never promised an
-     eighteen-hole ceiling */
-  const holes = (typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18;
-  const known = (pts != null && isFinite(Number(pts)) && holes === 18) ? Number(pts) : null;
+  /* D364 (F3) · the card's own holes — a nine is never promised an
+     eighteen-hole ceiling. The ENTRY decides once there is one (a single nine
+     on the 18-hole form is a nine, postEntry); the side before that. */
+  const ent = (typeof postEntry === 'function') ? postEntry() : null;
+  const holes = ent ? ent.holes : ((typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18);
+  /* TEN / W6 · Q38 (Codex on 113b7209, P2) · ONCE A GROSS IS TYPED, THE
+     CARD'S OWN ARITHMETIC, nine or eighteen. The engine's half-round rules
+     (`v_rounds_ranked`): a nine's points are half the band rounded up, which
+     recalc has already applied to `pts`; it ranks for the counting cap on
+     those points, one slot like any round; and its half-round credit is the
+     MINIMUM's (floor_credit 0.5), which this line does not speak to. So
+     csRoundWorthKnown is exact for a nine too. A valid nine still printed
+     the hypothetical ceiling (§R: never under a real score). */
+  const known = (pts != null && isFinite(Number(pts))) ? Number(pts) : null;
+  /* ... and a nine counts only where the season allows nines: the view drops
+     it otherwise (`league_settings.nine_hole_allowed`, the open league's row,
+     read whole into CS.settings). There the typed nine adds nothing to the
+     total, and no worth line is promised under it. */
+  if(known != null && holes === 9 && window.CS?.settings && window.CS.settings.nine_hole_allowed === false) return null;
   const served = capGiven === undefined && window.myCounters && window.myCounters.on === on ? window.myCounters.rows : null;
   if(served){
     const rows = served.map(x => ({ league_id: x.league_id, league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
@@ -38156,8 +38271,12 @@ function showWelcome(){
      takes: no habit yet, so most likely to be away longer than a week. Landing
      in the app league-less IS a completed step, so it qualifies under the same
      rule the other two use. show() is still once ever per device, still silent
-     when installed, still silent on a working surface. */
-  setTimeout(() => window.csEarnInstallNudge?.(), 3400);
+     when installed, still silent on a working surface.
+     TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · this moment is drawn IN THE
+     PAGE now, at the head of league-less Home, with Home's first paint
+     (renderHomeHub → csInstallInPage): no overlay above the header, and
+     nothing shifts at 3.4 s. */
+  window.csInstallInPage?.();
 }
 /* THE PUBLIC PLAN'S WHO-LINE · round 2's P0 (category judge, 2026-09-29): the
    link said "Avery and Devon are in." while the plan's own sheet showed Avery
@@ -38184,10 +38303,21 @@ function csPlanWhoLine(info){
 }
 window.csPlanWhoLine = csPlanWhoLine;
 
+/* TEN / W6 · Q5 · a long-press on the Door's pennant shows the build stamp
+   (and a second one hides it): the diagnostic stays one gesture away without
+   sitting on the welcome's face. The phone's Door follows (E). */
+(function(){
+  const pen = document.querySelector('.ob-sig .cs-mark-door'); if(!pen) return;
+  let held = null;
+  const cancel = () => { clearTimeout(held); held = null; };
+  pen.addEventListener('pointerdown', () => { cancel(); held = setTimeout(() => {
+    held = null; document.getElementById('obCaption')?.classList.toggle('is-shown'); }, 600); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => pen.addEventListener(ev, cancel));
+})();
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';
   $('#obDoor').style.display = 'block';
-  $('#obCaption').style.display = 'block';
+  $('#obCaption').style.display = '';   /* Q5 · the stylesheet decides: hidden until the pennant's long-press */
   const hero = document.querySelector('.onboard .ob-hero');
   if(hero) hero.style.display = 'block';
 }

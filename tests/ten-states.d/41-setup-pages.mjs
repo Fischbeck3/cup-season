@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked, btnNameRole } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -331,7 +331,7 @@ const WIZARD = [
     check: all(destMarked('compete'), isRow('#commishChip', 'the Pro row'),   /* TEN / W8 · W7-108: the wizard is a room of COMPETE, so COMPETE stays marked */
     /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
     async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
-    noRetiredGlyph()) },
+    noRetiredGlyph(), btnNameRole(['#wizNext'])) },   /* TEN / W6 · Q25 */
   { family: 'wizard', id: 'step-2-rules', variant: 'pro_setup', title: 'Wizard · step 2 of 3, the rules',
     drive: async (page) => { await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 2 of 3' } } },
@@ -587,7 +587,9 @@ const SETTINGS = [
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
-    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings'), notifyGroups(['On your devices', 'By email', 'In Cup Season']), ariaWellFormed('#phPaneSettings')) },
+    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings'), notifyGroups(['On your devices', 'By email', 'In Cup Season']), ariaWellFormed('#phPaneSettings'),
+      /* TEN / W6 · Q5 · Settings keeps the build stamp's line */
+      async (page) => page.evaluate(() => /Cup Season · v23 · /.test((document.getElementById('phPaneSettings') || {}).textContent || '') ? true : 'Settings lost its build line')) },
   /* W7-082 · a server that cannot answer the recap or the conversation switches (D68, D391 not deployed): their groups hide with their heads, and the devices group stands alone */
   { family: 'settings', id: 'notify-skew', variant: 'member', fullPage: false, title: 'Card & settings · Settings when the server has no season email or conversation switches',
     world: { errors: { rpc: { set_email_recap: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' }, social_notify_prefs: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' } } } },
@@ -920,7 +922,9 @@ const sideKeepsHomeFacts = async (page) => page.evaluate(() => {
 })
 const DESK = [
   { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
-    check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); if (b !== true) return b; const g = await deskGutter('#homeHub .deskmain', '#homeHub .deskwire')(page); return g !== true ? g : deskRailEdge(page) } },
+    check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); if (b !== true) return b; const g = await deskGutter('#homeHub .deskmain', '#homeHub .deskwire')(page); if (g !== true) return g; const e = await deskRailEdge(page); if (e !== true) return e
+      /* TEN / W6 · Q5 · the sidebar's foot no longer prints the build stamp */
+      return page.evaluate(() => /v23 · /.test((document.querySelector('.side .foot') || {}).textContent || '') ? 'the sidebar foot still prints the build stamp' : true) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
     /* TEN / W8 · W7-025: the season page at its top marks The season, and only it */

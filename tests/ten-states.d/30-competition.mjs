@@ -769,7 +769,13 @@ const SEASON = [
     check: all(onNorthGrove, stateContrast([
       { sel: '#monthClock .t:not(.played):not(.now)', prop: 'backgroundColor', min: 4.5, what: 'the weeks ahead' },
       { sel: '#monthClock .t.played', prop: 'backgroundColor', min: 12, what: 'the weeks played' },
-      { sel: '#monthClock .t.now', prop: 'backgroundColor', min: 3, what: 'the live week' }])) },
+      { sel: '#monthClock .t.now', prop: 'backgroundColor', min: 3, what: 'the live week' }]),
+      /* TEN / W6 · Q20 (owner, 2026-09-29 §R: 1) · a count of days excludes today: on Mon Sep 28 (the capture clock) September
+         has 2 days left, not 3 */
+      async (page) => page.evaluate(() => {
+        const t = ((document.querySelector('#monthClock .ml.live') || {}).textContent || '').trim()
+        return /\u00b7 2 days$/.test(t) ? true : 'the live month reads ' + JSON.stringify(t) + ', not \u201c\u00b7 2 days\u201d'
+      })) },
   /* TEN / W6 · X12 (W7-Q35, root's ruling) · the roster card as its Pro, the roster closed. The day before first tee Reopen shows
      (reopening opens the door); on first tee it is gone (the join gate refuses every joiner but the Pro from starts_on,
      join_window.sql:69) and the sub line stands alone. The Pro only: a member never has the control. */

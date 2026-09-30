@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, medallionOnPhotoOnly } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, btnNameRole, medallionOnPhotoOnly } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -144,6 +144,8 @@ const footStays = async (page) => page.evaluate(() => {
 const receiptActions = async (page) => page.evaluate(() => {
   const sheet = document.getElementById('shBody'), share = document.getElementById('rcptCardShare'), del = document.getElementById('rcptDelete'), talk = document.getElementById('rcptTalk'), row = document.getElementById('rcptDelRow')
   if (!share) return 'the receipt has no Share'
+  /* TEN / W6 · Q23 · the one Share says what it sends: the round, never "the card" (the person, T-01) */
+  if ((share.textContent || '').trim() !== 'Share your round') return 'the receipt\u2019s Share reads ' + JSON.stringify((share.textContent || '').trim())
   /* the conversation's own Send is a form control, not one of the receipt's actions */
   const filled = [...sheet.querySelectorAll('.btn')].filter((b) => b.getBoundingClientRect().width > 0 && !b.closest('#rcptTalk'))
   if (filled.length !== 1 || filled[0] !== share) return `the receipt has ${filled.length} filled buttons, expected Share alone: ${JSON.stringify(filled.map((b) => (b.id || b.textContent || '').trim().slice(0, 24)))}`
@@ -556,6 +558,31 @@ const toastKinds = async (page) => page.evaluate(() => {
   if (c.rail !== rule || c.use !== null) return 'neutral: ' + JSON.stringify(c)
   return a.text === 'Card saved' ? true : 'the glyph changed what the toast says: ' + JSON.stringify(a.text)
 })
+/* the 9-holes side, a 42 typed into the one nine box on screen */
+async function typeNine(page) {
+  await toComposer(page); await click(page, '#postSide [data-ph="9"]')
+  const folded = await page.evaluate(() => { const f = document.getElementById('postCardFold'); return !f || f.offsetParent === null || getComputedStyle(f).display === 'none' })
+  if (folded) await click(page, '#postInherit').catch(() => {})
+  await page.fill('#inCourse', 'Saguaro Flats Municipal (fixture) · Blue'); await page.fill('#inRating', '70.1'); await page.fill('#inSlope', '121')
+  await page.fill('#inDate', '2026-09-27').catch(() => {})
+  const box = await page.evaluate(() => ['inF9', 'inB9'].find((id) => { const e = document.getElementById(id); return e && e.offsetParent !== null }) || 'inF9')
+  await page.fill('#' + box, '42'); await page.locator('#' + box).press('Tab').catch(() => {}); await page.waitForTimeout(400)
+}
+/* a season that counts eighteens only (the view drops a nine there): the typed nine is scored, and no worth line is promised */
+const noWorthForNine = async (page) => page.evaluate(() => {
+  if (!/9-hole round, half value/.test((document.getElementById('calcMsg') || {}).textContent || '')) return 'the card is not scored as a nine'
+  const t = ((document.getElementById('calcSeason') || {}).textContent || '').trim()
+  return t === '' ? true : 'a nine in a season without nines is promised a worth line: ' + JSON.stringify(t)
+})
+/* TEN / W6 · Q38 (Codex on 113b7209, P2) · a typed nine's worth line is the card's own arithmetic on its half-value
+   points, never the ceiling: the card is scored as a nine, and the line reads "This N counts / replaces…" or "Your best N…" */
+const worthAfterNine = async (page) => page.evaluate(() => {
+  const msg = ((document.getElementById('calcMsg') || {}).textContent || '')
+  if (!/9-hole round, half value/.test(msg)) return 'the card is not scored as a nine: ' + JSON.stringify(msg.slice(0, 60))
+  const t = ((document.getElementById('calcSeason') || {}).textContent || '').trim()
+  if (/can score up to/.test(t)) return 'a typed nine still prints the ceiling: ' + JSON.stringify(t)
+  return /^(This \d+ (counts|replaces)|Your best \d+)/.test(t) ? true : 'a typed nine\u2019s line is not its arithmetic: ' + JSON.stringify(t)
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
     drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^Builds at 3 rounds$' } },   /* Q48 */
@@ -770,7 +797,23 @@ const COMPOSER = [
       const i = document.createElement('i'); i.style.color = 'var(--bg0)'; document.body.appendChild(i); const bg0 = getComputedStyle(i).color; i.remove()
       const c = getComputedStyle(document.getElementById('postBtn')).color
       return c === bg0 ? true : `Add my round's type is ${c}, not --bg0 ${bg0}`
-    }), worthBeforeGross, toastKinds) },
+    }), worthBeforeGross, toastKinds, btnNameRole(['#postBtn'])) },   /* Q25 */
+  /* TEN / W6 · Q38 · the 9-holes side, one nine typed */
+  { family: 'composer', id: 'nine-explicit', variant: 'member', short: true, title: 'Composer · the 9-holes side, a 42 typed: the worth line is the nine\u2019s arithmetic',
+    drive: typeNine,
+    expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
+    check: worthAfterNine },
+  /* TEN / W6 · Q38 · the same nine in a season that does not count nines */
+  { family: 'composer', id: 'nine-no-nines', variant: 'member', short: true, title: 'Composer · a nine typed in a season that counts eighteens only: no worth line is promised',
+    prepare: async (W) => { for (const s of W.tables.league_settings) s.nine_hole_allowed = false },
+    drive: typeNine,
+    expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
+    check: noWorthForNine },
+  /* TEN / W6 · Q38 · the 18-hole form with only its front nine filled is a nine too (postEntry) */
+  { family: 'composer', id: 'nine-on-18', variant: 'member', short: true, title: 'Composer · the 18-hole form, only the front nine filled: scored and worded as a nine',
+    drive: async (page) => { await toComposer(page); await fillCard(page, { f9: '42', b9: '' }) },
+    expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
+    check: worthAfterNine },
   { family: 'composer', id: 'filled', variant: 'member', title: 'Composer · a full card entered, before Post',
     drive: async (page) => { await toComposer(page); await fillCard(page) },
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
@@ -889,6 +932,9 @@ function shareState(id, title, card, extra = {}) {
       await until(page, () => !!document.getElementById('epiRevokeWrap'), null, 10000).catch(() => {})
       return page.evaluate(() => {
         if (!window.__tenArtifact) return 'the card was not downloaded'
+        /* TEN / W6 · Q23 · the ceremony's Share says "Share your round" (the epilogue's producer), never "Share the card" */
+        const fsText = (document.getElementById('finShare')?.textContent || '').trim()
+        if (!/^Share your (first )?round$/.test(fsText)) return 'the ceremony\u2019s Share reads ' + JSON.stringify(fsText)
         const said = (document.getElementById('finStatus')?.textContent || '').trim()
         if (!/link/i.test(said)) return 'the ceremony shared no link (D380): ' + JSON.stringify(said)
         /* TEN / W7-006 [B2-share-1] · ONE Share per posted round: the epilogue

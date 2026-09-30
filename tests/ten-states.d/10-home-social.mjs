@@ -278,6 +278,48 @@ const monthFact = async (page) => page.evaluate(() => {
   const t = lines[0].textContent.trim()
   return /^(Best \d+ a month count|Every round counts) · (.+ · )?(\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
 })
+/* TEN / W6 · Codex on 113b7209 (P2) · with the pulse unread (a failed read), the month line says the cap and the clock and
+   no minimum: the waiver facts (a partial month, a joined month) are unknown, so the minimum stays absent (L-44, D354) */
+const monthNoMinimum = async (page) => page.evaluate(() => {
+  const lines = [...document.querySelectorAll('#sideMe .memonth, #homeMe .memonth')].filter((p) => p.getBoundingClientRect().height > 0)
+  if (lines.length !== 1) return `${lines.length} month line(s) on screen, expected one`
+  const t = lines[0].textContent.trim()
+  if (/minimum/.test(t)) return 'a minimum is printed before the pulse confirmed its waivers: ' + JSON.stringify(t)
+  return /^(Best \d+ a month count|Every round counts) · (\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
+})
+/* TEN / W6 · Q20 (owner, 2026-09-29 §R: 1) · one way to count days: excluding today, in calendar days, on the league's clock.
+   At 23:30 on Sep 28 in Phoenix it is already Sep 29 in New York, so Sep 30 is 2 days away on a Phoenix league's clock and 1
+   on a New York one; the month's last day counts 0 */
+const daysOneWay = async (page) => page.evaluate(() => {
+  if (typeof csDaysLeft !== 'function' || typeof csMonthDaysLeft !== 'function') return 'no one producer counts the days'
+  const late = new Date('2026-09-29T06:30:00Z')
+  const a = csDaysLeft('2026-09-30', 'America/Phoenix', late), b = csDaysLeft('2026-09-30', 'America/New_York', late)
+  if (a !== 2 || b !== 1) return `the count does not follow the league's clock: Phoenix ${a}, New York ${b}`
+  const last = csMonthDaysLeft('America/Phoenix', new Date('2026-09-30T20:00:00-07:00'))
+  return last === 0 ? true : 'the month\u2019s last day counts ' + last + ', not 0'
+})
+/* TEN / W6 · Q19 (owner, 2026-09-29 §R) · the feed's head names what the list holds */
+const feedHeadIs = (want) => async (page) => page.evaluate((want) => {
+  const t = ((document.getElementById('homeFeedHead') || {}).textContent || '').trim()
+  return t === want ? true : `the feed head reads ${JSON.stringify(t)}, not ${JSON.stringify(want)}`
+}, want)
+/* TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · league-less Home draws D186's install nudge in the page, at its head, with
+   the first paint: the reason, an ink door (never the action colour), and no overlay over the header */
+const installInPage = async (page) => page.evaluate(() => {
+  const s = document.getElementById('homeInstall'), o = document.getElementById('installNudge')
+  if (!s || s.hidden || s.getBoundingClientRect().height === 0) return 'league-less Home draws no install nudge in the page'
+  if (!/Safari signs you out after a week away/.test(s.textContent || '')) return 'the nudge does not lead with D186\u2019s reason'
+  const hub = document.getElementById('homeHub')
+  if (hub && s.getBoundingClientRect().top > hub.getBoundingClientRect().top) return 'the nudge is not at the head of Home'
+  if (o && getComputedStyle(o).display !== 'none') return 'the overlay is still drawn over the page'
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const go = s.querySelector('[data-install-go]')
+  return go && getComputedStyle(go).color === probe('--ink') ? true : 'the nudge\u2019s door is not ink'
+})
+const installNotForMembers = async (page) => page.evaluate(() => {
+  const s = document.getElementById('homeInstall')
+  return s && !s.hidden ? 'a member\u2019s Home draws the league-less install slot' : true
+})
 /* TEN / W6 · AW2-01 · Home opens once: by the time it is on screen the cold open's hold has let go (no data-held, no
    aria-busy), and no lead slot is still keeping room for a lead that already answered. The jump itself is measured by the
    CLS probe (layout-shift entries through a cold signed-in boot, 375 and 1280, CPU 1x and 4x), not by a still frame. */
@@ -304,12 +346,17 @@ const cardsNotButtons = async (page) => page.evaluate(() => {
   return true
 })
 const HOME_LEAGUELESS = [
+  /* TEN / W6 · Codex on 113b7209 (P2) · the pulse read fails: the month line waits for its waiver facts */
+  { family: 'home', id: 'pulse-failed', variant: 'member', title: 'Home signed in, the league pulse unreachable: the month line says the cap and the clock, no minimum',
+    world: { errors: { rpc: { league_pulse: { __error: 'fixture: the pulse is unreachable', status: 500 } } } },
+    expectConsole: [/status of 500/],
+    expect: { view: 'view-home' }, check: monthNoMinimum },
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine, brandNewPrimary) },
+    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine, brandNewPrimary, installInPage) },   /* Q14 */
   { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown,
+    expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown, feedHeadIs('Your rounds'),   /* Q19 */
       /* TEN / W8 · W7-076 [A2-home-15]: the rail's door names the verb every other surface prints: 'Plan a round', not 'Plan one' */
       async (page) => page.evaluate(() => { if (innerWidth < 960) return true; const a = document.querySelector('#sideMe [data-mego="plan_one"]'); return a && a.textContent.trim() === 'Plan a round' ? true : `the rail's plan door reads ${JSON.stringify(a && a.textContent)}` }), async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'my own rounds are not in the feed')) },
 ]
@@ -398,7 +445,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce, installNotForMembers, feedHeadIs('Around your buddies'), daysOneWay,
       /* TEN / W6 · AW2-05 (L-34, D360): the eyebrow names the competition only, and the lead says the
          clock once (the world mirrors 20261211100000, held for the owner's db push) */
       onScreen('THE FIXTURE DERBY · THE CLASH(?! · CLOSES)', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),

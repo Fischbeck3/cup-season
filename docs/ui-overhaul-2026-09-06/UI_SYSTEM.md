@@ -1706,7 +1706,7 @@ the column count are not.
 - **Sidebar 236pt**, `bg0` with a 1px `rule` on its right edge: the mark and the wordmark at the top;
   nav items in `agate` 12 with a **3px `brand` tick on the left edge of the selected one** — the tab
   bar's underline, rotated; `THE DESK ▸` (the Pro's section) below a rule; the viewer's own face and
-  index at the foot with the build identity (`v23 · <sha>`) under them.
+  index at the foot (the build identity left the foot, Q5, 2026-09-29; it lives in Settings).
 - **Body: `1fr + 340pt`, gutter 40.** Left: the chapter line, the week ticks, the board. Right: the
   clash, the story as a list of weeks, the pot with its ledger line.
 - **The visual language is the same; the shape is not.** The desk is a sidebar and a two-column body,

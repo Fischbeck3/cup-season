@@ -500,6 +500,28 @@ export const noHeadingSkips = (scope = 'body') => async (page) => page.evaluate(
   }
   return all.some((h) => root.contains(h)) ? true : `${scope} has no headings`
 }, scope)
+/* TEN / W6 · Q25 (owner, 2026-09-29 §R) · every visible `.btn` label is UI_SYSTEM §7.1's `name` role, 17 at 50px, as the
+   phone's primary and secondary set it: IBM Plex Sans Condensed, 600, caps. Two declared shapes: the wizard's Back and
+   Cancel are §7.1's in-content tertiary (`name` 15, no fill), and the board's chat send keeps its field's 46px. */
+export const btnNameRole = (need = []) => async (page) => page.evaluate((need) => {
+  for (const s of need) if (!document.querySelector(s)) return 'no ' + s
+  const shown = [...document.querySelectorAll('.btn')].filter((b) => { const r = b.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(b).visibility !== 'hidden' })
+  if (!shown.length) return 'no .btn on screen'
+  const bad = []
+  for (const b of shown) {
+    const cs = getComputedStyle(b)
+    const link = b.matches('#view-wizard .wiznav .btn.dark')
+    const why = []
+    if (!/IBM Plex Sans Condensed/.test(cs.fontFamily)) why.push(cs.fontFamily.split(',')[0])
+    if (cs.fontWeight !== '600') why.push('weight ' + cs.fontWeight)
+    if (cs.fontSize !== (link ? '15px' : '17px')) why.push(cs.fontSize)
+    if (cs.textTransform !== 'uppercase') why.push(cs.textTransform)
+    const h = b.getBoundingClientRect().height
+    if (!link && !b.matches('.composer .btn') && h < 49.5) why.push('height ' + Math.round(h))
+    if (why.length) bad.push((b.id ? '#' + b.id : JSON.stringify((b.textContent || '').trim().slice(0, 24))) + ' ' + why.join(' '))
+  }
+  return bad.length ? `${bad.length} of ${shown.length} .btn not in the name role: ` + bad.slice(0, 4).join('; ') : true
+}, need)
 
 /* Q47 · owner ruling 2026-09-29, UI_SYSTEM §6.5 row 3: the gold-ringed medallion is PRESENT ONLY WHEN THE PLATE
  * IS A PHOTOGRAPH ("the crest or the corner, never both"). `medallionOnPhotoOnly(needPhoto)` reads every drawn

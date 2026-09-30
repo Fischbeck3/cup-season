@@ -15,7 +15,25 @@ const go = (v) => async (page) => { await page.evaluate((v) => window.switchView
 import { readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { notMono, noRetiredGlyph, noRetiredShape, tertiaryDoor } from './ten-mono.mjs'
+import { notMono, noRetiredGlyph, noRetiredShape, tertiaryDoor, btnNameRole } from './ten-mono.mjs'
+const all = (...fns) => async (page) => { for (const f of fns) { const r = await f(page); if (r !== true) return r } return true }
+/* TEN / W6 · Q5 (owner, 2026-09-29 §R: B1) · the build stamp is off the Door's face but in its DOM (the diagnostic reads
+   it), and a long-press on the pennant shows it; the check puts it back before the capture */
+const stampOffTheDoor = async (page) => {
+  const first = await page.evaluate(() => {
+    const c = document.getElementById('obCaption')
+    if (!c || !/v23 · /.test(c.textContent || '')) return 'the caption left the DOM'
+    return c.getBoundingClientRect().height === 0 ? true : 'the build stamp is on the Door\u2019s face'
+  })
+  if (first !== true) return first
+  const pen = await page.$('.ob-sig .cs-mark-door')
+  if (!pen) return 'no pennant'
+  const b = await pen.boundingBox()
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); await page.waitForTimeout(750); await page.mouse.up()
+  const shown = await page.evaluate(() => document.getElementById('obCaption').getBoundingClientRect().height > 0)
+  await page.evaluate(() => document.getElementById('obCaption').classList.remove('is-shown'))
+  return shown ? true : 'a long-press on the pennant does not show the stamp'
+}
 const HERE = dirname(fileURLToPath(import.meta.url))
 
 /* Family modules: tests/ten-states.d/<family>.mjs, each `export default [ ...states ]`.
@@ -63,7 +81,8 @@ const gateWho = async (page) => {
 }
 const CORE = [
   /* ------------------------------------------------------------ door */
-  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } } },
+  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } },
+    check: all(btnNameRole(['#obEmail', '#obJoin']), stampOffTheDoor) },   /* TEN / W6 · Q25, Q5 */
   { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
     expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } } },
