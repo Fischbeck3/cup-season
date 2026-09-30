@@ -316,7 +316,7 @@ public enum SeasonStoryCopy {
     }
 
     // Rung 2 · somebody has led three weeks or more. A squad is a THEY —
-    // "Mudsharks has led" is the engine talking, not a golfer.
+    // "Fixture Wrens has led" is the engine talking, not a golfer.
     if let lead = f.leader, ok(lead.source), let run = lead.run_weeks, run >= 3, let name = clean(lead.name) {
       let who = lead.is_me == true ? "You have" : (solo ? "\(name) has" : "\(name) have")
       return Line(rung: 2, text: "\(who) led for \(word(run)) straight weeks.",
@@ -327,13 +327,14 @@ public enum SeasonStoryCopy {
     if let gap = f.top_gap, gap <= 2, (f.field ?? 0) >= 2, f.runner_up != nil {
       let left = f.weeks_left ?? 0
       let clock = left > 0 ? " with \(word(left)) week\(left == 1 ? "" : "s") to play" : ""
-      if gap <= 0 { return Line(rung: 3, text: "The top two are level\(clock).", source: "standings_snapshots") }
+      let pair = f.field == 2 ? "the two \(solo ? "golfers" : "squads")" : "the top two"
+      if gap <= 0 { return Line(rung: 3, text: "\(cap(pair)) are level\(clock).", source: "standings_snapshots") }
       // A whole number is said out loud; a half is printed, because "one and a
       // half points" is not how anybody reads a table.
       let head = gap == 1 ? "One point separates"
                : gap == gap.rounded() ? "\(cap(word(Int(gap)))) points separate"
                : "\(mk(CSCopy.points(gap))) points separate"
-      return Line(rung: 3, text: "\(head) the top two\(clock).", source: "standings_snapshots")
+      return Line(rung: 3, text: "\(head) \(pair)\(clock).", source: "standings_snapshots")
     }
 
     // Rung 4 · somebody has closed half the gap in a fortnight.
@@ -437,7 +438,7 @@ public enum SeasonStoryCopy {
     a.week.map { "WEEK \($0)" }
   }
 
-  /// The dateline over the page: `FELLAS · WEEK 7 OF 26 · SEASON LIVE`. One
+  /// The dateline over the page: `NORTH GROVE (FIXTURE) · WEEK 7 OF 26 · SEASON LIVE`. One
   /// stage vocabulary (D120), one week producer (D246), one row — so nothing
   /// below it prints the week a second time (L-34).
   public static func dateline(name: String?, stage: LeagueCopy.Stage, week: Int?, weeks: Int?) -> String {
@@ -448,7 +449,7 @@ public enum SeasonStoryCopy {
     return parts.joined(separator: " · ")
   }
 
-  /// The archive row: "SEASON 1 · JUL 20 – JAN 18 · GALEN TOOK IT".
+  /// The archive row: "SEASON 1 · JUL 20 – JAN 18 · BLAKE TOOK IT".
   public static func archiveLine(_ a: SeasonStory.Archive, calendar: Calendar = .current) -> String {
     var parts: [String] = []
     if let s = a.starts_on, let e = a.ends_on,
@@ -564,7 +565,7 @@ public enum SeasonRules {
     public init(head: String, body: String, marked: Bool = false) { self.head = head; self.body = body; self.marked = marked }
   }
 
-  /// "The Fellas, season one." — the page's own title.
+  /// "North Grove (fixture), season one." — the page's own title.
   public static func title(league: String?, number: Int?) -> String {
     let name = (league?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "The season"
     guard let n = number, n > 0 else { return name }

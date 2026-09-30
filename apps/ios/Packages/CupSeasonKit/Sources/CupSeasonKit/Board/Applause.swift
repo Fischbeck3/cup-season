@@ -44,7 +44,7 @@ public enum Applause {
     n == 1 ? "1 earlier reaction, from before applause" : "\(n) earlier reactions, from before applause"
   }
 
-  /// In-app activity: "Alex applauded your round" · "Alex and Jade applauded
+  /// In-app activity: "Alex applauded your round" · "Alex and Emery applauded
   /// your round" · "Alex and 2 others applauded your round". Distinct people,
   /// grouped by round; never a sum of taps.
   public static func activity(_ names: [String]) -> String {

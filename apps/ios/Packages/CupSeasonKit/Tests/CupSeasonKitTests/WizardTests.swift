@@ -37,7 +37,7 @@ import Foundation
   /// D206: 13 weeks by default; D142: Standard's Best 3.
   @Test func aRealLeagueStartsAtBraggingRights() {
     let d = WizardDials()
-    #expect(d.stake == 0 && d.stakeText == "None" && d.preset == 1 && d.durWeeks == 13 && d.lengthText == "3 mo")
+    #expect(d.stake == 0 && d.stakeText == "None" && d.preset == 1 && d.durWeeks == 13 && d.lengthText == "13 weeks")
     #expect(d.cap == 1 && d.capText == "Best 3" && d.floor == 2)
   }
   @Test func steppersWalkTheLadders() {
@@ -163,10 +163,10 @@ import Foundation
     var d = WizardDials()
     d.structure = "solo"; d.durWeeks = 26
     let p = WizardPortrait(d, roster: 1)
-    #expect(p.stake == 0 && p.structLine == "SOLO · EVERY GOLFER" && p.months == 6 && p.canCup && p.seasonTail == "6 mo")
+    #expect(p.stake == 0 && p.structLine == "SOLO · EVERY GOLFER" && p.months == 6 && p.canCup && p.seasonTail == "26 weeks")
     d.durWeeks = 4; d.finish = "points_table"
     let q = WizardPortrait(d, roster: 1)
-    #expect(q.months == 1 && !q.canCup && q.seasonTail == "4 wk · POINTS TABLE")
+    #expect(q.months == 1 && !q.canCup && q.seasonTail == "4 weeks · POINTS TABLE")
   }
 }
 
@@ -277,10 +277,10 @@ import Foundation
     var d = WizardDials()
     d.applyPreset(2); d.stake = 50; d.durWeeks = 13; d.startISO = "2026-09-05"
     d.structure = "squads3"; d.draftType = "assign"; d.finish = "points_table"; d.payout = [50, 30, 20]
-    let c = WizardLockCall(d, leagueId: league, name: "PIGL", today: "2026-08-27")
+    let c = WizardLockCall(d, leagueId: league, name: "North Grove (fixture)", today: "2026-08-27")
     let j = try json(c)
     #expect(j["p_league"] as? String == league.uuidString.lowercased() || j["p_league"] as? String == league.uuidString)
-    #expect(j["p_name"] as? String == "PIGL" && j["p_preset"] as? String == "cutthroat" && j["p_handicap_allowance"] as? Int == 90)
+    #expect(j["p_name"] as? String == "North Grove (fixture)" && j["p_preset"] as? String == "cutthroat" && j["p_handicap_allowance"] as? Int == 90)
     #expect(j["p_verification"] as? String == "ghin" && j["p_floor_penalty"] as? String == "forfeit")
     #expect(j["p_counting_cap"] as? Int == 2 && j["p_participation_floor"] as? Int == 3 && j["p_buyin_cents"] as? Int == 5000)
     #expect(j["p_season_months"] as? Int == 3)           // 13 weeks say 3, never a clamped minimum
@@ -321,8 +321,8 @@ import Foundation
     let s = LeagueRoom.Settings(league_id: UUID(), preset: "casual", counting_cap: nil, participation_floor: 0, season_format: nil,
                                 buyin_cents: 7500, season_months: 9, structure: "squads2", draft_type: "assign",
                                 payout_champ: 70, payout_runnerup: 20, payout_king: 10, finish: "points_table")
-    let d = WizardDials.from(s, name: "PIGL · S2")
-    #expect(d.name == "PIGL · S2" && d.preset == 0 && d.cap == 4 && d.capText == "Unlimited" && d.floor == 0 && d.stake == 75)
+    let d = WizardDials.from(s, name: "NGFX26 · S2")
+    #expect(d.name == "NGFX26 · S2" && d.preset == 0 && d.cap == 4 && d.capText == "Unlimited" && d.floor == 0 && d.stake == 75)
     #expect(d.durWeeks == 39 && d.structure == "squads2" && d.draftType == "assign" && d.finish == "points_table" && d.payout == [70, 20, 10])
   }
   /// D142: a stored cap the ladder does not carry still names its number; the
@@ -348,10 +348,10 @@ import Foundation
     #expect(d.durWeeks == 26 && d.startISO == "2026-09-05")
   }
   @Test func runBackNameStripsAnOldSuffix() {
-    #expect(WizardCopy.runBackName("PIGL") == "PIGL · S2")
-    #expect(WizardCopy.runBackName("PIGL · S3") == "PIGL · S2")
+    #expect(WizardCopy.runBackName("NGFX26") == "NGFX26 · S2")
+    #expect(WizardCopy.runBackName("NGFX26 · S3") == "NGFX26 · S2")
     #expect(WizardCopy.runBackName("") == "Your league · S2")
-    #expect(WizardCopy.isUnnamed("My Cup") && WizardCopy.isUnnamed("  ") && !WizardCopy.isUnnamed("PIGL"))
+    #expect(WizardCopy.isUnnamed("My Cup") && WizardCopy.isUnnamed("  ") && !WizardCopy.isUnnamed("NGFX26"))
   }
 }
 
@@ -426,5 +426,29 @@ import Foundation
     #expect(DraftCopy.formN(pool: 3) == "3 not on a squad yet" && DraftCopy.formN(pool: 0) == "Everyone has a squad")
     #expect(DraftCopy.lockTheirs("Logan") == "Logan is picking: only their account can select")
     #expect(DraftCopy.proPicked("Ed", for: "Logan") == "Pro picked Ed for Logan, logged")
+  }
+  @Test func finishHelpFollowsStructure() {
+    var d = WizardDials()
+    for structure in ["solo", "squads2", "squads3", "squads4"] {
+      d.structure = structure; d.finish = "cup_final"
+      #expect(d.finishNote.contains("both squads") == (structure == "squads2"))
+      #expect(d.finishNote.contains("+10") == (structure == "squads2"))
+      #expect(d.finishNote.contains(LeagueCopy.finalCounting))
+    }
+    d.finish = "points_table"
+    #expect(!d.finishNote.contains("+10") && !d.finishNote.contains(LeagueCopy.finalCounting))
+  }
+
+}
+
+@Suite struct OwnerW171LengthTests {
+  @Test func neighboringLengthsNeverRoundToTheSameValue() {
+    var d = WizardDials()
+    d.durWeeks = 8
+    #expect(d.lengthText == "8 weeks" && d.lengthGloss == "About 2 months · ends the same weekday")
+    d.durWeeks = 9
+    #expect(d.lengthText == "9 weeks" && d.lengthGloss == "About 2 months · ends the same weekday")
+    d.durWeeks = 6
+    #expect(d.lengthText == "6 weeks" && d.lengthGloss == "Ends the same weekday")
   }
 }

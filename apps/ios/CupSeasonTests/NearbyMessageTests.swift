@@ -31,11 +31,11 @@ struct NearbyMessageTests {
 
   @Test func inviteCarriesWhatThePromptMustSay() throws {
     let me = UUID()
-    let out = try roundTrip(NearbyMessage(t: .invite, from: me, name: "Jerecho",
+    let out = try roundTrip(NearbyMessage(t: .invite, from: me, name: "Avery",
                                           course: "Bajamar Golf Club", game: "Match play"))
     #expect(out.t == .invite)
     #expect(out.from == me)
-    #expect(out.name == "Jerecho")
+    #expect(out.name == "Avery")
     #expect(out.course == "Bajamar Golf Club")
     #expect(out.game == "Match play")
   }

@@ -334,7 +334,7 @@ public struct ReceiptCountingDoor: Sendable, Equatable, Identifiable {
     self.memberId = memberId; self.seasonId = seasonId; self.month = month; self.leagueName = leagueName
     self.named = named; self.mine = mine
   }
-  /// "Your rounds that count in September · Fellas ›"
+  /// "Your rounds that count in September · North Grove (fixture) ›"
   public var label: String {
     let who = mine ? "Your" : "Their"
     let when = month.flatMap(ReceiptRows.monthWord) ?? "this season"

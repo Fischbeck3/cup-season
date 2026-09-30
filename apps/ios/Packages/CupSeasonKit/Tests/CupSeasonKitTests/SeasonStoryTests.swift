@@ -23,13 +23,13 @@ private func row(_ name: String, _ pts: Double, rank: Int, me: Bool = false, id:
 }
 
 private func payload(facts: SeasonStory.Facts,
-                     table: [SeasonStory.Row] = [row("Galen", 31, rank: 1), row("You", 27, rank: 2, me: true)],
+                     table: [SeasonStory.Row] = [row("Blake", 31, rank: 1), row("You", 27, rank: 2, me: true)],
                      history: [SeasonStory.History] = [],
                      status: String = "active",
                      solo: Bool = true,
                      archive: [SeasonStory.Archive] = []) -> SeasonStory.Payload {
   SeasonStory.Payload(
-    season: SeasonStory.Season(id: UUID(), league: "Fellas", number: 1, starts_on: "2026-07-20",
+    season: SeasonStory.Season(id: UUID(), league: "North Grove (fixture)", number: 1, starts_on: "2026-07-20",
                                ends_on: "2027-01-18", status: status, finish: "cup_final",
                                structure: solo ? "solo" : "squads2", solo: solo, today: "2026-09-05"),
     facts: facts, history: history, table: table, archive: archive)
@@ -47,12 +47,12 @@ struct SeasonStoryLadderTests {
   func rungOne() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 19, field: 2,
-      leader: SeasonStory.Leader(name: "Jade", run_weeks: 1),
+      leader: SeasonStory.Leader(name: "Emery", run_weeks: 1),
       runner_up: SeasonStory.Side(name: "You", points: 27), top_gap: 4,
-      lead_flip: SeasonStory.Flip(week: 7, on: sunday, to: "Jade", to_id: "jade", first_time: true)))
+      lead_flip: SeasonStory.Flip(week: 7, on: sunday, to: "Emery", to_id: "emery", first_time: true)))
     let line = SeasonStoryCopy.line(p)
     #expect(line?.rung == 1)
-    #expect(line?.text == "The lead changed hands on Sunday. Jade has it for the first time.")
+    #expect(line?.text == "The lead changed hands on Sunday. Emery has it for the first time.")
     #expect(line?.source == "standings_snapshots")
   }
 
@@ -60,8 +60,8 @@ struct SeasonStoryLadderTests {
   func rungOneAgain() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, field: 2,
-      lead_flip: SeasonStory.Flip(week: 7, on: sunday, to: "Jade", to_id: "jade", first_time: false)))
-    #expect(SeasonStoryCopy.line(p)?.text == "The lead changed hands on Sunday. Jade has it back.")
+      lead_flip: SeasonStory.Flip(week: 7, on: sunday, to: "Emery", to_id: "emery", first_time: false)))
+    #expect(SeasonStoryCopy.line(p)?.text == "The lead changed hands on Sunday. Emery has it back.")
   }
 
   @Test("rung 1 · when the lead came to ME the sentence is mine")
@@ -69,7 +69,7 @@ struct SeasonStoryLadderTests {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, field: 2,
       lead_flip: SeasonStory.Flip(week: 7, on: sunday, to: "You", to_id: "you", first_time: true)),
-                    table: [row("You", 31, rank: 1, me: true, id: "you"), row("Galen", 27, rank: 2, id: "galen")])
+                    table: [row("You", 31, rank: 1, me: true, id: "you"), row("Blake", 27, rank: 2, id: "blake")])
     #expect(SeasonStoryCopy.line(p)?.text == "You took the lead on Sunday. For the first time.")
   }
 
@@ -77,9 +77,9 @@ struct SeasonStoryLadderTests {
   func rungOneStale() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 19, field: 2,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 4),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 4),
       runner_up: SeasonStory.Side(name: "You", points: 27), top_gap: 4,
-      lead_flip: SeasonStory.Flip(week: 1, on: sunday, to: "Galen", to_id: "galen", first_time: true)))
+      lead_flip: SeasonStory.Flip(week: 1, on: sunday, to: "Blake", to_id: "blake", first_time: true)))
     #expect(SeasonStoryCopy.line(p)?.rung == 2)
   }
 
@@ -87,18 +87,18 @@ struct SeasonStoryLadderTests {
   func rungTwo() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 19, field: 2,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 4),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 4),
       runner_up: SeasonStory.Side(name: "You", points: 27), top_gap: 4))
     let line = SeasonStoryCopy.line(p)
     #expect(line?.rung == 2)
-    #expect(line?.text == "Galen has led for four straight weeks.")
+    #expect(line?.text == "Blake has led for four straight weeks.")
   }
 
   @Test("rung 2 · a run of two weeks is not a run — the ladder falls through")
   func rungTwoTooShort() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 19, field: 2,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 2),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 2),
       runner_up: SeasonStory.Side(name: "You", points: 27), top_gap: 9))
     #expect(SeasonStoryCopy.line(p)?.rung != 2)
   }
@@ -107,9 +107,9 @@ struct SeasonStoryLadderTests {
   func rungTwoSquad() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 19, field: 4,
-      leader: SeasonStory.Leader(name: "Mudsharks", run_weeks: 4),
+      leader: SeasonStory.Leader(name: "Fixture Wrens", run_weeks: 4),
       runner_up: SeasonStory.Side(name: "The Frost", points: 27), top_gap: 4), solo: false)
-    #expect(SeasonStoryCopy.line(p)?.text == "Mudsharks have led for four straight weeks.")
+    #expect(SeasonStoryCopy.line(p)?.text == "Fixture Wrens have led for four straight weeks.")
   }
 
   @Test("rung 2 · my own run is mine")
@@ -117,7 +117,7 @@ struct SeasonStoryLadderTests {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 19, field: 2,
       leader: SeasonStory.Leader(name: "You", run_weeks: 5, is_me: true),
-      runner_up: SeasonStory.Side(name: "Jade", points: 10), top_gap: 28))
+      runner_up: SeasonStory.Side(name: "Emery", points: 10), top_gap: 28))
     #expect(SeasonStoryCopy.line(p)?.text == "You have led for five straight weeks.")
   }
 
@@ -125,7 +125,7 @@ struct SeasonStoryLadderTests {
   func rungThree() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 6, field: 4,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
       runner_up: SeasonStory.Side(name: "You", points: 29), top_gap: 2))
     let line = SeasonStoryCopy.line(p)
     #expect(line?.rung == 3)
@@ -136,7 +136,7 @@ struct SeasonStoryLadderTests {
   func rungThreeLevel() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 6, field: 4,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
       runner_up: SeasonStory.Side(name: "You", points: 31), top_gap: 0))
     #expect(SeasonStoryCopy.line(p)?.text == "The top two are level with six weeks to play.")
   }
@@ -145,7 +145,7 @@ struct SeasonStoryLadderTests {
   func rungThreeHalf() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 6, field: 4,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
       runner_up: SeasonStory.Side(name: "You", points: 29.5), top_gap: 1.5))
     #expect(SeasonStoryCopy.line(p, marked: true)?.text == "{1.5} points separate the top two with six weeks to play.")
     #expect(SeasonStoryCopy.line(p)?.text == "1.5 points separate the top two with six weeks to play.")
@@ -155,7 +155,7 @@ struct SeasonStoryLadderTests {
   func rungFour() {
     let squads = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 9, field: 4,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
       runner_up: SeasonStory.Side(name: "The Frost", points: 25), top_gap: 6,
       closer: SeasonStory.Closer(name: "The Frost", taken: 6)), solo: false)
     #expect(SeasonStoryCopy.line(squads)?.rung == 4)
@@ -163,17 +163,17 @@ struct SeasonStoryLadderTests {
 
     let solo = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 9, field: 4,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
-      runner_up: SeasonStory.Side(name: "Jade", points: 25), top_gap: 6,
-      closer: SeasonStory.Closer(name: "Jade", taken: 6)), solo: true)
-    #expect(SeasonStoryCopy.line(solo)?.text == "Jade has taken six off the lead in a fortnight.")
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
+      runner_up: SeasonStory.Side(name: "Emery", points: 25), top_gap: 6,
+      closer: SeasonStory.Closer(name: "Emery", taken: 6)), solo: true)
+    #expect(SeasonStoryCopy.line(solo)?.text == "Emery has taken six off the lead in a fortnight.")
   }
 
   @Test("rung 5 · the Final's clock, its seats and who is still live")
   func rungFive() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 20, weeks_total: 26, weeks_left: 6, field: 4,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
       runner_up: SeasonStory.Side(name: "You", points: 25), top_gap: 6,
       final: SeasonStory.Final(opens_on: "2026-12-22", in_weeks: 3, seats: 2, still_live: 4)))
     let line = SeasonStoryCopy.line(p)
@@ -186,7 +186,7 @@ struct SeasonStoryLadderTests {
   func rungFiveFar() {
     let p = payload(facts: SeasonStory.Facts(
       week_no: 7, weeks_total: 26, weeks_left: 19, field: 2,
-      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
       runner_up: SeasonStory.Side(name: "You", points: 25), top_gap: 6,
       final: SeasonStory.Final(opens_on: "2026-12-22", in_weeks: 16, seats: 2, still_live: 2)))
     #expect(SeasonStoryCopy.line(p)?.rung != 5)
@@ -204,8 +204,8 @@ struct SeasonStoryLadderTests {
   func wrapped() {
     let p = payload(facts: SeasonStory.Facts(week_no: 26, weeks_total: 26, weeks_left: 0, field: 2),
                     status: "complete",
-                    archive: [SeasonStory.Archive(number: 1, champion: "Galen", is_current: true)])
-    #expect(SeasonStoryCopy.line(p)?.text == "Galen took it.")
+                    archive: [SeasonStory.Archive(number: 1, champion: "Blake", is_current: true)])
+    #expect(SeasonStoryCopy.line(p)?.text == "Blake took it.")
   }
 
   @Test("no facts at all · no line, rather than an empty one (L-44)")
@@ -222,7 +222,7 @@ struct SeasonStoryHistoryTests {
   /// The quiet week: nothing this week, so the ladder looks further back.
   private var quiet: SeasonStory.Facts {
     SeasonStory.Facts(week_no: 7, weeks_total: 26, weeks_left: 19, field: 2,
-                      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+                      leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
                       runner_up: SeasonStory.Side(name: "You", points: 27), top_gap: 9,
                       last_snapshot_on: sunday)
   }
@@ -231,11 +231,11 @@ struct SeasonStoryHistoryTests {
   func unsettled() {
     let p = payload(facts: quiet, history: [
       SeasonStory.History(kind: "unsettled_week", source: "week_clashes", record_source: "my_rivalries",
-                          opponent: "Galen", since: "2026-08-12", days: 24, wins: 5, losses: 6, ties: 0),
+                          opponent: "Blake", since: "2026-08-12", days: 24, wins: 5, losses: 6, ties: 0),
     ])
     let line = SeasonStoryCopy.line(p)
     #expect(line?.rung == 7)
-    #expect(line?.text == "You and Galen have not settled a week since the 12th of August. Galen is 6–5 up all-time.")
+    #expect(line?.text == "You and Blake have not settled a week since the 12th of August. Blake is 6–5 up all-time.")
     #expect(line?.source == "week_clashes")
     #expect(SeasonStoryCopy.namedReads.contains(line!.source))
   }
@@ -244,11 +244,11 @@ struct SeasonStoryHistoryTests {
   func recordVoices() {
     func text(_ w: Int, _ l: Int) -> String? {
       SeasonStoryCopy.history(SeasonStory.History(kind: "unsettled_week", source: "week_clashes",
-                                                  opponent: "Galen", since: "2026-08-12", days: 24,
+                                                  opponent: "Blake", since: "2026-08-12", days: 24,
                                                   wins: w, losses: l, ties: 0))
     }
     #expect(text(6, 5)?.hasSuffix("You are 6–5 up all-time.") == true)
-    #expect(text(5, 6)?.hasSuffix("Galen is 6–5 up all-time.") == true)
+    #expect(text(5, 6)?.hasSuffix("Blake is 6–5 up all-time.") == true)
     #expect(text(5, 5)?.hasSuffix("You are level at 5–5 all-time.") == true)
   }
 
@@ -257,10 +257,10 @@ struct SeasonStoryHistoryTests {
   /// words do not move; unmarked, the line is the web's verbatim
   @Test func markedHistoryLinesSetTheirNumeralsAsRuns() {
     let h = SeasonStory.History(kind: "unsettled_week", source: "week_clashes",
-                                opponent: "Galen", since: "2026-08-12", days: 24, wins: 6, losses: 5, ties: 0)
+                                opponent: "Blake", since: "2026-08-12", days: 24, wins: 6, losses: 5, ties: 0)
     #expect(SeasonStoryCopy.history(h, marked: true)
-            == "You and Galen have not settled a week since the {12th} of August. You are {6–5} up all-time.")
-    #expect(SeasonStoryCopy.history(h) == "You and Galen have not settled a week since the 12th of August. You are 6–5 up all-time.")
+            == "You and Blake have not settled a week since the {12th} of August. You are {6–5} up all-time.")
+    #expect(SeasonStoryCopy.history(h) == "You and Blake have not settled a week since the 12th of August. You are 6–5 up all-time.")
     let best = SeasonStory.History(kind: "my_best_week", source: "standings_snapshots", week: 5, points: 12.5)
     #expect(SeasonStoryCopy.history(best, marked: true) == "Your best week of the season is still week five — {12.5} points.")
     #expect(SeasonRules.span(startsOn: "2026-09-12", endsOn: "2026-12-11", marked: true)?.contains(" Sep {12} to ") == true)
@@ -270,7 +270,7 @@ struct SeasonStoryHistoryTests {
   @Test("a week settled five days ago is not an unsettled rivalry — no manufactured stake")
   func tooRecent() {
     let p = payload(facts: quiet, history: [
-      SeasonStory.History(kind: "unsettled_week", source: "week_clashes", opponent: "Jade",
+      SeasonStory.History(kind: "unsettled_week", source: "week_clashes", opponent: "Emery",
                           since: "2026-08-31", days: 5, wins: 2, losses: 0, ties: 0),
     ])
     // The candidate is refused, so the ladder falls to 7b rather than
@@ -289,7 +289,7 @@ struct SeasonStoryHistoryTests {
   @Test("a historical rank differing from the live table carries its own date")
   func myRunAfterMovement() {
     let p = payload(facts: quiet,
-                    table: [row("You", 40, rank: 1, me: true), row("Galen", 31, rank: 2)],
+                    table: [row("You", 40, rank: 1, me: true), row("Blake", 31, rank: 2)],
                     history: [.init(kind: "my_run", source: "standings_snapshots", rank: 2, weeks: 4)])
     let line = SeasonStoryCopy.line(p)
     #expect(line?.rung == 7)
@@ -329,11 +329,11 @@ struct SeasonStoryHistoryTests {
   @Test("THE FENCE · a candidate whose source is not a named read renders NOTHING")
   func theFence() {
     let invented = payload(facts: quiet, history: [
-      SeasonStory.History(kind: "unsettled_week", source: "a_hunch", opponent: "Galen",
+      SeasonStory.History(kind: "unsettled_week", source: "a_hunch", opponent: "Blake",
                           since: "2026-08-12", days: 24, wins: 5, losses: 6, ties: 0),
     ])
     #expect(SeasonStoryCopy.line(invented)?.rung == 7)
-    #expect(SeasonStoryCopy.line(invented)?.text.contains("Galen") == false)
+    #expect(SeasonStoryCopy.line(invented)?.text.contains("Blake") == false)
     #expect(SeasonStoryCopy.line(invented)?.source == "standings_snapshots")
     // and the whitelist is the whole of what may be counted over
     // wave 5 · R4 joined the fence in the same commit as its migration, which
@@ -368,7 +368,7 @@ struct SeasonStoryHistoryTests {
   @Test("rung 7b with no snapshot at all says 'yet', not a weekday it cannot know")
   func rung7bNoClock() {
     let p = payload(facts: SeasonStory.Facts(week_no: 3, weeks_total: 13, weeks_left: 10, field: 2,
-                                             leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+                                             leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
                                              runner_up: SeasonStory.Side(name: "You", points: 9), top_gap: 9))
     #expect(SeasonStoryCopy.line(p)?.text == "Week three of thirteen. Nothing has moved yet.")
   }
@@ -382,21 +382,21 @@ struct SeasonArcTests {
   @Test("the arc phrases its own facts and passes the server's sentence through")
   func arcLines() {
     #expect(SeasonStoryCopy.arc(SeasonStory.Arc(kind: "lead_change", source: "standings_snapshots",
-                                                week: 5, subject: "Jade", other: "Galen"))
-            == "Jade took the lead from Galen.")
+                                                week: 5, subject: "Emery", other: "Blake"))
+            == "Emery took the lead from Blake.")
     #expect(SeasonStoryCopy.arc(SeasonStory.Arc(kind: "clash", source: "week_clashes", week: 4,
-                                                subject: "you", other: "Galen"))
-            == "You took the week from Galen.")
+                                                subject: "you", other: "Blake"))
+            == "You took the week from Blake.")
     #expect(SeasonStoryCopy.arc(SeasonStory.Arc(kind: "clash", source: "week_clashes", week: 4,
-                                                subject: nil, other: "Jade"))
-            == "You and Jade halved the week.")
+                                                subject: nil, other: "Emery"))
+            == "You and Emery halved the week.")
   }
 
   @Test("a scoreboard-voice post is eased into a sentence; a written one is left alone")
   func easedPosts() {
     #expect(SeasonStoryCopy.arc(SeasonStory.Arc(kind: "post", source: "posts",
-                                                text: "JADE BROKE 90 FOR THE FIRST TIME — 86 GROSS"))
-            == "Jade broke 90 for the first time — 86 gross")
+                                                text: "EMERY BROKE 90 FOR THE FIRST TIME — 86 GROSS"))
+            == "Emery broke 90 for the first time — 86 gross")
     #expect(SeasonStoryCopy.arc(SeasonStory.Arc(kind: "post", source: "posts",
                                                 text: "August is in the books. The ledger is posted."))
             == "August is in the books. The ledger is posted.")
@@ -409,22 +409,31 @@ struct SeasonArcTests {
 
   @Test("the dateline carries the week ONCE, and only in a stage that has one")
   func dateline() {
-    #expect(SeasonStoryCopy.dateline(name: "Fellas", stage: .season, week: 7, weeks: 26)
-            == "FELLAS · WEEK 7 OF 26 · SEASON LIVE")
-    #expect(SeasonStoryCopy.dateline(name: "Fellas", stage: .preseason, week: 1, weeks: 26)
-            == "FELLAS · BEFORE FIRST TEE")
-    #expect(SeasonStoryCopy.dateline(name: "Fellas", stage: .complete, week: 26, weeks: 26)
-            == "FELLAS · SEASON COMPLETE")
+    #expect(SeasonStoryCopy.dateline(name: "North Grove (fixture)", stage: .season, week: 7, weeks: 26)
+            == "NORTH GROVE (FIXTURE) · WEEK 7 OF 26 · SEASON LIVE")
+    #expect(SeasonStoryCopy.dateline(name: "North Grove (fixture)", stage: .preseason, week: 1, weeks: 26)
+            == "NORTH GROVE (FIXTURE) · BEFORE FIRST TEE")
+    #expect(SeasonStoryCopy.dateline(name: "North Grove (fixture)", stage: .complete, week: 26, weeks: 26)
+            == "NORTH GROVE (FIXTURE) · SEASON COMPLETE")
   }
 
   @Test("the table's clause shows its work — the gap, and what is counting (L-01, L-44)")
   func rowClause() {
-    let leader = row("Galen", 31, rank: 1)
+    let leader = row("Blake", 31, rank: 1)
     let mine = row("You", 27, rank: 2, me: true, counted: 2)
     #expect(SeasonStoryCopy.rowClause(mine, leader: leader, cap: 3) == "4 back · 2 of 3 counting this month")
     #expect(SeasonStoryCopy.rowClause(leader, leader: leader, cap: 3) == nil)
     // a leaver's row keeps its number and says what happened to it (D244)
-    let gone = row("Jade", 9, rank: 3, left: true)
+    let gone = row("Emery", 9, rank: 3, left: true)
     #expect(SeasonStoryCopy.rowClause(gone, leader: leader, cap: 3) == "22 back · stopped scoring")
   }
+  @Test func aFieldOfTwoNamesBothWithoutAFalseCut() {
+    for solo in [true, false] {
+      let p = payload(facts: SeasonStory.Facts(weeks_left: 6, field: 2,
+          leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
+          runner_up: SeasonStory.Side(name: "Avery", points: 31), top_gap: 0), solo: solo)
+      #expect(SeasonStoryCopy.line(p)?.text == "The two \(solo ? "golfers" : "squads") are level with six weeks to play.")
+    }
+  }
+
 }

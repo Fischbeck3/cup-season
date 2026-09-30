@@ -40,7 +40,7 @@ struct DeveloperHarnessView: View {
   @State private var chip = 0
   @State private var segment = 0
   @State private var gross = "89"
-  @State private var code = "FELLAS-24"
+  @State private var code = "NORT4K7Q"
   @State private var strokes = 4
   @State private var budget = CSBudget()
 
@@ -268,14 +268,14 @@ struct DeveloperHarnessView: View {
 
   private var board: some View {
     CSStandingsBoard(count: 3, cut: "Cut · top two play the Cup Final", cutAfter: 2) { i, abbreviate in
-      let names = ["Galen Marr", "You", "Priya Raghunathan"]
+      let names = ["Blake Sample", "You", "Noel Dryrun"]
       let name = i == 1 ? "You" : (abbreviate ? initialled(names[i]) : names[i])
       CSSlat(rank: i + 1,
              field: i == 0 ? .earned : (i == 1 ? .mine : .none),
              face: face(i + 2),
              name: name,
              sub: i == 0 ? "11 rounds · best 74" : "3 rounds · one short",
-             squad: i == 2 ? (cs.sq1, "Mudsharks") : nil,
+             squad: i == 2 ? (cs.sq1, "Fixture Wrens") : nil,
              movement: i == 0 ? .held : (i == 1 ? .up(2) : .down(1)),
              gap: i == 0 ? nil : (i == 1 ? "+9" : "+12")) {
         Text(["104", "95", "88"][i]).csType(.figureM).foregroundStyle(i == 0 ? cs.gold : cs.ink)
@@ -346,7 +346,7 @@ struct DeveloperHarnessView: View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
       CSField(label: "Your gross", placeholder: "89", text: $gross,
               caption: "Front and back, or the whole card.", kind: .code)
-      CSField(label: "League code", placeholder: "FELLAS-24", text: $code,
+      CSField(label: "League code", placeholder: "NORT4K7Q", text: $code,
               error: "That code has expired. Ask the Pro for a new one.",
               limit: 12, kind: .code)
       CSField(label: "Disabled", placeholder: "Nothing to type", text: .constant(""),
@@ -371,7 +371,7 @@ struct DeveloperHarnessView: View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s5) {
       CSEmpty(glyph: .scorecard, eyebrow: "The first card",
               headline: "Nobody here has played it.",
-              fact: "Dinosaur Mountain is on the board because Galen keeps it.",
+              fact: "Dinosaur Mountain is on the board because Blake keeps it.",
               door: .link("Post a round here", {}))
       CSEmpty(glyph: .scheduleSheet, eyebrow: "The schedule",
               headline: "Nothing is on the schedule this week.",
@@ -436,7 +436,7 @@ struct DeveloperHarnessView: View {
         .init(value: "10.6", label: "Your number"),
         .init(value: "79", label: "Last round"),
         .init(value: "2", label: "Position", ordinal: "nd"),
-      ], standing: "The Fellas · 2nd of 8 · 4 back of Galen")
+      ], standing: "North Grove (fixture) · 2nd of 8 · 4 back of Blake")
       CSStakeLine(.pot, amount: "$480")
       CSSeasonCalendar(weeks: 13, played: 6, now: 6, months: ["Jul", "Aug", "Sep"])
       CSTabBand([

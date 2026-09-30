@@ -43,8 +43,8 @@ struct RoundWorthTests {
   /// D364 (F3) · the points a round can SCORE and the points it would ADD are
   /// said separately: the ceiling, then the counting rule.
   @Test func theOwnersSentence() {
-    #expect(RoundWorth.line(subject: "Tomorrow at Papago", cap: 4, used: 2)
-              == "Tomorrow at Papago can score up to 12, and it counts: your best 4 count and you have 2.")
+    #expect(RoundWorth.line(subject: "Tomorrow at Saguaro Flats", cap: 4, used: 2)
+              == "Tomorrow at Saguaro Flats can score up to 12, and it counts: your best 4 count and you have 2.")
   }
 
   /// A full month shows the replacement arithmetic in the open: a 12 replacing
@@ -92,25 +92,25 @@ struct RoundWorthTests {
   // MARK: - the rows, as they arrive
 
   @Test func theSeasonIsNamedOnlyWhenThereIsMoreThanOne() {
-    let a = RoundWorth.Counters(leagueId: nil, leagueName: "The Fellas", cap: 4, used: 2, worst: nil)
-    let b = RoundWorth.Counters(leagueId: nil, leagueName: "PIGL", cap: 3, used: 0, worst: nil)
+    let a = RoundWorth.Counters(leagueId: nil, leagueName: "North Grove (fixture)", cap: 4, used: 2, worst: nil)
+    let b = RoundWorth.Counters(leagueId: nil, leagueName: "NGFX26", cap: 3, used: 0, worst: nil)
     #expect(RoundWorth.lines([a]) == ["This round can score up to 12, and it counts: your best 4 count and you have 2."])
     let both = RoundWorth.lines([a, b])
     #expect(both.count == 2)
-    #expect(both[0].contains("in The Fellas"))
-    #expect(both[1].contains("in PIGL"))
+    #expect(both[0].contains("in North Grove (fixture)"))
+    #expect(both[1].contains("in NGFX26"))
   }
 
   /// D364 · two seasons that say the SAME thing say it once, together — and
   /// only when cap, used and lowest all agree. A differing third stays apart.
   @Test func agreeingSeasonsAreSaidOnceTogether() {
-    let a = RoundWorth.Counters(leagueId: nil, leagueName: "The Fellas", cap: 4, used: 2, worst: nil)
-    let b = RoundWorth.Counters(leagueId: nil, leagueName: "PIGL", cap: 4, used: 2, worst: nil)
+    let a = RoundWorth.Counters(leagueId: nil, leagueName: "North Grove (fixture)", cap: 4, used: 2, worst: nil)
+    let b = RoundWorth.Counters(leagueId: nil, leagueName: "NGFX26", cap: 4, used: 2, worst: nil)
     let same = RoundWorth.lines([a, b])
-    #expect(same == ["This round can score up to 12, and it counts in both The Fellas and PIGL: your best 4 count and you have 2."])
+    #expect(same == ["This round can score up to 12, and it counts in both North Grove (fixture) and NGFX26: your best 4 count and you have 2."])
     let c = RoundWorth.Counters(leagueId: nil, leagueName: "Sunday Cup", cap: 4, used: 4, worst: 5)
     let mixed = RoundWorth.lines([a, b, c])
-    #expect(mixed.count == 2 && mixed[0].contains("in The Fellas") && mixed[1].contains("in PIGL"))
+    #expect(mixed.count == 2 && mixed[0].contains("in North Grove (fixture)") && mixed[1].contains("in NGFX26"))
     let three = RoundWorth.lines([a, b, RoundWorth.Counters(leagueId: nil, leagueName: "S3", cap: 4, used: 2, worst: nil)])
     #expect(three == ["This round can score up to 12, and it counts in all 3 of your seasons: your best 4 count and you have 2."])
   }
@@ -123,8 +123,8 @@ struct RoundWorthTests {
   @Test func aRoundYouAreOnlyWatchingIsWorthNothingToYou() {
     // The server sends `[]` for a viewer who is neither host nor tagged; the
     // sheet must then print nothing at all rather than a hopeful default.
-    let d = RoundDetail(id: UUID(), profileId: nil, ownerName: "Galen", ownerMarker: nil, mine: false, taggedMe: false,
-                        playOn: "2026-09-07", teeTime: nil, note: nil, courseLabel: "Papago", courseId: nil,
+    let d = RoundDetail(id: UUID(), profileId: nil, ownerName: "Blake", ownerMarker: nil, mine: false, taggedMe: false,
+                        playOn: "2026-09-07", teeTime: nil, note: nil, courseLabel: "Saguaro Flats", courseId: nil,
                         myRsvp: nil, course: nil, rsvp: [], comments: [])
     #expect(d.worthLines.isEmpty)
   }

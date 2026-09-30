@@ -7,7 +7,7 @@
 // and six facet rows; the two people it was about appeared nowhere above the
 // fold.
 //
-// THE SHAPE: the christened name in gold · `YOU AND GALEN` in `display` 34 ·
+// THE SHAPE: the christened name in gold · `YOU AND BLAKE` in `display` 34 ·
 // **the graphic** — two 64pt faces at the ends of the measure with the record
 // as `figXL` 56 on a 2pt rule between them · the serif sentence that carries
 // what the numeral cannot · **THE MEETING TAPE** · the facets on a leaf · one
@@ -158,7 +158,7 @@ struct HeadToHeadPage: View {
   /// **No per-side WINS figures.** The `6–5` says it once, and the shipped
   /// clash said it three times in one viewport (`4 WINS`, `6 WINS`,
   /// `4–6 · HE LEADS`). And the lead line names a SUBJECT — `YOU LEAD` /
-  /// `GALEN LEADS` / `ALL SQUARE`, never `HE LEADS`.
+  /// `BLAKE LEADS` / `ALL SQUARE`, never `HE LEADS`.
   @ViewBuilder private func graphic(_ h: HeadToHead) -> some View {
     CSClash(left: me, leftName: "You",
             right: CSFace.Model(id: h.opponent.id ?? opponentId, marker: h.opponent.marker,
@@ -271,7 +271,7 @@ struct HeadToHeadPage: View {
                         initials: Initials.of(p?.display_name), isViewer: true)
   }
 
-  /// `10.6 index · Tempe` — the two facts a golfer trades in a parking lot,
+  /// `10.6 index · Mesa` — the two facts a golfer trades in a parking lot,
   /// each dropped rather than guessed.
   ///
   /// **DEGRADE, named.** `head_to_head` returns the opponent's id, name,
@@ -434,7 +434,7 @@ final class HeadToHeadModel {
     // labelled, because the alternative was shipping the wave's signature
     // graphic unphotographed.
     if CSDevHatch.h2hFixture {
-      h2h = HeadToHeadModel.fixture(opponent, name: name ?? "Galen")
+      h2h = HeadToHeadModel.fixture(opponent, name: name ?? "Blake")
       marker = h2h?.opponent.marker
       resolved = h2h?.opponent.displayName
       state = .ready
@@ -484,7 +484,7 @@ final class HeadToHeadModel {
     let meetings = zip(days, wins).map { HeadToHead.Meeting(on: $0.0, won: $0.1, facet: .clashes) }
     return HeadToHead(visible: true,
                       opponent: .init(id: id, displayName: name, handle: name.lowercased(), marker: "flag"),
-                      league: "The Fellas",
+                      league: "North Grove (fixture)",
                       record: .init(wins: 6, losses: 5, ties: 0, total: 11),
                       lead: .up, since: "2026-06-14",
                       streak: .init(who: "them", n: 2),
@@ -492,7 +492,7 @@ final class HeadToHeadModel {
                       facets: [.init(facet: .seasonWeeks, wins: 3, losses: 1, ties: 0, meetings: 4),
                                .init(facet: .clashes, wins: 2, losses: 2, ties: 0, meetings: 4),
                                .init(facet: .playedTogether, wins: 1, losses: 2, ties: 0, meetings: 3, heuristic: 2)],
-                      rivalryName: "The Papago Grudge")
+                      rivalryName: "The Saguaro Flats Grudge")
   }
   #endif
 
@@ -509,5 +509,5 @@ final class HeadToHeadModel {
 }
 
 #Preview("Head to head") {
-  NavigationStack { HeadToHeadPage(opponentId: UUID(), fallbackName: "Galen") }.csTheme()
+  NavigationStack { HeadToHeadPage(opponentId: UUID(), fallbackName: "Blake") }.csTheme()
 }

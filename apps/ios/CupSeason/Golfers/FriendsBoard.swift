@@ -11,7 +11,7 @@
 //     which writes one `rsvp` nudge to the host and NEVER a row on the tee
 //     sheet (R16, D69 intact).
 //   * `YouPlayWithSection` — the golfers you actually play with and have not
-//     added, from `recent_partners`. The row IA §10.1 calls "Add Ravi →".
+//     added, from `recent_partners`. The row IA §10.1 calls "Add Finley →".
 //
 // L-22, and it is the reason this file is short: there is no badge, no arrow,
 // no "you dropped to 5th", and nothing here counts attention. A row is a name,

@@ -60,19 +60,19 @@ struct LeaveSeasonTests {
 
   @Test("the result decodes, including the idempotent second call")
   func decodesResult() throws {
-    let json = #"{"left_at":"2026-09-05T17:00:00+00:00","league":"Fellas","already":true}"#
+    let json = #"{"left_at":"2026-09-05T17:00:00+00:00","league":"North Grove (fixture)","already":true}"#
     let r = try JSONDecoder().decode(LeaveResult.self, from: Data(json.utf8))
     #expect(r.already == true)
-    #expect(r.league == "Fellas")
-    #expect(LeaveSeason.done(r.league) == "You left Fellas. Your rounds stay where they are.")
+    #expect(r.league == "North Grove (fixture)")
+    #expect(LeaveSeason.done(r.league) == "You left North Grove (fixture). Your rounds stay where they are.")
     // a payload that names no league still produces a sentence, not a blank
     #expect(LeaveSeason.done(nil) == "You left the season. Your rounds stay where they are.")
   }
 
   @Test("a leaver keeps their row on the table — the table is history, not a roster")
   func rowSurvives() {
-    let gone = SeasonStory.Row(id: "jade", name: "Jade", points: 9, rank: 3, left: true)
-    let leader = SeasonStory.Row(id: "galen", name: "Galen", points: 31, rank: 1)
+    let gone = SeasonStory.Row(id: "emery", name: "Emery", points: 9, rank: 3, left: true)
+    let leader = SeasonStory.Row(id: "blake", name: "Blake", points: 31, rank: 1)
     let clause = SeasonStoryCopy.rowClause(gone, leader: leader, cap: 3)
     #expect(clause?.contains("stopped scoring") == true)
     #expect(gone.points == 9)   // the number they earned is still the number

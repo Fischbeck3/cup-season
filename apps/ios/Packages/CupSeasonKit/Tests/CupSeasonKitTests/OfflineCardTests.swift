@@ -20,8 +20,8 @@ import Foundation
 @testable import CupSeasonKit
 
 private func card(strokes: Bool, lr: UUID = UUID(), started: Int64? = nil) -> LiveRoundState {
-  var s = LiveRoundState.fresh(players: [LivePlayer(n: "Jerecho", i: 10.6, ci: 1, guest: false),
-                                         LivePlayer(n: "Galen", i: 8.1, ci: 1, guest: false)])
+  var s = LiveRoundState.fresh(players: [LivePlayer(n: "Avery", i: 10.6, ci: 1, guest: false),
+                                         LivePlayer(n: "Blake", i: 8.1, ci: 1, guest: false)])
   s.active = true
   s.stage = LiveRoundState.Stage.live
   s.lr = lr
@@ -201,11 +201,11 @@ private func tempDisk() -> LiveDisk {
 
   private func scored(_ holes: Int, me seat: Int = 0) -> LiveRoundState {
     var s = LiveRoundState.fresh(players: [
-      LivePlayer(n: "Jerecho", i: 10.6, ci: 1, guest: false),
-      LivePlayer(n: "Galen", i: 8.1, ci: 1, guest: false)])
+      LivePlayer(n: "Avery", i: 10.6, ci: 1, guest: false),
+      LivePlayer(n: "Blake", i: 8.1, ci: 1, guest: false)])
     s.active = true; s.lr = UUID(); s.startedAt = now
     s.players[seat].me = true
-    s.course.label = "Papago Golf Course"
+    s.course.label = "Saguaro Flats"
     s.course.rating = 71.2; s.course.slope = 128
     for h in 0..<holes { s.scores[seat][h] = 4 }
     return s
@@ -220,7 +220,7 @@ private func tempDisk() -> LiveDisk {
     let c = KeptCards.compose(k!)
     #expect(c.mode == .holes)
     #expect(c.scores.filter { $0 > 0 }.count == 18)
-    #expect(c.course == "Papago Golf Course")
+    #expect(c.course == "Saguaro Flats")
     #expect(c.rating == "71.2")
     #expect(c.slope == "128")
     #expect(c.date != nil)          // the day it was PLAYED, not the day it is posted

@@ -73,7 +73,7 @@ public struct CourseRoundRow: Sendable, Identifiable, Equatable {
 /// The hero photograph and its credit — rung 1 of the ladder (§10.1).
 public struct CoursePhoto: Sendable, Equatable {
   public let url: URL
-  /// `GALEN'S ROUND · AUG 24`. **The credit is not optional**: it is the
+  /// `BLAKE'S ROUND · AUG 24`. **The credit is not optional**: it is the
   /// difference between an image the product borrowed and an image somebody
   /// took, and a photo with no name behind it is not shown at all.
   public let credit: String
@@ -105,7 +105,7 @@ public struct CoursePageAnswer: Sendable, Equatable {
   /// list of nine first names is a roster, which is the event's device.
   public static let namedCap = 6
 
-  /// *"Galen, Tash, Jade and Dev. Galen's {79} is the best of theirs."* — the
+  /// *"Blake, Devon, Emery and Dev. Blake's {79} is the best of theirs."* — the
   /// braces are the figure run's mark, and the producer is here so both
   /// clients print one sentence (§2.5). Empty when nobody else has played it;
   /// the block does not render rather than saying so.
@@ -115,7 +115,7 @@ public struct CoursePageAnswer: Sendable, Equatable {
   ///
   /// 1. **It said the name twice.** The list clause introduces a GROUP and the
   ///    second clause singles one out of it; with one golfer both are the same
-  ///    person, and the page printed *"Galen. Galen's 92 is the best of them."*
+  ///    person, and the page printed *"Blake. Blake's 92 is the best of them."*
   ///    One round is not the best of anything, so a lone golfer gets no
   ///    superlative at all.
   /// 2. **"them" never said WHO.** `others` excludes the viewer by
@@ -139,12 +139,12 @@ public struct CoursePageAnswer: Sendable, Equatable {
 
 /// The words this file is allowed to say about people, in one place.
 public enum CourseNames {
-  /// `Galen Marr` → `Galen`. A course row is a first-name room.
+  /// `Blake Sample` → `Blake`. A course row is a first-name room.
   public static func first(_ full: String) -> String {
     full.split(separator: " ").first.map(String.init) ?? full
   }
 
-  /// `Galen, Tash, Jade and Dev` — the Oxford-less list the product uses
+  /// `Blake, Devon, Emery and Dev` — the Oxford-less list the product uses
   /// everywhere a set of golfers is named.
   public static func list(_ names: [String]) -> String {
     switch names.count {
@@ -407,7 +407,7 @@ public struct CourseNote: Sendable, Equatable, Identifiable {
   public init(who: String, marker: String? = nil, stars: Double? = nil, note: String) {
     self.who = who; self.marker = marker; self.stars = stars; self.note = note
   }
-  /// *"Galen Marr · 4.5"* — the attribution under the quote.
+  /// *"Blake Sample · 4.5"* — the attribution under the quote.
   public var line: String {
     guard let stars else { return who }
     return "\(who) · \(String(format: "%.1f", stars))"

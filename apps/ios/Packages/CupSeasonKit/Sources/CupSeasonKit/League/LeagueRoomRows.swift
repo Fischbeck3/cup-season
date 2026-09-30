@@ -258,6 +258,12 @@ public enum LeagueRoom {
 
 /// `season_scenarios` (D24) — decoded from its jsonb.
 public struct SeasonScenarios: Decodable, Sendable, Equatable {
+  public struct Seed: Decodable, Sendable, Equatable {
+    public let seed: Int?
+    public let id: UUID?
+    public let name: String?
+    public init(seed: Int?, id: UUID?, name: String?) { self.seed = seed; self.id = id; self.name = name }
+  }
   public struct Meta: Decodable, Sendable, Equatable {
     public let finish: String?
     public let structure: String?
@@ -269,10 +275,11 @@ public struct SeasonScenarios: Decodable, Sendable, Equatable {
     public let cap: Int?
     public let status: String?
     public let ends_on: String?
+    public let seeds: [Seed]?
     public init(finish: String?, structure: String?, level: String?, k: Int?, seed_end: String? = nil, months_left: Int?, locked: Bool?, cap: Int?,
-                status: String? = nil, ends_on: String? = nil) {
+                status: String? = nil, ends_on: String? = nil, seeds: [Seed]? = nil) {
       self.finish = finish; self.structure = structure; self.level = level; self.k = k; self.seed_end = seed_end; self.months_left = months_left
-      self.locked = locked; self.cap = cap; self.status = status; self.ends_on = ends_on
+      self.locked = locked; self.cap = cap; self.status = status; self.ends_on = ends_on; self.seeds = seeds
     }
   }
   public struct Row: Decodable, Sendable, Equatable, Identifiable {

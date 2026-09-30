@@ -18,15 +18,15 @@ struct CeremonyTests {
   @Test("the band takes one to three display lines and keeps the order it was given")
   func lines() {
     let t = CSTakeover(eyebrow: "Season complete",
-                       lines: ["Galen Marr", "took the Cup"],
+                       lines: ["Blake Sample", "took the Cup"],
                        marker: "saguaro") { EmptyView() }
-    #expect(t.lines == ["Galen Marr", "took the Cup"])
+    #expect(t.lines == ["Blake Sample", "took the Cup"])
     #expect(t.marker == "saguaro")
   }
 
   @Test("a band with no seal is legal — a ceremony fired from Home has no member list")
   func noSeal() {
-    let t = CSTakeover(eyebrow: "Season complete", lines: ["The Fellas is done"]) { EmptyView() }
+    let t = CSTakeover(eyebrow: "Season complete", lines: ["North Grove (fixture) is done"]) { EmptyView() }
     #expect(t.marker == nil)
   }
 

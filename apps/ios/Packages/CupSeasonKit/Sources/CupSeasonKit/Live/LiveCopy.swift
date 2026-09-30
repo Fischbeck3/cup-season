@@ -551,7 +551,7 @@ public enum LiveCopy {
   /// D178 · the island has room for about ten characters. Say the STATE of the
   /// game, never the tail of the sentence describing it.
   ///
-  /// The hero is a LEADERBOARD — "GALEN 2 · JADE 1", "GALEN +3 · JADE -1 · …",
+  /// The hero is a LEADERBOARD — "BLAKE 2 · EMERY 1", "BLAKE +3 · EMERY -1 · …",
   /// "NO SKINS CLAIMED YET". Its last two words are the WORST ten characters in
   /// it: the tail of a skins round with nothing claimed is "CLAIMED YET", and
   /// the tail of a wolf round is whoever happens to sort last. The leader is
@@ -568,7 +568,7 @@ public enum LiveCopy {
       if lead.hasPrefix("NO SKINS") { return "NO SKINS" }
       return lead.count <= 12 ? lead : String(lead.prefix(12))
     case .match, .sunningdale:
-      // "ALL SQUARE" fits whole; "GALEN & JADE 2 UP" keeps its verdict
+      // "ALL SQUARE" fits whole; "BLAKE & EMERY 2 UP" keeps its verdict
       if hero.count <= 12 { return hero }
       let words = hero.split(separator: " ")
       return words.count >= 2 ? words.suffix(2).joined(separator: " ") : String(hero.prefix(12))
@@ -689,4 +689,16 @@ public extension LiveCopy {
   }
   /// The way back to the held round, on the setup's first screen.
   static let backToRound = "Back to the round"
+}
+
+public extension LiveCopy {
+  static func stepperLabel(_ s: LiveRoundState, player pi: Int, by: Int) -> String {
+    guard s.players.indices.contains(pi), s.scores.indices.contains(pi),
+          s.scores[pi].indices.contains(s.hole), s.course.pars.indices.contains(s.hole) else { return "" }
+    let name = s.players[pi].n, hole = s.hole + 1
+    guard let score = s.scores[pi][s.hole] else {
+      return "Enter par (\(s.course.pars[s.hole])) for \(name), hole \(hole)"
+    }
+    return "\(by < 0 ? "One stroke fewer" : "One more stroke") for \(name), hole \(hole), now \(score)"
+  }
 }

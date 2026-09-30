@@ -478,7 +478,7 @@ public struct CSStakeLine: View {
 
 /// Two to four figures on ONE shared rule with their agate labels beneath, and
 /// **the league sentence in agate under the whole block**:
-/// `THE FELLAS · 2ND OF 8 · 4 BACK OF GALEN`.
+/// `NORTH GROVE (FIXTURE) · 2ND OF 8 · 4 BACK OF BLAKE`.
 ///
 /// One agate sentence does more competitive work than any chip, and it names
 /// the rival. It is type on the page's ground: **no box, no border, no radius
@@ -517,11 +517,11 @@ public struct CSFactStrip: View {
   let standing: String?
   /// The standing line's register. Case is a role's job, never a string's
   /// (D165, LINT-14):
-  /// - `.sentence` — the season row, a sentence a golfer reads (`Fellas · 2nd
+  /// - `.sentence` — the season row, a sentence a golfer reads (`North Grove (fixture) · 2nd
   ///   of 8 · 4 back of Blake`), in `bodyS` `mut`: the web's `.mesr`, TEN / W6.
   /// - `.gloss` — a short gloss under the number a person could read aloud
   ///   (§1.3), in `agateS`.
-  /// - `.caps` — a label line, `THE FELLAS · 26 WEEKS · 4 TO PLAY`.
+  /// - `.caps` — a label line, `NORTH GROVE (FIXTURE) · 26 WEEKS · 4 TO PLAY`.
   public enum Register: Sendable { case sentence, gloss, caps }
   let register: Register
   public init(_ cells: [Cell], standing: String? = nil, register: Register = .sentence) {
@@ -656,10 +656,10 @@ public struct CSStoryCard<Aside: View>: View {
   @Environment(\.dynamicTypeSize) private var typeSize
   let eyebrow: String
   let live: Bool
-  /// `THE FELLAS` — the league, flush right on the eyebrow's baseline. Never a
+  /// `NORTH GROVE (FIXTURE)` — the league, flush right on the eyebrow's baseline. Never a
   /// second sentence and never a count (§16A.2).
   let tag: String?
-  /// The gold slot and the name beside it — `CHAMPION · MIKE FENNER`. The
+  /// The gold slot and the name beside it — `CHAMPION · GRAY DUMMETT`. The
   /// viewport's **one** gold object when it is present.
   let credit: (slot: String, name: String)?
   let headline: String

@@ -56,7 +56,7 @@ import CSDesign
       """
     } ?? ""
     let json = """
-    {"league_id": "\(UUID().uuidString)", "name": "PIGL", "code": "ABCD", "phase": "\(phase)", "role": "player",
+    {"league_id": "\(UUID().uuidString)", "name": "NGFX26", "code": "ABCD", "phase": "\(phase)", "role": "player",
      "member_id": "\(UUID().uuidString)", \(season) "marker": "saguaro"}
     """
     return try! JSONDecoder().decode(Me.Membership.self, from: Data(json.utf8))

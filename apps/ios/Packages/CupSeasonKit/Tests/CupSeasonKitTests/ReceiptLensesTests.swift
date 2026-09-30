@@ -32,7 +32,7 @@ import Foundation
 
   @Test("one lens: one unnamed row and one door to that season's month")
   func oneLens() {
-    let s = seed(#"{"gross":84,"contributions":[{"league_id":"00000000-0000-4000-8000-000000000001","league_name":"Fellas","season_id":"00000000-0000-4000-8000-000000000002","member_id":"00000000-0000-4000-8000-000000000003","points":7,"month_rank":2,"counting_cap":4,"month":"2026-09"}]}"#)
+    let s = seed(#"{"gross":84,"contributions":[{"league_id":"00000000-0000-4000-8000-000000000001","league_name":"North Grove (fixture)","season_id":"00000000-0000-4000-8000-000000000002","member_id":"00000000-0000-4000-8000-000000000003","points":7,"month_rank":2,"counting_cap":4,"month":"2026-09"}]}"#)
     #expect(lensRows(s).map(\.0) == ["This month"] && lensRows(s).first?.1 == "COUNTING #2 OF 4")
     let d = doors(s)
     #expect(d.count == 1 && d.first?.month == "2026-09" && d.first?.label == "Your rounds that count in September")
@@ -40,11 +40,11 @@ import Foundation
 
   @Test("two lenses: each row names its league and carries its points; a bumped one says so; an uncapped one has no denominator")
   func twoLenses() {
-    let s = seed(#"{"gross":92,"contributions":[{"league_name":"Fellas","season_id":"00000000-0000-4000-8000-000000000002","member_id":"00000000-0000-4000-8000-000000000003","points":2,"month_rank":3,"counting_cap":2,"month":"2026-09"},{"league_name":"Sunday Cup","season_id":"00000000-0000-4000-8000-000000000004","member_id":"00000000-0000-4000-8000-000000000005","points":2,"month_rank":3,"counting_cap":null,"month":"2026-09"}]}"#)
+    let s = seed(#"{"gross":92,"contributions":[{"league_name":"North Grove (fixture)","season_id":"00000000-0000-4000-8000-000000000002","member_id":"00000000-0000-4000-8000-000000000003","points":2,"month_rank":3,"counting_cap":2,"month":"2026-09"},{"league_name":"Sunday Cup","season_id":"00000000-0000-4000-8000-000000000004","member_id":"00000000-0000-4000-8000-000000000005","points":2,"month_rank":3,"counting_cap":null,"month":"2026-09"}]}"#)
     let rows = lensRows(s)
-    #expect(rows.map(\.0) == ["This month · Fellas", "This month · Sunday Cup"])
+    #expect(rows.map(\.0) == ["This month · North Grove (fixture)", "This month · Sunday Cup"])
     #expect(rows[0].1 == "BUMPED · 2 PTS" && rows[1].1 == "COUNTING #3 · 2 PTS")
-    #expect(doors(s).map(\.label) == ["Your rounds that count in September · Fellas", "Your rounds that count in September · Sunday Cup"])
+    #expect(doors(s).map(\.label) == ["Your rounds that count in September · North Grove (fixture)", "Your rounds that count in September · Sunday Cup"])
   }
 
   @Test("no contributions (the older database): the scalars' one lens, no door; nothing at all when the round has no rank")
@@ -57,11 +57,11 @@ import Foundation
 
   @Test("the served counters become the composer's sentences, the season named only when there are two")
   func servedLines() {
-    let one = try! JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"Fellas","cap":4,"counters":{"used":2,"worst":5}}]"#.utf8))
+    let one = try! JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":2,"worst":5}}]"#.utf8))
     #expect(RoundWorth.servedLines(one) == ["This round can score up to 12, and it counts: your best 4 count and you have 2."])
-    let two = try! JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"Fellas","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#.utf8))
+    let two = try! JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"North Grove (fixture)","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#.utf8))
     let lines = RoundWorth.servedLines(two)
-    #expect(lines.count == 2 && lines[0].contains("in Fellas") && lines[1].contains("in Sunday Cup") && lines[1].contains("Every round you post this month counts"))
+    #expect(lines.count == 2 && lines[0].contains("in North Grove (fixture)") && lines[1].contains("in Sunday Cup") && lines[1].contains("Every round you post this month counts"))
     #expect(RoundWorth.servedLines(.array([])).isEmpty, "no season, nothing promised")
   }
 }

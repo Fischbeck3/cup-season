@@ -17,9 +17,9 @@ struct WidgetSnapshotTests {
 
   @Test("L-10 · the money fact cannot reach a home screen, whoever passes it")
   func moneyNeverRides() {
-    let s = DispatchSnapshot(seasonRow: "FELLAS · WEEK 7 OF 26",
+    let s = DispatchSnapshot(seasonRow: "NORTH GROVE (FIXTURE) · WEEK 7 OF 26",
                              facts: Self.facts([("YOUR NUMBER", "12.4"), ("LAST", "84 · SAT"),
-                                                ("NEXT", "SAT · PAPAGO"), ("STILL OWE", "$50")]))
+                                                ("NEXT", "SAT · SAGUARO FLATS"), ("STILL OWE", "$50")]))
     #expect(s.facts.count == 3)
     #expect(!s.facts.contains { $0.label == "STILL OWE" })
     // and the same through a round trip, since the filter runs in init
@@ -38,20 +38,20 @@ struct WidgetSnapshotTests {
   @Test("L-44 · past a day it says so, and stops offering the verb")
   func staleness() {
     let now = Date()
-    let fresh = DispatchSnapshot(seasonRow: nil, facts: [], leadHeadline: "Galen posted 79",
+    let fresh = DispatchSnapshot(seasonRow: nil, facts: [], leadHeadline: "Blake posted 79",
                                  leadVerb: "See it", savedAt: now.addingTimeInterval(-3600))
     #expect(!fresh.isStale(now: now))
     #expect(fresh.verb(now: now) == "See it")
     #expect(fresh.asOf(now: now).hasPrefix("AS OF "))
     #expect(!fresh.asOf(now: now).contains("OPEN TO REFRESH"))
 
-    let old = DispatchSnapshot(seasonRow: nil, facts: [], leadHeadline: "Galen posted 79",
+    let old = DispatchSnapshot(seasonRow: nil, facts: [], leadHeadline: "Blake posted 79",
                                leadVerb: "See it", savedAt: now.addingTimeInterval(-25 * 3600))
     #expect(old.isStale(now: now))
     #expect(old.verb(now: now) == nil, "a day-old door was still being offered")
     #expect(old.asOf(now: now).contains("OPEN TO REFRESH"))
     // the headline itself stays: it was true when it was read, and it says so
-    #expect(old.leadHeadline == "Galen posted 79")
+    #expect(old.leadHeadline == "Blake posted 79")
   }
 
   @Test("the edge is 24 hours exactly, and it is the same edge both ways")
@@ -84,13 +84,13 @@ struct WidgetSnapshotTests {
     let d = try #require(UserDefaults(suiteName: suite))
     defer { d.removePersistentDomain(forName: suite) }
     #expect(DispatchSnapshot.read(d) == nil)
-    let s = DispatchSnapshot(seasonRow: "FELLAS · WEEK 7 OF 26",
+    let s = DispatchSnapshot(seasonRow: "NORTH GROVE (FIXTURE) · WEEK 7 OF 26",
                              facts: Self.facts([("YOUR NUMBER", "12.4")]),
-                             leadHeadline: "Galen posted 79", leadVerb: "See it")
+                             leadHeadline: "Blake posted 79", leadVerb: "See it")
     #expect(s.write(d))
     let back = DispatchSnapshot.read(d)
-    #expect(back?.seasonRow == "FELLAS · WEEK 7 OF 26")
-    #expect(back?.leadHeadline == "Galen posted 79")
+    #expect(back?.seasonRow == "NORTH GROVE (FIXTURE) · WEEK 7 OF 26")
+    #expect(back?.leadHeadline == "Blake posted 79")
     #expect(back?.facts.first?.value == "12.4")
     // a nil container (the App Group not yet provisioned) writes nothing and
     // says so, rather than throwing on a device the owner has not re-signed
@@ -102,9 +102,9 @@ struct WidgetSnapshotTests {
     let strip = MeStripCopy.Strip(
       slots: [.init(fact: .myNumber, label: "YOUR NUMBER", value: "12.4", door: .yourCard, voiceOver: "your number, 12.4"),
               .init(fact: .myMoney, label: "STILL OWE", value: "$50", door: .yourCard, voiceOver: "still owe, $50")],
-      seasonRow: .init(leagueId: UUID(), text: "FELLAS · 2ND OF 8", parts: ["FELLAS", "2ND OF 8"]))
+      seasonRow: .init(leagueId: UUID(), text: "NORTH GROVE (FIXTURE) · 2ND OF 8", parts: ["NORTH GROVE (FIXTURE)", "2ND OF 8"]))
     let s = DispatchSnapshotFeed.make(strip: strip, lead: nil)
-    #expect(s.seasonRow == "FELLAS · 2ND OF 8")
+    #expect(s.seasonRow == "NORTH GROVE (FIXTURE) · 2ND OF 8")
     #expect(s.facts.map(\.value) == ["12.4"], "the money slot rode along")
     #expect(s.leadHeadline == nil)
     #expect(s.verb() == nil, "a verb was invented with no lead to carry it")
@@ -115,10 +115,10 @@ struct WidgetSnapshotTests {
     let suite = "cupseason.widget.tests.\(UUID().uuidString)"
     let d = try #require(UserDefaults(suiteName: suite))
     defer { d.removePersistentDomain(forName: suite) }
-    DispatchSnapshot(seasonRow: "FELLAS · 2ND OF 8", facts: []).write(d)
+    DispatchSnapshot(seasonRow: "NORTH GROVE (FIXTURE) · 2ND OF 8", facts: []).write(d)
     let empty = MeStripCopy.Strip(slots: [], seasonRow: nil)
     #expect(DispatchSnapshotFeed.publish(strip: empty, lead: nil, owner: nil, defaults: d) == false)
-    #expect(DispatchSnapshot.read(d)?.seasonRow == "FELLAS · 2ND OF 8", "an empty load wiped the widget")
+    #expect(DispatchSnapshot.read(d)?.seasonRow == "NORTH GROVE (FIXTURE) · 2ND OF 8", "an empty load wiped the widget")
   }
   @Test("the timeline includes the exact expiry even if the OS postpones a reload")
   func expiryEntry() {

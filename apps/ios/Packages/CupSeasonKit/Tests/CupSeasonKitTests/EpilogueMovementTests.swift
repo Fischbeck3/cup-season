@@ -11,11 +11,11 @@ import Foundation
   // MARK: - the sentence
 
   @Test func aClimbNamesWhoWasPassed() {
-    let m = PostEpilogue.Movement(rankBefore: 4, rankAfter: 2, of: 8, passed: ["Jade", "Dre"], gapToNextAfter: 4)
-    #expect(EpilogueMovement.sentence(m) == "That moved you past Jade and Dre into second.")
+    let m = PostEpilogue.Movement(rankBefore: 4, rankAfter: 2, of: 8, passed: ["Emery", "Dre"], gapToNextAfter: 4)
+    #expect(EpilogueMovement.sentence(m) == "That moved you past Emery and Dre into second.")
     // one name, three names — the list reads the way a person says it
-    #expect(EpilogueMovement.sentence(PostEpilogue.Movement(rankBefore: 3, rankAfter: 2, of: 8, passed: ["Jade"]))
-            == "That moved you past Jade into second.")
+    #expect(EpilogueMovement.sentence(PostEpilogue.Movement(rankBefore: 3, rankAfter: 2, of: 8, passed: ["Emery"]))
+            == "That moved you past Emery into second.")
     #expect(EpilogueMovement.sentence(PostEpilogue.Movement(rankBefore: 5, rankAfter: 1, of: 8, passed: ["A", "B", "C"]))
             == "That moved you past A, B and C into first.")
   }
@@ -68,15 +68,15 @@ import Foundation
     let new = try #require(PostEpilogue(json: .object([
       "gross": .number(79), "pvi": .number(3.2), "points": .number(12), "month_rank": .number(1),
       "rank_before": .number(4), "rank_after": .number(2), "of": .number(8),
-      "passed": .array([.string("Jade"), .string("Dre")]), "gap_to_next_after": .number(4),
+      "passed": .array([.string("Emery"), .string("Dre")]), "gap_to_next_after": .number(4),
       "played_with": .array([.object(["profile_id": .string(UUID().uuidString.lowercased()),
-                                      "name": .string("Galen"), "confirmed": .bool(false),
+                                      "name": .string("Blake"), "confirmed": .bool(false),
                                       "shares_season": .bool(false)])]),
     ])))
     #expect(new.movement?.rankBefore == 4 && new.movement?.rankAfter == 2 && new.movement?.of == 8)
-    #expect(new.movement?.passed == ["Jade", "Dre"])
+    #expect(new.movement?.passed == ["Emery", "Dre"])
     #expect(new.movement?.gapToNextAfter == 4)
-    #expect(new.playedWith.count == 1 && new.playedWith[0].name == "Galen")
+    #expect(new.playedWith.count == 1 && new.playedWith[0].name == "Blake")
     #expect(!new.playedWith[0].confirmed && !new.playedWith[0].sharesSeason)
   }
 
@@ -89,8 +89,8 @@ import Foundation
   }
 
   @Test func theClashOutranksEverything() {
-    let act = PostNextAct.choose(epilogue(movement: .init(rankBefore: 4, rankAfter: 2, of: 8, passed: ["Jade"])),
-                                 context: .init(clashOpponent: (name: "Galen", id: UUID(), weeksRunning: 2)))
+    let act = PostNextAct.choose(epilogue(movement: .init(rankBefore: 4, rankAfter: 2, of: 8, passed: ["Emery"])),
+                                 context: .init(clashOpponent: (name: "Blake", id: UUID(), weeksRunning: 2)))
     #expect(act.key == "clash")
     // X36 (1) · the settled spotlight is named as the weekly clash — the
     // web's `csNextAct` (bfce5aea), word for word
@@ -100,24 +100,24 @@ import Foundation
 
   @Test func theMovementIsTheSecondRungAndCarriesTheTablesDoor() {
     let season = UUID()
-    let act = PostNextAct.choose(epilogue(movement: .init(rankBefore: 3, rankAfter: 2, of: 8, passed: ["Jade"])),
+    let act = PostNextAct.choose(epilogue(movement: .init(rankBefore: 3, rankAfter: 2, of: 8, passed: ["Emery"])),
                                  seasonId: season, context: .init())
     #expect(act.key == "movement")
-    #expect(act.sentence == "That moved you past Jade into second.")
+    #expect(act.sentence == "That moved you past Emery into second.")
     #expect(act.door == .table(season))
   }
 
   @Test func aPartnerWithNoSharedSeasonIsOfferedOne() {
-    let galen = UUID()
-    let p = PostEpilogue.Partner(profileId: galen, name: "Galen", confirmed: false, sharesSeason: false)
+    let blake = UUID()
+    let p = PostEpilogue.Partner(profileId: blake, name: "Blake", confirmed: false, sharesSeason: false)
     let act = PostNextAct.choose(epilogue(partners: [p]),
-                                 context: .init(roundsTogetherThisMonth: [galen: 4]))
+                                 context: .init(roundsTogetherThisMonth: [blake: 4]))
     #expect(act.key == "partner_new")
-    #expect(act.sentence == "Galen was out there too. Four rounds between you this month — four is a season.")
-    #expect(act.door == .seasonWith(galen, "Galen"))
+    #expect(act.sentence == "Blake was out there too. Four rounds between you this month — four is a season.")
+    #expect(act.door == .seasonWith(blake, "Blake"))
     // the count is a read: without it the sentence does not invent one
     let thin = PostNextAct.choose(epilogue(partners: [p]), context: .init())
-    #expect(thin.sentence == "Galen was out there too. Make the next one count.")
+    #expect(thin.sentence == "Blake was out there too. Make the next one count.")
   }
 
   @Test func makeTheNextOneCountAppearsInExactlyOneRung() {
@@ -137,16 +137,16 @@ import Foundation
   }
 
   @Test func aSharedSeasonReadsTheRecordAndAThinOneDoesNot() {
-    let galen = UUID()
-    let p = PostEpilogue.Partner(profileId: galen, name: "Galen", confirmed: true, sharesSeason: true)
-    let r = PostEpilogue.Rival(name: "Galen", wins: 5, losses: 6, ties: 0, lead: "down", rivalryName: nil)
+    let blake = UUID()
+    let p = PostEpilogue.Partner(profileId: blake, name: "Blake", confirmed: true, sharesSeason: true)
+    let r = PostEpilogue.Rival(name: "Blake", wins: 5, losses: 6, ties: 0, lead: "down", rivalryName: nil)
     let act = PostNextAct.choose(epilogue(partners: [p], rivals: [r]), context: .init())
     #expect(act.key == "partner_record")
-    #expect(act.sentence == "You and Galen have played eleven together. Galen leads 6.")
-    #expect(act.door == .record(galen))
+    #expect(act.sentence == "You and Blake have played eleven together. Blake leads 6.")
+    #expect(act.door == .record(blake))
     // with no rivalry read the rung says only what it knows
     let thin = PostNextAct.choose(epilogue(partners: [p]), context: .init())
-    #expect(thin.key == "partner_seen" && thin.sentence == "Galen was out there too.")
+    #expect(thin.key == "partner_seen" && thin.sentence == "Blake was out there too.")
   }
 
   @Test func theLeaguelessRungsCountRatherThanGuess() {
@@ -183,12 +183,12 @@ import Foundation
 
   /// One case per rung, in the ladder's own order.
   private func everyRung() -> [PostNextAct] {
-    let galen = UUID(), jade = UUID(), event = UUID()
-    let stranger = PostEpilogue.Partner(profileId: galen, name: "Galen", confirmed: false, sharesSeason: false)
-    let mate = PostEpilogue.Partner(profileId: jade, name: "Jade", confirmed: true, sharesSeason: true)
+    let blake = UUID(), emery = UUID(), event = UUID()
+    let stranger = PostEpilogue.Partner(profileId: blake, name: "Blake", confirmed: false, sharesSeason: false)
+    let mate = PostEpilogue.Partner(profileId: emery, name: "Emery", confirmed: true, sharesSeason: true)
     return [
-      PostNextAct.choose(epilogue(), context: .init(clashOpponent: (name: "Galen", id: galen, weeksRunning: 2))),
-      PostNextAct.choose(epilogue(movement: .init(rankBefore: 3, rankAfter: 2, of: 8, passed: ["Jade"])), context: .init()),
+      PostNextAct.choose(epilogue(), context: .init(clashOpponent: (name: "Blake", id: blake, weeksRunning: 2))),
+      PostNextAct.choose(epilogue(movement: .init(rankBefore: 3, rankAfter: 2, of: 8, passed: ["Emery"])), context: .init()),
       PostNextAct.choose(epilogue(), context: .init(calloutEvent: event, calloutSentence: "You called it. You posted 84.")),
       PostNextAct.choose(epilogue(partners: [stranger]), context: .init()),
       PostNextAct.choose(epilogue(partners: [mate]), context: .init()),

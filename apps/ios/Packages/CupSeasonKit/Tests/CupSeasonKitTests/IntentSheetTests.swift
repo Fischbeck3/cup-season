@@ -119,7 +119,7 @@ import Foundation
   @Test func moneyHasAnEmptyStateWithADoor() {
     #expect(StartIntent.Money.emptyLine.hasSuffix("Start something first."))
     #expect(!StartIntent.Money.somethingNew.isEmpty)
-    let frozen = StartIntent.Money.frozen("The Fellas", firstTee: "Saturday")
+    let frozen = StartIntent.Money.frozen("North Grove (fixture)", firstTee: "Saturday")
     // D299 · the act it names is the pride bet now — `forfeit` meant conceding
     // to every reader who had not been taught otherwise.
     #expect(frozen.contains("pride bet"))

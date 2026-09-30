@@ -60,7 +60,7 @@ public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
   /// becomes "P T S") — the numeral gets its digit and the rest its own case.
   /// A live season says it is in play before it says where it stands.
   public var spoken: String {
-    "Season \(number), " + (finishWord.map { "\($0.lowercased()), " } ?? "") + line.lowercased()
+    ["Season \(number)", finishWord?.lowercased(), line.isEmpty ? nil : line.lowercased()].compactMap { $0 }.joined(separator: ", ")
   }
 }
 
@@ -142,7 +142,7 @@ public enum LeagueRecord {
         // the web's words (`loadLeagueRecord`), in this line's case
         if done { line = where_.map { "FINISHED \($0)" } ?? "FINISHED" }
         else {
-          let parts: [String?] = [status == "cup_final" ? "CUP FINAL" : nil, where_, "IN SEASON"]
+          let parts: [String?] = [status == "cup_final" ? "CUP FINAL" : nil, where_]
           line = parts.compactMap { $0 }.joined(separator: " · ")
         }
       }

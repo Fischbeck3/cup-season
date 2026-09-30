@@ -154,7 +154,7 @@ public struct CourseBook: Codable, Sendable, Equatable, Identifiable {
   public var label: String { CourseHit.label(club: clubName, course: courseName) }
   public var place: String { [city, state].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ") }
 
-  /// "Papago · 3 tees" — `CourseHit.subline`'s shape.
+  /// "Saguaro Flats · 3 tees" — `CourseHit.subline`'s shape.
   public var subline: String { (place.isEmpty ? "" : place + " · ") + "\(tees.count) tee\(tees.count == 1 ? "" : "s")" }
 
   /// The tee a golfer most likely wants first: the LONGEST 18.

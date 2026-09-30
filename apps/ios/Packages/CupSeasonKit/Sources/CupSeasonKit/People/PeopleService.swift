@@ -109,7 +109,7 @@ public struct PeopleService: Sendable {
     public let by_profile: UUID?
     public var id: String { round_id?.uuidString ?? UUID().uuidString }
 
-    /// "Galen says you played Papago on June 1 — that right?" Each clause is
+    /// "Blake says you played Saguaro Flats on June 1 — that right?" Each clause is
     /// dropped rather than guessed; a tag with no course still asks the
     /// question, because the question is about the day and the person.
     public var question: String { question(marked: false) }

@@ -15,6 +15,20 @@
     (ok ? console.log : console.error)((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : ` — got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`));
   };
 
+  /* Q2: a drawn seed survives a changed live leader and a one-squad seed race. */
+  t('Q2: locked Final reads the whole draw in seed order', window.csFinalSeedNames({structure:'squads2',k:1, seeds:[
+    {seed:2,id:'b',name:'Fixture Wrens'}, {seed:1,id:'a',name:'Fixture Javelinas'}]}),
+    ['Fixture Javelinas','Fixture Wrens']);
+  t('Q2: absent draw never invents finalists from points order', window.csFinalSeedNames({k:2}), []);
+  t('Q2: two-squad Final refuses a partial draw', window.csFinalSeedNames({structure:'squads2',k:1,seeds:[{seed:1,id:'a',name:'Fixture Wrens'}]}), []);
+  t('Q2: missing first seed refuses a broken draw', window.csFinalSeedNames({k:1,seeds:[{seed:2,id:'a',name:'Fixture Wrens'}]}), []);
+  t('Q2: duplicate draw fails closed', window.csFinalSeedNames({seeds:[
+    {seed:1,id:'a',name:'Fixture Wrens'}, {seed:1,id:'a',name:'Fixture Wrens'}]}), []);
+  for(const structure of ['solo','squads2','squads3','squads4']) {
+    t('Q2: wizard help follows '+structure, csFinishNote('cup_final', structure).includes('both squads'), structure==='squads2');
+    t('Q2: +10 only at two squads '+structure, csFinishNote('cup_final', structure).includes('+10'), structure==='squads2');
+  }
+
   /* esc — the XSS gate */
   t('esc: angle brackets', esc('<b>hi</b>'), '&lt;b&gt;hi&lt;/b&gt;');
   t('esc: quotes + amp', esc(`a&'"z`), 'a&amp;&#39;&quot;z');
@@ -1697,7 +1711,7 @@
       'Standard rules: honest scores, best three a month count, two a month keeps you in, scored against your playing HCP — your index at 95 percent.');
     t('D126: the ending is a sentence, never a dial name',
       [F(full).ending, F({ name: 'x', buyin_cents: 0, finish: 'points_table' }).ending],
-      ['It ends with a four-week Cup Final between the top two.',
+      ['It ends with a four-week Cup Final.',
        "The season's points decide it. No reset."]);
     t('L-10: the split answers what $50 buys, and renders above $0 only',
       [F(full).split, F({ name: 'x', buyin_cents: 0, split: { champion: 60, runner_up: 25, points_king: 15 } }).split],
@@ -1843,8 +1857,8 @@
        are asserted by `OnboardingTests` too — a floor that differs between a
        golfer's two screens is not a floor. */
     t('D247/L-24: the defaulted marker is the phone\'s marker',
-      ['avery','galen','jade','tash'].map(csMarkerDefault),
-      ['weebridge','lighthouse','shark','dunes']);   /* X37 · the first key is the synthetic cast's now; OnboardingTests' copy of this fixture moves with it */
+      ['avery','blake','emery','devon'].map(csMarkerDefault),
+      ['weebridge','saguaro','thistle','dunes']);   /* X37 · the first key is the synthetic cast's now; OnboardingTests' copy of this fixture moves with it */
     t('L-24: the footnote names it and says where to change it',
       csMarkerFootnote('The Island'),
       'Your marker is The Island — your face here until you add a photo, and your stamp on every round after. Tap it to pick another, or change it any time from You.');

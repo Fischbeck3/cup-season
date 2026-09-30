@@ -50,8 +50,8 @@ final class AfterGolfComposerTapTests: XCTestCase {
     let todayHeader = app.staticTexts.element(matching: NSPredicate(format: "label ==[c] %@", today))
     XCTAssertFalse(today.caseInsensitiveCompare(expected) == .orderedSame || todayHeader.exists, "the composer opened on today rather than the day played")
 
-    // The course rides as TEXT — the fixture names Papago with no catalogue id.
-    let course = app.textFields.element(matching: NSPredicate(format: "value == %@", "Papago"))
+    // The course rides as TEXT — the fixture names Saguaro Flats with no catalogue id.
+    let course = app.textFields.element(matching: NSPredicate(format: "value == %@", "Saguaro Flats"))
     XCTAssertTrue(course.waitForExistence(timeout: 10), "the plan's course was not carried as text")
 
     let shot = XCTAttachment(screenshot: app.screenshot())

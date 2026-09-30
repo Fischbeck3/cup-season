@@ -460,7 +460,8 @@ private struct CardEditorPane: View {
 
       A11yStack(rowAlignment: .top, spacing: 10) {
         VStack(alignment: .leading, spacing: 6) {
-          label("Handle · 60-day lock")
+          label("Handle")
+      Fine(OnboardingCopy.handleRule)
           CSField("@handle", text: $vm.handle).textInputAutocapitalization(.never).autocorrectionDisabled()
             .accessibilityLabel("Handle")
         }
@@ -494,6 +495,9 @@ private struct CardEditorPane: View {
         if let s = vm.status { CSNote(s.0, tone: s.1).csType(.bodyS).id(CardSettingsModel.statusID) }
       }
       .padding(.top, 6)
+
+      CSSectionHead("Your card link").padding(.top, CSTokens.Space.s4)
+      PersonInviteLink(store: store, always: true)
 
       Text("Handicap index").csEyebrow().padding(.top, 16)
       if vm.profile?.index_source == "app" {

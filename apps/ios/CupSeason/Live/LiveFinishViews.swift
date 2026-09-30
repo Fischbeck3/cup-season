@@ -265,7 +265,7 @@ struct LiveRecapSheet: View {
       figure: nil,
       marker: nil
     ) {
-      Text("\(o.posted.count) card\(o.posted.count == 1 ? "" : "s")\(store.leagueId == nil ? " posted" : " to the season")")
+      Text("\(o.posted.count) round\(o.posted.count == 1 ? "" : "s")\(store.leagueId == nil ? " posted" : " to the season")")
         .csType(.agate, caps: true).foregroundStyle(d.ceremonyMut)
     }
   }

@@ -154,8 +154,8 @@ import Foundation
     let won = CalloutCopy.youTookIt(mine: 2.1, theirs: 0.4)
     #expect(won.contains("+2.1"))
     #expect(won.contains("+0.4"))
-    let lost = CalloutCopy.theyTookIt("Galen Fischbeck", theirs: 1.8, mine: -0.2)
-    #expect(lost.hasPrefix("Galen "))
+    let lost = CalloutCopy.theyTookIt("Blake Fixture", theirs: 1.8, mine: -0.2)
+    #expect(lost.hasPrefix("Blake "))
     #expect(lost.contains("-0.2"))
     for s in [won, lost] {
       #expect(!s.lowercased().contains("needs"))

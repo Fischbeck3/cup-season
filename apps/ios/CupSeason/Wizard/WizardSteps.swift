@@ -307,7 +307,7 @@ struct WizardWhenStep: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      WizardSetRow(lab: WizardCopy.seasonLength.0, small: WizardCopy.seasonLength.1, val: model.dials.lengthText,
+      WizardSetRow(lab: WizardCopy.seasonLength.0, small: model.dials.lengthGloss, val: model.dials.lengthText,
                    downLabel: "Shorter season", upLabel: "Longer season",
                    down: { model.dials.stepLength(-1) }, up: { model.dials.stepLength(1) })
       A11yStack(spacing: 10, columnSpacing: 6) {

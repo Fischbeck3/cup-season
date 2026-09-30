@@ -64,8 +64,8 @@ struct HomeNoPhotoFixture: View {
   /// the two rows the owner photographed, adjacent, each with its own path
   private var photoRows: [HomeFeedRow] {
     let json = """
-    [{"round_id":"b0000000-0000-4000-8000-000000000001","profile_id":"b0000000-0000-4000-8000-000000000011","golfer":"FIXTURE · Galen","marker":"azalea","gross":81,"course":"Encanto","pvi":0.2,"played_on":"2026-09-13","photo_path":"fixture/first.png"},
-     {"round_id":"b0000000-0000-4000-8000-000000000002","profile_id":"b0000000-0000-4000-8000-000000000012","golfer":"FIXTURE · Jade","marker":"azalea","gross":77,"course":"Aguila","pvi":2.6,"played_on":"2026-09-13","photo_path":"fixture/second.png"}]
+    [{"round_id":"b0000000-0000-4000-8000-000000000001","profile_id":"b0000000-0000-4000-8000-000000000011","golfer":"FIXTURE · Blake","marker":"azalea","gross":81,"course":"Encanto","pvi":0.2,"played_on":"2026-09-13","photo_path":"fixture/first.png"},
+     {"round_id":"b0000000-0000-4000-8000-000000000002","profile_id":"b0000000-0000-4000-8000-000000000012","golfer":"FIXTURE · Emery","marker":"azalea","gross":77,"course":"Aguila","pvi":2.6,"played_on":"2026-09-13","photo_path":"fixture/second.png"}]
     """
     // removal is the attachment leaving the ROW, exactly as `clear_round_photo` does
     let text = removedSecond ? json.replacingOccurrences(of: ",\"photo_path\":\"fixture/second.png\"", with: "") : json
@@ -82,9 +82,9 @@ struct HomeNoPhotoFixture: View {
   private let examples: [HomeFeedRow] = {
     let json = """
     [{"round_id":"a0000000-0000-4000-8000-000000000001","profile_id":"a0000000-0000-4000-8000-000000000011","golfer":"You","marker":"azalea","gross":89,"course":"UNM Championship Course","is_me":true,"pvi":-2.0,"played_on":"2026-09-12"},
-     {"round_id":"a0000000-0000-4000-8000-000000000002","profile_id":"a0000000-0000-4000-8000-000000000012","golfer":"FIXTURE · Sam","marker":"azalea","gross":79,"course":"Papago","is_pr":true,"played_on":"2026-09-09"},
+     {"round_id":"a0000000-0000-4000-8000-000000000002","profile_id":"a0000000-0000-4000-8000-000000000012","golfer":"FIXTURE · Avery","marker":"azalea","gross":79,"course":"Saguaro Flats","is_pr":true,"played_on":"2026-09-09"},
      {"round_id":"a0000000-0000-4000-8000-000000000003","profile_id":"a0000000-0000-4000-8000-000000000013","golfer":"FIXTURE · A golfer with a long display name","marker":"azalea","gross":108,"course":"Gold Canyon — Dinosaur Mountain · Championship tees","played_on":"2026-09-08"},
-     {"round_id":"a0000000-0000-4000-8000-000000000004","profile_id":"a0000000-0000-4000-8000-000000000014","golfer":"FIXTURE · Priya","marker":"azalea","gross":79,"course":"Aguila","pvi":3.1,"played_on":"2026-09-11"}]
+     {"round_id":"a0000000-0000-4000-8000-000000000004","profile_id":"a0000000-0000-4000-8000-000000000014","golfer":"FIXTURE · Noel","marker":"azalea","gross":79,"course":"Aguila","pvi":3.1,"played_on":"2026-09-11"}]
     """
     return (try? JSONDecoder().decode([HomeFeedRow].self, from: Data(json.utf8))) ?? []
   }()

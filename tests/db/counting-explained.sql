@@ -51,15 +51,15 @@ end $$;
 
 -- ── the fixture ────────────────────────────────────────────────────────────
 insert into auth.users (id, email) values
-  ('00000000-0000-4000-8000-00000000a001', 'sam@fixture.test'),
-  ('00000000-0000-4000-8000-00000000a002', 'jade@fixture.test'),
+  ('00000000-0000-4000-8000-00000000a001', 'casey@fixture.test'),
+  ('00000000-0000-4000-8000-00000000a002', 'emery@fixture.test'),
   ('00000000-0000-4000-8000-00000000a003', 'rex@fixture.test');
-update profiles set display_name = 'Sam Fixture', marker = 'saguaro', handle = 'samfx', index_current = 12.0 where id = '00000000-0000-4000-8000-00000000a001';
-update profiles set display_name = 'Jade Fixture', marker = 'azalea', handle = 'jadefx' where id = '00000000-0000-4000-8000-00000000a002';
+update profiles set display_name = 'Casey Fixture', marker = 'saguaro', handle = 'samfx', index_current = 12.0 where id = '00000000-0000-4000-8000-00000000a001';
+update profiles set display_name = 'Emery Fixture', marker = 'azalea', handle = 'jadefx' where id = '00000000-0000-4000-8000-00000000a002';
 update profiles set display_name = 'Rex Fixture', marker = 'flag', handle = 'rexfx' where id = '00000000-0000-4000-8000-00000000a003';
 
 insert into leagues (id, name, code, commissioner_id, phase) values
-  ('00000000-0000-4000-8000-00000000b001', 'Fellas', 'FELLA1', '00000000-0000-4000-8000-00000000a001', 'season'),
+  ('00000000-0000-4000-8000-00000000b001', 'North Grove (fixture)', 'FELLA1', '00000000-0000-4000-8000-00000000a001', 'season'),
   ('00000000-0000-4000-8000-00000000b002', 'Sunday Cup', 'SUNDA1', '00000000-0000-4000-8000-00000000a001', 'season');
 insert into league_settings (league_id) values ('00000000-0000-4000-8000-00000000b001'), ('00000000-0000-4000-8000-00000000b002') on conflict do nothing;
 update league_settings set counting_cap = 2, structure = 'solo' where league_id = '00000000-0000-4000-8000-00000000b001';
@@ -73,10 +73,10 @@ insert into league_members (id, league_id, profile_id, role) values
   ('00000000-0000-4000-8000-00000000d003', '00000000-0000-4000-8000-00000000b002', '00000000-0000-4000-8000-00000000a001', 'commissioner'),
   ('00000000-0000-4000-8000-00000000d004', '00000000-0000-4000-8000-00000000b002', '00000000-0000-4000-8000-00000000a003', 'player');
 
--- Sam: three September rounds (cap 2 in the Fellas → the worst is bumped there,
+-- Casey: three September rounds (cap 2 in North Grove (fixture) → the worst is bumped there,
 -- uncapped in the Sunday Cup) and one BACKDATED August round.
 insert into rounds (id, profile_id, gross, rating, slope, played_on, index_at_post, holes_played, course_label) values
-  ('00000000-0000-4000-8000-00000000e001', '00000000-0000-4000-8000-00000000a001', 84, 70.1, 120, '2026-09-01', 12.0, 18, 'Papago'),
+  ('00000000-0000-4000-8000-00000000e001', '00000000-0000-4000-8000-00000000a001', 84, 70.1, 120, '2026-09-01', 12.0, 18, 'Saguaro Flats'),
   ('00000000-0000-4000-8000-00000000e002', '00000000-0000-4000-8000-00000000a001', 80, 70.1, 120, '2026-09-05', 12.0, 18, 'Aguila'),
   ('00000000-0000-4000-8000-00000000e003', '00000000-0000-4000-8000-00000000a001', 92, 70.1, 120, '2026-09-12', 12.0, 18, 'Encanto'),
   ('00000000-0000-4000-8000-00000000e004', '00000000-0000-4000-8000-00000000a001', 86, 70.1, 120, '2026-08-20', 12.0, 18, 'Encanto');
@@ -122,7 +122,7 @@ select pg_temp.want('my_month_counters signed out is empty, not an error',
   (public.my_month_counters('2026-09-13'))::text, ('[]'::jsonb)::text);
 
 
--- ── as Sam, who is in both leagues ─────────────────────────────────────────
+-- ── as Casey, who is in both leagues ─────────────────────────────────────────
 select set_config('sim.uid', '00000000-0000-4000-8000-00000000a001', true);
 
 select pg_temp.want('owner sees two lenses',
@@ -155,12 +155,12 @@ select pg_temp.want('the fixture''s leagues play under 100%, so that check tells
   'true');
 select pg_temp.want('the lenses are ordered by league name',
   (select string_agg(c->>'league_name', ',' ) from jsonb_array_elements(public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions') with ordinality t(c, i)),
-  'Fellas,Sunday Cup');
+  'North Grove (fixture),Sunday Cup');
 
-select pg_temp.want('the Fellas lens is bumped past the cap of 2',
+select pg_temp.want('North Grove (fixture) lens is bumped past the cap of 2',
   ((select (c->>'month_rank')::int > (c->>'counting_cap')::int
      from jsonb_array_elements(public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions') c
-    where c->>'league_name' = 'Fellas'))::text,
+    where c->>'league_name' = 'North Grove (fixture)'))::text,
   (true)::text);
 select pg_temp.want('the Sunday Cup lens is uncapped',
   ((select c->'counting_cap' from jsonb_array_elements(public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions') c
@@ -171,10 +171,10 @@ select pg_temp.want('every lens names its month',
   (true)::text);
 
 -- the explicit lens selects, and it selects the RIGHT one
-select pg_temp.want('p_league selects the Fellas',
+select pg_temp.want('p_league selects North Grove (fixture)',
   (public.round_card('00000000-0000-4000-8000-00000000e003','00000000-0000-4000-8000-00000000b001')->>'league_id')::text,
   ('00000000-0000-4000-8000-00000000b001')::text);
-select pg_temp.want('the Fellas lens carries its own cap',
+select pg_temp.want('North Grove (fixture) lens carries its own cap',
   ((public.round_card('00000000-0000-4000-8000-00000000e003','00000000-0000-4000-8000-00000000b001')->>'counting_cap')::int)::text,
   (2)::text);
 select pg_temp.want('p_league selects the Sunday Cup',
@@ -200,7 +200,7 @@ select pg_temp.want('a single-lens round fills the scalars for an older client',
   ((select month_rank from v_rounds_ranked where round_id='00000000-0000-4000-8000-00000000e001' and member_id='00000000-0000-4000-8000-00000000d001'))::text);
 
 -- ── counting_rounds: the month, the season, the counting status ────────────
-select pg_temp.want('September in the Fellas lists three rounds',
+select pg_temp.want('September in North Grove (fixture) lists three rounds',
   (jsonb_array_length(public.counting_rounds('00000000-0000-4000-8000-00000000d001','00000000-0000-4000-8000-00000000c001','2026-09')->'rounds'))::text,
   (3)::text);
 select pg_temp.want('the month filter excludes the backdated August round',
@@ -247,27 +247,27 @@ select pg_temp.want_refused('a member and a season from different leagues',
 select pg_temp.want('two seasons answer for a September date',
   (jsonb_array_length(public.my_month_counters('2026-09-13')))::text,
   (2)::text);
-select pg_temp.want('the Fellas counters: cap 2, two used',
-  (select (c->'counters'->>'used')::int from jsonb_array_elements(public.my_month_counters('2026-09-13')) c where c->>'league_name' = 'Fellas'), 2);
+select pg_temp.want('North Grove (fixture) counters: cap 2, two used',
+  (select (c->'counters'->>'used')::int from jsonb_array_elements(public.my_month_counters('2026-09-13')) c where c->>'league_name' = 'North Grove (fixture)'), 2);
 
 select pg_temp.want('the Sunday Cup is uncapped and all three count',
   ((select (c->'counters'->>'used')::int from jsonb_array_elements(public.my_month_counters('2026-09-13')) c where c->>'league_name' = 'Sunday Cup'))::text,
   (3)::text);
 select pg_temp.want('August answers for the backdated round''s month',
-  ((select (c->'counters'->>'used')::int from jsonb_array_elements(public.my_month_counters('2026-08-25')) c where c->>'league_name' = 'Fellas'))::text,
+  ((select (c->'counters'->>'used')::int from jsonb_array_elements(public.my_month_counters('2026-08-25')) c where c->>'league_name' = 'North Grove (fixture)'))::text,
   (1)::text);
 select pg_temp.want('a date outside every season window answers with nothing',
   (public.my_month_counters('2025-06-01'))::text,
   ('[]'::jsonb)::text);
 
--- ── as Jade, who shares only the Fellas ────────────────────────────────────
+-- ── as Emery, who shares only North Grove (fixture) ────────────────────────────────────
 select set_config('sim.uid', '00000000-0000-4000-8000-00000000a002', true);
 select pg_temp.want('a mate sharing one league sees exactly one lens',
   (jsonb_array_length(public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions'))::text,
   (1)::text);
 select pg_temp.want('and it is the shared one',
   (public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions'->0->>'league_name')::text,
-  ('Fellas')::text);
+  ('North Grove (fixture)')::text);
 select pg_temp.want('with one lens the scalars ARE that lens',
   ((public.round_card('00000000-0000-4000-8000-00000000e003')->>'counting_cap')::int)::text,
   (2)::text);
@@ -280,15 +280,15 @@ select pg_temp.want('a mate may read the shared league''s rounds',
 select pg_temp.want_refused('a mate may NOT read the unshared league''s rounds',
   $$ select public.counting_rounds('00000000-0000-4000-8000-00000000d003','00000000-0000-4000-8000-00000000c002') $$,
   'Those rounds are not yours to read');
--- Jade IS in the Fellas and has posted nothing: her counters are her OWN, one
+-- Emery IS in North Grove (fixture) and has posted nothing: her counters are her OWN, one
 -- season, nothing used. (The first version of this assertion expected `[]` and
 -- was wrong about the fixture — which is the assertion doing its job.)
 select pg_temp.want('a mate''s counters are the mate''s own, not the round owner''s',
   (select c->'counters'->>'used' from jsonb_array_elements(public.my_month_counters('2026-09-13')) c
-    where c->>'league_name' = 'Fellas'), '0');
+    where c->>'league_name' = 'North Grove (fixture)'), '0');
 select pg_temp.want('a season she has no rounds in reports no worst',
   (select c->'counters'->'worst' from jsonb_array_elements(public.my_month_counters('2026-09-13')) c
-    where c->>'league_name' = 'Fellas'), 'null'::jsonb);
+    where c->>'league_name' = 'North Grove (fixture)'), 'null'::jsonb);
 select pg_temp.want('she is in one season, not the owner''s two',
   jsonb_array_length(public.my_month_counters('2026-09-13')), 1);
 
@@ -297,9 +297,9 @@ select set_config('sim.uid', '00000000-0000-4000-8000-00000000a003', true);
 select pg_temp.want('Rex sees only the Sunday Cup lens',
   ((select string_agg(c->>'league_name', ',') from jsonb_array_elements(public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions') c))::text,
   ('Sunday Cup')::text);
-select pg_temp.want('the Fellas lens is withheld from him',
+select pg_temp.want('North Grove (fixture) lens is withheld from him',
   ((select count(*) from jsonb_array_elements(public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions') c
-    where c->>'league_name' = 'Fellas'))::text,
+    where c->>'league_name' = 'North Grove (fixture)'))::text,
   (0::bigint)::text);
 
 -- ── a stranger ─────────────────────────────────────────────────────────────
@@ -313,7 +313,7 @@ select pg_temp.want_refused('a stranger cannot read the rounds that count',
 
 -- D387 keeps the 100% figure for a round in no league at all: the stranger's own
 insert into rounds (id, profile_id, gross, rating, slope, played_on, index_at_post, holes_played, course_label) values
-  ('00000000-0000-4000-8000-00000000e005', '00000000-0000-4000-8000-00000000a004', 88, 70.1, 120, '2026-09-10', 14.0, 18, 'Papago');
+  ('00000000-0000-4000-8000-00000000e005', '00000000-0000-4000-8000-00000000a004', 88, 70.1, 120, '2026-09-10', 14.0, 18, 'Saguaro Flats');
 select pg_temp.want('a round in no league has no lens',
   jsonb_array_length(public.round_card('00000000-0000-4000-8000-00000000e005')->'contributions'), 0);
 select pg_temp.want('a round in no league: pvi is the golfer''s own index − differential, the 100% figure (D387)',

@@ -432,7 +432,7 @@ struct CourseRoundSlat: View {
   private var name: some View {
     // §1.3 · a person in a course row is TITLE CASE
     // **D324 · YOUR OWN ROW SAYS "YOU".** `ROUNDS HERE` printed the viewer's
-    // full name — *"Jerecho Fischbeck · SUN JUL 19"*, twice in a row — where
+    // full name — *"Avery Fixture · SUN JUL 19"*, twice in a row — where
     // Home's wire, the receipt and the season table all say "You". A surface
     // that names you to yourself reads like somebody else's list.
     Text(rowName).csType(.social).foregroundStyle(cs.ink)
@@ -649,7 +649,7 @@ final class CourseModel {
     }
   }
 
-  /// The empty state's one true fact. §7.7 refuses "Galen keeps it" — there is
+  /// The empty state's one true fact. §7.7 refuses "Blake keeps it" — there is
   /// no `home_course_id` behind `profiles.home_course` and a string match
   /// dressed as a fact is exactly what this product does not do. The schedule
   /// is real, so the schedule is what it says.

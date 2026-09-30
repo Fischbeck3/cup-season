@@ -48,12 +48,12 @@ import Foundation
   }
 
   @Test func bumpedPastTheCapAndTheHandOff() {
-    var r = ReceiptSeed(gross: 90, monthRank: 5, attested: true, playedWith: ["Garrett", "Mike"], liveRoundId: UUID())
+    var r = ReceiptSeed(gross: 90, monthRank: 5, attested: true, playedWith: ["Garrett", "Gray"], liveRoundId: UUID())
     r.countingCap = nil
     let rows = ReceiptRows.build(r, capN: 4, viewerId: nil)
     #expect(rows.contains(.math(label: "This month", value: "BUMPED", sub: false)))
     #expect(rows.contains(.math(label: "Vouched", value: "PLAYED WITH THE GROUP", sub: false)))
-    #expect(rows.contains(.playedWith(["Garrett", "Mike"])))
+    #expect(rows.contains(.playedWith(["Garrett", "Gray"])))
     if case .scorecard = rows.last! {} else { Issue.record("expected the scorecard hand-off last") }
     // unlimited cap: everything counts
     #expect(ReceiptRows.build(r, capN: nil, viewerId: nil).contains(.math(label: "This month", value: "COUNTING #5", sub: false)))
@@ -62,16 +62,16 @@ import Foundation
   @Test func headerAndTheD95Alias() {
     #expect(biltmore.title == "86 gross")
     #expect(biltmore.subtitle == "ARIZONA BILTMORE LINKS · COPPER · 18 HOLES · 2026-07-25")
-    let feedRow = ReceiptSeed.from(json: .object(["course": .string("Papago GC"), "gross": .number(82), "holes_played": .number(18)]))
-    #expect(feedRow.courseLabel == "Papago GC")
+    let feedRow = ReceiptSeed.from(json: .object(["course": .string("Saguaro Flats"), "gross": .number(82), "holes_played": .number(18)]))
+    #expect(feedRow.courseLabel == "Saguaro Flats")
     #expect(ReceiptSeed().title == "The round")
     #expect(ReceiptSeed().subtitle == "SOMEWHERE OUT THERE · 18 HOLES")
   }
 
   @Test func enrichMergesLikeObjectAssign() {
     let seed = ReceiptSeed(id: UUID(), gross: 86, courseLabel: nil, photoURL: URL(string: "https://x/y.jpg"), points: 9, marker: "thistle")
-    let merged = seed.merged(with: .object(["course_label": .string("Papago GC"), "points": .null, "rating": .number(70.2), "slope": .number(125)]))
-    #expect(merged.courseLabel == "Papago GC")
+    let merged = seed.merged(with: .object(["course_label": .string("Saguaro Flats"), "points": .null, "rating": .number(70.2), "slope": .number(125)]))
+    #expect(merged.courseLabel == "Saguaro Flats")
     #expect(merged.points == nil)                      // a null in the payload overwrites, as Object.assign does
     #expect(merged.photoURL == seed.photoURL)          // keys the payload lacks survive
     #expect(merged.marker == "thistle")
@@ -95,7 +95,7 @@ import Foundation
     #expect(RoundCopy.vsPhrase(nil) == "")
     #expect(RoundCopy.theirs("Beat your number") == "Beat their number")
     #expect(RoundCopy.theirs("BEAT YOUR NUMBER") == "BEAT THEIR NUMBER")
-    #expect(RoundCopy.firstName("Jerecho Fischbeck") == "Jerecho")
+    #expect(RoundCopy.firstName("Avery Fixture") == "Avery")
     #expect(RoundCopy.firstName("  ") == "Someone")
   }
   @Test func theMinusOneSeamIsGone() {
@@ -126,7 +126,7 @@ import Foundation
     // no re-casing of the label at large: a small word stays small, a lowercase
     // name stays lowercase, and only the acronym moves
     #expect(RoundCopy.course("lone tree at the ranch") == "lone tree at the ranch")
-    #expect(RoundCopy.course("papago gc") == "papago GC")
+    #expect(RoundCopy.course("saguaro flats") == "saguaro flats")
     #expect(RoundCopy.course("Whisper Rock G&cc") == "Whisper Rock G&CC")          // punctuation splits the runs
     #expect(RoundCopy.course(nil) == "" && RoundCopy.course("") == "")
   }
@@ -189,7 +189,7 @@ import Foundation
 
 @Suite struct CareerTests {
   func row(_ d: Double?, _ i: Double?, gross: Int = 85) -> RoundRow {
-    RoundRow(id: UUID(), gross: gross, differential: d, index_at_post: i, played_on: "2026-06-01", course_label: "Papago GC", holes_played: 18)
+    RoundRow(id: UUID(), gross: gross, differential: d, index_at_post: i, played_on: "2026-06-01", course_label: "Saguaro Flats", holes_played: 18)
   }
   /// one `v_rounds_ranked` row: the ALLOWANCE figure the engine scored with
   func lens(_ round: UUID, _ season: UUID, pvi: Double, points: Double? = nil) -> RankedRound {
@@ -364,12 +364,12 @@ import Foundation
       Achievement(kind: "streak_4", label: "Four weeks running", earned_on: "2026-09-01", meta: .object(["weeks": .number(4)])),
     ]
     let inHand: (UUID) -> MilestoneRound? = { id in
-      id == debut ? MilestoneRound(gross: 85, courseLabel: "Papago GC", playedOn: "2026-08-11") : nil
+      id == debut ? MilestoneRound(gross: 85, courseLabel: "Saguaro Flats", playedOn: "2026-08-11") : nil
     }
     let tiles = TrophyCase.tiles(trophies: [], achievements: ach, round: inHand)
     #expect(tiles.map(\.title) == ["First round", "Broke 80", "4-week streak"])
     let first = try #require(tiles.first)
-    #expect(first.shelf == .along && first.sub == "85 at Papago GC · Aug 11")
+    #expect(first.shelf == .along && first.sub == "85 at Saguaro Flats · Aug 11")
     // with the round not in hand the slat still names it, off the grant's gross
     #expect(TrophyCase.tiles(trophies: [], achievements: ach).first?.sub == "85 · Aug 11")
     // a later round's best keeps its own slat and its own line
@@ -383,7 +383,7 @@ import Foundation
   }
 
   /// X40 (1) · owner ruling 2026-09-29: a personal best names its ROUND
-  /// ("83 at Papago GC · Aug 24"), and one round prints its line ONCE — when
+  /// ("83 at Saguaro Flats · Aug 24"), and one round prints its line ONCE — when
   /// BROKE 80 and PERSONAL BEST share a round, the second slat keeps its
   /// title and its door and no line. The differential is the receipt's alone.
   /// Pins the web's `csMilestoneSub`, `achSubtitle` and `renderTrophyCase`
@@ -393,10 +393,10 @@ import Foundation
     let pb = Achievement(kind: "personal_best", label: nil, earned_on: "2026-08-24", meta: .object(["diff": .number(4.1)]), round_id: r)
     let s80 = Achievement(kind: "sub_80", label: nil, earned_on: "2026-08-24", meta: .object(["gross": .number(79)]), round_id: r)
     let inHand: (UUID) -> MilestoneRound? = { id in
-      id == r ? MilestoneRound(gross: 79, courseLabel: "Papago GC", playedOn: "2026-08-24") : nil
+      id == r ? MilestoneRound(gross: 79, courseLabel: "Saguaro Flats", playedOn: "2026-08-24") : nil
     }
     let tiles = TrophyCase.tiles(trophies: [], achievements: [pb, s80], round: inHand)
-    #expect(tiles.map(\.sub) == ["79 at Papago GC · Aug 24", ""])
+    #expect(tiles.map(\.sub) == ["79 at Saguaro Flats · Aug 24", ""])
     #expect(tiles[1].roundId == r && tiles[1].shelf == .bests)   // the second keeps its door
     #expect(!tiles.contains { $0.sub.contains("vs course") })
     // the producers themselves
@@ -466,7 +466,7 @@ import Foundation
                         champion_squad_id: nil, champion_member_id: nil, points_king_member_id: nil, tiebreak_rung: nil)
     #expect(LeagueRecord.line(phase: "season", season: cup, standings: st, myMemberId: me, today: "2026-09-01") == "CUP FINAL · 2ND OF 2 · 41 PTS")
     #expect(LeagueRecord.line(phase: "complete", season: season, standings: st, myMemberId: UUID(), today: "2026-10-01") == "FINISHED —")
-    let r2 = LeagueRecordRow(id: UUID(), name: "PIGL", number: 2, line: "3RD OF 12 · 41 PTS")
+    let r2 = LeagueRecordRow(id: UUID(), name: "North Grove (fixture)", number: 2, line: "3RD OF 12 · 41 PTS")
     #expect(r2.sub == "SEASON II · 3RD OF 12 · 41 PTS")
     #expect(r2.spoken == "Season 2, 3rd of 12 · 41 pts")   // Y-33 · not "S E A S O N I I", and not "P T S" either
     #expect(LeagueRecord.ordUpper(1) == "1ST" && LeagueRecord.ordUpper(11) == "11TH" && LeagueRecord.ordUpper(21) == "21ST" && LeagueRecord.ordUpper(3) == "3RD")
@@ -534,7 +534,7 @@ import Foundation
                           "city": .string("Mesa"), "index_current": .number(14.2), "ghin": .string("123"), "member_since": .string("2026-05-03T14:03:11.123456+00:00"), "is_me": .bool(false)]),
       "career": .object(["rounds": .number(12), "best": .number(7.8), "avg_pvi": .number(-0.4)]),
       "trophies": .array([.object(["kind": .string("sub_90"), "label": .string("Broke 90"), "earned_on": .string("2026-06-01"), "meta": .null])]),
-      "recent": .array([.object(["played_on": .string("2026-08-03"), "course_label": .string("Papago GC"), "gross": .number(82), "differential": .number(9.1), "holes_played": .number(18), "beat": .bool(true)])]),
+      "recent": .array([.object(["played_on": .string("2026-08-03"), "course_label": .string("Saguaro Flats"), "gross": .number(82), "differential": .number(9.1), "holes_played": .number(18), "beat": .bool(true)])]),
       "vs_you": .object(["wins": .number(3), "losses": .number(2), "ties": .number(0)]),
     ])
     let c = TourCard.parse(json)
@@ -583,9 +583,9 @@ import Foundation
     #expect(leagueless.bestText == "—" && !leagueless.showsBestRow && leagueless.avgText == "13.3 over")
     let named = card(.object(["rounds": .number(2), "best": .number(21.5), "avg_pvi": .null, "best_pvi": .null,
                               "avg_vs_index": .number(-13.3),
-                              "best_round": .object(["gross": .number(83), "course_label": .string("Papago GC"),
+                              "best_round": .object(["gross": .number(83), "course_label": .string("Saguaro Flats"),
                                                      "played_on": .string("2026-08-24"), "differential": .number(9.1)])]))
-    #expect(named.bestText == "83 at Papago GC · Aug 24" && named.showsBestRow)
+    #expect(named.bestText == "83 at Saguaro Flats · Aug 24" && named.showsBestRow)
     #expect(on.showsBestRow)   // under the lens the row is always drawn
   }
 
@@ -624,7 +624,7 @@ import Foundation
 @Suite struct LastRoundWithTests {
   @Test func monthsFloorAtTwelveAndNextSaturday() {
     var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "America/Phoenix")!
-    let w = LastRoundWith(Rpc.last_round_with.Row(profile_id: UUID(), display_name: "Mike", marker: "saguaro", last_on: "2025-01-10", shared_cards: 4))!
+    let w = LastRoundWith(Rpc.last_round_with.Row(profile_id: UUID(), display_name: "Gray", marker: "saguaro", last_on: "2025-01-10", shared_cards: 4))!
     let now = CSDate.local("2026-08-27", calendar: cal)!
     #expect(w.months(now: now, calendar: cal) == 20)
     #expect(w.months(now: CSDate.local("2025-03-01", calendar: cal)!, calendar: cal) == 12)

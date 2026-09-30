@@ -11,7 +11,7 @@
 //
 //   D26   "back of" — the Climb's catch-framing, the table's first noun.
 //   D130  the leader BY NAME — a person is beaten by a person, not "the lead";
-//         its build note (2026-09-02) owns "clear of" and "Level with Galen · 32 – 32.".
+//         its build note (2026-09-02) owns "clear of" and "Level with Blake · 32 – 32.".
 //   D70   a $0 league never sees a dollar sign.
 //   D23   money addressed to a person is SELF-only ("You still owe…").
 //   D47   the books = money (D131 upholds it) — "on the books" is a money line.
@@ -27,8 +27,8 @@
 // Pure functions over (Membership, today). Nothing here reads the clock or
 // the network, so a test can pin every sentence. Every name arrives from
 // `native_home()` already in the board's own form — `firstname(display_name)`
-// for a golfer, `squads.name` for a squad — so a sentence says "Galen" where
-// the board says "Galen" and never first-names a squad called "Sunday Money".
+// for a golfer, `squads.name` for a squad — so a sentence says "Blake" where
+// the board says "Blake" and never first-names a squad called "Sunday Money".
 // A payload without names falls back to the sentences that predate them.
 
 import Foundation
@@ -40,13 +40,13 @@ public enum SeasonFacts {
   ///
   /// Two-person league (`of == 2`) — the whole race is the two of you, so the
   /// score is the sentence:
-  ///   behind  "12 back of Galen · 9 – 21"
-  ///   leading "You lead Jade by 22 · 31 – 9"
-  ///   level   "Level with Galen · 14 – 14." (the tiebreak lives in the endgame foot)
+  ///   behind  "12 back of Blake · 9 – 21"
+  ///   leading "You lead Emery by 22 · 31 – 9"
+  ///   level   "Level with Blake · 14 – 14." (the tiebreak lives in the endgame foot)
   /// Bigger field:
-  ///   leading "6 clear of Jade"
-  ///   behind  "12 back of Galen" + " · 3 back of 2nd" when a rung sits between
-  ///   level   "Level with Galen · 14 – 14."
+  ///   leading "6 clear of Emery"
+  ///   behind  "12 back of Blake" + " · 3 back of 2nd" when a rung sits between
+  ///   level   "Level with Blake · 14 – 14."
   /// Skew (no `leader_name`): "12 points back of the lead." / "Level with the
   /// lead." / "You lead by 6 points." / "Top of the table." — a v1 payload
   /// never carries the leader's margin, so the top row claims no margin and
@@ -87,7 +87,7 @@ public enum SeasonFacts {
     return s
   }
 
-  /// "Level with Galen · 14 – 14." — the tiebreak is NOT repeated here: the
+  /// "Level with Blake · 14 – 14." — the tiebreak is NOT repeated here: the
   /// endgame foot two lines down ends with the verbatim "Level on points?
   /// Months won breaks it." and one card says a rule once.
   private static func level(with other: String, at pts: String) -> String {
@@ -123,7 +123,7 @@ public enum SeasonFacts {
   ///   "Four weeks, scored fresh. Whoever's hottest takes the cup. 2 weeks left."
   /// A non-finalist is told the truth (D138) — who the cup is between, and
   /// that the table race is still theirs:
-  ///   "Galen v Jade for the cup. Your place on the table is still live — 12 back of Galen. 2 weeks left."
+  ///   "Blake v Emery for the cup. Your place on the table is still live — 12 back of Blake. 2 weeks left."
   /// Both end on the clock, as the web's Final hero foots both of its
   /// branches with it. The race clause is `line(m)` lowered after the dash
   /// (the web pastes it capitalised — a phone ruling, recorded in D138).
@@ -306,9 +306,9 @@ public enum SeasonFacts {
   // MARK: - the season's one line (relocated from the D121 row)
 
   /// The line, by stage:
-  ///   season    "Week 7 of 26 · 1st of 2, 22 clear of Jade · $150 on the books · $0 collected"
-  ///             "Week 5 of 13 · 3rd of 10, 12 back of Galen"
-  ///             "Week 5 of 13 · 2nd of 10, level with Galen"
+  ///   season    "Week 7 of 26 · 1st of 2, 22 clear of Emery · $150 on the books · $0 collected"
+  ///             "Week 5 of 13 · 3rd of 10, 12 back of Blake"
+  ///             "Week 5 of 13 · 2nd of 10, level with Blake"
   ///             the money clause is `SeasonFacts.footMoney` — nothing on a
   ///             $0 league (D70), no "collected" on a v1 payload.
   ///   preseason "First tee Sat Sep 5 · 5 on the roster"
@@ -390,7 +390,7 @@ public enum SeasonFacts {
     }
   }
 
-  /// "22 clear of Jade" / "12 back of Galen" / "level with Galen"; the pre-v2
+  /// "22 clear of Emery" / "12 back of Blake" / "level with Blake"; the pre-v2
   /// sentences when the names have not arrived; nil with nothing to say.
   public static func race(_ st: Me.Standing) -> String? {
     if st.rank == 1 {

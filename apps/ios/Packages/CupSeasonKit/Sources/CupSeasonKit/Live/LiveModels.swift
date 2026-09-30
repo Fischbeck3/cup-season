@@ -333,7 +333,7 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
     return c
   }
 
-  /// The live eyebrow (8388–8391): "Live round · Papago · Blue · 70.2/123",
+  /// The live eyebrow (8388–8391): "Live round · Saguaro Flats · Blue · 70.2/123",
   /// never "BLUE — BLUE" when the label already ends in the tee (S6-04).
   public var eyebrow: String { "Live round · " + place }
 

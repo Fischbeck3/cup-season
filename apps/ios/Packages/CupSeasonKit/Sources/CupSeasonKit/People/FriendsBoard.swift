@@ -114,7 +114,7 @@ public struct FriendsBoard: Sendable, Equatable {
     ///
     /// `CSBands` is written from the golfer's OWN point of view ("Beat your
     /// number"), which is right on a receipt and wrong on a list of other
-    /// people — a real screenshot caught the board telling me Tash had beaten
+    /// people — a real screenshot caught the board telling me Devon had beaten
     /// MY number. The band table stays the one band table; only the possessive
     /// turns, and only on somebody else's row.
     public var band: String? {

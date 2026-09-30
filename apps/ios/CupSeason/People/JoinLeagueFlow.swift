@@ -163,20 +163,21 @@ struct CovenantSheet: View {
           Button("Close") { onNo() }
             .buttonStyle(.csSecondary()).padding(.top, 8)
         } else {
-          // WHO comes before the money — and for a re-up, the season comes
-          // before who. The order is the producer's, not this file's —
-          // `Covenant.facts` decides it, and a fact with no read is simply
-          // not in the list (L-44). W4 · today's date passes the clock, so
-          // where the season stands is said after its length.
-          ForEach(covenant.facts(postedRounds: postedRounds, today: CSDate.today()), id: \.0) { fact, line in
-            Text(line)
-              .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
-              // W4 · the stake is money, and money is ink (UI_SYSTEM §2.5):
-              // gold is for the pot or a thing won, and a buy-in is neither (D359)
-              .foregroundStyle(cs.ink)
-              .fixedSize(horizontal: false, vertical: true)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel(line)
+          // Q15(3): the producer owns order and omission, including the $0 covenant.
+          ForEach(covenant.groups(postedRounds: postedRounds, today: CSDate.today()), id: \.kind) { group in
+            VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+              CSSectionHead(group.kind.title)
+                .accessibilityIdentifier("covenant.group." + group.kind.rawValue)
+              ForEach(group.facts, id: \.0) { fact, line in
+                Text(line)
+                  .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
+                  .foregroundStyle(cs.ink)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .accessibilityLabel(line)
+              }
+            }
+            .padding(.top, CSTokens.Space.s3)
           }
           Button(covenant.joinLabel) { onJoin() }
             .buttonStyle(.csPrimary()).padding(.top, 8)
@@ -257,9 +258,9 @@ struct LeagueWelcomeSheet: View {
 }
 
 #Preview("Covenant") {
-  CovenantSheet(covenant: Covenant(name: "the Fellas", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
-                                   proName: "Galen Fischbeck", rosterCount: 8,
-                                   rosterNames: ["Marcus Webb", "Dev Patel", "Tash Boyle", "Ravi Shah", "Jules Kerr"],
+  CovenantSheet(covenant: Covenant(name: "North Grove (fixture)", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
+                                   proName: "Blake Fixture", rosterCount: 8,
+                                   rosterNames: ["Casey Placeholder", "Devon Testwell", "Emery Mockridge", "Finley Stubbs", "Gray Dummett"],
                                    startsOn: "2026-09-12", weeks: 13, countingCap: 3,
                                    split: .init(champion: 60, runnerUp: 25, pointsKing: 15),
                                    hasPayNote: true, phase: "setup"),
@@ -267,5 +268,5 @@ struct LeagueWelcomeSheet: View {
 }
 
 #Preview("Welcome") {
-  LeagueWelcomeSheet(welcome: LeagueWelcome(name: "PIGL", code: "PIGL2026", buyinCents: 5000)).csTheme()
+  LeagueWelcomeSheet(welcome: LeagueWelcome(name: "North Grove (fixture)", code: "NGFX26", buyinCents: 5000)).csTheme()
 }

@@ -5,7 +5,7 @@
 // P0) — under column heads sitting 140–200px left of the columns they named
 // (CS-18). All of that is one `CSStandingsBoard` of `CSSlat`s now:
 //
-//   │ 01 │ ◍ GALEN MARR          │  —  │  19 │
+//   │ 01 │ ◍ BLAKE SAMPLE          │  —  │  19 │
 //   │gold│   Held since week three│     │     │
 //     44  12  38/30    flex        58    50
 //
@@ -99,6 +99,7 @@ struct StandingsTableView: View {
                          // §1.4a · the top table of a squads season ranks
                          // SQUADS, and a squad has no face and no given name.
                          nameHead: teams.allSatisfy(\.solo) ? "Golfer" : "Squad",
+                         changeHead: model.priorSince.map { "Gap · " + $0 } ?? "Gap",
                          hasFaces: teams.allSatisfy(\.solo), showsGap: !model.isComplete) { k, abbreviate in
           let i = indices[k]
           if let n = hidden[i] { ellipsis(n) }
@@ -221,7 +222,7 @@ struct StandingsTableView: View {
   }
 
   /// The viewer's own row reads **`YOU` alone**, product-wide: at the 375pt
-  /// measure the fixed columns leave 141pt and `YOU · SAM RIDLEY` measures 143.
+  /// measure the fixed columns leave 141pt and `YOU · CASEY PLACEHOLDER` measures 143.
   private func name(_ t: Team, mine: Bool, abbreviate: Bool) -> String {
     // **`YOU` is a person's row, never a squad's.** The viewer's own squad
     // keeps its name and says "yours" with the rail's field — a table whose
@@ -380,15 +381,80 @@ struct StandingsTableView: View {
 struct ScenarioLineView: View {
   @Environment(\.cs) private var cs
   let parts: [ScenarioPart]
+  var receipt: ScenarioLine.ClinchReceipt? = nil
+  @State private var showingReceipt = false
+
   var body: some View {
-    if parts.isEmpty { EmptyView() } else {
-      // OB2-02 (root's ruling) · the clinch line is a sentence: sentence
-      // case, a name in its own case (UI_SYSTEM §1.3)
-      Text(parts.map(\.text).joined())
-        .csType(.bodyS).foregroundStyle(cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityLabel(parts.map(\.text).joined())
+    if !parts.isEmpty {
+      Group {
+        if receipt != nil && parts.contains(where: { if case .door = $0 { true } else { false } }) {
+          // The number is marked inside its sentence; the sentence's 44pt
+          // target lets a thumb open that arithmetic without precision aiming.
+          Button { showingReceipt = true } label: {
+            sentence.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+              .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel(parts.map(\.text).joined())
+          .accessibilityHint("Opens the arithmetic behind the clinch number")
+          .accessibilityIdentifier("season.clinchReceipt")
+        } else { sentence }
+      }
+      .sheet(isPresented: $showingReceipt) {
+        if let receipt { ClinchReceiptSheet(receipt: receipt) }
+      }
     }
+  }
+
+  private var sentence: some View {
+    Text(parts.reduce(into: AttributedString()) { text, part in
+      var run = AttributedString(part.text)
+      switch part {
+      case .door:
+        run.foregroundColor = cs.ink
+        run.underlineStyle = .single
+      default: break
+      }
+      text.append(run)
+    })
+    .csType(.bodyS).foregroundStyle(cs.mut)
+    .fixedSize(horizontal: false, vertical: true)
+  }
+}
+
+struct ClinchReceiptSheet: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.dismiss) private var dismiss
+  let receipt: ScenarioLine.ClinchReceipt
+
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          CSSheetHeader(title: receipt.title, sub: receipt.subtitle)
+          CSLeaf {
+          VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(receipt.rows.enumerated()), id: \.offset) { _, row in
+              if row.kind == .sub {
+                Text(row.label).csType(.bodyS).foregroundStyle(cs.leafMut)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .padding(.bottom, CSTokens.Space.s3)
+              } else {
+                RoomMathRow(k: row.label, v: row.value, total: row.kind == .total)
+              }
+            }
+          }
+          }
+          Text(receipt.fine).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(CSTokens.Space.gutter)
+      }
+      .background(cs.bg0.ignoresSafeArea())
+      .csCloseButton { dismiss() }
+    }
+    .presentationDetents([.large])
+    .accessibilityIdentifier("season.clinchSheet")
   }
 }
 

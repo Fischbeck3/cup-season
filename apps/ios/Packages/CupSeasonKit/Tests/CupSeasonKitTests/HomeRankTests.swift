@@ -17,8 +17,8 @@ import Foundation
 private func item(_ key: String, _ tier: HomeDispatch.Tier, score: Int? = nil, rank: Int? = nil,
                   human: Bool = true, door: Bool = true, at: String? = nil,
                   suppress: Set<MeStripCopy.Fact> = [], headline: String? = nil) -> HomeDispatch.Item {
-  .init(key: key, tier: tier, rank: rank, score: score, subject: human ? "Galen" : nil, humanSubject: human,
-        eyebrow: key.uppercased(), headline: headline ?? "\(human ? "Galen" : "Second of eight") — \(key).",
+  .init(key: key, tier: tier, rank: rank, score: score, subject: human ? "Blake" : nil, humanSubject: human,
+        eyebrow: key.uppercased(), headline: headline ?? "\(human ? "Blake" : "Second of eight") — \(key).",
         action: "Open it", route: door ? .composer : nil, suppress: suppress, at: at)
 }
 
@@ -219,8 +219,8 @@ private func item(_ key: String, _ tier: HomeDispatch.Tier, score: Int? = nil, r
 /// `HOME_STATE_MATRIX` §2.3 G3 was written into the design and never built:
 /// the suppress set was computed in `arrange`, handed to `UpNextChips`, and to
 /// nothing else, so the deck was `rest.prefix(cap)` verbatim. On a golfer in
-/// two leagues that put *"Galen has today to answer your 89"* at the top and
-/// *"Jade has today to answer your 89"* two rows under it — one round of mine,
+/// two leagues that put *"Blake has today to answer your 89"* at the top and
+/// *"Emery has today to answer your 89"* two rows under it — one round of mine,
 /// reported twice, because two leagues each held a row about it.
 @Suite struct HomeRankSuppressionTests {
 

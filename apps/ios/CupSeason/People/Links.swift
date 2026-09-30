@@ -56,6 +56,7 @@ struct CSSheetHeader: View {
   @Environment(\.cs) private var cs
   let title: String
   let sub: String?
+  var subCaps: Bool = true
   var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       // F03 · a sheet's title is its heading (the rotor and the sheet's name)
@@ -63,7 +64,7 @@ struct CSSheetHeader: View {
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityAddTraits(.isHeader)
       if let sub, !sub.isEmpty {
-        Text(sub).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text(sub).csType(.agate, caps: subCaps).foregroundStyle(cs.mut)
       }
     }
     .multilineTextAlignment(.leading)

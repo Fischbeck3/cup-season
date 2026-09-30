@@ -210,7 +210,7 @@ import Foundation
 // MARK: - The pot (§1.6, D273)
 
 @Suite struct SeasonPotCopyTests {
-  /// The blind review's fixture: the Fellas are eight in at $60 → $480 →
+  /// The blind review's fixture: North Grove (fixture) are eight in at $60 → $480 →
   /// $288 / $120 / $72, on every surface.
   @Test func theCaptionIsTheStakeAndTheSettlementsOwnSplit() {
     let trio = PotMath.trioCents(potCents: 48000, payout: [60, 25, 15])
@@ -242,16 +242,16 @@ import Foundation
     #expect(SeasonBoardCopy.eyebrow(stage: .preseason, week: 1, weeks: 13) == "Before first tee")
   }
   @Test func theEyebrowNeverCarriesTheLeaguesName() {
-    #expect(!SeasonBoardCopy.eyebrow(stage: .season, week: 5, weeks: 13).contains("Fellas"))
+    #expect(!SeasonBoardCopy.eyebrow(stage: .season, week: 5, weeks: 13).contains("North Grove (fixture)"))
   }
   @Test func theDatelineIsSeasonSpanAndPro() {
-    #expect(SeasonBoardCopy.dateline(number: 1, span: "Mon Aug 3 – Mon Nov 2", pro: "Galen")
-            == "Season one · Mon Aug 3 – Mon Nov 2 · the Pro, Galen")
+    #expect(SeasonBoardCopy.dateline(number: 1, span: "Mon Aug 3 – Mon Nov 2", pro: "Blake")
+            == "Season one · Mon Aug 3 – Mon Nov 2 · the Pro, Blake")
   }
   /// An en dash, never an arrow (LINT-13) — the span producer owns it, and this
   /// pins that the head does not add one.
   @Test func noArrowInTheDateline() {
-    let d = SeasonBoardCopy.dateline(number: 1, span: "Mon Aug 3 – Mon Nov 2", pro: "Galen")
+    let d = SeasonBoardCopy.dateline(number: 1, span: "Mon Aug 3 – Mon Nov 2", pro: "Blake")
     #expect(!d.contains("→") && !d.contains("->"))
   }
   /// A season with no Pro named, and a squads season that names its sides.

@@ -39,14 +39,14 @@ import Foundation
   }
 
   @Test func theInvitationSaysWhichSeason() {
-    let first = Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "the Fellas", inviter: "Blake", startsOn: nil)
+    let first = Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "North Grove (fixture)", inviter: "Blake", startsOn: nil)
     // W4 · the invitation is to a season, never "the league" (T §2.3)
     #expect(first.title == "Season invite" && first.subline == "from Blake")
-    let reup = Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "the Fellas", inviter: "Galen", startsOn: nil,
+    let reup = Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "North Grove (fixture)", inviter: "Blake", startsOn: nil,
                       seasonNumber: 2, reup: true)
     #expect(reup.isReUp && reup.title == "Season 2 invite")
-    #expect(reup.subline == "Season 2 of the Fellas is on. Same rules, fresh table.")
-    let row = InviteRow(id: UUID(), kind: "league", container_id: UUID(), container_name: "PIGL", inviter: "Jerecho", starts_on: nil,
+    #expect(reup.subline == "Season 2 of North Grove (fixture) is on. Same rules, fresh table.")
+    let row = InviteRow(id: UUID(), kind: "league", container_id: UUID(), container_name: "North Grove (fixture)", inviter: "Avery", starts_on: nil,
                         season_number: 2, reup: true)
     #expect(Invite(row)?.title == "Season 2 invite")
     // a first-season row on the new server is not a re-up
@@ -55,25 +55,25 @@ import Foundation
 
   @Test func theCovenantFramesAReUpAndStopsOnARecordedYes() throws {
     let json: JSONValue = .object([
-      "name": .string("the Fellas"), "buyin_cents": .number(5000), "preset": .string("standard"), "floor": .number(2),
+      "name": .string("North Grove (fixture)"), "buyin_cents": .number(5000), "preset": .string("standard"), "floor": .number(2),
       "finish": .string("cup_final"), "season_number": .number(2), "reup": .bool(true), "agreed": .bool(false),
       "last_season": .object(["number": .number(1), "my_rank": .number(3), "of": .number(8), "my_points": .number(41)]),
     ])
     let c = try #require(Covenant(json))
     #expect(c.isReUp && c.seasonNumber == 2 && c.agreed == false)
-    #expect(c.head == "Season 2 of the Fellas")
+    #expect(c.head == "Season 2 of North Grove (fixture)")
     #expect(c.eyebrow == "SAME RULES — EVERYTHING BEFORE YOU TAP")
     #expect(c.joinLabel == "I’m in for season 2 — $50")
     #expect(c.seasonLine == "Season 2. Last season you finished 3rd of 8 with 41 points.")
     #expect(c.facts().first?.0 == .season)
     // the yes already on record: the sheet stops, in the desk's words
-    let agreed = try #require(Covenant(.object(["name": .string("the Fellas"), "season_number": .number(2), "reup": .bool(true), "agreed": .bool(true)])))
+    let agreed = try #require(Covenant(.object(["name": .string("North Grove (fixture)"), "season_number": .number(2), "reup": .bool(true), "agreed": .bool(true)])))
     #expect(agreed.agreed == true && agreed.alreadyInLine == "You’re already in for season 2.")
     // a first join reads as it always did
-    let first = Covenant(name: "the Fellas", buyinCents: 0, preset: "standard", floor: 2, finish: nil,
+    let first = Covenant(name: "North Grove (fixture)", buyinCents: 0, preset: "standard", floor: 2, finish: nil,
                          proName: "The host", rosterCount: 1)
-    #expect(!first.isReUp && first.head == "Before you join the Fellas" && first.eyebrow == "EVERYTHING BEFORE YOU TAP"
-            && first.joinLabel == "Join the Fellas" && first.seasonLine == nil && first.facts().first?.0 == .who)
+    #expect(!first.isReUp && first.head == "Before you join North Grove (fixture)" && first.eyebrow == "EVERYTHING BEFORE YOU TAP"
+            && first.joinLabel == "Join North Grove (fixture)" && first.seasonLine == nil && first.facts().first?.0 == .who)
     // L-44 · a finish the server could not compute renders nothing beyond the season
     let noFinish = try #require(Covenant(.object(["name": .string("x"), "season_number": .number(2), "reup": .bool(true)])))
     #expect(noFinish.seasonLine == "Season 2.")

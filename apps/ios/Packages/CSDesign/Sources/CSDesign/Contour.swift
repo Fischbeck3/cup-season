@@ -45,7 +45,7 @@ public struct CSContour: View {
   /// **Where the mark is allowed to land, in unit coordinates of the drawn
   /// box.** The dot is placed in the FIELD's own coordinate space, which knows
   /// nothing about the copy on top of it — so on the credential's crest it
-  /// landed inside the line of `GALEN MARR`, over the name's letterforms,
+  /// landed inside the line of `BLAKE SAMPLE`, over the name's letterforms,
   /// where at 7pt on a display-weight name it reads as a dust speck and spends
   /// the card's only ember mark on nothing a golfer can interpret.
   ///

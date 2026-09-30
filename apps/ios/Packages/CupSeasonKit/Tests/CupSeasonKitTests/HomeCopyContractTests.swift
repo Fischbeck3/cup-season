@@ -40,7 +40,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
                     status: String = "active", phase: String = "season", role: String = "player",
                     rank: Int = 2, of: Int = 2, points: Double? = 9, prev: Int? = nil,
                     leaderPts: Double? = 21, gapLeader: Double? = 12, gapNext: Double? = nil,
-                    leader: String? = "Galen", runnerUp: String? = "Jerecho", runnerPts: Double? = 9,
+                    leader: String? = "Blake", runnerUp: String? = "Avery", runnerPts: Double? = 9,
                     credits: Double? = 2, floor: Int? = nil, partial: Bool? = false,
                     joinedThisMonth: Bool? = nil, byeAvailable: Bool? = nil,
                     paid: Bool? = false, note: String? = nil, due: String? = nil, players: Int? = nil, paidCount: Int? = 0,
@@ -93,7 +93,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
   @Test("a v2 payload decodes every new key")
   func v2Decodes() {
     let m = heroMembership(stake: 7500, paid: false, note: "Venmo @casey", due: "2026-09-05", players: 2, paidCount: 1, collected: 7500)
-    #expect(m.standing?.leader_name == "Galen" && m.standing?.runner_up_name == "Jerecho" && m.standing?.runner_up_points == 9)
+    #expect(m.standing?.leader_name == "Blake" && m.standing?.runner_up_name == "Avery" && m.standing?.runner_up_points == 9)
     #expect(m.buy_in == Me.BuyIn(paid: false, note: "Venmo @casey", due_on: "2026-09-05", players: 2, paid_count: 1, collected_cents: 7500))
   }
 
@@ -153,25 +153,25 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
 @Suite struct SeasonLineContractTests {
   @Test("two of you, behind: the gap, the name, the score")
   func twoBehind() {
-    #expect(SeasonFacts.line(heroMembership()) == "12 back of Galen · 9 – 21")
+    #expect(SeasonFacts.line(heroMembership()) == "12 back of Blake · 9 – 21")
     #expect(SeasonFacts.caption(heroMembership()) == "2nd of 2")
   }
 
   @Test("two of you, leading: You lead X by g · mine – theirs (gap_to_next is null for rank 1 — runner_up_points carries it)")
   func twoLeading() {
-    let m = heroMembership(rank: 1, points: 31, leaderPts: 31, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: "Jade", runnerPts: 9)
-    #expect(SeasonFacts.line(m) == "You lead Jade by 22 · 31 – 9")
+    let m = heroMembership(rank: 1, points: 31, leaderPts: 31, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: "Emery", runnerPts: 9)
+    #expect(SeasonFacts.line(m) == "You lead Emery by 22 · 31 – 9")
     #expect(SeasonFacts.caption(m) == "1st of 2")
   }
 
   @Test("level: the score, from either seat — the tiebreak is the endgame foot's sentence, said once")
   func level() {
-    let top = heroMembership(rank: 1, points: 14, leaderPts: 14, gapLeader: 0, leader: "Jerecho", runnerUp: "Galen", runnerPts: 14)
-    #expect(SeasonFacts.line(top) == "Level with Galen · 14 – 14.")
-    let second = heroMembership(rank: 2, points: 14, leaderPts: 14, gapLeader: 0, leader: "Galen", runnerUp: "Jerecho", runnerPts: 14)
-    #expect(SeasonFacts.line(second) == "Level with Galen · 14 – 14.")
-    let ten = heroMembership(rank: 1, of: 10, points: 14, leaderPts: 14, gapLeader: 0, leader: "Jerecho", runnerUp: "Galen", runnerPts: 14)
-    #expect(SeasonFacts.line(ten) == "Level with Galen · 14 – 14.")
+    let top = heroMembership(rank: 1, points: 14, leaderPts: 14, gapLeader: 0, leader: "Avery", runnerUp: "Blake", runnerPts: 14)
+    #expect(SeasonFacts.line(top) == "Level with Blake · 14 – 14.")
+    let second = heroMembership(rank: 2, points: 14, leaderPts: 14, gapLeader: 0, leader: "Blake", runnerUp: "Avery", runnerPts: 14)
+    #expect(SeasonFacts.line(second) == "Level with Blake · 14 – 14.")
+    let ten = heroMembership(rank: 1, of: 10, points: 14, leaderPts: 14, gapLeader: 0, leader: "Avery", runnerUp: "Blake", runnerPts: 14)
+    #expect(SeasonFacts.line(ten) == "Level with Blake · 14 – 14.")
     // one card says a rule once (§14.3): "Months won breaks it." is the endgame
     // foot's last sentence two lines down, so the standing line never repeats it
     for m in [top, second, ten] {
@@ -183,44 +183,44 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
   @Test("rank 1: the margin is gap_to_next, else points − runner-up; an unknown margin is TOP, never level")
   func topOfTable() {
     // a table of one — the sandbox before anyone else joins
-    #expect(SeasonFacts.line(heroMembership(rank: 1, of: 1, points: 32, leaderPts: 32, gapLeader: 0, leader: "Jerecho", runnerUp: nil, runnerPts: nil))
+    #expect(SeasonFacts.line(heroMembership(rank: 1, of: 1, points: 32, leaderPts: 32, gapLeader: 0, leader: "Avery", runnerUp: nil, runnerPts: nil))
             == "Only you on the table so far.")
     // v1 (no names): `gap_to_next` is `lag()`, null on the top row — a payload
     // that carries one gets the margin, one that does not gets the honest line
     #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 22, v2: false)) == "You lead by 22 points.")
     #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, v2: false)) == "Top of the table.")
     // a name with no margin either way is still "top" — a tie is a claim
-    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: "Jade", runnerPts: nil))
+    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: "Emery", runnerPts: nil))
             == "Top of the table.")
     // a blank name is no name (D130 needs a person to beat)
-    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 22, leader: "Jerecho", runnerUp: "  ", runnerPts: nil))
+    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 22, leader: "Avery", runnerUp: "  ", runnerPts: nil))
             == "You lead by 22 points.")
     // two of you: the margin from the runner-up's points, or from gap_to_next when that is all there is
-    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: "Jade", runnerPts: 10))
-            == "You lead Jade by 22 · 32 – 10")
-    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 22, leader: "Jerecho", runnerUp: "Jade", runnerPts: nil))
-            == "You lead Jade by 22 · 32 – 10")
+    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: "Emery", runnerPts: 10))
+            == "You lead Emery by 22 · 32 – 10")
+    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 22, leader: "Avery", runnerUp: "Emery", runnerPts: nil))
+            == "You lead Emery by 22 · 32 – 10")
     // level is the score alone; a wider field drops the score
-    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, leader: "Jerecho", runnerUp: "Jade", runnerPts: 32))
-            == "Level with Jade · 32 – 32.")
-    #expect(SeasonFacts.line(heroMembership(rank: 1, of: 10, points: 32, leaderPts: 32, gapLeader: 0, leader: "Jerecho", runnerUp: "Jade", runnerPts: 10))
-            == "22 clear of Jade")
+    #expect(SeasonFacts.line(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, leader: "Avery", runnerUp: "Emery", runnerPts: 32))
+            == "Level with Emery · 32 – 32.")
+    #expect(SeasonFacts.line(heroMembership(rank: 1, of: 10, points: 32, leaderPts: 32, gapLeader: 0, leader: "Avery", runnerUp: "Emery", runnerPts: 10))
+            == "22 clear of Emery")
   }
 
   @Test("a field of ten: clear of / back of, and the rung above when one sits between")
   func tenWide() {
-    let lead = heroMembership(rank: 1, of: 10, points: 40, leaderPts: 40, gapLeader: 0, leader: "Jerecho", runnerUp: "Jade", runnerPts: 34)
-    #expect(SeasonFacts.line(lead) == "6 clear of Jade")
-    let second = heroMembership(rank: 2, of: 10, points: 34, leaderPts: 40, gapLeader: 6, gapNext: 6, leader: "Galen", runnerUp: "Jerecho")
-    #expect(SeasonFacts.line(second) == "6 back of Galen")   // rank 2: the rung above IS the leader
-    let mid = heroMembership(rank: 5, of: 10, points: 22, leaderPts: 40, gapLeader: 18, gapNext: 3, leader: "Galen", runnerUp: "Jade")
-    #expect(SeasonFacts.line(mid) == "18 back of Galen · 3 back of 4th")
+    let lead = heroMembership(rank: 1, of: 10, points: 40, leaderPts: 40, gapLeader: 0, leader: "Avery", runnerUp: "Emery", runnerPts: 34)
+    #expect(SeasonFacts.line(lead) == "6 clear of Emery")
+    let second = heroMembership(rank: 2, of: 10, points: 34, leaderPts: 40, gapLeader: 6, gapNext: 6, leader: "Blake", runnerUp: "Avery")
+    #expect(SeasonFacts.line(second) == "6 back of Blake")   // rank 2: the rung above IS the leader
+    let mid = heroMembership(rank: 5, of: 10, points: 22, leaderPts: 40, gapLeader: 18, gapNext: 3, leader: "Blake", runnerUp: "Emery")
+    #expect(SeasonFacts.line(mid) == "18 back of Blake · 3 back of 4th")
     #expect(SeasonFacts.caption(mid) == "5th of 10")
-    let last = heroMembership(rank: 10, of: 10, points: 2, leaderPts: 40, gapLeader: 38, gapNext: nil, leader: "Galen", runnerUp: "Jade")
-    #expect(SeasonFacts.line(last) == "38 back of Galen")
+    let last = heroMembership(rank: 10, of: 10, points: 2, leaderPts: 40, gapLeader: 38, gapNext: nil, leader: "Blake", runnerUp: "Emery")
+    #expect(SeasonFacts.line(last) == "38 back of Blake")
     #expect(SeasonFacts.caption(last) == "10th of 10")
-    let half = heroMembership(rank: 3, of: 10, points: 20.5, leaderPts: 40, gapLeader: 19.5, gapNext: 0.5, leader: "Galen", runnerUp: "Jade")
-    #expect(SeasonFacts.line(half) == "19.5 back of Galen · 0.5 back of 2nd")
+    let half = heroMembership(rank: 3, of: 10, points: 20.5, leaderPts: 40, gapLeader: 19.5, gapNext: 0.5, leader: "Blake", runnerUp: "Emery")
+    #expect(SeasonFacts.line(half) == "19.5 back of Blake · 0.5 back of 2nd")
   }
 
   @Test("skew (no names): the sentences Home spoke before v2, unchanged")
@@ -244,7 +244,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
             for v2 in [true, false] {
               let m = heroMembership(structure: structure, stake: stake, rank: rank, of: n, points: 20, leaderPts: rank == 1 ? 20 : 30,
                                      gapLeader: rank == 1 ? 0 : 10, gapNext: rank > 1 ? 4 : nil,
-                                     leader: rank == 1 ? "Jerecho" : "Galen", runnerUp: rank == 1 ? "Jade" : "Jerecho",
+                                     leader: rank == 1 ? "Avery" : "Blake", runnerUp: rank == 1 ? "Emery" : "Avery",
                                      runnerPts: rank == 1 ? 14 : 20, v2: v2)
               let line = SeasonFacts.line(m)
               #expect(!line.isEmpty)
@@ -262,8 +262,8 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
               }
               // D47 nouns only; "gap" is not a word Home says
               #expect(!line.lowercased().contains("gap"))
-              if v2 && rank != 1 { #expect(line.hasPrefix("10 back of Galen")) }
-              if v2 && rank == 1 { #expect(line == (n == 2 ? "You lead Jade by 6 · 20 – 14" : "6 clear of Jade")) }
+              if v2 && rank != 1 { #expect(line.hasPrefix("10 back of Blake")) }
+              if v2 && rank == 1 { #expect(line == (n == 2 ? "You lead Emery by 6 · 20 – 14" : "6 clear of Emery")) }
             }
           }
         }
@@ -415,13 +415,13 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
 @Suite struct SeasonRowContractTests {
   @Test("in season: week, place, the race, the money — the hard-look's own line")
   func inSeason() {
-    let fellas = heroMembership(name: "Fellas", stake: 7500, starts: "2026-07-20", ends: "2027-01-18", rank: 1, points: 31,
-                                leaderPts: 31, gapLeader: 0, leader: "Jerecho", runnerUp: "Jade", runnerPts: 9, players: 2)
-    #expect(SeasonFacts.seasonLine(fellas, today: "2026-09-02")
-              == "Week 7 of 26 · 1st of 2, 22 clear of Jade · $150 on the books · $0 collected")
-    #expect(SeasonFacts.seasonLine(heroMembership(), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, 12 back of Galen")
-    #expect(SeasonFacts.seasonLine(heroMembership(gapLeader: 0), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, level with Galen")
-    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, gapLeader: 0, runnerUp: "Galen", runnerPts: 9), today: "2026-09-02") == "Week 5 of 13 · 1st of 2, level with Galen")
+    let northGrove = heroMembership(name: "North Grove (fixture)", stake: 7500, starts: "2026-07-20", ends: "2027-01-18", rank: 1, points: 31,
+                                leaderPts: 31, gapLeader: 0, leader: "Avery", runnerUp: "Emery", runnerPts: 9, players: 2)
+    #expect(SeasonFacts.seasonLine(northGrove, today: "2026-09-02")
+              == "Week 7 of 26 · 1st of 2, 22 clear of Emery · $150 on the books · $0 collected")
+    #expect(SeasonFacts.seasonLine(heroMembership(), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, 12 back of Blake")
+    #expect(SeasonFacts.seasonLine(heroMembership(gapLeader: 0), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, level with Blake")
+    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, gapLeader: 0, runnerUp: "Blake", runnerPts: 9), today: "2026-09-02") == "Week 5 of 13 · 1st of 2, level with Blake")
     // skew
     #expect(SeasonFacts.seasonLine(heroMembership(v2: false), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, 12 back of the lead")
     #expect(SeasonFacts.seasonLine(heroMembership(stake: 7500, v2: false), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, 12 back of the lead · $150 on the books")
@@ -443,7 +443,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
   @Test("§14.3 · the Cup Final row is a clock, never the table's rank — '1 week left' at one week or less, the web's sentence")
   func cupFinalClock() {
     // ends Nov 2: Oct 22 is 11 days out (2 weeks), Oct 30 is 3 (the last week), Nov 2 is the day
-    let final = heroMembership(status: "cup_final", rank: 1, points: 40, leaderPts: 40, gapLeader: 0, leader: "Jerecho", runnerUp: "Jade", runnerPts: 30)
+    let final = heroMembership(status: "cup_final", rank: 1, points: 40, leaderPts: 40, gapLeader: 0, leader: "Avery", runnerUp: "Emery", runnerPts: 30)
     #expect(SeasonFacts.seasonLine(final, today: "2026-10-22") == "Cup Final · 2 weeks left")
     #expect(SeasonFacts.seasonLine(final, today: "2026-10-30") == "Cup Final · 1 week left")
     #expect(SeasonFacts.seasonLine(final, today: "2026-11-02") == "Cup Final · 1 week left")
@@ -466,31 +466,31 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
   func finalIsAFieldOfTwo() {
     // the top of the table at lock, still top: seed 1, and gold
     let top = heroMembership(status: "cup_final", rank: 1, of: 8, points: 40, leaderPts: 40, gapLeader: 0, gapNext: 6,
-                             leader: "Jerecho", runnerUp: "Jade", runnerPts: 34, seed: 1, finalists: ["Jerecho", "Jade"])
+                             leader: "Avery", runnerUp: "Emery", runnerPts: 34, seed: 1, finalists: ["Avery", "Emery"])
     #expect(SeasonFacts.finalFigure(top) == "1st" && SeasonFacts.seedCaption(top) == "1st seed")
     #expect(SeasonFacts.finalLine(top, weeksLeft: 2) == "Four weeks, scored fresh. Whoever's hottest takes the cup. 2 weeks left.")
     #expect(SeasonFacts.finalLine(top, weeksLeft: 1) == "Four weeks, scored fresh. Whoever's hottest takes the cup. 1 week left.")
     // the 2 seed has since passed the 1 seed on the table — the figure is STILL the seed
     let two = heroMembership(status: "cup_final", rank: 1, of: 8, points: 41, leaderPts: 41, gapLeader: 0, gapNext: 1,
-                             leader: "Jade", runnerUp: "Jerecho", runnerPts: 40, seed: 2, finalists: ["Jerecho", "Jade"])
+                             leader: "Emery", runnerUp: "Avery", runnerPts: 40, seed: 2, finalists: ["Avery", "Emery"])
     #expect(SeasonFacts.finalFigure(two) == "2nd" && SeasonFacts.seedCaption(two) == "2nd seed")
     // a non-finalist: their place, whose cup it is, and the race that is still theirs
     let out = heroMembership(status: "cup_final", rank: 5, of: 8, points: 28, leaderPts: 40, gapLeader: 12, gapNext: 3,
-                             leader: "Galen", runnerUp: nil, runnerPts: nil, finalists: ["Galen", "Jade"])
+                             leader: "Blake", runnerUp: nil, runnerPts: nil, finalists: ["Blake", "Emery"])
     #expect(SeasonFacts.finalFigure(out) == "5th" && SeasonFacts.seedCaption(out) == "5th of 8")
     // …and the clock ends the sentence on BOTH branches, as the web foots both of its branches with it
-    #expect(SeasonFacts.finalLine(out, weeksLeft: 3) == "Galen v Jade for the cup. Your place on the table is still live — 12 back of Galen · 3 back of 4th. 3 weeks left.")
-    #expect(SeasonFacts.finalLine(out, weeksLeft: 1) == "Galen v Jade for the cup. Your place on the table is still live — 12 back of Galen · 3 back of 4th. 1 week left.")
+    #expect(SeasonFacts.finalLine(out, weeksLeft: 3) == "Blake v Emery for the cup. Your place on the table is still live — 12 back of Blake · 3 back of 4th. 3 weeks left.")
+    #expect(SeasonFacts.finalLine(out, weeksLeft: 1) == "Blake v Emery for the cup. Your place on the table is still live — 12 back of Blake · 3 back of 4th. 1 week left.")
     // level with the leader on the table and out of the Final: the race clause keeps its full stop, once,
     // and is lowered after the dash (the phone's rule — the web pastes it capitalised)
     let lvl = heroMembership(status: "cup_final", rank: 2, of: 8, points: 40, leaderPts: 40, gapLeader: 0,
-                             leader: "Galen", finalists: ["Galen", "Jade"])
-    #expect(SeasonFacts.finalLine(lvl, weeksLeft: 3) == "Galen v Jade for the cup. Your place on the table is still live — level with Galen · 40 – 40. 3 weeks left.")
+                             leader: "Blake", finalists: ["Blake", "Emery"])
+    #expect(SeasonFacts.finalLine(lvl, weeksLeft: 3) == "Blake v Emery for the cup. Your place on the table is still live — level with Blake · 40 – 40. 3 weeks left.")
     // a non-finalist who has since climbed to the top of the table: the figure says 1st, the caption never says seed
     let climbed = heroMembership(status: "cup_final", rank: 1, of: 8, points: 41, leaderPts: 41, gapLeader: 0, gapNext: 6,
-                                 leader: "Jerecho", runnerUp: "Jade", runnerPts: 35, finalists: ["Galen", "Jade"])
+                                 leader: "Avery", runnerUp: "Emery", runnerPts: 35, finalists: ["Blake", "Emery"])
     #expect(SeasonFacts.finalFigure(climbed) == "1st" && SeasonFacts.seedCaption(climbed) == "1st of 8")
-    #expect(SeasonFacts.finalLine(climbed, weeksLeft: 2) == "Galen v Jade for the cup. Your place on the table is still live — 6 clear of Jade. 2 weeks left.")
+    #expect(SeasonFacts.finalLine(climbed, weeksLeft: 2) == "Blake v Emery for the cup. Your place on the table is still live — 6 clear of Emery. 2 weeks left.")
     // squads: the names are the squads' own (never first-named)
     let sq = heroMembership(structure: "squads2", status: "cup_final", rank: 3, of: 4, points: 30, leaderPts: 44, gapLeader: 14, gapNext: 2,
                             leader: "Sunday Money", finalists: ["Sunday Money", "The Regulars"])
@@ -499,7 +499,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
     let v1 = heroMembership(status: "cup_final", rank: 5, of: 8, v2: false)
     #expect(SeasonFacts.finalFigure(v1) == "5th" && SeasonFacts.seedCaption(v1) == "5th of 8")
     #expect(SeasonFacts.finalLine(v1, weeksLeft: 4) == "Four weeks, scored fresh. Whoever's hottest takes the cup. 4 weeks left.")
-    #expect(SeasonFacts.finalLine(heroMembership(status: "cup_final", rank: 5, of: 8, finalists: ["Galen"]), weeksLeft: 4).hasPrefix("Four weeks, scored fresh."))
+    #expect(SeasonFacts.finalLine(heroMembership(status: "cup_final", rank: 5, of: 8, finalists: ["Blake"]), weeksLeft: 4).hasPrefix("Four weeks, scored fresh."))
     #expect(SeasonFacts.finalFigure(heroMembership(status: "cup_final", standing: false)) == nil)
     // a seed never reads on the season's own captions or on the D121 row
     #expect(SeasonFacts.caption(top) == "1st of 8")
@@ -510,13 +510,13 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
     // v1 carries no runner-up; a v2 payload can carry a blank one (D130 needs a person)
     #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 22, v2: false).standing!) == "22 clear")
     #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 0.5, v2: false).standing!) == "0.5 clear")
-    #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: "  ", runnerPts: 10).standing!) == "22 clear")
+    #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: "  ", runnerPts: 10).standing!) == "22 clear")
     // level, with nobody to be level with, is nothing
-    #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: nil, runnerPts: 32).standing!) == nil)
-    #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 0, leader: "Jerecho", runnerUp: "", runnerPts: nil).standing!) == nil)
+    #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: nil, runnerPts: 32).standing!) == nil)
+    #expect(SeasonFacts.race(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 0, leader: "Avery", runnerUp: "", runnerPts: nil).standing!) == nil)
     #expect(SeasonFacts.race(heroMembership(rank: 1, points: nil, leaderPts: nil, gapLeader: 0, gapNext: nil, v2: false).standing!) == nil)
     // on the row itself
-    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: nil, runnerPts: 32), today: "2026-09-02")
+    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: nil, runnerPts: 32), today: "2026-09-02")
             == "Week 5 of 13 · 1st of 2")
   }
 
@@ -575,10 +575,10 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
     #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, v2: false), today: "2026-09-02")
             == "Week 5 of 13 · 1st of 2")
     // a name with no margin: no clause; a margin of nothing: level, by name
-    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: "Jade", runnerPts: nil), today: "2026-09-02")
+    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: "Emery", runnerPts: nil), today: "2026-09-02")
             == "Week 5 of 13 · 1st of 2")
-    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Jerecho", runnerUp: "Jade", runnerPts: 32), today: "2026-09-02")
-            == "Week 5 of 13 · 1st of 2, level with Jade")
+    #expect(SeasonFacts.seasonLine(heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: nil, leader: "Avery", runnerUp: "Emery", runnerPts: 32), today: "2026-09-02")
+            == "Week 5 of 13 · 1st of 2, level with Emery")
     // the clause itself, off the standing
     let st = heroMembership(rank: 1, points: 32, leaderPts: 32, gapLeader: 0, gapNext: 22, v2: false).standing!
     #expect(SeasonFacts.race(st) == "22 clear")

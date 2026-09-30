@@ -21,7 +21,7 @@ import Foundation
     return try d.decode(t, from: Data(json.utf8))
   }
 
-  private func story(_ round: UUID, who: String = "Galen") -> HomeDispatch.Item {
+  private func story(_ round: UUID, who: String = "Blake") -> HomeDispatch.Item {
     .init(key: "story:\(round.uuidString)", tier: .circle, subject: who, humanSubject: true,
           eyebrow: "AROUND YOUR BUDDIES", headline: "\(who) posted 79 at Lone Tree Golf Club.",
           standfirst: "A personal best.", action: "See the round", route: .receipt(round))
@@ -45,7 +45,7 @@ import Foundation
   func theWireYieldsToTheDeck() {
     let spent = UUID(), other = UUID()
     let rows: [HomeItem] = [
-      .round(try! feedRow(spent, "Galen", 79, "2026-08-23"), photoURL: nil),
+      .round(try! feedRow(spent, "Blake", 79, "2026-08-23"), photoURL: nil),
       .round(try! feedRow(other, "Dev", 84, "2026-08-24"), photoURL: nil),
     ]
     let all = HomeFeedFold.fold(rows, today: "2026-08-25").flatMap(\.items)
@@ -69,7 +69,7 @@ import Foundation
   func theDigestYieldsToTheDeck() throws {
     let spent = UUID()
     let mark = Date(timeIntervalSince1970: 1_750_000_000)
-    let row = try feedRow(spent, "Galen", 79, "2026-08-23", pr: true,
+    let row = try feedRow(spent, "Blake", 79, "2026-08-23", pr: true,
                           createdAt: ISO8601DateFormatter().string(from: mark.addingTimeInterval(-86_400)))
     let now = mark.addingTimeInterval(3600)
     #expect(HomeDigest.make(rounds: [row], posts: [], mark: mark, now: now) != nil)
@@ -94,8 +94,8 @@ import Foundation
     {"profile":{"id":"33333333-3333-3333-3333-333333333333","display_name":"You"},
      "memberships":[],"invites":[],
      "upcoming_rounds":[],"events":[],"open_duels":[],
-     "live_round":{"id":"44444444-4444-4444-4444-444444444444","league_name":"Fellas",
-                   "status":"live","course_label":"Papago","mine":\(mine)
+     "live_round":{"id":"44444444-4444-4444-4444-444444444444","league_name":"North Grove (fixture)",
+                   "status":"live","course_label":"Saguaro Flats","mine":\(mine)
                    \(host.map { ",\"host\":\"\($0)\"" } ?? "")}}
     """)
   }
@@ -109,8 +109,8 @@ import Foundation
     #expect(a?.standfirst?.contains("scorecard") == true)
     #expect(a?.standfirst?.contains("the card is open") == false)
 
-    let b = HomeFallbackItems.make(try meWithLive(false), liveHost: "Galen Marek").first { $0.key.hasPrefix("live:") }
-    #expect(b?.headline == "Galen started a live round with you.")
+    let b = HomeFallbackItems.make(try meWithLive(false), liveHost: "Blake Marek").first { $0.key.hasPrefix("live:") }
+    #expect(b?.headline == "Blake started a live round with you.")
     #expect(b?.action == "Join")
     #expect(b?.eyebrow == "JUST TEED OFF · NOTHING SCORED YET")
 
@@ -124,7 +124,7 @@ import Foundation
   private func floorMembership(credits: Double, floor: Int, partial: Bool = false, solo: Bool = false,
                                penalty: String = "deduct", squad: Bool = false) throws -> Me.Membership {
     try decode(Me.Membership.self, """
-    {"league_id":"55555555-5555-5555-5555-555555555555","name":"Fellas","phase":"season","role":"player",
+    {"league_id":"55555555-5555-5555-5555-555555555555","name":"North Grove (fixture)","phase":"season","role":"player",
      "member_id":"66666666-6666-6666-6666-666666666666",
      "settings":{"structure":"\(solo ? "solo" : "squads2")","buyin_cents":0,"participation_floor":\(floor),
                  "floor_penalty":"\(penalty)","handicap_allowance":95},
@@ -170,13 +170,13 @@ import Foundation
   func theChampionMayBeMe() throws {
     func membership(_ mine: Bool) throws -> Me.Membership {
       try decode(Me.Membership.self, """
-      {"league_id":"77777777-7777-7777-7777-777777777777","name":"Fellas","phase":"complete","role":"player",
+      {"league_id":"77777777-7777-7777-7777-777777777777","name":"North Grove (fixture)","phase":"complete","role":"player",
        "member_id":"88888888-8888-8888-8888-888888888888",
-       "last_season":{"number":1,"ended_on":"2026-06-01","champion_name":"Galen",
+       "last_season":{"number":1,"ended_on":"2026-06-01","champion_name":"Blake",
                       "champion_is_me":\(mine),"my_rank":1,"of":8}}
       """)
     }
-    #expect(HomeFallbackItems.chapterItem(try membership(false))?.headline == "Galen took the last one.")
+    #expect(HomeFallbackItems.chapterItem(try membership(false))?.headline == "Blake took the last one.")
     #expect(HomeFallbackItems.chapterItem(try membership(true))?.headline == "You took the last one.")
     // and the rank is an ORDINAL on both paths
     #expect(HomeFallbackItems.chapterItem(try membership(true))?.standfirst == "You finished 1st of 8.")
@@ -187,9 +187,9 @@ import Foundation
   @Test("a golfer LEADS; a squad LEAD; and the clauses take a full stop")
   func theStoryLineIsASentence() {
     let a = UUID(), b = UUID()
-    let solo = StandingsMath.story([Team(id: a, name: "Galen", pts: 30, ci: 0, solo: true),
-                                    Team(id: b, name: "Jerecho", pts: 18, ci: 1, solo: true)])
-    #expect(solo.text == "Galen leads by 12. Jerecho a good weekend back.")
+    let solo = StandingsMath.story([Team(id: a, name: "Blake", pts: 30, ci: 0, solo: true),
+                                    Team(id: b, name: "Avery", pts: 18, ci: 1, solo: true)])
+    #expect(solo.text == "Blake leads by 12. Avery a good weekend back.")
     let squads = StandingsMath.story([Team(id: a, name: "Reds", pts: 30, ci: 0),
                                       Team(id: b, name: "Blues", pts: 18, ci: 1)])
     #expect(squads.text == "Reds lead by 12. Blues a good weekend back.")
@@ -227,11 +227,11 @@ import Foundation
 
   @Test("the card takes the person's name, and \"Tour Card\" is nowhere in the producer")
   func theCardIsNamedForThePerson() {
-    #expect(GolfersRoot.CardName.title("Galen") == "Galen’s card")
+    #expect(GolfersRoot.CardName.title("Blake") == "Blake’s card")
     #expect(GolfersRoot.CardName.title(nil) == "A golfer’s card")
     #expect(GolfersRoot.CardName.title("   ") == "A golfer’s card")
     #expect(GolfersRoot.CardName.mine == "Your card")
-    #expect(GolfersRoot.CardName.hint("Galen") == "Opens Galen’s card")
+    #expect(GolfersRoot.CardName.hint("Blake") == "Opens Blake’s card")
     #expect(GolfersRoot.CardName.hint() == "Opens their card")
   }
 
@@ -270,8 +270,8 @@ import Foundation
   @Test func onePersonalBestInTwoLeaguesIsOneWireRow() {
     let round = UUID(), a = UUID(), b = UUID()
     let now = Date()
-    let out = HomeFeedFold.fold([moment("Jerecho set a personal best.", round: round, league: a, at: now),
-                                 moment("Jerecho set a personal best.", round: round, league: b, at: now)],
+    let out = HomeFeedFold.fold([moment("Avery set a personal best.", round: round, league: a, at: now),
+                                 moment("Avery set a personal best.", round: round, league: b, at: now)],
                                 today: CSDate.today())
     let moments = out.flatMap(\.items).filter { if case .moment = $0 { return true }; return false }
     #expect(moments.count == 1)
@@ -281,8 +281,8 @@ import Foundation
   @Test func twoRoundsAreTwoRows() {
     let a = UUID(), b = UUID()
     let now = Date()
-    let out = HomeFeedFold.fold([moment("Jerecho set a personal best.", round: UUID(), league: a, at: now),
-                                 moment("Jerecho set a personal best.", round: UUID(), league: b, at: now)],
+    let out = HomeFeedFold.fold([moment("Avery set a personal best.", round: UUID(), league: a, at: now),
+                                 moment("Avery set a personal best.", round: UUID(), league: b, at: now)],
                                 today: CSDate.today())
     let moments = out.flatMap(\.items).filter { if case .moment = $0 { return true }; return false }
     #expect(moments.count == 2)

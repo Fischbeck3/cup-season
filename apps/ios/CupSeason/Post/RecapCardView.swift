@@ -70,6 +70,6 @@ struct RecapCardView: View {
 }
 
 #Preview("recap") {
-  RecapCardView(recap: PostRecap(name: "Jerecho Fischbeck", marker: "saguaro", gross: 84, pvi: 2.4, points: 9, course: "Papago", date: "2026-08-22", badge: "PERSONAL BEST"), photo: nil)
+  RecapCardView(recap: PostRecap(name: "Avery Fixture", marker: "saguaro", gross: 84, pvi: 2.4, points: 9, course: "Saguaro Flats", date: "2026-08-22", badge: "PERSONAL BEST"), photo: nil)
     .scaleEffect(0.3)
 }

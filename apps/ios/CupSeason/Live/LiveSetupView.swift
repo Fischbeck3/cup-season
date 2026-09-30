@@ -215,7 +215,7 @@ struct LiveSetupView: View {
         if !store.held {
           CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
         }
-        CSMini("Enter the pars") { showCard = true }
+        CSMini(store.state.course.parsVerified ? "Check the pars" : "Enter the pars") { showCard = true }
           .disabled(store.held)
         Button("Save courses for offline") { showOfflineCourses = true }
           .buttonStyle(.csTertiary(.content))
@@ -456,7 +456,7 @@ struct LiveSlotChip: View {
       CSFace(Faces.of(player.pid, marker: player.mk, name: player.n, isViewer: player.me), size: .slat)
       VStack(alignment: .leading, spacing: 2) {
         // **D325 · YOUR OWN SEAT SAYS "YOU".** It printed the viewer's full
-        // display name, truncated — `JERECHO F…` in a tile with room — where
+        // display name, truncated — `AVERY F…` in a tile with room — where
         // Home's wire, the receipt, the season's clash rows and (since D324)
         // a course's rounds all say "You". `player.me` was already on the row.
         Text(player.me ? "You" : player.n).csType(.name).foregroundStyle(cs.ink)

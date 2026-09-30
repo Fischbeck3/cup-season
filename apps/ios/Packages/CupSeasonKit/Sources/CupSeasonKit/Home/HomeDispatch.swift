@@ -310,7 +310,7 @@ public enum HomeRank {
     /// one-way precedence — lead → deck → strip — and never a negotiation.
     public let columnFacts: Set<MeStripCopy.Fact>
     /// **Does the column already say where I stand?** The ME strip's season
-    /// row — `2ND OF 2 · 4 BACK OF GALEN · A FINAL BETWEEN THE TWO OF YOU` —
+    /// row — `2ND OF 2 · 4 BACK OF BLAKE · A FINAL BETWEEN THE TWO OF YOU` —
     /// is the same sentence a CHANGED or CHAPTER card makes its headline out
     /// of, so on a morning when one of those leads, the row underneath was
     /// saying it a second time in smaller grey type. It is not a ME fact, so
@@ -330,7 +330,7 @@ public enum HomeRank {
   }
 
   /// An item whose whole point is where I stand in a season. The families are
-  /// the ranker's own: `need:` (*"You are 4 back of Galen with 8 weeks left"* —
+  /// the ranker's own: `need:` (*"You are 4 back of Blake with 8 weeks left"* —
   /// rank, gap, name and clock, which is the season row's entire content),
   /// `move:` (CHANGED — the rank moved), `chapter:` (the season's standing
   /// truth), `lastseason:` and `runitback:` (last season's table). Keyed on
@@ -447,8 +447,8 @@ public enum HomeRank {
     // set was computed here, handed to `UpNextChips`, and to nothing else — so
     // the deck was `rest.prefix(cap)` verbatim and every fact the lead had
     // already spent could be spent again two cards below it. On a golfer in two
-    // leagues that rendered *"Galen has today to answer your 89"* as the lead
-    // and *"Jade has today to answer your 89"* as deck item 1: one round of
+    // leagues that rendered *"Blake has today to answer your 89"* as the lead
+    // and *"Emery has today to answer your 89"* as deck item 1: one round of
     // mine, reported twice, because two leagues each had a row about it.
     //
     // Partial overlap survives, exactly as G3 allows: an item that says

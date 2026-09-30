@@ -128,8 +128,8 @@ import CupSeasonKit
     let rid = UUID()
     let tiles = TrophyCase.tiles(trophies: [],
       achievements: [ach("sub_80", meta: .object(["gross": .number(79)]), round: rid)],
-      round: { _ in MilestoneRound(gross: 79, courseLabel: "Papago", playedOn: "2026-08-24") })
-    #expect(tiles.first?.sub == "79 at Papago · Aug 24")
+      round: { _ in MilestoneRound(gross: 79, courseLabel: "Saguaro Flats", playedOn: "2026-08-24") })
+    #expect(tiles.first?.sub == "79 at Saguaro Flats · Aug 24")
     #expect(tiles.first?.roundId == rid)
   }
 
@@ -156,11 +156,11 @@ import CupSeasonKit
   @Test func aPersonalBestNamesTheRoundTheGolferRemembers() {
     #expect(TrophyMeta.milestoneSub(kind: "personal_best", label: nil, meta: .object(["diff": .number(4.1)]),
                                     earnedOn: "2026-08-24", round: nil) == "Aug 24")
-    let round = MilestoneRound(gross: 79, courseLabel: "Papago", playedOn: "2026-08-24")
+    let round = MilestoneRound(gross: 79, courseLabel: "Saguaro Flats", playedOn: "2026-08-24")
     #expect(TrophyMeta.milestoneSub(kind: "personal_best", label: nil, meta: .object(["diff": .number(4.1)]),
-                                    earnedOn: "2026-08-24", round: round) == "79 at Papago · Aug 24")
+                                    earnedOn: "2026-08-24", round: round) == "79 at Saguaro Flats · Aug 24")
     #expect(TrophyMeta.milestoneSub(kind: "sub_80", label: nil, meta: .object(["gross": .number(79)]),
-                                    earnedOn: "2026-08-24", round: round) == "79 at Papago · Aug 24")
+                                    earnedOn: "2026-08-24", round: round) == "79 at Saguaro Flats · Aug 24")
   }
 
   /// The round outranks the snapshot: the meta's gross is what was written
@@ -181,7 +181,7 @@ import CupSeasonKit
   }
 
   /// D291 · the year came OUT of the hardware sub-line and into its own
-  /// right-flush slot, so the line reads `Fellas · beat Galen Marr` and the
+  /// right-flush slot, so the line reads `North Grove (fixture) · beat Blake Sample` and the
   /// year sits where §16A.2's slot always was.
   @Test func hardwareCarriesItsYearInTheTrailingSlot() {
     #expect(TrophyMeta.yearTrail(seasonYear: 2025) == "’25")

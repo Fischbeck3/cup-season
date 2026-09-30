@@ -7,7 +7,7 @@
 // was standing on without saying so. Derive from the measure; never hard-code.
 //
 // REVISED AFTER THE BLIND REVIEW. All three reviewers, independently, filed the
-// twelve-row board's four truncated surnames (`PRIYA RAGHU…`, `BARTHOLOME…`) as
+// twelve-row board's four truncated surnames (`NOEL RAGHU…`, `BARTHOLOME…`) as
 // the single most damaging defect in the set, and two proposed the same remedy:
 //   1 · delta and gap share ONE 58pt right-aligned cell. They are both change
 //       metrics, both half-empty at any field size, and separately they ate
@@ -101,8 +101,8 @@ public enum CSSlatMetrics {
   /// capped**, rather than two constants cut against a 402pt artboard.
   ///
   /// 58 and 50 are 14.4% and 12.4% of 402. At 375 that is 54 and 46.5, which
-  /// hands **7.5pt back to the name** — the difference between `PRIYA
-  /// RAGHUNA…` and `PRIYA RAGHUNATHAN` on an SE, which is the row the blind
+  /// hands **7.5pt back to the name** — the difference between `NOEL
+  /// RAGHUNA…` and `NOEL DRYRUN` on an SE, which is the row the blind
   /// review filed as the set's most damaging defect. The floors (46 · 44) are
   /// what `+12` beside a triangle and a two-digit total actually need; the
   /// caps hold the Max's extra 38pt in the NAME column, where it belongs,
@@ -328,7 +328,7 @@ public struct CSSlat<Trailing: View>: View {
           Rectangle().fill(squad.0)
             .frame(width: squad.1.isEmpty ? 6 : 4, height: squad.1.isEmpty ? 30 : 14)
           if !squad.1.isEmpty {
-            // sentence case and a middot, because `Mudsharks · held four
+            // sentence case and a middot, because `Fixture Wrens · held four
             // weeks` is one phrase and not a label beside a phrase — and
             // the name never shrinks to `MUDS`, which is what a flexible
             // label did the first time this shipped.
@@ -434,7 +434,7 @@ public struct CSStandingsBoard<Row: View>: View {
 
   /// **The name column's head, because not every board is a board of people.**
   /// A squads season's top table ranks SQUADS, and it printed `GOLFER` over
-  /// `MUDSHARKS · SAGUAROS · COYOTES`. The head names the column it is over or
+  /// `FIXTURE WRENS · FIXTURE OWLS · FIXTURE FOXES`. The head names the column it is over or
   /// it is not a head.
   let nameHead: String
   /// **Whether this board's rows carry a face**, which is the only thing that
@@ -445,13 +445,14 @@ public struct CSStandingsBoard<Row: View>: View {
   /// sat 42pt right of every squad name it labelled.
   let hasFaces: Bool
   let showsGap: Bool
+  let changeHead: String
 
   public init(count: Int, cut: String? = nil, cutAfter: Int? = nil, names: [String] = [],
-              nameHead: String = "Golfer", hasFaces: Bool = true, showsGap: Bool = true,
+              nameHead: String = "Golfer", changeHead: String = "Gap", hasFaces: Bool = true, showsGap: Bool = true,
               @ViewBuilder rows: @escaping (Int, Bool) -> Row) {
     self.count = count; self.cut = cut; self.cutAfter = cutAfter
     self.names = names; self.nameHead = nameHead; self.hasFaces = hasFaces
-    self.rows = rows; self.showsGap = showsGap
+    self.rows = rows; self.showsGap = showsGap; self.changeHead = changeHead
   }
 
   public var body: some View {
@@ -475,7 +476,7 @@ public struct CSStandingsBoard<Row: View>: View {
       Text("Pos").frame(width: CSTokens.Space.rail)
       Text(nameHead).frame(maxWidth: .infinity, alignment: .leading)
         .padding(.leading, CSSlatMetrics.nameInset(hasFace: hasFaces))
-      if showsGap { Text("Gap").frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing) }
+      if showsGap { Text(changeHead).fixedSize(horizontal: false, vertical: true).frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing) }
       Text("Pts").frame(width: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
     }
     .csType(.agateS, caps: true)
@@ -769,7 +770,8 @@ public struct CSTape: View {
 
   public var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+      HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+        VStack(spacing: CSTokens.Space.s2) {
         GeometryReader { g in
           ZStack(alignment: .leading) {
             Rectangle().fill(cs.ink).frame(height: 2)
@@ -785,19 +787,20 @@ public struct CSTape: View {
           .frame(height: 46, alignment: .center)
         }
         .frame(height: 46)
-        if let rows, !typeSize.isA11y {
-          VStack(alignment: .trailing, spacing: 14) {
-            Text(rows.mine).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            Text(rows.theirs).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          }
-          .fixedSize()
-        }
-      }
       if let dates {
         HStack {
           Text(dates.first).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           Spacer(minLength: CSTokens.Space.s3)
           Text(dates.last).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+      }
+        }
+        if let rows, !typeSize.isA11y {
+          VStack(alignment: .trailing, spacing: 14) {
+            Text(rows.mine).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            Text(rows.theirs).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          }
+          .fixedSize().frame(height: 46)
         }
       }
       Text(key).csType(.agateS, caps: false).foregroundStyle(cs.mut)
@@ -978,7 +981,7 @@ public struct CSClash<Figure: View>: View {
   let right: CSFace.Model
   let leftName: String
   let rightName: String
-  /// The identity clause under a name — `10.6 index · Tempe` — in SENTENCE
+  /// The identity clause under a name — `10.6 index · Mesa` — in SENTENCE
   /// case, because it is a phrase and not a label, and so it costs none of the
   /// viewport's ten tracked-caps agate lines.
   let leftSub: String?

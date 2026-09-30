@@ -16,7 +16,7 @@ import SwiftUI
 @MainActor
 @Suite struct DrawnCardTests {
 
-  /// Papago's real front nine, as the phone's own book holds it.
+  /// Saguaro Flats's real front nine, as the phone's own book holds it.
   private func nine() -> [CSDrawnCard.Hole] {
     let pars = [5, 4, 4, 3, 4, 4, 4, 3, 5]
     let sis = [15, 17, 3, 13, 11, 1, 7, 9, 5]
@@ -64,7 +64,7 @@ import SwiftUI
   /// strength instead, and the card's gold budget is zero.
   @Test func oneBarTakesTheMarkAndItIsTheHardestHole() {
     let card = CSDrawnCard(nine())
-    #expect(card.hardest == 6)                 // SI 1 is the 6th at Papago
+    #expect(card.hardest == 6)                 // SI 1 is the 6th at Saguaro Flats
     // no stroke index anywhere: no mark at all, rather than a guess
     let blind = nine().map { CSDrawnCard.Hole(number: $0.number, par: $0.par, si: nil) }
     #expect(CSDrawnCard(blind).hardest == nil)

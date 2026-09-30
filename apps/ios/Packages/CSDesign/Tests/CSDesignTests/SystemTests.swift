@@ -82,15 +82,15 @@ import SwiftUI
 }
 
 @Suite @MainActor struct FaceTests {
-  static let galen = UUID(uuidString: "6F9619FF-8B86-D011-B42D-00C04FC964FF")!
+  static let blake = UUID(uuidString: "6F9619FF-8B86-D011-B42D-00C04FC964FF")!
 
   /// **The pigment must not move between launches.** `Hashable.hashValue` in
   /// Swift is seeded per PROCESS — `pig[hash(id) % 6]` written literally would
   /// reseat a golfer every time the app cold-starts, which is exactly the drift
   /// §6.2a forbids arriving through the line that looks most like the spec.
   @Test func thePigmentIsFrozenToTheId() {
-    let a = CSFace.Model(id: Self.galen, marker: "lonetree")
-    let b = CSFace.Model(id: Self.galen, marker: "lonetree", photoURL: URL(string: "https://x/y.jpg"))
+    let a = CSFace.Model(id: Self.blake, marker: "lonetree")
+    let b = CSFace.Model(id: Self.blake, marker: "lonetree", photoURL: URL(string: "https://x/y.jpg"))
     #expect(a.pigmentIndex == b.pigmentIndex)
     #expect(a.pigmentIndex == 0, "the seat for this id changed — every existing golfer's coin just moved")
     // and it is the same in both printings: one identity, two printings
@@ -123,8 +123,8 @@ import SwiftUI
   /// **There is no initials rung.** Initials draw only when a golfer chose
   /// nothing — this was already canon and was violated on five artboards.
   @Test func initialsNeverAppearBesideAMarker() {
-    let chose = CSFace.Model(id: Self.galen, marker: "azalea", initials: "TB")
-    let didNot = CSFace.Model(id: Self.galen, marker: nil, initials: "TB")
+    let chose = CSFace.Model(id: Self.blake, marker: "azalea", initials: "TB")
+    let didNot = CSFace.Model(id: Self.blake, marker: nil, initials: "TB")
     #expect(chose.marker != nil, "a golfer with a marker must draw the marker, at any size, in any component")
     #expect(didNot.marker == nil && !didNot.initials.isEmpty)
   }
@@ -222,8 +222,8 @@ import SwiftUI
   /// restyles dates, money, ordinals and any digit inside a course name — and
   /// it rewrites the `AttributedString` runs VoiceOver reads.
   @Test func theBracesMarkTheRunAndNeverRender() {
-    let run = CSFigureRun("Galen shot {74} at Papago")
-    #expect(run.text == "Galen shot 74 at Papago")
+    let run = CSFigureRun("Blake shot {74} at Saguaro Flats")
+    #expect(run.text == "Blake shot 74 at Saguaro Flats")
     #expect(run.runs.count == 1)
     #expect(String(run.text[run.runs[0]]) == "74")
   }
@@ -235,8 +235,8 @@ import SwiftUI
   }
 
   @Test func twoRunsInOneSentenceBothLand() {
-    let run = CSFigureRun("{74} at Papago, {9} points")
-    #expect(run.text == "74 at Papago, 9 points")
+    let run = CSFigureRun("{74} at Saguaro Flats, {9} points")
+    #expect(run.text == "74 at Saguaro Flats, 9 points")
     #expect(run.runs.count == 2)
   }
 }

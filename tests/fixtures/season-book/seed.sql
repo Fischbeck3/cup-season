@@ -6,10 +6,10 @@ select ('C50B0000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid $$;
 insert into auth.users(id,email) select pg_temp.bid(i),'book-fixture-'||i||'@example.invalid' from generate_series(1,18) i;
 insert into profiles(id,email,display_name,marker,index_current)
 select pg_temp.bid(i),'book-fixture-'||i||'@example.invalid',
-  (array['Galen Marr','Jerecho','Jade Okafor','Dev Rana','Tash Bell','Mike Fenner','Priya Raghunathan','Sam Ridley','Nora Vance','Eli Brandt','Ruth Salas','Owen Pike','Alex Park','Cam Ellis','Robin West','Lee Santos','Outsider','Unconfirmed'])[i], 'saguaro',12
+  (array['Blake Sample','Avery','Emery Mockridge','Finley Stubbs','Devon Testwell','Gray Dummett','Noel Dryrun','Casey Placeholder','Lane Mockup','Jules Sandbox','Parker Sampleton','Morgan Stand-In','Harper Examplar','Indigo Longname-Fixturington','Oakley Proxy','Kit Specimen','Outsider','Unconfirmed'])[i], 'saguaro',12
 from generate_series(1,18) i;
 insert into leagues(id,name,code,commissioner_id,phase,sandbox)
-values(pg_temp.bid(100),'The Fellas','BKF01',pg_temp.bid(1),'season',true),
+values(pg_temp.bid(100),'North Grove (fixture)','BKF01',pg_temp.bid(1),'season',true),
 (pg_temp.bid(101),'The Saturday Cup','BKT01',pg_temp.bid(1),'season',true),
 (pg_temp.bid(102),'The Autumn Cup','BKA01',pg_temp.bid(1),'season',true),
 (pg_temp.bid(103),'The Summer Cup','BKS01',pg_temp.bid(1),'complete',true);
@@ -29,7 +29,7 @@ from generate_series(100,103)lg cross join generate_series(1,16)i where lg<>101 
 insert into league_members(id,league_id,profile_id,role,agreed_seasons)
 values(pg_temp.bid(11800),pg_temp.bid(100),pg_temp.bid(18),'player','{}');
 insert into squads(id,season_id,name,color)
-select pg_temp.bid(300+i),pg_temp.bid(200),(array['Mudsharks','Roadrunners','Coyotes','Saguaros'])[i+1],i from generate_series(0,3)i;
+select pg_temp.bid(300+i),pg_temp.bid(200),(array['Fixture Wrens','Fixture Jays','Fixture Foxes','Fixture Owls'])[i+1],i from generate_series(0,3)i;
 insert into squad_members(squad_id,member_id)
 select pg_temp.bid(300+(i-1)/4),pg_temp.bid(11000+i) from generate_series(1,16)i;
 -- Multiple rounds per week and displaced rounds, scored by the REAL lens.

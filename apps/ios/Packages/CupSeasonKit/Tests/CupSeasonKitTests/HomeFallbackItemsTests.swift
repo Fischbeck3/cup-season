@@ -27,7 +27,7 @@ import Foundation
 
 /// A membership with a clash on it, as `native_home` v3 inlines it.
 func clashedMembership(name: String = "Who's the bitch?", week: Int = 5, daysLeft: Int = 4,
-                       closesToday: Bool = false, them: String = "Galen Ward",
+                       closesToday: Bool = false, them: String = "Blake Ward",
                        mineGross: Int? = nil, theirGross: Int? = nil, rivalry: String? = nil,
                        rank: Int = 2, prev: Int? = nil, status: String = "active",
                        id: UUID = UUID()) -> Me.Membership {
@@ -39,7 +39,7 @@ func clashedMembership(name: String = "Who's the bitch?", week: Int = 5, daysLef
     "season": ["id": UUID().uuidString, "starts_on": "2026-08-03", "ends_on": "2026-11-02",
                "status": status, "timezone": "America/Phoenix"],
     "standing": ["rank": rank, "of": 2, "points": 9, "prev_rank": prev as Any,
-                 "leader_points": 21, "gap_to_leader": 12, "leader_name": "Galen"],
+                 "leader_points": 21, "gap_to_leader": 12, "leader_name": "Blake"],
     "clash": ["week_no": week, "ends_on": "2026-09-06", "days_left": daysLeft,
               "closes_today": closesToday, "them_name": them, "rivalry": rivalry as Any,
               "mine": mineGross.map { ["gross": $0, "points": 9, "round_id": UUID().uuidString] } as Any,
@@ -56,7 +56,7 @@ func clashedMembership(name: String = "Who's the bitch?", week: Int = 5, daysLef
 }
 
 private func profile(rounds: Int = 9, index: Double? = 12.4) -> Me.Profile {
-  Me.Profile(id: UUID(), display_name: "Jerecho", handle: "jer", marker: "saguaro", city: nil,
+  Me.Profile(id: UUID(), display_name: "Avery", handle: "ave", marker: "saguaro", city: nil,
              home_course: nil, index_current: index, index_source: "app", photo_path: nil,
              rounds_count: rounds, member_since: nil, is_founder: nil,
              last_round_on: "2026-09-04", last_gross: 89, last_round_id: UUID(), days_since_round: 1)
@@ -65,7 +65,7 @@ private func profile(rounds: Int = 9, index: Double? = 12.4) -> Me.Profile {
 private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws -> HomeFeedRow {
   let json = """
   {"round_id":"11111111-1111-1111-1111-111111111111","profile_id":"22222222-2222-2222-2222-222222222222",
-   "golfer":"Galen Ward","gross":\(gross),"played_on":"2026-09-03","course":"Lone Tree",
+   "golfer":"Blake Ward","gross":\(gross),"played_on":"2026-09-03","course":"Lone Tree",
    "is_pr":\(pr),"is_first":false,"is_sub80":false,"is_me":\(me)}
   """
   return try JSONDecoder().decode(HomeFeedRow.self, from: Data(json.utf8))
@@ -119,7 +119,7 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
   func idleClashYields() {
     let idle = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4), today: "2026-09-05")
     #expect(idle?.tier == .coming)
-    #expect(idle?.headline == "Your clash with Galen is open.")
+    #expect(idle?.headline == "Your clash with Blake is open.")
     // the last-call day is a stake again
     #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 1), today: "2026-09-05")?.tier == .closing)
     #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 0, closesToday: true), today: "2026-09-05")?.tier == .closing)
@@ -129,14 +129,14 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
 
   /// AW2-05 · the clash says its clock once: the eyebrow names the
   /// competition, one sentence carries the clock, and an idle clash keeps its
-  /// idle words on its last day (root's ruling) — never "You and Galen are
+  /// idle words on its last day (root's ruling) — never "You and Blake are
   /// both in." when neither has posted.
   @Test func theClashSaysItsClockOnce() {
     let idle = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4), today: "2026-09-05")
     #expect(idle?.eyebrow.hasSuffix(" · THE CLASH") == true && idle?.eyebrow.contains("CLOSES") == false)
     #expect(idle?.standfirst == "Best round of the week takes it. The week closes in 4 days.")
     let lastDay = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 1), today: "2026-09-05")
-    #expect(lastDay?.headline == "Your clash with Galen is open.")
+    #expect(lastDay?.headline == "Your clash with Blake is open.")
     #expect(lastDay?.standfirst == "Best round of the week takes it. The week closes tomorrow.")
     #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 0, closesToday: true), today: "2026-09-05")?.standfirst
             == "Best round of the week takes it. The week closes today.")
@@ -152,13 +152,13 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
   @Test("SA-2 · I posted and they have not: the subject is the OPPONENT, and the verb is never 'post again'")
   func iPostedTheyHaveNot() {
     let it = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 2, mineGross: 89), today: "2026-09-05")
-    #expect(it?.headline == "Galen has 2 days to answer your 89.")
-    #expect(it?.subject == "Galen")
+    #expect(it?.headline == "Blake has 2 days to answer your 89.")
+    #expect(it?.subject == "Blake")
     #expect(it?.action == "See the receipt")
     #expect(it?.suppress.contains(.myLastRound) == true)   // L-34 · the lead spent my round
     // one day left reads as a day, not "1 days"
     #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 1, mineGross: 89), today: "2026-09-05")?.headline
-              == "Galen has one day to answer your 89.")
+              == "Blake has one day to answer your 89.")
   }
 
   /// AW2-07 · a figure in the lead's serif is a run the producer marks: the
@@ -166,15 +166,15 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
   /// says the same words, and a server item carries no marks.
   @Test func theFallbackMarksItsFigures() {
     let mine = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 2, mineGross: 89), today: "2026-09-05")
-    #expect(mine?.headlineMarked == "Galen has {2} days to answer your {89}.")
+    #expect(mine?.headlineMarked == "Blake has {2} days to answer your {89}.")
     #expect(mine?.localHeadlineMarked().filter { $0 != "{" && $0 != "}" } == mine?.headline)
     let theirs = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4, theirGross: 79), today: "2026-09-05")
-    #expect(theirs?.headlineMarked == "Galen posted {79}.")
+    #expect(theirs?.headlineMarked == "Blake posted {79}.")
     #expect(HomeFallbackItems.movementItem(clashedMembership(rank: 2, prev: 4))?.headlineMarked == "You moved up {2} this week.")
     let idle = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4), today: "2026-09-05")
     #expect(idle?.headlineMarked == nil && idle?.localHeadlineMarked() == idle?.headline)
-    let server = HomeDispatch.Item(key: "k", tier: .changed, eyebrow: "E", headline: "Galen posted 81 at Troon.")
-    #expect(server.localHeadlineMarked() == "Galen posted 81 at Troon.")
+    let server = HomeDispatch.Item(key: "k", tier: .changed, eyebrow: "E", headline: "Blake posted 81 at Troon.")
+    #expect(server.localHeadlineMarked() == "Blake posted 81 at Troon.")
   }
 
   @Test("A-4 / D378 (vii) · a movement label carries its own clock — 'this week', never a bare 'held' and never a hard-coded Sunday")
@@ -216,13 +216,13 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     {"league_id":"33333333-3333-3333-3333-333333333333","name":"The Dew Sweepers","phase":"season",
      "role":"player","member_id":"44444444-4444-4444-4444-444444444444",
      "season":{"id":"55555555-5555-5555-5555-555555555555","starts_on":"2026-01-05","ends_on":"2026-06-05","status":"complete"},
-     "last_season":{"number":1,"ended_on":"2026-06-05","champion_name":"Mike","my_rank":4,"of":8}}
+     "last_season":{"number":1,"ended_on":"2026-06-05","champion_name":"Gray","my_rank":4,"of":8}}
     """
     let m = try JSONDecoder().decode(Me.Membership.self, from: Data(json.utf8))
     let it = try #require(HomeFallbackItems.chapterItem(m))
-    #expect(it.headline == "Mike took the last one.")
+    #expect(it.headline == "Gray took the last one.")
     #expect(it.standfirst == "You finished 4th of 8.")
-    #expect(it.subject == "Mike" && it.humanSubject)
+    #expect(it.subject == "Gray" && it.humanSubject)
     #expect(it.action == "See how it ended")
   }
 
@@ -243,7 +243,7 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
                      mine: HomeClash.Side? = nil, theirs: HomeClash.Side? = nil,
                      rivalry: String? = nil, settled: Bool = false, roster: Int? = 2) -> HomeClash {
     HomeClash(weekNo: week, endsOn: "2026-09-06", daysLeft: days, closesToday: closesToday,
-              themName: "Galen Ward", themMarker: "island", mine: mine, theirs: theirs, rivalry: rivalry,
+              themName: "Blake Ward", themMarker: "island", mine: mine, theirs: theirs, rivalry: rivalry,
               settled: settled, roster: roster)
   }
 
@@ -285,9 +285,9 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
 
   @Test("D77 · the line names the opponent by FIRST name only, and SA-2 moves the subject onto whoever owes a round")
   func lines() {
-    #expect(HomeClashCopy.line(clash()) == "You v Galen. Best round of the week takes it.")
-    #expect(HomeClashCopy.line(clash(days: 2, mine: .init(gross: 89))) == "Galen has 2 days to answer your 89.")
-    #expect(HomeClashCopy.line(clash(days: 2, theirs: .init(gross: 79))) == "Galen posted 79. That is the number to beat.")
+    #expect(HomeClashCopy.line(clash()) == "You v Blake. Best round of the week takes it.")
+    #expect(HomeClashCopy.line(clash(days: 2, mine: .init(gross: 89))) == "Blake has 2 days to answer your 89.")
+    #expect(HomeClashCopy.line(clash(days: 2, theirs: .init(gross: 79))) == "Blake posted 79. That is the number to beat.")
   }
 
   @Test("a side with nothing posted says so; a side with a round speaks bands, never a differential")
@@ -323,7 +323,7 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     #expect(HomeClash.decode(.null) == nil)
     let json = """
     {"week_no":5,"ends_on":"2026-09-06","days_left":0,"closes_today":true,
-     "them_name":"Galen Ward","them_marker":"island","rivalry":null,
+     "them_name":"Blake Ward","them_marker":"island","rivalry":null,
      "mine":null,
      "theirs":{"round_id":"11111111-1111-1111-1111-111111111111","played_on":"2026-08-27",
                "points":9,"pvi":2.4,"gross":79}}
@@ -331,7 +331,7 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     let v = try JSONDecoder().decode(JSONValue.self, from: Data(json.utf8))
     let c = try #require(HomeClash.decode(v))
     #expect(c.weekNo == 5 && c.closesToday && c.daysLeft == 0)
-    #expect(c.themName == "Galen Ward")
+    #expect(c.themName == "Blake Ward")
     #expect(c.mine == nil && c.theirs?.gross == 79)
     #expect(c.theirs?.roundId == UUID(uuidString: "11111111-1111-1111-1111-111111111111"))
     #expect(c.edge == .them)
@@ -346,7 +346,7 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     let rid = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
     let json = """
     [{"id":"22222222-2222-2222-2222-222222222222","play_on":"2026-08-30",
-      "course_label":"Papago","mine":true}]
+      "course_label":"Saguaro Flats","mine":true}]
     """
     let watch = try JSONDecoder().decode([ScheduledRound].self, from: Data(json.utf8))
     let chips = UpNext.chips(watch: watch, invites: 2, requests: 0, hasMemberships: true, today: "2026-08-28")

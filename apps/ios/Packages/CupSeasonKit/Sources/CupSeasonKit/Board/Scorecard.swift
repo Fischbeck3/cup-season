@@ -36,7 +36,7 @@ public struct Scorecard: Sendable, Equatable {
   public var gameLabel: String {
     ["none": "Stroke play", "match": "Match play", "wolf": "Wolf", "skins": "Skins", "sunningdale": "Sunningdale Rules"][game ?? ""] ?? "The round"
   }
-  /// The sheet eyebrow: `MATCH PLAY · PAPAGO`.
+  /// The sheet eyebrow: `MATCH PLAY · SAGUARO FLATS`.
   public var eyebrow: String { "\(gameLabel.uppercased()) · \(courseLabel.uppercased())" }
 
   /// Decode the `live_round_card` payload. nil when `round` is missing.

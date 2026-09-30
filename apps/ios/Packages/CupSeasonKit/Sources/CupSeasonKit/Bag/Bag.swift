@@ -4,14 +4,14 @@
 // driver → putter, plus the ball — and beside them THE SIDELINE, the clubs
 // they own that swap in. The sideline is the differentiated half: most bag
 // features are a static fourteen, and a 3-iron that replaces the 5-wood
-// *sometimes* is what makes "is Galen bringing the new driver?" a question
+// *sometimes* is what makes "is Blake bringing the new driver?" a question
 // with an answer.
 //
 // THERE IS NO EQUIPMENT DATABASE, and that is a written refusal (R-O, D250
 // sense): no brand, model, loft or shaft table, no third-party catalogue.
 // `label` is a sentence the golfer types. `slot` is one word the golfer types
 // — "Driver", "3-wood" — and it exists only because the canon's own sentence
-// ("Galen put a new driver in the bag") is not sayable without it; every
+// ("Blake put a new driver in the bag") is not sayable without it; every
 // producer here degrades to "a new club" when it is blank.
 //
 // THE LINE WORTH BUILDING CAREFULLY. A bag is a state over time and rounds are
@@ -191,7 +191,7 @@ public enum BagCopy {
     return isMe ? line : CSBands.theirs(line)
   }
 
-  /// The section head on somebody else's page. Never "Galen's bag" beside a
+  /// The section head on somebody else's page. Never "Blake's bag" beside a
   /// name that is already at the top of the page (one fact, one place).
   public static func head(isMe: Bool) -> String { isMe ? yours : inTheBag }
 }

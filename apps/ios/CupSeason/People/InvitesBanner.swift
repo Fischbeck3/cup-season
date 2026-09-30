@@ -331,8 +331,8 @@ struct InviteTermsSheet: View {
 
 #Preview("Invites") {
   let c = InvitesCount()
-  c.invites = [Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "PIGL", inviter: "Jerecho", startsOn: nil),
-               Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12", eventKind: "ryder", buyIn: 0),
-               Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Galen", startsOn: "2026-10-03", eventKind: "major", buyIn: 25)]
+  c.invites = [Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "NGFX26", inviter: "Avery", startsOn: nil),
+               Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "Desert Ryder", inviter: "Blake", startsOn: "2026-09-12", eventKind: "ryder", buyIn: 0),
+               Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Blake", startsOn: "2026-10-03", eventKind: "major", buyIn: 25)]
   return InvitesBanner(count: c, onJoined: { _ in }).padding(20).environment(SessionStore()).csTheme()
 }

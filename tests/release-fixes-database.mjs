@@ -128,7 +128,7 @@ try {
   sql(read('20261101090000_home_carries_the_month_facts.sql'));
 
   const a = randomUUID(), b = randomUUID();
-  sql(`insert into auth.users values('${a}'),('${b}'); insert into public.profiles values('${a}','Jerecho Fixture','saguaro',12.4),('${b}','Galen Fixture','owl',8.1);`);
+  sql(`insert into auth.users values('${a}'),('${b}'); insert into public.profiles values('${a}','Avery Fixture','saguaro',12.4),('${b}','Blake Sample','owl',8.1);`);
   const asu = (who, text, role = 'authenticated') => `set request.jwt.claim.sub='${who}'; set role ${role}; ${text}`;
   const body = (gross, extra = {}) => JSON.stringify({ gross, rating: 72, slope: 113, holes_played: 18, played_on: '2026-09-13', course_label: 'QA fixture', ...extra });
   const post = (who, key, gross, extra) => asu(who, `select public.post_round_once('${key}','${body(gross, extra)}'::jsonb, ARRAY[]::int[], '{}'::uuid[]);`);
@@ -183,12 +183,12 @@ try {
   let first;
   {
     const req = randomUUID();
-    first = JSON.parse(sql(asu(a, `select public.create_league_once('${req}','The Fellas','FELLAS26');`)));
-    const again = JSON.parse(sql(asu(a, `select public.create_league_once('${req}','The Fellas','FELLAS26');`)));
+    first = JSON.parse(sql(asu(a, `select public.create_league_once('${req}','North Grove (fixture)','FELLAS26');`)));
+    const again = JSON.parse(sql(asu(a, `select public.create_league_once('${req}','North Grove (fixture)','FELLAS26');`)));
     assert(first.league.id === again.league.id, 'a replay returns the SAME league');
     assert(again.replayed === true && first.replayed !== true, 'and says it was a replay');
     const renamed = JSON.parse(sql(asu(a, `select public.create_league_once('${req}','The Lads','LADS26');`)));
-    assert(renamed.league.id === first.league.id && renamed.league.name === 'The Fellas', 'a conflicting body returns the stored league');
+    assert(renamed.league.id === first.league.id && renamed.league.name === 'North Grove (fixture)', 'a conflicting body returns the stored league');
     assert(sql('select count(*) from leagues') === '1', 'a conflicting body mints nothing');
     // concurrent Start taps: one league
     const req2 = randomUUID();

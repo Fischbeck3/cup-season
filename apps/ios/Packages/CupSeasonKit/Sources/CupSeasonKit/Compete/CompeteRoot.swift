@@ -34,7 +34,7 @@ public enum CompeteRoot {
     ///
     /// This is the tab a competitive golfer opens to find out where he is, and
     /// the answer shipped as the fourth clause of a grey sentence —
-    /// *"2nd of 2, 4 back of Galen"* — in the same size, weight and colour as
+    /// *"2nd of 2, 4 back of Blake"* — in the same size, weight and colour as
     /// the week, the money and the stage word. §9.9 names this exact failure
     /// for the HCP and the gap: *the two facts that keep escaping into prose*.
     /// A rank is a figure, it belongs in the figure's own voice, and the row
@@ -304,7 +304,7 @@ public enum CompeteRoot {
     }
   }
 
-  /// "Mike took it" — only when the payload actually names the champion of THIS
+  /// "Gray took it" — only when the payload actually names the champion of THIS
   /// season. `season.champion_member_id` is an id, not a name, so the name comes
   /// from `last_season` and only when its number is the one that just finished.
   /// Otherwise the row says the stage word and no more (L-44).
@@ -345,7 +345,7 @@ public enum CompeteRoot {
   ///
   /// Two rules, and the first cost a real screenshot to find. **`tagged_names`
   /// includes ME** on a round a buddy booked with me, so the naive sentence
-  /// read *"You and Jerecho Fischbeck."* — the viewer, twice. My own name comes
+  /// read *"You and Avery Fixture."* — the viewer, twice. My own name comes
   /// out, and a round I do not own names its HOST, which is the fact that makes
   /// it mine at all. Second: nothing is invented from a count nobody sent
   /// (L-44) and **no seat count is printed** (IA §8.4 rule 1) — `scheduled_rounds`

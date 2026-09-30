@@ -72,23 +72,23 @@ import Foundation
 }
 
 @Suite struct PricingFoundingTests {
-  let pigl = UUID()
+  let ngfx26 = UUID()
 
   @Test func theBadgeNumberByLeagueIdInEitherCase() {
     let lower = PricingFlags(visible: true, anchorCents: 8900, bands: PricingFlags.defaultBands, firstYearFree: true,
-                             founding: .init(cap: 10, closed: false, ids: [pigl.uuidString.lowercased(): 1]))
-    #expect(lower.foundingNumber(leagueId: pigl) == 1)
+                             founding: .init(cap: 10, closed: false, ids: [ngfx26.uuidString.lowercased(): 1]))
+    #expect(lower.foundingNumber(leagueId: ngfx26) == 1)
     let upper = PricingFlags(visible: true, anchorCents: 8900, bands: PricingFlags.defaultBands, firstYearFree: true,
-                             founding: .init(cap: 10, closed: false, ids: [pigl.uuidString.uppercased(): 3]))
-    #expect(upper.foundingNumber(leagueId: pigl) == 3)
+                             founding: .init(cap: 10, closed: false, ids: [ngfx26.uuidString.uppercased(): 3]))
+    #expect(upper.foundingNumber(leagueId: ngfx26) == 3)
     #expect(upper.foundingNumber(leagueId: UUID()) == nil)
   }
 
   @Test func foundingBeatsPaidBeatsFree() {
     let f = PricingFlags(visible: true, anchorCents: 8900, bands: PricingFlags.defaultBands, firstYearFree: true,
-                         founding: .init(ids: [pigl.uuidString.lowercased(): 1]))
+                         founding: .init(ids: [ngfx26.uuidString.lowercased(): 1]))
     let paid = PricingPaid(paidThrough: "2027-09-26", cents: 8900)
-    #expect(PricingMembershipState.of(f, leagueId: pigl, roster: 12, paid: paid) == .founding(number: 1))
+    #expect(PricingMembershipState.of(f, leagueId: ngfx26, roster: 12, paid: paid) == .founding(number: 1))
     let other = UUID()
     #expect(PricingMembershipState.of(f, leagueId: other, roster: 12, paid: paid) == .paid(paid))
     #expect(PricingMembershipState.of(f, leagueId: other, roster: nil, paid: nil)

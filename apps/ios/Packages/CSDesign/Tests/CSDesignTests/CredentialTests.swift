@@ -14,18 +14,18 @@ struct CredentialTests {
   @Test("the strip takes at most three figures, and a fourth is dropped rather than crammed")
   func figureCap() {
     let g = CSCredentialGolfer(
-      face: .init(id: UUID(), marker: "saguaro"), name: "Galen Marr", identity: "@galenm",
+      face: .init(id: UUID(), marker: "saguaro"), name: "Blake Sample", identity: "@blake",
       figures: [.init("10.2", label: "Handicap index"), .init("31", label: "Rounds"),
-                .init("1", label: "The Fellas", ordinal: "ST"), .init("74", label: "Best")],
+                .init("1", label: "North Grove (fixture)", ordinal: "ST"), .init("74", label: "Best")],
       club: "Cup Season · The Saguaro")
     #expect(g.figures.count == 3)
-    #expect(g.figures.last?.label == "The Fellas")
+    #expect(g.figures.last?.label == "North Grove (fixture)")
   }
 
   @Test("a slot with no figure is ABSENT — never a dash, never a zero")
   func absentSlots() {
     let g = CSCredentialGolfer(
-      face: .init(id: UUID(), marker: nil), name: "Tash Bell", identity: "@tashb",
+      face: .init(id: UUID(), marker: nil), name: "Devon Testwell", identity: "@tashb",
       figures: [.init("2", label: "Rounds")], club: "Cup Season · The Thistle")
     #expect(g.figures.count == 1)
     #expect(!g.figures.contains { $0.value == "—" || $0.value.isEmpty })
@@ -53,19 +53,19 @@ struct ContourTests {
 
   @Test("same seed, same plot — forever, and across processes")
   func deterministic() {
-    let a = CSContour.field(seed: "papago-golf-course")
-    let b = CSContour.field(seed: "papago-golf-course")
+    let a = CSContour.field(seed: "saguaro flats-golf-course")
+    let b = CSContour.field(seed: "saguaro flats-golf-course")
     #expect(a == b)
     // FNV-1a, not `hashValue`: Swift seeds `Hashable` PER PROCESS, so the
     // literal reading of the spec would have given one course two plots in one
     // day. This asserts the value, not merely the equality of two calls in one
     // process — a per-process seed passes the equality test and fails this one.
-    #expect(abs(CSContour.hash01("papago-golf-course", 2, 3) - 0.4756) < 0.0002)
+    #expect(abs(CSContour.hash01("saguaro flats-golf-course", 2, 3) - 0.4572) < 0.0002)
   }
 
   @Test("two courses draw two places")
   func distinct() {
-    let a = CSContour.field(seed: "papago-golf-course")
+    let a = CSContour.field(seed: "saguaro flats-golf-course")
     let b = CSContour.field(seed: "troon-north")
     let differing = zip(a, b).filter { abs($0 - $1) > 0.05 }.count
     // a noise field, not six concentric circles: most of the grid must differ
@@ -88,13 +88,13 @@ struct ContourTests {
     #expect(path.isEmpty)
     // the real field crosses every level the plate draws
     var drawn = Path()
-    CSContour.isoline(CSContour.field(seed: "papago-golf-course"), level: 0.5, into: &drawn)
+    CSContour.isoline(CSContour.field(seed: "saguaro flats-golf-course"), level: 0.5, into: &drawn)
     #expect(!drawn.isEmpty)
   }
 
   @Test("the hardest hole lands on the plate, not off it")
   func holeInside() {
-    for seed in ["papago", "troon-north", "gold-canyon", "the-boulders"] {
+    for seed in ["saguaro flats", "troon-north", "gold-canyon", "the-boulders"] {
       let p = CSContour.hardestHole(seed: seed)
       #expect(p.x > 0.2 && p.x < 0.75)
       #expect(p.y > 0.2 && p.y < 0.72)

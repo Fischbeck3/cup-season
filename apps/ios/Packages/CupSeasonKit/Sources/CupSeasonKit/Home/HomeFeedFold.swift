@@ -2,8 +2,8 @@
 // 2026-09-02).
 //
 // Today's stream, unfolded, is seven system lines over two leagues in a row —
-// "This week: Galen v Jerecho." · "The clash this week: Galen v Jerecho." ·
-// the same two for the Fellas · "August is in the books…" twice, word for
+// "This week: Blake v Avery." · "The clash this week: Blake v Avery." ·
+// the same two for North Grove (fixture) · "August is in the books…" twice, word for
 // word — before the first round a person played. The notes are true and each
 // one belongs in its league's Notices; on Home they bury the golf.
 //
@@ -53,8 +53,8 @@ public struct HomeFeedNotes: Sendable, Identifiable, Equatable {
     self.leagueIds = leagueIds; self.leagueNames = leagueNames; self.rows = rows
   }
 
-  /// "Who's the bitch? · 2 league notes this week" / "Fellas & Who's the
-  /// bitch? · 1 league note today" / "Fellas · 3 earlier league notes".
+  /// "Who's the bitch? · 2 league notes this week" / "North Grove (fixture) & Who's the
+  /// bitch? · 1 league note today" / "North Grove (fixture) · 3 earlier league notes".
   /// `bucket` is the bucket's label: "today" and "this week" are a when and
   /// read after the noun; "earlier" is an adjective and reads before it
   /// ("3 league notes earlier" is not a sentence anyone says).
@@ -122,8 +122,8 @@ public enum HomeFeedFold {
   /// `upcoming` is the set of scheduled-round ids the Coming-up card already
   /// shows. Buckets come out as `HomeBuckets.bucket` would cut them.
   /// `spent` is F-2's set: the ROUNDS the ranked cards above have already told
-  /// a story about. A-6's own worked example — "Galen posted 79 at Lone Tree ·
-  /// Personal best" in the deck and "Sun, Aug 23 — Galen set a personal best —
+  /// a story about. A-6's own worked example — "Blake posted 79 at Lone Tree ·
+  /// Personal best" in the deck and "Sun, Aug 23 — Blake set a personal best —
   /// 79 at Lone Tree" in the wire, one scroll apart — is this argument being
   /// empty. The card is the better rendering, so the wire yields.
   public static func fold(_ items: [HomeItem], upcoming: Set<UUID> = [], spent: Set<UUID> = [],
@@ -141,7 +141,7 @@ public enum HomeFeedFold {
         // The owner, on his own Home: *"my recent round is UNM, no sign of dino
         // mountain which now has a photo … so no sign photos are making it to
         // users."* His Dino round was spent by the CLASH lead, whose whole
-        // telling is *"You and Galen are both in. The week closes in 5 days."*
+        // telling is *"You and Blake are both in. The week closes in 5 days."*
         // — no gross, no course, no picture — and which is only "about" the
         // round because `spentRound` reads a `.receipt` ROUTE as a telling. The
         // first photograph the product ever successfully attached was
@@ -177,7 +177,7 @@ public enum HomeFeedFold {
     // Step 2 folds a system NOTE across leagues and stops there, so a moment —
     // `round_to_board()` fans a personal best to every league the golfer is
     // in — emitted one wire row per league. A photographed wire carried
-    // *"Jerecho set a personal best. New number to chase."* twice, on the same
+    // *"Avery set a personal best. New number to chase."* twice, on the same
     // day, one row apart: the same moment about the same round, told to the
     // same golfer, twice. It is the same argument step 2 makes, on the object
     // the wire is actually made of.
@@ -189,8 +189,8 @@ public enum HomeFeedFold {
     // the post with `round_id = new.id` — the ROUND's id — so this key is the
     // same key the wire's round rows carry. Seeded EMPTY it deduped a moment
     // against other copies of itself and never against the row standing four
-    // rows below it: "Jade broke 80 for the first time." as a line, and
-    // "Jade · ⛳ Broke 80 — first time · 78 · Troon North" as a round, one
+    // rows below it: "Emery broke 80 for the first time." as a line, and
+    // "Emery · ⛳ Broke 80 — first time · 78 · Troon North" as a round, one
     // bucket apart. The set opens with the rounds step 1 kept, so the line
     // yields to the row exactly as it yields to the deck. Nothing is lost —
     // `HomeCopy.milestone` already prints the phrase on the round itself.
@@ -225,7 +225,7 @@ public enum HomeFeedFold {
         case .round(let r, let url): out.append(.round(r, photoURL: url))
         case .post(let p, let n):
           guard p.kind == "system" else { out.append(.moment(p, leagueName: n)); continue }
-          // sorted by name, so "Fellas & Who's the bitch?" is one group whichever
+          // sorted by name, so "North Grove (fixture) & Who's the bitch?" is one group whichever
           // league's copy of the note survived the dedupe above
           let set = (leagueSets[p.id] ?? [(p.league_id ?? UUID(), n)])
             .sorted { ($0.name ?? "", $0.id.uuidString) < ($1.name ?? "", $1.id.uuidString) }

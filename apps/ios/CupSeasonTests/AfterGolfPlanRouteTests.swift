@@ -11,7 +11,7 @@ import XCTest
 @MainActor final class AfterGolfPlanRouteTests: XCTestCase {
 
   private let plan = PlanContext(planId: UUID(uuidString: "c0000000-0000-4000-8000-0000000000a1")!,
-                                 playOn: "2026-09-11", courseLabel: "Papago",
+                                 playOn: "2026-09-11", courseLabel: "Saguaro Flats",
                                  courseId: nil, teeTime: "08:10")
 
   override func tearDown() {
@@ -34,7 +34,7 @@ import XCTest
     card.date = "2026-09-13"                       // the stamp, not a choice
     card.fill(plan: plan)
     XCTAssertEqual(card.date, "2026-09-11")
-    XCTAssertEqual(card.course, "Papago")
+    XCTAssertEqual(card.course, "Saguaro Flats")
     XCTAssertNil(card.courseId, "a catalogue id was claimed without a tee")
     XCTAssertTrue(card.whole.isEmpty && card.f9.isEmpty && card.b9.isEmpty)
     XCTAssertFalse(card.touched, "a plan is not a scorecard")
@@ -76,7 +76,7 @@ import XCTest
     for mutate in [{ (c: inout PostCard) in c.whole = "84" },
                    { c in c.f9 = "41" }, { c in c.b9 = "43" },
                    { c in c.rating = "71.2" }, { c in c.slope = "128" },
-                   { c in c.course = "Papago" }, { c in c.touched = true }] {
+                   { c in c.course = "Saguaro Flats" }, { c in c.touched = true }] {
       var c = PostCard(); c.date = stamp; mutate(&c)
       XCTAssertFalse(c.isUntouched(defaultDate: stamp), "work was treated as an empty card")
     }

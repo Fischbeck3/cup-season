@@ -38,7 +38,7 @@ public struct CSEmpty: View {
   /// yet."*
   let headline: String
   /// One true fact, if one exists: *"Dinosaur Mountain is on the board because
-  /// Galen keeps it."*
+  /// Blake keeps it."*
   let fact: String?
   /// A number where one exists — an unfilled star rail, a `0` in a panel, a
   /// blank rail. Not one canonical empty state in the shipped product contains

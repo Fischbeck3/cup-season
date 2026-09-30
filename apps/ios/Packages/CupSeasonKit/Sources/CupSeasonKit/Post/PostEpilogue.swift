@@ -282,7 +282,7 @@ public struct PostEpilogue: Sendable, Equatable {
   }
 
   public static func title(firstEver: Bool) -> String { firstEver ? "Welcome to the season" : "Your round" }
-  /// "84 AT PAPAGO" / "THE ROUND, FOR YOU FIRST"
+  /// "84 AT SAGUARO FLATS" / "THE ROUND, FOR YOU FIRST"
   public func subtitle(course: String?) -> String {
     guard let course, !course.isEmpty else { return "THE ROUND, FOR YOU FIRST" }
     return (gross.map { "\($0) at " } ?? "") + course.uppercased()
@@ -294,7 +294,7 @@ public struct PostEpilogue: Sendable, Equatable {
   public static let revokeFine = "The page stops working for everyone who has it. You can share a new link anytime."
   public static let revokedToast = "Link is off — the page stops working for everyone"
   public static let linkCopiedToast = "Link copied — no account needed to view it"
-  /// The share text: "Jerecho — 84 at Papago"
+  /// The share text: "Avery — 84 at Saguaro Flats"
   public static func linkText(name: String?, gross: Int, course: String?) -> String {
     let who = (name ?? "").isEmpty ? "A round" : name!
     let where_ = (course ?? "").isEmpty ? "the course" : course!
@@ -340,8 +340,13 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
     return "\(dow[d]) \(mos[p.m - 1]) \(p.d)"
   }
 
-  /// `PAPAGO · SAT AUG 22`
+  /// `SAGUARO FLATS · SAT AUG 22`
   public var eyebrow: String { "\((course.isEmpty ? "A round" : course).uppercased()) · \(Self.when(date))" }
+  /// W7-059: course, optional tee, then date; each gets the whole measure.
+  public var eyebrowLines: [String] {
+    let parts = course.split(separator: "·").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    return (parts.isEmpty ? ["A round"] : parts) + [Self.when(date)]
+  }
   /// The band line — blank when the number is not sane (a rating-less post).
   public var band: String { PostCalc.vsIsSane(vs) ? CSBands.vsPhrase(vs) : "" }
   /// N4-082 · the band as the ceremony sets it: its figure marked as a run
@@ -352,7 +357,7 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   /// points are not a trophy (W4, §2.4).
   public var earned: Bool { inLeague && (points ?? 0) > 0 }
   /// W4 twin, word for word with the web's `finishCeremony`: a sentence in
-  /// ink, never a mono caps tag. `+9 points · counts for The Pines` ·
+  /// ink, never a mono caps tag. `+9 points · counts for Fixture Wrens` ·
   /// `+1 point · counts this season` · `Counts toward your number`.
   public var pointsLine: String {
     guard earned, let points else {
@@ -363,7 +368,7 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
     return "+\(points) point\(points == 1 ? "" : "s")" + (squad.map { " · counts for \($0)" } ?? " · counts this season")
   }
   public static let shareLabel = "Share the card"
-  public static let backLabel = "Back to the board"
+  public static let backLabel = "Close"
 
   /// The exact payload the recap-card path expects (matches the epilogue).
   public var recap: PostRecap {

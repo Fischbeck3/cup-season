@@ -171,7 +171,7 @@ public enum ForfeitCopy {
     [title, sub, purpose, nameLabel, namePlaceholder, termsLabel, termsPlaceholder, whoLabel, theField,
      whereLabel, decidesLabel, decidesOptional, settlesLabel, settlesPlaceholder, put, definition, noPush,
      points, whereItShows, ledgerHead, who("Alex"), who(nil), confirm("Alex"), confirm(nil),
-     context(ForfeitHome(leagueId: UUID()), name: "the Fellas"), context(ForfeitHome(opponent: UUID()))]
+     context(ForfeitHome(leagueId: UUID()), name: "North Grove (fixture)"), context(ForfeitHome(opponent: UUID()))]
   }
 
   /// The words a money AMOUNT would be written in. Nothing in this product may

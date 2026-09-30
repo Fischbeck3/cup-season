@@ -26,8 +26,8 @@ private let opp = "77777777-7777-7777-7777-777777777777"
 private let full = """
 {
   "visible": true,
-  "opponent": { "id": "\(opp)", "display_name": "Galen", "handle": "galen", "marker": "beer" },
-  "league": "Fellas",
+  "opponent": { "id": "\(opp)", "display_name": "Blake", "handle": "blake", "marker": "beer" },
+  "league": "North Grove (fixture)",
   "record": { "wins": 6, "losses": 5, "ties": 0, "total": 11 },
   "lead": "up",
   "since": "2026-03-14",
@@ -96,7 +96,7 @@ private let full = """
 
   @Test func aFacetWithNoDataRendersNothing() throws {
     let h = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 1, "losses": 0, "ties": 0, "total": 1 }, "lead": "up",
       "facets": {
         "season_weeks": { "wins": 1, "losses": 0, "ties": 0, "meetings": 1 },
@@ -199,13 +199,13 @@ private let full = """
     #expect(HeadToHeadCopy.headline(up) == "You lead 6–5 across every meeting.")
 
     let down = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 5, "losses": 6, "ties": 0, "total": 11 }, "lead": "down", "facets": {} }
     """))
-    #expect(HeadToHeadCopy.headline(down) == "Galen leads 6–5 across every meeting.")
+    #expect(HeadToHeadCopy.headline(down) == "Blake leads 6–5 across every meeting.")
 
     let even = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 5, "losses": 5, "ties": 0, "total": 10 }, "lead": "even", "facets": {} }
     """))
     #expect(HeadToHeadCopy.headline(even) == "All square, 5–5, across every meeting.")
@@ -213,16 +213,16 @@ private let full = """
 
   @Test func nothingDecidedMeansNoHeadlineAtAll() throws {
     let h = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 0, "losses": 0, "ties": 0, "total": 2 }, "lead": "even",
       "facets": { "played_together": { "wins": 0, "losses": 0, "ties": 0, "meetings": 2, "unsettled": 2 } } }
     """))
     // L-44 · a record of nought is not a sentence. The empty state is.
     #expect(HeadToHeadCopy.headline(h) == nil)
     #expect(HeadToHeadCopy.personClause(h) == nil)
-    let root = HeadToHeadCopy.empty("Galen")
+    let root = HeadToHeadCopy.empty("Blake")
     #expect(!root.doors.isEmpty)
-    #expect(root.sub.contains("Galen"))
+    #expect(root.sub.contains("Blake"))
   }
 
   @Test func theStandfirstDropsEveryClauseItCannotProve() throws {
@@ -230,11 +230,11 @@ private let full = """
     let s = try #require(HeadToHeadCopy.standfirst(whole))
     #expect(s.hasPrefix("Eleven meetings where you both played"))
     #expect(s.contains("going back to March"))
-    #expect(s.contains("Galen has taken the last two."))
+    #expect(s.contains("Blake has taken the last two."))
 
     // no `since`, no month clause; no streak, no run clause
     let bare = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 1, "losses": 0, "ties": 0, "total": 1 }, "lead": "up", "facets": {} }
     """))
     let b = try #require(HeadToHeadCopy.standfirst(bare))
@@ -245,7 +245,7 @@ private let full = """
     // N4-082 · marked for the page's serif, a count above twelve is a figure
     // run; a count the voice spells stays a word
     let many = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 9, "losses": 5, "ties": 0, "total": 14 }, "lead": "up", "facets": {} }
     """))
     #expect(HeadToHeadCopy.standfirst(many, marked: true) == "{14} meetings where you both played.")
@@ -255,7 +255,7 @@ private let full = """
 
   @Test func aStreakOfOneIsNotAStreak() throws {
     let h = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 1, "losses": 1, "ties": 0, "total": 2 }, "lead": "even",
       "streak": { "who": "me", "n": 1 }, "facets": {} }
     """))
@@ -268,15 +268,15 @@ private let full = """
   /// clean sweep's dropped "of them".
   @Test func thePersonClauseIsTheOneTheCardBorrows() throws {
     let h = HeadToHead.parse(try json(full))
-    #expect(HeadToHeadCopy.personClause(h) == "Galen has beaten you five times out of eleven, across every meeting.")
+    #expect(HeadToHeadCopy.personClause(h) == "Blake has beaten you five times out of eleven, across every meeting.")
 
     let clean = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 3, "losses": 0, "ties": 0, "total": 3 }, "lead": "up", "facets": {} }
     """))
     #expect(HeadToHeadCopy.personClause(clean) == "You have taken all three, across every meeting.")
     let eleven = HeadToHead.parse(try json("""
-    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake" },
       "record": { "wins": 11, "losses": 0, "ties": 0, "total": 11 }, "lead": "up", "facets": {} }
     """))
     #expect(HeadToHeadCopy.personClause(eleven) == "You have taken all eleven, across every meeting.")
@@ -317,7 +317,7 @@ private let full = """
     #expect(h.lastFive.first?.facet == .clashes)
   }
 
-  /// The first cut of this page printed "Galen has won one title. Galen has
+  /// The first cut of this page printed "Blake has won one title. Blake has
   /// beaten you five times out of eleven." — the same golfer opening two
   /// consecutive clauses, which reads as two facts about two people. A real
   /// screenshot caught it; this holds the fix.
@@ -325,22 +325,22 @@ private let full = """
     let h = HeadToHead.parse(try json(full))
     let card = TourCard.parse(try json("""
     { "visible": true,
-      "profile": { "id": "\(opp)", "display_name": "Galen", "is_me": false },
+      "profile": { "id": "\(opp)", "display_name": "Blake", "is_me": false },
       "career": { "rounds": 42 },
       "case": [ { "kind": "league", "title": "Cup", "placement": "winner", "season_year": 2026 } ] }
     """))
     let line = try #require(HeadToHeadCopy.personNarrative(card: card, h2h: h))
-    #expect(line == "Galen has won one title, and has beaten you five times out of eleven, across every meeting.")
-    #expect(line.components(separatedBy: "Galen").count - 1 == 1)
+    #expect(line == "Blake has won one title, and has beaten you five times out of eleven, across every meeting.")
+    #expect(line.components(separatedBy: "Blake").count - 1 == 1)
   }
 
   @Test func theNarrativeDropsWhicheverClauseHasNoFact() throws {
     let h = HeadToHead.parse(try json(full))
     let noCase = TourCard.parse(try json("""
-    { "visible": true, "profile": { "id": "\(opp)", "display_name": "Galen" }, "career": { "rounds": 3 } }
+    { "visible": true, "profile": { "id": "\(opp)", "display_name": "Blake" }, "career": { "rounds": 3 } }
     """))
     #expect(HeadToHeadCopy.personNarrative(card: noCase, h2h: h)
-            == "Galen has beaten you five times out of eleven, across every meeting.")
+            == "Blake has beaten you five times out of eleven, across every meeting.")
     // and with neither fact there is no sentence at all (L-44)
     #expect(HeadToHeadCopy.personNarrative(card: noCase, h2h: nil) == nil)
   }

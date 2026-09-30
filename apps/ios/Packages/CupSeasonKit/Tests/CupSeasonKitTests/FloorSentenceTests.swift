@@ -49,8 +49,8 @@ struct FloorSentenceTests {
     let clock = RoomClock(phase: .season, startsOn: "2026-07-06", endsOn: "2026-10-18", status: "active",
                           finish: "cup_final", today: "2026-09-28")
     let b = Bylaws(stake: 40, floor: 2, cap: 4, presetIdx: 1, structure: "squads2")
-    let marked = SeasonRules.sections(b, clock: clock, pro: "Galen", members: 8, marked: true)
-    let plain = SeasonRules.sections(b, clock: clock, pro: "Galen", members: 8)
+    let marked = SeasonRules.sections(b, clock: clock, pro: "Blake", members: 8, marked: true)
+    let plain = SeasonRules.sections(b, clock: clock, pro: "Blake", members: 8)
     func body(_ s: [SeasonRules.Section], _ head: String) -> String { s.first { $0.head == head }?.body ?? "" }
     #expect(body(marked, "How it scores").contains("your index at {95} percent"))
     #expect(body(marked, "How it scores").contains("Your best four rounds"), "the counting rule keeps its word")

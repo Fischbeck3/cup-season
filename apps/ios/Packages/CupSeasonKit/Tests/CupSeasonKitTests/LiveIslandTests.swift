@@ -7,7 +7,7 @@ struct LiveIslandTests {
   func card() -> LiveRoundState {
     var me = LivePlayer(n: "You", i: 0, ci: 1, guest: false, me: true)
     me.pid = owner
-    var rival = LivePlayer(n: "Galen", i: 0, ci: 2, guest: false)
+    var rival = LivePlayer(n: "Blake", i: 0, ci: 2, guest: false)
     rival.pid = UUID()
     var s = LiveRoundState.fresh(players: [me, rival])
     s.active = true; s.stage = .live; s.lr = round; s.code = "TEST"; s.pmap = [UUID(), UUID()]
