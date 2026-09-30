@@ -278,6 +278,17 @@ const monthFact = async (page) => page.evaluate(() => {
   const t = lines[0].textContent.trim()
   return /^(Best \d+ a month count|Every round counts) · (.+ · )?(\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
 })
+/* TEN / W6 · AW2-01 · Home opens once: by the time it is on screen the cold open's hold has let go (no data-held, no
+   aria-busy), and no lead slot is still keeping room for a lead that already answered. The jump itself is measured by the
+   CLS probe (layout-shift entries through a cold signed-in boot, 375 and 1280, CPU 1x and 4x), not by a still frame. */
+const homeShownOnce = async (page) => page.evaluate(() => {
+  const v = document.getElementById('view-home')
+  if (!v) return 'no Home view'
+  if (v.hasAttribute('data-held') || v.getAttribute('aria-busy') === 'true') return 'Home is still held after the boot settled'
+  if (v.getBoundingClientRect().height === 0) return 'Home has no height on screen'
+  const lead = document.getElementById('homeLead')
+  return lead && lead.hasAttribute('data-coming') ? 'the lead slot still keeps room for a lead that already answered' : true
+})
 /* TEN / W6 · W7-083 · a wire card is no role="button" around four buttons: it is a plain block whose one receipt control is a real
    button, named with the printed story, beside the face, applause, course and comment buttons */
 const cardsNotButtons = async (page) => page.evaluate(() => {
@@ -387,7 +398,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

@@ -45,6 +45,14 @@
      without this line 46% of the desk's type renders in system-ui and
      nobody sees it happen. netlify.toml already allows fonts.gstatic.com. -->
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<!-- TEN / AW2-01 · the two Plex faces are asked for WITH the page, not after
+     the stylesheet above arrives: a face that lands late swaps in under a
+     golfer already reading (display=swap), and the reflow is a jump. These
+     are the latin files that stylesheet names for the faces Home paints first
+     (Mono 400, Sans Condensed 700). If Google moves a version, the stylesheet
+     still loads the right file; this only wastes one early request. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n1i8q131nj-o.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/ibmplexsanscondensed/v15/Gg8gN4UfRSqiPg7Jn2ZI12V4DCEwkj1E4LVeHY4S7bvspYYnFBq4.woff2">
 <style>
 :root{
   /* THE VISUAL SYSTEM (D265, D270, 2026-09-06) — this block is GENERATED-IN-
@@ -4889,6 +4897,12 @@ body:not(.noleague) #hubLeagueless{display:none;}
    running (a clash mid-week, a month not yet closed, a table that just moved).
    Gold would be wrong: nothing on this card is earned yet. */
 #homeLead:not(:empty){margin:0 0 14px;}
+/* TEN / AW2-01 · Home opens once: a cold open is not laid out at all until
+   its reads answer (csHomeHold). Hidden-but-laid-out still counted: the wire
+   sat at the column's empty top and "moved" when the column filled. And a
+   lead still coming keeps its room. */
+.view#view-home[data-held]{display:none;}
+#homeLead[data-coming]{min-height:224px; margin:0 0 14px;}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
 /* F15 · on a phone the grid reaches into its card's padding so every day is a
@@ -21668,7 +21682,7 @@ function rxSentence(k, gross){
   }
 }
 function renderHomeDigest(){
-  const box=$('#homeDigest'); if(!box) return;
+  const box=$('#homeDigest'); if(!box || window.__homeHold) return;   /* AW2-01 */
   box.innerHTML='';
   const items=dgItems().filter(i=>i.t);
   if(!items.length) return;
@@ -21767,7 +21781,7 @@ function csWireEmpty(){
 }
 window.csWireEmpty = csWireEmpty;
 function renderHomeFeed(){
-  const box=$('#homeFeed'); if(!box) return;
+  const box=$('#homeFeed'); if(!box || window.__homeHold) return;   /* AW2-01 */
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
      yet loaded; [] = loaded empty → the real empty state) */
   if(!state.demo && window.homeFeedRows===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
@@ -22382,10 +22396,12 @@ function csHomeDispatchClear(){ window.homeDispatch = null; window.homeDispatchF
 window.csHomeDispatchClear = csHomeDispatchClear;
 async function loadHomeDispatch(){
   const me = window.CS?.user?.id || null;
-  if(window.homeDispatchFor !== me){ csHomeDispatchClear(); window.homeDispatchFor = me; }
+  if(window.homeDispatchFor !== me){ csHomeDispatchClear(); window.homeDispatchFor = me; window.homeDispatchSettled = false; }
   if(window.csHomeState){ window.homeDispatch = await csLoadHomeStateFixture(window.csHomeState); window.homeDispatchFailed = false; window.homeDispatchStaleAt = null; return; }
   if(state.demo || !window.sb || !CS?.user){ csHomeDispatchClear(); return; }
   let failed = null;
+  /* AW2-01 · a lead is coming while this is in flight (renderHomeDispatch) */
+  window.homeDispatchPending = true;
   try{
     /* D353 · the capability, not just the day. `p_today` only ever said "this
        client knows its own calendar day", which every shipped build already
@@ -22402,6 +22418,7 @@ async function loadHomeDispatch(){
       return; }
     failed = reply.error || new Error('home_dispatch answered nothing');
   }catch(e){ failed = e; }
+  finally{ window.homeDispatchPending = false; window.homeDispatchSettled = true; }
   /* skew: an un-migrated database renders the fallback, never an error */
   if(csMissingFn(failed)){ csHomeDispatchClear(); return; }
   window.homeDispatchFailed = true;
@@ -22629,6 +22646,7 @@ window.csWireArrange = csWireArrange;
 function renderHomeDispatch(){
   const leadBox=$('#homeLead'), deckBox=$('#homeDeck');
   if(!leadBox && !deckBox) return;
+  if(window.__homeHold) return;   /* AW2-01 · held: csHomeRelease paints it once */
   /* TEN / W7-030 · the lead's key family rides on the view, so the desk's
      sidebar can stand down a fact the lead already says (the yield block) */
   const leadFamily = (k) => { const vh = document.getElementById('view-home'); if(vh) vh.dataset.lead = k || ''; };
@@ -22638,7 +22656,13 @@ function renderHomeDispatch(){
      state nobody can photograph is a state nobody has looked at. */
   if((state.demo || !CS?.user) && !window.csHomeState){ wipe(); return; }
   const served = window.homeDispatch && Array.isArray(window.homeDispatch.items) ? window.homeDispatch.items : null;
-  const items = served || (window.csHomeState ? [] : csFallbackItems());
+  /* TEN / AW2-01 · the fallback season card is never painted while the first
+     dispatch read is still coming: it flashed, then the lead landed on top of
+     it. The lead slot keeps the settled lead's room instead, so the lead fills
+     the space rather than pushing Home down. */
+  const coming = !served && !window.csHomeState && !!window.homeDispatchPending && !window.homeDispatchSettled;
+  if(leadBox) leadBox.toggleAttribute('data-coming', coming);
+  const items = served || (window.csHomeState || coming ? [] : csFallbackItems());
   const nextSlot = (typeof csMeStrip === 'function') ? (csMeStrip().slots || []).find(s => s.fact === 'my_next_round' && !s.ph) : null;
   const r = csRankDispatch(items, {
     nextId: nextSlot && nextSlot.id ? String(nextSlot.id) : null,
@@ -22839,10 +22863,41 @@ function refreshHomeLead(){
   /* Both reads, then one repaint. `home_clash` still feeds the DECLARED
      FALLBACK (the phone reads the same clash off `native_home` v3), so it is
      not dead the day the ranker cannot be reached. */
-  Promise.all([loadHomeDispatch(), loadHomeClash()])
-    .then(()=>{ if(window.renderHomeDispatch) renderHomeDispatch(); });
+  const done = ()=>{ if(window.renderHomeDispatch) renderHomeDispatch(); csHomeAnswered('dispatch'); };
+  Promise.all([loadHomeDispatch(), loadHomeClash()]).then(done, done);
 }
 window.refreshHomeLead = refreshHomeLead;
+/* TEN / AW2-01 [P1] · HOME OPENS ONCE. A signed-in cold open painted Home
+   piece by piece: the ME strip, then the lead landing on top of it, with the
+   fallback season card flashing between them (CLS 0.89 at 375; 86 writes
+   into 14 containers). Now the cold open HOLDS Home (unseen, nothing
+   written into it) until `home_dispatch` and the career read (the
+   strip's number and LAST) have both answered, then paints every container
+   once and shows it in that same frame (display:none while held, so the
+   column is new when it appears, not moved). A watchdog lets it go regardless, so
+   a slow read never keeps Home blank. Once per page load: a later read
+   repaints what is already on screen. */
+const CS_HOME_HOLD_MS = 2500;
+function csHomeHold(){
+  if(window.__homeShown || window.__homeHold || state.demo || !window.CS?.user) return;
+  const v = document.getElementById('view-home'); if(!v) return;
+  v.setAttribute('data-held', ''); v.setAttribute('aria-busy', 'true');
+  window.__homeHold = { dispatch: false, career: false,
+    t: setTimeout(() => csHomeRelease(), CS_HOME_HOLD_MS) };
+}
+function csHomeAnswered(which){
+  const h = window.__homeHold; if(!h) return;
+  h[which] = true;
+  if(h.dispatch && h.career) csHomeRelease();
+}
+function csHomeRelease(){
+  const h = window.__homeHold; if(!h) return;
+  clearTimeout(h.t); window.__homeHold = null; window.__homeShown = true;
+  try{ renderHomeHub(); }
+  finally{ const v = document.getElementById('view-home');
+    if(v){ v.removeAttribute('data-held'); v.removeAttribute('aria-busy'); } }
+}
+window.csHomeHold = csHomeHold; window.csHomeAnswered = csHomeAnswered;
 /* D259 · the hatch's own boot. With `?cs_home_state=<id>` the desk lifts the
    sign-in door, lands on Home and paints the fixture — a state a browser can
    photograph without a session, which is the only web session a build machine
@@ -24874,6 +24929,8 @@ function renderHomeHub(){
      the link is gated here instead of trusting it. */
   {const bg=document.getElementById('homeBoardGo');
    if(bg) bg.style.display = (!state.demo && window.CS?.league) ? '' : 'none';}
+  /* AW2-01 · held: Home's containers wait for csHomeRelease's one paint */
+  if(window.__homeHold){ renderClubGroups(); return; }
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
   renderMeStrip();        /* D236: my number, my last round, my next round, my money */
   renderHomeDispatch();   /* D228/D231: the lead and the deck, ranked, one read */
@@ -33078,6 +33135,7 @@ async function enterLeague(m, nav=true, opts={}){
     state.myIndex = Number(CS.profile.index_current) || state.myIndex;
     window.csRenderComposerEyebrow?.();
   }
+  window.csHomeHold?.();   /* TEN / AW2-01 · a cold open holds Home until its reads answer */
   try { await loadLeagueData(!!opts.requireRoom); CS.roomLoadFailed=false; }
   catch(e){ CS.roomLoadFailed=true; if(opts.requireRoom) throw e; bootTrace('league data: '+(e.message||e)); }
   /* resume an in-progress live round dropped by a refresh — runs after
@@ -36687,6 +36745,7 @@ async function loadCareer(){
     window.careerState = window.career ? 'ready' : 'failed';
   }
   if(window.renderCareer) window.renderCareer();
+  window.csHomeAnswered?.('career');   /* TEN / AW2-01 · the strip's read answered */
   /* WA3 · the card is refreshed whenever the count lands, not only while the
      index is still building. The establishing meter ("2 of 3") was the only
      reason named here, so an established profile kept whatever the credential
@@ -37886,6 +37945,7 @@ function showWelcome(){
   window.seasonStory = null; window.seasonStoryLeague = null; window.seasonStoryFailed = false;
   loadLeagueRecord();
   loadTrophies();
+  window.csHomeHold?.();        /* TEN / AW2-01 · a cold open holds Home until its reads answer */
   loadCareer();
   loadCareerRecord();           /* D67: titles + what they paid (user-global) */
   renderIndStats();
@@ -38069,6 +38129,7 @@ async function boot(){
       return;   // resumeAfterProfile() continues the boot after save
     }
 
+    window.csHomeHold?.();   /* TEN / AW2-01 · from here Home is held until its reads answer */
     bootStep = 'memberships';
     await loadMemberships();
 
@@ -38174,6 +38235,7 @@ async function resumeAfterProfile(){
         }
       }catch(e){ toast(humanError(e, 'Auto-join failed.')); }
     }
+    window.csHomeHold?.();   /* TEN / AW2-01 */
     bootStep = 'memberships';
     await loadMemberships();
 
