@@ -75,6 +75,48 @@ const playIsWhereYouAre = async (page) => page.evaluate(() => {
   if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
   return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
 })
+/* TEN / W6 · W7-096 · gold is earned (D359): no live state wears it. The mid-round leader chip is ink-outlined with an ink name, and a
+   finished card's status line is ink (inert where neither is drawn) */
+const noLiveGold = async (page) => page.evaluate(() => {
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const gold = probe('--gold'), ink = probe('--ink')
+  const lead = [...document.querySelectorAll('.scoreboard .sbchip.lead')].find((c) => c.getBoundingClientRect().height > 0)
+  if (lead) {
+    if (getComputedStyle(lead).borderTopColor === gold || getComputedStyle(lead.querySelector('b')).color === gold) return 'the live leader chip wears gold'
+    if (getComputedStyle(lead).borderTopColor !== ink) return 'the live leader chip is not ink-outlined: ' + getComputedStyle(lead).borderTopColor
+  }
+  const fs = document.getElementById('finishStatus')
+  if (fs && fs.getBoundingClientRect().height > 0 && getComputedStyle(fs).color === gold) return 'the finish line turns gold'
+  return true
+})
+/* TEN / W6 · W7-092 · below 640px every one of the five games is on screen with no scroll: the phone's wrapping chip flow */
+const gamesOnScreen = async (page) => page.evaluate(() => {
+  if (innerWidth > 640) return true
+  const seg = document.getElementById('gameSeg'), bs = [...seg.querySelectorAll('button')]
+  if (bs.length !== 5) return `the picker has ${bs.length} games`
+  if (seg.scrollWidth > seg.clientWidth + 1) return 'the game picker still scrolls sideways'
+  const off = bs.find((b) => { const r = b.getBoundingClientRect(); return r.left < 0 || r.right > innerWidth + 0.5 || r.height < 43.5 })
+  return off ? `"${off.textContent.trim()}" is not whole on screen at 44` : true
+})
+/* TEN / W6 · W7-102 · a golfer's row total is that gross against par, labelled: 'E' at level (never '+0'), and '20 gross · thru 5' under it */
+const rowTotals = async (page) => page.evaluate(() => {
+  const tots = [...document.querySelectorAll('#playerRows .tot')].filter((t) => t.getBoundingClientRect().height > 0 && t.querySelector('b'))
+  if (!tots.length) return 'no scored row total is drawn'
+  for (const t of tots) {
+    const b = t.querySelector('b').textContent.trim(), rest = t.textContent.replace(t.querySelector('b').textContent, '').trim()
+    if (b === '+0' || !/^(E|[+\u2212]\d+)$/.test(b)) return 'a row total reads ' + JSON.stringify(b)
+    if (!/^\d+ gross · thru \d+$/.test(rest)) return 'a row total’s small line reads ' + JSON.stringify(rest)
+  }
+  return true
+})
+/* TEN / W6 · W7-103 · on the desk a dot means only 'level' (the strip's): THE CARD draws a hole not played as the en dash */
+const deskCardDash = async (page) => page.evaluate(() => {
+  if (innerWidth < 960) return true
+  const cells = [...document.querySelectorAll('#deskCard td')].filter((c) => c.getBoundingClientRect().height > 0)
+  if (!cells.length) return 'THE CARD is not drawn on the desk'
+  if (cells.some((c) => c.textContent.trim() === '\u00b7')) return 'THE CARD draws a dot for a hole not played'
+  return cells.some((c) => c.textContent.trim() === '\u2013') ? true : 'THE CARD shows no unplayed hole, so its dash cannot be read'
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -145,7 +187,7 @@ export default [
   { family: 'play', id: 'setup-empty', variant: 'member', title: 'Live setup · before a course is picked',
     drive: toSetup,
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#playLive': 'hidden', '#teeOffBtn': 'visible', '#lrCourse': 'visible' } },
-    check: all(destMarked('record'),   /* TEN / W8 · W7-108: the live setup is a room of PLAY, so PLAY stays marked */
+    check: all(destMarked('record'), gamesOnScreen,   /* TEN / W8 · W7-108: the live setup is a room of PLAY, so PLAY stays marked; W7-092: every game on screen below 640 */
       async (page) => page.evaluate(() => {
       /* TEN / W6 · AW2-14: Play's "Score it live" door is an action — its word and dot are act, never ember */
       const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
@@ -174,6 +216,12 @@ export default [
         return /Saguaro Flats/.test(c) && t === 'Blue' && r === '70.1' && s === '121' ? true : `the fields read ${JSON.stringify([c, t, r, s])}`
       }),
       has('#fourSlots', 'Devon Testwell[\\s\\S]*Blake Sample|Blake Sample[\\s\\S]*Devon Testwell', 'the group'),
+      /* TEN / W7-127: the course's pars loaded, so the pars button checks them, never asks for them */
+      async (page) => page.evaluate(() => {
+        const n = (document.getElementById('cardNote') || {}).textContent || '', b = document.getElementById('editCard').textContent.trim()
+        if (!/^Card loaded/.test(n)) return 'the card did not load its pars here, so the button cannot be read: ' + JSON.stringify(n.slice(0, 60))
+        return b === 'Check the pars' ? true : 'the pars button still asks for work already done: ' + JSON.stringify(b)
+      }),
       /* TEN / W7-054 [A2-play-4]: the desk sets up on two columns; below 960 course, group, game read down */
       setupColumns) },
 
@@ -209,7 +257,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), playIsWhereYouAre, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, deskCardDash, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {
@@ -398,7 +446,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 cards to the season$', '#lrCasual': 'text:^This one was casual — post nothing$' } },
-    check: async (page) => { const f = await liveFacts(page); return f.holes === 9 ? true : `the round is ${f.holes} holes, expected the nine` } },
+    check: async (page) => { const f = await liveFacts(page); if (f.holes !== 9) return `the round is ${f.holes} holes, expected the nine`; return noLiveGold(page) } },
 
   /* Post: finish_live_round answers, the settlement sheet (the ceremony) */
   { family: 'play', id: 'finish', variant: 'member', fullPage: false, title: 'Live round · posted: the round’s settlement (two cards to the season)',

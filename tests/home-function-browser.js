@@ -173,7 +173,7 @@
       const missing={...DEMO_FEED[0],course,gross:null,pvi:-4,is_pr:true};
       for(const photo_url of [null,good]){
         const probe=document.createElement('div');probe.innerHTML=feedRow({...missing,photo_url});
-        check(probe.querySelector('.hfcard').getAttribute('aria-label').includes('Course not recorded'),'Missing-course spoken copy lost');
+        check(probe.querySelector('.hfcard [data-rcptbtn]').getAttribute('aria-label').includes('Course not recorded'),'Missing-course spoken copy lost');   /* W7-083 · the card's name lives on its receipt button */
         check(!probe.textContent.includes('Personal best') && !probe.textContent.includes('beat their'),'Missing score asserted performance');
       }
     }

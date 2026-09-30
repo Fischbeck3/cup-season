@@ -523,9 +523,42 @@ const playIsWhereYouAre = async (page) => page.evaluate(() => {
   if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
   return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
 })
+/* TEN / W6 · Q38 (root's ruling; D362 "said before") · in a live season the preview says what the round CAN add before a
+   gross (the ceiling, under the league's cap), and once a gross is typed the card's own arithmetic replaces it: the
+   ceiling never stays under a real score (critique B's fix) */
+const worthBeforeGross = async (page) => {
+  await page.waitForFunction(() => /can score up to \d+/.test((document.getElementById('calcSeason') || {}).textContent || ''), null, { timeout: 4000 }).catch(() => {})
+  return page.evaluate(() => {
+    const t = ((document.getElementById('calcSeason') || {}).textContent || '').trim()
+    return /can score up to \d+/.test(t) ? true : 'before a gross the preview does not say the ceiling: ' + JSON.stringify(t)
+  })
+}
+const worthAfterGross = async (page) => page.evaluate(() => {
+  const t = ((document.getElementById('calcSeason') || {}).textContent || '').trim()
+  if (/can score up to/.test(t)) return 'the ceiling stayed under a real score: ' + JSON.stringify(t)
+  return /^(This \d+ (counts|replaces)|Your best \d+)/.test(t) ? true : 'with a gross the preview does not say the card\u2019s arithmetic: ' + JSON.stringify(t)
+})
+/* TEN / W6 · K077 kinds (§13.4, a port of the phone's CSGlyph): pos = the check on a pos rail, neg = the cross on a neg
+   rail, none = the rule rail and no glyph; the glyph never changes what the toast says. The toast is put away before
+   the capture. */
+const toastKinds = async (page) => page.evaluate(() => {
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const t = document.getElementById('toast')
+  if (!t || typeof toast !== 'function') return 'no toast'
+  const read = () => { const g = t.querySelector('svg.toastglyph'); const u = g && g.querySelector('use'); return { rail: getComputedStyle(t, '::before').backgroundColor, use: u ? u.getAttribute('href') : null, glyph: g ? getComputedStyle(g).color : null, text: t.textContent } }
+  toast('Card saved', 'pos'); const a = read()
+  toast('Couldn\u2019t save that \u2014 try again.', 'neg'); const b = read()
+  toast('Still loading \u2014 try again in a second'); const c = read()
+  t.style.transition = 'none'; t.classList.remove('show'); t.textContent = ''; delete t.dataset.kind; void t.offsetWidth; t.style.transition = ''
+  const pos = probe('--pos'), neg = probe('--neg'), rule = probe('--rule')
+  if (a.rail !== pos || a.use !== '#i-check' || a.glyph !== pos) return 'pos: ' + JSON.stringify(a)
+  if (b.rail !== neg || b.use !== '#i-cross' || b.glyph !== neg) return 'neg: ' + JSON.stringify(b)
+  if (c.rail !== rule || c.use !== null) return 'neutral: ' + JSON.stringify(c)
+  return a.text === 'Card saved' ? true : 'the glyph changed what the toast says: ' + JSON.stringify(a.text)
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^Builds at 3 rounds$' } },   /* Q48 */
     /* both lanes' checks (root's merge): Play is where you are (B, W7-125), then the hero's ring, focused
        last so the capture shows it (C, W7-063) */
     check: async (page) => { const p = await playIsWhereYouAre(page); return p !== true ? p : heroRing(page) } },
@@ -628,7 +661,60 @@ const COMPOSER = [
       if (b.getAttribute('aria-describedby') !== 'postErr') return 'Add my round is not described by its refusal'
       const e = document.getElementById('postErr').getBoundingClientRect(), r = b.getBoundingClientRect()
       if (!(e.bottom <= r.top + 1)) return 'the refusal does not stand above the button'
-      return e.top >= 0 && e.bottom <= innerHeight ? true : 'the refusal is off screen'
+      /* TEN / W7-158 · and the field it names is marked and has the focus (in view) */
+      const g = document.getElementById('inGross'), gr = g.getBoundingClientRect()
+      if (g.getAttribute('aria-invalid') !== 'true') return 'the gross field is not marked'
+      if (document.activeElement !== g) return 'focus is not on the gross field: ' + (document.activeElement && (document.activeElement.id || document.activeElement.tagName))
+      return gr.top >= 0 && gr.bottom <= innerHeight ? true : 'the gross field is off screen'
+    }) },
+  /* TEN / W7-158 · a card with everything but its date: the refusal stands in #postErr above the button (never a toast), the fold is
+     open, and the date field is marked and focused */
+  { family: 'composer', id: 'no-date', variant: 'member', title: 'Composer · a full card with its date cleared, and Add my round (the date refusal, inline)',
+    drive: async (page) => {
+      await toComposer(page)
+      await page.locator('#inGross').fill('84')
+      await fillCard(page)
+      await page.fill('#inDate', '')
+      await page.locator('#inDate').dispatchEvent('input')
+      await page.waitForTimeout(200)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postErr'), t = document.getElementById('toast'); return (!!e && !e.hidden) || (!!t && t.classList.contains('show')) }, null, 6000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-post', selectors: { '#postErr': 'text:^Pick the date you played$', '#postCardFold': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = document.getElementById('toast')
+      if (t.classList.contains('show') && /date/i.test(t.textContent)) return 'the date refusal left on a toast'
+      const d = document.getElementById('inDate')
+      if (d.getAttribute('aria-invalid') !== 'true') return 'the date field is not marked'
+      return document.activeElement === d ? true : 'focus is not on the date field'
+    }) },
+  /* TEN / W7-151 · a member opens the composer on a card with no course: the fold is open on first open (the phone's cardIsOpen), so the
+     recent-course chips stand under the course search, not an 'edit' away */
+  { family: 'composer', id: 'member-open', variant: 'member', title: 'Composer · a member opens it with no course set (the fold open, the recent courses on show)',
+    drive: async (page) => { await toComposer(page); await page.waitForTimeout(300) },
+    expect: { view: 'view-post', selectors: { '#inGross': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const f = document.getElementById('postCardFold')
+      if (!f || f.offsetParent === null || getComputedStyle(f).display === 'none') return 'the course fold is shut on first open'
+      const chips = [...document.querySelectorAll('#courseChips button, #courseChips [data-ci], #courseChips .chip')].filter((c) => c.getBoundingClientRect().height > 0)
+      if (!chips.length) return 'the recent courses are not on show under the course search'
+      /* TEN / W7-155 · the inherit line's key names what its value prints: course · rating / slope · day */
+      const k = (document.querySelector('#postInherit .il-k') || {}).textContent || ''
+      if (k.trim() !== 'Course · rating / slope · day') return 'the inherit line’s key reads ' + JSON.stringify(k.trim())
+      /* TEN / W7-137 · no bordered card, no boxed calc, no pill segment on the composer */
+      const cards = [...document.querySelectorAll('#view-post .card')].filter((c) => c.getBoundingClientRect().height > 0)
+      if (cards.length) return `${cards.length} bordered card(s) still hold the composer`
+      const calc = getComputedStyle(document.querySelector('#view-post .calc'))
+      if (calc.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(calc.borderTopWidth) > 0 || parseFloat(calc.borderTopLeftRadius) > 0) return 'the points are still a boxed panel'
+      const on = document.querySelector('#postSide button.on'), side = getComputedStyle(document.getElementById('postSide'))
+      if (side.backgroundColor !== 'rgba(0, 0, 0, 0)') return 'the 18 / 9 segment is still a pill'
+      if (on && (getComputedStyle(on).borderBottomWidth !== '2px' || getComputedStyle(on).backgroundColor !== 'rgba(0, 0, 0, 0)')) return 'the chosen side is not a 2px underline'
+      /* TEN / W7-132 · below the desk, Add my round is in reach on the first screen, above the tab band */
+      if (innerWidth >= 960) return true
+      const b = document.getElementById('postBtn').getBoundingClientRect(), tabs = document.querySelector('nav.tabbar')
+      const floor = tabs && tabs.getBoundingClientRect().height > 0 ? tabs.getBoundingClientRect().top : innerHeight
+      return b.top >= 0 && b.bottom <= floor + 0.5 ? true : `Add my round is out of reach (top ${Math.round(b.top)}, bottom ${Math.round(b.bottom)}, tab band at ${Math.round(floor)})`
     }) },
   /* a tee picked from the course search: the course, the rating and the slope
      arrive together, so nothing blocks and the preview scores the card */
@@ -678,17 +764,17 @@ const COMPOSER = [
       })
     } },
   { family: 'composer', id: 'member', variant: 'member', short: true, title: 'Composer · a league member (the inherit line holds the last course)',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:your index 14\\.2' } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^14\\.2$' } },   /* Q48 */
     /* TEN / W6 · AW2-17: the primary's type is the token's own (bg0 on act), never a typed hex */
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const i = document.createElement('i'); i.style.color = 'var(--bg0)'; document.body.appendChild(i); const bg0 = getComputedStyle(i).color; i.remove()
       const c = getComputedStyle(document.getElementById('postBtn')).color
       return c === bg0 ? true : `Add my round's type is ${c}, not --bg0 ${bg0}`
-    }) },
+    }), worthBeforeGross, toastKinds) },
   { family: 'composer', id: 'filled', variant: 'member', title: 'Composer · a full card entered, before Post',
     drive: async (page) => { await toComposer(page); await fillCard(page) },
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
-    check: async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' && document.getElementById('inB9').value === '41' ? true : 'the card did not take the nines') },
+    check: all(async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' && document.getElementById('inB9').value === '41' ? true : 'the card did not take the nines'), worthAfterGross) },
   /* the server refuses the card: the golfer is told nothing posted and the
      card stays on the form.
      W1 (2026-09-28): the refusal is no longer a 2.4 s toast. It stays inline
@@ -711,6 +797,10 @@ const COMPOSER = [
       if (document.activeElement !== b) return 'focus left the button: ' + (document.activeElement && (document.activeElement.id || document.activeElement.tagName))
       if (b.getAttribute('aria-describedby') !== 'postErr') return 'the button is not described by the refusal'
       if (/press Post again/i.test(document.getElementById('postErr').textContent)) return 'the refusal names a button that is not there'
+      /* TEN / W6 · W7-136 · 'card' is the person: the post path says scorecard, in the refusal, the armed Start over and the toast */
+      const said = document.getElementById('postErr').textContent || ''
+      if (/\byour card\b|\bthis card\b/i.test(said) || !/your scorecard is kept/i.test(said)) return 'the refusal does not say scorecard: ' + JSON.stringify(said)
+      if (typeof CS_POST_RESET === 'undefined' || CS_POST_RESET.armed !== 'Sure? This clears the scorecard' || CS_POST_RESET.done !== 'Scorecard cleared') return 'Start over does not say scorecard: ' + JSON.stringify(typeof CS_POST_RESET === 'undefined' ? null : CS_POST_RESET)
       return true
     }) },
 ]
@@ -727,6 +817,38 @@ const eyebrowNoDangle = async (page) => page.evaluate(() => {
   if (!crs) return 'no course in the ceremony'
   if (/·\s*$/.test(crs.textContent) || /^\s*·/.test((tee || {}).textContent || '')) return 'a line of the eyebrow ends or begins on the separator'
   return tee ? true : 'the tee did not take its own block'
+})
+/* TEN / W6 · W7-144 · the exported card's address clears the frame's inner edge (y 1313) by more than the frame's own 36px inset:
+   the recap card is drawn off-screen and its lowest painted row under the signature is found against the card's own ground */
+const recapAddressClears = async (page) => page.evaluate(async () => {
+  if (typeof drawRecapCard !== 'function') return 'no recap painter'
+  await document.fonts.ready
+  const cv = drawRecapCard({ gross: 83, course: 'Saguaro Flats Municipal (fixture) · Blue', marker: 'saguaro', date: new Date(2026, 8, 27) })
+  const x = cv.getContext('2d'), W = cv.width
+  const bg = x.getImageData(W / 2, 1300, 1, 1).data
+  for (let y = 1310; y > 1150; y--) {
+    const row = x.getImageData(W / 2 - 170, y, 340, 1).data
+    for (let i = 0; i < row.length; i += 4) {
+      if (Math.abs(row[i] - bg[0]) + Math.abs(row[i + 1] - bg[1]) + Math.abs(row[i + 2] - bg[2]) > 60) return y + 36 <= 1313 ? true : `the address's last row is y ${y}, within 36 of the frame's inner edge (1313)`
+    }
+  }
+  return 'no address painted under the signature'
+})
+/* TEN / W6 · W7-143 · the ceremony's share row is hidden, not merely transparent, while it waits to fade in: its animation's first
+   frame carries visibility:hidden, so nothing taps or tabs onto a row nobody can see */
+const shareRowHiddenFirst = async (page) => page.evaluate(() => {
+  /* the capture runs with reduced motion, so the rule is read from the sheet, not the computed style */
+  let anim = null, kf = {}
+  const walk = (rules) => { for (const r of rules) {
+    if (r.type === CSSRule.KEYFRAMES_RULE) kf[r.name] = r
+    else if (r.cssRules && r.type !== CSSRule.STYLE_RULE) walk(r.cssRules)
+    else if (r.selectorText === '#finish.open .finish-share-row' && r.style.animationName) anim = r.style.animationName } }
+  for (const sh of document.styleSheets) { try { walk(sh.cssRules) } catch { /* cross-origin */ } }
+  if (!anim) return 'the share row has no entrance rule'
+  const k = kf[anim.split(',')[0].trim()]
+  if (!k) return 'the share row’s keyframes are missing: ' + anim
+  const from = [...k.cssRules].find((x) => x.keyText === '0%' || x.keyText === 'from')
+  return from && from.style.visibility === 'hidden' ? true : `the share row is hittable while invisible (${anim} never hides it)`
 })
 function shareState(id, title, card, extra = {}) {
   return {
@@ -788,21 +910,43 @@ function shareState(id, title, card, extra = {}) {
       }).then(async (r) => {
         if (r !== true) return r
         /* TEN / W7-140 [A2-share-5] · a tap on the ceremony's empty field leaves
-           it open: its exits are "Back to the board" and Escape, as it draws them */
+           it open: its exits are "Close" (W7-139) and Escape, as it draws them */
         const hit = await page.evaluate(() => (document.elementFromPoint(6, 6) || {}).id)
         if (hit !== 'finish') return `the backdrop probe did not land on the ceremony's field: ${hit}`
         await page.mouse.click(6, 6)
         await page.waitForTimeout(300)
         const open = await page.evaluate(() => document.getElementById('finish').classList.contains('open') ? true : 'a tap on the empty field ended the ceremony')
         /* TEN / W7-059 [A2-share-6] · the eyebrow never starts or ends a line on its separator */
-        return open !== true ? open : eyebrowNoDangle(page)
+        if (open !== true) return open
+        const eb = await eyebrowNoDangle(page); if (eb !== true) return eb
+        /* TEN / W7-144 · the exported card's address clears its frame */
+        const addr = await recapAddressClears(page); if (addr !== true) return addr
+        const row = await shareRowHiddenFirst(page); if (row !== true) return row
+        /* TEN / W7-139 · the ceremony's way out is Close, the one dismiss word */
+        return page.evaluate(() => { const b = document.getElementById('finBack'); return b && b.textContent.trim() === 'Close' ? true : 'the ceremony’s way out reads ' + JSON.stringify(b && b.textContent.trim()) })
       })
     },
     ...extra,
   }
 }
+/* TEN / W6 · W7-141 · after a share, a flip of the photo switch clears the old outcome: the new preview has not been shared */
+const flipState = (() => {
+  const st = shareState('recap-photo-flip', 'Share · the photo switch flipped after the card was shared (the old outcome goes)', {}, { photo: true })
+  const d0 = st.drive
+  st.drive = async (page, ctx) => {
+    await d0(page, ctx)
+    await page.locator('#finPhoto').click()
+    await page.waitForTimeout(400)
+  }
+  st.check = async (page) => page.evaluate(() => {
+    const t = (document.getElementById('finStatus').textContent || '').trim()
+    return t === '' ? true : 'the old outcome stays beside the new preview: ' + JSON.stringify(t)
+  })
+  return st
+})()
 const SHARE = [
   shareState('recap-no-photo', 'Share · the recap card for a posted 83 (no photo)', {}),
+  flipState,
   shareState('recap-photo', 'Share · the recap card carrying the round photograph', {}, { photo: true }),
   shareState('recap-long-course', 'Share · the recap card, the longest course and tee', { course: 'The Championship Course at Whispering Fixture Pines Country Club · Tournament Tips (Championship Black)', rating: '73.4', slope: '138', f9: '44', b9: '45' }),
 ]
