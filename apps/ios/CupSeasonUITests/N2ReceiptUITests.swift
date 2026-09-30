@@ -20,6 +20,7 @@ final class N2ReceiptUITests: N2UITestCase {
       _ = root(app, "receipt")
       let moment = app.descendants(matching: .any)[photo ? "receipt.moment.photo" : "receipt.moment"].firstMatch
       XCTAssertTrue(moment.waitForExistence(timeout: 15), "\(place): the moment is drawn")
+      XCTAssertFalse(moment.label.localizedCaseInsensitiveContains("Any time"), "Q45: the private receipt is signed by the pennant alone")
       Thread.sleep(forTimeInterval: 2)   // the picture, or its absence, settles
       let screen = app.windows.firstMatch.frame
       XCTAssertLessThanOrEqual(moment.frame.maxX, screen.maxX + 0.5, "\(place): the moment's focus ring stays on the screen — \(moment.frame)")
