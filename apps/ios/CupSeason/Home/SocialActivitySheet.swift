@@ -92,7 +92,7 @@ struct SocialActivitySheet: View {
                 VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
                   Text(notice.sentence).csType(.body).foregroundStyle(cs.ink)
                   Text(notice.excerpt).csType(.bodyS).foregroundStyle(cs.mut).lineLimit(3)
-                  if let course = notice.course { Text(course).csType(.agateS).foregroundStyle(cs.mut) }
+                  if let course = MeStripCopy.shortCourse(notice.course) { Text(course).csType(.agateS).foregroundStyle(cs.mut) }
                   Text(SocialDate.label(notice.createdAt)).csType(.agateS).foregroundStyle(cs.mut)
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 if !notice.read { Circle().fill(cs.ink).frame(width: 8, height: 8).accessibilityLabel("Unread") }   // N4-091 · a notice mark is ink
