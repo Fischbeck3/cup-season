@@ -222,9 +222,9 @@ import Foundation
     let five = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", weeks: 5, structure: "solo")
     #expect(five.endingLine == "The season's points decide it. No reset.")
     let six = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", weeks: 6, structure: "solo")
-    #expect(six.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh.")
+    #expect(six.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh. " + LeagueCopy.finalCounting)
     // no length in the payload is not a short season
     let unknown = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", structure: "solo")
-    #expect(unknown.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh.")
+    #expect(unknown.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh. " + LeagueCopy.finalCounting)
   }
 }

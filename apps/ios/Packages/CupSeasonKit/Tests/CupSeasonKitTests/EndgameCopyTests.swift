@@ -69,7 +69,7 @@ struct EndgameCopyTests {
     let m = membership()
     let sentence = SeasonFacts.footEndgame(m, calendar: cal)
     #expect(sentence == "The top 2 golfers go into a four-week Cup Final from Mon Dec 7 — scored fresh, "
-                      + "so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it.")
+                      + "so the weeks before it decide who is in, not who wins. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Level on points? Months won breaks it.")
     // D126's own phrase survives; §14.3 is the ladder it names
     #expect(sentence?.contains("scored fresh") == true)
     #expect(sentence?.hasSuffix("Level on points? Months won breaks it.") == true)
@@ -132,13 +132,13 @@ struct EndgameCopyTests {
   func twoSquadsBothPlay() {
     let s = SeasonFacts.footEndgame(membership(structure: "squads2"), calendar: cal)
     #expect(s == "Both squads play a four-week Cup Final from Mon Dec 7 — scored fresh, "
-               + "and the leader carries +10 in. Level on points? Months won breaks it.")
+               + "and the leader carries +10 in. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Level on points? Months won breaks it.")
     #expect(s?.contains("top 2") == false)
     #expect(s?.contains("who is in") == false)
     #expect(s?.lowercased().contains("regular") == false)
     // three and four squads keep the top-two sentence, with no head start
     #expect(SeasonFacts.footEndgame(membership(structure: "squads3"), calendar: cal)
             == "The top 2 squads go into a four-week Cup Final from Mon Dec 7 — scored fresh, "
-             + "so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it.")
+             + "so the weeks before it decide who is in, not who wins. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Level on points? Months won breaks it.")
   }
 }
