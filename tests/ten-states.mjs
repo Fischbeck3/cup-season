@@ -98,12 +98,38 @@ const doorEdgesMut = (sels) => async (page) => page.evaluate((sels) => {
   }
   return true
 }, sels)
+/* TEN / W8 · W7-163 [A2-door-2, B2-door-9] · a route to help from the Door, at the moment of need: once the code step is open or a sign-in error is on screen, 'Trouble signing in?'
+   is a quiet in-content link (2px mut underline, 44px) to support's own answer, in a NEW tab so the Door keeps what was typed; before that (`shown` false) it is not drawn */
+const doorHelp = (shown) => async (page) => {
+  const r = await page.evaluate((shown) => {
+    const a = document.getElementById('obHelp')
+    if (!a) return 'the Door has no help link'
+    const drawn = a.getBoundingClientRect().width > 0 && getComputedStyle(a).display !== 'none'
+    if (!shown) return drawn ? 'the help link is drawn before anything went wrong' : true
+    if (!drawn) return 'no help link on the Door after the code step opened or an error'
+    if (a.textContent.trim() !== 'Trouble signing in?') return `the help link reads ${JSON.stringify(a.textContent.trim())}`
+    if (a.getAttribute('href') !== '/support#code' || a.getAttribute('target') !== '_blank' || !/noopener/.test(a.getAttribute('rel') || '')) return `the help link is ${a.getAttribute('href')} target=${a.getAttribute('target')} rel=${a.getAttribute('rel')}, not /support#code in a new tab`
+    const rs = document.getElementById('obResend')
+    if (rs && rs.getBoundingClientRect().width > 0 && !(rs.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the help link is not after Resend code'
+    return true
+  }, shown)
+  if (r !== true || !shown) return r
+  /* the Door's own quiet link (.cs-tskip, as Back and Resend code are): a word in opaque mut under an underline, in a 44px box (§7.1, §16.2) */
+  return page.evaluate(() => {
+    const a = document.getElementById('obHelp'), cs = getComputedStyle(a), r = a.getBoundingClientRect()
+    const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+    if (!a.classList.contains('cs-tskip')) return 'the help link is not the Door\'s quiet link (.cs-tskip)'
+    if (!/underline/.test(cs.textDecorationLine)) return 'the help link has no underline'
+    if (cs.color !== mut) return `the help link is ${cs.color}, not opaque mut`
+    return r.height >= 43.5 ? true : `the help link is ${Math.round(r.height)}px tall, under the 44px target`
+  })
+}
 const CORE = [
   /* ------------------------------------------------------------ door */
-  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } }, check: doorEdgesMut(['#obJoin']) },
+  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } }, check: async (page) => { const r = await doorEdgesMut(['#obJoin'])(page); return r === true ? doorHelp(false)(page) : r } },
   { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorEdgesMut(['#obEmailIn'])(page) : r } },
+    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); if (r !== true) return r; const e = await doorEdgesMut(['#obEmailIn'])(page); return e === true ? doorHelp(false)(page) : e } },
   { family: 'door', id: 'sending', variant: 'signed_out', url: '/', short: true,
     hold: (e) => e.method === 'POST' && /\/auth\/v1\/otp/.test(e.path),
     drive: async (page) => {
@@ -118,7 +144,7 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => document.querySelector('#codebox').classList.contains('open'))
     },
-    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorEdgesMut(['#obCodeIn'])(page) : r } },
+    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } }, check: async (page) => { const r = await doorStacked()(page); if (r !== true) return r; const e = await doorEdgesMut(['#obCodeIn'])(page); return e === true ? doorHelp(true)(page) : e } },
   { family: 'door', id: 'code-error', variant: 'signed_out', url: '/', short: true,
     expectConsole: [/^\[cs\] (That code|Code didn|The code|That sign-in|Something went wrong)/, /^\[cs\] error: Code didn/, /status of 403/],
     drive: async (page) => {
@@ -128,7 +154,7 @@ const CORE = [
       await page.fill('#obCodeIn', '12345678')
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
-    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: doorStacked() },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorHelp(true)(page) : r } },
   { family: 'door', id: 'send-failed', variant: 'signed_out', url: '/', short: true,
     world: { errors: { auth: { otp: { status: 429, body: { code: 429, error_code: 'over_email_send_rate_limit', msg: 'email rate limit exceeded' } } } } },
     expectConsole: [/^\[cs\] Too many sign-in emails/, /status of 429/],
@@ -137,7 +163,7 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
-    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: doorStacked('obEmailIn') },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: async (page) => { const r = await doorStacked('obEmailIn')(page); return r === true ? doorHelp(true)(page) : r } },
   { family: 'door', id: 'league-code', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await page.waitForTimeout(900) },
     expect: { door: true, selectors: { '#joinCode': 'visible' } },

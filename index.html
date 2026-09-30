@@ -6229,6 +6229,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     </div>
     <div class="ob-status" id="obStatus" role="status" aria-live="polite"></div>
     <button class="cs-tskip" id="obResend" type="button" style="display:none">Resend code</button>
+    <!-- W7-163 [A2-door-2, B2-door-9] · the way to help, from the moment a golfer needs it: shown when the code step opens and after a sign-in error, in a new tab so the Door keeps what was typed. Hidden by inline style, as #obResend is: .cs-tskip's display:block outranks the hidden attribute. -->
+    <a class="cs-tskip" id="obHelp" href="/support#code" target="_blank" rel="noopener" style="display:none">Trouble signing in?</a>
 
     <button class="btn quiet" id="obJoin">I have a league code</button>
       <div class="joinbox" id="joinbox">
@@ -34334,6 +34336,9 @@ function bootTrace(m){
   b.style.borderTop='1px solid #2FD3BE'; b.style.color='#CDEFE3';
   b.textContent = 'boot: ' + m;
 }
+/* W7-163 · 'Trouble signing in?' opens support's own answer for a code that did not come or did not work (support.html #code) in a new tab. It shows once the code step is
+   open and after an error on the email or code step (not the league-code branch: a wrong league code is not a sign-in trouble), and goes with Back. */
+function doorHelp(on){ const a = $('#obHelp'); if(a) a.style.display = on ? 'block' : 'none'; }
 function authStatus(msg, kind){
   const el=$('#obStatus');
   /* the Door's fields name #obStatus as their description; an error marks the
@@ -34348,6 +34353,7 @@ function authStatus(msg, kind){
        "Code didn't take…" sat under the fold of a 380px view */
     if(msg){ try{ el.scrollIntoView({ block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }catch(_){} } }
   if(kind === 'err'){
+    if(open('emailbox') || open('codebox')) doorHelp(true);
     console.error('[cs]', msg);
     if(!window.CS_DEBUG) return;
     const b = document.getElementById('errbar');
@@ -34362,6 +34368,7 @@ function openEmailBox(afterEl, msg){
   box.insertAdjacentElement('afterend', $('#codebox'));
   $('#codebox').insertAdjacentElement('afterend', $('#obStatus'));
   const rs = $('#obResend'); if(rs) $('#obStatus').insertAdjacentElement('afterend', rs);
+  const hp = $('#obHelp'); if(hp && rs) rs.insertAdjacentElement('afterend', hp);   /* W7-163 · the status, then Resend, then the way to help */
   box.classList.add('open');
   /* Q-18 · once a branch is open the OTHER door is dead weight that pushes the
      code box below the fold — the audit's joiner had six stacked controls and
@@ -34389,6 +34396,7 @@ function doorBack(anchor, branch){
       $('#codebox')?.classList.remove('open');
       $('#joinbox')?.classList.remove('open');
       const rs = $('#obResend'); if(rs) rs.style.display = 'none';
+      doorHelp(false);
       const em = $('#obEmail'), jn = $('#obJoin');
       if(em) em.style.display = '';
       if(jn) jn.style.display = '';
@@ -34531,6 +34539,7 @@ $('#obEmailGo').addEventListener('click', async () => {
     await requestOtpCode(email);
     CS.pendingEmail = email;
     $('#codebox').classList.add('open');
+    doorHelp(true);   /* W7-163 · a code that never arrives has somewhere to go */
     /* one filled action per step: once the code is out, Verify is the step's
        action and Resend covers a second send, so Send code steps aside (it
        comes back if the address is edited) */
@@ -38946,6 +38955,7 @@ function csDeadJoinLanding(){
   const em = $('#obEmail'), jn = $('#obJoin'), bk = $('#obBack'), rs = $('#obResend');
   if(em) em.style.display = ''; if(jn) jn.style.display = '';
   if(bk) bk.style.display = 'none'; if(rs) rs.style.display = 'none';
+  doorHelp(false);
   authStatus('');
   const h = el.querySelector('h1');
   if(h){ h.tabIndex = -1; h.focus({ preventScroll: true }); }
