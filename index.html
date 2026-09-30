@@ -1691,10 +1691,10 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
 }
 .whochip.on{background:var(--panel); color:var(--panel-ink);}
-.calc{
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
-  padding:18px; text-align:center;
-}
+/* TEN / W7-137 · the composer is no longer three bordered cards and a pill:
+   the points are a rule-and-figure (§9.2) on the page ground, with the message
+   and the gross / vs-your-playing-HCP pair as plain lines under it */
+.calc{padding:var(--s3) 0; text-align:center;}
 .calc .k{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
 .calc .big{
   font-family:var(--mono); font-size:64px; font-weight:600; line-height:1;
@@ -1731,6 +1731,16 @@ html[data-theme="light"] #inDate{color-scheme:light;}
 .bandsdoor:hover{color:var(--ink);}
 .bandsdoor:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 #postBandsCard[hidden]{display:none;}
+/* TEN / W7-137 · the form and the bands on the page ground between rules; the figure on its 2px ink rule; 18 / 9 as the §7.2
+   underline segment (a 44px row, agate labels, a 2px ink underline on the chosen side, no pill) */
+#view-post .postform{padding:var(--s3) 0; border-top:1px solid var(--rule);}
+#view-post .postbands{padding:var(--s2) 0; border-top:1px solid var(--rule);}
+#view-post #calcPts{display:inline-block; padding-bottom:var(--s1); border-bottom:2px solid var(--ink);}
+#postSide{background:none; border:0; padding:0; gap:var(--s4);}
+#postSide button{flex:0 0 auto; background:none; border:0; border-radius:0; min-height:44px; padding:0;
+  font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);
+  border-bottom:2px solid transparent;}
+#postSide button.on{background:none; border:0; border-bottom:2px solid var(--ink); color:var(--ink);}
 .bands{width:100%; border-collapse:collapse; font-size:12.5px;}
 .bands td{padding:9px 2px; border-top:1px solid var(--rule); color:var(--mut);}
 .bands tr:first-child td{border-top:none;}
@@ -6927,7 +6937,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div class="postgrid">
           <div>
             <div class="eyebrow" id="postEyebrow">Add my round</div>
-            <div class="card">
+            <!-- TEN / W7-137 · the form sits on the page ground, not in a bordered card -->
+            <div class="postform">
               <!-- IOS-030 - ONE box over an inherited, editable line. The
                    composer asks for one number; the course, the tees, the
                    rating and the date come from the last round at that course
@@ -7073,7 +7084,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  behind the question it answers; in a live season it stays open.
                  Painted by csRenderComposerEyebrow; the golfer's own toggle wins. -->
             <button type="button" class="eyebrow bandsdoor" id="postBandsDoor" aria-expanded="true" aria-controls="postBandsCard">How points work <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
-            <div class="card" id="postBandsCard">
+            <div class="postbands" id="postBandsCard">   <!-- TEN / W7-137 · ruled rows on the ground, as PostBandRow draws them -->
               <!-- D210 / Q-20 · the engine's own names and points (bandName /
                    cup_points), with the guide's non-overlapping edges. The old
                    table named bands the engine does not have and said "1–3"

@@ -614,6 +614,14 @@ const COMPOSER = [
       if (!f || f.offsetParent === null || getComputedStyle(f).display === 'none') return 'the course fold is shut on first open'
       const chips = [...document.querySelectorAll('#courseChips button, #courseChips [data-ci], #courseChips .chip')].filter((c) => c.getBoundingClientRect().height > 0)
       if (!chips.length) return 'the recent courses are not on show under the course search'
+      /* TEN / W7-137 · no bordered card, no boxed calc, no pill segment on the composer */
+      const cards = [...document.querySelectorAll('#view-post .card')].filter((c) => c.getBoundingClientRect().height > 0)
+      if (cards.length) return `${cards.length} bordered card(s) still hold the composer`
+      const calc = getComputedStyle(document.querySelector('#view-post .calc'))
+      if (calc.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(calc.borderTopWidth) > 0 || parseFloat(calc.borderTopLeftRadius) > 0) return 'the points are still a boxed panel'
+      const on = document.querySelector('#postSide button.on'), side = getComputedStyle(document.getElementById('postSide'))
+      if (side.backgroundColor !== 'rgba(0, 0, 0, 0)') return 'the 18 / 9 segment is still a pill'
+      if (on && (getComputedStyle(on).borderBottomWidth !== '2px' || getComputedStyle(on).backgroundColor !== 'rgba(0, 0, 0, 0)')) return 'the chosen side is not a 2px underline'
       /* TEN / W7-132 · below the desk, Add my round is in reach on the first screen, above the tab band */
       if (innerWidth >= 960) return true
       const b = document.getElementById('postBtn').getBoundingClientRect(), tabs = document.querySelector('nav.tabbar')
