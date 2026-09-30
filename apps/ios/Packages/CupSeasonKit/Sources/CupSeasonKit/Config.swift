@@ -29,6 +29,9 @@ public enum CSConfig {
   public static let legalURL = URL(string: "https://cupseason.app/legal.html")!
   /// legal.html#privacy · #terms · #pot
   public static func legal(_ anchor: String) -> URL { URL(string: "https://cupseason.app/legal.html#\(anchor)")! }
+  /// W7-163 · the door's help: the support page's section on codes that do
+  /// not arrive (`/support` is support.html, App Store Connect's Support URL)
+  public static let supportCodeURL = URL(string: "https://cupseason.app/support#code")!
 
   /// Last league the person had open — the web's `cs_last_league`.
   public static let lastLeagueKey = "cs_last_league"

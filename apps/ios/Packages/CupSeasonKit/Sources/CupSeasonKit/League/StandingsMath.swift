@@ -436,11 +436,19 @@ public enum StandingsMath {
   }
   public static func awards(_ rows: [IndRow]) -> Awards? {
     guard let king = rows.first else { return nil }
+    // W7-060 · level on points is LEVEL: the list's own order (points, then
+    // average) is not a rule, so a tie for the top names who is level, "Avery
+    // and Blake", or "Avery and two more", and crowns nobody by average
+    let level = rows.filter { $0.pts == king.pts }.map { firstName($0.n) }
+    let kingSaid = level.count == 1 ? level[0]
+      : level.count == 2 ? level.joined(separator: " and ")
+      : "\(level[0]) and \(SeasonStoryCopy.word(level.count - 1)) more"
     let iron = rows.max { a, b in a.r < b.r }!
     let movers = rows.filter { ($0.d ?? 0) < -0.04 && $0.d != nil }.sorted { $0.d! < $1.d! }
     return Awards(
-      king: king.pts > 0 ? firstName(king.n) : "—",
-      kingSub: "Points King" + (king.pts > 0 ? " · \(CSCopy.points(king.pts)) pts" : ""),
+      king: king.pts > 0 ? kingSaid : "—",
+      kingSub: "Points King" + (king.pts > 0
+        ? (level.count > 1 ? " · level on \(CSCopy.points(king.pts))" : " · \(CSCopy.points(king.pts)) pts") : ""),
       improved: movers.first.map { firstName($0.n) } ?? "—",
       // **▼ MEANT TWO OPPOSITE THINGS IN ONE PRODUCT** (the audit's DD-02, a
       // P0). On the table a down-triangle means *you fell*; here it meant

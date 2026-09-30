@@ -39,6 +39,29 @@ public enum AuthRules {
   public static let reviewerEmail = "reviewer@cupseason.app"
   public static func isReviewer(_ email: String) -> Bool { normalizeEmail(email) == reviewerEmail }
 
+  /// W7-164 · a send the server refused for sending too many sign-in emails,
+  /// including its "you can only request this after N seconds" form.
+  public static func isRateLimit(_ error: Error) -> Bool {
+    rateLimitText(((error as? LocalizedError)?.errorDescription ?? String(describing: error)).lowercased())
+  }
+  static func rateLimitText(_ s: String) -> Bool {
+    s.contains("rate limit") || s.contains("too many") || s.contains("429") || s.contains("only request this after")
+  }
+  /// The door's sentence for it: what to do, not what the mailer does.
+  public static let tooManyEmails = "Too many sign-in emails for now — give it a few minutes and try again."
+
+  /// W7-164 · the wait the server's own sentence names ("…after 47 seconds"),
+  /// or nil when it names none.
+  public static func retryAfter(_ error: Error) -> Int? {
+    let m = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
+    guard let r = m.range(of: #"after (\d+) seconds?"#, options: [.regularExpression, .caseInsensitive]) else { return nil }
+    return Int(m[r].filter(\.isNumber))
+  }
+
+  /// W7-164 · the refusal's line with the way in it leaves open: a code from
+  /// an earlier email still signs in (the desk's words)
+  public static let rateLimitedEarlierCode = "Have a code from an earlier email? Enter it below."
+
   /// Supabase's auth messages are written for developers. Map the ones a
   /// person meets at the door; fall through to the server's text otherwise
   /// (RPC business errors are already written for humans).
@@ -51,9 +74,7 @@ public enum AuthRules {
     if s.contains("expired") || (s.contains("invalid") && s.contains("token")) || s.contains("otp") {
       return "That code has expired. Codes expire when a new one is sent — use the newest email."
     }
-    if s.contains("rate limit") || s.contains("too many") || s.contains("429") {
-      return "Too many sign-in emails for now — give it a few minutes and try again."
-    }
+    if rateLimitText(s) { return tooManyEmails }
     // Sign in with Apple (IOS-023): the provider not yet enabled in Supabase,
     // a nonce that did not line up, or Apple's own sheet giving up.
     if s.contains("provider") && (s.contains("not enabled") || s.contains("unsupported") || s.contains("disabled")) {

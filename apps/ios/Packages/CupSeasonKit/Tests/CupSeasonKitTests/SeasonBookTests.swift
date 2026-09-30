@@ -42,6 +42,11 @@ struct SeasonBookTests {
     let none=try changed { $0["counting_cap"]=4; $0["participation_floor"]=0 }
     #expect(none.rules=="Best 4 per calendar month")
   }
+  /// W7-121 · the key lists "Future week" only while a week is ahead.
+  @Test func theKeyNamesOnlyTheMarksTheGridDraws() {
+    #expect(SeasonBookSnapshot.key(future: true) == "— No round · D Dropped · B Bye · * Adjustment · • Future week. Tap a cell for its rounds and adjustments.")
+    #expect(SeasonBookSnapshot.key(future: false) == "— No round · D Dropped · B Bye · * Adjustment. Tap a cell for its rounds and adjustments.")
+  }
   @Test func rejectsWrongSeasonVersionAndPartialRead() throws {
     let b=try book();#expect(throws:SeasonBookReadError.self) { try b.validate(league:b.league_id,season:UUID()) }
     for edit: (inout [String:Any])->Void in [{ $0["version"]=2 },{ $0["coverage_complete"]=false },{ json in var rows=json["rows"] as! [[String:Any]];rows[0]["points"]=9999;json["rows"]=rows },{ json in var rows=json["rows"] as! [[String:Any]];rows[0]["cells"]=[];json["rows"]=rows }] {

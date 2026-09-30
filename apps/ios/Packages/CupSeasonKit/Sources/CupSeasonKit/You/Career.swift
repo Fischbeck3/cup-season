@@ -159,6 +159,11 @@ public enum YouCopy {
   /// W7-053 · what the dashes are waiting for, in C's words: "No rounds
   /// count yet" read as a verdict on the golfer's rounds
   public static let noCountingRounds = "Best and average start once a round is scored in a season."
+  /// W7-089 · the door under the form row to the rounds it does not show:
+  /// "The other three", the rest spelled out, never repeating the head's count
+  public static func otherRounds(_ n: Int) -> String { "The other " + SeasonStoryCopy.word(n) }
+  /// W7-089 · the sheet those rounds open in
+  public static let allRoundsTitle = "Your rounds"
   /// D131/D208 · the tile that counts leagues and events
   public static let leaguesAndEvents = "Seasons & matches"
   public static let playedIn = "Played in"

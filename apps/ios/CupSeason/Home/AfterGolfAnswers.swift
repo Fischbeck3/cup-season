@@ -63,3 +63,46 @@ struct AfterGolfAnswers: View {
     }
   }
 }
+
+/// W7-149 · an invitation can be DECLINED where Home shows it. The item's own
+/// door ("See the terms") opens the covenant, and D351 kept the one Decline on
+/// Compete's banner, so Home offered a way in and no way to say no. This is the
+/// other way out: one tap, no confirm (saying no always works; the server's
+/// decline is ungated), and Home re-reads so the item leaves.
+struct InviteDecline: View {
+  @Environment(\.toast) private var toast
+  let inviteId: UUID
+  var reload: () async -> Void = {}
+  @State private var busy = false
+
+  /// The invitation's own id, from the item's key (`invite:<id>`, server and
+  /// fallback alike).
+  static func id(_ item: HomeDispatch.Item) -> UUID? {
+    guard item.key.hasPrefix("invite:") else { return nil }
+    return UUID(uuidString: String(item.key.dropFirst("invite:".count)))
+  }
+
+  var body: some View {
+    HStack(spacing: 0) {
+      CSDoor(.link("Decline") { Task { await decline() } })
+        .disabled(busy)
+        .accessibilityIdentifier("home.invite.decline")
+      Spacer(minLength: 0)
+    }
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel(Text("Answer this invitation"))
+  }
+
+  private func decline() async {
+    guard !busy else { return }
+    busy = true
+    defer { busy = false }
+    do {
+      try await PeopleService().respondInvite(inviteId, accept: false)
+      await reload()
+    } catch {
+      // nothing local is written; the invitation stays where it was
+      toast.show(HumanError.text(error, prefix: "Could not decline."), kind: .failed)
+    }
+  }
+}

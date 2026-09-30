@@ -274,7 +274,7 @@ struct HomeView: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
         CSGlyph(.scorecard, points: 78, labelled: true).foregroundStyle(cs.mut)
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-          Text(item.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
+          CSClauseLine(item.eyebrow, role: .agate, caps: true)   // W7-074 · breaks on its separators
           // AW2-07 · a figure in the lead's serif is a run the producer marked
           CSFigureRun(item.localHeadlineMarked(), role: .lead).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
@@ -376,7 +376,7 @@ struct HomeView: View {
         // a card that ASKS a question carries the answers to it.
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-            Text(block.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
+            CSClauseLine(block.eyebrow, role: .agate, caps: true)   // W7-074
             CSFigureRun(block.localHeadlineMarked(), role: .lead).foregroundStyle(cs.ink)   // AW2-07
               .fixedSize(horizontal: false, vertical: true)
             if let s = block.standfirst, !s.isEmpty {
@@ -399,13 +399,23 @@ struct HomeView: View {
         // some buddies."), and New York at 28 breaks that clause in half and
         // spends the viewport's one serif appearance on it.
         let roster = EmptyRoot.wireEmpty(me: me)
-        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          Text(roster.head).csType(.body).foregroundStyle(cs.mut)
+        // W7-073 · ONE sentence, with its door inside it: stacked as two views
+        // the clause broke after "Post one, or" and "add some buddies." stood
+        // alone on the next line. The door's words are the in-content link
+        // (ink, on a mut rule), and the sentence is the one 44pt target.
+        Button {
+          if let id = roster.leagueId { openCompetition(id, .table) } else { openGolfers() }
+        } label: {
+          (Text(roster.head + " ").foregroundColor(cs.mut)
+            + Text(roster.door).foregroundColor(cs.ink).underline(true, color: cs.mut))
+            .csType(.body)
+            .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
-          CSDoor(.link(roster.door) {
-            if let id = roster.leagueId { openCompetition(id, .table) } else { openGolfers() }
-          })
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("home.wireEmpty")
         .padding(.horizontal, CSTokens.Space.gutter)
       } else {
         wireRows(page)
@@ -619,6 +629,11 @@ struct HomeView: View {
   @ViewBuilder private func answers(_ item: HomeDispatch.Item) -> some View {
     if item.answerable {
       AfterGolfAnswers(item: item, reload: { await vm.load(me: store.me, key: loadKey) })
+        .padding(.top, CSTokens.Space.s3)
+    }
+    // W7-149 · an invitation is declined where Home shows it, lead or wire
+    if let id = InviteDecline.id(item) {
+      InviteDecline(inviteId: id, reload: { await vm.load(me: store.me, key: loadKey) })
         .padding(.top, CSTokens.Space.s3)
     }
   }

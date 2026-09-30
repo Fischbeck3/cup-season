@@ -297,3 +297,14 @@ public enum SeasonBookReadError: Error, LocalizedError {
   }
   #endif
 }
+
+extension SeasonBookSnapshot {
+  /// W7-121 · the key names only the marks the grid can draw: "• Future week"
+  /// only while a week is ahead, so a finished Book lists no mark it never
+  /// draws (the web's csSeasonBookBody).
+  public var key: String { Self.key(future: weeks.contains { $0.week > current_week }) }
+  public static func key(future: Bool) -> String {
+    "— No round · D Dropped · B Bye · * Adjustment" + (future ? " · • Future week" : "")
+      + ". Tap a cell for its rounds and adjustments."
+  }
+}

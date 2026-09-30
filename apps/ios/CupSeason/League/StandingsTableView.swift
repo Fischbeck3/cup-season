@@ -106,7 +106,9 @@ struct StandingsTableView: View {
               tied: tied(i, rk), abbreviate: abbreviate)
         }
         if let hollow = hollowFinal {
-          Text(hollow).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          // W7-024 · a sentence is set in the body role, in sentence case,
+          // never as tracked-caps mono (the producer's own words)
+          Text(hollow).csType(.bodyS).foregroundStyle(cs.mut)
             .fixedSize(horizontal: false, vertical: true)
             .csGutter()
             .padding(.top, CSTokens.Space.s3)
@@ -371,9 +373,10 @@ struct StandingsTableView: View {
   }
 }
 
-/// `#scenarioLine` (D24) — clinch / eliminated, never invented. **One `agateS`
-/// line**, not a 13–14pt mono console message (CS-20), and the clinch keeps no
-/// metal of its own: the surface's gold is the leader's rail and the pot.
+/// `#scenarioLine` (D24) — clinch / eliminated, never invented. **One `bodyS`
+/// sentence** (W7-024: a sentence in the mono label face read as a console
+/// message, CS-20), and the clinch keeps no metal of its own: the surface's
+/// gold is the leader's rail and the pot.
 struct ScenarioLineView: View {
   @Environment(\.cs) private var cs
   let parts: [ScenarioPart]
@@ -382,7 +385,7 @@ struct ScenarioLineView: View {
       // OB2-02 (root's ruling) · the clinch line is a sentence: sentence
       // case, a name in its own case (UI_SYSTEM §1.3)
       Text(parts.map(\.text).joined())
-        .csType(.agateS, caps: false).foregroundStyle(cs.mut)
+        .csType(.bodyS).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityLabel(parts.map(\.text).joined())
     }

@@ -854,7 +854,7 @@ struct MainTabView: View {
     .sheet(item: Binding(get: { presenter.linkConfirmation }, set: { value in
       if value == nil { declineLink() }
     })) { card in
-      LinkConfirmationSheet(card: card, busy: linkBusy, error: linkError,
+      LinkConfirmationSheet(card: card, me: store.me?.profile?.display_name, busy: linkBusy, error: linkError,
                             confirm: { Task { await confirmLink(card) } }, decline: declineLink)
         #if DEBUG
         .csScreenMark("link")

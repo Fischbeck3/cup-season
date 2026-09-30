@@ -244,6 +244,9 @@ import Foundation
     #expect(c.bestText == "—" && c.avgText == "—" && c.roundsText == "0")
     #expect(c.figureScope == YouCopy.noCountingRounds)              // Y-28: the dash says why
     #expect(YouCopy.noCountingRounds == "Best and average start once a round is scored in a season.")   // W7-053
+    // W7-089 · the door to the rounds the form does not show, spelled
+    #expect(YouCopy.otherRounds(3) == "The other three" && YouCopy.otherRounds(1) == "The other one")
+    #expect(YouCopy.allRoundsTitle == "Your rounds")
     #expect(c.form == nil)
   }
 

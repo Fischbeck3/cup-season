@@ -157,12 +157,25 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func awardsFirstNamesOnly() {
     let aw = StandingsMath.awards(rows)!
-    #expect(aw.king == "Joe" && aw.kingSub == "Points King · 21 pts")
+    // W7-060 · Joe and Dan are level on 21: the tile names both, and crowns
+    // neither by average
+    #expect(aw.king == "Joe and Dan" && aw.kingSub == "Points King · level on 21")
     #expect(aw.iron == "Dan" && aw.ironSub == "Iron Man · 2 rds")
     // DD-02 · most improved says the fact in words. A down-triangle here meant
     // the OPPOSITE of a down-triangle on the table, in the same face and size.
     #expect(aw.improved == "Dan" && aw.improvedSub == "Most Improved · 0.5 off the index")
     #expect(!aw.improvedSub.contains("\u{25BC}"))
+  }
+  /// W7-060 · three or more level on points: the first, and the rest spelled
+  /// out; one king stands alone with their points.
+  @Test func aTieForTheTopNamesWhoIsLevel() {
+    func row(_ n: String, _ pts: Double) -> IndRow {
+      IndRow(mid: UUID(), n: n, ci: 0, sq: "", r: 3, avg: 0, best: nil, pts: pts, d: nil, me: false, hist: [])
+    }
+    let three = StandingsMath.awards([row("Avery Fixture", 53), row("Blake Fixture", 53), row("Casey Fixture", 53), row("Devon Fixture", 40)])!
+    #expect(three.king == "Avery and two more" && three.kingSub == "Points King · level on 53")
+    let one = StandingsMath.awards([row("Avery Fixture", 53), row("Blake Fixture", 40)])!
+    #expect(one.king == "Avery" && one.kingSub == "Points King · 53 pts")
   }
   @Test func mostImprovedNeedsTwoRounds() {
     let one = StandingsMath.indRows(indiv: [indiv[1]], ranked: [ranked[2]], members: members, squads: squads, myMemberId: nil, capN: 4)

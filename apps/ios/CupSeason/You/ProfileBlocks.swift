@@ -124,6 +124,8 @@ struct ProfileFormRow: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
   let rounds: [TourCard.Recent]
+  /// W7-111 · the golfer's own card: its best is "your best" aloud
+  var mine = false
 
   var body: some View {
     // oldest → newest, left to right, which is how a form line is read
@@ -141,14 +143,14 @@ struct ProfileFormRow: View {
               CSFigure(r.gross.map(String.init) ?? "—", size: .s,
                        metal: i == bestAt ? .earned : .ink, label: nil)
               Spacer()
-              Text(CredentialCopy.formDate(r)).csType(.agateS, caps: true)
+              Text(CredentialCopy.formDate(r, best: i == bestAt)).csType(.agateS, caps: true)
                 .foregroundStyle(i == bestAt ? cs.gold : cs.mut)
             }
             CSRule(.heavy, metal: i == bestAt ? .earned : .ink)
           }
           .padding(.vertical, CSTokens.Space.s2)
           .accessibilityElement(children: .ignore)
-          .accessibilityLabel(CredentialCopy.formSpoken(r, best: i == bestAt))
+          .accessibilityLabel(CredentialCopy.formSpoken(r, best: i == bestAt, mine: mine))
         }
       }
       .padding(.top, CSTokens.Space.s3)
@@ -181,10 +183,15 @@ struct ProfileFormRow: View {
       if r.isNine {
         Text(CredentialCopy.formNine).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
+      // W7-111 · the best says so in a word as well as in gold, on its own
+      // line for the same reason as NINE (a nine is never the best)
+      if best {
+        Text(CredentialCopy.formBestWord).csType(.agateS, caps: true).foregroundStyle(cs.gold)
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(CredentialCopy.formSpoken(r, best: best))
+    .accessibilityLabel(CredentialCopy.formSpoken(r, best: best, mine: mine))
   }
 }
 

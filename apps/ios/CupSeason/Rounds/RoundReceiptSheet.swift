@@ -160,12 +160,15 @@ struct RoundReceiptSheet: View {
             .accessibilityHint("Opens the course page, golfers and scores")
           }
           if enriched, r.profileId == store.session?.user.id, recap(r) != nil {
-            CSMini("Share round", glyph: .share) {
-              previewRound(r)
-            }
-            .accessibilityIdentifier("round.share.preview")
+            // W7-157 · Share is the sheet's ONE primary, full width: it had the
+            // weight of withdrawing a link. The link's off-switch and the photo's
+            // two acts are quiet text links, and Delete stays the armed foot link.
+            Button("Share round") { previewRound(r) }
+              .buttonStyle(.csPrimary())
+              .frame(maxWidth: .infinity)
+              .accessibilityIdentifier("round.share.preview")
             if publicLink?["token"]?.string != nil || publicLink?["cleanup_pending"]?.bool == true || linkNote != nil {
-              Button(publicLink?["cleanup_pending"]?.bool == true || linkNote != nil ? "Retry turning off this link" : "Turn off this link") {
+              CSDoor(.link(publicLink?["cleanup_pending"]?.bool == true || linkNote != nil ? "Retry turning off this link" : "Turn off this link") {
                 Task {
                   revokingLink = true
                   defer { revokingLink = false }
@@ -175,7 +178,12 @@ struct RoundReceiptSheet: View {
                     linkNote = publicLink?["cleanup_pending"]?.bool == true ? "The link is off. Public image cleanup is pending." : nil
                   } catch { linkNote = HumanError.text(error, prefix: "Could not finish turning off the link.") }
                 }
-              }.buttonStyle(.csSecondary()).disabled(revokingLink)
+              }).disabled(revokingLink)
+              // W7-157 · what turning it off does, said while the link is live
+              if publicLink?["token"]?.string != nil, publicLink?["cleanup_pending"]?.bool != true, linkNote == nil {
+                Text(RoundCopy.linkOffNote).csType(.bodyS).foregroundStyle(cs.mut)
+                  .fixedSize(horizontal: false, vertical: true)
+              }
             }
             if let linkNote { Text(linkNote).csType(.bodyS).foregroundStyle(cs.mut) }
             Color.clear.frame(height: 0).task(id: roundPreview) {
@@ -349,13 +357,14 @@ struct RoundReceiptSheet: View {
     let slot = RoundPhotoSlot.for(isMine: mine(r), photoPath: r.photoPath)
     if slot != .none {
       VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        // W7-157 · the photo's acts are quiet text links, below Share's weight
         FlowLayout(spacing: 8) {
-          CSMini(slot == .offer ? RoundCopy.photoAdd : RoundCopy.photoReplace,
-                 glyph: .photo, busy: photoBusy) { openPicker() }
+          CSDoor(.link(slot == .offer ? RoundCopy.photoAdd : RoundCopy.photoReplace) { openPicker() })
+            .disabled(photoBusy)
           if slot == .present {
             CSArmedButton(label: RoundCopy.photoRemove,
                           armedLabel: RoundCopy.photoRemoveArmed,
-                          busy: photoBusy) { Task { await removePhoto() } }
+                          busy: photoBusy, link: true) { Task { await removePhoto() } }
           }
         }
         if let photoNote {

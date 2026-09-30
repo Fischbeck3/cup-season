@@ -450,7 +450,8 @@ private struct SeasonBookView: View {
             matrix
           }
           if !season.upcoming {
-            Text("— No round · D Dropped · B Bye · * Adjustment · • Future week. Tap a cell for its rounds and adjustments.")
+            // W7-121 · a finished season has no week ahead to mark
+            Text(SeasonBookSnapshot.key(future: !season.finished))
               .csType(.bodyS).foregroundStyle(cs.mut).padding(.horizontal, CSTokens.Space.gutter)
             adjustments.id("adjustments")
           }

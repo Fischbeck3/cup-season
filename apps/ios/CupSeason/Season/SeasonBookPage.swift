@@ -21,6 +21,9 @@ struct SeasonBookPage: View {
   /// N4-111 · where the grid's content ends, and the scroller's own width
   @State private var gridEnd: CGFloat = 0
   @State private var gridWidth: CGFloat = 0
+  /// W7-070 · where the grid's content starts, in the scroller's own space:
+  /// below zero, earlier weeks sit behind the pinned names
+  @State private var gridStart: CGFloat = 0
   @State private var week = 1
   @ScaledMetric(relativeTo: .body) private var rowHeight = 64.0
   @State private var nameHeights: [String: CGFloat] = [:]
@@ -134,7 +137,7 @@ struct SeasonBookPage: View {
       // drawn: the week grid. Totals carry none, Race has no cells, and the
       // accessibility list speaks every status in words.
       if book.current_week > 0 && prominent && mode == "Weeks" && !type.isAccessibilitySize {
-        Text("— No round · D Dropped · B Bye · * Adjustment · • Future week. Tap a cell for its rounds and adjustments.")
+        Text(book.key)
           .csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal:false,vertical:true)
           .accessibilityIdentifier("seasonBook.key")
       }
@@ -209,12 +212,15 @@ struct SeasonBookPage: View {
         // N4-111 · where the content ends, in the scroller's own space
         .background {
           GeometryReader { g in
-            Color.clear.preference(key: BookGridEndKey.self, value: g.frame(in: .named("book.grid")).maxX)
+            Color.clear
+              .preference(key: BookGridEndKey.self, value: g.frame(in: .named("book.grid")).maxX)
+              .preference(key: BookGridStartKey.self, value: g.frame(in: .named("book.grid")).minX)
           }
         }
       }
       .coordinateSpace(.named("book.grid"))
       .onPreferenceChange(BookGridEndKey.self) { gridEnd = $0 }
+      .onPreferenceChange(BookGridStartKey.self) { gridStart = $0 }
       .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { gridWidth = $0 }
       // N4-111 · **THE GRID SAYS IT SCROLLS.** It was cut at the right edge
       // with no sign there was more (the current week half off an SE). While
@@ -223,6 +229,15 @@ struct SeasonBookPage: View {
       .overlay(alignment: .trailing) {
         if gridEnd > gridWidth + 1 {
           LinearGradient(colors: [cs.bg0.opacity(0), cs.bg0], startPoint: .leading, endPoint: .trailing)
+            .frame(width: 36).allowsHitTesting(false).accessibilityHidden(true)
+        }
+      }
+      // W7-070 · the mirror: the grid opens on its live week, and W1 to W10
+      // sat off to the left with nothing saying so. While earlier weeks are
+      // behind the pinned names, the leading 36pt fade says there is more.
+      .overlay(alignment: .leading) {
+        if gridStart < -1 {
+          LinearGradient(colors: [cs.bg0, cs.bg0.opacity(0)], startPoint: .leading, endPoint: .trailing)
             .frame(width: 36).allowsHitTesting(false).accessibilityHidden(true)
         }
       }
@@ -435,6 +450,13 @@ struct SeasonBookReceipts: View {
 /// N4-111 · the right edge of the Book grid's content, in the scroller's own
 /// coordinate space: past the scroller's width, there are weeks still to see.
 private struct BookGridEndKey: PreferenceKey {
+  static let defaultValue: CGFloat = 0
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+/// W7-070 · the left edge of the Book grid's content, in the scroller's own
+/// coordinate space: below zero, there are earlier weeks behind the names.
+private struct BookGridStartKey: PreferenceKey {
   static let defaultValue: CGFloat = 0
   static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }

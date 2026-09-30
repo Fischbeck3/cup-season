@@ -583,7 +583,7 @@ public enum LeagueCopy {
     let pen = ["", "your squad loses \(mk(5)) points for every round you're short", "the month's rounds are struck"]
     let cost = (0..<pen.count).contains(preset) ? pen[preset] : ""
     guard !cost.isEmpty else { return "Post \(rounds). Nothing is docked if you miss — it's a habit, not a penalty." }
-    return "Post \(rounds). Miss once and your season bye covers it automatically; from the second miss \(cost). Short months are waived."
+    return "Post \(rounds). Miss once and your season bye covers it automatically; from the second miss \(cost). A partial first or last month has no minimum."
   }
 }
 

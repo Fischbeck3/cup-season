@@ -21,9 +21,9 @@ struct FloorSentenceTests {
     #expect(LeagueCopy.floorSentence(floor: 1, preset: 0, structure: "squads2")
             == "Post 1 round a month. Nothing is docked if you miss — it's a habit, not a penalty.")
     #expect(LeagueCopy.floorSentence(floor: 2, preset: 1, structure: "squads2")
-            == "Post 2 rounds a month. Miss once and your season bye covers it automatically; from the second miss your squad loses 5 points for every round you're short. Short months are waived.")
+            == "Post 2 rounds a month. Miss once and your season bye covers it automatically; from the second miss your squad loses 5 points for every round you're short. A partial first or last month has no minimum.")
     #expect(LeagueCopy.floorSentence(floor: 3, preset: 2, structure: "squads4")
-            == "Post 3 rounds a month. Miss once and your season bye covers it automatically; from the second miss the month's rounds are struck. Short months are waived.")
+            == "Post 3 rounds a month. Miss once and your season bye covers it automatically; from the second miss the month's rounds are struck. A partial first or last month has no minimum.")
   }
 
   @Test("the rules page says what a miss costs, in the same sentence; no floor, no section")

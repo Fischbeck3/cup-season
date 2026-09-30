@@ -116,8 +116,12 @@ struct CredentialCopyTests {
   func formNine() {
     #expect(CredentialCopy.formDate(round("2026-09-13", 43, holes: 9)) == "SEP 13 · NINE")
     #expect(CredentialCopy.formDate(round("2026-09-27", 84)) == "SEP 27")
+    // W7-111 · the best column carries the word; the role sets its caps
+    #expect(CredentialCopy.formDate(round("2026-09-15", 84), best: true) == "SEP 15 · best")
     #expect(CredentialCopy.formSpoken(round("2026-09-13", 43, holes: 9), best: false) == "43, September 13, nine holes")
     #expect(CredentialCopy.formSpoken(round("2026-09-15", 84), best: true) == "84, September 15, their best")
+    // W7-111 · on the golfer's own card it is theirs to hear as theirs
+    #expect(CredentialCopy.formSpoken(round("2026-09-15", 84), best: true, mine: true) == "84, September 15, your best")
     #expect(CredentialCopy.formSpoken(round("2026-09-15", nil), best: false) == "no round, September 15")
   }
 

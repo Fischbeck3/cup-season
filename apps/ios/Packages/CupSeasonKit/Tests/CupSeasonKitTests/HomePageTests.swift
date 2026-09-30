@@ -552,3 +552,17 @@ private extension HomeFeedRow {
     return try! JSONDecoder().decode(HomeFeedRow.self, from: data)
   }
 }
+
+/// W7-011 · LAST yields to the wire wherever the golfer's own newest round
+/// sits on it, not only when it is the first row.
+@Suite struct LastRoundYieldTests {
+  @Test func lastYieldsWhereverTheWireShowsTheRound() {
+    let mine = UUID(), buddy = UUID()
+    let last = MeStripCopy.Slot(fact: .myLastRound, label: "LAST", value: "84 · SUN", door: .receipt(mine), voiceOver: "last round, 84 on sunday")
+    let strip = MeStripCopy.Strip(slots: [last], seasonRow: nil)
+    #expect(HomePage.repeatsLastRound(strip, shown: [mine]))              // the first row
+    #expect(HomePage.repeatsLastRound(strip, shown: [buddy, mine]))       // a buddy posted since
+    #expect(!HomePage.repeatsLastRound(strip, shown: [buddy]))            // not on the wire
+    #expect(!HomePage.repeatsLastRound(MeStripCopy.Strip(slots: [], seasonRow: nil), shown: [mine]))
+  }
+}

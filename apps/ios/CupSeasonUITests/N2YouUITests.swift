@@ -59,4 +59,22 @@ final class N2YouUITests: N2UITestCase {
       app.terminate()
     }
   }
+
+  /// W7-089 · the record holds more rounds than the form shows: "The other N"
+  /// opens every round, and a round opens its receipt.
+  @MainActor func testTheOtherRoundsAreOneDoorAway() {
+    let app = launch("season-live", "you")
+    _ = root(app, "you")
+    let door = app.buttons["you.allRounds"]
+    for _ in 0..<6 where !(door.exists && door.isHittable) { app.swipeUp() }
+    XCTAssertTrue(door.waitForExistence(timeout: 10), "the door to the other rounds")
+    XCTAssertTrue(door.label.lowercased().hasPrefix("the other "), door.label)
+    door.tap()
+    let row = app.buttons.matching(identifier: "you.allRounds.row").firstMatch
+    XCTAssertTrue(row.waitForExistence(timeout: 15), "every round, listed")
+    XCTAssertGreaterThan(app.buttons.matching(identifier: "you.allRounds.row").count, 5, "more than the form's five")
+    attach(app, "w7-089-your-rounds")
+    row.tap()
+    XCTAssertTrue(app.buttons["round.course"].waitForExistence(timeout: 15), "a round opens its receipt")
+  }
 }

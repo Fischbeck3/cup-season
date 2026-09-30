@@ -53,11 +53,29 @@ public struct LinkConfirmation: Identifiable, Sendable, Equatable {
     case .claim: "It posts to your rounds and counts in your seasons."
     }
   }
-  public var facts: String? {
+  /// W7-169 · a scorecard scored under another name than the signed-in
+  /// golfer's says so, in ink above the note, rather than leaving whose it is
+  /// to the quiet facts line: "Scored as Quinn — you’re signed in as Avery.
+  /// Add it only if it’s yours." First words compared, case-insensitive;
+  /// nothing when they match or either is missing (the web's claim.mismatch).
+  public func mismatch(me displayName: String?) -> String? {
+    guard kind == .claim,
+          let guest = info["guest_name"]?.string?.trimmingCharacters(in: .whitespaces), !guest.isEmpty,
+          let me = displayName?.trimmingCharacters(in: .whitespaces), !me.isEmpty else { return nil }
+    func first(_ s: String) -> String { s.split(separator: " ").first.map { $0.lowercased() } ?? "" }
+    guard first(guest) != first(me) else { return nil }
+    return "Scored as \(guest) \u{2014} you\u{2019}re signed in as \(me). Add it only if it\u{2019}s yours."
+  }
+
+  public var facts: String? { facts(me: nil) }
+  /// W7-169 · whose it is is said ONCE: in ink under the facts when the names
+  /// differ (`mismatch`), in the facts' own "Scored as" otherwise.
+  public func facts(me displayName: String?) -> String? {
     if kind == .person { return info["index"]?.double.map { "Index \(String(format: "%.1f", $0))" } }
     if kind == .claim {
       // `csLinkCard('claim')`: who scored it, the course and tee after the club, the day
-      return [info["guest_name"]?.string.flatMap { $0.isEmpty ? nil : "Scored as \($0)" },
+      let named = mismatch(me: displayName) == nil
+      return [named ? info["guest_name"]?.string.flatMap { $0.isEmpty ? nil : "Scored as \($0)" } : nil,
               Self.courseRest(info["course_label"]?.string), Self.day(info["played_on"]?.string)]
         .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
     }
