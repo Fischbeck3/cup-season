@@ -209,9 +209,11 @@ import Foundation
     let c = Career.compute(rows: rows, ranked: ranked, preferredSeason: s, played: 3)
     #expect(c.rounds == 6)
     #expect(c.counting == 5)                              // the sixth round has no lens
-    #expect(c.best == 4.0 && c.bestText == "+4.0")        // best AGAINST the playing number
+    // Q39 (a) · the tiles say it in words — the web's `renderCareer`
+    // #clBest / #clAvg through `vsShort` (148d6d0f)
+    #expect(c.best == 4.0 && c.bestText == "beat by 4.0")  // best AGAINST the playing number
     #expect(abs((c.avg ?? 0) - 1.2) < 0.0001)             // (2.7 + 0.6 + 4.0 − 2.8 + 1.5) / 5
-    #expect(c.avgText == "+1.2")
+    #expect(c.avgText == "beat by 1.2")
     #expect(c.figureScope == "across 5 rounds that count")   // Y-14 · the figures name their denominator
     #expect(c.played == 3)
     #expect(c.recent.count == 5)
@@ -301,9 +303,12 @@ import Foundation
     // it keeps its figure and takes the day, not the year: "79 · Jun 14".
     #expect(tiles[1].glyph == "threshold" && tiles[1].numeral == "80"
             && tiles[1].title == "Broke 80" && tiles[1].sub == "79 · Jun 14" && tiles[1].shelf == .bests)
-    // D210 · the banned word is off the tile; the figure is named for what it is
+    // X40 (1) · a personal best prints the round the golfer remembers, never
+    // the differential ("7.8 vs course" is the receipt's); with no round in
+    // hand and no gross on the grant it is the day alone (the web's
+    // `csMilestoneSub`, 6de9e7f8)
     #expect(tiles[2].glyph == "personalBest" && tiles[2].title == "Personal best"
-            && tiles[2].sub == "7.8 vs course · Jun 14")
+            && tiles[2].sub == "Jun 14")
     #expect(TrophyMeta.trophyGlyph(kind: "bracket", placement: "winner") == "bracket")
     #expect(TrophyMeta.trophyGlyph(kind: "league", placement: "winner") == "cup")
     #expect(TrophyMeta.trophyGlyph(kind: "league", placement: "runner_up") == "runnerUp")
@@ -340,6 +345,62 @@ import Foundation
     #expect(rows[1].round_id == nil)                       // absent key → nil, not a decode failure
     let tiles = TrophyCase.tiles(trophies: [], achievements: rows)
     #expect(tiles[0].roundId == rows[0].round_id && tiles[1].roundId == nil)
+  }
+
+  /// X39 (2) · owner ruling 2026-09-29 (D399): a first round is a BASELINE. A
+  /// BESTS row that shares the first round's `round_id` folds INTO the FIRST
+  /// ROUND slat, which then names its round; keyed on `round_id` only. Pins
+  /// the web's `renderTrophyCase` (da806ce1).
+  @Test func aFirstRoundsBestsFoldIntoFirstRound() throws {
+    let debut = UUID(), later = UUID()
+    let ach = [
+      Achievement(kind: "first_round", label: "First round", earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut),
+      Achievement(kind: "sub_100", label: "Broke 100", earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut),
+      Achievement(kind: "sub_90", label: "Broke 90", earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut),
+      Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-09-01", meta: .object(["gross": .number(79)]), round_id: later),
+      Achievement(kind: "streak_4", label: "Four weeks running", earned_on: "2026-09-01", meta: .object(["weeks": .number(4)])),
+    ]
+    let inHand: (UUID) -> MilestoneRound? = { id in
+      id == debut ? MilestoneRound(gross: 85, courseLabel: "Papago GC", playedOn: "2026-08-11") : nil
+    }
+    let tiles = TrophyCase.tiles(trophies: [], achievements: ach, round: inHand)
+    #expect(tiles.map(\.title) == ["First round", "Broke 80", "4-week streak"])
+    let first = try #require(tiles.first)
+    #expect(first.shelf == .along && first.sub == "85 at Papago GC · Aug 11")
+    // with the round not in hand the slat still names it, off the grant's gross
+    #expect(TrophyCase.tiles(trophies: [], achievements: ach).first?.sub == "85 · Aug 11")
+    // a later round's best keeps its own slat and its own line
+    #expect(tiles[1].shelf == .bests && tiles[1].sub == "79 · Sep 1")
+    // no round_id on the rows: nothing folds, and FIRST ROUND keeps its quiet line
+    let bare = [Achievement(kind: "first_round", label: nil, earned_on: "2026-08-11", meta: nil),
+                Achievement(kind: "sub_90", label: nil, earned_on: "2026-08-11", meta: .object(["gross": .number(85)]))]
+    let unfolded = TrophyCase.tiles(trophies: [], achievements: bare)
+    #expect(unfolded.map(\.title) == ["First round", "Broke 90"])
+    #expect(unfolded[0].sub == "Posted · '26")
+  }
+
+  /// X40 (1) · owner ruling 2026-09-29: a personal best names its ROUND
+  /// ("83 at Papago GC · Aug 24"), and one round prints its line ONCE — when
+  /// BROKE 80 and PERSONAL BEST share a round, the second slat keeps its
+  /// title and its door and no line. The differential is the receipt's alone.
+  /// Pins the web's `csMilestoneSub`, `achSubtitle` and `renderTrophyCase`
+  /// saidRound (6de9e7f8).
+  @Test func aPersonalBestNamesItsRoundAndOneRoundSaysItOnce() {
+    let r = UUID()
+    let pb = Achievement(kind: "personal_best", label: nil, earned_on: "2026-08-24", meta: .object(["diff": .number(4.1)]), round_id: r)
+    let s80 = Achievement(kind: "sub_80", label: nil, earned_on: "2026-08-24", meta: .object(["gross": .number(79)]), round_id: r)
+    let inHand: (UUID) -> MilestoneRound? = { id in
+      id == r ? MilestoneRound(gross: 79, courseLabel: "Papago GC", playedOn: "2026-08-24") : nil
+    }
+    let tiles = TrophyCase.tiles(trophies: [], achievements: [pb, s80], round: inHand)
+    #expect(tiles.map(\.sub) == ["79 at Papago GC · Aug 24", ""])
+    #expect(tiles[1].roundId == r && tiles[1].shelf == .bests)   // the second keeps its door
+    #expect(!tiles.contains { $0.sub.contains("vs course") })
+    // the producers themselves
+    #expect(TrophyMeta.milestoneSub(kind: "personal_best", label: nil, meta: .object(["diff": .number(4.1)]),
+                                    earnedOn: "2026-08-24", round: nil) == "Aug 24")
+    #expect(TrophyMeta.achSubtitle(kind: "personal_best", label: nil, meta: .object(["diff": .number(7.8)])) == "")
+    #expect(TrophyMeta.achSubtitle(kind: "personal_best", label: nil, meta: .object(["diff": .number(7.8), "gross": .number(83)])) == "83 gross")
   }
 
   /// Y-02 · one empty state. The record strip has nothing to draw, so the
@@ -416,7 +477,9 @@ import Foundation
     let s = SeasonStats.compute(rows: rows, standings: [IndividualStanding(season_id: sid, member_id: me, points: 16, rounds_posted: 2)], myMemberId: me)
     /* D276 · `deltaText` is a SIGNED FIGURE now, with U+2212 for the minus —
        `▼ 0.3` put the board's "you fell" mark on an index that improved. */
-    #expect(s.roundsText == "2" && s.avgText == "+0.4" && s.bestText == "+1.4")
+    // Q39 (a) · This season speaks as All time does, in words — the web's
+    // `renderIndStatsReal` #msAvg / #msBest through `vsShort` (148d6d0f)
+    #expect(s.roundsText == "2" && s.avgText == "played to it" && s.bestText == "beat by 1.4")
     #expect(s.deltaText == "\u{2212}0.3", "a fall in the index reads as a minus, not as a verdict")
     #expect(SeasonStats(rounds: 2, counting: 2, avg: 0, best: 0, delta: 0.4).deltaText == "+0.4")
     #expect(s.counting == 2 && s.figureScope == "across 2 rounds that count" && s.deltaSub == YouCopy.seasonToDate)
@@ -441,11 +504,17 @@ import Foundation
                                  lead: "up", duel_wins: 3, duel_losses: 2, duel_halves: 0, rivalry_name: "The Grudge")
     let line = RivalryLine.from(r)!
     #expect(line.record == "4–2–1" && line.lead == .up)
-    #expect(line.facets == "7 weeks head-to-head · Ryder clashes 3–2")
+    // X36 (1) · the row names its facet — the web's `renderRivalries` (bfce5aea)
+    #expect(line.facets == "In the season · 7 weeks · Ryder clashes 3–2")
     #expect(line.rivalryName == "The Grudge")
     let quiet = RivalryLine.from(Rpc.my_rivalries.Row(opponent: UUID(), display_name: nil, handle: nil, marker: nil, wins: 0, losses: 1, ties: 0, meetings: 1,
                                                       lead: "down", duel_wins: 0, duel_losses: 0, duel_halves: 0, rivalry_name: ""))!
-    #expect(quiet.record == "0–1" && quiet.facets == "1 week head-to-head" && quiet.rivalryName == nil && quiet.name == "—")
+    #expect(quiet.record == "0–1" && quiet.facets == "In the season · 1 week" && quiet.rivalryName == nil && quiet.name == "—")
+    // X36 · the sheet names the facet too, and a season week is never a clash
+    // (the web's `openRivalrySheet`, bfce5aea)
+    #expect(RivalryCopy.sheetSub == "IN THE SEASON · BETTER ROUND VS YOUR PLAYING HCP TAKES THE WEEK")
+    #expect(RivalryCopy.noWeeks == "No weeks in the season yet. A week counts when you both post in a season you share.")
+    #expect(!RivalryCopy.sheetSub.contains("CLASH") && !RivalryCopy.noWeeks.contains("clash"))
   }
   @Test func weekRows() {
     let w = RivalryWeek.from(Rpc.rivalry_weeks.Row(wk: "2026-07-06", my_pvi: 1.2, opp_pvi: -0.4, winner: "me"), opponentName: "Garrett")!
@@ -468,7 +537,10 @@ import Foundation
     let c = TourCard.parse(json)
     #expect(c.visible && c.profile.displayName == "Garrett" && c.profile.ghin == "123")
     #expect(c.profile.memberSince != nil)
-    #expect(c.bestText == "7.8" && c.avgText == "-0.4")
+    // Q39 (a) · the 100% average says it in words too (`openTourCard`, c3187a81);
+    // X40 (1) · off the lens the best is the ROUND, never `career.best`'s
+    // differential, and this payload carries no best_round: no row (6de9e7f8)
+    #expect(c.bestText == "—" && !c.showsBestRow && c.avgText == "played to it")
     #expect(c.trophies.first?.kind == "sub_90")
     #expect(c.recent.first?.beat == true)
     #expect(c.vsYou?.chip == "VS YOU · 3–2 · YOU LEAD")
@@ -476,7 +548,7 @@ import Foundation
     // the OLD payload has no allowance keys at all: the lens stays off and the
     // 100% average is decoded into the field whose name says what it is.
     #expect(c.playingLens == false && c.career.avgVsIndex == -0.4 && c.career.avgPvi == nil)
-    #expect(TourCard.bestLabel(playingLens: false) == "Best round vs course")
+    #expect(TourCard.bestLabel(playingLens: false) == "Best round")   // X40 · never "vs course"
     #expect(TourCard.avgLabel(playingLens: false, isMe: true) == "Avg vs your playing HCP")
     #expect(TourCard.careerEyebrow(playingLens: false, isMe: true) == "Career")
   }
@@ -489,7 +561,9 @@ import Foundation
     }
     let on = card(.object(["rounds": .number(12), "best": .number(7.8), "avg_pvi": .number(2.6),
                            "best_pvi": .number(4.0), "avg_vs_index": .number(-0.4)]))
-    #expect(on.playingLens && on.bestText == "+4.0" && on.avgText == "+2.6")
+    // Q39 (a) · the card's career figures in words — the web's `openTourCard`
+    // (c3187a81): 'Best round' and 'Avg' take `vsShort`
+    #expect(on.playingLens && on.bestText == "beat by 4.0" && on.avgText == "beat by 2.6")
     #expect(TourCard.bestLabel(playingLens: true) == "Best round")
     #expect(TourCard.avgLabel(playingLens: true, isMe: true) == "Avg")
     #expect(TourCard.careerEyebrow(playingLens: true, isMe: true) == "Career · vs your playing HCP")
@@ -501,7 +575,39 @@ import Foundation
     let leagueless = card(.object(["rounds": .number(2), "best": .number(21.5), "avg_pvi": .null,
                                    "best_pvi": .null, "avg_vs_index": .number(-13.3)]))
     #expect(leagueless.playingLens == false)
-    #expect(leagueless.bestText == "21.5" && leagueless.avgText == "-13.3")
+    // X40 (1) · the old course score (21.5) never prints: with no best_round
+    // there is no row, and with one the row names the round (6de9e7f8)
+    #expect(leagueless.bestText == "—" && !leagueless.showsBestRow && leagueless.avgText == "13.3 over")
+    let named = card(.object(["rounds": .number(2), "best": .number(21.5), "avg_pvi": .null, "best_pvi": .null,
+                              "avg_vs_index": .number(-13.3),
+                              "best_round": .object(["gross": .number(83), "course_label": .string("Papago GC"),
+                                                     "played_on": .string("2026-08-24"), "differential": .number(9.1)])]))
+    #expect(named.bestText == "83 at Papago GC · Aug 24" && named.showsBestRow)
+    #expect(on.showsBestRow)   // under the lens the row is always drawn
+  }
+
+  /// Q39 (a) · owner ruling 2026-09-29: the record's figures are WORDS and the
+  /// sign stays only where it is the fact. `vsShort` is the web's `vsShort`
+  /// verbatim ('beat by 2.4' / 'played to it' / '2.6 over', and a dash for a
+  /// missing figure, never 'played to it'); `vsSigned` is the web's
+  /// `vsSigned`, kept for the receipt's arithmetic row (D2) and the clash side.
+  @Test func theRecordSaysItInWordsAndTheReceiptKeepsItsSign() {
+    #expect(CSBands.vsShort(2.4) == "beat by 2.4")
+    #expect(CSBands.vsShort(1.0) == "beat by 1.0")
+    #expect(CSBands.vsShort(0.4) == "played to it")
+    #expect(CSBands.vsShort(-0.99) == "played to it")
+    #expect(CSBands.vsShort(-1.0) == "1.0 over")    // Q-20 · the −1.0 edge is loose, as cup_points
+    #expect(CSBands.vsShort(-2.6) == "2.6 over")
+    #expect(CSBands.vsShort(nil) == "—" && CSBands.vsShort(Double.nan) == "—")
+    #expect(CSBands.vsSigned(2.4) == "+2.4" && CSBands.vsSigned(0.4) == "level" && CSBands.vsSigned(-1.8) == "-1.8")
+    #expect(CSBands.vsSigned(nil) == "")
+    // no record tile carries a sign any more
+    for t in [Career(rounds: 1, best: 2.4, avg: -2.6, counting: 1, played: 0, recent: [], figures: [:], points: [:]).bestText,
+              Career(rounds: 1, best: 2.4, avg: -2.6, counting: 1, played: 0, recent: [], figures: [:], points: [:]).avgText,
+              SeasonStats(rounds: 1, counting: 1, avg: -2.6, best: 2.4, delta: nil).avgText,
+              SeasonStats(rounds: 1, counting: 1, avg: -2.6, best: 2.4, delta: nil).bestText] {
+      #expect(!t.hasPrefix("+") && !t.hasPrefix("-"), "a record tile carries a sign: \(t)")
+    }
   }
   @Test func relation() {
     let pid = UUID(), fid = UUID()

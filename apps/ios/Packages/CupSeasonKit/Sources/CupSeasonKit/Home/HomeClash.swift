@@ -164,7 +164,9 @@ public enum HomeClashCopy {
     guard let s else { return "Nothing posted" }
     var bits: [String] = []
     if let g = s.gross { bits.append(String(g)) }
-    if let p = s.pvi { bits.append(CSBands.vsShort(p)) }
+    // the SIGNED form: the clash side is the score to beat, and the web's
+    // `clashSide` prints `vsSigned` (Q39 leaves the rivalry and callout lines)
+    if let p = s.pvi { bits.append(CSBands.vsSigned(p)) }
     if let d = s.playedOn { bits.append(ClashMath.dowShort(d).uppercased()) }
     return bits.isEmpty ? "Posted" : bits.joined(separator: " · ")
   }

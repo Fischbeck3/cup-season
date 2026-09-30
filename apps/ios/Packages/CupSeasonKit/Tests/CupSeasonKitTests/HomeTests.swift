@@ -296,3 +296,47 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 2, cap: 0) == "9 pts · counting #2 this month")
   }
 }
+
+/// X39 (2) · owner ruling 2026-09-29 (D399): a first round is a BASELINE. The
+/// feed says a debut is a debut before it says a personal best or a first
+/// sub-80, and counts it once. Pins the web's `homeRoundDetail`, `dgBest`,
+/// `dgLine`, the digest's bits and the buddy moment's order (da806ce1).
+@Suite struct FirstRoundIsABaselineOnHomeTests {
+  let now = ISO8601DateFormatter().date(from: "2026-08-27T15:00:00Z")!
+
+  @Test func theDebutSaysDebutFirst() {
+    let debut = row(golfer: "Rosa", gross: 79, pvi: 3.1, playedOn: "2026-08-27", pr: true, sub80: true, first: true)
+    #expect(HomeWireCopy.roundDetail(debut, holes: 18) == "their first round posted.")
+    #expect(HomeWireCopy.roundDetail(row(me: true, gross: 79, playedOn: "2026-08-27", pr: true, first: true)) == "your first round posted.")
+    #expect(HomeCopy.milestone(debut, holes: 18) == "First round posted")
+    // the control: a later round keeps its milestone
+    let later = row(golfer: "Rosa", gross: 77, playedOn: "2026-08-27", pr: true, sub80: true)
+    #expect(HomeWireCopy.roundDetail(later, holes: 18) == "a personal best.")
+    #expect(HomeCopy.milestone(later, holes: 18) == "Personal best")
+  }
+
+  @Test func theDigestCountsADebutOnceAsADebut() {
+    let mark = now.addingTimeInterval(-3600), fresh = now.addingTimeInterval(-600)
+    let rosa = UUID()
+    let rounds = [row(rosa, golfer: "Rosa", gross: 79, playedOn: "2026-08-27", createdAt: fresh, pr: true, sub80: true, first: true),
+                  row(golfer: "Diego", playedOn: "2026-08-27", createdAt: fresh)]
+    let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
+    #expect(d.body == "2 rounds and Rosa's first round.")
+    // one fresh debut is its own line, said as a debut
+    let one = HomeDigest.make(rounds: [rounds[0]], posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
+    #expect(one.body == "Rosa posted their first round — 79 at Papago GC.")
+  }
+
+  @Test func theQuietPickRanksADebutAsADebut() {
+    let mark = now.addingTimeInterval(-3600), old = now.addingTimeInterval(-86400 * 2)
+    let rosa = UUID()
+    // Rosa's debut carries the server's PB and sub-80 flags; Marco's PB is a real one
+    let rounds = [row(rosa, golfer: "Rosa", gross: 79, pvi: 3.8, playedOn: "2026-08-25", createdAt: old, pr: true, sub80: true, first: true),
+                  row(golfer: "Marco", gross: 90, pvi: 0.4, playedOn: "2026-08-25", createdAt: old, pr: true)]
+    let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
+    #expect(d.kind == .quiet)
+    #expect(d.body.hasSuffix("Marco set a personal best — 90 at Papago GC"))
+    let alone = HomeDigest.make(rounds: [rounds[0]], posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
+    #expect(alone.body.hasSuffix("Rosa posted their first round — 79 at Papago GC"))
+  }
+}

@@ -151,9 +151,11 @@ public struct PostNextAct: Sendable, Equatable {
   /// and it is a sentence, never a blank (L-32).
   public static func choose(_ epi: PostEpilogue?, seasonId: UUID? = nil, context: Context) -> PostNextAct {
     // 1 · the round settled an open clash
+    // X36 (1) · the settled spotlight is named as the weekly clash, the
+    // head-to-head's own facet for it (the web's `csNextAct`, bfce5aea)
     if let c = context.clashOpponent {
       let running = c.weeksRunning >= 2 ? " \(EpilogueMovement.place(c.weeksRunning).capitalizedFirst) week running." : ""
-      return PostNextAct(key: "clash", sentence: "That takes the clash.\(running)",
+      return PostNextAct(key: "clash", sentence: "That takes the weekly clash.\(running)",
                          label: "See the head-to-head", door: .headToHead(c.id))
     }
 

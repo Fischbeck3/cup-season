@@ -298,11 +298,15 @@ public struct HomeStreamRepository: Sendable {
 
 public enum HomeCopy {
   public static func milestone(_ r: HomeFeedRow, holes: Int? = nil) -> String? {
+    // TERMINOLOGY §4 row 7 · the card is the CREDENTIAL; a round POSTS.
+    // X39 (2) · a first round is a baseline (D399), so it is asked FIRST: a
+    // debut is never a buddy's "Personal best" or "Broke 80 — first time".
+    // The web's buddy moment (`homeLead`) and circle story (`csFallbackItems`)
+    // took the same order in da806ce1.
+    if r.is_first == true { return "First round posted" }
     if r.is_pr == true { return "Personal best" }
     // W3 twin · only a round known to be eighteen holes (`KnownHoles`)
     if HomeWireCopy.claimsSub80(r, holes: holes) { return "Broke 80 — first time" }
-    // TERMINOLOGY §4 row 7 · the card is the CREDENTIAL; a round POSTS.
-    if r.is_first == true { return "First round posted" }
     return nil
   }
   public static func who(_ r: HomeFeedRow) -> String { r.is_me == true ? "You" : (r.golfer ?? "A golfer") }

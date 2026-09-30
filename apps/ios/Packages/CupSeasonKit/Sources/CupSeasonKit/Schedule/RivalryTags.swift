@@ -8,22 +8,31 @@ import Foundation
 public struct RivalryTag: Sendable, Equatable {
   /// "“The Grudge” · " or ""
   public let name: String
-  /// "you lead 3–1" · "Galen leads 2–1" · "even 1–1" · the duel forms
+  /// "you lead 4–3 in the season · 7 weeks" · "Galen leads 4–3 in the season
+  /// · 7 weeks" · "even 3–3 in the season · 6 weeks" · the duel forms
   public let record: String
   public var text: String { name + record }
 
   /// nil when there is nothing to say yet.
+  ///
+  /// X36 (1) · owner ruling 2026-09-29: the tag NAMES WHAT IT COUNTS. Season
+  /// weeks are "in the season · N weeks", and the fallback's duels are "in
+  /// Ryder clashes" — never a bare "clashes", which also names the weekly
+  /// clash. Web twin: `rivalryTag` (bfce5aea).
   public static func of(_ pid: UUID?, rivals: [Rpc.my_rivalries.Row]) -> RivalryTag? {
     guard let pid, let r = rivals.first(where: { $0.opponent == pid }) else { return nil }
     let first = (r.display_name ?? "They").split(separator: " ").first.map(String.init) ?? "They"
     let w = r.wins ?? 0, l = r.losses ?? 0
     var rec: String?
-    if (r.meetings ?? 0) > 0 {
-      rec = w > l ? "you lead \(w)–\(l)" : w < l ? "\(first) leads \(l)–\(w)" : "even \(w)–\(l)"
+    if let n = r.meetings, n > 0 {
+      let wks = " in the season · \(n) week\(n == 1 ? "" : "s")"
+      rec = w > l ? "you lead \(w)–\(l)\(wks)" : w < l ? "\(first) leads \(l)–\(w)\(wks)" : "even \(w)–\(l)\(wks)"
     } else {
       let dw = r.duel_wins ?? 0, dl = r.duel_losses ?? 0
       if dw != 0 || dl != 0 {
-        rec = dw > dl ? "you lead clashes \(dw)–\(dl)" : dw < dl ? "\(first) leads clashes \(dl)–\(dw)" : "even in clashes \(dw)–\(dl)"
+        rec = dw > dl ? "you lead \(dw)–\(dl) in Ryder clashes"
+            : dw < dl ? "\(first) leads \(dl)–\(dw) in Ryder clashes"
+            : "even \(dw)–\(dl) in Ryder clashes"
       }
     }
     guard let rec else { return nil }

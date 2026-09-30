@@ -148,16 +148,17 @@ import CupSeasonKit
                                     earnedOn: nil, round: nil) == "")
   }
 
-  /// **A milestone prints the figure it is ABOUT.** Taking the round's gross
-  /// for both put the identical sentence under BROKE 80 and PERSONAL BEST
-  /// whenever one round earned them together — the owner's own complaint,
-  /// arriving inside the fix for it.
-  @Test func aPersonalBestKeepsTheHouseNameForItsFigure() {
+  /// X40 (1) · owner ruling 2026-09-29: **a personal best prints the round the
+  /// golfer remembers**, as a threshold does — the differential ("4.1 vs
+  /// course") stays on the receipt. D291's worry, the same sentence under
+  /// BROKE 80 and PERSONAL BEST, is answered by the case printing a shared
+  /// round's line once (`TrophyCase.tiles`; the web's 6de9e7f8).
+  @Test func aPersonalBestNamesTheRoundTheGolferRemembers() {
     #expect(TrophyMeta.milestoneSub(kind: "personal_best", label: nil, meta: .object(["diff": .number(4.1)]),
-                                    earnedOn: "2026-08-24", round: nil) == "4.1 vs course · Aug 24")
+                                    earnedOn: "2026-08-24", round: nil) == "Aug 24")
     let round = MilestoneRound(gross: 79, courseLabel: "Papago", playedOn: "2026-08-24")
     #expect(TrophyMeta.milestoneSub(kind: "personal_best", label: nil, meta: .object(["diff": .number(4.1)]),
-                                    earnedOn: "2026-08-24", round: round) == "4.1 vs course · Papago · Aug 24")
+                                    earnedOn: "2026-08-24", round: round) == "79 at Papago · Aug 24")
     #expect(TrophyMeta.milestoneSub(kind: "sub_80", label: nil, meta: .object(["gross": .number(79)]),
                                     earnedOn: "2026-08-24", round: round) == "79 at Papago · Aug 24")
   }

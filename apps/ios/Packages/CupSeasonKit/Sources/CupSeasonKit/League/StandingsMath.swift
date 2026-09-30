@@ -686,37 +686,57 @@ public enum ClimbMath {
 // MARK: - The scenario line (D24)
 
 public enum ScenarioPart: Sendable, Equatable {
-  case clinch(String)   // "The Final is set"
+  case clinch(String)   // "The Final is set:"
   case text(String)
   case bold(String)
   case out(String)
+  /// Q50 (A) · "351 more points" inside its sentence, when its arithmetic adds
+  /// up: the tertiary-link door that opens `ScenarioLine.clinchReceipt` (the
+  /// web's #scenClinchDoor, bcc60779). The view makes it tappable.
+  case door(String)
   public var text: String {
     switch self {
-    case .clinch(let s), .text(let s), .bold(let s), .out(let s): s
+    case .clinch(let s), .text(let s), .bold(let s), .out(let s), .door(let s): s
     }
   }
 }
 
 public enum ScenarioLine {
-  static func seedWord(_ meta: SeasonScenarios.Meta) -> String {
+  /// W7-071 · lower-case words for a sentence: the seat named, never the +10
+  /// head start (the Final card's fact). The web's `scenSeedWord` (f5c2f84b).
+  public static func seedWord(_ meta: SeasonScenarios.Meta) -> String {
     if meta.finish == "points_table" { return "the crown" }
-    if meta.level == "squad" && meta.structure == "squads2" { return "the top seed · +10" }
-    return "a Cup seed"
+    if meta.level == "squad" && meta.structure == "squads2" { return "the top seed" }
+    return "a Cup Final place"
   }
 
-  /// `renderScenarioLine` (14557–14600). Empty = hide. Never invents a clinch.
+  /// "A", "A and B", "A, B and C" — the web's `names` (f5c2f84b).
+  static func names(_ list: [String]) -> String {
+    list.count < 3 ? list.joined(separator: " and ") : list.dropLast().joined(separator: ", ") + " and " + list[list.count - 1]
+  }
+
+  /// `renderScenarioLine`. Empty = hide. Never invents a clinch.
   ///
-  /// OB2-02 (root's ruling) · the clinch line is a SENTENCE, so it is typed as
-  /// said and set in sentence case, and a name keeps its own case (the web's
-  /// `up()` is gone too, 76b1935d). The locked seeds say "The Final is set —
-  /// …", and the web moves to these words.
+  /// W7-071 · every part is a SENTENCE in sentence case, joined by a space and
+  /// never by " · ", with the unit named ("351 MORE" had none): a squad's name
+  /// is a plural noun ("Fixture Javelinas clinch", "have clinched", "are
+  /// out"), a golfer's singular. The web's `renderScenarioLine` (f5c2f84b).
   public static func parts(_ sc: SeasonScenarios?) -> [ScenarioPart] {
     guard let sc, !sc.rows.isEmpty else { return [] }
     let meta = sc.meta, rows = sc.rows
     let nm = { (s: String?) in s ?? "" }
+    let plural = meta.level == "squad"
     if meta.locked == true {
       let seeds = rows.prefix(max(0, meta.k ?? 0)).map { nm($0.name) }
-      return [.clinch("The Final is set"), .text(" — \(seeds.joined(separator: " · ")) into the Cup Final")]
+      guard !seeds.isEmpty else { return [] }
+      // "The Final is set: A and B are in." — each name bold, as on the web
+      var p: [ScenarioPart] = [.clinch("The Final is set:"), .text(" ")]
+      for (i, s) in seeds.enumerated() {
+        if i > 0 { p.append(.text(i == seeds.count - 1 ? " and " : ", ")) }
+        p.append(.bold(s))
+      }
+      p.append(.text(seeds.count > 1 || plural ? " are in." : " is in."))
+      return p
     }
     if meta.months_left == 0 { return [] }
     let sw = seedWord(meta)
@@ -726,18 +746,82 @@ public enum ScenarioLine {
     var parts: [ScenarioPart] = []
     if lead.clinched == true {
       // F-5 · §2.3 retires "locked" as this product's verb for a settled
-      // fact; check 5 grepped SEEDS LOCKED and this inflection walked past it.
-      // "Clinched" is the golf word for the same certainty anyway.
-      parts += [.bold(nm(lead.name)), .text(" is in \(sw)")]
+      // fact. "Clinched" is the golf word for the same certainty anyway.
+      parts += [.bold(nm(lead.name)), .text(" \(plural ? "have" : "has") clinched \(sw).")]
     } else if capped, let needs = lead.needs, needs > 0, needs <= leadHeadroom {
-      parts += [.bold(nm(lead.name)), .text(" · \(CSCopy.points(needs)) more clinches \(sw)")]
+      // Q50 (A) · the number is a receipt DOOR only when its arithmetic adds up (L-44)
+      let said = " \(plural ? "clinch" : "clinches") \(sw) with "
+      parts.append(.bold(nm(lead.name)))
+      if clinchBar(sc) == nil {
+        parts.append(.text(said + unit(needs) + "."))
+      } else {
+        parts.append(.text(said)); parts.append(.door(unit(needs))); parts.append(.text("."))
+      }
     }
     let out = rows.filter { $0.eliminated == true }.map { nm($0.name) }
     if !out.isEmpty {
-      if !parts.isEmpty { parts.append(.text(" · ")) }
-      parts.append(.out("\(out.joined(separator: ", ")) out of the \(meta.finish == "points_table" ? "race" : "seed race")"))
+      if !parts.isEmpty { parts.append(.text(" ")) }
+      parts.append(.out("\(names(out)) \(out.count > 1 || plural ? "are" : "is") out of the \(meta.finish == "points_table" ? "race" : "seed race")."))
     }
     return parts
+  }
+
+  /// "351 more points" / "1 more point" — the unit named.
+  public static func unit(_ n: Double) -> String { "\(CSCopy.points(n)) more point\(n == 1 ? "" : "s")" }
+
+  // MARK: Q50 (A) · the clinch number's receipt
+
+  /// The bar the leader must clear NOW to lock the seat: `season_scenarios`'
+  /// clinch_bar, the K-th best ceiling among the OTHER rows. nil unless its
+  /// arithmetic gives exactly the `needs` printed (L-44): the door is drawn
+  /// only when the figures add up. The web's `csClinchBar` (bcc60779).
+  public static func clinchBar(_ sc: SeasonScenarios?) -> (row: SeasonScenarios.Row, lead: SeasonScenarios.Row, k: Int, need: Double)? {
+    guard let sc, let lead = sc.rows.first else { return nil }
+    let k = max(1, sc.meta.k ?? 1)
+    let others = sc.rows.dropFirst().filter { $0.id != lead.id && $0.max_final != nil }
+      .sorted { ($0.max_final ?? 0) > ($1.max_final ?? 0) }
+    guard others.count >= k, let ceiling = others[k - 1].max_final, let needs = lead.needs else { return nil }
+    let need = ceiling - (lead.points ?? 0) + 1
+    return need == needs ? (others[k - 1], lead, k, need) : nil
+  }
+
+  /// One row of the clinch receipt, in `showFinalist`'s grammar.
+  public struct ClinchRow: Sendable, Equatable {
+    public enum Kind: Sendable, Equatable { case row, sub, total }
+    public let label: String
+    public let value: String
+    public let kind: Kind
+  }
+
+  /// The sheet the clinch number opens (Q50 A, owner ruling 2026-09-29; D24
+  /// stands). Title "351 more points", subtitle "How ‹Leader› clinch the top
+  /// seed", the arithmetic in rows, and one fine line saying what a ceiling
+  /// is. The web's `openClinchReceipt` (bcc60779), word for word; E wires the
+  /// view (the number in the line is the door).
+  public struct ClinchReceipt: Sendable, Equatable {
+    public let title: String
+    public let subtitle: String
+    public let rows: [ClinchRow]
+    public let fine: String
+  }
+
+  public static func clinchReceipt(_ sc: SeasonScenarios?) -> ClinchReceipt? {
+    guard let sc, let b = clinchBar(sc) else { return nil }
+    let sw = seedWord(sc.meta), plural = sc.meta.level == "squad"
+    let other = b.row.name ?? "", lead = b.lead.name ?? ""
+    let ceiling = b.row.max_final ?? 0, now = b.row.points ?? 0
+    let rows: [ClinchRow] = [
+      .init(label: "\(other) can still reach", value: CSCopy.points(ceiling), kind: .row),
+      .init(label: "\(CSCopy.points(now)) now, and \(CSCopy.points(ceiling - now)) more if every round left scores the top band", value: "", kind: .sub),
+      .init(label: "Less \(lead)\u{2019}s points", value: "\u{2212}" + CSCopy.points(b.lead.points ?? 0), kind: .row),
+      .init(label: "One more, to be clear of it", value: "+1", kind: .row),
+      .init(label: "\(plural ? "Clinch" : "Clinches") \(sw) with", value: CSCopy.points(b.need), kind: .total),
+    ]
+    let lede = b.k > 1
+      ? "That is the \(b.k == 2 ? "second" : EpilogueMovement.place(b.k))-highest ceiling behind the leader: a seat is locked once only \(b.k - 1) other\(b.k - 1 == 1 ? "" : "s") could still pass. "
+      : ""
+    return ClinchReceipt(title: unit(b.need), subtitle: "How \(lead) \(plural ? "clinch" : "clinches") \(sw)", rows: rows,
+                         fine: lede + "A ceiling counts every round still possible at the top band, so the number is what no run of results can take back, not a pace.")
   }
 }
 

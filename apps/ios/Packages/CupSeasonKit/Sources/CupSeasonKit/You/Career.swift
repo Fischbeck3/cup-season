@@ -69,10 +69,12 @@ public struct Career: Sendable, Equatable {
     FormRow.from(rounds: recent.map { r in figures[r.id].map { FormRow.Dot(pvi: $0, points: points[r.id]) } })
   }
 
-  // the tile strings, as the web writes them (`sign(v)`)
+  // the tile strings, as the web writes them. Q39 (a) · the best and the
+  // average say it in WORDS ("beat by 5.4", "1.0 over"), never a sign: the
+  // web's `renderCareer` #clBest / #clAvg (148d6d0f) take `vsShort`
   public var roundsText: String { String(rounds) }
-  public var bestText: String { best.map(RoundCopy.signed) ?? "—" }
-  public var avgText: String { avg.map(RoundCopy.signed) ?? "—" }
+  public var bestText: String { CSBands.vsShort(best) }
+  public var avgText: String { CSBands.vsShort(avg) }
   public var playedText: String { String(played) }
   /// Y-14 · what the best and the average are computed OVER — and, when the
   /// cell is a dash, why it is one. Both figures carry it because both are

@@ -94,8 +94,11 @@ public struct HomeDigest: Sendable, Equatable {
       let t = r.created_at ?? CSDate.local(r.played_on ?? "") ?? .distantPast
       return now.timeIntervalSince(t) <= 14 * 86400
     }
+    // X39 (2) · a first round ranks, and reads, as one (D399): `is_first`
+    // is asked first, so a debut that the server also flagged a personal best
+    // or a first sub-80 is not picked as either. The web's `dgBest` (da806ce1).
     func rank(_ r: HomeFeedRow) -> Int {
-      r.is_pr == true ? 4 : HomeWireCopy.claimsSub80(r, holes: holes.of(r)) ? 3 : r.is_first == true ? 2 : 1
+      r.is_first == true ? 2 : r.is_pr == true ? 4 : HomeWireCopy.claimsSub80(r, holes: holes.of(r)) ? 3 : 1
     }
     return recent.sorted { a, b in
       if rank(a) != rank(b) { return rank(a) > rank(b) }
@@ -106,9 +109,10 @@ public struct HomeDigest: Sendable, Equatable {
 
   static func line(_ r: HomeFeedRow, holes: KnownHoles = .none) -> String {
     let w = who(r), course = r.course ?? "a round", g = r.gross.map(String.init) ?? "—"
+    // X39 (2) · the debut says debut first (the web's `dgLine`, da806ce1)
+    if r.is_first == true { return "\(w) posted \(r.is_me == true ? "your" : "their") first round — \(g) at \(course)" }
     if r.is_pr == true { return "\(w) set a personal best — \(g) at \(course)" }
     if HomeWireCopy.claimsSub80(r, holes: holes.of(r)) { return "\(w) broke 80 — \(g) at \(course)" }
-    if r.is_first == true { return "\(w) posted \(r.is_me == true ? "your" : "their") first round — \(g) at \(course)" }
     return "\(w) posted \(g) at \(course)"
   }
 
@@ -147,8 +151,10 @@ public struct HomeDigest: Sendable, Equatable {
     if !freshRounds.isEmpty || !freshPosts.isEmpty || !mentions.isEmpty {
       var bits: [String] = [], strong: [String] = []
       if !freshRounds.isEmpty { bits.append("\(freshRounds.count) round\(freshRounds.count > 1 ? "s" : "")"); strong.append(bits[0]) }
-      if let pr = freshRounds.first(where: { $0.is_pr == true }) { bits.append("a personal best from \(who(pr))") }
-      if let s = freshRounds.first(where: { HomeWireCopy.claimsSub80($0, holes: holes.of($0)) }) { bits.append("\(who(s)) broke 80") }
+      // X39 (2) · a debut is counted once, as the first round it is — never
+      // also as a personal best or a first sub-80 (the web's digest bits, da806ce1)
+      if let pr = freshRounds.first(where: { $0.is_pr == true && $0.is_first != true }) { bits.append("a personal best from \(who(pr))") }
+      if let s = freshRounds.first(where: { HomeWireCopy.claimsSub80($0, holes: holes.of($0)) && $0.is_first != true }) { bits.append("\(who(s)) broke 80") }
       if let f = freshRounds.first(where: { $0.is_first == true }) { bits.append("\(who(f))'s first round") }
       if !freshPosts.isEmpty { bits.append("\(freshPosts.count) league note\(freshPosts.count > 1 ? "s" : "")") }
       // D365 · applause is grouped by round and distinct people — "Alex and 2

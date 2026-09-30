@@ -87,33 +87,34 @@ public enum TrophyMeta {
     return AchMeta(glyph: "medal", title: (label ?? "").isEmpty ? "Milestone" : label!)
   }
 
-  /// N4-192 · a milestone's headline where only its title and a round's gross
-  /// are printed (the Record widget). A personal best is measured against the
-  /// course, not by the gross printed under it — "Personal best 81" sat beside
-  /// a record whose best was 79 — so its headline carries the achievement's
-  /// own fact, from the trophy case's producer: "Personal best · 7.8 vs course".
-  /// N4-082 · `marked` sets the headline's figure as a run for the widget's
-  /// serif line: the personal best's "{7.8} vs course", and a sub-N title's
-  /// own number ("Broke {80}"). The words are the same either way.
+  /// A milestone's headline where only its title and a round's gross are
+  /// printed (the Record widget). N4-082 · `marked` sets a sub-N title's own
+  /// number as a run for the widget's serif line ("Broke {80}"); the words are
+  /// the same either way.
+  ///
+  /// X40 (1) · owner ruling 2026-09-29: a personal best's headline is its
+  /// TITLE. N4-192 put the achievement's differential beside it ("Personal
+  /// best · 7.8 vs course"), and the differential lives on the receipt beside
+  /// its arithmetic and nowhere else (TERMINOLOGY row 92, P-16, L-14). The
+  /// widget prints the round the golfer remembers beneath it — its gross, its
+  /// course, its day — which is the round that was the best.
   public static func headline(_ a: Achievement, marked: Bool = false) -> String {
     var title = meta(kind: a.kind, label: a.label).title
     if marked, let k = a.kind, k.hasPrefix("sub_"), let n = Int(k.dropFirst(4)), title.contains("\(n)") {
       title = title.replacingOccurrences(of: "\(n)", with: "{\(n)}")
     }
-    guard a.kind == "personal_best" else { return title }
-    let fact = achSubtitle(kind: a.kind, label: a.label, meta: a.meta)
-    guard fact.hasSuffix("vs course") else { return title }
-    if marked, let d = a.meta?["diff"]?.double { return "\(title) · {\(RoundCopy.f1(d))} vs course" }
-    return "\(title) · \(fact)"
+    return title
   }
 
-  /// `achSubtitle(a)`. D210 · the personal best is the engine's lowest
-  /// round vs course (IOS-016's mechanic); the receipt's own name for that
-  /// figure is "Round vs course", so the tile says "7.8 vs course" — never
-  /// the banned word, never a bare float.
+  /// `achSubtitle(a)`. X40 (1) · never the differential off the receipt: a
+  /// personal best names its gross, or nothing (the web's `achSubtitle`,
+  /// 6de9e7f8). D210 · never the banned word, never a bare float.
   public static func achSubtitle(kind: String?, label: String?, meta: JSONValue?) -> String {
     let k = kind ?? ""
-    if k == "personal_best", let d = meta?["diff"]?.double { return "\(RoundCopy.f1(d)) vs course" }
+    if k == "personal_best" {
+      guard let g = meta?["gross"]?.int else { return "" }
+      return "\(g) gross"
+    }
     if k.hasPrefix("sub_"), let g = meta?["gross"]?.int { return "\(g) gross" }
     if k.hasPrefix("streak_"), let w = meta?["weeks"]?.int { return "\(w) weeks" }
     if k == "first_round" { return "Posted" }
@@ -145,16 +146,15 @@ public enum TrophyMeta {
                                   earnedOn: String?, round: MilestoneRound?) -> String {
     var lead = ""
     let course = round?.courseLabel.flatMap { $0.isEmpty ? nil : RoundCopy.course($0) }
-    // A MILESTONE PRINTS THE FIGURE IT IS ABOUT. A threshold is about a gross
-    // (`79 at Papago`); a personal best is about the DIFFERENTIAL (D210's "vs
-    // course" — `4.1 vs course · Papago`). Taking the gross for both put the
-    // same sentence under BROKE 80 and PERSONAL BEST when one round earned
-    // them together, which is the owner's own complaint arriving inside the
-    // fix for it.
-    if kind == "personal_best", let d = meta?["diff"]?.double {
-      lead = RoundCopy.f1(d) + " vs course"
-      if let course { lead += " · " + course }
-    } else if let g = round?.gross ?? meta?["gross"]?.int {
+    // X40 (1) · owner ruling 2026-09-29: A MILESTONE PRINTS THE ROUND THE
+    // GOLFER REMEMBERS — `83 at Papago · Aug 24` — a personal best as much as
+    // a threshold. D291 printed the PB's DIFFERENTIAL ("4.1 vs course"), and
+    // the differential lives on the receipt beside its arithmetic and nowhere
+    // else (TERMINOLOGY row 92, P-16, L-14). D291's own worry, one sentence
+    // under BROKE 80 and PERSONAL BEST, is answered in the case: when two
+    // slats share a round, the line prints once (`TrophyCase.tiles`). The
+    // web's `csMilestoneSub` (6de9e7f8).
+    if let g = round?.gross ?? meta?["gross"]?.int {
       lead = String(g)
       if let course { lead += " at " + course }
     }
@@ -285,7 +285,28 @@ public enum TrophyCase {
                             shelf: .hardware,
                             trail: TrophyMeta.yearTrail(seasonYear: t.season_year)))
     }
-    for a in achievements {
+    // X39 (2) · owner ruling 2026-09-29 (D399): A FIRST ROUND IS A BASELINE.
+    // A debut 85 minted Broke 100 and Broke 90 (and, on the rederive path, a
+    // personal best) on the same round as FIRST ROUND, so one round earned
+    // three slats and the case said "the first time under 90" of a golfer's
+    // first time at all. A BESTS row that shares the first round's `round_id`
+    // folds INTO the FIRST ROUND slat, which then names the round it was
+    // (`milestoneSub`). Keyed on `round_id` only: rows without one fold
+    // nothing. The web's `renderTrophyCase` (da806ce1).
+    let firstAt = achievements.firstIndex { $0.kind == "first_round" && $0.round_id != nil }
+    let firstRid = firstAt.flatMap { achievements[$0].round_id }
+    func foldsIntoFirst(_ a: Achievement) -> Bool {
+      guard let firstRid, a.kind != "first_round", a.round_id == firstRid else { return false }
+      return TrophyMeta.shelf(kind: a.kind, isHardware: false) == .bests
+    }
+    let folded = achievements.contains(where: foldsIntoFirst)
+    // X40 (1) · ONE ROUND, ONE LINE: when two BESTS slats share a round (a 79
+    // that is BROKE 80 and a PERSONAL BEST), the round's line prints on the
+    // first and the second keeps its door and its title only (the web's
+    // `renderTrophyCase` saidRound, 6de9e7f8).
+    var saidRound = Set<UUID>()
+    for (i, a) in achievements.enumerated() {
+      if foldsIntoFirst(a) { continue }   // it rides in the FIRST ROUND slat
       let key = "\(a.label ?? a.kind ?? "")|\(a.earned_on ?? "")"
       let m = TrophyMeta.meta(kind: a.kind, label: a.label)
       // `low_round` carries its gross INSIDE the mark — the numeral is the
@@ -293,11 +314,21 @@ public enum TrophyCase {
       let numeral = m.glyph == "lowRound" ? (a.meta?["gross"]?.int).map(String.init) : m.numeral
       let shelf = TrophyMeta.shelf(kind: a.kind, isHardware: false)
       // A BESTS slat names its round; the quiet shelf keeps the dated line it
-      // has always had, because "Posted · '26" is the whole of that fact.
-      let sub = shelf == .bests
-        ? TrophyMeta.milestoneSub(kind: a.kind, label: a.label, meta: a.meta,
-                                  earnedOn: a.earned_on, round: a.round_id.flatMap(round))
-        : TrophyMeta.achSubtitle(kind: a.kind, label: a.label, meta: a.meta) + TrophyMeta.yearTag(earnedOn: a.earned_on)
+      // has always had, because "Posted · '26" is the whole of that fact —
+      // except the FIRST ROUND a best folded into, which names its round.
+      let sub: String
+      if shelf == .bests, let rid = a.round_id, saidRound.contains(rid) {
+        sub = ""
+      } else if shelf == .bests {
+        if let rid = a.round_id { saidRound.insert(rid) }
+        sub = TrophyMeta.milestoneSub(kind: a.kind, label: a.label, meta: a.meta,
+                                      earnedOn: a.earned_on, round: a.round_id.flatMap(round))
+      } else if folded, i == firstAt {
+        sub = TrophyMeta.milestoneSub(kind: a.kind, label: a.label, meta: a.meta,
+                                      earnedOn: a.earned_on, round: firstRid.flatMap(round))
+      } else {
+        sub = TrophyMeta.achSubtitle(kind: a.kind, label: a.label, meta: a.meta) + TrophyMeta.yearTag(earnedOn: a.earned_on)
+      }
       out.append(TrophyTile(id: "a" + key, glyph: m.glyph, numeral: numeral, title: m.title,
                             sub: sub, roundId: a.round_id, shelf: shelf))
     }

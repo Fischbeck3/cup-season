@@ -230,14 +230,16 @@ public enum ReceiptRows {
       rows.append(.note(noNumberYet(round: r.provisionalRound)))
     } else if let pvi = r.resolvedPvi {
       // Q-23: the words lead and the figure explains them; the figure is the
-      // web's short form ("+2.4" / "level" / "-1.8") and the band edge is the
-      // engine's (`CSBands`, Q-20), so this row and `cup_points()` agree at −1.0.
+      // web's SIGNED short form ("+2.4" / "level" / "-1.8", `vsSigned`) and
+      // the band edge is the engine's (`CSBands`, Q-20), so this row and
+      // `cup_points()` agree at −1.0. Q39 (a) · this arithmetic row is the one
+      // record line that keeps its sign (D2); every other takes the words.
       // R13 · the server's band when the payload carried one, this client's
       // own when it did not. One table, three renderers (preflight 28).
       let named = r.band ?? CSBands.bandName(pvi)
       let band = mine ? named : CSBands.theirs(named)
       rows.append(.math(label: "Against \(who) playing HCP",
-                        value: "\(CSBands.vsShort(pvi)) — \(band.uppercased())", sub: false))
+                        value: "\(CSBands.vsSigned(pvi)) — \(band.uppercased())", sub: false))
     }
     if let pts = r.points { rows.append(.math(label: "Points", value: CSCopy.points(pts), sub: false)) }
     // D362 · THE LENSES. One row per league the viewer may see this round

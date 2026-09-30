@@ -109,7 +109,9 @@ struct BetweenRoundsWidgetTests {
     let latest = try JSONDecoder().decode(Rpc.rivalry_weeks.Row.self, from: Data("{\"wk\":\"2026-09-21\",\"winner\":\"them\"}".utf8))
     let rival = try #require(BetweenRoundsCopy.rivalry(row, latest: latest))
     #expect(rival.wins == 6 && rival.losses == 5 && rival.ties == 1)
-    #expect(rival.scope == "Weekly clashes · All time")
+    // X36 (1) · the widget reads season weeks and says so, as You's row does
+    // (`RivalryCopy.seasonFacet`; the web's `renderRivalries`, bfce5aea)
+    #expect(rival.scope == "In the season · 12 weeks")
     #expect(rival.story == "Galen took the last one.")
   }
 
@@ -172,21 +174,41 @@ struct BetweenRoundsWidgetTests {
   }
 }
 
-/// N4-192 · "Personal best 81" sat beside a record whose best was 79: the
-/// widget's milestone headline says what the best is measured by, with the
-/// trophy case's own fact.
+/// X40 (1) · owner ruling 2026-09-29: the widget's personal-best headline is
+/// its title. N4-192 carried the differential beside it ("Personal best · 7.8
+/// vs course"); the differential stays on the receipt, and the widget prints
+/// the round itself beneath the headline. (The web has no widget; the rule is
+/// `achSubtitle`'s and `csMilestoneSub`'s, 6de9e7f8.)
 @Suite struct WidgetMilestoneHeadlineTests {
-  @Test func aPersonalBestSaysItsMeasure() {
+  @Test func aPersonalBestIsItsTitle() {
     let pb = Achievement(kind: "personal_best", label: "Personal best", earned_on: "2026-09-20",
                          meta: .object(["diff": .number(7.8)]))
-    #expect(TrophyMeta.headline(pb) == "Personal best · 7.8 vs course")
+    #expect(TrophyMeta.headline(pb) == "Personal best")
     let bare = Achievement(kind: "personal_best", label: "Personal best", earned_on: "2026-09-20", meta: nil)
     #expect(TrophyMeta.headline(bare) == "Personal best")
     let sub80 = Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-09-20", meta: .object(["gross": .number(79)]))
     #expect(TrophyMeta.headline(sub80) == "Broke 80")
-    // N4-082 · marked for the widget's serif line, the figure is a run
-    #expect(TrophyMeta.headline(pb, marked: true) == "Personal best · {7.8} vs course")
+    // N4-082 · marked for the widget's serif line, a threshold's number is a run
+    #expect(TrophyMeta.headline(pb, marked: true) == "Personal best")
     #expect(TrophyMeta.headline(sub80, marked: true) == "Broke {80}")
     #expect(TrophyMeta.headline(bare, marked: true) == "Personal best")
+  }
+}
+
+/// X39 (2) · owner ruling 2026-09-29 (D399): a first round is a BASELINE. The
+/// Record widget never heads a debut "Broke 90": a BESTS row sharing the first
+/// round's round is FIRST ROUND's, as the trophy case folds it. The web has no
+/// widget; the rule is the case's (`renderTrophyCase`, da806ce1).
+@Suite struct WidgetMilestoneFoldTests {
+  @Test func theWidgetsMilestoneFoldsADebut() {
+    let debut = UUID(), later = UUID()
+    let a = [Achievement(kind: "first_round", label: nil, earned_on: "2026-08-11", meta: nil, round_id: debut),
+             Achievement(kind: "sub_90", label: nil, earned_on: "2026-08-11", meta: .object(["gross": .number(85)]), round_id: debut)]
+    #expect(BetweenRoundsCopy.milestone(a)?.kind == "first_round")
+    // a later round's milestone is still the newest one
+    let b = a + [Achievement(kind: "sub_80", label: nil, earned_on: "2026-09-01", meta: .object(["gross": .number(79)]), round_id: later)]
+    #expect(BetweenRoundsCopy.milestone(b)?.kind == "sub_80")
+    // a milestone that names no round is never the widget's
+    #expect(BetweenRoundsCopy.milestone([Achievement(kind: "sub_90", label: nil, earned_on: "2026-08-11", meta: nil)]) == nil)
   }
 }
