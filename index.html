@@ -1233,6 +1233,12 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .scenLine .clinch{color:var(--pos);}
 .scenLine .out{color:var(--mut);}
 .scenLine b{color:var(--ink); font-weight:600;}
+/* Q50 (A) · the clinch number is a receipt door inside its sentence: the tertiary link (a 2px mut rule under the
+   words, §16A.5), with a 44px hit area that does not move the line */
+.scenLine .scendoor{font:inherit; color:var(--ink); background:none; border:0; padding:0; position:relative; cursor:pointer;
+  text-decoration:underline; text-decoration-thickness:2px; text-decoration-color:var(--mut); text-underline-offset:3px;}
+.scenLine .scendoor::after{content:''; position:absolute; inset:-12px 0;}   /* the 44px target, off the line's layout */
+.scenLine .scendoor:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 /* A-4: the label carries its own clock, so it is a line under the rank
    rather than a glyph beside it - the rank column keeps its width. */
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
@@ -33483,7 +33489,12 @@ function renderScenarioLine(){
   if(lead.clinched){
     parts.push(`<b>${nm(lead.name)}</b> ${plural?'have':'has'} clinched ${sw}.`);   /* D126 */
   } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
-    parts.push(`<b>${nm(lead.name)}</b> ${plural?'clinch':'clinches'} ${sw} with ${lead.needs} more point${Number(lead.needs)===1?'':'s'}.`);   /* the unit is named: '351 MORE' had none */
+    /* Q50 (A) · owner ruling 2026-09-29, D24 unchanged: the number is a RECEIPT DOOR. Its arithmetic is
+       season_scenarios' own: the K-th best other ceiling (max_final) less the leader's points, plus one to be
+       clear of it. A door is drawn only when those figures add up to the number printed (L-44). */
+    const unit = `${lead.needs} more point${Number(lead.needs)===1?'':'s'}`;
+    const bar = csClinchBar(rows, meta);
+    parts.push(`<b>${nm(lead.name)}</b> ${plural?'clinch':'clinches'} ${sw} with ${bar ? `<button type="button" class="scendoor" id="scenClinchDoor">${unit}</button>` : unit}.`);   /* the unit is named: '351 MORE' had none */
   }
   const out = rows.filter(r=>r.eliminated).map(r=>nm(r.name));
   if(out.length){
@@ -33492,8 +33503,38 @@ function renderScenarioLine(){
   if(!parts.length){ return hide(); }
   box.innerHTML = parts.join(' ');
   box.style.display='block';
+  $('#scenClinchDoor')?.addEventListener('click', () => openClinchReceipt(rows, meta));
 }
 window.renderScenarioLine = renderScenarioLine;
+/* Q50 (A) · the bar the leader must clear NOW to lock the seat: season_scenarios' clinch_bar, the K-th best
+   ceiling among the OTHER rows (20261204090000). Null unless its arithmetic gives exactly the `needs` printed. */
+function csClinchBar(rows, meta){
+  const lead = (rows||[])[0], k = Number(meta && meta.k) || 1;
+  if(!lead) return null;
+  const others = rows.filter(r => r !== lead && r.id !== lead.id && r.max_final != null)
+                     .slice().sort((a,b) => Number(b.max_final) - Number(a.max_final));
+  const bar = others[k-1];
+  if(!bar) return null;
+  const need = Number(bar.max_final) - Number(lead.points) + 1;
+  return need === Number(lead.needs) ? { row: bar, lead, k, need } : null;
+}
+/* Q50 (A) · the clinch number's receipt, in showFinalist's grammar: the ceiling, less the leader's points, plus
+   one, is the number on the line. The ceiling is D24's (every round still possible at the top band), said so. */
+function openClinchReceipt(rows, meta){
+  const b = csClinchBar(rows, meta); if(!b) return;
+  const sw = scenSeedWord(meta), plural = meta.level === 'squad';
+  const other = esc(String(b.row.name||'')), lead = esc(String(b.lead.name||''));
+  const head = Number(b.row.max_final) - Number(b.row.points);
+  let h = `<div class="mathrow"><span>${other} can still reach</span><b>${b.row.max_final}</b></div>`
+    + `<div class="mathrow sub"><span>${b.row.points} now, and ${head} more if every round left scores the top band</span><b></b></div>`
+    + `<div class="mathrow"><span>Less ${lead}’s points</span><b>\u2212${b.lead.points}</b></div>`
+    + `<div class="mathrow"><span>One more, to be clear of it</span><b>+1</b></div>`
+    + `<div class="mathrow tot"><span>${plural?'Clinch':'Clinches'} ${esc(sw)} with</span><b>${b.need}</b></div>`
+    + `<p class="fine">${b.k > 1 ? `That is the ${b.k === 2 ? 'second' : csPlace(b.k)}-highest ceiling behind the leader: a seat is locked once only ${b.k - 1} other${b.k - 1 === 1 ? '' : 's'} could still pass. ` : ''}`
+    + `A ceiling counts every round still possible at the top band, so the number is what no run of results can take back, not a pace.</p>`;
+  openSheet(`${b.need} more point${b.need===1?'':'s'}`, `How ${String(b.lead.name||'')} ${plural?'clinch':'clinches'} ${sw}`, h);
+}
+window.openClinchReceipt = openClinchReceipt;
 
 /* ---------- squad formation (Random draw / Assign) ---------- */
 function unassignedMembers(){
