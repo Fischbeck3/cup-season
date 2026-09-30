@@ -163,6 +163,23 @@ const HOME_HATCH = HOME_STATE_IDS.map((id) => {
    below as what that golfer actually sees: the hero card, not the ranked
    lead. A finding for root, recorded in the WX report. */
 const DISPATCH_VARIANT = {}
+/* TEN / W6 · W7-095 · 'Later' and 'Didn’t play' wear §7.1's in-content rule: 2px of mut, not a 1px rule-coloured hairline (inert where no answer is drawn) */
+const answersRule = async (page) => page.evaluate(() => {
+  const bs = [...document.querySelectorAll('.csans-b')].filter((b) => b.getBoundingClientRect().height > 0)
+  if (!bs.length) return true
+  const i = document.createElement('i'); i.style.color = 'var(--mut)'; document.body.appendChild(i); const mut = getComputedStyle(i).color; i.remove()
+  const bad = bs.find((b) => { const cs = getComputedStyle(b); return cs.borderBottomWidth !== '2px' || cs.borderBottomColor !== mut })
+  return bad ? `an answer's rule is ${getComputedStyle(bad).borderBottomWidth} ${getComputedStyle(bad).borderBottomColor}, not 2px of mut` : true
+})
+/* TEN / W6 · W7-094 · on Home a buddy request's Accept and Decline are tertiary in-content links, never two filled .mini buttons
+   beside the lead's door (inert where Home draws no request) */
+const requestsQuiet = async (page) => page.evaluate(() => {
+  const bs = [...document.querySelectorAll('#homeRequests .hreq-acts button')].filter((b) => b.getBoundingClientRect().height > 0)
+  if (!bs.length) return true
+  if (bs.some((b) => b.classList.contains('mini'))) return 'Home draws the request’s answers as filled .mini buttons'
+  const bad = bs.find((b) => { const cs = getComputedStyle(b); return !/underline/.test(cs.textDecorationLine) || parseFloat(cs.textDecorationThickness) !== 2 || cs.backgroundColor !== 'rgba(0, 0, 0, 0)' })
+  return bad ? 'a request answer is not the in-content link: ' + bad.textContent.trim() : true
+})
 const DISPATCH_IDS = ['preseason', 'event_live', 'invited', 'round_morning', 'round_evening',
   'after_golf', 'after_golf_wire', 'ceremony_night', 'between_seasons', 'inactive']
 const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
@@ -173,7 +190,7 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
     world: { flags: { homeState: id } },
     drive: homePainted,
     expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => ex), meStripShown, lastOnce),
+    check: all(arrangementCheck(() => ex), meStripShown, lastOnce, answersRule, requestsQuiet),
   }
 })
 
@@ -205,10 +222,91 @@ const leadShown = (re) => async (page) => page.evaluate((re) => {
   if (hero) return 'the hero did not stand down behind the lead: ' + JSON.stringify(hero.slice(0, 80))
   return new RegExp(re, 'i').test(lead) ? true : 'the lead reads ' + JSON.stringify(lead.slice(0, 120))
 }, re)
+/* TEN / W6 · W7-073 · the empty wire is ONE sentence with its door inside it ("No rounds from your buddies yet. Post one, or add
+   some buddies."), the door §2.5's in-content link: ink on a 2px mut rule, a hit box of 44 */
+const wireEmptyOneLine = async (page) => page.evaluate(() => {
+  const p = document.querySelector('#homeFeed .wire-empty')
+  if (!p || p.getBoundingClientRect().height === 0) return 'the empty wire is not drawn'
+  const a = p.querySelector('a[data-gopeople], a[data-wiretable]')
+  if (!a) return 'the wire’s door is not inside its sentence'
+  const t = p.textContent.replace(/\s+/g, ' ').trim()
+  if (!/^No rounds from your buddies yet\. (Post one, or add some buddies\.|See who’s in .+\.)$/.test(t)) return 'the sentence reads ' + JSON.stringify(t)
+  const cs = getComputedStyle(a)
+  if (!/underline/.test(cs.textDecorationLine) || parseFloat(cs.textDecorationThickness) !== 2) return 'the door is not the in-content link'
+  return a.getBoundingClientRect().height >= 40 ? true : `the door's hit box is ${Math.round(a.getBoundingClientRect().height)}px tall`
+})
+/* TEN / W6 · W7-074 · the lead's eyebrow breaks on its · separators, never inside a clause ('CLOSES IN' / '5 DAYS') */
+const eyebrowClauses = async (page) => page.evaluate(() => {
+  const eb = document.querySelector('#homeLead .csedn .eb > span:not(.dot):not(.cstate)')
+  if (!eb) return 'the lead draws no eyebrow'
+  const words = []
+  const w = document.createTreeWalker(eb, NodeFilter.SHOW_TEXT)
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const re = /\S+/g; let m
+    while ((m = re.exec(n.textContent))) { const r = document.createRange(); r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length); const b = r.getClientRects()[0]; if (b) words.push({ t: m[0], top: Math.round(b.top) }) }
+  }
+  for (let i = 1; i < words.length; i++) {
+    if (words[i].top > words[i - 1].top + 2 && words[i - 1].t !== '\u00b7' && words[i].t !== '\u00b7') return `the eyebrow breaks inside a clause: "${words[i - 1].t}" / "${words[i].t}"`
+  }
+  return true
+})
+/* TEN / W6 · W7-080 · a brand-new golfer's first-round door is the page's one primary and no promo stands beside it */
+const brandNewPrimary = async (page) => page.evaluate(() => {
+  const go = document.querySelector('#homeLead [data-dgo^="first_round"]')
+  if (!go) return 'the lead has no first-round door'
+  if (!go.classList.contains('btn')) return 'the first-round door is not the primary: ' + go.className
+  const occ = document.querySelector('#homeOccasion .hocc')
+  return occ && occ.getBoundingClientRect().height > 0 ? 'a promo stands beside a brand-new golfer’s first round' : true
+})
+/* TEN / W6 · W7-080 · a calendar promo's door is the in-content link, ink on a 2px mut rule, never the action colour */
+const promoQuiet = async (page) => page.evaluate(() => {
+  const a = document.querySelector('#homeOccasion .hocc .ho-act')
+  if (!a) return 'no promo drawn here, so its door cannot be read'
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const cs = getComputedStyle(a), sp = getComputedStyle(a.querySelector('span'))
+  if (cs.color === probe('--act')) return 'the promo’s door wears the action colour'
+  if (cs.color !== probe('--ink')) return 'the promo’s door is not ink: ' + cs.color
+  return /underline/.test(sp.textDecorationLine) && parseFloat(sp.textDecorationThickness) === 2 ? true : 'the promo’s door has no 2px rule'
+})
+/* TEN / W6 · W7-081 · the month is a fact, not a chip: no "Month closes" in Up next, and ONE quiet month line under the season row
+   in the strip on screen, in SeasonFacts.monthRow's words ("Best 4 a month count · 5/2 toward the minimum · 1 day left in September") */
+const monthFact = async (page) => page.evaluate(() => {
+  const up = (document.getElementById('homeUpNext') || {}).innerText || ''
+  if (/month closes/i.test(up)) return 'the "Month closes" chip is still drawn'
+  const lines = [...document.querySelectorAll('#sideMe .memonth, #homeMe .memonth')].filter((p) => p.getBoundingClientRect().height > 0)
+  if (lines.length !== 1) return `${lines.length} month line(s) on screen, expected one`
+  const t = lines[0].textContent.trim()
+  return /^(Best \d+ a month count|Every round counts) · (.+ · )?(\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
+})
+/* TEN / W6 · AW2-01 · Home opens once: by the time it is on screen the cold open's hold has let go (no data-held, no
+   aria-busy), and no lead slot is still keeping room for a lead that already answered. The jump itself is measured by the
+   CLS probe (layout-shift entries through a cold signed-in boot, 375 and 1280, CPU 1x and 4x), not by a still frame. */
+const homeShownOnce = async (page) => page.evaluate(() => {
+  const v = document.getElementById('view-home')
+  if (!v) return 'no Home view'
+  if (v.hasAttribute('data-held') || v.getAttribute('aria-busy') === 'true') return 'Home is still held after the boot settled'
+  if (v.getBoundingClientRect().height === 0) return 'Home has no height on screen'
+  const lead = document.getElementById('homeLead')
+  return lead && lead.hasAttribute('data-coming') ? 'the lead slot still keeps room for a lead that already answered' : true
+})
+/* TEN / W6 · W7-083 · a wire card is no role="button" around four buttons: it is a plain block whose one receipt control is a real
+   button, named with the printed story, beside the face, applause, course and comment buttons */
+const cardsNotButtons = async (page) => page.evaluate(() => {
+  const cards = [...document.querySelectorAll('#homeFeed .hfcard')].filter((c) => c.getBoundingClientRect().height > 0)
+  if (!cards.length) return 'the wire draws no round card'
+  for (const c of cards) {
+    if (c.getAttribute('role') === 'button' || c.hasAttribute('tabindex')) return 'a round card is still a role="button" wrapper'
+    const r = c.querySelectorAll('button[data-rcptbtn]')
+    if (r.length !== 1) return `a round card has ${r.length} receipt buttons`
+    const story = (c.querySelector('.hfr-story') || {}).textContent
+    if (story && !r[0].getAttribute('aria-label').includes(story.trim())) return 'the receipt button is not named with the printed story'
+  }
+  return true
+})
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew) },
+    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine, brandNewPrimary) },
   { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
     expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown,
@@ -280,11 +378,11 @@ const readingOrder = async (page) => {
       : 'the reading order is not the painted order: DOM ' + dom.map(name).join(' > ') + ' | seen ' + seen.map(name).join(' > ')
   })
   if (r !== 'desk') return r
-  const lines = await page.evaluate(() => [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].filter((el) => el.offsetParent !== null).length)
+  const lines = await page.evaluate(() => [...document.querySelectorAll('#homeDeck .cswire, #homeFeed [data-rcptbtn]')].filter((el) => el.offsetParent !== null).length)
   if (lines < 2) return true
-  await page.evaluate(() => { const f = [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].find((el) => el.offsetParent !== null); f.focus(); window.__slat0 = f })
+  await page.evaluate(() => { const f = [...document.querySelectorAll('#homeDeck .cswire, #homeFeed [data-rcptbtn]')].find((el) => el.offsetParent !== null); f.focus(); window.__slat0 = f })
   await page.keyboard.press('ArrowDown')
-  const moved = await page.evaluate(() => { const a = document.activeElement; const ok = a && a !== window.__slat0 && a.matches('.cswire, .hfcard'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return ok })
+  const moved = await page.evaluate(() => { const a = document.activeElement; const ok = a && a !== window.__slat0 && a.matches('.cswire, [data-rcptbtn]'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return ok })
   return moved ? true : '↓ on a deck line does not move to the next slat'
 }
 /* TEN / W7-051 [B2-home-3] · a course's circle is printed once per wire, on its newest round */
@@ -300,7 +398,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
@@ -545,6 +643,39 @@ const oneCourseName = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W8 · W7-084 [A2-golfers-10, B2-golfers-8]: the board says a squad in WORDS. The 3.5px squad-colour stripe down a post's edge (a spine, §0.3, and colour
+   alone, §16.4) is gone from every post, round or chat; a round names its golfer's squad in its agate line beside the season table's swatch; a chat line
+   names nothing; a golfer with no squad (a solo season) gets no swatch and no name, and the fallback colour that painted a squad who did not exist is gone.
+   `solo` is the control: the same board in a league that has no squads. */
+const SWATCH = { 'Fixture Wrens': 'var(--sq0)', 'Fixture Javelinas': 'var(--sq1)' }
+const squadInWords = (solo) => async (page) => page.evaluate(({ solo, SWATCH }) => {
+  const list = document.getElementById('feedListFull')
+  if (!list) return 'the board has no list'
+  const bars = list.querySelectorAll('.round .bar, .msgrow .bar')
+  if (bars.length) return `${bars.length} post(s) still draw the squad stripe down their edge`
+  const rounds = [...list.querySelectorAll('.fcard .round')]
+  if (!rounds.length) return 'no round card on the board to read'
+  if (list.querySelectorAll('.msgrow .sw').length) return 'a chat line carries a squad swatch (a chat line names nothing)'
+  for (const r of rounds) {
+    const l2 = r.querySelector('.l2'), sw = l2 && l2.querySelector('.sw')
+    if (solo) {
+      if (sw) return 'a solo season\'s round draws a swatch for a squad that does not exist'
+      if (/[·\s]$/.test(l2.textContent.trim())) return `a solo round's agate line ends on a separator: ${JSON.stringify(l2.textContent.trim().slice(-20))}`
+      continue
+    }
+    const said = /Fixture (Wrens|Javelinas)/.exec(l2 ? l2.textContent : '')
+    if (!said) return `a round names no squad in its agate line: ${JSON.stringify(l2 && l2.textContent.trim())}`
+    if (!sw) return `${said[0]} is named with no swatch beside it`
+    if (sw.getBoundingClientRect().width < 3 || sw.getBoundingClientRect().height < 10) return `the swatch beside ${said[0]} has no box (${sw.getBoundingClientRect().width}x${sw.getBoundingClientRect().height})`
+    if (sw.style.background.replace(/\s+/g, '') !== SWATCH[said[0]].replace(/\s+/g, '')) return `${said[0]} wears ${sw.style.background}, not ${SWATCH[said[0]]}`
+    if (!sw.nextSibling || sw.nextSibling.textContent.trim() !== said[0]) return 'the squad\'s name is not beside its swatch'
+    const rg = document.createRange(); rg.selectNodeContents(sw.nextSibling)
+    const nr = rg.getClientRects()[0], sr = sw.getBoundingClientRect()
+    if (nr && Math.abs((sr.top + sr.height / 2) - (nr.top + nr.height / 2)) > 8) return `${said[0]}\'s swatch is a line away from its name`
+  }
+  return true
+}, { solo, SWATCH })
+const SOLO_LEAGUE = 'f3000000-0000-4000-8000-000000000002'   /* South Wash Weekday (fixture): a solo season, no squads */
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -560,6 +691,7 @@ const GOLFERS = [
        two Accepts */
     expect: { view: 'view-golfers', selectors: { '#glfBoard .fbrow.mine': 'visible', '#peopleRequests': 'text:Kit Specimen', '#crBud': 'text:Buddies · 5' } },
     check: all(
+      async (page) => page.evaluate(() => document.querySelector('#glfShareDisclosure')?.textContent === window.CS_PERSON_SHARE_DISCLOSURE && !!window.CS_PERSON_SHARE_DISCLOSURE ? true : 'card link disclosure missing'),
       /* TEN / W8 · W7-023 [B2-desk-9]: from 1100 up the ranking's rows sit inside one reading measure (760), not the whole track */
       async (page) => page.evaluate(() => {
         if (innerWidth < 1100) return true
@@ -593,6 +725,7 @@ const GOLFERS = [
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },
     check: all(async (page) => page.evaluate(() => document.querySelectorAll('#glfBoard .fbrow').length === 0 ? true : 'a board rendered for a golfer with no buddies'),
+      async (page) => page.evaluate(() => { const notes = [...document.querySelectorAll('#view-golfers .fine')].filter(e => e.getBoundingClientRect().height > 0 && e.textContent === window.CS_PERSON_SHARE_DISCLOSURE); return notes.length === 1 ? true : 'empty-root card link disclosures: ' + notes.length }),
       /* TEN / W6 · N4-063 (TERMINOLOGY §1 row 7): the sub is the lead, and the definition is said once, under it,
          word for word the phone's GolfersRoot.buddyDefinition, in the body role (sans, never mono or serif) */
       async (page) => page.evaluate(() => {
@@ -718,6 +851,7 @@ const GOLFERS = [
       const ph = document.querySelector('#feedListFull .fcard .round.has-photo'), pr = ph && ph.getBoundingClientRect()
       return !pr || (pr.width / pr.height > 2.0 && pr.width / pr.height < 2.25) ? true : `a photo card is ${Math.round(pr.width)}x${Math.round(pr.height)}, not the 2.1:1 band`
     }),
+    squadInWords(false),
     /* TEN / W6 · AW2-06 + OB-05: a round card's course line and its margin's
        unit are agateS; only the margin's figure keeps mono (the column role) */
     notMono(['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'], ['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep']),
@@ -746,6 +880,18 @@ const GOLFERS = [
       { name: 'counting', sel: '.rline .ok, .rline .dim' }, { name: 'margin', sel: '.pvi-line b, .pvi', own: true },
       { name: 'margin unit', sel: '.pvi-line small, .pvi small' }, { name: 'points', sel: '.pts', own: true, large: true },
       { name: 'points unit', sel: '.pts small' }])) },
+  /* TEN / W8 · W7-084's control: the board of a league that has no squads (a solo season) draws round posts with no stripe, no swatch and no name */
+  { family: 'golfers', id: 'board-solo', variant: 'member', title: 'The league board of a solo season (South Wash Weekday): round posts, no squad', fullPage: false,
+    drive: async (page) => {
+      await page.evaluate((id) => window.enterLeagueById(id, false), SOLO_LEAGUE)
+      await until(page, () => /South Wash/.test((window.CS && window.CS.league && window.CS.league.name) || ''), null, 15000)
+      await page.evaluate(() => window.switchView('board'))
+      await until(page, () => document.getElementById('boardFull').classList.contains('open') && document.querySelectorAll('#feedListFull .fcard .round').length > 0, null, 15000)
+      await page.waitForTimeout(600)
+    },
+    expect: { selectors: { '#boardFull.open': 'visible' } },
+    check: all(async (page) => page.evaluate(() => /SOUTH WASH/i.test(document.getElementById('bfSub').textContent) ? true : `the board is not the second league's: ${document.getElementById('bfSub').textContent}`),
+      squadInWords(true)) },
 ]
 
 export default [...HOME_HATCH, ...HOME_DISPATCH, ...HOME_LEAGUELESS, ...HOME_WORLD, ...GOLFERS]

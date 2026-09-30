@@ -24,6 +24,40 @@ Settled items are recorded as settled, with the commit that settled them. A defe
 - a decision-log entry written before it is built (CLAUDE.md rule 5);
 - for a migration, the owner's `supabase db push`, which is always a separate deploy from the client's `git push`.
 
+## R · The owner's rulings, 2026-09-29 evening (in chat)
+
+The owner ruled these in chat on 2026-09-29, between about 18:15 and 19:05 MST, in an interview root ran. **This
+section supersedes the Recommendation column for every question it names.** A mechanic- or data-level ruling
+still gets its decision-log entry before it is built, and its migration ships only in the owner's own `db push`.
+
+| Question | Ruling | Built by |
+|---|---|---|
+| Q31 · the phone's default look on Oct 1 | **Fescue.** `PersonalLook.default` and a missing stored value both resolve to `.none`; an explicit calendar pick is kept | N4 (E) |
+| X38 · what a stranger with a link reads | **The stranger shape (P1)** with "Turn off my card link" on both clients; the settlement stays public but drops who-pays-whom, with a disclosure sentence | database (a held migration, amending D241) + both clients |
+| X37 · the owner's identity in the product | **Recast** with the synthetic cast on both clients; the feedback line names "the founder" | web + N4 |
+| Q9 · how the gate counts cells | **(b)** Every defect cell to 9; content, genre and device-or-human ceilings named per cell; the mean reported twice. Round 3 is scored under it | root, session D |
+| X36 · the rivalry record | **(1)** Every surface names its facet; nothing claims to be "the" record. The long-term shape after launch | web + N4 |
+| Q12 · structural performance | **Both before launch.** Home's jump (AW2-01) first; then the code split with comments kept, no new dependency and no parser in the deploy path. If the split is not proven by the freeze, the jump ships alone and the split takes the first push after launch (the owner's "split, keep comments") | web (B, then the split tool) |
+| X39 · milestones on a first round | **(2)** The first round is a baseline: both clients fold its milestones into FIRST ROUND; the database guards the board's debut headline and carries the PB rule | database + both clients |
+| Q44 · the Ryder board | **(A) Fix it at the server now:** a week's result replaces its "is up" post, the cup post drops the repeated clause, posts are stamped with `clock_timestamp()`, and finished weeks' stored "is up" rows are removed (amends D296) | database |
+| Q50 · the clinch line's magic number | **(A)** D24 stands; the unit is named and the arithmetic opens on tap | web + N4 |
+| Q38 · the composer's worth | **(c)** Both halves on both clients: the ceiling and the counting rule before a gross, the card's arithmetic after | web + N4 |
+| Q39 · the record's "+2.4" | **(a)** Words on every record line, on both clients; the sign stays only in the receipt's arithmetic row | web + N4 |
+| Q40 · the desk's five grosses twice | **(b)** Drop the desk's Form row; Recent rounds carries the five, the best takes the gold | web |
+| Q41 · Compete with nothing running | **(a)** The counted sentence leads when there is a count (IA §6.1 amended to QB-21) | web |
+| Q46 · the Door's field edges | **(2)** Opaque `mut` edges (WCAG 1.4.11); the phone's borderless fields owe the same | web + N4 |
+| Q47 · the gold-ringed medallion | **Photo only**, as UI_SYSTEM §6.5 row 3 says | web + N4 |
+| Q48 · the index in the composer's eyebrow | **"Add my round" alone**; the index goes to the preview rail under "Your index" (§9.9) | web + N4 |
+| X40 · "7.9 vs course" on a personal best | **(1)** "83 at ‹course› · ‹date›", printed once; the differential stays on the receipt | web + N4 |
+| Q24 · the Door's wordmark | **(3)** The lockup's name on the Door; the serif kept for the Door's statement | web |
+| Q7 · the line that signs the Door and shared artifacts | **(b) Keep "Any time. Anywhere."** on the Door and the artifacts (the owner's choice; the related owner and category cells stay as scored) | no change |
+| Q45 · the private receipt's plate | **The pennant alone**; the line stays on the exported card and the Door | web + N4 |
+| Q34 · three canon tensions | **(1)** Names wrap whole; **(2)** D359 governs, so ember leaves the contour's hardest-hole dot; **(3)** the star rail's targets meet 44pt, and §16.2's carve-out is struck | web + N4 |
+| The held migrations | **One `db push` tomorrow**, of every held migration together, after the new ones are proven with the rest on the disposable chain | the owner |
+| Q1, Q2, Q5, Q14, Q15, Q18, Q19, Q20, Q23, Q25, Q27, Q33, Q35, Q36 | **The recommendation, as written**, built before the freeze | web + N4 |
+| Q16, Q26, Q32, Q37, Q49, Q51 | **The recommendation, as written** (Q16's deletion after root confirms no ledger row cites the bundles) | root, lanes |
+| Q4, Q6, Q10, Q17, Q22, Q28, Q30, Q42, Q43 | **After launch**, as recommended | — |
+
 ## 0 · Decide today: this one takes effect on Oct 1
 
 ### Q31 · The phone's default look on launch day (DEC-N4-2): Fall from Oct 1, or Fescue?
