@@ -1469,6 +1469,10 @@
        csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
       [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
+    /* Q37 (a) · the clash head's rider is the Kit's ClashCopy.rider (WeekClash.swift's own four samples, WeekClashTests.swift:80-83) */
+    t('Q37: the clash head\u2019s rider is the Kit\u2019s',
+      [csClashRider(false, '', false, 'Thu'), csClashRider(true, 'Blake Fixture', false, 'Thu'), csClashRider(true, 'Avery Fixture', true, 'Thu'), csClashRider(true, '', false, 'Thu')],
+      ['through Thu', 'Blake took the week', 'You took the week', 'All square']);
     /* W7-089 · the door under the record's five names what is LEFT, never the head's count */
     t('W7-089: the record\u2019s door says how many are left',
       [csRoundsDoorLabel(3), csRoundsDoorLabel(1), csRoundsDoorLabel(37), csRoundsDoorLabel(0), csRoundsDoorLabel(-2), csRoundsDoorLabel(undefined)],

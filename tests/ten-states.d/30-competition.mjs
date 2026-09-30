@@ -366,6 +366,15 @@ const SEASON = [
       capsFromRole(['#clashTbl th', '#clashTbl .tc'], ['#clashTbl th', '#clashTbl .tc']),
       /* root's ruling (§1.3): the head's rider after "The clash" is a phrase, sentence case */
       phraseAsSaid(['#clashTbl th .is-phrase'], ['#clashTbl th .is-phrase']),
+      /* TEN / W8 · Q37 (a) (owner, 2026-09-29): the clash head is the Kit's words: the label 'This week · the clash' (SeasonPhases.swift) and ClashCopy.rider (WeekClash.swift): 'through Sun' while open,
+         once settled 'Devon took the week', 'You took the week' or 'All square'; never the pair ('You v Devon'), which the rows beneath name */
+      async (page) => page.evaluate(() => {
+        const th = document.querySelector('#clashTbl th')
+        if (!th) return 'the season page draws no clash head'
+        const t = th.textContent.trim()
+        if (/ v /.test(t)) return `the clash head names the pair its rows already name: ${JSON.stringify(t)}`
+        return /^This week \u00b7 the clash \u00b7 (through (Sun|Mon|Tue|Wed|Thu|Fri|Sat)|\S+ took the week|All square)$/.test(t) ? true : `the clash head is ${JSON.stringify(t)}, not the Kit's words`
+      }),
       /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
       headGap(['#climbEyebrow', '#standingsEyebrow']),
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */

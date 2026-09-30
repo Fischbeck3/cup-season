@@ -9949,6 +9949,15 @@ function showFinalist(f){
    a settled week reads the archived a_best/b_best. Receipts tap through (§16).
    Renders nothing without a row: demo, pre-season, a database without the
    table, and a quiet settled week (both idle — D52's honesty rule). */
+/* Q37 (a) · the clash head's rider, ONE producer with the Kit's ClashCopy.rider (WeekClash.swift): "through Thu" while the week is open; once settled "Blake took the week" (the winner's
+   first name), "You took the week", or "All square" when nobody did. Both suites pin the same four strings. */
+function csClashRider(settled, winner, winnerIsYou, through){
+  if(!settled) return 'through ' + through;
+  if(winnerIsYou) return 'You took the week';
+  if(!winner) return 'All square';
+  return fn1(winner) + ' took the week';
+}
+window.csClashRider = csClashRider;
 function renderClash(){
   const wrap=$('#clashWrap'), el=$('#clashTbl');
   if(!wrap||!el) return;
@@ -9971,21 +9980,14 @@ function renderClash(){
     return rows[0]||null;
   };
   const aB=settled?wc.a_best:bestOf(wc.a_member), bB=settled?wc.b_best:bestOf(wc.b_member);
-  /* TEN / W6 · W7-024 [B2-season-5] (D's delta) · the head and its sides'
-     lines were built with toUpperCase(): capitals typed into the string. The
-     words are typed as said (ClashCopy's: "took the week", "through Sun", "No
-     round yet"). Root's ruling (§1.3): the head's LABEL, "The clash", keeps
-     its caps from the row's role (.tbl th); the RIDER after it is a phrase a
-     person reads aloud ("Devon took the week", "You v Devon · through Sun"),
-     so it is the agate role's phrase form, sentence case, on both clients.
-     The sides' lines keep their caps from their role (#clashTbl .tc), as the
-     phone's agateS lines set them. */
-  const up1 = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : t;   /* a phrase opens on a capital ("you" is the viewer) */
-  const pair = `${esc(nm(wc.a_member))} v ${esc(nm(wc.b_member))}`;
-  const rider = settled
-    ? (wc.winner_member ? `${esc(nm(wc.winner_member))} took the week` : `${pair} \u00b7 all square`)
-    : `${pair} \u00b7 through ${DOW[we.getDay()]}`;
-  const head = `The clash \u00b7 <span class="is-phrase">${up1(rider)}</span>`;
+  /* Q37 (a) · owner ruling 2026-09-29: where the two clients say one fact two ways and no ruling picks the words, they are the Kit's where the Kit is the older producer. The head is
+     the phone's own: the label "This week · the clash" (SeasonPhases.swift, D108) and the rider ClashCopy.rider (WeekClash.swift): "through Thu" while the week is open, once
+     settled "Blake took the week", "You took the week" or "All square". The web's rider named the pair as well ("You v Devon · through Sun"); the sides' rows under the head name
+     both golfers already, and the head no longer says a fact its rows say. Root's §1.3 stays: the label keeps its caps from the row's role (.tbl th), the rider is a phrase
+     a person reads aloud, typed as said (.is-phrase, sentence case), the sides' lines keep their caps from #clashTbl .tc. */
+  const winnerIsYou = !!wc.winner_member && wc.winner_member === meId;
+  const rider = csClashRider(settled, wc.winner_member && !winnerIsYou ? (window.memName?.(wc.winner_member) || 'A golfer') : '', winnerIsYou, DOW[we.getDay()]);
+  const head = `This week \u00b7 the clash \u00b7 <span class="is-phrase">${esc(rider)}</span>`;
   const side=(id,b,key)=>{
     const band=b ? (b.band || bandName(Number(b.pvi))) : null;
     const sub=b
