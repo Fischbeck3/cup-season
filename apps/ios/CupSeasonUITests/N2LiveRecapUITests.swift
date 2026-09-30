@@ -120,8 +120,10 @@ final class N2LiveRecapUITests: N2UITestCase {
       // W4 · the strip speaks one summary in the web's words ("… won 3 holes,
       // … won 2, 1 halved, closed on 16."), so it is found by its name
       let strips = app.descendants(matching: .any).matching(identifier: "live.recap.strip")
-      XCTAssertEqual(strips.count, 1, "\(size): VoiceOver reads the hole strip once")
-      XCTAssertTrue(strips.firstMatch.label.contains(" won "), "\(size): the strip says who won how many — \(strips.firstMatch.label)")
+      XCTAssertEqual(strips.count, 0, "\(size): Q1 removes the second strip under the card")
+      XCTAssertTrue(card.label.contains(" won "), "\(size): the one card says who won how many — \(card.label)")
+      XCTAssertTrue(card.label.localizedCaseInsensitiveContains("closed on") || card.label.localizedCaseInsensitiveContains("through"),
+                    "\(size): the card speaks its footer — \(card.label)")
       if card.exists {
         let f = card.frame
         XCTAssertGreaterThanOrEqual(f.minX, screen.minX + 8, "\(size): the card starts inside the gutter — \(f)")
