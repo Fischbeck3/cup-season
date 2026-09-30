@@ -18,14 +18,14 @@
 -- ── SEED · the board as prod holds it before the migration (committed) ──────
 begin;
 insert into auth.users (id, email) values
-  ('00000000-0000-4000-8398-00000000a001', 'avery@fixture.test'),
-  ('00000000-0000-4000-8398-00000000a002', 'blake@fixture.test'),
-  ('00000000-0000-4000-8398-00000000a003', 'casey@fixture.test'),
-  ('00000000-0000-4000-8398-00000000a004', 'drew@fixture.test');
-update profiles set display_name = 'Avery Fixture', marker = 'saguaro', handle = 'averyfx', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a001';
-update profiles set display_name = 'Blake Fixture', marker = 'azalea',  handle = 'blakefx', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a002';
-update profiles set display_name = 'Casey Fixture', marker = 'saguaro', handle = 'caseyfx', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a003';
-update profiles set display_name = 'Drew Fixture',  marker = 'azalea',  handle = 'drewfx',  index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a004';
+  ('00000000-0000-4000-8398-00000000a001', 'avery.d398-stored@fixture.test'),
+  ('00000000-0000-4000-8398-00000000a002', 'blake.d398-stored@fixture.test'),
+  ('00000000-0000-4000-8398-00000000a003', 'casey.d398-stored@fixture.test'),
+  ('00000000-0000-4000-8398-00000000a004', 'drew.d398-stored@fixture.test');
+update profiles set display_name = 'Avery Fixture', marker = 'saguaro', handle = 'averyq44s', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a001';
+update profiles set display_name = 'Blake Fixture', marker = 'azalea',  handle = 'blakeq44s', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a002';
+update profiles set display_name = 'Casey Fixture', marker = 'saguaro', handle = 'caseyq44s', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a003';
+update profiles set display_name = 'Drew Fixture',  marker = 'azalea',  handle = 'drewq44s',  index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a004';
 insert into leagues (id, name, code, commissioner_id, phase) values
   ('00000000-0000-4000-8398-00000000b001', 'Fixture League', 'FXQ441', '00000000-0000-4000-8398-00000000a001', 'season');
 
@@ -99,10 +99,10 @@ begin
 end $$;
 
 insert into auth.users (id, email) values
-  ('00000000-0000-4000-8398-00000000a011', 'avery2@fixture.test'),
-  ('00000000-0000-4000-8398-00000000a012', 'blake2@fixture.test'),
-  ('00000000-0000-4000-8398-00000000a013', 'casey2@fixture.test'),
-  ('00000000-0000-4000-8398-00000000a014', 'drew2@fixture.test');
+  ('00000000-0000-4000-8398-00000000a011', 'avery2.d398-live@fixture.test'),
+  ('00000000-0000-4000-8398-00000000a012', 'blake2.d398-live@fixture.test'),
+  ('00000000-0000-4000-8398-00000000a013', 'casey2.d398-live@fixture.test'),
+  ('00000000-0000-4000-8398-00000000a014', 'drew2.d398-live@fixture.test');
 update profiles set display_name = 'Avery Fixture', marker = 'saguaro', handle = 'averyfx2', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a011';
 update profiles set display_name = 'Blake Fixture', marker = 'azalea',  handle = 'blakefx2', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a012';
 update profiles set display_name = 'Casey Fixture', marker = 'saguaro', handle = 'caseyfx2', index_current = 12.0 where id = '00000000-0000-4000-8398-00000000a013';
