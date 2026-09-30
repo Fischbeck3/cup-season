@@ -23,7 +23,7 @@ struct CompeteScoreboard: View {
         titleText(.displayS)
         Text(title).csType(.displayS).minimumScaleFactor(0.7).fixedSize(horizontal:false,vertical:true)
       }
-      // W5 twin · the story carries figures ("34 back from …", "in 7 days"),
+      // W5 twin · the story carries figures ("34 back of …", "in 7 days"),
       // and the serif is never a figure's face (§1.4): 17 sans, as the web's
       // `.cband-scoreboard .cband-note`
       if !story.isEmpty { Text(story).csType(.body).fixedSize(horizontal:false,vertical:true) }

@@ -195,6 +195,28 @@ export const capsFromRole = (sels, need = []) => async (page) => page.evaluate((
   return bad.length ? 'capitals typed into the string, not set by the role (§1.3): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
 }, [sels, need])
 
+/* TEN / W6 · W7-071 · the other half of §1.3 (root's OB2-02 ruling): a
+ * SENTENCE a person reads aloud is set in sentence case, the agate role's
+ * phrase form. `phraseAsSaid(sels, need)` fails when a visible element types
+ * capitals (read as capsFromRole reads them), or when its role still sets it
+ * in caps. `need` works as in `notMono`. */
+export const phraseAsSaid = (sels, need = []) => async (page) => page.evaluate(([sels, need]) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' }
+  const missing = need.map((n) => (typeof n === 'string' ? { sel: n } : n))
+    .filter((n) => !(n.below && innerWidth >= n.below))
+    .filter((n) => ![...document.querySelectorAll(n.sel)].some(shown)).map((n) => n.sel)
+  if (missing.length) return 'the state does not draw ' + missing.join(', ')
+  const ACRO = new Set(['HCP', 'GHIN', 'PGA', 'USGA', 'WHS'])
+  const bad = []
+  for (const sel of sels.map((n) => (typeof n === 'string' ? n : n.sel))) for (const el of document.querySelectorAll(sel)) {
+    if (!shown(el)) continue
+    const typed = ((el.textContent || '').match(/\b[A-Z]{3,}\b/g) || []).filter((w) => !ACRO.has(w))
+    if (typed.length) bad.push(`${sel} types ${JSON.stringify(typed.slice(0, 5).join(' '))}`)
+    else if (getComputedStyle(el).textTransform !== 'none') bad.push(`${sel} is set in caps`)
+  }
+  return bad.length ? 'a sentence is not set as said (§1.3): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
+}, [sels, need])
+
 /* TEN / W6 · E's twin (N4-087) · UI_SYSTEM §10.3: copy over a photograph is
  * measured on the photograph. `bandContrast(card, parts)` scrolls the first
  * visible `card` into view, paints each part's own text transparent (and any
@@ -282,3 +304,198 @@ export const bandContrast = (card, parts) => async (page) => {
   console.log(`[bandContrast] ${card} @${Math.round(got.clip.width)}w · ${log.join(' · ')}`)
   return bad.length ? 'copy over the photograph under AA (§10.3): ' + bad.join('; ') : true
 }
+
+/* TEN / W8 · W7-009 · L-34 and UI_SYSTEM §16A.4 (one fact, one encoding, per
+ * viewport): at the desk a second print of a fact yields to the first.
+ * `standsDown(sels)` fails the capture when an element a selector names (the
+ * sidebar's strip, an aside's headline) is drawn at 960 or wider, or when the
+ * page never built it (the check must find the element it says stands down).
+ * Below 960 the desk's shape is not drawn and the check passes. */
+export const standsDown = (sels) => async (page) => page.evaluate((sels) => {
+  if (innerWidth < 960) return true
+  const bad = []
+  for (const sel of sels) {
+    const el = document.querySelector(sel)
+    if (!el) { bad.push(`${sel} was never built, so nothing yielded`); continue }
+    const r = el.getBoundingClientRect(), cs = getComputedStyle(el)
+    if (cs.display !== 'none' && r.width > 0 && r.height > 0) bad.push(`${sel} still prints (${JSON.stringify((el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 50))})`)
+  }
+  return bad.length ? 'the desk prints a fact twice (§16A.4): ' + bad.join('; ') : true
+}, sels)
+
+/* TEN / W8 · W7-011, W7-012 · UI_SYSTEM §16.1 and WCAG 1.4.11: rule may
+ * separate and never state, and a mark that carries a state reads at 3:1 or
+ * better on its ground. `stateContrast(parts)` measures each part
+ * `{ sel, prop, min, what }` (the first VISIBLE element's computed colour, its
+ * `prop` — backgroundColor or a border colour — against the first opaque
+ * ground above it) and fails the capture when a ratio is under `min` or a
+ * part is not drawn. */
+export const stateContrast = (parts) => async (page) => {
+  const got = await page.evaluate((parts) => {
+    const rgb = (c) => (c.match(/[\d.]+/g) || []).slice(0, 4).map(Number)
+    const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+    const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+    const ground = (el) => { for (let p = el.parentElement; p; p = p.parentElement) { const c = rgb(getComputedStyle(p).backgroundColor); if (c.length >= 3 && (c.length < 4 || c[3] > 0.99)) return c } return [255, 255, 255] }
+    return parts.map((p) => {
+      const el = [...document.querySelectorAll(p.sel)].find((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+      if (!el) return { what: p.what, missing: true }
+      const c = rgb(getComputedStyle(el)[p.prop]), g = ground(el)
+      const a = lum(c), b = lum(g)
+      return { what: p.what, min: p.min, ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) }
+    })
+  }, parts)
+  const bad = got.filter((r) => r.missing || r.ratio < r.min).map((r) => (r.missing ? `${r.what} is not drawn` : `${r.what} ${r.ratio.toFixed(2)}:1, under ${r.min}:1`))
+  console.log(`[stateContrast] ${got.filter((r) => !r.missing).map((r) => `${r.what} ${r.ratio.toFixed(2)}`).join(' · ')}`)
+  return bad.length ? 'a state is drawn in rule or too faint (§16.1): ' + bad.join('; ') : true
+}
+
+/* TEN / W8 · W7-014 · UI_SYSTEM §4: the gap between two sections is s5 (32px),
+ * and a section head that opens its wrapper still follows a block. `headGap(
+ * sels, min)` fails the capture when a visible head a selector names has less
+ * than `min` px above it, or when none is drawn. The gap is the head's own
+ * margin-top: the rule that pulled it to 4px is what this pins. */
+export const headGap = (sels, min = 32) => async (page) => page.evaluate(([sels, min]) => {
+  const bad = []; let seen = 0
+  for (const sel of sels) for (const el of document.querySelectorAll(sel)) {
+    const r = el.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0)) continue
+    seen++
+    const m = parseFloat(getComputedStyle(el).marginTop)
+    if (m < min) bad.push(`${sel} ${JSON.stringify((el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30))} has ${m}px above it`)
+  }
+  if (!seen) return 'the state draws none of ' + sels.join(', ')
+  return bad.length ? `a section head clings to the block above it (s5 is ${min}px, §4): ` + bad.join('; ') : true
+}, [sels, min])
+
+/* TEN / W8 · W7-025 · UI_SYSTEM §12.1 and §14.1: the desk sidebar's season
+ * list marks where you are — one row current (`.active`, the 3px tick) and
+ * said to a screen reader (`aria-current`), and it is the row of the section
+ * in view, not always 'The season'. `deskMenuIs(name)` fails a desk capture
+ * when the marked row is not `name`, or when the row is marked by one channel
+ * only. Below 960 the sidebar is not drawn and the check passes. */
+export const deskMenuIs = (want) => async (page) => page.evaluate((want) => {
+  if (innerWidth < 960) return true
+  const rows = [...document.querySelectorAll('#deskMenu .navitem')]
+  const cur = rows.filter((r) => r.classList.contains('active')), aria = rows.filter((r) => r.getAttribute('aria-current'))
+  const names = cur.map((r) => r.textContent.trim().replace(/’/g, "'"))
+  if (names.length !== 1 || names[0] !== want) return `the desk menu marks ${JSON.stringify(names)}, expected ${JSON.stringify([want])}`
+  if (aria.length !== 1 || aria[0] !== cur[0]) return 'aria-current is not on the marked row alone'
+  return true
+}, want)
+
+/* TEN / W8 · W7-032 · UI_SYSTEM §7.2: a segment is a 44pt row of agate labels
+ * on a hairline with a 2px ink underline under the chosen one — no pill, no
+ * track fill, no radius. `isSystemSegment(sel, chosen)` fails the capture when
+ * the control is not the system segment (`.cs-seg`), wears a radius or a track
+ * fill, has a tab under 44px, has `aria-pressed` disagree with `.on`, has no
+ * group name, or when `chosen` (the label expected chosen) is not the chosen
+ * one with a 2px underline. */
+export const isSystemSegment = (sel, chosen) => async (page) => page.evaluate(([sel, chosen]) => {
+  const seg = document.querySelector(sel); if (!seg) return `${sel} is not drawn`
+  const cs = getComputedStyle(seg), tabs = [...seg.querySelectorAll('button')]
+  if (!seg.classList.contains('cs-seg')) return `${sel} is not the system segment (.cs-seg)`
+  if (parseFloat(cs.borderTopLeftRadius) > 0 || cs.backgroundColor !== 'rgba(0, 0, 0, 0)') return `${sel} wears a pill (radius ${cs.borderTopLeftRadius}, fill ${cs.backgroundColor})`
+  if (!seg.getAttribute('role') || !seg.getAttribute('aria-label')) return `${sel} has no group name`
+  const small = tabs.filter((b) => b.getBoundingClientRect().height < 44); if (small.length) return `a tab in ${sel} is ${Math.round(small[0].getBoundingClientRect().height)}px tall`
+  const on = tabs.filter((b) => b.getAttribute('aria-pressed') === 'true')
+  if (on.length !== 1 || !on[0].classList.contains('on') || tabs.filter((b) => b.classList.contains('on')).length !== 1) return `aria-pressed and .on disagree in ${sel}`
+  if (on[0].textContent.trim() !== chosen) return `${sel} has ${JSON.stringify(on[0].textContent.trim())} chosen, expected ${JSON.stringify(chosen)}`
+  const u = getComputedStyle(on[0]).borderBottomWidth
+  return u === '2px' ? true : `the chosen tab has a ${u} underline, not 2px`
+}, [sel, chosen])
+
+/* TEN / W8 · W7-029 · UI_SYSTEM §15.4 and §2.4: gold on the season page is a won thing, exactly twice (the leader's rail field and
+ * the pot's figure), and no card appears on it. `goldOnly(root, allowed)` fails the capture when a visible element under `root`
+ * carries the gold token (its text colour, fill, an edge or a stroke) and matches none of the `allowed` selectors. */
+export const goldOnly = (root, allowed) => async (page) => page.evaluate(([root, allowed]) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const gold = (() => { const i = document.createElement('i'); i.style.color = 'var(--gold)'; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c })()
+  const path = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '')
+  const bad = []
+  for (const el of document.querySelector(root).querySelectorAll('*')) {
+    if (!shown(el) || allowed.some((a) => el.matches(a))) continue
+    const cs = getComputedStyle(el), ownText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())
+    const edge = ['Top', 'Left', 'Bottom', 'Right'].some((s) => parseFloat(cs[`border${s}Width`]) > 0 && cs[`border${s}Color`] === gold)
+    if ((cs.color === gold && ownText) || cs.backgroundColor === gold || edge || cs.stroke === gold || cs.fill === gold) bad.push(`${path(el)} ${JSON.stringify((el.innerText || '').replace(/\s+/g, ' ').slice(0, 24))}`)
+  }
+  return bad.length ? `gold is spent past the leader's rail and the pot (§15.4): ${bad.slice(0, 5).join('; ')}` : true
+}, [root, allowed])
+
+/* TEN / W8 · W7-029 · UI_SYSTEM §3.1 and §15.4: no card on the season page — a row is a slat (a hairline, no box), and no container
+ * sits inside another. `noBoxes(sels)` fails the capture when a visible element a selector names is a BOXED surface: a fill, a radius,
+ * or an edge on all four sides. A selector that matches nothing drawn is not a failure (the desk hides what the phone draws). */
+export const noBoxes = (sels) => async (page) => page.evaluate((sels) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const bad = []
+  for (const sel of sels) for (const el of document.querySelectorAll(sel)) {
+    if (!shown(el)) continue
+    const cs = getComputedStyle(el)
+    const fill = cs.backgroundColor !== 'rgba(0, 0, 0, 0)', radius = parseFloat(cs.borderTopLeftRadius) > 0
+    const edged = ['Top', 'Right', 'Bottom', 'Left'].every((s) => parseFloat(cs[`border${s}Width`]) > 0 && cs[`border${s}Style`] !== 'none')
+    if (fill || radius || edged) bad.push(`${sel}${fill ? ' fill' : ''}${radius ? ' radius' : ''}${edged ? ' boxed' : ''}`)
+  }
+  return bad.length ? `a card on the season page (§15.4): ${[...new Set(bad)].slice(0, 5).join('; ')}` : true
+}, sels)
+
+/* TEN / W8 · W7-026 + W7-043 (follow-up) · ARIA that says what the markup is (ARIA 1.2; WCAG 4.1.2). `ariaWellFormed(root)` fails
+ * the capture when, under `root`, a table cell (td/th) is given a role that is not a cell's (role=status on a td took the cell out of
+ * its row, so the row had no cells), or a paragraph, a span or a div with no role of its own is NAMED (aria-label / aria-labelledby:
+ * naming is prohibited on a paragraph and on a generic — a screen reader ignores it, and a checker flags it). */
+export const ariaWellFormed = (root) => async (page) => page.evaluate((root) => {
+  const host = document.querySelector(root); if (!host) return `${root} is not drawn`
+  const cells = new Set(['cell', 'gridcell', 'columnheader', 'rowheader']), bad = []
+  const path = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '')
+  for (const el of host.querySelectorAll('td, th')) { const r = el.getAttribute('role'); if (r && !cells.has(r)) bad.push(`${path(el)} has role=${r}`) }
+  for (const el of host.querySelectorAll('p, span, div')) if (!el.getAttribute('role') && (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby'))) bad.push(`${path(el)} is named with no role`)
+  return bad.length ? 'the markup says one thing to a screen reader and draws another: ' + bad.slice(0, 5).join('; ') : true
+}, root)
+
+/* TEN / W8 · W7-028 [B2-season-24] (E3, D's second reader) · UI_SYSTEM §7.1 and §16.4: a door in content is marked by a 2px mut rule under its label
+ * (never the row's 1px hairline, which is a divider and reads 2.3:1 to 2.7:1) and is a 44 target. `tertiaryDoor(sel)` fails the capture when a drawn
+ * element the selector names has no underline, an underline that is not 2px, an underline that is not the mut colour, or a box under 44px tall. */
+export const tertiaryDoor = (sel) => async (page) => page.evaluate((sel) => {
+  const els = [...document.querySelectorAll(sel)].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+  if (!els.length) return `${sel} is not drawn`
+  const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+  for (const el of els) {
+    const cs = getComputedStyle(el), label = JSON.stringify((el.textContent || '').trim().slice(0, 24))
+    if (!/underline/.test(cs.textDecorationLine)) return `${sel} ${label} has no underline (its affordance is the row's hairline)`
+    if (parseFloat(cs.textDecorationThickness) !== 2) return `${sel} ${label} is underlined ${cs.textDecorationThickness}, not 2px`
+    if (cs.textDecorationColor !== mut) return `${sel} ${label} is underlined ${cs.textDecorationColor}, not mut (${mut})`
+    if (el.getBoundingClientRect().height < 43.5) return `${sel} ${label} is ${Math.round(el.getBoundingClientRect().height)}px tall, not 44`
+  }
+  return true
+}, sel)
+
+/* TEN / W8 · W7-108 [A2-desk-1] · a page that is a room OF a destination keeps that destination marked (the phone's NavSlot.of(route)): the live setup and the composer are PLAY,
+ * a golfer's page and the head-to-head are GOLFERS, the wizard is COMPETE. `destMarked(v)` fails the capture when the visible tab band (or, at the desk, the sidebar's five rows)
+ * does not mark exactly the destination whose data-v is `v`, in BOTH channels (.active and aria-current="page"). */
+export const destMarked = (v) => async (page) => page.evaluate((v) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const bands = [['tab band', [...document.querySelectorAll('.tab')].filter(shown)], ['sidebar', [...document.querySelectorAll('.navitem:not(.sub)')].filter(shown)]].filter(([, l]) => l.length)
+  if (!bands.length) return 'neither the tab band nor the sidebar is drawn'
+  for (const [name, list] of bands) {
+    const on = list.filter((t) => t.classList.contains('active')), cur = list.filter((t) => t.getAttribute('aria-current') === 'page')
+    if (on.length !== 1 || on[0].dataset.v !== v) return `the ${name} marks ${JSON.stringify(on.map((t) => t.dataset.v))}, expected ["${v}"]`
+    if (cur.length !== 1 || cur[0] !== on[0]) return `the ${name}'s aria-current is not on the marked destination alone`
+  }
+  return true
+}, v)
+
+/* TEN / W8 · W7-069 [X13] · a page's heading outline never skips a level: every visible heading is at most one level deeper than the heading before it, whole document, in order
+ * (WCAG 1.3.1, 2.4.6), and it OPENS at an h1 or an h2 (a room whose own h1 is not drawn, like the draw room's dark ground, cannot start at an h4). The draw room's squad heads were h4 and
+ * the live court's zone labels h5. `scope` narrows the report to a subtree; the heading before its first is the document's last heading above it, so a room cannot hide a skip by
+ * being the first heading in its subtree. */
+export const noHeadingSkips = (scope = 'body') => async (page) => page.evaluate((scope) => {
+  const root = document.querySelector(scope); if (!root) return `${scope} is not on the page`
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const level = (h) => Number(h.getAttribute('aria-level')) || Number(h.tagName[1])
+  const all = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6,[role="heading"]')].filter(shown)
+  let prev = 0
+  for (const h of all) {
+    const l = level(h)
+    if (root.contains(h) && prev && l > prev + 1) return `"${(h.textContent || '').trim().slice(0, 30)}" is an h${l} under an h${prev}`
+    if (root.contains(h) && !prev && l > 2) return `the outline opens at "${(h.textContent || '').trim().slice(0, 30)}", an h${l}`
+    prev = l
+  }
+  return all.some((h) => root.contains(h)) ? true : `${scope} has no headings`
+}, scope)

@@ -158,6 +158,25 @@ public enum ReceiptRow: Sendable, Equatable, Identifiable {
 }
 
 public enum ReceiptRows {
+  /// AW2-06 · mono sets a figure, never words (UI_SYSTEM §1.4). A row's value
+  /// is a figure ("10.0", "70.1 / 124"), a figure and its words ("21.5 VS
+  /// COURSE") or words alone ("COUNTING #2 OF 4", "PLAYED WITH THE GROUP"):
+  /// the leading run of figure tokens is the figure, the rest are the words,
+  /// which the leaf sets in agate (the desk marks the same words `.mw`,
+  /// 2b103a87). Read off this producer's own values, never a sentence.
+  public static func figureAndWords(_ value: String) -> (figure: String?, words: String?) {
+    let tokens = value.split(separator: " ").map(String.init)
+    func isFigure(_ s: String) -> Bool {
+      if ["/", "⁄", "—"].contains(s) { return true }
+      var body = Substring(s)
+      if let c = body.first, "+−-$".contains(c) { body = body.dropFirst() }
+      return body.first?.isNumber == true && body.allSatisfy { $0.isNumber || ".,:/".contains($0) }
+    }
+    let n = tokens.prefix(while: isFigure).count
+    let figure = tokens.prefix(n).joined(separator: " "), words = tokens.dropFirst(n).joined(separator: " ")
+    return (figure.isEmpty ? nil : figure, words.isEmpty ? nil : words)
+  }
+
   /// D124 (i) — the sentence that replaces the verdict on a round posted with
   /// no number. The count is the payload's or nothing; never counted here.
   public static func noNumberYet(round n: Int?) -> String {

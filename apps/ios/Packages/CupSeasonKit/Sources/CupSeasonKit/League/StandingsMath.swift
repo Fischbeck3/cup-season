@@ -155,7 +155,9 @@ public enum StandingsStory: Sendable, Equatable {
   case none
   case outFront(Team)
   case deadHeat(Team, Team, pts: Double)
-  case lead(Team, Team, margin: Double, back: String)
+  /// `back` is the runner-up's own clause, and only when a weekend can close
+  /// the gap (AW2-04): past that, "lead by 34" has said the gap already.
+  case lead(Team, Team, margin: Double, back: String?)
 
   /// The sentence, plain. Views colour the names.
   ///
@@ -189,8 +191,11 @@ public enum StandingsStory: Sendable, Equatable {
     case .deadHeat(let a, let b, let pts):
       return "Dead heat — \(Self.displayName(a, viewer: viewer)) and \(Self.displayName(b, viewer: viewer)) level at \(CSCopy.points(pts))."
     case .lead(let a, let b, let m, let back):
-      return "\(Self.displayName(a, viewer: viewer)) \(Self.leads(a, viewer: viewer)) by \(CSCopy.points(m)). "
-        + "\(Self.displayName(b, viewer: viewer)) \(Self.isYou(b, viewer) ? "are " : "")\(back)."
+      // AW2-04 · a two-row story has one gap, and it is said once ("lead by
+      // 34"); a gap a weekend can close is a different fact, so it stays. The
+      // web's standings story (1eda6fec), word for word.
+      return "\(Self.displayName(a, viewer: viewer)) \(Self.leads(a, viewer: viewer)) by \(CSCopy.points(m))."
+        + (back.map { " \(Self.displayName(b, viewer: viewer)) \(Self.isYou(b, viewer) ? "are " : "")\($0)." } ?? "")
     }
   }
 
@@ -416,7 +421,7 @@ public enum StandingsMath {
     if a.pts == 0 && b.pts == 0 { return .none }
     let m = a.pts - b.pts
     if m == 0 { return .deadHeat(a, b, pts: a.pts) }
-    return .lead(a, b, margin: m, back: m <= 15 ? "a good weekend back" : "\(CSCopy.points(m)) back")
+    return .lead(a, b, margin: m, back: m <= 15 ? "a good weekend back" : nil)
   }
 
   /// The award tiles (11266–11275). First names only — the tiles are narrow.
@@ -657,26 +662,31 @@ public enum ClimbMath {
     // A two-squad season said "TOP 1 ADVANCE TO THE CUP FINAL" — K is 1 only
     // because the climb draws the seed line. Both squads play, and the leader
     // carries +10 in: the desk's words, exactly (`renderClimb`).
-    if seeded(meta) { return "BOTH SQUADS PLAY THE CUP FINAL · THE LEADER CARRIES +10" }
+    //
+    // OB2-02 · the words are typed as they are said, and the view's agate role
+    // sets the caps (UI_SYSTEM §1.3: capitals come one way, the role's): a
+    // screen reader is handed words, never capitals it may spell out. The
+    // web's `renderClimb` (76b1935d).
+    if seeded(meta) { return "Both squads play the Cup Final · the leader carries +10" }
     // D127 · when the roster cannot fill more seats than it has contenders the
     // Final is hollow; say so rather than printing "EVERYONE ADVANCES" as if it
     // were a standing. The web took this fix; the phone announced a race with
     // one runner for two months.
     if K >= n {
-      return n <= 1 ? "NOBODY TO RACE YET"
-                    : "EVERYONE ADVANCES — \(n) CONTENDER\(n == 1 ? "" : "S"), \(K) SEAT\(K == 1 ? "" : "S")"
+      return n <= 1 ? "Nobody to race yet"
+                    : "Everyone advances — \(n) contender\(n == 1 ? "" : "s"), \(K) seat\(K == 1 ? "" : "s")"
     }
     // Q-26: "PROJECTED UNDER A GENEROUS CEILING" was jargon nobody decoded, and
     // it sat over two EMPTY squads on a league that had not teed off.
-    if let meta { return "TOP \(K) \(meta.finish == "points_table" ? "— THE POINTS KING" : "ADVANCE TO THE CUP FINAL")" }
-    return "TOP \(K) ADVANCE TO THE CUP FINAL"
+    if let meta { return "Top \(K) \(meta.finish == "points_table" ? "— the Points King" : "advance to the Cup Final")" }
+    return "Top \(K) advance to the Cup Final"
   }
 }
 
 // MARK: - The scenario line (D24)
 
 public enum ScenarioPart: Sendable, Equatable {
-  case clinch(String)   // "THE FINAL IS SET"
+  case clinch(String)   // "The Final is set"
   case text(String)
   case bold(String)
   case out(String)
@@ -689,19 +699,24 @@ public enum ScenarioPart: Sendable, Equatable {
 
 public enum ScenarioLine {
   static func seedWord(_ meta: SeasonScenarios.Meta) -> String {
-    if meta.finish == "points_table" { return "THE CROWN" }
-    if meta.level == "squad" && meta.structure == "squads2" { return "THE TOP SEED · +10" }
-    return "A CUP SEED"
+    if meta.finish == "points_table" { return "the crown" }
+    if meta.level == "squad" && meta.structure == "squads2" { return "the top seed · +10" }
+    return "a Cup seed"
   }
 
   /// `renderScenarioLine` (14557–14600). Empty = hide. Never invents a clinch.
+  ///
+  /// OB2-02 (root's ruling) · the clinch line is a SENTENCE, so it is typed as
+  /// said and set in sentence case, and a name keeps its own case (the web's
+  /// `up()` is gone too, 76b1935d). The locked seeds say "The Final is set —
+  /// …", and the web moves to these words.
   public static func parts(_ sc: SeasonScenarios?) -> [ScenarioPart] {
     guard let sc, !sc.rows.isEmpty else { return [] }
     let meta = sc.meta, rows = sc.rows
-    let up = { (s: String?) in (s ?? "").uppercased() }
+    let nm = { (s: String?) in s ?? "" }
     if meta.locked == true {
-      let seeds = rows.prefix(max(0, meta.k ?? 0)).map { up($0.name) }
-      return [.clinch("THE FINAL IS SET"), .text(" — \(seeds.joined(separator: " · ")) INTO THE CUP FINAL")]
+      let seeds = rows.prefix(max(0, meta.k ?? 0)).map { nm($0.name) }
+      return [.clinch("The Final is set"), .text(" — \(seeds.joined(separator: " · ")) into the Cup Final")]
     }
     if meta.months_left == 0 { return [] }
     let sw = seedWord(meta)
@@ -713,14 +728,14 @@ public enum ScenarioLine {
       // F-5 · §2.3 retires "locked" as this product's verb for a settled
       // fact; check 5 grepped SEEDS LOCKED and this inflection walked past it.
       // "Clinched" is the golf word for the same certainty anyway.
-      parts += [.bold(up(lead.name)), .text(" IS IN \(sw)")]
+      parts += [.bold(nm(lead.name)), .text(" is in \(sw)")]
     } else if capped, let needs = lead.needs, needs > 0, needs <= leadHeadroom {
-      parts += [.bold(up(lead.name)), .text(" · \(CSCopy.points(needs)) MORE CLINCHES \(sw)")]
+      parts += [.bold(nm(lead.name)), .text(" · \(CSCopy.points(needs)) more clinches \(sw)")]
     }
-    let out = rows.filter { $0.eliminated == true }.map { up($0.name) }
+    let out = rows.filter { $0.eliminated == true }.map { nm($0.name) }
     if !out.isEmpty {
       if !parts.isEmpty { parts.append(.text(" · ")) }
-      parts.append(.out("\(out.joined(separator: ", ")) OUT OF THE \(meta.finish == "points_table" ? "RACE" : "SEED RACE")"))
+      parts.append(.out("\(out.joined(separator: ", ")) out of the \(meta.finish == "points_table" ? "race" : "seed race")"))
     }
     return parts
   }

@@ -14,6 +14,13 @@ struct RoundSharePreview: View {
   /// W2 (D380) · the round the link is minted for. nil (a fixture, an older
   /// caller) shares the card alone, as before.
   var roundId: UUID? = nil
+  /// The round's own photograph, when it is still to be fetched. The preview
+  /// opens at once and the card fills in when the photograph lands: the
+  /// receipt used to fetch it BEFORE opening, on URLSession's 60-second
+  /// default, and on a weak signal the Share tap sat with nothing on screen.
+  var photoURL: URL? = nil
+  @State private var fetched: UIImage?
+  @State private var fetching = false
   @State private var image: UIImage?
   @State private var share: PostShareItem?
   @State private var includePhoto = true
@@ -23,12 +30,14 @@ struct RoundSharePreview: View {
   private var publicRecap: PostRecap {
     recap.publicRoundCard
   }
+  /// the photograph in hand: the caller's, or the one fetched here
+  private var roundPhoto: UIImage? { photo ?? fetched }
 
   var body: some View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-          if photo != nil {
+          if roundPhoto != nil {
             // D359 · an ordinary control takes the action colour; ember is
             // reserved for an active competition and a share sheet is not one.
             Toggle(RoundCopy.photoInclude, isOn: $includePhoto).tint(cs.act).disabled(linking)
@@ -37,11 +46,14 @@ struct RoundSharePreview: View {
           }
           if let image {
             Image(uiImage: image).resizable().scaledToFit()
+              // while the photograph is on its way the card is its own
+              // geometry, redacted (LINT-22), never a spinner
+              .redacted(reason: fetching ? .placeholder : [])
               // The identifier names the composition that was actually
               // rendered — `RecapCardView.render` was handed the photograph or
               // it was not — so a test can read the opt-out's effect on the
               // OUTPUT rather than on the switch.
-              .accessibilityIdentifier(includePhoto && photo != nil ? "round.share.card.withPhoto" : "round.share.card.noPhoto")
+              .accessibilityIdentifier(includePhoto && roundPhoto != nil ? "round.share.card.withPhoto" : "round.share.card.noPhoto")
               .accessibilityLabel("Round card. \(publicRecap.name). \(publicRecap.gross) gross at \(publicRecap.course). \(publicRecap.date). Any time. Anywhere.")
           } else {
             Text("Couldn’t create your round card. Close and try again.").csType(.body)
@@ -62,8 +74,8 @@ struct RoundSharePreview: View {
       .background(cs.bg0)
       .safeAreaInset(edge: .bottom) {
         Button("Share") {
-          guard !linking, let image else { return }
-          let consent = includePhoto && photo != nil
+          guard !linking, !fetching, let image else { return }
+          let consent = includePhoto && roundPhoto != nil
           // W2 (D380) · ONE action: the card and the link leave together. The
           // link is minted with the toggle's answer, and the card that was
           // rendered — with or without the photo — is what the preview shows.
@@ -84,7 +96,7 @@ struct RoundSharePreview: View {
             }
           }
         }
-        .buttonStyle(.csPrimary(busy: linking)).disabled(image == nil)
+        .buttonStyle(.csPrimary(busy: linking || fetching)).disabled(image == nil || fetching)
         .accessibilityIdentifier("round.share.send")
         .padding(CSTokens.Space.gutter).background(cs.bg0)
       }
@@ -96,6 +108,13 @@ struct RoundSharePreview: View {
       #if DEBUG
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_share_no_photo") { includePhoto = false }
       #endif
+      // a photograph on its way: the first card is its geometry (and says
+      // nothing to telemetry); the card that counts is drawn when it lands
+      fetching = photo == nil && photoURL != nil
+      render()
+      guard fetching, let photoURL else { return }
+      fetched = await Self.fetch(photoURL)
+      fetching = false
       render()
     }
     .onChange(of: includePhoto) { _, _ in render() }
@@ -115,17 +134,33 @@ struct RoundSharePreview: View {
   }
 
   private func render() {
-    image = RecapCardView.render(publicRecap, photo: includePhoto ? photo : nil)
+    image = RecapCardView.render(publicRecap, photo: includePhoto ? roundPhoto : nil)
     #if DEBUG
+    // The fixture's files are encoded and written off the main thread: a
+    // 1080×1350 PNG encoded there held the preview, and a test's next tap,
+    // for seconds on a loaded machine.
     if MorningReviewFixture.on || ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_export"),
-       let png = image?.pngData() {
-      let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-      if MorningReviewFixture.on, let fixturePhoto = photo?.pngData() {
-        try? fixturePhoto.write(to: folder.appendingPathComponent("review-photo.png"))
+       let card = image {
+      let reviewPhoto = MorningReviewFixture.on ? roundPhoto : nil
+      let name = includePhoto && roundPhoto != nil ? "round-share-with-photo.png" : "round-share-no-photo.png"
+      Task.detached(priority: .utility) {
+        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        if let p = reviewPhoto?.pngData() { try? p.write(to: folder.appendingPathComponent("review-photo.png")) }
+        if let png = card.pngData() { try? png.write(to: folder.appendingPathComponent(name)) }
       }
-      try? png.write(to: folder.appendingPathComponent(includePhoto && photo != nil ? "round-share-with-photo.png" : "round-share-no-photo.png"))
     }
     #endif
-    if image != nil { CSTelemetry.event("round_share_generated", ["has_photo": .bool(includePhoto && photo != nil)]) }
+    if image != nil, !fetching { CSTelemetry.event("round_share_generated", ["has_photo": .bool(includePhoto && roundPhoto != nil)]) }
+  }
+
+  /// Only a signed HTTP 200 counts, and only within ten seconds: past that the
+  /// card goes as it is, without the photograph, as it did when the fetch
+  /// failed, rather than holding Share.
+  private static func fetch(_ url: URL) async -> UIImage? {
+    var request = URLRequest(url: url)
+    request.timeoutInterval = 10
+    guard let (data, response) = try? await URLSession.shared.data(for: request),
+          (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+    return UIImage(data: data)
   }
 }

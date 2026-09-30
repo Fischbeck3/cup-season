@@ -15,7 +15,7 @@ const go = (v) => async (page) => { await page.evaluate((v) => window.switchView
 import { readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { notMono, noRetiredGlyph, noRetiredShape } from './ten-mono.mjs'
+import { notMono, noRetiredGlyph, noRetiredShape, tertiaryDoor } from './ten-mono.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 
 /* Family modules: tests/ten-states.d/<family>.mjs, each `export default [ ...states ]`.
@@ -29,6 +29,38 @@ async function familyModules() {
   return out
 }
 
+/* TEN / W6 · W7-114 [A2-identity-13] · root's ruling: the card gate names the
+   account it is for and offers the way out of the wrong one. The line sits at
+   the gate's foot, "Signed in as <email> · Not you? Sign out": the sentence in
+   body-s, mut, the email wrapping whole, and Sign out the in-content tertiary
+   link, which signs out of THIS device only (scope local). The harness seeds
+   the session on every load, so the reload lands on the gate again, and the
+   check waits for it so the capture is the gate as before. */
+const gateWho = async (page) => {
+  const r = await page.evaluate(() => {
+    const w = document.getElementById('pfWho'), a = document.getElementById('pfWhoOut')
+    if (!w || w.hidden || !a) return 'the card gate does not say whose account it is'
+    const t = w.textContent.replace(/\s+/g, ' ').trim()
+    if (!/^Signed in as \S+@\S+ · Not you\? Sign out$/.test(t)) return 'the line reads ' + JSON.stringify(t)
+    const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe)
+    const mut = getComputedStyle(probe).color; probe.remove()
+    const cs = getComputedStyle(w)
+    if (cs.color !== mut || cs.fontSize !== '15px') return 'the line is not body-s in mut: ' + cs.color + ' ' + cs.fontSize
+    if (getComputedStyle(w.querySelector('.pfwho-em')).overflowWrap !== 'anywhere') return 'the email does not wrap whole'
+    return document.getElementById('pfSave').compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the line is not at the gate’s foot'
+  })
+  if (r !== true) return r
+  const door = await tertiaryDoor('#pfWhoOut')(page)
+  if (door !== true) return door
+  const req = page.waitForRequest((q) => /\/auth\/v1\/logout/.test(q.url()), { timeout: 8000 }).catch(() => null)
+  await page.locator('#pfWhoOut').click()
+  const q = await req
+  if (!q) return 'Sign out sent no sign-out'
+  if (!/scope=local/.test(q.url())) return 'Sign out is not this device only: ' + q.url()
+  await page.waitForFunction(() => { const g = document.getElementById('obProfile'); return !!g && g.style.display === 'block' && !document.getElementById('pfWho').hidden }, null, { timeout: 15000 }).catch(() => {})
+  await page.waitForTimeout(600)
+  return true
+}
 const CORE = [
   /* ------------------------------------------------------------ door */
   { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } } },
@@ -84,13 +116,22 @@ const CORE = [
         const bar = document.querySelector('#obProfile .pfsave'), sc = document.getElementById('onboard')
         if (!bar || !sc || getComputedStyle(bar).position !== 'sticky') return true
         if (sc.scrollHeight <= sc.clientHeight + 1) return true   /* the whole card fits: the bar is in its place */
+        /* W7-114 · a bar whose own place is already on screen is not stuck: what
+           is under it is the gate's foot (the GHIN note, the account line), not
+           the form showing through */
+        const was = bar.style.position; bar.style.position = 'static'
+        const own = bar.getBoundingClientRect().bottom; bar.style.position = was
+        if (own <= sc.getBoundingClientRect().bottom + 1) return true
         const gap = Math.round(sc.getBoundingClientRect().bottom - bar.getBoundingClientRect().bottom)
         return gap <= 1 ? true : `the Save bar floats ${gap}px above the window's edge, and the form shows beneath it`
       })
       if (save !== true) return save
-      /* TEN / W6 · AW2-06: the gate's SIGNED IN stamp is a label, never mono */
-      const m = await notMono(['#obProfile .lockbadge'], ['#obProfile .lockbadge'])(page)
-      return m !== true ? m : noRetiredGlyph()(page)
+      /* W7-114 · one version of the item: B's #pfWho (a4fb9be1, the ruled words); C's duplicate line was
+         reverted on its branch (369202e6). From C it keeps the SIGNED IN stamp's removal: whose account
+         this is is said once, at the gate's foot */
+      if (await page.evaluate(() => !!document.querySelector('#obProfile .lockbadge'))) return 'the gate still draws the SIGNED IN chip'
+      const g = await noRetiredGlyph()(page)
+      return g !== true ? g : gateWho(page)
     } },
 
   /* ------------------------------------------------------------ home */

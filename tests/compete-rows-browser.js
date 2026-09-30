@@ -32,7 +32,7 @@
     check(!!band,'F11: no band for the lead season');
     const btext=sel=>band.querySelector(sel)?.textContent||'';
     check(btext('.cband-fig')==='14points','the band lost the points figure: '+btext('.cband-fig'));
-    check(btext('.cband-note')==='2ndYou are 3 back from Jade Park.','MW-03: the band said the rank twice or lost the line: '+btext('.cband-note'));
+    check(btext('.cband-note')==='2ndYou are 3 back of Jade Park.','MW-03: the band said the rank twice or lost the line (W7-130: the table\'s own noun is "back of", D26/PAR-09): '+btext('.cband-note'));
     check(btext('.cband-meta')==='Week 8 of 26 · The clash closes today','MW-03: the band lost the week or the closing clash: '+btext('.cband-meta'));
     check(btext('.cband-state')==='Live','the band lost its state word');
     check(text(B,'.ps')==='1st of 2 · 21 pts · 9 clear of Casey · you run it','PAR-09: the leader’s line is wrong: '+text(B,'.ps'));

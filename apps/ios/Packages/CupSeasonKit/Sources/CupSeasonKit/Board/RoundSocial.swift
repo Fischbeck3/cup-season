@@ -99,6 +99,9 @@ public struct SocialNotice: Sendable, Equatable, Identifiable {
     default: return "\(name) commented on your round."
     }
   }
+  /// N4-099 (root's ruling) · an inbox at zero is a cleared queue, not an
+  /// empty object, so it has no door: the web's `CS_INBOX.empty`, word for word.
+  public static let inboxEmpty = "You’re all caught up."
 }
 
 /// Writes use the complete request once. In particular a retry must never drop

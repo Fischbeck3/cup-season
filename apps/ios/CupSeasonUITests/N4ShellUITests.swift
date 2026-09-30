@@ -114,4 +114,101 @@ final class N4ShellUITests: N2UITestCase {
     attach(app, "n4-claim-not-now-door")
     app.terminate()
   }
+
+  /// W7-042 · an edited card is not dropped on the way out: the first way
+  /// out, the back gesture here, keeps the page and says why under Save. A
+  /// new edit takes the line with it and is asked about in turn; the way out
+  /// after that leaves without saving (once per pending edit, no stopwatch).
+  @MainActor func testAnEditedCardAsksBeforeBackDropsIt() {
+    let app = launch("season-live", "settings")
+    let page = root(app, "settings")
+    let city = app.textFields["City"].firstMatch
+    XCTAssertTrue(city.waitForExistence(timeout: 10), "the card pane's City field")
+    app.tapToType(city)
+    city.typeText("x")
+    let back = app.buttons["settings.back"]
+    XCTAssertTrue(back.waitForExistence(timeout: 5), "an edited card's Back is the page's own")
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.55))
+      .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.55)))
+    let said = app.staticTexts["You have unsaved changes. Save them, or do that again to leave without saving."]
+    XCTAssertTrue(said.waitForExistence(timeout: 5), "the back gesture says why")
+    XCTAssertTrue(page.exists, "and keeps the page")
+    attach(app, "w7-042-unsaved")
+    app.tapToType(city)
+    city.typeText("y")
+    let cleared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: said)
+    XCTAssertEqual(XCTWaiter().wait(for: [cleared], timeout: 5), .completed, "a new edit takes the question's line with it")
+    back.tap()
+    XCTAssertTrue(said.waitForExistence(timeout: 5), "Back asks about the new edit")
+    XCTAssertTrue(page.exists, "and keeps the page")
+    back.tap()
+    let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: page)
+    XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "the next Back leaves without saving")
+  }
+
+  /// W7-042 · a card nobody touched is not asked about. The load filling the
+  /// fields is not an edit: the system's Back stays, Save reads "Save card",
+  /// and Back leaves with no question.
+  @MainActor func testAnUntouchedCardLeavesOnBack() {
+    let app = launch("season-live", "settings", extra: ["-cs_dev_bottom"])
+    let page = root(app, "settings")
+    let city = app.textFields["City"].firstMatch
+    XCTAssertTrue(city.waitForExistence(timeout: 10), "the card pane's City field")
+    let loaded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value != nil AND value != ''"), object: city)
+    XCTAssertEqual(XCTWaiter().wait(for: [loaded], timeout: 10), .completed, "the load filled the card")
+    Thread.sleep(forTimeInterval: 1)   // the render after the load, where the fields' old flag went up
+    XCTAssertFalse(app.buttons["settings.back"].exists, "a card nobody touched keeps the system's Back")
+    let save = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Save card")).firstMatch
+    for _ in 0..<6 where !(save.exists && save.isHittable) { app.swipeUp() }
+    XCTAssertTrue(save.exists, "and Save says there is nothing new on it")
+    attach(app, "w7-042-untouched")
+    app.navigationBars.buttons.firstMatch.tap()
+    let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: page)
+    XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "Back leaves, with no question")
+  }
+
+  /// W7-042 · the inbox's settings door never replaces an edited card (root's
+  /// ruling). The first time, it lands on the card, which asks under Save
+  /// with the edit kept; the next time, it leaves without saving, as Back does.
+  @MainActor func testTheInboxDoorLandsOnAnEditedCard() {
+    let app = launch("season-live", "settings")
+    _ = root(app, "settings")
+    let city = app.textFields["City"].firstMatch
+    XCTAssertTrue(city.waitForExistence(timeout: 10), "the card pane's City field")
+    app.tapToType(city)
+    city.typeText("x")
+    let edited = city.value as? String ?? ""
+    XCTAssertTrue(edited.hasSuffix("x"), "the edit is typed: \(edited)")
+    // the keyboard stands the band down: put it away, as the band's own test does
+    let keys = app.keyboards.firstMatch
+    app.swipeDown()
+    if keys.exists { city.typeText("\n") }
+    let close = app.buttons["Close keyboard"].firstMatch
+    if keys.exists, close.exists { close.tap() }
+    XCTAssertTrue(waitGone(keys, timeout: 6), "the keyboard went")
+    let said = app.staticTexts["You have unsaved changes. Save them, or do that again to leave without saving."]
+    func throughTheInbox(_ pass: String) {
+      guard let home = band(app).first(where: { $0.label == "Home" }) else { return XCTFail("\(pass): the band's Home") }
+      home.tap()
+      let activity = app.buttons["home.activity"]
+      XCTAssertTrue(activity.waitForExistence(timeout: 20), "\(pass): Home's Activity")
+      for _ in 0..<4 where !activity.isHittable { app.swipeUp() }
+      activity.tap()
+      let door = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Notification settings")).firstMatch
+      XCTAssertTrue(door.waitForExistence(timeout: 10), "\(pass): the inbox's settings door")
+      for _ in 0..<4 where !door.isHittable { app.swipeUp() }
+      door.tap()
+    }
+    throughTheInbox("first")
+    XCTAssertTrue(said.waitForExistence(timeout: 10), "the door lands on the card, which asks under Save")
+    XCTAssertTrue(said.isHittable, "with the question in view")
+    XCTAssertEqual(city.value as? String, edited, "and the edit kept")
+    attach(app, "w7-042-inbox-door-asks")
+    throughTheInbox("second")
+    XCTAssertTrue(waitGone(said, timeout: 10), "asked already, the door leaves without saving")
+    let settingsPane = app.staticTexts.matching(NSPredicate(format: "label ==[c] %@", "How the app runs")).firstMatch
+    XCTAssertTrue(settingsPane.waitForExistence(timeout: 10), "on the Settings pane the door names")
+    XCTAssertFalse(app.buttons["settings.back"].exists, "a page that holds no edit")
+    attach(app, "w7-042-inbox-door-leaves")
+  }
 }

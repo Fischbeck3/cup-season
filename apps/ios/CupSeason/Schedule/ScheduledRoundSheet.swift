@@ -408,7 +408,10 @@ struct ScheduledRoundSheet: View {
         if let pid = r.profileId {
           CSFace(CSFace.Model(id: pid, marker: r.marker, initials: Initials.of(r.name)), size: .list)
         }
-        Text(r.name).csType(.social).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
+        // W7-035 · the viewer's own seat reads "You", as the schedule's list
+        // prints the same person; every other seat keeps its name
+        Text(r.profileId != nil && r.profileId == vm.me ? "You" : r.name)
+          .csType(.social).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
         if host {
           Text("Host").csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }
@@ -449,7 +452,14 @@ struct ScheduledRoundSheet: View {
     // "Tee it up" at ~5029 concerned CLOSING A SEASON ROSTER, not this
     // action; the owner approved this one in F10 — D367 records the
     // distinction.) A golfer who declined is not offered it.
-    if d.canRsvp, d.myRsvp != "out", let openLive = links.openLive {
+    //
+    // W7-039 · ONE primary in the sheet. A golfer who owes an answer (asked,
+    // or maybe) has "I'm in" as the primary, and "Tee it up" is a tertiary
+    // text door beneath the RSVP row. Answered (in), or the host, "Tee it up"
+    // is the primary again. Who is offered it is unchanged (F10, D367).
+    let owes = d.canRsvp && !d.mine && d.myRsvp != "in" && d.myRsvp != "out"
+    let teeUp = d.canRsvp && d.myRsvp != "out" ? links.openLive : nil
+    if let openLive = teeUp, !owes {
       CSDoor(.primary("Tee it up", {
         LiveRoundStore.shared.prepare(from: d)
         dismiss()
@@ -460,8 +470,13 @@ struct ScheduledRoundSheet: View {
     if d.canRsvp {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         HStack(spacing: CSTokens.Space.s3) {
-          Button("I\u{2019}m in") { Task { await vm.rsvp("in") } }
-            .buttonStyle(.csPrimary(busy: vm.rsvping))
+          Group {
+            if owes {
+              Button("I\u{2019}m in") { Task { await vm.rsvp("in") } }.buttonStyle(.csPrimary(busy: vm.rsvping))
+            } else {
+              Button("I\u{2019}m in") { Task { await vm.rsvp("in") } }.buttonStyle(.csSecondary(busy: vm.rsvping))
+            }
+          }
             .frame(maxWidth: .infinity)
             .layoutPriority(1.35)
             .accessibilityAddTraits(d.myRsvp == "in" ? .isSelected : [])
@@ -475,6 +490,14 @@ struct ScheduledRoundSheet: View {
           .buttonStyle(.plain)
           .foregroundStyle(cs.mut)
           .accessibilityAddTraits(d.myRsvp == "out" ? .isSelected : [])
+        if let openLive = teeUp, owes {
+          CSDoor(.link("Tee it up", {
+            LiveRoundStore.shared.prepare(from: d)
+            dismiss()
+            openLive()
+          }))
+          .accessibilityHint("Starts the round for this booking with the group already seated")
+        }
       }
     } else if !d.mine {
       // IOS-032 · the dead end, closed. "Ask for a seat" is a REQUEST — one

@@ -211,7 +211,7 @@ dismiss verb at `topBarTrailing`, §7.3):
 
 **Yours, your golfers' and the community's** — the three numbers §12 names — are on one rule so the
 comparison is a glance rather than a paragraph. A golfer who has not rated it sees the third figure
-slot **empty with `NOT YOURS YET` as the label**; the value slot never renders a dash (§1.6).
+slot **empty with `YOUR RATING · NOT YET` as the label** (W7-099: `NOT YOURS YET` read as “this course is not yours”); the value slot never renders a dash (§1.6).
 
 ---
 

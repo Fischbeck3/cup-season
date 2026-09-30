@@ -565,6 +565,81 @@ On the owner's standing "push items as needed" (git push of verified heads to ma
 
 **Next wave (dispatched 10:20):** critique A2 and B2's open web P2s (77 and 70) had never been dispatched, and they are what keeps every target under 36/40 and several heuristics at 2. D builds W7, one ranked web work list (re-verified at `27a9f56c`, deduplicated, ranked by gate impact: every heuristic at 2 first), with the native P3 cut's rule applied to the P3s. B and root build from it before the freeze.
 
+## 4m · B's final checkpoint and N4 checkpoint 3 merged, W7 dispatched, the first held migration (2026-09-29, midday)
+
+**Merged into integration** (the merge was prepared in a scratch worktree while B's final run finished, then integration fast-forwarded to it):
+
+| Merge | What | The session's own proof |
+|---|---|---|
+| `e171b1ea` ← B `fe4a313f` | W6 Part 3: AW2-04/06/07/08/13/14/15/17, TP-16, TP-22, OB2-02/03, AW2-05 (web; the server half held), A2's noCourse, N4-063, N4-087 | per-item captures with controls; app-tests 515/0 |
+| `48359e65` | **fff81912 reverted** (AW2-05's `home_dispatch` patch and its harness mirror line): a migration rides the owner's `db push`, never a web push | — |
+| `d9a7bd21` | **W7-061 [B2-history-10], root's own regression fixed** (the commit message says "W7-057", the id in D's first draft; the final list renumbered it). AW2-22's wrapping course pushed the credential's folio out of the fixed-ratio card (clipped at 402 and 1280, hidden at 375). The record half now sizes to its content with a 42% floor and the plate gives up the pixels: an ordinary card keeps 58/42 | record family 40 captures, 0 failures; the folio whole at 375, 402 and 1280 |
+| `9945b5ea` ← B `4b13cbb6` | the draw room's squads stay inside the room at 375 (found in B's final run) | B at `4b13cbb6`: preflight 0/0, 43 suites, app-tests 515/0, the full harness 1,230 captures clean |
+| `3ce32d7b` ← E `cb0355e9` | N4 checkpoint 3: N4-082 (the figure-run sweep; root's four named exceptions), 30 of the 41 kept P3s, the star-rail twin | build 26 non-UI 1749/1749; the composer, receipt and sheet suites 23/25 on each phone, 0 failed |
+| `9bb1d410` | ratchets at the merged head: LINT-14 122→105, LINT-06 1058→1056 | preflight 0/0 |
+
+Two conflicts in B's merge, both resolved to keep both halves: `.crtchip small` (root's N4-205 put the seat line on the agate role), and Home's fallback minimum item (B's AW2-07 marked figure with root's N4-210 standfirst). The baselines note keeps B's history plus root's web-halves line, without the two paragraphs both sides carried.
+
+**Verified at `9bb1d410`:** `ci-local` 11 of 11; app-tests 516/0 in both themes; all 43 browser suites exit 0. The full harness was stopped at 70 captures and re-run at the next head (below), so one capture covers the push.
+
+**Rulings sent (none is a mechanic; each follows canon or the web's producer):**
+- **To E, checkpoint 3's nine:** N4-119 matches the web's PAR-03 (no rank or seed in the Final, the Final's clock, D138); N4-212's caption is D273's split in dollars on both clients ("$20 each · 48 / 20 / 12"); N4-152 is ruled by D275/D289, N4-153's caption half by UI_SYSTEM §10.1–§10.2, and N4-154's "HCP" stays (T-16, D133); N4-099 takes the web's "You’re all caught up." with no door; N4-088 says the receipt's "No number yet — this round starts it (N of 3)"; N4-025 uses CredentialCopy.indexLabel; N4-055 stays DEC-02's. After the freeze, as known debt: N4-095, N4-096, N4-086's slat names, N4-097's five lines.
+- **To B, Part 3's seven:** an idle clash says its idle words on its last day too (web, the held AW2-05, and the phone); §1.3 splits OB2-02 (a label stays agate caps; the clinch line is a sentence, "The Final is set — …", on both clients); the band twin stands as E built it; the draw clock's spine retires on both clients; no new swatch on the web (D359), and E checks the phone's; the squads take one column below about 380px; "Report" rides W7-042.
+
+**N4 checkpoint 3's web halves (`0cb0a5e8`, with `fcb6a246`).** The Major room reads MajorMath's words (PAR-28): the pot a figure with D273's caption, gold until the jug is won; the window line in words; Leaderboard with Live/Final in the slot; "Doesn’t count this year" instead of an "EX" mark. The rules page marks its figures as runs (N4-181), and the split is one producer now, `csSplitWords`, read by the rules and the covenant. The plan's prompts (N4-134), the met minimum (N4-106), "From your scorecard" (N4-172), typographic apostrophes (N4-214), and an armed mini's pressed fill (§7.1). No web change for N4-119, N4-025, the star rail, N4-075 or N4-124.
+
+**W7 · round 2's critique findings, dispatched.** Session D re-verified all 488 A2/B2 findings at `27a9f56c` (`evidence/r2-fd27ace4/W7-WORKLIST.md`): 349 distinct defects; 167 open items (P0 2, P1 4, P2 81, P3 80; about 121 hours), 31 fixed since, 7 ruled, 114 cut to known debt by the native P3 rule, 31 owner questions. 32 heuristic cells still sit at 2 and none is lifted yet; 19 of them are client work alone (29 items, about 26 hours).
+- **B:** W7-003 (P1: while a round is held, lock the setup fields the server never receives, and say why), then W7-001's held migration (X42), W7-005, W7-006 and the tier-1 holders in play, post, share, home, schedule, golfers, public round and courses (about 16 hours).
+- **C, now a second web lane (W8):** the tier-1 holders in desk, season, history, identity, settings and rules (about 17 hours), from GO `9bb1d410`.
+- **E:** W7-003's phone half first, then B's native twins, then W7's "phone owes one" items as each lane's words land.
+- **Root:** W7-002, the head-to-head's week counted once per shared season, as the first held migration (below); integration, verification and pushes.
+
+**The first held migration.** `20261212090000_a_week_both_posted_counts_once.sql` (W7-002, `83545b21`) restates `head_to_head` with its week CTEs keyed by the week alone, each golfer's best across the shared seasons, as `my_rivalries()` already does. Proven on a disposable PostgreSQL 17 cluster with the full chain (`tests/db/head-to-head-week-once.sql`): the control without it fails "got 4, expected 2"; with it, 8 of 8 pass, and a second apply is clean. It lives on `claude/ten-held-migrations-2026-09-29` with its fixture mirror, off integration, so the harness world never says what prod does not; the owner's two steps are in OWNER-QUESTIONS §D.
+
+**Owner questions Q42–Q51** (`f224420e`): the ten W7 questions no earlier memo covered, each with options and a recommendation; Q40 and Q41 joined the summary table.
+
+**Web push 4: `2f6c24dc`, 12:29 MST.** 69 commits, a fast-forward from `11052c49`: B's final checkpoint, N4 checkpoint 3, W7-061, E's checkpoint-3 web halves, the §7.1 pressed state, and the owner memo's Q42–Q51 and §D. Served files: `index.html`, `get.html`, `legal.html`, `support.html` (B's AW2-17 gave the static pages their theme-color). No migrations net (fff81912's revert included), no generated Swift, no version lines.
+- Verified at `2f6c24dc`: `ci-local` 11 of 11; app-tests 516/0 in both themes; the suites that touch E's halves (artifact signature, league setup, season setup, social course, event recovery 36/36, live setup labels, counting explained, compete rows), all exit 0, with the full 43 at `9bb1d410`; the full harness, 1,230 captures, 0 errors, 0 fixture gaps, 0 page errors.
+- **Eight route failures in that harness were root's own doing,** all `book--finished`. The harness loads the finished Book's fixture from the working tree when the book family runs, and root committed the new fixture (`44128341`) mid-run, so the new note met the old pin. Re-run entirely from a snapshot of `2f6c24dc` (fixtures included), the book family is 64 of 64 clean. Rule kept: nothing is committed to a worktree while a harness is capturing from it.
+- Live: `sw.js` VERSION `2f6c24d`, caption `v23 · 2f6c24d`.
+
+**Prod's database, read-only (12:00):** every migration through `20261210090000` is applied; `deploy-status` reports the database and the edge functions clean. One of root's alarms that morning was false and is recorded so it is not raised again: `20261130090000` emitted the Book at envelope version 2, but `20261205090000` (applied) patched it back to version 1 on purpose, keeping `frozen` and `withdrawn`; both clients' `version === 1` guards are right, and nothing was changed on either.
+
+**The held branch, `claude/ten-held-migrations-2026-09-29`, carries four migrations for the owner's one `db push`**, each with its fixture mirror and a database test, each proven with a control that fails without it, and re-run together by root in push order on a fresh PostgreSQL 17 chain (282 migrations): terms 5, clash 13, head-to-head 8, plan 13 — 39 assertions, 0 failures.
+- `20261211094500` Home's invitation says "See the terms before you’re in." (`978212e6`, B's `d30f1ecb` re-cut);
+- `20261211100000` AW2-05, amended per root's ruling (`4f430ab4`);
+- `20261212090000` W7-002, the head-to-head's week counted once (`83545b21`, root);
+- `20261213090000` X42 / W7-001, the public plan says who is in (`69802f17`, B).
+Their web halves are on integration: W7-003 (the held round's setup is locked, P1), W7-001's who-line and AW2-05's idle words (merged at `a8c0c0b3`, with both server halves reverted at `28f176aa` and `ea5f19a4`).
+
+**Root's W7 items since:** W7-017, W7-120 and W7-121, the harness world drawing three things production cannot (`44128341`); W7-120's product line, "minimum 2 rounds" (`b2bd5b1f`); W7-061's comment id (`d1d29cf0`). W7-005 needed no commit: B's `d4d7c6f0` had closed it before D's list was cut.
+
+## 4n · Web push 5, C's W8 share, D's first delta (2026-09-29, afternoon)
+
+**Merged:** B's first W7 web halves at `a8c0c0b3`: W7-003 [X02], the held round's setup locked (P1); W7-001 [X42]'s who-line; AW2-05's idle words. Their two server halves were reverted at `28f176aa` and `ea5f19a4` and live on the held branch. C's first W8 checkpoint at `282578eb` (21 items) and its final at `51211947` (W7-027, 053, 047, 043, 020, 022, 019 and W7-029 in four commits), with ratchets at `e78d7f22` (LINT-06 1054).
+
+**Web push 5: `bbd72753`, 13:40 MST.** 42 commits, a fast-forward from `2f6c24dc`; `index.html` the only served file; no migrations net, no generated Swift, no version lines.
+- Verified: `e78d7f22` in full (`ci-local` 11/11; app-tests 520/0 in both themes; 43 of 43 suites; the full harness from a snapshot, 1,310 captures, 0 route failures, 0 errors); then `bbd72753`'s own `ci-local` 11/11, app-tests 520/0 in both themes, the you family 32/32 at `1bb743d7` (its control fails 4 at `e78d7f22`), and the home family 256/256.
+- Live `v23 · bbd7275`; CI green.
+
+**Regressions found and fixed:**
+- **W7-101 [A2-identity-12]** (session D, from C's W7-055): You's section index drew on a failed read and pushed "Try again" wholly under the tab band at 375×667. `1bb743d7` draws it only for a record that holds something; `you/error` pins it.
+- **The desk sidebar's foot** (session B, from C's final set): the empty-record yield hid `#sideMe` with `display:none`, taking the column's `margin-top:auto` pin, so the foot floated 484px up. `d3e96f86` collapses the block in place; `you/empty` checks the foot within 48px of the column's bottom (the control fails 4).
+- **N4-106's sibling** (session D): the Home hero's minimum foot read "Sep minimum 5/2 · cleared" past the minimum; `bbd72753` names the minimum, then what the golfer has.
+- **W7-120's zero minimum** (session D): the Book said "minimum 0 rounds" for a solo league; `0a0e43eb` says a minimum only when there is one (L-23).
+
+**D's first delta at `e78d7f22`** (two independent readers per verdict): 27 records fixed (18 items, 9 debt lines), 25 partly, 1 regression (W7-101, fixed in push 5). **3 of the 32 heuristic cells at 2 have lifted:** desk·B2·H7, identity·B2·H7, season·A2·H8. None of the six tier-0 items is fully closed: W7-001 and W7-002 wait on the owner's push of the held branch, W7-004 is after launch by design, and W7-003, W7-005 and W7-006 have small remainders routed to B. Every partly remainder is routed by source id (B: W7-003, 005, 024, 046, 056, 071, 085, 114, 125, K077; C: W7-009, 014, 015/K102, 025, 026, 028, 034, 042, 072, #boardCard). C's queue also took seven of B's items (W7-035, 039, 040, 049, 052, 057, 058) to balance the two lanes.
+
+## 4o · Web push 6, N4 checkpoint 4, the round-3 plan (2026-09-29, late afternoon)
+
+**Web push 6: `250d2c09`, 16:08 MST.** 66 commits, a fast-forward from `bbd72753`: N4 checkpoint 4 (`3fe30b48`, apps/ios plus the synthetic capture plan), root's revert of its own wrong N4-025 ruling (`a3f7bcad`: the composer keeps "Your index", NW-5 and `57ca5eee`; Q48 owns the form), C's delta remainders (`ac0026b7`), the sidebar-foot fix, the Book's no-zero-minimum rule, and preflight 18b (no top-level function declared twice across the classic blocks, after lane B found two lanes' `csStaleLine` colliding; it flags the real case on a trial merge). `index.html` the only served file; no migrations net.
+- Verified at `250d2c09`: `ci-local` 11/11; app-tests 526/0 in both themes; 43 of 43 suites; the full harness from a snapshot, 1,426 captures, 0 route failures, 0 errors. Live `v23 · 250d2c0`; CI green.
+- **The push's privacy scan flagged two lines, and root's command pushed before gating on it.** Both are the phone's Book fixtures (`SeasonBookFixtureJSON.swift`, `finished.json`), whose viewer row carries the owner's first name. They are not new: the same name has been in the native fixtures on main since 2026-08-27 (`5a172515`), beside two more pilot names in `CompeteFixture` and `ScorecardSheet`. That is X37's recast, the owner's to rule; nothing new was exposed. The push now gates on a zero count.
+
+**Root's native pass at `a3f7bcad`** (root's own 17 Pro, the software keyboard up): build green; 1,416 + 16 unit tests pass; UI 82, 72 passed, 8 environment skips. E's `tapToType` fixed both posting flows. `testSharePreviewCancel` flaked, and E traced it to a product bug: the preview fetched the round's photo before opening, on a 60-second default. It opens at once now (checkpoint 5), with the photo filling in. E also found and fixed, for checkpoint 5, a checkpoint-4 regression (an untouched card read as dirty) and an older one (the card reloaded, and dropped pending edits, every time its page reappeared). Nothing native ships before checkpoint 5 merges.
+
+**The round-3 plan** (the account's 5-hour usage window is shared by every session, and extra usage is off): the lanes checkpoint at 19:15; root merges and verifies the candidate in full and pushes it (about 20:15); session D verifies root's gallery byte for byte and launches A3, B3 (one agent each, round 2's calibration), AW3 and DX3 at the start of the 19:40 window; root's three §29 judges follow A3 and B3 on the same gallery; the lanes run no fan-outs from 19:40 to about 23:00.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:

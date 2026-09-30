@@ -945,10 +945,14 @@ final class LiveRoundStore {
   /// nothing led back to it — and Tee off then built a NEW round with blank
   /// scores and no `lr` while the old one stayed live on the server. The round
   /// is held instead: the same round (`lr`), the same scores, the same channel,
-  /// until "Back to the round". The setup keeps what changes in place — the
-  /// course, the tee, the rating and slope, the holes and the pars, which the
-  /// finish carries in each card — and the group and the game, seated on the
-  /// server at tee-off, are not offered. The web's `#backToSetup`, 18a279bd.
+  /// until "Back to the round". The group and the game, seated on the server
+  /// at tee-off, are not offered. W7-003 · nor are the course, the tee, the
+  /// rating and slope, the holes and the pars: the finish sends only strokes
+  /// per card, and `finish_live_round` reads the rating, slope and nine
+  /// rating from the tee-off `course_snapshot`, which nothing rewrites — an
+  /// edit here posted the old rating, and an eighteen switched to nine posted
+  /// nobody. They are shown and locked until `live_set_setup` exists. The
+  /// web's `#backToSetup`, 18a279bd.
   func backToSetup() {
     holding = true
     state.stage = .setup

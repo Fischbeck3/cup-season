@@ -75,7 +75,7 @@ struct MajorRoomView: View {
       if let pot = potFigure(f) {
         A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s2, columnSpacing: CSTokens.Space.s1) {
           Text(pot).csType(.figureS).foregroundStyle(f.complete ? cs.ink : cs.gold)
-          Text(MajorMath.potCaption(buyIn: f.buyIn, potSplit: ev.pot_split))
+          Text(MajorMath.potCaption(buyIn: f.buyIn, pot: f.pot, potSplit: ev.pot_split))
             .csType(.agate, caps: true).foregroundStyle(cs.mut)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -267,7 +267,7 @@ struct MajorRoomView: View {
   /// than losing "plus is better", the half that says which way is good.
   private var columnNote: some View {
     Text("Vs playing HCP · plus is better")
-      .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      .csType(.agateS, caps: false).foregroundStyle(cs.mut)   // AW2-15 · a phrase, sentence case
       .fixedSize(horizontal: false, vertical: true)
       .multilineTextAlignment(.trailing)
       .frame(maxWidth: .infinity, alignment: .trailing)

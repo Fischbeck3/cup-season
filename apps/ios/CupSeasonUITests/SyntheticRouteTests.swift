@@ -295,7 +295,69 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertFalse(mark(app, "composer").exists)
   }
 
-  /// The share preview opens from the receipt and closes without sharing.
+  /// W7-039 · ONE primary on a plan: the host (or a golfer who has answered)
+  /// has "Tee it up" leading the RSVP row; a golfer who owes an answer has
+  /// "I'm in" first, and "Tee it up" beneath the row as a text door.
+  @MainActor func testPlanSheetLeadsWithOnePrimary() {
+    for (detail, owes) in [(nil, false), ("asked", true)] as [(String?, Bool)] {
+      let app = launch("season-live", "plan", detail)
+      XCTAssertTrue(mark(app, "plan").waitForExistence(timeout: 30), "the plan opens")
+      let teeUp = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Tee it up")).firstMatch
+      let imIn = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "I\u{2019}m in")).firstMatch
+      XCTAssertTrue(teeUp.waitForExistence(timeout: 10), "Tee it up is offered")
+      reveal(teeUp, in: app)
+      reveal(imIn, in: app)
+      XCTAssertTrue(imIn.exists, "and the answer")
+      if owes {
+        XCTAssertGreaterThan(teeUp.frame.minY, imIn.frame.maxY, "owed an answer, Tee it up sits beneath the RSVP row")
+      } else {
+        XCTAssertLessThan(teeUp.frame.maxY, imIn.frame.minY, "the host's Tee it up leads")
+      }
+      attach(app, "w7-039-plan-\(owes ? "owes" : "host")")
+      app.terminate()
+    }
+  }
+
+  /// W7-035 · the viewer's own seat on a plan reads "You", the host's tag
+  /// beside it: as the host, and as a golfer who was asked.
+  @MainActor func testPlanSheetSeatReadsYou() {
+    for detail in [nil, "asked"] as [String?] {
+      let app = launch("season-live", "plan", detail)
+      XCTAssertTrue(mark(app, "plan").waitForExistence(timeout: 30), "the plan opens")
+      let you = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@ OR label BEGINSWITH %@", "You", "You,")).firstMatch
+      XCTAssertTrue(you.waitForExistence(timeout: 10), "the viewer's seat reads You (\(detail ?? "host"))")
+      app.terminate()
+    }
+  }
+
+  /// W7-040 · a failed schedule read with nothing to show says so (the head,
+  /// the reason, Try again) and is never drawn as an empty schedule; Try
+  /// again reads it again.
+  @MainActor func testScheduleFailureSaysSoAndRetries() {
+    let app = launch("season-live", "schedule", extra: ["-cs_synth_fail", "my_schedule"])
+    XCTAssertTrue(mark(app, "schedule").waitForExistence(timeout: 30))
+    let failed = app.descendants(matching: .any)["schedule.failed"]
+    XCTAssertTrue(failed.waitForExistence(timeout: 15), "the failed read says so")
+    XCTAssertTrue(app.staticTexts["The schedule didn\u{2019}t load"].exists, "in the desk's words")
+    XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Nothing on the schedule")).firstMatch.exists,
+                   "and never as an empty schedule")
+    attach(app, "w7-040-schedule-failed")
+    // the synthetic world answers the golfer's first retry, a second after the
+    // failure and four after boot: a tap that comes sooner is asked again
+    let retry = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Try again")).firstMatch
+    for _ in 0..<3 where failed.exists {
+      if retry.exists { retry.tap() }
+      _ = failed.waitForNonExistence(timeout: 6)
+    }
+    XCTAssertFalse(failed.exists, "Try again reads the schedule again")
+  }
+
+  /// The share preview opens from the receipt and closes without sharing. It
+  /// opens at once, before the round's photograph has come (it waited for
+  /// the photograph, and root's run at a3f7bcad saw the tap sit past 10s).
+  /// The Close tapped is the preview's own, in its bar, once it is up: the
+  /// first "Close" in the tree is the receipt's, underneath, and when the
+  /// preview was late the tap closed the receipt.
   @MainActor func testSharePreviewCancel() {
     let app = launch("season-live", "receipt")
     XCTAssertTrue(mark(app, "receipt").waitForExistence(timeout: 30))
@@ -304,11 +366,13 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertTrue(share.waitForExistence(timeout: 10))
     share.tap()
     let send = app.buttons["round.share.send"]
-    XCTAssertTrue(send.waitForExistence(timeout: 10))
+    XCTAssertTrue(send.waitForExistence(timeout: 10), "the preview opens")
+    let close = app.navigationBars["Share round"].buttons.matching(NSPredicate(format: "label ==[c] %@", "close")).firstMatch
+    XCTAssertTrue(close.waitForExistence(timeout: 5), "the preview's own Close, in its bar")
     attach(app, "flow__share-preview")
-    closeButton(app).tap()
+    close.tap()
     XCTAssertTrue(send.waitForNonExistence(timeout: 10))
-    XCTAssertTrue(mark(app, "receipt").exists)
+    XCTAssertTrue(mark(app, "receipt").exists, "and the receipt stays")
   }
 
   /// The Album's read fails once, F16's failed state says so with Try again,
@@ -362,22 +426,25 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertTrue(gross.waitForExistence(timeout: 10))
     if !app.keyboards.firstMatch.exists { gross.tap() }
     gross.typeText("84")
-    let fold = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Rating not set")).firstMatch
-    if fold.waitForExistence(timeout: 3) { fold.tap() }
+    // A2 · a round names its course (noCard, noCourse, noRating): the synthetic
+    // composer inherits none, so one is typed by hand, as a golfer off the list
+    // types it — BEFORE the rating and slope, as a golfer picks it. Typed after
+    // them, the field sat under the pinned bar, the keyboard or the bars, where
+    // a tap lands on nothing that takes the cursor (E's 17 Pro, root's)
+    let course = app.textFields.matching(NSPredicate(format: "identifier == %@ OR placeholderValue BEGINSWITH %@",
+                                                      "post.course.search", "Search a course")).firstMatch
+    XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+    app.tapToType(course)
+    course.typeText("Fixture Muni")
+    // a named course opens the rating and slope itself; the fold is tapped
+    // only while they are folded, or the tap would fold them away
     let rating = app.textFields["Rating"].firstMatch
+    let fold = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Rating not set")).firstMatch
+    if !rating.waitForExistence(timeout: 2), fold.waitForExistence(timeout: 3) { fold.tap() }
     XCTAssertTrue(rating.waitForExistence(timeout: 5))
     rating.tap(); rating.typeText("70.1")
     let slope = app.textFields["Slope"].firstMatch
     slope.tap(); slope.typeText("124")
-    // A2 · a round names its course (noCard, noCourse, noRating): the synthetic
-    // composer inherits none, so one is typed by hand, as a golfer off the list
-    // types it — last, because its results open under the field and move the
-    // rating and slope
-    let course = app.textFields.matching(NSPredicate(format: "identifier == %@ OR placeholderValue BEGINSWITH %@",
-                                                      "post.course.search", "Search a course")).firstMatch
-    XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
-    app.revealUnderBars(course)   // after the slope it can sit under the bars
-    course.tap(); course.typeText("Fixture Muni")
     app.swipeDown()
   }
 

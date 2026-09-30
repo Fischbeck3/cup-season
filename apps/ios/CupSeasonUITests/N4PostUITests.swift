@@ -14,30 +14,33 @@ import UIKit
 final class N4PostUITests: N2UITestCase {
   override func setUp() { continueAfterFailure = true }
 
-  /// The card the route tests fill: a gross, then the rating and slope, and
-  /// (unless told not to) a course typed by hand.
+  /// The card the route tests fill: a gross, (unless told not to) a course
+  /// typed by hand, then the rating and slope.
   @MainActor private func fill(_ app: XCUIApplication, course named: Bool = true) {
     let gross = app.textFields["Your gross"].firstMatch
     XCTAssertTrue(gross.waitForExistence(timeout: 10))
     if !app.keyboards.firstMatch.exists { gross.tap() }
     gross.typeText("84")
-    let fold = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Rating not set")).firstMatch
-    if fold.waitForExistence(timeout: 3) { fold.tap() }
+    // A2 · a round names its course (noCard, noCourse, noRating): the synthetic
+    // composer inherits none, so one is typed by hand, as a golfer off the list
+    // types it — BEFORE the rating and slope, as a golfer picks it. Typed after
+    // them, the field sat under the pinned bar, the keyboard or the bars, where
+    // a tap lands on nothing that takes the cursor (E's 17 Pro, root's)
+    if named {
+      let course = courseField(app)
+      XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+      app.tapToType(course)
+      course.typeText("Fixture Muni")
+    }
+    // a named course opens the rating and slope itself; the fold is tapped
+    // only while they are folded, or the tap would fold them away
     let rating = app.textFields["Rating"].firstMatch
+    let fold = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Rating not set")).firstMatch
+    if !rating.waitForExistence(timeout: 2), fold.waitForExistence(timeout: 3) { fold.tap() }
     XCTAssertTrue(rating.waitForExistence(timeout: 5))
     rating.tap(); rating.typeText("70.1")
     let slope = app.textFields["Slope"].firstMatch
     slope.tap(); slope.typeText("124")
-    // A2 · a round names its course (noCard, noCourse, noRating): the synthetic
-    // composer inherits none, so one is typed by hand, as a golfer off the list
-    // types it — last, because its results open under the field and move the
-    // rating and slope
-    if named {
-      let course = courseField(app)
-      XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
-      app.revealUnderBars(course)   // after the slope it can sit under the bars
-      course.tap(); course.typeText("Fixture Muni")
-    }
     app.swipeDown()
   }
 

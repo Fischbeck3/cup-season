@@ -18,7 +18,8 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(StandingsMath.story([team(a, "Squad 1", 30), team(b, "Squad 2", 18)]).text == "Squad 1 lead by 12. Squad 2 a good weekend back.")
   }
   @Test func pointsBackPastFifteen() {
-    #expect(StandingsMath.story([team(a, "Squad 1", 40), team(b, "Squad 2", 20)]).text == "Squad 1 lead by 20. Squad 2 20 back.")
+    // AW2-04 · the gap is said once: "20 back" restated "lead by 20"
+    #expect(StandingsMath.story([team(a, "Squad 1", 40), team(b, "Squad 2", 20)]).text == "Squad 1 lead by 20.")
   }
   @Test func deadHeat() {
     #expect(StandingsMath.story([team(a, "Squad 1", 20), team(b, "Squad 2", 20)]).text == "Dead heat — Squad 1 and Squad 2 level at 20.")
@@ -303,7 +304,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     if case .rung(let r) = items[5] { #expect(r.voice == .aheadOfYou(10, stake: nil)) } else { Issue.record("no rung above") }
     if case .rung(let r) = items[6] { #expect(r.isMe && r.accessibility == "You — 6th, 30 points") } else { Issue.record("no me") }
     if case .rung(let r) = items[7] { #expect(r.voice == .behindYou("S7", 10)) } else { Issue.record("no rung below") }
-    #expect(ClimbMath.note(teams: teams, scenarios: nil) == "TOP 2 ADVANCE TO THE CUP FINAL")
+    #expect(ClimbMath.note(teams: teams, scenarios: nil) == "Top 2 advance to the Cup Final")
   }
   @Test func aLeaderSeesClearAndTheStake() {
     let items = ClimbMath.items(teams: teams, meId: a, scenarios: nil)
@@ -328,8 +329,8 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(ClimbMath.cut(two) == ClimbCut(K: 1, line: "TOP SEED · +10"))
     #expect(ClimbMath.cut(nil) == ClimbCut(K: 2, line: "CUT LINE"))
     let sc = SeasonScenarios(meta: pt, rows: [])
-    #expect(ClimbMath.note(teams: teams, scenarios: sc) == "TOP 1 — THE POINTS KING")
-    #expect(ClimbMath.note(teams: [teams[0]], scenarios: nil) == "NOBODY TO RACE YET")
+    #expect(ClimbMath.note(teams: teams, scenarios: sc) == "Top 1 — the Points King")
+    #expect(ClimbMath.note(teams: [teams[0]], scenarios: nil) == "Nobody to race yet")
     #expect(ClimbMath.items(teams: [], meId: nil, scenarios: nil).isEmpty)
   }
   /// A two-squad Cup Final season has no cut: both squads play the Final and
@@ -338,14 +339,14 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   @Test func twoSquadsBothPlayTheFinalAndTheLeaderCarriesTen() {
     let two = SeasonScenarios.Meta(finish: "cup_final", structure: "squads2", level: "squad", k: 2, months_left: 2, locked: false, cap: 4)
     let squads = Array(teams.prefix(2))
-    #expect(ClimbMath.note(teams: squads, scenarios: SeasonScenarios(meta: two, rows: [])) == "BOTH SQUADS PLAY THE CUP FINAL · THE LEADER CARRIES +10")
+    #expect(ClimbMath.note(teams: squads, scenarios: SeasonScenarios(meta: two, rows: [])) == "Both squads play the Cup Final · the leader carries +10")
     #expect(ClimbMath.cut(two) == ClimbCut(K: 1, line: "TOP SEED · +10"))
     // a two-squad POINTS-TABLE season still crowns the top of the table
     let pt2 = SeasonScenarios.Meta(finish: "points_table", structure: "squads2", level: "squad", k: 2, months_left: 2, locked: false, cap: 4)
-    #expect(ClimbMath.note(teams: squads, scenarios: SeasonScenarios(meta: pt2, rows: [])) == "TOP 1 — THE POINTS KING")
+    #expect(ClimbMath.note(teams: squads, scenarios: SeasonScenarios(meta: pt2, rows: [])) == "Top 1 — the Points King")
     // the golfer-level ladder inside a two-squad season keeps its own cut
     let golfers = SeasonScenarios.Meta(finish: "cup_final", structure: "squads2", level: "golfer", k: 2, months_left: 2, locked: false, cap: 4)
-    #expect(ClimbMath.note(teams: teams, scenarios: SeasonScenarios(meta: golfers, rows: [])) == "TOP 2 ADVANCE TO THE CUP FINAL")
+    #expect(ClimbMath.note(teams: teams, scenarios: SeasonScenarios(meta: golfers, rows: [])) == "Top 2 advance to the Cup Final")
   }
   @Test func badgesComeFromTheServer() {
     let meta = SeasonScenarios.Meta(finish: "cup_final", structure: "squads4", level: "squad", k: 2, months_left: 1, locked: false, cap: 4)
@@ -369,11 +370,11 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func seedsLockedOnceTheFinalRuns() {
     let sc = SeasonScenarios(meta: meta(locked: true), rows: [row(a, "Squad 1", pts: 90, max: 90), row(b, "Squad 2", pts: 70, max: 70), row(c, "Squad 3", pts: 10, max: 10)])
-    #expect(ScenarioLine.parts(sc) == [.clinch("THE FINAL IS SET"), .text(" — SQUAD 1 · SQUAD 2 INTO THE CUP FINAL")])
+    #expect(ScenarioLine.parts(sc) == [.clinch("The Final is set"), .text(" — Squad 1 · Squad 2 into the Cup Final")])
   }
   @Test func aMagicNumberOnlyWhenReachable() {
     let sc = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 160, needs: 20), row(d, "Squad 4", pts: 5, max: 30, out: true)])
-    #expect(ScenarioLine.parts(sc) == [.bold("SQUAD 1"), .text(" · 20 MORE CLINCHES A CUP SEED"), .text(" · "), .out("SQUAD 4 OUT OF THE SEED RACE")])
+    #expect(ScenarioLine.parts(sc) == [.bold("Squad 1"), .text(" · 20 more clinches a Cup seed"), .text(" · "), .out("Squad 4 out of the seed race")])
     let far = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 110, needs: 20)])
     #expect(ScenarioLine.parts(far).isEmpty)
   }
@@ -383,9 +384,9 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func theCrownAndTheRace() {
     let sc = SeasonScenarios(meta: meta(finish: "points_table"), rows: [row(a, "Dan", pts: 100, max: 160, clinched: true), row(b, "Joe", pts: 1, max: 20, out: true)])
-    #expect(ScenarioLine.parts(sc) == [.bold("DAN"), .text(" IS IN THE CROWN"), .text(" · "), .out("JOE OUT OF THE RACE")])
+    #expect(ScenarioLine.parts(sc) == [.bold("Dan"), .text(" is in the crown"), .text(" · "), .out("Joe out of the race")])
     let two = SeasonScenarios(meta: meta(structure: "squads2"), rows: [row(a, "Squad 1", pts: 100, max: 160, clinched: true)])
-    #expect(ScenarioLine.parts(two) == [.bold("SQUAD 1"), .text(" IS IN THE TOP SEED · +10")])
+    #expect(ScenarioLine.parts(two) == [.bold("Squad 1"), .text(" is in the top seed · +10")])
   }
   @Test func quietAfterTheWindowAndWithoutRows() {
     #expect(ScenarioLine.parts(SeasonScenarios(meta: meta(monthsLeft: 0), rows: [row(a, "S", pts: 1, max: 2)])).isEmpty)
@@ -475,13 +476,13 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueCopy.phaseSub(clock("2026-05-10"), b: b, code: "PIGL", members: 8) == "Wk 2 / 21 · Points Race · Standard rules")
     #expect(LeagueCopy.phaseSub(clock("2026-04-30"), b: b, code: "PIGL", members: 8) == "BEFORE FIRST TEE · SUN MAY 3 · 3 DAYS")
     #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "PIGL", members: 8) == "SETUP · START THE SEASON TO OPEN INVITES")
-    #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "KICKS OFF IN 1 DAY · SQUADS ARE SET"))
+    #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "Kicks off in 1 day · squads are set"))
     // A-6 · a seat count counts nothing (`scheduled_rounds` has no capacity and
     // a roster's own minimum is the fact): the line names the roster and what
     // is still needed, never "3 SEATS OPEN".
     #expect(LeagueCopy.seatFill(code: "PIGL", members: 5, min: 8) == "CODE PIGL · 5 IN · 3 MORE TO TEE OFF")
     #expect(LeagueCopy.seatFill(code: "PIGL", members: 9, min: 8) == "CODE PIGL · 9 IN — THE LINK IS STILL LIVE")
-    #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 GOLFERS NOT ON A SQUAD YET")
+    #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 golfers not on a squad yet")
     #expect(LeagueCopy.danger(clock("2026-06-01")).link == "Cancel this league" && LeagueCopy.danger(clock("2026-04-30")).preTee)
   }
   @Test func nextUpAndTheMeter() {

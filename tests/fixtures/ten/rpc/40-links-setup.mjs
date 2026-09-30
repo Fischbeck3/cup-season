@@ -290,8 +290,10 @@ export default function install(W) {
     const before = prev('round_detail')
     out.round_detail = (a, w) => { const p = byId(String(a.p_round || '')); return p ? detail(p) : (before ? before(a, w) : undefined) }
   }
-  /* set_round_rsvp · returns void (20261012090000). No state taps it. */
-  out.set_round_rsvp = () => null
+  /* scratch_round · returns void: the host cancels a plan for everyone (W7-079 taps it from the plan sheet's manage bar, armed and then confirmed) */
+  out.scratch_round = ({ p_id }) => { const p = byId(String(p_id || '')); if (p) p.cancelled = true; return null }
+  /* set_round_rsvp · returns void (20261012090000): the viewer's own answer on a plan they are tagged in (W7-039 taps it: 'I'm in') */
+  out.set_round_rsvp = ({ p_round, p_status }) => { const p = byId(String(p_round || '')); if (p && ['in', 'maybe', 'out'].includes(p_status)) p.rsvp[1] = p_status; return null }
 
   /* ============================================================= COURSES */
   /* my_course_books · 20261009093000_the_card_carries_its_yardage.sql — every
@@ -398,6 +400,26 @@ export default function install(W) {
       items.push({ round_id: r.id, comment_count: 0, can_comment: true, thread_state: 'none', course: doorOf })
     }
     return { items }
+  })
+  /* course_page · 20261208090000_a_course_keeps_its_circle.sql — who of the circle has played a course (me plus my league mates, as posted_rounds_social reads it).
+     The viewer is listed too, best gross first, as the SQL orders it; the tee comparison is not modelled (tees: [], best: null) — the course record's own door
+     (W7-052) and the circle sheet read the people only. */
+  fill('course_page', (a) => {
+    if (!V.session) return { ok: false, reason: 'signed_out' }
+    const c = course(a.p_course_id); if (!c) return { ok: false, reason: 'no_course' }
+    const circle = new Set([ME, ...T.league_members.filter((m) => sharesLeague(m.profile_id)).map((m) => m.profile_id)])
+    const at = {}
+    for (const x of T.rounds) if (String(x.api_course_id) === String(c.id) && circle.has(x.profile_id)) (at[x.profile_id] ||= []).push(x)
+    const people = Object.entries(at).map(([pid, rs]) => {
+      const q = prof(pid); rs.sort((x, y) => (x.played_on < y.played_on ? 1 : x.played_on > y.played_on ? -1 : 0))
+      return { _best: Math.min(...rs.map((r) => r.gross)), person: { id: q.id, name: q.display_name, marker: q.marker, handle: q.handle }, relation: pid === ME ? 'self' : 'league',
+        rounds_total: rs.length, latest_played_on: rs[0].played_on, best_in_selection: null,
+        rounds: rs.map((r) => ({ round_id: r.id, played_on: r.played_on, gross: r.gross, holes: r.holes_played, tee_key: null, tee_name: r.tee_name || null, has_photo: !!r.photo_path, in_selection: false })) }
+    }).sort((p, q) => p._best - q._best || p.person.name.localeCompare(q.person.name)).map(({ _best, ...p }) => p)
+    return { ok: true, course: { api_course_id: String(c.id), name: courseName(c), city: c.city, state: c.state, country: null },
+      scope: { key: 'circle', label: 'Your circle', best_label: 'Your circle best', note: 'From your rounds, your friends\' rounds and the rounds of the golfers in your seasons, Ryders and Majors. Not an official course record.' },
+      selection: { tee_key: null, tee_name: null, holes: 18 }, tees: [], holes_options: [], unknown_tee_rounds: people.reduce((n, p) => n + p.rounds_total, 0),
+      best_unavailable: null, best: null, my_best: null, people_total: people.length, people }
   })
   /* my_notifications · 20261207090000 — two comments on Avery's latest round */
   fill('my_notifications', () => {

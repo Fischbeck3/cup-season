@@ -102,6 +102,10 @@
 
     answerReply=()=>({data:{applied:true,reason:null,answer:'didnt_play',snooze_until:null},error:null});
     window.homeDispatch={items:[card()],lead_suppress:[]};renderHomeDispatch();
+    /* W7-077 · 'Didn’t play' is terminal (D345): the first tap only ASKS and sends nothing, a second answers */
+    const callsBefore=answerCalls.length;
+    lead.querySelector('[data-ans=\"didnt_play\"]').click();
+    check(answerCalls.length===callsBefore && lead.querySelector('[data-ans=\"didnt_play\"]').classList.contains('is-armed') && /^Sure\?/.test(lead.querySelector('[data-ans=\"didnt_play\"]').textContent),'The first tap on Didn\u2019t play did not only ask');
     lead.querySelector('[data-ans=\"didnt_play\"]').click();
     await until(()=>!lead.querySelector('[data-ans]'),'An applied answer left the card on Home');
 

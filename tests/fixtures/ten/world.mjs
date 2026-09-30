@@ -97,7 +97,7 @@ export function makeWorld(variantName = 'member', overrides = {}) {
   /* ---- profiles ---- */
   T.profiles = PEOPLE.map((p) => ({
     id: uid(p.n), display_name: p.name, city: p.city, home_course: p.n === 1 ? 'Saguaro Flats Municipal (fixture)' : null,
-    index_current: p.index, index_source: p.n === 1 ? 'auto' : 'auto', marker: p.marker, notify_chat: true, notify_rounds: true,
+    index_current: p.index, index_source: p.n === 1 ? 'app' : 'auto', marker: p.marker, notify_chat: true, notify_rounds: true,
     handle: p.handle, discoverable: 'everyone', ghin_number: null, created_at: '2026-03-01T19:00:00Z', photo_path: null,
     scan_consent_at: null, email: p.email,
   }))
@@ -228,7 +228,10 @@ export function makeWorld(variantName = 'member', overrides = {}) {
       if (!L.season || r.played_on < L.season.starts_on) continue
       const who = person(PEOPLE.find((p) => uid(p.n) === r.profile_id).n)
       T.posts.push({ id: pid(pn++), league_id: m.league_id, profile_id: r.profile_id, kind: 'round', member_id: m.id,
-        body: `${who.name.split(' ')[0].toUpperCase()} POSTED ${r.gross} AT ${r.course_label.split(' · ')[0].toUpperCase()}`,
+        /* W7-017 · the body round_to_board() writes today (20260921090000:112-121):
+           natural case, the whole label, " for nine" on a nine — never the
+           retired all-caps form, which production no longer writes */
+        body: `${who.name.split(' ')[0]} posted ${r.gross}${r.holes_played === 9 ? ' for nine' : ''}${r.course_label ? ' at ' + r.course_label : ''}.`,
         created_at: r.created_at, round_id: r.id, live_round_id: null, scheduled_round_id: null })
     }
   }

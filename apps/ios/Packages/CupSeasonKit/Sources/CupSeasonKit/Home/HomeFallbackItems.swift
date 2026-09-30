@@ -97,7 +97,9 @@ public enum HomeFallbackItems {
                        eyebrow: reupSeason.map { "SEASON \($0) INVITE" } ?? "AN INVITATION",
                        headline: reupSeason.map { ReUpCopy.reUpLine(seasonNumber: $0, name: inv["container_name"]?.string ?? "your league") }
                                  ?? "\(who ?? "A golfer") put you on \(inv["container_name"]?.string ?? "a season").",
-                       standfirst: "See the terms before you are in.",
+                       // the house voice, the curly contraction: home_dispatch
+                       // says the same once the owner pushes the held set (d30f1ecb)
+                       standfirst: "See the terms before you’re in.",
                        action: "See the terms",
                        route: .invite(container, kind: kind),
                        leagueId: kind == "league" ? container : nil,
@@ -159,6 +161,9 @@ public enum HomeFallbackItems {
                        eyebrow: [who.uppercased(), when].compactMap { $0 }.joined(separator: " · "),
                        headline: "\(who) posted \(r.gross.map(String.init) ?? "a round")"
                                    + ((r.course?.isEmpty == false) ? " at \(r.course!)." : "."),
+                       // AW2-07 · the gross is the run, never a digit in a course's name
+                       headlineMarked: "\(who) posted \(r.gross.map { "{\($0)}" } ?? "a round")"
+                                   + ((r.course?.isEmpty == false) ? " at \(r.course!)." : "."),
                        standfirst: mile,
                        action: "See the round",
                        route: r.round_id.map(HomeDispatch.Route.receipt),
@@ -192,18 +197,25 @@ public enum HomeFallbackItems {
     let left = c.days_left ?? 0
     let closes = c.closes_today ?? false
     let idle = c.mine == nil && c.theirs == nil
+    // D216 · the TIER: idle with more than a day to run yields to COMING
     let yields = idle && left > 1 && !closes
     let when = closes ? "today" : left == 1 ? "tomorrow" : "in \(left) days"
     let head: String
+    var headMarked: String? = nil   // AW2-07 · the gross and the days are runs
     let stand: String?
     let act: String
     let route: HomeDispatch.Route
-    if yields {
+    if idle {
+      // AW2-05 (root's ruling) · an idle clash says its idle words on every
+      // day, the last included: the last day fell to the both-in branch
+      // ("You and <them> are both in."), false when neither posted. The clock
+      // is said once per branch, and for idle it is this sentence's.
       head = "Your clash with \(who) is open."
-      stand = "Best round of the week takes it."
+      stand = "Best round of the week takes it. The week closes \(when)."
       act = "Add my round"; route = .composer
     } else if let theirs = c.theirs, c.mine == nil {
       head = "\(who) posted \(theirs.gross.map(String.init) ?? "a round")."
+      headMarked = "\(who) posted \(theirs.gross.map { "{\($0)}" } ?? "a round")."
       stand = "That is the number, and the week closes \(when)."
       act = "Add my round"; route = .composer
     } else if let mine = c.mine, c.theirs == nil {
@@ -211,6 +223,8 @@ public enum HomeFallbackItems {
       // the OPPONENT, because that is where the clock actually sits.
       let clock = closes ? "today" : left == 1 ? "one day" : "\(left) days"
       head = "\(who) has \(clock) to answer your \(mine.gross.map(String.init) ?? "round")."
+      let clockMarked = closes ? "today" : left == 1 ? "one day" : "{\(left)} days"
+      headMarked = "\(who) has \(clockMarked) to answer your \(mine.gross.map { "{\($0)}" } ?? "round")."
       stand = "Your round is the number to beat."
       act = "See the receipt"
       route = mine.round_id.map(HomeDispatch.Route.receipt) ?? .season(m.league_id, pane: nil)
@@ -224,8 +238,11 @@ public enum HomeFallbackItems {
     return .init(key: "clash:\(m.league_id.uuidString):\(c.week_no ?? 0)",
                  tier: yields ? .coming : .closing,
                  subject: who, humanSubject: true,
-                 eyebrow: "\(name.uppercased()) · THE CLASH · CLOSES \(when.uppercased())",
-                 headline: head, standfirst: stand, action: act, route: route,
+                 // AW2-05 · the eyebrow names the competition only; the clock
+                 // is one sentence's, never the eyebrow's too (L-34, D360) —
+                 // home_dispatch's and the web's words (1568a05a)
+                 eyebrow: "\(name.uppercased()) · THE CLASH",
+                 headline: head, headlineMarked: headMarked, standfirst: stand, action: act, route: route,
                  leagueId: m.league_id,
                  suppress: c.mine != nil ? [.myLastRound] : [],
                  spine: .ember, at: c.ends_on)
@@ -264,6 +281,7 @@ public enum HomeFallbackItems {
                  subject: "you", humanSubject: true,
                  eyebrow: "\(LeagueDates.monthsLong[monthIdx - 1].uppercased()) CLOSES \(LeagueDates.dow[closeDay].uppercased())",
                  headline: "You are \(shortText) short of the minimum.",
+                 headlineMarked: "You are {\(shortText)} short of the minimum.",   // AW2-07
                  // N4-210 · the penalty clause only where the penalty is real:
                  // the server docks for `deduct` and `forfeit` alone, and a
                  // Casual league's minimum is a habit (floorSentence's rule)
@@ -282,6 +300,7 @@ public enum HomeFallbackItems {
                  eyebrow: "\(m.name.uppercased()) · WEEK \(LeagueDates.week(m.season))",
                  headline: up ? "You moved up \(prev - st.rank) this week."
                               : "You were passed this week.",
+                 headlineMarked: up ? "You moved up {\(prev - st.rank)} this week." : nil,   // AW2-07
                  standfirst: st.next_up?.name.map { "\($0) is the next one up." },
                  action: "See the table",
                  route: .season(m.league_id, pane: "table"),
@@ -297,6 +316,7 @@ public enum HomeFallbackItems {
                  subject: m.pro_name ?? "you", humanSubject: true,
                  eyebrow: "FIRST TEE \(LeagueDates.dowMonDay(s.starts_on, calendar: calendar).uppercased())",
                  headline: "\(m.name) starts in \(days) day\(days == 1 ? "" : "s").",
+                 headlineMarked: "\(m.name) starts in {\(days)} day\(days == 1 ? "" : "s").",   // AW2-07
                  standfirst: "Rounds you post before then still build your number — they just do not score yet.",
                  action: "Open the season", route: .season(m.league_id, pane: nil),
                  leagueId: m.league_id, spine: .ember, at: s.starts_on)

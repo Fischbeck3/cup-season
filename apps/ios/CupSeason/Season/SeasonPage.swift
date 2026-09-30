@@ -205,8 +205,17 @@ struct SeasonPage: View {
     }
     .navigationDestination(for: SeasonSubRoute.self) { r in
       switch r {
+      // the capture runner's marks: the pages name themselves in their own
+      // heads (N4-161), so a nav title is no root to wait on, and the story's
+      // head is set in its role's caps
       case .story: SeasonStoryPane(model: model, links: links)
+        #if DEBUG
+        .csScreenMark("story")
+        #endif
       case .rules: SeasonRulesPage(model: model, router: router, links: links)
+        #if DEBUG
+        .csScreenMark("rules")
+        #endif
       }
     }
     .sheet(item: $router.sheet) { s in

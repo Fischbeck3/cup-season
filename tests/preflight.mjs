@@ -659,6 +659,29 @@ else {
     else if (found.length) fail('free identifiers',
       `${found.length} name(s) referenced but never declared — ${found.slice(0, 6).map(f => `${f.name} @ index.html:${f.line}`).join(', ')}`);
     else pass('free identifiers', `${blocks.length} blocks, no undeclared name (self-test ok)`);
+
+    /* 18b · no top-level function is declared twice across the CLASSIC blocks.
+       They share one global scope, and a second `function X(){}` silently
+       replaces the first for every caller, with no error anywhere. Found
+       2026-09-29 by lane B: two lanes each wrote `csStaleLine`, merged cleanly,
+       and a failed offline read said the other lane's sentence. Program-level
+       declarations only (where a lane's helper lives). */
+    const dupes = (list) => {
+      const seen = new Map();
+      for (const b of list) for (const node of parseBlock(b.code, false).body) {
+        if (node.type !== 'FunctionDeclaration' || !node.id) continue;
+        const at = (b.line || 0) + node.loc.start.line;
+        if (!seen.has(node.id.name)) seen.set(node.id.name, []);
+        seen.get(node.id.name).push(at);
+      }
+      return [...seen].filter(([, at]) => at.length > 1);
+    };
+    const selfDupes = dupes([{ code: 'function a(){}\nfunction b(){}', line: 0 }, { code: 'function a(x){ return x }', line: 10 }]);
+    const twice = dupes(blocks.filter(b => !b.isModule));
+    if (selfDupes.length !== 1 || selfDupes[0][0] !== 'a') fail('no function declared twice', 'the checker itself is not trustworthy: its fixture was not flagged');
+    else if (twice.length) fail('no function declared twice',
+      `${twice.length} name(s) declared more than once across the classic blocks — ${twice.slice(0, 6).map(([n, at]) => `${n} @ index.html:${at.join(', ')}`).join('; ')} (the last one wins for every caller)`);
+    else pass('no function declared twice', `${blocks.filter(b => !b.isModule).length} classic blocks share one scope, and every top-level function is declared once (self-test ok)`);
   }
 }
 

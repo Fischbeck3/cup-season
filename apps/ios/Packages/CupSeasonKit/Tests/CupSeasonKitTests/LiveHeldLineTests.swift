@@ -6,13 +6,15 @@ import Testing
 /// three forms, as root pinned them; the count is a hole any golfer has a
 /// number on.
 @Suite struct LiveHeldLineTests {
+  /// W7-003 · the setup is locked while held, so the line says why and never
+  /// invites a change the server would not receive (the web's b3c630e2).
   @Test func theThreeFormsAreTheWebs() {
     #expect(LiveCopy.heldLine(scored: 1)
-            == "Your round is still on, and its 1 hole scored stays with it. Change the course, the tee or the holes here.")
+            == "Your round is still on, and its 1 hole scored stays with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.")
     #expect(LiveCopy.heldLine(scored: 3)
-            == "Your round is still on, and its 3 holes scored stay with it. Change the course, the tee or the holes here.")
+            == "Your round is still on, and its 3 holes scored stay with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.")
     #expect(LiveCopy.heldLine(scored: 0)
-            == "Your round is still on. Change the course, the tee or the holes here.")
+            == "Your round is still on. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.")
     #expect(LiveCopy.backToRound == "Back to the round")
   }
 

@@ -24,6 +24,24 @@ struct SeasonBookTests {
     #expect(frozen.rules_note?.contains("closed with") == true)
     for b in [live,frozen] { try b.validate(league:b.league_id,season:b.season_id) }
   }
+  /// W7-120 · the finished fixture is the booked finish, as season_book
+  /// answers it (20261205090000: still envelope version 1, with the additive
+  /// `frozen`): the lines the season closed with.
+  @Test func theFinishedBookIsTheBookedFinish() throws {
+    let b=try book("finished");#expect(b.version==1)
+    #expect(b.rules_note=="These are the lines the season closed with. Later rule changes, posts and deletions do not move them.")
+    try b.validate(league:b.league_id,season:b.season_id)
+  }
+  /// W7-120 · the rules line's minimum names its unit, as the web's Book does
+  @Test func theRulesLineNamesTheMinimumsUnit() throws {
+    let two=try changed { $0["counting_cap"]=4; $0["participation_floor"]=2 }
+    #expect(two.rules=="Best 4 per calendar month · minimum 2 rounds")
+    let one=try changed { $0["counting_cap"]=NSNull(); $0["participation_floor"]=1 }
+    #expect(one.rules=="All rounds count · minimum 1 round")
+    // and no minimum is said where the floor is 0 (L-23)
+    let none=try changed { $0["counting_cap"]=4; $0["participation_floor"]=0 }
+    #expect(none.rules=="Best 4 per calendar month")
+  }
   @Test func rejectsWrongSeasonVersionAndPartialRead() throws {
     let b=try book();#expect(throws:SeasonBookReadError.self) { try b.validate(league:b.league_id,season:UUID()) }
     for edit: (inout [String:Any])->Void in [{ $0["version"]=2 },{ $0["coverage_complete"]=false },{ json in var rows=json["rows"] as! [[String:Any]];rows[0]["points"]=9999;json["rows"]=rows },{ json in var rows=json["rows"] as! [[String:Any]];rows[0]["cells"]=[];json["rows"]=rows }] {

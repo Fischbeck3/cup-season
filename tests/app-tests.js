@@ -415,6 +415,27 @@
     state.structure = 'solo';
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
+    /* W7-093 [A2-rules-2] · the floor sentence names WHICH months are waived (the edge months close_month waives), not 'Short months', which no page defines */
+    /* W7-087 · the wire's stamp is a clock while the row is ahead (HomeWireCopy.stamp): Tomorrow, then N days out to a week, then the marker; today and the past keep the marker */
+    (function(){
+      const iso = n => { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+      t('W7-087: today and the past keep the day marker', [csWireStamp(iso(0)), csWireStamp(iso(-1)), csWireStamp(iso(-3))], [csDayMarker(iso(0)), csDayMarker(iso(-1)), csDayMarker(iso(-3))]);
+      t('W7-087: tomorrow, then N days out to a week', [csWireStamp(iso(1)), csWireStamp(iso(2)), csWireStamp(iso(6))], ['Tomorrow', '2 days', '6 days']);
+      t('W7-087: past a week the marker again', csWireStamp(iso(7)), csDayMarker(iso(7)));
+      t('W7-087: no date, no stamp', [csWireStamp(null), csWireStamp('')], ['', '']);
+    })();
+    /* W7-088 · the week's close weekday is the league's own (a season that starts on a Sunday closes on Saturday), from csWeekEnds: never a hardcoded Sunday */
+    t('W7-088: csWeekCloseDow reads the league\'s own closing weekday',
+      [csWeekCloseDow({ week_ends_on:'2026-08-15' }), csWeekCloseDow({ week_ends_on:'2026-09-30' }), csWeekCloseDow({ week_ends_on:'2026-10-11' })], [6, 3, 0]);
+    /* W7-167 · the wizard's dial foot and review say the season page's sentence: one producer, 'squad' and never 'team' */
+    t('W7-167: the wizard\'s minimum sentence is floorSentence\'s, in every preset and structure',
+      [[0,1,2].map(pr => csSetupMinimum({ floor:2, preset:pr, structure:'squads4' })), csSetupMinimum({ floor:0, preset:1, structure:'squads2' }), csSetupMinimum({ floor:3, preset:1, structure:'solo' })],
+      [[0,1,2].map(pr => floorSentence({ floor:2, preset:pr, structure:'squads4' })), floorSentence({ floor:0, preset:1, structure:'squads2' }), floorSentence({ floor:3, preset:1, structure:'solo' })]);
+    t('W7-167: and it never says team where the product says squad',
+      [0,1,2].some(pr => /\bteam\b/i.test(csSetupMinimum({ floor:2, preset:pr, structure:'squads4' }))), false);
+    t('W7-093: floorSentence ends on the edge months and never says "Short months"',
+      [floorSentence({ floor:2, preset:1, structure:'squads2' }), /Short months/.test(floorSentence({ floor:2, preset:1, structure:'squads2' }))],
+      ['Post 2 rounds a month. Miss once and your season bye covers it automatically; from the second miss your squad loses 5 points for every round you\'re short. A partial first or last month has no minimum.', false]);
     /* TEN / W6 · with a league in hand the minimum is `floorSentence`'s, the
        one producer Home, the pot and the rules print (E's twin: GuideCopy →
        LeagueCopy.floorSentence) — for a solo league, "…a habit, not a penalty". */
@@ -471,6 +492,25 @@
     box.innerHTML = formRowHtml(rec.slice(0,2));
     t('§9.7: fewer rounds have no fabricated slots', box.querySelectorAll('.dfcol').length, 2);
     t('§9.7: missing scores cannot draw form', formRowHtml([{beat:true}]), '');
+    /* W7-047 · a column's day is the month and day, as Recent rounds prints the same round (csMonthDay; the phone's
+       CredentialCopy.formDate), never csDayToken's TODAY / weekday / month-day mix, and a nine says so; on You the head is
+       an eyebrow that carries the window and counts only under five rounds; the person page keeps its rule-and-slot head */
+    box.innerHTML = formRowHtml(rec);
+    t('W7-047: the columns print the month and day (W7-111: the best says so in words, a second channel beside its hue)', [...box.querySelectorAll('.dfcol small')].map(e=>e.textContent), ['Sep 6','Sep 7 · best','Sep 8','Sep 9','Sep 10']);
+    /* W7-111 · no role=img on the row (it hid every number from a screen reader); each column is named by its own facts, the best 'best of the five', a nine 'nine holes' */
+    t('W7-111: the Form row is not one image, and each column names its own facts',
+      [box.querySelector('.dform').getAttribute('role'), [...box.querySelectorAll('.dfcol')].map(e=>e.getAttribute('aria-label'))],
+      [null, ['85, September 6','79, September 7, best of the five','90, September 8','79, September 9','84, September 10']]);
+    const withNine = rec.map((r,i)=> i===0 ? Object.assign({}, r, {holes_played:9}) : r);
+    box.innerHTML = formRowHtml(withNine);
+    t('W7-047: a nine says so in the column', (box.querySelectorAll('.dfcol small')[4] || {}).textContent, 'Sep 10 · nine');
+    box.innerHTML = formRowHtml(rec, null, { head:'eyebrow' });
+    t('W7-047: You draws the eyebrow head with the window in the label and no slot at five', (box.querySelector('h2.eyebrow') || {}).innerHTML, 'Form · last five');
+    t('W7-047: the eyebrow head replaces the rule-and-slot head', box.querySelector('.dsec'), null);
+    box.innerHTML = formRowHtml(rec.slice(0,2), null, { head:'eyebrow' });
+    t('W7-047: under five the slot counts and nothing else', (box.querySelector('h2.eyebrow span') || {}).textContent, 'Two of five');
+    box.innerHTML = formRowHtml(rec);
+    t('W7-047: the person page keeps its rule-and-slot head', (box.querySelector('.dsec') || {}).textContent, 'FormLast five');
   })();
 
   /* ══ D126 · the endgame sentence, one fixture on both clients ═════════════
@@ -724,10 +764,49 @@
     t('AW2-05: mine in, theirs not: the headline keeps the clock', [mineC.headline, mineC.standfirst], ['Galen has {5} days to answer your {89}.', 'Your round is the number to beat.']);
     t('AW2-05: both in: the standfirst keeps the clock', bothC.standfirst, 'The week closes in 5 days. Best round takes it.');
     t('AW2-05: the clock is said once in each branch', [idleC, theirsC, mineC, bothC].map(clocks), [1, 1, 1, 1]);
+    /* root's ruling on AW2-05's idle day: an idle clash says its idle words on
+       every day, the last included, and never "both in" when neither has
+       posted. D216's yield is the tier alone: coming while more than a day
+       is left, closing again on the last-call day. */
+    const idleTomorrow = clashOf(null, null, 1);
+    window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 0, closes_today: true,
+      rivalry: 'The Fixture Derby', them_name: 'Galen Ward', mine: null, theirs: null };
+    const idleToday = csFallbackItems()[0];
+    t('AW2-05: an idle clash on its last day says its idle words, never \u201cboth in\u201d',
+      [idleTomorrow.headline, idleTomorrow.standfirst, idleToday.headline, idleToday.standfirst],
+      ['Your clash with Galen is open.', 'Best round of the week takes it. The week closes tomorrow.',
+       'Your clash with Galen is open.', 'Best round of the week takes it. The week closes today.']);
+    t('AW2-05: D216\u2019s yield is the tier alone: coming while it yields, closing on the last-call day',
+      [idleC.tier, idleTomorrow.tier, idleToday.tier, bothC.tier], ['coming', 'closing', 'closing', 'closing']);
     window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 5, closes_today: false, rivalry: '', them_name: 'Galen Ward', mine: null, theirs: null };
     t('AW2-05: with no rivalry the eyebrow is the league’s name, or THE CLASH alone', csFallbackItems()[0].eyebrow,
       window.CS?.league?.name ? `${window.CS.league.name.toUpperCase()} · THE CLASH` : 'THE CLASH');
     window.homeClash = savedClash; window.homeFeedRows = savedFeed;
+  })();
+
+  /* TEN / W6 · root's ruling · the streak tag ("2 straight under") is a fact,
+     not a control: agate in its heat hue, with no ring (UI_SYSTEM §3.4 gives
+     no device a border, and 4 is not one of the five radii). The phone's
+     RoundStoryCard draws it bare. No fixture golfer carries a streak, so the
+     rule is read off a bare tag. */
+  (function(){
+    const tag = document.createElement('span'); tag.className = 'streaktag heatwarm'; tag.textContent = '2 straight under';
+    document.body.appendChild(tag);
+    const cs = getComputedStyle(tag);
+    t('the streak tag has no ring', [cs.borderTopWidth, cs.borderTopLeftRadius, cs.textTransform], ['0px', '0px', 'uppercase']);
+    tag.remove();
+  })();
+
+  /* TEN / W6 · §13.3 · the dateline is ONE producer: csStaleLine, the phone's
+     CSStale.line. W7-036 declared a second csStaleLine(d) in the same script
+     as W7-026's csStaleLine(d, offline); the later declaration won for every
+     caller, so a standings read that failed offline said "couldn’t refresh". */
+  (function(){
+    const at = new Date(2026, 8, 25, 18, 12);
+    t('§13.3: the dateline says offline when the transport said so', csStaleLine(at, true), 'As of Fri 6:12 PM \u00b7 offline');
+    t('§13.3: a read the server refused says couldn\u2019t refresh', csStaleLine(at), 'As of Fri 6:12 PM \u00b7 couldn\u2019t refresh');
+    t('§13.3: a dateline handed no date reads now, and never throws',
+      /^As of (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) \u00b7 couldn\u2019t refresh$/.test(csStaleLine(null)), true);
   })();
 
   /* ===== wave 2 · the verb and the funnel (R7, R11, D227, D239, IOS-030) =====
@@ -834,8 +913,9 @@
     const nav = [...document.querySelectorAll('.side .navitem[data-v]')].map(b => b.dataset.v);
     const tabs = [...document.querySelectorAll('.tabbar .tab[data-v]')].map(b => b.dataset.v);
 
-    t('D222: the sidebar leads with the five destinations',
-      nav.slice(0, 4), ['home', 'compete', 'golfers', 'record']);
+    t('D222 + W7-105: the sidebar leads with the five destinations, in the tab bar\'s and the phone\'s order (Play before Golfers)',
+      nav.slice(0, 5), ['home', 'compete', 'record', 'golfers', 'stats']);
+    t('W7-105: the sidebar\'s five are the tab bar\'s five, in the same order', nav.slice(0, 5), tabs.slice(0, 5));
     /* WAVE 11 / D280 · the disclosure is gone: a 900px column has no reason to
        hide four destinations behind a caret, and the caret's label was the one
        word LV-12 ruled out. The section is a LIST below a rule now, and two of
@@ -940,9 +1020,10 @@
     t('N4-063: the Golfers root’s sub and its one buddy definition',
       [csEmptyRoot('golfers', {}).sub, csEmptyRoot('golfers', {}).def],
       ['Add the people you actually play with.', 'Buddies see each other’s rounds, and either of you can pull the other into a season.']);
-    /* R-G's contacts door is D251, wave 8 — not sold before it opens */
-    t('L-32: Golfers does not sell the contacts door yet',
-      csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Find golfers', 'Text someone a link']);
+    /* R-G's contacts door is D251, wave 8 — not sold before it opens. W7-085 · and ONE act: the link. 'Find golfers' was a second door to the search field under the root,
+       so the field (headed Find golfers) is the find door */
+    t('L-32 + W7-085: Golfers does not sell the contacts door yet, and its one act is the link',
+      csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Text someone a link']);
 
     /* IA §8.4 rule 1 · no seat count, anywhere */
     t('a plan names who is on it', csPlanLine({ tagged_names: ['Galen'] }), 'You and Galen.');
@@ -978,12 +1059,14 @@
     }
     /* TEN / W6 · the held round's line (18a279bd) agrees with its count: one
        hole scored STAYS, three holes scored STAY, and none says only that the
-       round is still on. The phone's twin prints the same three. */
-    t('the held round\u2019s line agrees with its count',
+       round is still on. The phone's twin prints the same three.
+       TEN / W7-003 [X02] · and it says why the setup is locked, and the way to
+       change it, instead of inviting an edit the server never receives. */
+    t('the held round\u2019s line agrees with its count, and says why its setup is locked',
       [csLiveHeldLine({ scores: [[4, null, null]] }), csLiveHeldLine({ scores: [[4, 5, 3], [5, null, 4]] }), csLiveHeldLine({ scores: [[null, null]] })],
-      ['Your round is still on, and its 1 hole scored stays with it. Change the course, the tee or the holes here.',
-       'Your round is still on, and its 3 holes scored stay with it. Change the course, the tee or the holes here.',
-       'Your round is still on. Change the course, the tee or the holes here.'])
+      ['Your round is still on, and its 1 hole scored stays with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.',
+       'Your round is still on, and its 3 holes scored stay with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.',
+       'Your round is still on. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.'])
     t('D252: one you have not joined says the door is open',
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();
@@ -1317,6 +1400,10 @@
       t('D241: dead path ' + i + ' answers the same nothing',
         csShareLine('person', d), 'That link has expired. Whoever sent it can share a fresh one.');
     });
+    /* W7-058 · and the PUBLIC PAGE's dead link says the same second sentence, from the one constant: it said 'from the round' for every kind of link that died */
+    t('W7-058: the dead link\'s sentence is one constant for the page and csShareLine, and names no kind of link',
+      [window.CS_LINK_DEAD_SUB, csShareLine('plan', null).endsWith(window.CS_LINK_DEAD_SUB), /round/i.test(window.CS_LINK_DEAD_SUB)],
+      ['Whoever sent it can share a fresh one.', true, false]);
 
     /* D80 · a REQUEST, never a friendship — unless they asked first */
     t('D241: the sentence says request, not friendship',
@@ -1339,6 +1426,25 @@
       csShareLine('plan', { kind:'plan', seat:'host', result:'host' }), null);
     t('D253: a seat word from the future lands on the conservative truth',
       csShareLine('plan', { kind:'plan', seat:'waitlisted' }), 'You’re already down for that round.');
+    /* TEN / W7-001 [X42] · the public plan's who-line says IN only for an
+       explicit yes, and only when the payload can say so: `who_in` present
+       (the database half pushed) names who said yes, or nothing when nobody
+       has; an older payload, with no `who_in`, keeps "on the plan". The
+       landing and the signed-in link ask read the one producer. */
+    t('X42: who is in is an explicit yes, once the payload carries it',
+      [csPlanWhoLine({ who: ['Avery', 'Devon'], who_in: ['Devon'] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon', 'Jules'], who_in: ['Avery', 'Devon', 'Jules'] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon'], who_in: [] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon'] }),
+       csPlanWhoLine({ who: ['Devon'] }),
+       csPlanWhoLine({ who: [] }),
+       csPlanWhoLine(null)],
+      ['Devon is in.', 'Avery, Devon and Jules are in.', '', 'Avery and Devon are on the plan.', 'Devon is on the plan.', '', '']);
+    t('X42: the signed-in link ask says the same, beside the tee',
+      [csLinkCard('plan', { host: 'Blake', tee: '08:10', course: 'Mesquite Wash', who: ['Avery', 'Devon'], who_in: ['Devon'] }).facts,
+       csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'], who_in: [] }).facts,
+       csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
+      [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
     /* L-32 · a kind the CHECK does not admit yet is NOT an error the golfer
        caused, and the row removes itself rather than offering a door that fails */
@@ -1357,14 +1463,14 @@
      correct in a test and wrong on a phone. `MeStripCopy.shortCourse` is the
      twin and `LongCourseNameTests` asserts the same four answers. */
   t('DEF-1: prod’s longest label becomes the club',
-    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'GOLD CANYON');
+    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'Gold Canyon');   /* W7-117 · the club as stored, the phone's answer (MeStripCopy.shortCourse) */
   t('DEF-1: the layout and the tee variant are both dropped',
     [csShortCourse('Troon North Golf Course — Pinnacle Course · Gold'),
      csShortCourse('Raven Golf Club-Phoenix · Silver')],
-    ['TROON NORTH GOLF COURSE', 'RAVEN GOLF CLUB-PHOENIX']);
+    ['Troon North Golf Course', 'Raven Golf Club-Phoenix']);
   t('DEF-1: a plain name is left as it is, and nothing is invented from nothing',
     [csShortCourse('Papago Golf Course'), csShortCourse(null), csShortCourse('   ')],
-    ['PAPAGO GOLF COURSE', null, null]);
+    ['Papago Golf Course', null, null]);
 
   /* ============ WAVE 7 · intent, the callout, and the covenant ============
      D225 · the doors name what I want, not what the engine has. The whole

@@ -97,9 +97,14 @@ public struct SeasonBookSnapshot: Codable, Sendable {
   }
   public var hasSquads: Bool { rows.contains { $0.kind == "squad" } }
   public static func prominent(fieldSize: Int, hasSquads: Bool) -> Bool { fieldSize >= 10 || hasSquads }
+  /// W7-120 · the minimum names its unit ("minimum 2 rounds"): a bare
+  /// "minimum 2" read as two points or two wins. The web's Book (b2bd5b1f).
+  /// And it is said only when there is one: a solo or no-minimum league's
+  /// floor is 0, and "minimum 0 rounds" states a rule that does not exist
+  /// (L-23; the web, 0a0e43eb).
   public var rules: String {
     (counting_cap.map { "Best \($0) per calendar month" } ?? "All rounds count") +
-      (participation_floor.map { " · minimum \($0)" } ?? "")
+      (participation_floor.flatMap { $0 > 0 ? " · minimum \($0) round\($0 == 1 ? "" : "s")" : nil } ?? "")
   }
   /// Contract validation catches partial/proxy-truncated and mismatched reads
   /// before a table can claim that its receipts add up. No scoring decisions.

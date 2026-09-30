@@ -551,7 +551,7 @@ export default function install(W) {
         if (!s || played < s.starts_on || played > s.ends_on) continue
         const p = prof(me)
         T.posts.push({ id: U('f7000000', 800 + n), league_id: m.league_id, profile_id: me, kind: 'round', member_id: m.id,
-          body: `${p.display_name.split(' ')[0].toUpperCase()} POSTED ${gross} AT ${label.split(' · ')[0].toUpperCase()}`, created_at: r.created_at, round_id: r.id, live_round_id: null, scheduled_round_id: null })
+          body: `${p.display_name.split(' ')[0]} posted ${gross}${holes === 9 ? ' for nine' : ''}${label ? ' at ' + label : ''}.`, created_at: r.created_at, round_id: r.id, live_round_id: null, scheduled_round_id: null })   /* W7-017 · round_to_board()'s body */
       }
       const resp = { round: { id: r.id, season_id: st ? st.id : null, league_id: st ? st.league_id : null, league_name: st ? league(st.league_id).name : null,
         squad: sq ? sq.name : null, played_on: played, gross, holes_played: holes, course_label: label, api_course_id: course, photo_path: photo,
@@ -561,5 +561,21 @@ export default function install(W) {
     },
     /* 20261027090000_a_post_can_be_asked_about.sql */
     round_post_status: ({ p_request_id }) => (W.postReceipts || {})[p_request_id] || null,
+    /* 20260712010000_social_graph.sql: set_discoverable(p_mode) sets the viewer's own profile and returns void */
+    set_discoverable: ({ p_mode }) => { const p = prof(me); if (p) p.discoverable = p_mode; return null },
+    /* 20261010090000_a_photograph_is_not_a_score.sql: set_round_photo / clear_round_photo point (or unpoint) the viewer's OWN round at an uploaded
+       object and touch photo_path and nothing else; each answers the round and its photo_path */
+    set_round_photo: ({ p_round, p_photo_path }) => {
+      const r = round(p_round)
+      if (!r || r.profile_id !== me) return { __error: 'Not your round', status: 400, code: 'P0001' }
+      r.photo_path = p_photo_path
+      return { round: p_round, photo_path: p_photo_path }
+    },
+    clear_round_photo: ({ p_round }) => {
+      const r = round(p_round)
+      if (!r || r.profile_id !== me) return { __error: 'Not your round', status: 400, code: 'P0001' }
+      r.photo_path = null
+      return { round: p_round, photo_path: null }
+    },
   }
 }
