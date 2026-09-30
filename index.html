@@ -5279,6 +5279,8 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .tempty{border-top:1px solid var(--rule); padding-top:var(--s4);}
 .tempty-marks{display:flex; align-items:center; gap:var(--s4); opacity:.12;}
 .tempty :is(h2,h3){margin:var(--s4) 0 0; color:var(--ink);}
+.tempty .youempty-obj{display:block; width:64px; height:64px; color:var(--mut); margin:0 0 var(--s3);}   /* W7-115 · the empty record's blank scorecard, the phone's object */
+.tempty .youempty-obj + .cs-agate + h3{margin-top:var(--s1);}
 .tempty p{margin:var(--s2) 0 0; color:var(--mut);}
 /* D291 · THE RECORD IS ONE FIGURE, NOT FOUR BOXES. `.recgrid` was four
    bordered `bg1` tiles carrying gold serif numerals — four cards in a row on
@@ -25215,8 +25217,10 @@ function renderCareer(){
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
             <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
         }).join('')
-      : `<div class="tempty"><h3 class="cs-name">No rounds yet</h3>`
-        + `<p class="cs-body-s">Your record fills as you play — every round, every course, forever.</p>`
+      /* W7-115 · the empty record is a DRAWN OBJECT, an eyebrow and a headline, as the phone draws it (YouScreen: CSEmpty(glyph .scorecard, 'The first card', 'Your record fills as you play.')): a blank
+         scorecard (the phone's own path) at 64px in mut, not a headline about the golfer's omission ('No rounds yet') over a sentence that repeats it */
+      : `<div class="tempty"><svg class="youempty-obj" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3h15v18h-15zM4.5 8.4h15M4.5 13.2h15M4.5 18h15M9.5 3v18M14.5 3v18"/></svg>`
+        + `<div class="cs-agate" style="color:var(--mut)">The first card</div><h3 class="cs-name">Your record fills as you play.</h3>`
         /* F10 · the one next step is a real control (LINT-21: every empty state
            has a door). A-5: one verb opens the composer — "Add my round" — and
            on an empty record it is the page's one primary, in the action colour,

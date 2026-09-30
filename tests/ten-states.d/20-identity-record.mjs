@@ -148,11 +148,25 @@ const failedYou = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W8 · W7-115 [A2-identity-17] · the empty record is a DRAWN object under an agate eyebrow and a headline, as the phone draws it: a blank scorecard (64px, mut), 'The first card', 'Your record fills as you play.',
+   and the page's one primary 'Add my round'; no headline about the golfer's omission ('No rounds yet') and no body line repeating it */
+const emptyObject = async (page) => page.evaluate(() => {
+  const box = document.querySelector('#youRecent .tempty'); if (!box) return 'no empty record is drawn'
+  const svg = box.querySelector('svg.youempty-obj'), eyebrow = box.querySelector('.cs-agate'), head = box.querySelector('h3'), door = box.querySelector('[data-empty-go="record"]')
+  if (!svg || Math.round(svg.getBoundingClientRect().width) !== 64 || Math.round(svg.getBoundingClientRect().height) !== 64) return 'the empty record draws no 64px object'
+  const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+  if (getComputedStyle(svg).color !== mut) return `the object is ${getComputedStyle(svg).color}, not mut`
+  if (!eyebrow || eyebrow.textContent.trim() !== 'The first card') return `the eyebrow reads ${JSON.stringify(eyebrow && eyebrow.textContent.trim())}`
+  if (!head || head.textContent.trim() !== 'Your record fills as you play.') return `the headline reads ${JSON.stringify(head && head.textContent.trim())}`
+  if (/No rounds yet/i.test(box.textContent) || box.querySelector('p')) return 'the empty record still carries a line about the omission or a body line'
+  if (!(svg.compareDocumentPosition(eyebrow) & Node.DOCUMENT_POSITION_FOLLOWING) || !(eyebrow.compareDocumentPosition(head) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the empty record does not read object, eyebrow, headline'
+  return door && door.classList.contains('btn') && door.textContent.trim() === 'Add my round' ? true : 'the empty record lost its one primary'
+})
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
     drive: youSettled('empty'), expect: { view: 'view-stats', selectors: { '#youCard': 'visible', '#youName': 'text:^Avery Fixture$' } },
-    check: all(recordState('empty'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 0 ? true : 'a round row rendered for a golfer with none'),
+    check: all(recordState('empty'), emptyObject, async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 0 ? true : 'a round row rendered for a golfer with none'),
       /* TEN / W8 · W7-009: an empty record says the first round is missing and holds the door, so the sidebar's sentence and door stand down */
       standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]']),
       /* TEN / W8 · W7-055: an empty record has one section, so no index */
@@ -162,7 +176,7 @@ const YOU = [
      The door and its row stand down; the season row stays. The harness's you/empty is league-less and could not draw this. */
   { family: 'you', id: 'empty-in-season', variant: 'member', world: { rounds: 'none' }, title: 'You · seated in a season with no rounds posted yet',
     drive: youSettled('empty'), expect: { view: 'view-stats', selectors: { '#youCard': 'visible', '#youName': 'text:^Avery Fixture$' } },
-    check: all(recordState('empty'),
+    check: all(recordState('empty'), emptyObject,
       async (page) => page.evaluate(() => innerWidth < 960 || document.querySelector('#sideMe [data-mego="season_row"]') ? true : 'the sidebar holds no season row: this is not the state the pin is for'),
       standsDown(['#sideMe [data-mego="add_round"]', '#sideMe .medoors']), footStays) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',

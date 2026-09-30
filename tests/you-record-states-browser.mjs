@@ -59,6 +59,8 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
     return {
       record: view.dataset.record,
       absence,
+      /* W7-115 · the empty record's one line is its headline, under a drawn object and an eyebrow */
+      emptyHeads: [...view.querySelectorAll('#youRecent .tempty h3')].filter(shown).map(e => e.textContent.trim()),
       trophies: shown(document.getElementById('trophyCase')),
       /* W2 2026-09-28 · the all-time figures are a strip on a rule now
          (#youAllTime), not the bordered `.stats` tiles */
@@ -72,7 +74,7 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
   })
   const label = `${width} ${theme} ${name}`
   if (name === 'empty') {
-    check(`${label}: says it has no rounds ONCE (${JSON.stringify(v.absence)})`, v.record === 'empty' && v.absence.length === 1 && /No rounds yet/.test(v.absence[0]), v)
+    check(`${label}: says its one empty line ONCE (${JSON.stringify(v.emptyHeads)})`, v.record === 'empty' && v.absence.length === 0 && v.emptyHeads.length === 1 && /^Your record fills as you play\.$/.test(v.emptyHeads[0]), v)
     check(`${label}: trophies, all-time and empty courses wait for the record`, !v.trophies && !v.allTime && !v.courses, v)
     check(`${label}: one next step, a real 44px control`, v.door.length === 1 && v.door[0].tag === 'button' && v.door[0].h >= 44, v.door)
   }
