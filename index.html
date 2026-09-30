@@ -22116,6 +22116,19 @@ function csDayMarker(iso){
   if(Math.abs(n) <= 6) return DOW[d.getDay()];
   return MOS[d.getMonth()] + ' ' + d.getDate();
 }
+/* W7-087 · THE STAMP A WIRE ROW WEARS — the web twin of HomeWireCopy.stamp: a row about something that has not happened yet is answered by how long is left ('Sun' on a clash that closes Sunday is the
+   fact a golfer already has; '6 days' is the one they do not). Today and the past keep csDayMarker (a rundown read backwards is read by date); ahead it is 'Tomorrow', then 'N days' out to a
+   week, then the marker again (past a week, '9 days' is arithmetic where a weekday is a place on a calendar). */
+function csWireStamp(iso){
+  if(!iso) return '';
+  const d = localDate(String(iso).slice(0,10)); if(!d || isNaN(d)) return '';
+  const n = Math.round((d - new Date().setHours(0,0,0,0)) / 864e5);
+  if(n <= 0) return csDayMarker(iso);
+  if(n === 1) return 'Tomorrow';
+  if(n <= 6) return `${n} days`;
+  return csDayMarker(iso);
+}
+window.csWireStamp = csWireStamp;
 /* WEIGHT 5 -- a ranked item that is not the lead. One quiet line, a day
    marker, a chevron because it knows where it goes. Never a second card. */
 function csWireLine(it, ctx){
@@ -22126,7 +22139,7 @@ function csWireLine(it, ctx){
      viewport, under the real lead (critique-B P2, §15.1's one serif, §16A.5's
      one primary). Later · Didn't play keep their 44px targets. */
   if(csAfterplan(it) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}</div>`;
-  const mk = csDayMarker(it.at);
+  const mk = csWireStamp(it.at);   /* W7-087 · a future line wears a clock ('2 days'), never its own weekday as its marker */
   /* MW-02 · the league, when the sentence alone would not say which. Two
      `chapter:` items read "You are the one to catch." for two leagues and the
      wire printed the sentence twice with nothing between them. The context is

@@ -416,6 +416,14 @@
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
     /* W7-093 [A2-rules-2] · the floor sentence names WHICH months are waived (the edge months close_month waives), not 'Short months', which no page defines */
+    /* W7-087 · the wire's stamp is a clock while the row is ahead (HomeWireCopy.stamp): Tomorrow, then N days out to a week, then the marker; today and the past keep the marker */
+    (function(){
+      const iso = n => { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+      t('W7-087: today and the past keep the day marker', [csWireStamp(iso(0)), csWireStamp(iso(-1)), csWireStamp(iso(-3))], [csDayMarker(iso(0)), csDayMarker(iso(-1)), csDayMarker(iso(-3))]);
+      t('W7-087: tomorrow, then N days out to a week', [csWireStamp(iso(1)), csWireStamp(iso(2)), csWireStamp(iso(6))], ['Tomorrow', '2 days', '6 days']);
+      t('W7-087: past a week the marker again', csWireStamp(iso(7)), csDayMarker(iso(7)));
+      t('W7-087: no date, no stamp', [csWireStamp(null), csWireStamp('')], ['', '']);
+    })();
     /* W7-088 · the week's close weekday is the league's own (a season that starts on a Sunday closes on Saturday), from csWeekEnds: never a hardcoded Sunday */
     t('W7-088: csWeekCloseDow reads the league\'s own closing weekday',
       [csWeekCloseDow({ week_ends_on:'2026-08-15' }), csWeekCloseDow({ week_ends_on:'2026-09-30' }), csWeekCloseDow({ week_ends_on:'2026-10-11' })], [6, 3, 0]);

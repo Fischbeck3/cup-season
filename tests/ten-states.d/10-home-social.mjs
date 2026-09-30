@@ -179,6 +179,18 @@ const onScreen = (re, what) => async (page) => page.evaluate(({ re, what }) => {
   const t = ['homeLead', 'homeDeck'].map((i) => (document.getElementById(i) || {}).innerText || '').join(' ').replace(/\s+/g, ' ')
   return new RegExp(re).test(t) ? true : `${what} is not on Home`
 }, { re, what })
+/* TEN / W8 · W7-087 [A2-home-14, B2-home-13] · a wire row about something ahead wears a clock ('2 days', 'Tomorrow'), and never repeats its own weekday as its marker: 'Wed · You have a round on Wednesday.' */
+const wireStamps = async (page) => page.evaluate(() => {
+  const lines = [...document.querySelectorAll('.cswire')].filter((l) => l.getBoundingClientRect().width > 0)
+  if (!lines.length) return 'the wire draws no lines'
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  for (const l of lines) {
+    const mk = l.querySelector('.mk').textContent.trim(), ln = l.querySelector('.ln').textContent
+    if (!/^(Today|Tomorrow|\d+ days|[A-Z][a-z]{2}( \d{1,2})?)$/.test(mk)) return `a wire marker reads ${JSON.stringify(mk)}`
+    for (const d of days) if (new RegExp(`\\b${d}\\b`).test(ln) && mk.toLowerCase() === d.slice(0, 3).toLowerCase()) return `a wire line repeats its own weekday as its marker: ${JSON.stringify(mk + ' \u00b7 ' + ln.trim().slice(0, 60))}`
+  }
+  return true
+})
 /* TEN / W8 · W7-105 [B2-home-18] · the sidebar's five destinations run the tab bar's order (D222, the phone's NavSlot): Home, Compete, Play, Golfers, You; at the desk width, where it is drawn */
 const sidebarOrder = async (page) => page.evaluate(() => {
   const side = [...document.querySelectorAll('aside.side .navitem[data-v]:not(.sub)')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => b.dataset.v)
@@ -207,7 +219,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
