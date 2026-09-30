@@ -102,6 +102,10 @@ public struct BoardItem: Sendable, Identifiable, Equatable {
 
   /// Chat lines react but don't thread (`comments:false`, 5160). Moments and
   /// settlements are events, not conversations — they react, they don't thread.
+  public func canReport(viewer: UUID?) -> Bool {
+    guard postId != nil, let author = profileId, author != viewer else { return false }
+    return kind == .chat || kind == .round || (kind == .system && roundId != nil)
+  }
   public var threads: Bool { kind == .round }
   /// Only a real post row carries reactions and a report affordance. D181: a
   /// moment and a settlement carry them too — they were 130 of 356 prod posts,

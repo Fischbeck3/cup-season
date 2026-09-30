@@ -42,7 +42,7 @@ struct ReactionBar: View {
         ApplauseControl(state: Applause.state(item.reactions)) {
           Task { await store.toggleReaction(item.id, Applause.key) }
         }
-        if item.postId != nil {
+        if item.canReport(viewer: store.profileId) {
           // never a flag — `LINT-28` reserves the pennant to the tab band and
           // the app icon, and this one was a report control wearing it.
           // N4-065 · the "···" chip is what it looks like, a More menu, and the

@@ -329,3 +329,18 @@ import CSDesign
     #expect(!item(.moment, post: nil).social)
   }
 }
+
+@Suite struct BoardReportOwnerTests {
+  @Test func reportsBelongToAnotherGolfersWritingOrDeclaredRound() {
+    let me = UUID(), other = UUID(), post = UUID(), round = UUID()
+    for author: UUID? in [me, other, nil] {
+      for kind in [BoardKind.chat, .round, .moment, .system, .announce] {
+        for attached: UUID? in [nil, round] {
+          let item = BoardItem(id: "fixture", postId: post, kind: kind, dateLabel: "", ts: nil,
+                               profileId: author, text: "Synthetic post", roundId: attached)
+          #expect(item.canReport(viewer: me) == (author == other && (kind == .chat || kind == .round || (kind == .system && attached != nil))))
+        }
+      }
+    }
+  }
+}
