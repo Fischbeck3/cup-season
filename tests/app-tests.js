@@ -784,6 +784,31 @@
     window.homeClash = savedClash; window.homeFeedRows = savedFeed;
   })();
 
+  /* TEN / W6 · root's ruling · the streak tag ("2 straight under") is a fact,
+     not a control: agate in its heat hue, with no ring (UI_SYSTEM §3.4 gives
+     no device a border, and 4 is not one of the five radii). The phone's
+     RoundStoryCard draws it bare. No fixture golfer carries a streak, so the
+     rule is read off a bare tag. */
+  (function(){
+    const tag = document.createElement('span'); tag.className = 'streaktag heatwarm'; tag.textContent = '2 straight under';
+    document.body.appendChild(tag);
+    const cs = getComputedStyle(tag);
+    t('the streak tag has no ring', [cs.borderTopWidth, cs.borderTopLeftRadius, cs.textTransform], ['0px', '0px', 'uppercase']);
+    tag.remove();
+  })();
+
+  /* TEN / W6 · §13.3 · the dateline is ONE producer: csStaleLine, the phone's
+     CSStale.line. W7-036 declared a second csStaleLine(d) in the same script
+     as W7-026's csStaleLine(d, offline); the later declaration won for every
+     caller, so a standings read that failed offline said "couldn’t refresh". */
+  (function(){
+    const at = new Date(2026, 8, 25, 18, 12);
+    t('§13.3: the dateline says offline when the transport said so', csStaleLine(at, true), 'As of Fri 6:12 PM \u00b7 offline');
+    t('§13.3: a read the server refused says couldn\u2019t refresh', csStaleLine(at), 'As of Fri 6:12 PM \u00b7 couldn\u2019t refresh');
+    t('§13.3: a dateline handed no date reads now, and never throws',
+      /^As of (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) \u00b7 couldn\u2019t refresh$/.test(csStaleLine(null)), true);
+  })();
+
   /* ===== wave 2 · the verb and the funnel (R7, R11, D227, D239, IOS-030) =====
      The web's producers are the phone's producers in another shape (D234), so
      these are the same cases `EpilogueMovementTests` drives on the Kit. */

@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, phraseAsSaid, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -136,6 +136,25 @@ const onNorthGrove = async (page) => { const f = await seasonFacts(page); return
 /* AW2-04: at the desk the climb draws only its cut, and "What's on it" yields
    to the pot beside it, so the rungs, the seat line and the line card are
    words the phone's shape must draw and the desk's must not */
+/* TEN / W6 · X12 · league 1's season starts `off` days from the capture's today, with its roster closed by the Pro */
+const rosterDay = (off) => async (W) => {
+  dropInventedMoment(W)
+  const L1 = W.ids.lid(1)
+  for (const se of W.tables.seasons || []) if (se.league_id === L1) se.starts_on = W.iso(off)
+  for (const st of W.tables.league_settings || []) if (st.league_id === L1) st.roster_closed_at = W.at(-2)
+}
+/* the league room's roster card, by the page's own controls */
+async function toLeagueRoster(page) {
+  await page.evaluate(() => window.switchView('hub'))
+  await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub')
+  if (!(await isDesk(page))) {
+    await until(page, () => !!document.querySelector('#seasonJump [data-jump="league"]'))
+    await click(page, '#seasonJump [data-jump="league"]')
+  } else await click(page, '#deskMenu [data-seg="league"]')
+  await page.waitForTimeout(250)
+  await page.locator('#rosterRow').scrollIntoViewIfNeeded()
+  await page.waitForTimeout(300)
+}
 const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#climbNote', below: 960 }, { sel: '#climb .climb-cut', below: 960 }, { sel: '#climb .climb-rung .voice', below: 960 },
   '#scenarioLine', { sel: '#lineSplit', below: 960 }, { sel: '#homeSeason .ontheline .ok', below: 960 }, '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
   '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
@@ -250,6 +269,8 @@ const SEASON = [
         return cs.borderBottomWidth === '2px' && cs.borderBottomColor === act ? true : `the story link has no 2px act rule under it (${cs.borderBottomWidth} ${cs.borderBottomColor})`
       }),
       has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'), datelineOk,
+      /* TEN / W6 · OB2-02: the dateline's Pro and the climb's cut label are typed as said, their caps the roles' (the cut is drawn below the desk) */
+      capsFromRole(['#hhPro', '#climb .climb-cut .lb'], ['#hhPro', { sel: '#climb .climb-cut .lb', below: 960 }]),
       async (page) => page.evaluate(() => window.seasonStory && window.seasonStory.season && window.seasonStory.season.id === 'f4000000-0000-4000-8000-000000000011' ? true : 'season_story did not answer for North Grove')) },
   { family: 'season', id: 'leaderboard', variant: 'member', title: 'The season page, the table: two squads, the clash, every golfer', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -306,7 +327,13 @@ const SEASON = [
         ['the pot ($600)', '\\$600(?![\\d.,])']], 960),
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
+      /* W7-071 (C): the clinch line is a body sentence now, so it leaves the role-caps check for clinchSentence */
       capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence,
+      /* TEN / W6 · W7-024 [B2-season-5] (D's delta): the clash head and its sides' lines were built with toUpperCase(); the
+         words are typed as said and the caps are the roles' (.tbl th, #clashTbl .tc) */
+      capsFromRole(['#clashTbl th', '#clashTbl .tc'], ['#clashTbl th', '#clashTbl .tc']),
+      /* root's ruling (§1.3): the head's rider after "The clash" is a phrase, sentence case */
+      phraseAsSaid(['#clashTbl th .is-phrase'], ['#clashTbl th .is-phrase']),
       /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
       headGap(['#climbEyebrow', '#standingsEyebrow']),
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
@@ -709,6 +736,17 @@ const SEASON = [
       { sel: '#monthClock .t:not(.played):not(.now)', prop: 'backgroundColor', min: 4.5, what: 'the weeks ahead' },
       { sel: '#monthClock .t.played', prop: 'backgroundColor', min: 12, what: 'the weeks played' },
       { sel: '#monthClock .t.now', prop: 'backgroundColor', min: 3, what: 'the live week' }])) },
+  /* TEN / W6 · X12 (W7-Q35, root's ruling) · the roster card as its Pro, the roster closed. The day before first tee Reopen shows
+     (reopening opens the door); on first tee it is gone (the join gate refuses every joiner but the Pro from starts_on,
+     join_window.sql:69) and the sub line stands alone. The Pro only: a member never has the control. */
+  { family: 'season', id: 'roster-eve', variant: 'pro', title: 'The season page, the roster card as the Pro, closed the day before first tee (Reopen)', fullPage: false,
+    prepare: rosterDay(1), drive: toLeagueRoster,
+    expect: { view: 'view-hub', selectors: { '#rosterRow': 'visible', '#rosterOpen': 'visible' } },
+    check: has('#rosterSub', '^You closed the roster\\. Add anyone yourself until the halfway turn', 'the closed roster’s sub line') },
+  { family: 'season', id: 'roster-first-tee', variant: 'pro', title: 'The season page, the roster card as the Pro, closed on first tee (no Reopen)', fullPage: false,
+    prepare: rosterDay(0), drive: toLeagueRoster,
+    expect: { view: 'view-hub', selectors: { '#rosterRow': 'visible', '#rosterOpen': 'hidden' } },
+    check: has('#rosterSub', '^You closed the roster\\. Add anyone yourself until the halfway turn', 'the closed roster’s sub line') },
   /* TEN / W8 · W7-008 [A2-season-1] · the season link's off switch is a word,
      and armed: the first tap says what the next one does and turns nothing off */
   { family: 'season', id: 'link-off', variant: 'member', title: 'The season page, the rules: the season link row at rest ("Link" and "Turn off")', fullPage: false,

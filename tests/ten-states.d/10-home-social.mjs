@@ -65,6 +65,32 @@ const fixture = (id) => { const st = FIX.states.find((s) => s.id === id); if (!s
 const HOME_STATE_IDS = ['brand_new', 'rounds_no_buddies', 'buddies_no_competition', 'event_ahead', 'event_live', 'between_seasons',
   'ceremony_night', 'inactive', 'invited', 'callout_pending', 'preseason', 'round_morning', 'round_evening', 'after_golf', 'after_golf_wire']
 
+/* TEN / W7-011 [B2-home-2] · the strip's LAST stands down while the wire
+   carries the viewer's own newest round anywhere, not only as its first row
+   (a buddy's round posted since put LAST back beside the same card). Inert
+   when that round is not in the wire. */
+const lastOnce = (page) => page.evaluate(() => {
+  const last = window.career && (window.career.recent || [])[0]
+  if (!last || !(window.homeFeedRows || []).some((r) => r && r.is_me && r.round_id === last.id)) return true
+  const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
+  const row = [...document.querySelectorAll('#sideMe [data-mego="my_last_round"], #homeMe [data-mego="my_last_round"]')].filter(seen)
+  return row.length ? 'the strip prints LAST beside the wire’s card for the same round' : true
+})
+/* TEN / W7-037 [A2-home-2] · the viewer's own next round is printed once:
+   when a lead or deck `plan:` item is the strip's own NEXT round (the phone's
+   HomeDispatch.columnFacts), the desk's strip has no NEXT row and the phone's
+   Up next chip stands down. The state must actually carry that plan item, so
+   the check cannot pass on a world that never exercises it. */
+const nextOnce = async (page) => page.evaluate(() => {
+  const nx = (typeof csMeStrip === 'function' ? csMeStrip().slots || [] : []).find((s) => s.fact === 'my_next_round' && !s.ph)
+  const plans = [...document.querySelectorAll('#homeLead [data-dgo^="plan:"], #homeDeck [data-dgo^="plan:"]')].map((e) => e.getAttribute('data-dgo').slice(5))
+  if (!nx || !plans.includes(String(nx.id))) return 'this state has no deck plan line for the strip’s own next round, so it proves nothing'
+  const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
+  const row = [...document.querySelectorAll('#sideMe [data-mego="my_next_round"], #homeMe [data-mego="my_next_round"]')].filter(seen)
+  if (row.length) return 'the strip prints NEXT beside the deck’s plan line for the same round'
+  const chip = [...document.querySelectorAll('#homeUpNext *')].filter((el) => seen(el) && /^Next round/i.test((el.textContent || '').trim()))
+  return chip.length ? 'the Up next chip prints the round the deck already carries' : true
+})
 /* the ME strip: #homeMe below desk width, #sideMe in the sidebar at desk width */
 const meStripShown = (page) => page.evaluate(() => {
   const vis = (el) => { if (!el) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden' }
@@ -78,13 +104,37 @@ const all = (...fns) => async (page) => { for (const f of fns) { const r = await
    parity; the lead already says the first round is missing) and the desk's
    sidebar prints ONE sentence with ONE door. `meStripShown` pinned the old
    three-placeholder strip at every width. */
-const meStripBrandNew = (page) => page.evaluate(() => {
-  const home = document.getElementById('homeMe'), side = document.getElementById('sideMe')
-  if (innerWidth < 960) return !(home && home.innerText.trim()) ? true : 'the phone strip did not stand down: ' + JSON.stringify(home.innerText.trim().slice(0, 80))
-  const t = ((side && side.innerText) || '').replace(/\s+/g, ' ')
-  return /Your number builds itself from three posted rounds\./.test(t) && /Add my round/i.test(t) && !/BUILDING|NO ROUNDS YET|PLAN ONE/.test(t)
-    ? true : 'the desk strip is not the sentence and its door: ' + JSON.stringify(t.slice(0, 140))
-})
+/* TEN / W7-030 [A2-home-3] · on the desk, Home's lead is the first round and
+   its "Add my round", so the sidebar's empty block (the sentence and its own
+   "Add my round") stands down while that lead is on the page: one door in the
+   window. The block is still drawn, and speaks again on every other view. */
+const meStripBrandNew = async (page) => {
+  const r = await page.evaluate(() => {
+    const home = document.getElementById('homeMe'), side = document.getElementById('sideMe')
+    if (innerWidth < 960) return !(home && home.innerText.trim()) ? true : 'the phone strip did not stand down: ' + JSON.stringify(home.innerText.trim().slice(0, 80))
+    const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && b.bottom > 0 && b.top < innerHeight && getComputedStyle(el).visibility !== 'hidden' }
+    const doors = [...document.querySelectorAll('a, button')].filter((el) => /^Add my round$/i.test(el.textContent.trim()) && seen(el))
+    if (doors.length !== 1) return `${doors.length} "Add my round" doors in one window: ` + doors.map((d) => d.closest('[id]')?.id || d.tagName).join(', ')
+    const say = side && side.querySelector('.mesay'), door = side && side.querySelector('.medoors')
+    const held = ((say && say.textContent) || '') + ' ' + ((door && door.textContent) || '')
+    if (!/Your number builds itself from three posted rounds\./.test(held) || !/Add my round/i.test(held)) return 'the desk strip does not hold the sentence and its door: ' + JSON.stringify(held.trim().slice(0, 140))
+    if (/BUILDING|NO ROUNDS YET|PLAN ONE/.test(side.textContent)) return 'the desk strip shows placeholders'
+    if (seen(say) || seen(door)) return 'the sidebar says the first round is missing beside the lead that says it'
+    if (side.getBoundingClientRect().height >= 1 || parseFloat(getComputedStyle(side).borderTopWidth) > 0) return 'the emptied block still stands in the sidebar: a rule over an empty band'
+    const foot = document.querySelector('.side .foot'), col = foot && foot.parentElement
+    if (!foot || col.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom > 48) return 'the sidebar\'s foot left the bottom of the column'
+    if (!document.getElementById('sideWho') || !seen(document.getElementById('sideWho'))) return 'the sidebar lost the golfer'
+    return 'desk'
+  })
+  if (r !== 'desk') return r
+  /* on another desk view the sentence and its door speak again */
+  await page.evaluate(() => window.switchView('golfers'))
+  await page.waitForTimeout(400)
+  const back = await page.evaluate(() => { const say = document.querySelector('#sideMe .mesay'); return !!say && getComputedStyle(say).display !== 'none' })
+  await page.evaluate(() => window.switchView('home'))
+  await page.waitForTimeout(400)
+  return back ? true : 'the sidebar\'s sentence stayed down off Home'
+}
 const homePainted = async (page) => {
   await until(page, () => !!(document.querySelector('#homeLead .csedn') || document.querySelector('#homeDeck .cswire')), null, 10000)
   await page.waitForTimeout(300)
@@ -123,7 +173,7 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
     world: { flags: { homeState: id } },
     drive: homePainted,
     expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => ex), meStripShown),
+    check: all(arrangementCheck(() => ex), meStripShown, lastOnce),
   }
 })
 
@@ -213,13 +263,44 @@ const dayMarkers = async (page) => page.evaluate(() => {
 })
 const feedHasRounds = async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'the circle feed drew no rounds')
 
+/* TEN / W7-050 [A2-home-11] · what is read and tabbed to is what is seen:
+   below 960 the Home blocks' DOM order is their painted order (no CSS
+   `order` over the desk's DOM). On the desk, ↓ moves from a deck line to the
+   next slat (UI_SYSTEM §14.4). */
+const readingOrder = async (page) => {
+  const r = await page.evaluate(() => {
+    if (innerWidth >= 960) return 'desk'
+    const ids = ['#homeLead', '#homeRequests', '#homeMe', '#homeDeck', '#homeHero', '#homeHub > .deskwire', '#homeUpNext', '#homeTiles', '#homeOccasion', '#homeStart', '#homePulse']
+    const els = ids.map((s) => document.querySelector(s)).filter((el) => el && el.getBoundingClientRect().height > 0)
+    if (els.length < 3) return 'Home drew too few blocks to read an order'
+    const dom = els.slice().sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+    const seen = els.slice().sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+    const name = (el) => el.id || el.className
+    return dom.every((el, i) => el === seen[i]) ? true
+      : 'the reading order is not the painted order: DOM ' + dom.map(name).join(' > ') + ' | seen ' + seen.map(name).join(' > ')
+  })
+  if (r !== 'desk') return r
+  const lines = await page.evaluate(() => [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].filter((el) => el.offsetParent !== null).length)
+  if (lines < 2) return true
+  await page.evaluate(() => { const f = [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].find((el) => el.offsetParent !== null); f.focus(); window.__slat0 = f })
+  await page.keyboard.press('ArrowDown')
+  const moved = await page.evaluate(() => { const a = document.activeElement; const ok = a && a !== window.__slat0 && a.matches('.cswire, .hfcard'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return ok })
+  return moved ? true : '↓ on a deck line does not move to the next slat'
+}
+/* TEN / W7-051 [B2-home-3] · a course's circle is printed once per wire, on its newest round */
+const circleOnce = async (page) => page.evaluate(() => {
+  const ids = [...document.querySelectorAll('#homeFeed .hfr-course[data-hfcourse]')].map((b) => b.dataset.hfcourse)
+  if (!ids.length) return 'no course circle in this wire'
+  const dup = ids.find((id, i) => ids.indexOf(id) !== i)
+  return dup ? 'one course’s circle prints twice in the wire: ' + dup : true
+})
 const HOME_WORLD = [
   /* North Grove week 8 of 13, the Fixture Wrens 2nd of 2 and 34 back; the
      week-8 clash with Devon ("The Fixture Derby"), both in; Kit's buddy
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
@@ -250,6 +331,116 @@ const HOME_WORLD = [
       const whole = metas.find((t) => / \u2014 /.test(t))
       if (whole) return `an inbox line prints the whole course label: ${JSON.stringify(whole)}`
       return metas.some((t) => /Mesquite Wash Golf Club \(fixture\)/.test(t)) ? true : `no inbox line names the club: ${JSON.stringify(metas)}`
+    }) },
+  /* TEN / W7-036 [A2-home-10] · HOME_STATE_MATRIX S18 (UI_SYSTEM §13.3): a
+     failed dispatch read keeps what is on the screen and says so. */
+  /* (a) nothing was ever read: the lead slot says S18's sentence with Try
+     again, the season hero stays down (the strip owns the standing), and Try
+     again really reads again */
+  { family: 'home', id: 'dispatch-failed', variant: 'member', title: 'Home · the dispatch read fails and nothing was read before: S18’s sentence, Try again',
+    world: { errors: { rpc: { home_dispatch: { __error: 'fixture: the desk could not be reached', status: 503, code: 'XX000' } } } },
+    expectConsole: [/status of 503/],
+    drive: async (page) => {
+      await until(page, () => !!document.querySelector('#homeLead .homefail'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeLead .homefail [data-hretry]': 'visible' } },
+    check: async (page) => {
+      const r = await page.evaluate(() => {
+        const lead = document.querySelector('#homeLead .homefail')
+        const said = (lead.innerText || '').replace(/\s+/g, ' ').trim()
+        if (!/^Cup Season can’t reach the desk right now\. Nothing here is missing — it just hasn’t arrived\. Try again$/i.test(said)) return 'the lead slot does not say S18’s sentence: ' + JSON.stringify(said)
+        if ((document.getElementById('homeHero') || {}).innerHTML) return 'the season hero drew beside the failure (the standing twice)'
+        return (window.__tenNet || []).filter((e) => /\/rpc\/home_dispatch/.test(e.url)).length
+      })
+      if (typeof r !== 'number') return r
+      await click(page, '#homeLead [data-hretry]')
+      await until(page, (n) => (window.__tenNet || []).filter((e) => /\/rpc\/home_dispatch/.test(e.url)).length > n, r, 8000).catch(() => {})
+      await until(page, () => !!document.querySelector('#homeLead .homefail [data-hretry]:not([disabled])'), null, 8000).catch(() => {})
+      return page.evaluate((n) => {
+        const reads = (window.__tenNet || []).filter((e) => /\/rpc\/home_dispatch/.test(e.url)).length
+        if (reads <= n) return 'Try again did not read the desk again'
+        return document.querySelector('#homeLead .homefail [data-hretry]') ? true : 'after Try again the lead slot lost its sentence'
+      }, r)
+    } },
+  /* (b) a good read, then a refresh that fails: the kept lead stays, every
+     door live, under "As of <day time> · couldn’t refresh" in the agate role */
+  { family: 'home', id: 'dispatch-stale', variant: 'member', title: 'Home · a refresh fails after a good read: the lead is kept, AS OF … · COULDN’T REFRESH',
+    expectConsole: [/status of 503/],
+    drive: async (page, ctx) => {
+      await homePainted(page)
+      const lead = await page.evaluate(() => (document.querySelector('#homeLead .csedn .hl') || {}).textContent || '')
+      await page.evaluate((t) => { window.__keptLead = t }, lead)
+      ctx.world.handlers.home_dispatch = () => ({ __error: 'fixture: the refresh failed', status: 503, code: 'XX000' })
+      await page.evaluate(() => window.refreshHomeLead())
+      await until(page, () => !!document.querySelector('#homeLead .homestale'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeLead .homestale': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const st = document.querySelector('#homeLead .homestale')
+      const t = st.textContent.trim()
+      if (!/^As of (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) · couldn’t refresh$/.test(t)) return 'the stale line reads ' + JSON.stringify(t)
+      if (getComputedStyle(st).textTransform !== 'uppercase') return 'the stale line is not the agate role (its caps are typed, or missing)'
+      const hl = (document.querySelector('#homeLead .csedn .hl') || {}).textContent || ''
+      if (!window.__keptLead || hl !== window.__keptLead) return 'the lead was not kept: ' + JSON.stringify({ before: window.__keptLead, after: hl })
+      const act = document.querySelector('#homeLead .csedn .act')
+      if (act && act.disabled) return 'a door on the kept lead is disabled'
+      if (st.compareDocumentPosition(document.querySelector('#homeLead .csedn')) & Node.DOCUMENT_POSITION_PRECEDING) return 'the stale line is not above the lead'
+      return true
+    }) },
+  /* TEN / W7-038 [A2-home-9] · UI_SYSTEM §13.3, D220: a failed circle read is
+     never an empty wire. */
+  /* (a) nothing was ever read and the wire has nothing to show (the circle's
+     read and the league's moments both fail): the shared failed root, with Try
+     again that reads again, and never "No rounds from your buddies yet". With
+     moments in hand, the wire draws them (the phone's rule: failed AND empty) */
+  { family: 'home', id: 'feed-failed', variant: 'member', title: 'Home · the wire’s reads fail with nothing read before: the failed root, Try again',
+    world: { errors: { rpc: { home_feed: { __error: 'fixture: the circle could not be read', status: 503, code: 'XX000' } },
+      /* a 500, not a 503: the client library retries a GET on 503 with a
+         backoff, so a 503 here keeps the wire in its skeleton for 15s+ */
+      table: { posts: { __error: 'fixture: the moments could not be read', status: 500 } } } },
+    expectConsole: [/status of 50[03]/],
+    drive: async (page) => {
+      await until(page, () => !!document.querySelector('#homeFeed .emptyroot [data-erdoor="retry"]'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeFeed .emptyroot [data-erdoor="retry"]': 'visible' } },
+    check: async (page) => {
+      const n = await page.evaluate(() => {
+        const t = (document.getElementById('homeFeed').innerText || '').replace(/\s+/g, ' ')
+        if (/No rounds from your buddies yet/i.test(t)) return 'a failed read says the wire is empty'
+        if (!/Couldn’t load this\./.test(t) || !/That is us, not you/.test(t)) return 'the failed root does not speak: ' + JSON.stringify(t.slice(0, 160))
+        return (window.__tenNet || []).filter((e) => /\/rpc\/home_feed/.test(e.url)).length
+      })
+      if (typeof n !== 'number') return n
+      await click(page, '#homeFeed [data-erdoor="retry"]')
+      await until(page, (k) => (window.__tenNet || []).filter((e) => /\/rpc\/home_feed/.test(e.url)).length > k, n, 8000).catch(() => {})
+      return page.evaluate((k) => (window.__tenNet || []).filter((e) => /\/rpc\/home_feed/.test(e.url)).length > k ? true : 'Try again did not read the circle again', n)
+    } },
+  /* (b) a good read, then a refresh that fails: the rows stay, every door
+     live, under "As of <day time> · couldn’t refresh" in the agate role */
+  { family: 'home', id: 'feed-stale', variant: 'member', title: 'Home · a circle refresh fails after a good read: the rows stay, AS OF … · COULDN’T REFRESH',
+    expectConsole: [/status of 503/],
+    drive: async (page, ctx) => {
+      await homePainted(page)
+      await until(page, () => document.querySelectorAll('#homeFeed [data-hfr]').length > 0, null, 10000)
+      await page.evaluate(() => { window.__keptRows = document.querySelectorAll('#homeFeed [data-hfr]').length })
+      ctx.world.handlers.home_feed = () => ({ __error: 'fixture: the refresh failed', status: 503, code: 'XX000' })
+      await page.evaluate(() => window.loadHome())
+      await until(page, () => !!document.querySelector('#homeFeed .homestale'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeFeed .homestale': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const st = document.querySelector('#homeFeed .homestale'), t = st.textContent.trim()
+      if (!/^As of (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) · couldn’t refresh$/.test(t)) return 'the stale line reads ' + JSON.stringify(t)
+      if (getComputedStyle(st).textTransform !== 'uppercase') return 'the stale line is not the agate role'
+      const rows = document.querySelectorAll('#homeFeed [data-hfr]').length
+      if (rows !== window.__keptRows) return `the rows were not kept: ${window.__keptRows} before, ${rows} after`
+      if (/No rounds from your buddies yet/i.test(document.getElementById('homeFeed').innerText)) return 'a failed refresh says the wire is empty'
+      const first = document.querySelector('#homeFeed [data-hfr]')
+      return st.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the stale line is not above the rows'
     }) },
 ]
 
@@ -286,6 +477,74 @@ const tapeDates = async (page) => page.evaluate(() => {
   if (rows) { const r = rows.getBoundingClientRect(); if (z.right > r.left + 0.5) return 'the last date runs under the label column' }
   return true
 })
+/* TEN / W7-044 [B2-golfers-3] · one golfer, one disc: the board and the
+   buddies list draw the same (pigment, glyph) pair, face() for both. The state
+   must show at least one golfer in both, or it proves nothing. */
+const oneDisc = async (page) => page.evaluate(() => {
+  const discOf = (el) => el && el.querySelector('.fc')
+  const board = new Map([...document.querySelectorAll('.fbrow[data-person]')].map((r) => [r.dataset.person, discOf(r)]))
+  const list = new Map([...document.querySelectorAll('.prow .pmk[data-tc]')].map((m) => [m.dataset.tc, m.querySelector('.fc') || m]))
+  const both = [...board.keys()].filter((id) => list.has(id) && board.get(id) && list.get(id))
+  if (!both.length) return 'no golfer is on both the board and the buddies list in this state'
+  const probe = document.createElement('span'); probe.style.background = 'var(--bg2)'; document.body.appendChild(probe)
+  const plain = getComputedStyle(probe).backgroundColor; probe.remove()
+  for (const id of both) {
+    const a = board.get(id), b = list.get(id)
+    if (a.querySelector('img.face') || b.querySelector('img.face')) continue
+    const ba = getComputedStyle(a).backgroundColor, bb = getComputedStyle(b).backgroundColor
+    if (ba !== bb) return `one golfer, two discs: ${ba} on the board, ${bb} in the list`
+    if (bb === plain) return 'the list’s disc is plain, not the golfer’s pigment'
+  }
+  return true
+})
+/* TEN / W7-045 [A2-golfers-7] · the person page's ONE primary is the way to
+   play, in the aside under the record; "See the whole record" is a tier-3
+   link, never the heavier door */
+const playPrimary = async (page) => page.evaluate(() => {
+  const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
+  const plays = [...document.querySelectorAll('#perMain [data-playwith], #perAside [data-playwith]')].filter(seen)
+  if (plays.length !== 1) return `${plays.length} play doors on the page, expected one`
+  const play = plays[0]
+  if (!play.closest('#perAside')) return 'the play door is not in the aside, under the record'
+  if (!play.classList.contains('btn') || play.classList.contains('dark')) return 'the play door is not the page’s primary'
+  const others = [...document.querySelectorAll('#perMain .btn, #perAside .btn')].filter((b) => seen(b) && b !== play && !b.classList.contains('dark'))
+  if (others.length) return 'another primary competes with the play door: ' + others.map((b) => b.id || b.textContent.trim()).join(', ')
+  const rec = document.getElementById('perOpenH2H')
+  if (rec && (rec.tagName !== 'A' || rec.classList.contains('btn') || !rec.closest('.hstart'))) return '“See the whole record” still outweighs the act'
+  return /they’re in it from the start\./.test(play.parentElement.textContent) ? true : 'the play door lost its line'
+})
+/* TEN / W7-046 [A2-golfers-9] · a golfer reports what another golfer wrote:
+   never the viewer's own post, never a server-written moment or standings
+   line; and moderation stays reachable on another golfer's post */
+const reportOthers = async (page) => page.evaluate(() => {
+  const me = window.CS && window.CS.user && window.CS.user.id
+  const rc = window.roundCache || {}
+  const mine = (f) => (f.pid ? f.pid === me : !!(f.roundpost && rc[f.rid] && rc[f.rid].profile_id === me))
+  const btns = [...document.querySelectorAll('button[data-report]')].filter((b) => b.offsetParent !== null)
+  for (const b of btns) {
+    const f = feed[+b.dataset.report]
+    if (!f) continue
+    if ((f.msg || f.roundpost) && mine(f)) return 'Report on the viewer’s own post: ' + JSON.stringify(String(f.txt || f.who).slice(0, 60))
+    if (f.moment) return 'Report on a server-written moment: ' + JSON.stringify(String(f.txt).slice(0, 60))
+    if (f.sys && !f.srid) return 'Report on a server-written line: ' + JSON.stringify(String(f.txt).slice(0, 60))
+  }
+  const others = feed.filter((f) => f && f.post_id && (f.msg || f.roundpost) && !mine(f))
+  if (others.length && !btns.length) return 'no Report anywhere: moderation is unreachable'
+  return true
+})
+/* TEN / W7-048 [B2-golfers-13] · one course name, printed one way: the club,
+   and the layout only where the club does not already say it; never the tee */
+const oneCourseName = async (page) => page.evaluate(() => {
+  const bare = (x) => String(x || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+  const names = [...document.querySelectorAll('#perMain .dtab tr td:first-child')].map((td) => td.textContent.trim()).filter(Boolean)
+  if (!names.length) return 'the person page lists no courses'
+  for (const n of names) {
+    const [club, layout] = n.split(' — ')
+    if (layout && bare(club).includes(bare(layout))) return 'a course prints its name twice: ' + JSON.stringify(n)
+    if (/ · /.test(n)) return 'a course prints its tee: ' + JSON.stringify(n)
+  }
+  return true
+})
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -315,7 +574,9 @@ const GOLFERS = [
       return /Finley Stubbs/.test(document.getElementById('crBud').innerText) ? true : 'the request I sent Finley is not listed'
     }),
     /* TEN / W6 · AW2-15: the form lens's note is a phrase, in sentence case (§1.3) */
-    readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']])) },
+    readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']]),
+    /* TEN / W7-044 [B2-golfers-3]: one golfer, one disc, on the board and in the buddies list */
+    oneDisc) },
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },
@@ -364,7 +625,11 @@ const GOLFERS = [
     notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
     noRetiredGlyph(),
     /* TEN / W8 · W7-010: at the desk the head says the record in prose and the season row as a figure, so the aside's bold headline stands down */
-    standsDown(['#perAside .perhl'])) },
+    standsDown(['#perAside .perhl']),
+    /* TEN / W7-045 [A2-golfers-7]: the page's one primary is the way to play, in the aside under the record */
+    playPrimary,
+    /* TEN / W7-048 [B2-golfers-13]: one course name, printed one way (the club, the layout only where the club does not say it, never the tee) */
+    oneCourseName) },
   /* TEN / W8 · W7-019 · at the desk a click on the scrim closes the board, as the sheet's does (a dialog) */
   { family: 'golfers', id: 'board-scrim', variant: 'member', desk: true, fullPage: false, title: 'The league board, dismissed by a click on the scrim (desk)',
     drive: async (page) => {
@@ -444,6 +709,8 @@ const GOLFERS = [
     noRetiredGlyph(),
     /* TEN / W6 · AW2-13: the reaction bar's controls and the tags are not pills, and the system row has no spine */
     noRetiredShape(),
+    /* TEN / W7-046 [A2-golfers-9]: Report is for what another golfer wrote, never your own post or the server's lines */
+    reportOthers,
     /* TEN / W6 · E's twin (N4-087, root's ruling (b)) · §10.3: the photo card is the wire's case. It has
        the ONE scrim's `.band` geometry (leading → trailing), the points on the bone panel, the margin in
        the copy column, and its copy measured on the fixture photo */

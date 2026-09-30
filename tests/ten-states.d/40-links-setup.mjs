@@ -148,6 +148,21 @@ const covenantAnswersInView = async (page) => page.evaluate(() => {
   const out = acts.filter((b) => { const r = b.getBoundingClientRect(); return r.top < pr.top - 0.5 || r.bottom > bottom + 0.5 })
   return out.length ? `the covenant's answers are out of view at rest: ${out.map((b) => '#' + b.id).join(', ')}` : true
 })
+/* TEN / W6 · K077 [A2-post-10] · UI_SYSTEM §13.4: the toast is one shape, and
+   not a pill. It is a 46pt block, rc 10, bg2, body 15 in ink, with a 3pt leading
+   rail in `rule`: the neutral kind, and the web's toasts carry no other. */
+const toastIsTheBlock = async (page) => page.evaluate(() => {
+  const t = document.getElementById('toast'), cs = getComputedStyle(t), be = getComputedStyle(t, '::before')
+  const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+  const want = { bg: probe('--bg2'), ink: probe('--ink'), rule: probe('--rule') }
+  const got = { radius: cs.borderTopLeftRadius, bg: cs.backgroundColor, ink: cs.color, size: cs.fontSize, weight: cs.fontWeight, h: t.getBoundingClientRect().height, align: cs.textAlign, rail: [be.content, be.width, be.backgroundColor] }
+  if (got.radius !== '10px') return 'the toast is not rc 10: ' + JSON.stringify(got)
+  if (got.bg !== want.bg || got.ink !== want.ink) return 'the toast is not ink on bg2: ' + JSON.stringify(got)
+  if (got.size !== '15px' || got.weight !== '400') return 'the toast is not body 15: ' + JSON.stringify(got)
+  if (got.h < 45.5) return 'the toast is shorter than 46: ' + got.h
+  if (be.content === 'none' || be.width !== '3px' || be.backgroundColor !== want.rule) return 'the toast has no 3pt rail in rule: ' + JSON.stringify(got)
+  return got.align === 'left' ? true : 'the toast sentence is centred, not led by its rail'
+})
 const LINKS = [
   /* W4 · the round LEADS the door (#obLink, the lead serif) and the status line
      keeps the next step: the same ruled sentence (TERMINOLOGY §6), split,
@@ -216,7 +231,8 @@ const LINKS = [
   /* signed in and already in: the covenant is not shown again; the line says so */
   { family: 'links', id: 'join-already-in', variant: 'member', url: `/?join=${JOIN.season}`,
     settle: async (page) => { await bootDone(page, 300); await until(page, () => /already in for season 1/.test((document.getElementById('toast') || {}).textContent || ''), null, 8000) },
-    expect: { view: 'view-home', selectors: { '#toast': 'text:^You’re already in for season 1\\.$' } }, pause: 50 },
+    expect: { view: 'view-home', selectors: { '#toast': 'text:^You’re already in for season 1\\.$' } }, pause: 50,
+    check: toastIsTheBlock },
   /* in-app invitation (my_invites): drawn ONCE, then its terms. W4 · the banner
      row and Home's lead drew the same invitation twice with two "See the terms"
      (owner H, critique B P2). An invitation the served dispatch carries is the

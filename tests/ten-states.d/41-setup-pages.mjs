@@ -886,6 +886,22 @@ const deskGutter = (colSel, sideSel) => async (page) => page.evaluate(([colSel, 
   const gap = Math.round(a.getBoundingClientRect().left - c.getBoundingClientRect().right)
   return gap >= 36 && gap <= 44 ? true : `${sideSel} sits ${gap}px from ${colSel}, not the 40px gutter (a void beside a capped column)`
 }, [colSel, sideSel])
+/* TEN / W6 · W7-011 / W7-037 follow-up · Home's wire and column take LAST
+   and NEXT from the strip only while Home is on screen. The desk's sidebar is
+   drawn on every page, and off Home those rounds are printed nowhere else, so
+   the sidebar keeps them. The viewer must hold both, or the check proves
+   nothing. */
+const sideKeepsHomeFacts = async (page) => page.evaluate(() => {
+  const want = []
+  const last = window.career && (window.career.recent || [])[0]
+  if (last && last.gross != null && last.played_on) want.push('my_last_round')
+  const strip = typeof csMeStrip === 'function' ? csMeStrip() : null
+  if (strip && (strip.slots || []).some((s) => s.fact === 'my_next_round' && !s.ph)) want.push('my_next_round')
+  if (want.length < 2) return 'the viewer holds no last round and next round here, so this proves nothing: ' + JSON.stringify(want)
+  const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
+  const gone = want.filter((f) => ![...document.querySelectorAll(`#sideMe [data-mego="${f}"]`)].some(seen))
+  return gone.length ? 'off Home the sidebar dropped ' + gone.join(' and ') + ', which only Home’s wire and column print' : true
+})
 const DESK = [
   { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
     check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); if (b !== true) return b; const g = await deskGutter('#homeHub .deskmain', '#homeHub .deskwire')(page); return g !== true ? g : deskRailEdge(page) } },
@@ -895,7 +911,7 @@ const DESK = [
     expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskMenuIs('The season')(page); if (b !== true) return b; const g = await deskGutter('#seasonBody .deskmain', '#seasonAside')(page); return g !== true ? g : deskScroller('#seasonAside')(page) } },
   { family: 'desk', id: 'compete', variant: 'member', desk: true, title: 'The desk · Compete',
     drive: async (page) => { await click(page, '.navitem[data-v="compete"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-compete'); await page.waitForTimeout(900) },
-    expect: { view: 'view-compete' }, check: deskCheck },
+    expect: { view: 'view-compete' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : sideKeepsHomeFacts(page) } },
   { family: 'desk', id: 'golfers', variant: 'member', desk: true, title: 'The desk · Golfers',
     drive: async (page) => { await click(page, '.navitem[data-v="golfers"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-golfers'); await page.waitForTimeout(900) },
     expect: { view: 'view-golfers' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskGutter('#glfHub .deskmain', '#glfAside')(page) } },
@@ -922,15 +938,42 @@ const PICKER = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-home', sheet: '^Find golfers$', selectors: { '#ppFind': 'visible', '#ppList .prow': 'visible' } },
-    check: isRow('#ppList .prow', "the picker's buddy row") },
+    /* TEN / W6 · root's ruling (a TP-11 leftover): the picker's sub is a sentence ("Search by name or @handle to add buddies"),
+       set in its role's phrase form, sentence case, never agate caps */
+    check: async (page) => {
+      const row = await isRow('#ppList .prow', "the picker's buddy row")(page)
+      if (row !== true) return row
+      return page.evaluate(() => {
+        const s = document.getElementById('shSub'), t = (s && s.textContent || '').trim()
+        if (!/^Search by name or @handle/.test(t)) return 'the picker’s sub reads ' + JSON.stringify(t)
+        return getComputedStyle(s).textTransform === 'none' ? true : 'the picker’s sub is a sentence set in agate caps'
+      })
+    } },
 ]
 
+/* TEN / W6 · root's ruling · below about 380px the draw room's squads stack one card a row, as the phone's draw room does
+   (two 147px columns wrapped every name). The room must show two squads, or this proves nothing. */
+const squadsStack = async (page) => page.evaluate(() => {
+  if (innerWidth >= 380) return true
+  const cards = [...document.querySelectorAll('#squads > *')].filter((c) => c.getBoundingClientRect().height > 0)
+  if (cards.length < 2) return `the draw room shows ${cards.length} squad(s), so the stack cannot be read`
+  return cards.every((c, i) => i === 0 || c.getBoundingClientRect().top >= cards[i - 1].getBoundingClientRect().bottom - 1) ? true : 'below 380 the squads still sit two to a row'
+})
+/* TEN / W6 · root's ruling · the draw clock's card has no spine down its left edge (UI_SYSTEM retires the 3.5pt card spine;
+   the phone's went in 5b407a5b): no thin, tall, painted bar at the card's left edge */
+const noClockSpine = async (page) => page.evaluate(() => {
+  const clock = document.getElementById('clock'); if (!clock || clock.offsetParent === null) return 'the draw clock is not drawn'
+  const cb = clock.getBoundingClientRect()
+  const bar = [...clock.querySelectorAll('*')].find((el) => { const b = el.getBoundingClientRect(), cs = getComputedStyle(el)
+    return b.width > 0 && b.width <= 6 && b.height >= cb.height * 0.5 && Math.abs(b.left - cb.left) < 2 && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' })
+  return bar ? 'the clock card draws a spine down its left edge' : true
+})
 const DRAW = [
   { family: 'draft', id: 'formation', variant: 'pro', title: 'The draw room of a real league in the draw, as its Pro',
     prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
     drive: async (page) => { await page.evaluate(() => window.switchView('draft')); await until(page, () => { const c = document.querySelector('#view-draft #clock'); return !!c && c.offsetParent !== null }); await page.waitForTimeout(800) },
     expect: { view: 'view-draft', selectors: { '#view-draft #clock': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: async (page) => { const stack = await squadsStack(page); if (stack !== true) return stack; const spine = await noClockSpine(page); if (spine !== true) return spine; return page.evaluate(() => {
       const room = document.getElementById('view-draft'), foot = room.getBoundingClientRect().bottom
       let low = -Infinity
       const w = document.createTreeWalker(room, NodeFilter.SHOW_TEXT)
@@ -953,7 +996,7 @@ const DRAW = [
       }
       const sw = document.documentElement.scrollWidth
       return sw <= innerWidth ? true : `the draw room scrolls sideways: ${sw}px of page in a ${innerWidth}px window`
-    }) },
+    }) } },
 ]
 
 export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK, ...DRAW, ...PICKER]

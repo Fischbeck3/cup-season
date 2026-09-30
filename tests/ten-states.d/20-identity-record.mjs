@@ -460,9 +460,23 @@ const heroRing = async (page) => page.evaluate(() => {
   if (lab) { const top = g.getBoundingClientRect().top - 3, bottom = lab.getBoundingClientRect().bottom; if (top < bottom - 0.5) return `the ring's top edge (${Math.round(top)}) runs into the label (${Math.round(bottom)})` }
   return true
 })
+/* TEN / W6 · W7-125 [A2-post-7] · where you are: the composer and live scoring
+   are Play's pages, so Play (router id `record`) is the one destination marked,
+   in the tab band below desk width and the sidebar on the desk, and it is
+   current to a screen reader. Nothing was marked. */
+const playIsWhereYouAre = async (page) => page.evaluate(() => {
+  const shown = (el) => el.offsetParent !== null && getComputedStyle(el).visibility !== 'hidden'
+  const marked = [...document.querySelectorAll('.tab, .navitem')].filter((t) => shown(t) && t.classList.contains('active'))
+  if (marked.length !== 1) return 'destinations marked: ' + JSON.stringify(marked.map((t) => t.dataset.v))
+  if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
+  return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } }, check: heroRing },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } },
+    /* both lanes' checks (root's merge): Play is where you are (B, W7-125), then the hero's ring, focused
+       last so the capture shows it (C, W7-063) */
+    check: async (page) => { const p = await playIsWhereYouAre(page); return p !== true ? p : heroRing(page) } },
   /* TEN / W6 · critique A2 (P1), then root's noCourse ruling (2026-09-29): a
      first round's gross, then Add my round, with no course yet. The guidance
      never points at a folded field and never leaves on a toast: the fold
@@ -492,6 +506,78 @@ const COMPOSER = [
     },
     expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postCourseErr': 'text:^Add the course you played — its tee sets the rating and slope\\.$' } },
     check: courseBlocked },
+  /* TEN / W7-005 (the remainder, D's delta) · the golfer answers a block and
+     its guidance goes at once, before any second press of Post. A typed course
+     takes the course sentence and the field's marks with it. Then, on the
+     rating block, a typed rating takes its own marks while the sentence stays
+     (the slope is still missing), and a typed slope takes the sentence. The
+     phone already does this (PostRoundScreen's onChange of the card). */
+  { family: 'composer', id: 'blocked-answered', variant: 'member', title: 'Composer · the blocks answered: a typed course, then a typed rating and slope (the guidance goes at once)',
+    drive: async (page) => {
+      const snap = (key) => {
+        const m = (id) => { const el = document.getElementById(id); return { invalid: el.getAttribute('aria-invalid'), bad: el.classList.contains('bad'), desc: el.getAttribute('aria-describedby') } }
+        const e = (id) => { const el = document.getElementById(id); return { hidden: el.hidden, text: el.textContent } }
+        ;(window.__w7005 = window.__w7005 || {})[key] = { blocked: state.postBlocked, course: m('inCourse'), rating: m('inRating'), slope: m('inSlope'), courseErr: e('postCourseErr'), rateErr: e('postRateErr') }
+      }
+      await toComposer(page)
+      await page.locator('#inGross').fill('84')
+      await page.waitForTimeout(300)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postCourseErr'); return !!e && !e.hidden }, null, 6000)
+      await page.evaluate(snap, 'pressed')
+      await page.locator('#inCourse').fill('Pinecrest Muni (fixture)')
+      await page.waitForTimeout(400)
+      await page.evaluate(snap, 'course')
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postRateErr'); return !!e && !e.hidden }, null, 6000)
+      await page.evaluate(snap, 'ratePressed')
+      await page.locator('#inRating').fill('70.1')
+      await page.waitForTimeout(300)
+      await page.evaluate(snap, 'rating')
+      await page.locator('#inSlope').fill('121')
+      await page.waitForTimeout(400)
+      await page.evaluate(snap, 'slope')
+    },
+    expect: { view: 'view-post', selectors: { '#postCardFold': 'visible', '#postCourseErr': 'hidden', '#postRateErr': 'hidden' } },
+    check: async (page) => page.evaluate(() => {
+      const w = window.__w7005 || {}
+      const unmarked = (f) => f.invalid === null && !f.bad && f.desc === null
+      /* the blocks engaged (the check is not vacuous) */
+      if (!w.pressed || w.pressed.blocked !== 'course' || w.pressed.course.invalid !== 'true' || w.pressed.courseErr.hidden) return 'Post never blocked on the course: ' + JSON.stringify(w.pressed)
+      if (!w.ratePressed || w.ratePressed.blocked !== 'rating' || w.ratePressed.rating.invalid !== 'true' || w.ratePressed.rateErr.hidden) return 'Post never blocked on the rating: ' + JSON.stringify(w.ratePressed)
+      /* a typed course answers the course block at once */
+      if (!w.course.courseErr.hidden || w.course.courseErr.text !== '') return 'the course sentence outlived the typed course: ' + JSON.stringify(w.course.courseErr)
+      if (!unmarked(w.course.course)) return 'the course field is still marked after a course was typed: ' + JSON.stringify(w.course.course)
+      /* a typed rating takes its own marks; the sentence stays while the slope is missing */
+      if (!unmarked(w.rating.rating)) return 'the rating field is still marked after a rating was typed: ' + JSON.stringify(w.rating.rating)
+      if (w.rating.blocked !== 'rating' || w.rating.rateErr.hidden) return 'the rating sentence left while the slope was still missing: ' + JSON.stringify(w.rating)
+      /* a typed slope answers the block: no sentence, no marks, and the card scores */
+      if (!w.slope.rateErr.hidden || w.slope.rateErr.text !== '') return 'the rating sentence outlived the typed rating and slope: ' + JSON.stringify(w.slope.rateErr)
+      if (!['course', 'rating', 'slope'].every((k) => unmarked(w.slope[k]))) return 'a field is still marked once the card could post: ' + JSON.stringify(w.slope)
+      const pts = document.getElementById('calcPts').textContent.trim()
+      return w.slope.blocked === null && pts !== '\u2013' && pts !== '' ? true : 'the answered card does not score: ' + JSON.stringify({ blocked: w.slope.blocked, pts })
+    }) },
+  /* TEN / W6 · K077 [A2-post-10] · Add my round with nothing entered: the
+     refusal is the action's answer, above the button and tied to it
+     (#postErr), as the phone's refuse(). It is never a toast (§13.4: the
+     toast confirms the golfer's own action). */
+  { family: 'composer', id: 'nothing-entered', variant: 'member', title: 'Composer · Add my round with nothing entered (the refusal stands above the button, no toast)',
+    drive: async (page) => {
+      await toComposer(page)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postErr'), t = document.getElementById('toast'); return (!!e && !e.hidden) || (!!t && t.classList.contains('show')) }, null, 6000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-post', selectors: { '#postErr': 'text:^Enter your gross first$' } },
+    check: async (page) => page.evaluate(() => {
+      const t = document.getElementById('toast')
+      if (t.classList.contains('show') && /gross/i.test(t.textContent)) return 'the refusal left on a toast: ' + JSON.stringify(t.textContent)
+      const b = document.getElementById('postBtn')
+      if (b.getAttribute('aria-describedby') !== 'postErr') return 'Add my round is not described by its refusal'
+      const e = document.getElementById('postErr').getBoundingClientRect(), r = b.getBoundingClientRect()
+      if (!(e.bottom <= r.top + 1)) return 'the refusal does not stand above the button'
+      return e.top >= 0 && e.bottom <= innerHeight ? true : 'the refusal is off screen'
+    }) },
   /* a tee picked from the course search: the course, the rating and the slope
      arrive together, so nothing blocks and the preview scores the card */
   { family: 'composer', id: 'tee-picked', variant: 'member', title: 'Composer · a gross and a tee picked from the course search (no block)',
@@ -583,6 +669,13 @@ const COMPOSER = [
    it -- that PNG is the artifact. The harness saves it beside the capture. */
 /* the photo variant draws a synthetic "FIXTURE PHOTO" in the page and hands
    it to the composer's own file input -- never a real photograph */
+/* TEN / W7-059 [A2-share-6] · no line of the ceremony's eyebrow begins or ends on the separator: the tee is its own block */
+const eyebrowNoDangle = async (page) => page.evaluate(() => {
+  const crs = document.querySelector('#finEyebrow .crs'), tee = document.querySelector('#finEyebrow .tee')
+  if (!crs) return 'no course in the ceremony'
+  if (/·\s*$/.test(crs.textContent) || /^\s*·/.test((tee || {}).textContent || '')) return 'a line of the eyebrow ends or begins on the separator'
+  return tee ? true : 'the tee did not take its own block'
+})
 function shareState(id, title, card, extra = {}) {
   return {
     family: 'share', id, variant: 'member', fullPage: false, title,
@@ -617,11 +710,42 @@ function shareState(id, title, card, extra = {}) {
        link, and says so under its own button (a toast or a sheet would paint
        beneath the curtain). The card-only path says "Card downloaded" and never
        "link", so a status line naming the link is the proof the link left. */
-    check: async (page) => page.evaluate(() => {
-      if (!window.__tenArtifact) return 'the card was not downloaded'
-      const said = (document.getElementById('finStatus')?.textContent || '').trim()
-      return /link/i.test(said) ? true : 'the ceremony shared no link (D380): ' + JSON.stringify(said)
-    }),
+    check: async (page) => {
+      /* the epilogue renders behind the curtain once the post settles */
+      await until(page, () => !!document.getElementById('epiRevokeWrap'), null, 10000).catch(() => {})
+      return page.evaluate(() => {
+        if (!window.__tenArtifact) return 'the card was not downloaded'
+        const said = (document.getElementById('finStatus')?.textContent || '').trim()
+        if (!/link/i.test(said)) return 'the ceremony shared no link (D380): ' + JSON.stringify(said)
+        /* TEN / W7-006 [B2-share-1] · ONE Share per posted round: the epilogue
+           behind the curtain offers no second Share and no second, ticked
+           photo question; and the ceremony's switch says what a yes
+           publishes, directly under it, in the ceremony's quiet voice */
+        if (!document.getElementById('epiRevokeWrap')) return 'the epilogue never rendered behind the ceremony'
+        if (document.getElementById('epiShare') || document.getElementById('epiPhotoOk')) return 'the epilogue offers a second Share (and photo question) behind the ceremony'
+        const po = document.getElementById('finPhoto'), ff = document.getElementById('finFine')
+        if (!ff) return 'the ceremony draws no fine print'
+        if (po && !po.hidden) {
+          if (ff.hidden || ff.textContent !== window.CS_SHARE_PHOTO_FINE) return 'the photo switch prints no fine print: ' + JSON.stringify(ff.hidden ? null : ff.textContent)
+          if (po.nextElementSibling !== ff || po.getAttribute('aria-describedby') !== 'finFine') return 'the fine print is not directly under, and describing, the switch'
+          const probe = document.createElement('span'); probe.style.color = 'var(--ceremony-mut)'; ff.parentElement.appendChild(probe)
+          const mut = getComputedStyle(probe).color; probe.remove()
+          if (getComputedStyle(ff).color !== mut) return 'the fine print is not ceremony-mut: ' + getComputedStyle(ff).color
+        } else if (!ff.hidden) return 'fine print with no switch to explain'
+        return true
+      }).then(async (r) => {
+        if (r !== true) return r
+        /* TEN / W7-140 [A2-share-5] · a tap on the ceremony's empty field leaves
+           it open: its exits are "Back to the board" and Escape, as it draws them */
+        const hit = await page.evaluate(() => (document.elementFromPoint(6, 6) || {}).id)
+        if (hit !== 'finish') return `the backdrop probe did not land on the ceremony's field: ${hit}`
+        await page.mouse.click(6, 6)
+        await page.waitForTimeout(300)
+        const open = await page.evaluate(() => document.getElementById('finish').classList.contains('open') ? true : 'a tap on the empty field ended the ceremony')
+        /* TEN / W7-059 [A2-share-6] · the eyebrow never starts or ends a line on its separator */
+        return open !== true ? open : eyebrowNoDangle(page)
+      })
+    },
     ...extra,
   }
 }

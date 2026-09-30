@@ -21,6 +21,60 @@ const has = (sel, re, what) => async (page) => page.evaluate(({ sel, re, what })
   return new RegExp(re, 'i').test(t) ? true : `${what}: ${sel} reads ${JSON.stringify(t.slice(0, 160))}`
 }, { sel, re, what })
 
+/* TEN / W7-054 [A2-play-4] · the desk sets up on two columns: the group beside the course, Tee off at
+   its own width under the first; below 960 course, group, game read down */
+const setupColumns = async (page) => page.evaluate(() => {
+  const q = (s) => document.querySelector(s), box = (el) => el.getBoundingClientRect()
+  const course = q('#playSetup > .card:not(.lrgroup):not(.lrgame)'), group = q('#playSetup > .lrgroup'), game = q('#playSetup > .lrgame'), tee = q('#teeOffBtn')
+  if (!course || !group || !game || !tee) return 'the setup lost a card'
+  const c = box(course), g = box(group), m = box(game), t = box(tee)
+  if (innerWidth >= 960) {
+    if (!(g.left >= c.right - 1 && Math.abs(g.top - c.top) < 2)) return 'the group card is not beside the course card'
+    if (!(Math.abs(m.left - c.left) < 1 && m.top >= c.bottom - 1)) return 'the game card is not under the course card'
+    if (t.width >= c.width - 1 || t.left > c.left + 1) return 'Tee off still spans the column'
+    return true
+  }
+  return c.top < g.top && g.top < m.top ? true : 'below 960 the order is not course, group, game'
+})
+/* TEN / W7-056 [A2-play-9] · a Next hole under the last golfer's row, on a phone held upright; gone on the
+   last hole; it moves exactly as the header's arrow does */
+const nextHoleFoot = async (page) => {
+  const r = await page.evaluate(() => {
+    const b = document.getElementById('holeNextFoot')
+    if (!b) return 'no Next hole in the thumb zone'
+    const shown = b.offsetParent !== null && !b.hidden
+    if (innerWidth >= 740) return shown ? 'the foot’s Next hole shows on a wide screen' : 'wide'
+    if (!shown) return 'the foot’s Next hole is hidden on a phone'
+    const rows = document.querySelectorAll('#playerRows > *')
+    if (rows.length && !(rows[rows.length - 1].compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'Next hole is not under the last golfer’s row'
+    if (b.getBoundingClientRect().height < 49.5) return 'Next hole is under 50px'
+    return state.live.hole
+  })
+  if (r === 'wide') return true
+  if (typeof r !== 'number') return r
+  await page.evaluate(() => { window.__nhY = window.scrollY; document.getElementById('holeNextFoot').click() })
+  await page.waitForTimeout(250)
+  const out = await page.evaluate((h0) => {
+    const moved = state.live.hole === h0 + 1
+    const last = liveHoles() - 1, keep = state.live.hole
+    state.live.hole = last; renderPlay()
+    const goneOnLast = document.getElementById('holeNextFoot').hidden
+    state.live.hole = h0; renderPlay(); window.scrollTo(0, window.__nhY || 0); if (typeof csLiveSticky === 'function') csLiveSticky()
+    return !moved ? 'Next hole did not move one hole' : !goneOnLast ? 'Next hole shows on the last hole' : true
+  }, r)
+  return out
+}
+/* TEN / W6 · W7-125 [A2-post-7] · where you are: the composer and live scoring
+   are Play's pages, so Play (router id `record`) is the one destination marked,
+   in the tab band below desk width and the sidebar on the desk, and it is
+   current to a screen reader. Nothing was marked. */
+const playIsWhereYouAre = async (page) => page.evaluate(() => {
+  const shown = (el) => el.offsetParent !== null && getComputedStyle(el).visibility !== 'hidden'
+  const marked = [...document.querySelectorAll('.tab, .navitem')].filter((t) => shown(t) && t.classList.contains('active'))
+  if (marked.length !== 1) return 'destinations marked: ' + JSON.stringify(marked.map((t) => t.dataset.v))
+  if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
+  return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -119,7 +173,9 @@ export default [
         const [c, t, r, s] = ['lrCourse', 'lrTee', 'lrRate', 'lrSlope'].map((id) => document.getElementById(id).value)
         return /Saguaro Flats/.test(c) && t === 'Blue' && r === '70.1' && s === '121' ? true : `the fields read ${JSON.stringify([c, t, r, s])}`
       }),
-      has('#fourSlots', 'Devon Testwell[\\s\\S]*Blake Sample|Blake Sample[\\s\\S]*Devon Testwell', 'the group')) },
+      has('#fourSlots', 'Devon Testwell[\\s\\S]*Blake Sample|Blake Sample[\\s\\S]*Devon Testwell', 'the group'),
+      /* TEN / W7-054 [A2-play-4]: the desk sets up on two columns; below 960 course, group, game read down */
+      setupColumns) },
 
   /* TEN / W8 · W7-069 [X13] · the court: four golfers on Match Play turn the slots into two team zones, each labelled by a heading that follows the page's outline (an h2 under the h1, not an h5) */
   { family: 'play', id: 'setup-court', variant: 'member', title: 'Live setup · Match Play with four golfers: the court (two team zones)',
@@ -153,7 +209,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {
@@ -231,6 +287,11 @@ export default [
         const st = getComputedStyle(document.getElementById(id))
         if (st.color !== mut || st.webkitTextFillColor !== mut || st.opacity !== '1') return `#${id}'s locked value is not mut at full strength: ${st.color} / ${st.webkitTextFillColor} / opacity ${st.opacity}`
       }
+      /* W7-003 (the remainder, D's delta) · the card note is setup guidance
+         ("pick your course above and the real pars load" when no card was
+         loaded this session); beside a locked course it stands down */
+      const cn = document.getElementById('cardNote')
+      if (cn && getComputedStyle(cn).display !== 'none') return 'the card note still gives setup guidance beside the locked course: ' + JSON.stringify(cn.textContent.trim().slice(0, 80))
       return true
     }), async (page) => {
       const held = await page.evaluate(() => ({ active: state.live.active, lr: state.live.lr, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores }))
@@ -238,7 +299,8 @@ export default [
       await click(page, '#lrBackToRound')
       await until(page, () => document.getElementById('playLive').offsetParent !== null, null, 6000)
       const back = await page.evaluate(() => ({ live: document.getElementById('playLive').offsetParent !== null, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores,
-        unlocked: ['lrCourse', 'lrTee', 'lrRate', 'lrSlope', 'editCard'].every(id => !document.getElementById(id).disabled) && [...document.querySelectorAll('#lrHoles button')].every(b => !b.disabled) }))
+        unlocked: ['lrCourse', 'lrTee', 'lrRate', 'lrSlope', 'editCard'].every(id => !document.getElementById(id).disabled) && [...document.querySelectorAll('#lrHoles button')].every(b => !b.disabled)
+          && document.getElementById('cardNote').style.display !== 'none' }))
       await click(page, '#backToSetup')   /* the capture is the held setup */
       await until(page, () => { const h = document.getElementById('lrHeld'); return !!h && !h.hidden }, null, 6000)
       await page.evaluate(() => window.scrollTo(0, 0))
@@ -276,8 +338,13 @@ export default [
       noRetiredGlyph(),
       async (page) => {
         const t = await page.evaluate(() => [document.getElementById('sbHero')?.textContent || '', document.getElementById('matchStatus')?.textContent || ''])
-        return t[0] && t[0] === t[1] && /UP|SQUARE|WIN/.test(t[0]) ? true : 'the hero does not carry the match state: ' + JSON.stringify(t)
-      }) },
+        return t[0] && t[0] === t[1] && /\b(up|square|win)\b/i.test(t[0]) ? true : 'the hero does not carry the match state: ' + JSON.stringify(t)
+      },
+      /* TEN / W6 · OB2-02 (root's §1.3 ruling): the card's meta line and the scoreboard hero are typed as said, their caps the roles' */
+      capsFromRole(['#matchMeta', '#sbHero'], ['#matchMeta', '#sbHero']),
+      /* TEN / W7-056 [A2-play-9]: a Next hole in the thumb zone, under the last golfer's row (this state rests at the page top,
+         so the check's click and its restore leave the capture as it was) */
+      nextHoleFoot) },
 
   /* Skins, three golfers, through five */
   { family: 'play', id: 'skins-scoring', variant: 'member', title: 'Live round · Skins, three golfers, $2 a skin, through five',
@@ -296,7 +363,25 @@ export default [
     expect: { view: 'view-play', selectors: { '#skinsCard': 'visible', '#skinsStatus': 'visible' } },
     check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game },
       /* TEN / W6 · DX2 OB2-02: the meta line's caps are its role's, not typed into the string */
-      capsFromRole(['#skinsMeta'], ['#skinsMeta'])) },
+      capsFromRole(['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'], ['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'])) },
+
+  /* TEN / W6 · OB2-02 (root's §1.3 ruling) · Wolf, four golfers, through three: the card's state line ("Devon is the wolf"), its
+     tee order, the partner buttons and the tally are typed as said, and the roles set their caps */
+  { family: 'play', id: 'wolf-scoring', variant: 'member', title: 'Live round · Wolf, four golfers, through three',
+    drive: async (page) => {
+      await toSetup(page)
+      await pickCourse(page, 'Mesquite', 'Mesquite Wash', 'Black')
+      await addGolfers(page, ['Devon Testwell', 'Blake Sample', 'Casey Placeholder'])
+      await click(page, '#gameSeg [data-g="wolf"]')
+      await teeOff(page)
+      await scoreHoles(page, 3, 4)
+      await toastGone(page)
+      await page.evaluate(() => window.scrollTo(0, 0))
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-play', selectors: { '#wolfCard': 'visible', '#wolfWho': 'text:is the wolf' } },
+    check: all(scoredCheck(3),
+      capsFromRole(['#wolfWho', '#wolfMeta', '#wolfBtns button', '#wolfTally .wt span', '#sbHero'], ['#wolfWho', '#wolfMeta', '#wolfBtns button', '#wolfTally .wt span', '#sbHero'])) },
 
   /* the nine is scored through the last hole; Finish opens the one-finish
      sheet for the group (opened, not yet posted) */
