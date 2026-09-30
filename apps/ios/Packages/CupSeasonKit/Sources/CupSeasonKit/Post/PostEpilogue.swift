@@ -342,6 +342,11 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
 
   /// `SAGUARO FLATS · SAT AUG 22`
   public var eyebrow: String { "\((course.isEmpty ? "A round" : course).uppercased()) · \(Self.when(date))" }
+  /// W7-059: course, optional tee, then date; each gets the whole measure.
+  public var eyebrowLines: [String] {
+    let parts = course.split(separator: "·").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    return (parts.isEmpty ? ["A round"] : parts) + [Self.when(date)]
+  }
   /// The band line — blank when the number is not sane (a rating-less post).
   public var band: String { PostCalc.vsIsSane(vs) ? CSBands.vsPhrase(vs) : "" }
   /// N4-082 · the band as the ceremony sets it: its figure marked as a run

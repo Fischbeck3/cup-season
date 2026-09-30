@@ -304,6 +304,7 @@ import CSDesign
     // W4 twin · a sentence in ink, the web's words (points are not a trophy)
     #expect(earned.earned && earned.pointsLine == "+9 points · counts for Fixture Wrens")
     #expect(earned.eyebrow == "SAGUARO FLATS · SAT AUG 22")
+    #expect(earned.eyebrowLines == ["Saguaro Flats", "SAT AUG 22"])
     #expect(earned.band == "beat your playing HCP by 2.4")
     #expect(earned.bandMarked == "beat your playing HCP by {2.4}")   // N4-082 · the ceremony's run
     let solo = PostCeremony(course: "Saguaro Flats", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: nil, inLeague: true, name: "J", marker: "saguaro", leagueName: nil)

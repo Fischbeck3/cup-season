@@ -55,8 +55,13 @@ struct FinishCeremonyView: View {
       VStack(spacing: 0) {
         Spacer(minLength: 24)
         // N4-090 · the dateline is a label: agate in caps, the role's tracking
-        Text(ceremony.eyebrow).csType(.agate, caps: true).foregroundStyle(eyebrowInk)
-          .multilineTextAlignment(.center).opacity(stage >= 1 ? 1 : 0)
+        VStack(spacing: CSTokens.Space.s1) {
+          ForEach(Array(ceremony.eyebrowLines.enumerated()), id: \.offset) { _, line in
+            Text(line).csType(.agate, caps: true).foregroundStyle(eyebrowInk)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+        .multilineTextAlignment(.center).opacity(stage >= 1 ? 1 : 0)
         if let photo {
           Image(uiImage: photo).resizable().scaledToFill()
             .frame(maxWidth: 340).frame(height: 120).clipped()
