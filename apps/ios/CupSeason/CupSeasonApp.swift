@@ -101,6 +101,7 @@ struct CupSeasonApp: App {
           switch phase {
           case .active:     CSTelemetry.sceneBecameActive()
           case .background: CSTelemetry.sceneEnteredBackground()
+                            WidgetRefreshTask.schedule()   // D400
           default:          break
           }
         }

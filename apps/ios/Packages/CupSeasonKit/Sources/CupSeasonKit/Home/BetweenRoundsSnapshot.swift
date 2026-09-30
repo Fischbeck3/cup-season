@@ -8,8 +8,13 @@ public enum BetweenRoundsKind: String, CaseIterable, Codable, Sendable {
   // Keep the installed season widget's identity.
   case race = "CSSeasonWidget", nextTee = "CSNextTeeWidget"
   case record = "CSRecordWidget", rivalry = "CSRivalryWidget"
+  /// D400 · Home's own ranked cards, carried out to the home screen
+  case whatsOn = "CSWhatsOnWidget"
   public var title: String {
-    switch self { case .race: "The Race"; case .nextTee: "Next Tee"; case .record: "The Record"; case .rivalry: "The Rivalry" }
+    switch self {
+    case .race: "The Race"; case .nextTee: "Next Tee"; case .record: "The Record"; case .rivalry: "The Rivalry"
+    case .whatsOn: "What’s On"
+    }
   }
 }
 
@@ -30,6 +35,11 @@ public struct BetweenRoundsSnapshot: Codable, Sendable, Equatable {
   public var nextTee: WidgetSlice<Tee>?
   public var record: WidgetSlice<Record>?
   public var rivalry: WidgetSlice<Rivalry>?
+  /// D400 · Home's lead and deck, as `home_dispatch` served them
+  public var whatsOn: WidgetSlice<WhatsOn>?
+  /// D400 · whether the golfer holds any season at all, so an empty Race says
+  /// "Start a season" only to a golfer who has none. nil in an older snapshot.
+  public var hasSeason: Bool?
   public init(owner: UUID) { self.owner = owner }
 
   public struct Race: Codable, Sendable, Equatable {
@@ -98,8 +108,70 @@ public struct BetweenRoundsSnapshot: Codable, Sendable, Equatable {
     }
   }
 
+  /// D400 · What's On. Every word is Home's: the ranker's eyebrow, headline
+  /// and verb, copied, never re-derived (L-34). The route is flattened to the
+  /// strings a widget URL can carry.
+  public struct WhatsOn: Codable, Sendable, Equatable {
+    public struct Item: Codable, Sendable, Equatable, Identifiable {
+      public let key: String
+      public let eyebrow: String, headline: String
+      public let action: String?
+      /// `ember` · `gold` · `mut` — the Home card's own spine
+      public let spine: String
+      /// `WhatsOnRoute` raw value, and the id and pane it carries
+      public let route: String?
+      public let routeId: UUID?
+      public let pane: String?
+      public var id: String { key }
+      public init(key: String, eyebrow: String, headline: String, action: String?, spine: String,
+                  route: String?, routeId: UUID?, pane: String?) {
+        self.key = key; self.eyebrow = eyebrow; self.headline = headline; self.action = action; self.spine = spine
+        self.route = route; self.routeId = routeId; self.pane = pane
+      }
+    }
+    public let items: [Item]
+    public init(items: [Item]) { self.items = items }
+
+    /// The featured item for a rotation step, and the ones after it in order.
+    public func rotated(_ step: Int) -> [Item] {
+      guard !items.isEmpty else { return [] }
+      let start = ((step % items.count) + items.count) % items.count
+      return Array(items[start...] + items[..<start])
+    }
+  }
+
+  /// D400 · how often the What's On feature card turns, and for how long a
+  /// single timeline keeps turning before the provider is asked again
+  public static let rotationStep: TimeInterval = 20 * 60
+  public static let rotationSpan: TimeInterval = 6 * 60 * 60
+
+  /// D400 · the rotation's entries: one every `rotationStep`, and the stale
+  /// boundary, where the rotation stops offering doors. A snapshot with one
+  /// item (or none) has nothing to turn.
+  public func rotationDates(now: Date) -> [(date: Date, step: Int)] {
+    let count = whatsOn?.value?.items.count ?? 0
+    var out: [(date: Date, step: Int)] = [(now, 0)]
+    guard count > 1 else {
+      if let saved = whatsOn?.savedAt, saved.addingTimeInterval(DispatchSnapshot.staleAfter) > now {
+        out.append((saved.addingTimeInterval(DispatchSnapshot.staleAfter), 0))
+      }
+      return out
+    }
+    let expiry = whatsOn?.savedAt.addingTimeInterval(DispatchSnapshot.staleAfter) ?? now
+    guard expiry > now else { return out }
+    var t = now.addingTimeInterval(Self.rotationStep), step = 1
+    while t < now.addingTimeInterval(Self.rotationSpan) {
+      if t >= expiry { out.append((expiry, 0)); break }
+      out.append((t, step)); step += 1; t = t.addingTimeInterval(Self.rotationStep)
+    }
+    return out
+  }
+
   public func savedAt(for kind: BetweenRoundsKind) -> Date? {
-    switch kind { case .race: race?.savedAt; case .nextTee: nextTee?.savedAt; case .record: record?.savedAt; case .rivalry: rivalry?.savedAt }
+    switch kind {
+    case .race: race?.savedAt; case .nextTee: nextTee?.savedAt; case .record: record?.savedAt; case .rivalry: rivalry?.savedAt
+    case .whatsOn: whatsOn?.savedAt
+    }
   }
   public func isStale(_ kind: BetweenRoundsKind, at now: Date) -> Bool {
     guard let saved = savedAt(for: kind) else { return true }
@@ -129,8 +201,19 @@ public struct BetweenRoundsSnapshot: Codable, Sendable, Equatable {
   public func link(for kind: BetweenRoundsKind) -> URL {
     let id: UUID?
     switch kind { case .race: id = race?.value?.league; case .nextTee: id = nextTee?.value?.id
-    case .record: id = record?.value?.id; case .rivalry: id = rivalry?.value?.opponent }
+    case .record: id = record?.value?.id; case .rivalry: id = rivalry?.value?.opponent
+    case .whatsOn: return link(for: whatsOn?.value?.items.first)
+    }
     return WidgetDestination(kind: kind, id: id, owner: owner).url
+  }
+  /// D400 · one What's On item's own door. A route the app cannot open from a
+  /// widget lands on Home, where the same card sits.
+  public func link(for item: WhatsOn.Item?) -> URL {
+    guard let item, let route = item.route.flatMap(WhatsOnRoute.init(rawValue:)),
+          !route.needsId || item.routeId != nil else {
+      return WidgetDestination(kind: .whatsOn, id: nil, owner: owner).url
+    }
+    return WidgetDestination(kind: .whatsOn, id: item.routeId, owner: owner, route: route, pane: item.pane).url
   }
 
   public static func read(_ defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) -> Self? {
@@ -149,16 +232,34 @@ public struct BetweenRoundsSnapshot: Codable, Sendable, Equatable {
   }
 }
 
+/// D400 · the doors a What's On item may open from a widget. Anything else a
+/// Home card routes to (the composer, an invitation's terms) needs state the
+/// URL cannot carry, and lands on Home instead.
+public enum WhatsOnRoute: String, Codable, Sendable, CaseIterable {
+  case receipt, plan, season, live, people, home
+  /// Whether the route needs an id to mean anything
+  public var needsId: Bool { self == .receipt || self == .plan || self == .season }
+}
+
 /// A widget is a private read door, never a share token or an automatic write.
 public struct WidgetDestination: Codable, Sendable, Equatable {
   public let kind: BetweenRoundsKind
   public let id: UUID?
   public let owner: UUID
-  public init(kind: BetweenRoundsKind, id: UUID?, owner: UUID) { self.kind = kind; self.id = id; self.owner = owner }
+  /// D400 · What's On only: which door, and the season pane it names
+  public let route: WhatsOnRoute?
+  public let pane: String?
+  public init(kind: BetweenRoundsKind, id: UUID?, owner: UUID, route: WhatsOnRoute? = nil, pane: String? = nil) {
+    self.kind = kind; self.id = id; self.owner = owner
+    self.route = kind == .whatsOn ? route : nil
+    self.pane = kind == .whatsOn && route == .season ? pane : nil
+  }
   public var url: URL {
     var c = URLComponents(); c.scheme = "cupseason"; c.host = "widget"
     c.queryItems = [.init(name: "kind", value: kind.rawValue), .init(name: "owner", value: owner.uuidString)]
     if let id { c.queryItems?.append(.init(name: "id", value: id.uuidString)) }
+    if let route { c.queryItems?.append(.init(name: "route", value: route.rawValue)) }
+    if let pane { c.queryItems?.append(.init(name: "pane", value: pane)) }
     return c.url!
   }
   public init?(url: URL) {
@@ -171,6 +272,18 @@ public struct WidgetDestination: Codable, Sendable, Equatable {
           let owner = value("owner").flatMap(UUID.init) else { return nil }
     let ids = c.queryItems?.filter { $0.name == "id" } ?? []
     guard ids.isEmpty || (ids.count == 1 && value("id").flatMap(UUID.init) != nil) else { return nil }
-    self.init(kind: kind, id: value("id").flatMap(UUID.init), owner: owner)
+    // D400 · a route is What's On's alone, spelled once, and one this app knows
+    let routes = c.queryItems?.filter { $0.name == "route" } ?? []
+    let panes = c.queryItems?.filter { $0.name == "pane" } ?? []
+    guard routes.count <= 1, panes.count <= 1 else { return nil }
+    var route: WhatsOnRoute?
+    if let raw = value("route") {
+      guard kind == .whatsOn, let r = WhatsOnRoute(rawValue: raw) else { return nil }
+      route = r
+    }
+    let pane = value("pane")
+    if pane != nil, route != .season { return nil }
+    if let pane, pane.count > 24 || !pane.allSatisfy({ $0.isLetter || $0 == "_" }) { return nil }
+    self.init(kind: kind, id: value("id").flatMap(UUID.init), owner: owner, route: route, pane: pane)
   }
 }

@@ -88,6 +88,11 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         # D155 · the round on the lock screen and in the Dynamic Island.
         NSSupportsLiveActivities: true
+        # D400 · the widgets refresh with the app closed: one BGAppRefreshTask
+        # re-reads home_dispatch and the four slices (WidgetRefreshTask). iOS
+        # decides when it runs; the app asks no sooner than every 90 minutes.
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [app.cupseason.ios.widgets.refresh]
         # D251 / R-G · contacts matching. The address book is read ONCE, on the
         # crew step or wizard step 1, only after the consent sentence, and only
         # to compute salted-on-arrival hashes — never a raw contact, never
@@ -163,6 +168,7 @@ targets:
       - path: Packages/CupSeasonKit/Sources/CupSeasonKit/Home/BetweenRoundsSnapshot.swift
       - path: CupSeason/Widgets/ReplyToTeeIntent.swift
       - path: CupSeason/Widgets/BetweenRoundsWidgetView.swift
+      - path: CupSeason/Widgets/WhatsOnWidgetView.swift
       - path: CupSeason/Widgets/LiveScoreIntent.swift
       - path: CupSeason/Widgets/LiveMatchActivityView.swift
       - path: CupSeason/Resources/Fonts
