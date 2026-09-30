@@ -13,6 +13,7 @@ import CupSeasonKit
 struct DoorView: View {
   @Environment(\.cs) private var cs
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.openURL) private var openURL
   @State private var vm = DoorModel()
   @State private var entering = false
   @State private var showingBuild = false
@@ -292,6 +293,7 @@ struct DoorView: View {
       // button already says a code is coming, so this line does not say it again.
       Text(DoorCopy.noPassword)
         .csType(.bodyS).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
+      if vm.note?.tone == .neg { troubleSigningIn }
       haveACode
     }
   }
@@ -365,8 +367,19 @@ struct DoorView: View {
           .buttonStyle(.csTertiary(.content))
       }
       .padding(.top, CSTokens.Space.s1)
+      troubleSigningIn
     }
     .onAppear { focus = .code }
+  }
+
+  /// W7-163 · a golfer whose code never arrives had Resend and nothing else.
+  /// The support page's section on codes opens outside the app, so the door
+  /// keeps what was typed (the web's #obHelp, beside Resend).
+  private var troubleSigningIn: some View {
+    Button(DoorCopy.trouble) { openURL(CSConfig.supportCodeURL) }
+      .buttonStyle(.csTertiary(.content))
+      .accessibilityHint("Opens the support page in the browser")
+      .accessibilityIdentifier("door.help")
   }
 
   private var passwordStage: some View {
@@ -475,7 +488,19 @@ final class DoorModel {
       startCooldown(); scheduleSpamHint()
     } catch {
       note = Note(text: AuthRules.human(error, fallback: "Could not send the code."), tone: .neg)
+      rateLimited(error)
     }
+  }
+
+  /// W7-164 · a refused send was live again at once, with no wait given and
+  /// no place for a code from an earlier email. A rate-limit refusal opens
+  /// the code field, says both things, and holds the send behind a clock: the
+  /// wait the server names, or a minute.
+  private func rateLimited(_ error: Error) {
+    guard AuthRules.isRateLimit(error) else { return }
+    stage = .code; code = ""
+    note = Note(text: AuthRules.tooManyEmails + " " + AuthRules.rateLimitedEarlierCode, tone: .neg)
+    startCooldown(AuthRules.retryAfter(error) ?? 60)
   }
 
   func verify() async {
@@ -505,6 +530,7 @@ final class DoorModel {
       startCooldown(); scheduleSpamHint()
     } catch {
       note = Note(text: AuthRules.human(error, fallback: "Could not resend."), tone: .neg)
+      rateLimited(error)
     }
   }
 
@@ -572,8 +598,8 @@ final class DoorModel {
     }
   }
 
-  private func startCooldown() {
-    resendIn = 30
+  private func startCooldown(_ seconds: Int = 30) {
+    resendIn = seconds
     ticker?.cancel()
     ticker = Task { [weak self] in
       while let self, self.resendIn > 0 {
@@ -593,6 +619,8 @@ enum DoorCopy {
   static let sendCode = "Send code"
   static let sending = "Sending\u{2026}"
   static let noPassword = "No password needed."
+  /// W7-163 · the door's help, in the desk's words
+  static let trouble = "Trouble signing in?"
 }
 
 /// The door's own name: its mark and "Cup Season". N4-040 (root) · the

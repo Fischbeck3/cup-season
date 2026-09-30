@@ -1,7 +1,7 @@
 // Cup Season — the two look dials (D103a, IOS-025).
 //
-// The PERSON's dial lives under Appearance in Settings: follow the calendar
-// (default) · Fescue only · one look all year. The PRO's dial lives on the
+// The PERSON's dial lives under Appearance in Settings: follow the calendar ·
+// Fescue only (the default, Q31) · one look all year. The PRO's dial lives on the
 // League pane: follow the calendar (clear) · one of the nine calendar looks.
 // Same rows, same swatch; the two phase looks are listed but never picked —
 // the season turns them on. Every colour is a token or a catalogue entry.

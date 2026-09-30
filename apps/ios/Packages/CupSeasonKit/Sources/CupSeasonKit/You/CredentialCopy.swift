@@ -128,16 +128,22 @@ public enum CredentialCopy {
   /// A nine says it is one under its date: "SEP 13 · NINE", as the web prints it.
   public static let formNine = "NINE"
 
-  /// The line under a FORM column, on one line: "SEP 27", "SEP 13 · NINE".
-  public static func formDate(_ r: TourCard.Recent) -> String {
-    RivalryCopy.monthDay(r.playedOn) + (r.isNine ? " · \(formNine)" : "")
+  /// W7-111 · the best column's word: the gold was the only channel that
+  /// marked it, and a word is the second. The caps come from the role.
+  public static let formBestWord = "best"
+
+  /// The line under a FORM column, on one line: "SEP 27", "SEP 13 · NINE",
+  /// and the best "SEP 15 · best" (the role sets it in caps).
+  public static func formDate(_ r: TourCard.Recent, best: Bool = false) -> String {
+    RivalryCopy.monthDay(r.playedOn) + (r.isNine ? " · \(formNine)" : "") + (best ? " · \(formBestWord)" : "")
   }
 
   /// A FORM column said aloud: "84, September 27", with ", nine holes" for a
-  /// nine and ", their best" for the gold.
-  public static func formSpoken(_ r: TourCard.Recent, best: Bool) -> String {
+  /// nine and ", their best" for the gold, ", your best" on the golfer's own
+  /// card (W7-111).
+  public static func formSpoken(_ r: TourCard.Recent, best: Bool, mine: Bool = false) -> String {
     "\(r.gross.map(String.init) ?? "no round"), \(RivalryCopy.monthDaySpoken(r.playedOn))"
-      + (r.isNine ? ", nine holes" : "") + (best ? ", their best" : "")
+      + (r.isNine ? ", nine holes" : "") + (best ? (mine ? ", your best" : ", their best") : "")
   }
 
   /// The COURSES head's count: `11 kept`.

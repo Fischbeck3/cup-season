@@ -146,6 +146,18 @@ final class N4ShellUITests: N2UITestCase {
     XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "the next Back leaves without saving")
   }
 
+  /// W7-149 · an invitation on Home is declined where it is shown: its
+  /// Decline sits under the item, one tap, a 44pt target (the web's harness
+  /// check for '#homeLead [data-ivdec]').
+  @MainActor func testHomesInvitationCanBeDeclinedWhereItIs() {
+    let app = launch("season-live", "home")
+    _ = root(app, "home")
+    let decline = app.buttons["home.invite.decline"]
+    XCTAssertTrue(decline.waitForExistence(timeout: 20), "the invitation carries its Decline")
+    XCTAssertTrue(decline.label.localizedCaseInsensitiveContains("decline"), decline.label)
+    XCTAssertGreaterThanOrEqual(decline.frame.height, 44, "a 44pt target")
+  }
+
   /// W7-042 · a card nobody touched is not asked about. The load filling the
   /// fields is not an edit: the system's Back stays, Save reads "Save card",
   /// and Back leaves with no question.

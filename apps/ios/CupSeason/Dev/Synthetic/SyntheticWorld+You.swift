@@ -144,17 +144,49 @@ extension SyntheticWorld {
 
   func achievements() -> [[String: Any]] {
     guard hasRounds else { return [] }
-    let pb = rounds.first { $0.n == 4_003 }
     let sub80 = rounds.first { $0.owner.n == me.n && $0.sub80 }
     let firstRound = myRounds.min { $0.day < $1.day }
-    return [
-      ["kind": "personal_best", "label": "Personal best", "earned_on": day(-9), "meta": ["diff": pb?.differential ?? 7.8], "round_id": pb?.ids ?? NSNull()],
+    var out: [[String: Any]] = []
+    // X39 (2) · D399: a personal best needs an EARLIER round and beats every
+    // one of them strictly (round_moments' rule, which rederive_achievements
+    // adopts in 20261216090000), so a lone round carries none. The harness
+    // world's rederive() says the same (85356446); the web half is da806ce1.
+    // Over this world's rounds the rule lands where the fixture always had it
+    // (the 81 on day −9, 7.8), so no screen moves for it.
+    if let pb = Self.personalBest(myRounds) {
+      out.append(["kind": "personal_best", "label": "Personal best", "earned_on": day(pb.day),
+                  "meta": ["diff": pb.differential], "round_id": pb.ids])
+    }
+    let thresholds: [[String: Any]] = [
       ["kind": "sub_80", "label": "Broke 80", "earned_on": day(sub80?.day ?? -73), "meta": ["gross": sub80?.gross ?? 79], "round_id": sub80?.ids ?? NSNull()],
       ["kind": "streak_4", "label": "Four weeks running", "earned_on": day(-115), "meta": ["weeks": 4], "round_id": NSNull()],
       ["kind": "sub_90", "label": "Broke 90", "earned_on": day(-129), "meta": ["gross": 89], "round_id": fids(4_021)],
-      ["kind": "first_round", "label": "First round", "earned_on": day(firstRound?.day ?? -143), "meta": [String: Any](),
-       "round_id": firstRound?.ids ?? NSNull()],
     ]
+    out += thresholds
+    // X39 (2) · the first 18-hole round under 100 WAS the first round (a 95),
+    // so rederive mints Broke 100 on it — and the case folds that row into
+    // FIRST ROUND (`TrophyCase.tiles`), which is the state X39 is about.
+    if let f = firstRound, f.holes == 18, f.gross < 100 {
+      out.append(["kind": "sub_100", "label": "Broke 100", "earned_on": day(f.day), "meta": ["gross": f.gross], "round_id": f.ids])
+    }
+    // the server's first_round carries its gross (`round_moments`), which is
+    // what the folded slat names when the round is not in hand
+    var firstMeta: [String: Any] = [:]
+    if let f = firstRound { firstMeta["gross"] = f.gross }
+    out.append(["kind": "first_round", "label": "First round", "earned_on": day(firstRound?.day ?? -143), "meta": firstMeta,
+                "round_id": firstRound?.ids ?? NSNull()])
+    return out
+  }
+
+  /// X39 · D399's personal-best rule over one golfer's rounds, oldest first: a
+  /// round strictly below EVERY earlier round's differential, the lowest such
+  /// (the later on a tie). The first round is never one, so one round is none.
+  static func personalBest(_ rounds: [SynthRound]) -> SynthRound? {
+    let byDay = rounds.sorted { $0.day == $1.day ? $0.n < $1.n : $0.day < $1.day }
+    let beats = byDay.indices.dropFirst()
+      .filter { i in byDay[..<i].allSatisfy { $0.differential > byDay[i].differential } }
+      .map { byDay[$0] }
+    return beats.min { $0.differential == $1.differential ? $0.day > $1.day : $0.differential < $1.differential }
   }
 
   func careerRecord() -> [String: Any] {

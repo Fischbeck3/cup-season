@@ -410,7 +410,7 @@ struct WizardStakeStep: View {
       if model.showDials { WizardDialsPane(model: model, help: $help) }
 
       Text(WizardCopy.nameIt).csEyebrow().padding(.top, 6)
-      CSField("The Saturday Regulars", text: $model.dials.name, font: CSFont.body)
+      CSField("The Big Slice, The Sunday Cup, The Early Birds\u{2026}", text: $model.dials.name, font: CSFont.body)
         .textInputAutocapitalization(.words)
         .onChange(of: model.dials.name) { _, _ in model.nameTouched = true }
         .accessibilityLabel(WizardCopy.nameIt)

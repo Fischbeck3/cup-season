@@ -37,6 +37,16 @@ import Foundation
     #expect(AuthRules.human(E(m: ""), fallback: "That did not take.") == "That did not take.")
     #expect(AuthRules.human(E(m: "429 rate limit exceeded")) == "Too many sign-in emails for now — give it a few minutes and try again.")
     #expect(!AuthRules.human(E(m: "429 rate limit exceeded")).contains("mailer"))
+    // W7-164 · a rate-limit refusal is known as one, and its wait is read from
+    // the server's own sentence when it names one
+    #expect(AuthRules.isRateLimit(E(m: "429 rate limit exceeded")))
+    // Supabase's own form of it names no status and no "rate limit"
+    let wait = E(m: "For security purposes, you can only request this after 47 seconds.")
+    #expect(AuthRules.isRateLimit(wait) && AuthRules.human(wait) == AuthRules.tooManyEmails)
+    #expect(!AuthRules.isRateLimit(E(m: "invite not found")))
+    #expect(AuthRules.retryAfter(E(m: "For security purposes, you can only request this after 47 seconds.")) == 47)
+    #expect(AuthRules.retryAfter(E(m: "429 rate limit exceeded")) == nil)
+    #expect(AuthRules.rateLimitedEarlierCode == "Have a code from an earlier email? Enter it below.")
   }
 }
 

@@ -216,10 +216,16 @@ public struct HomePage {
   /// once on the page, keyed by item key. Empty when nothing repeats.
   public let wireContext: [String: String]
 
+  /// W7-011 · LAST stands down when the wire shows the golfer's own newest
+  /// round ANYWHERE on it. It stood down only when that round was the wire's
+  /// first row, so a buddy who posted since pushed it to the second, and the
+  /// strip printed the round again above the card that already said it (L-34).
   public func repeatsLastRound(_ strip: MeStripCopy.Strip) -> Bool {
-    guard let first = rows.first(where: { if case .digest = $0.body { return false }; return true }), case .round(let row, _) = first.body,
-          let round = row.round_id else { return false }
-    return strip.slots.contains { $0.fact == .myLastRound && $0.door == .receipt(round) }
+    Self.repeatsLastRound(strip, shown: rows.compactMap { if case .round(let row, _) = $0.body { return row.round_id }; return nil })
+  }
+  static func repeatsLastRound(_ strip: MeStripCopy.Strip, shown: [UUID]) -> Bool {
+    guard let last = strip.slots.first(where: { $0.fact == .myLastRound }), case .receipt(let round) = last.door else { return false }
+    return shown.contains(round)
   }
 
   public var wireTitle: String { firstRound ? HomeFirstRound.eyebrow : "The wire" }

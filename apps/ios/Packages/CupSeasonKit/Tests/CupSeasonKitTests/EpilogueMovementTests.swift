@@ -92,7 +92,9 @@ import Foundation
     let act = PostNextAct.choose(epilogue(movement: .init(rankBefore: 4, rankAfter: 2, of: 8, passed: ["Jade"])),
                                  context: .init(clashOpponent: (name: "Galen", id: UUID(), weeksRunning: 2)))
     #expect(act.key == "clash")
-    #expect(act.sentence == "That takes the clash. Second week running.")
+    // X36 (1) · the settled spotlight is named as the weekly clash — the
+    // web's `csNextAct` (bfce5aea), word for word
+    #expect(act.sentence == "That takes the weekly clash. Second week running.")
     #expect(act.label == "See the head-to-head")
   }
 

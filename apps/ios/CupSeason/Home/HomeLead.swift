@@ -101,7 +101,9 @@ struct HomeLead: View {
                   .accessibilityHidden(true)
                   .csBudget(ember: 1)
               }
-              Text(item.eyebrow).csType(.agate, caps: true)
+              // W7-074 · a line of clauses breaks on its separators, never
+              // inside one ('CLOSES IN' / '5 DAYS'), as the story card's does
+              CSClauseLine(item.eyebrow, role: .agate, caps: true, colour: cs.ink)
               if let chip = HomeLeadChip.make(membership) {
                 Text(CSCopy.ordinal(chip.rank)).csType(.name)
               }

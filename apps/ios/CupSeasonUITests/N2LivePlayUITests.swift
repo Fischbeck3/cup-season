@@ -98,6 +98,9 @@ final class N2LivePlayUITests: XCTestCase {
       let field = app.textFields[id]
       XCTAssertTrue(field.exists && !field.isEnabled, "\(id) is locked while the round is held")
     }
+    // W7-003r · the card note's setup guidance stands down beside the lock
+    XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "par-72")).firstMatch.exists,
+                   "no card note while the round is held")
     XCTAssertFalse(app.buttons["9 holes"].firstMatch.isEnabled, "the holes are locked while held")
     XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label ==[c] %@", "enter the pars")).firstMatch.isEnabled,
                    "the pars are locked while held")

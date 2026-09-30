@@ -7,14 +7,15 @@ import CSDesign
 @MainActor @Suite struct OwnerQ46FieldTests {
   @Test func anUnfocusedFieldPaintsAThreeToOneEdgeInBothPrintings() throws {
     for scheme in [ColorScheme.dark, .light] {
-      let host = HostedLayout(CSField(placeholder: "", text: .constant("")).environment(\.cs, scheme == .dark ? CSTokens.dark : CSTokens.light).padding(.horizontal, 20),
-                              width: 375, height: 100, scheme: scheme)
-      defer { host.tearDown() }
-      let format = UIGraphicsImageRendererFormat(); format.scale = 1
-      let image = UIGraphicsImageRenderer(size: CGSize(width: 375, height: 100), format: format).image { c in
-        host.host.view.layer.render(in: c.cgContext)
-      }
-      let cg = try #require(image.cgImage)
+      // layer.render(in:) and drawHierarchy both paint an offscreen SwiftUI
+      // host black in the unit runner; ImageRenderer draws the view itself
+      let renderer = ImageRenderer(content: CSField(placeholder: "", text: .constant(""))
+        .environment(\.cs, scheme == .dark ? CSTokens.dark : CSTokens.light)
+        .environment(\.colorScheme, scheme)
+        .padding(.horizontal, 20)
+        .frame(width: 375, height: 100, alignment: .top))
+      renderer.scale = 1
+      let cg = try #require(renderer.cgImage)
       var bytes = [UInt8](repeating: 0, count: 375 * 100 * 4)
       let painted = bytes.withUnsafeMutableBytes { raw -> Bool in
         guard let context = CGContext(data: raw.baseAddress, width: 375, height: 100, bitsPerComponent: 8,

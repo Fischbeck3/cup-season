@@ -191,21 +191,24 @@ private let full = """
 
   // MARK: the sentences
 
+  /// X36 (1) · the sum says what it sums: "across every meeting", so it never
+  /// reads as the one record beside You's season weeks. Pins the web's
+  /// `csH2HHeadline` (bfce5aea) word for word.
   @Test func theHeadlineNamesWhoLeads() throws {
     let up = HeadToHead.parse(try json(full))
-    #expect(HeadToHeadCopy.headline(up) == "You lead 6–5.")
+    #expect(HeadToHeadCopy.headline(up) == "You lead 6–5 across every meeting.")
 
     let down = HeadToHead.parse(try json("""
     { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
       "record": { "wins": 5, "losses": 6, "ties": 0, "total": 11 }, "lead": "down", "facets": {} }
     """))
-    #expect(HeadToHeadCopy.headline(down) == "Galen leads 6–5.")
+    #expect(HeadToHeadCopy.headline(down) == "Galen leads 6–5 across every meeting.")
 
     let even = HeadToHead.parse(try json("""
     { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
       "record": { "wins": 5, "losses": 5, "ties": 0, "total": 10 }, "lead": "even", "facets": {} }
     """))
-    #expect(HeadToHeadCopy.headline(even) == "All square, 5–5.")
+    #expect(HeadToHeadCopy.headline(even) == "All square, 5–5, across every meeting.")
   }
 
   @Test func nothingDecidedMeansNoHeadlineAtAll() throws {
@@ -260,27 +263,35 @@ private let full = """
     #expect(HeadToHeadCopy.standfirst(h)?.contains("taken the last") == false)
   }
 
+  /// X36 (1) · every clause names its facet, "across every meeting". Pins the
+  /// web's `csH2HPersonClause` (bfce5aea) word for word, including the
+  /// clean sweep's dropped "of them".
   @Test func thePersonClauseIsTheOneTheCardBorrows() throws {
     let h = HeadToHead.parse(try json(full))
-    #expect(HeadToHeadCopy.personClause(h) == "Galen has beaten you five times out of eleven.")
+    #expect(HeadToHeadCopy.personClause(h) == "Galen has beaten you five times out of eleven, across every meeting.")
 
     let clean = HeadToHead.parse(try json("""
     { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
       "record": { "wins": 3, "losses": 0, "ties": 0, "total": 3 }, "lead": "up", "facets": {} }
     """))
-    #expect(HeadToHeadCopy.personClause(clean) == "You have taken all three of them.")
+    #expect(HeadToHeadCopy.personClause(clean) == "You have taken all three, across every meeting.")
+    let eleven = HeadToHead.parse(try json("""
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+      "record": { "wins": 11, "losses": 0, "ties": 0, "total": 11 }, "lead": "up", "facets": {} }
+    """))
+    #expect(HeadToHeadCopy.personClause(eleven) == "You have taken all eleven, across every meeting.")
 
     // W3 twin · a level record is said as level, never as a loss
     let level = HeadToHead.parse(try json("""
     { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake Sample" },
       "record": { "wins": 5, "losses": 5, "ties": 0, "total": 10 }, "lead": "even", "facets": {} }
     """))
-    #expect(HeadToHeadCopy.personClause(level) == "All square between you, 5–5.")
+    #expect(HeadToHeadCopy.personClause(level) == "All square between you, 5–5, across every meeting.")
     let levelTied = HeadToHead.parse(try json("""
     { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Blake Sample" },
       "record": { "wins": 2, "losses": 2, "ties": 1, "total": 5 }, "lead": "even", "facets": {} }
     """))
-    #expect(HeadToHeadCopy.personClause(levelTied) == "All square between you, 2–2–1.")
+    #expect(HeadToHeadCopy.personClause(levelTied) == "All square between you, 2–2–1, across every meeting.")
   }
 
   // MARK: the gate and the fence
@@ -319,7 +330,7 @@ private let full = """
       "case": [ { "kind": "league", "title": "Cup", "placement": "winner", "season_year": 2026 } ] }
     """))
     let line = try #require(HeadToHeadCopy.personNarrative(card: card, h2h: h))
-    #expect(line == "Galen has won one title, and has beaten you five times out of eleven.")
+    #expect(line == "Galen has won one title, and has beaten you five times out of eleven, across every meeting.")
     #expect(line.components(separatedBy: "Galen").count - 1 == 1)
   }
 
@@ -329,7 +340,7 @@ private let full = """
     { "visible": true, "profile": { "id": "\(opp)", "display_name": "Galen" }, "career": { "rounds": 3 } }
     """))
     #expect(HeadToHeadCopy.personNarrative(card: noCase, h2h: h)
-            == "Galen has beaten you five times out of eleven.")
+            == "Galen has beaten you five times out of eleven, across every meeting.")
     // and with neither fact there is no sentence at all (L-44)
     #expect(HeadToHeadCopy.personNarrative(card: noCase, h2h: nil) == nil)
   }

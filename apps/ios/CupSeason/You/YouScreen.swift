@@ -117,6 +117,8 @@ struct YouScreen: View {
 
   @State private var model = YouModel()
   @State private var reqs = BuddyRequestsModel()
+  /// W7-089 · every round, each to its receipt
+  @State private var allRounds = false
 
   private var uid: UUID? { store.session?.user.id }
   private var league: Me.Membership? {
@@ -203,6 +205,7 @@ struct YouScreen: View {
     .sliceToastHost()
     .refreshable { await reload() }
     .task(id: store.me?.profile?.id) { await reload(); await reqs.load(); await model.loadBag() }
+    .sheet(isPresented: $allRounds) { YourRoundsSheet() }
     #if DEBUG
     // `-cs_dev_scroll <anchor>` — the same door the season room has, because a
     // page three screens tall cannot be judged from its top and its bottom.
@@ -386,7 +389,13 @@ struct YouScreen: View {
       // W7-047 · the head names its window; the slot counts only a short one
       // ("three of five"), as the web's You does (the person page keeps its head)
       ProfileHead("Form · last five", count: recent.count < 5 ? CredentialCopy.formCount(recent.count) : nil)
-      ProfileFormRow(rounds: recent).id("you-form")
+      ProfileFormRow(rounds: recent, mine: true).id("you-form")
+      // W7-089 · the record holds more rounds than the form shows, and there
+      // was no door to the rest: "The other three" opens every one of them
+      if let total = model.data.career?.rounds, total > min(recent.count, 5) {
+        CSDoor(.link(YouCopy.otherRounds(total - min(recent.count, 5))) { allRounds = true })
+          .accessibilityIdentifier("you.allRounds")
+      }
     } else if noRounds {
       // §11 · nothing on the card yet: ONE empty state, not three sections
       // each saying "not yet" in its own words. F10 · and not twice in this
@@ -551,4 +560,96 @@ struct LastRoundWithLine: View {
   NavigationStack { YouScreen(leagueId: nil, links: .none) }
     .environment(SessionStore())
     .csTheme()
+}
+
+/// W7-089 · every round on the record, newest first, each to its own receipt.
+/// The form row shows five and the record held more, with no door to them.
+private struct YourRoundsSheet: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.dismiss) private var dismiss
+  @Environment(SessionStore.self) private var store
+  @State private var rows: [RoundRow] = []
+  @State private var loading = true
+  @State private var failed: String?
+  @State private var open: RoundRow?
+
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
+          CSSheetHeader(title: YouCopy.allRoundsTitle, sub: nil)
+            .padding(.bottom, CSTokens.Space.s3)
+          if let failed, rows.isEmpty {
+            VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+              Text(failed).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+              CSDoor(.link("Try again") { Task { await load() } })
+            }
+            .padding(.top, CSTokens.Space.s3)
+          } else if loading && rows.isEmpty {
+            // LINT-22 · loading is the list's own geometry, redacted
+            ForEach(0..<5, id: \.self) { _ in placeholderRow }
+          } else {
+            ForEach(rows) { r in row(r) }
+          }
+        }
+        .padding(.horizontal, CSTokens.Space.gutter)
+      }
+      .background(cs.bg0)
+      // LINT-24 · the sheet names itself once, in its own header
+      .navigationTitle("").navigationBarTitleDisplayMode(.inline)
+      .csCloseButton { dismiss() }
+    }
+    .task { await load() }
+    .sheet(item: $open) { r in
+      RoundReceiptSheet(roundId: r.id, seed: r.seed(marker: store.me?.profile?.marker, isMine: true))
+    }
+  }
+
+  private func row(_ r: RoundRow) -> some View {
+    Button { open = r } label: {
+      HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(r.course_label ?? "A course").csType(.social).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+          Text(sub(r)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+        Spacer(minLength: CSTokens.Space.s2)
+        CSFigure(r.gross.map(String.init) ?? "\u{2014}", size: .s, label: nil)
+      }
+      .padding(.vertical, CSTokens.Space.s3)
+      .frame(minHeight: 50)
+      .overlay(alignment: .bottom) { CSRule() }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(spoken(r))
+    .accessibilityHint("Opens the round")
+    .accessibilityAddTraits(.isButton)
+    .accessibilityIdentifier("you.allRounds.row")
+  }
+
+  private var placeholderRow: some View {
+    HStack { Text("A course on a day").csType(.social); Spacer(); Text("00").csType(.figureS) }
+      .padding(.vertical, CSTokens.Space.s3).frame(minHeight: 50)
+      .redacted(reason: .placeholder).accessibilityHidden(true)
+  }
+
+  private func sub(_ r: RoundRow) -> String {
+    (r.played_on.map { RivalryCopy.monthDay($0) } ?? "") + (r.holes_played == 9 ? " \u{00B7} \(CredentialCopy.formNine)" : "")
+  }
+
+  private func spoken(_ r: RoundRow) -> String {
+    [r.course_label ?? "A course", r.gross.map(String.init) ?? "no score",
+     r.played_on.map { RivalryCopy.monthDaySpoken($0) }].compactMap { $0 }.joined(separator: ", ")
+      + (r.holes_played == 9 ? ", nine holes" : "")
+  }
+
+  private func load() async {
+    guard let uid = store.session?.user.id else { loading = false; return }
+    loading = true; failed = nil
+    do { rows = try await RoundsRepository().myRounds(uid) }
+    catch { failed = HumanError.text(error, prefix: "Your rounds didn\u{2019}t load.") }
+    loading = false
+  }
 }

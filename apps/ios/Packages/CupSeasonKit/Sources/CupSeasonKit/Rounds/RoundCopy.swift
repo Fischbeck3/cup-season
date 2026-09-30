@@ -39,6 +39,9 @@ public enum RoundCopy {
   public static let photoRemove = "Remove photo"
   /// The armed half of the two-tap. Never an alert (IOS-003 §4).
   public static let photoRemoveArmed = "Sure?"
+  /// W7-157 · under "Turn off this link", while the link is live: what turning
+  /// it off does, in the desk's words
+  public static let linkOffNote = "The page stops working for everyone who has it. You can share a new link anytime."
   /// S9 · the owner's receipt, when the round HAS a photograph that cannot be
   /// shown (the file is gone, or it could not be fetched or signed). Replace
   /// and Remove stay beside it; this is the fact, never an ask, and nobody

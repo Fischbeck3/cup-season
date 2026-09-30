@@ -112,11 +112,24 @@ import CSDesign
 
   @Test func personalLookRoundTrips() {
     let d = UserDefaults(suiteName: "cs-look-tests-\(UUID().uuidString)")!
-    #expect(PersonalLook.load(d) == .calendar)                       // the default
+    #expect(PersonalLook.load(d) == .none)                           // the default: Fescue (Q31)
     PersonalLook.none.save(d);            #expect(PersonalLook.load(d) == .none)
     PersonalLook.fixed("oldest").save(d); #expect(PersonalLook.load(d) == .fixed("oldest"))
     PersonalLook.calendar.save(d);        #expect(PersonalLook.load(d) == .calendar)
-    #expect(PersonalLook(rawValue: "") == .calendar)
+    #expect(PersonalLook(rawValue: "") == .none)
+  }
+
+  /// Q31 (the owner) · the app launches on Fescue. A fresh install, nothing
+  /// stored, wears homebase on Oct 1, the day the calendar would turn Fall;
+  /// a golfer who picked the calendar keeps it, and wears Fall.
+  @Test func aFreshInstallLaunchesOnFescue() {
+    let fresh = UserDefaults(suiteName: "cs-look-fresh-\(UUID().uuidString)")!
+    #expect(PersonalLook.default == .none)
+    #expect(LookResolver.resolve(date: day(2026, 10, 1), calendar: cal, leaguePhase: nil, leagueLook: nil,
+                                 personal: PersonalLook.load(fresh)) == nil)
+    PersonalLook.calendar.save(fresh)
+    #expect(LookResolver.resolve(date: day(2026, 10, 1), calendar: cal, leaguePhase: nil, leagueLook: nil,
+                                 personal: PersonalLook.load(fresh))?.key == "fall")
   }
 
   @Test func leagueLooksPayloadIsParsedStrictly() {

@@ -269,12 +269,19 @@ struct CSArmedButton: View {
   var busy = false
   /// The arm state, for a caller that shows the web's `confirm()` sentence while armed.
   var onArm: ((Bool) -> Void)? = nil
+  /// W7-157 · the same arm drawn as a quiet text link (the tertiary), for an
+  /// act that is not the sheet's weight
+  var link = false
   let action: () -> Void
   @State private var armed = false
 
   var body: some View {
-    CSMini(armed ? armedLabel : label, busy: busy, destructive: armed) {
-      if armed { action() } else { armed = true; CSHaptic.warning() }
+    Group {
+      if link {
+        CSDoor(.link(armed ? armedLabel : label) { tap() }).disabled(busy)
+      } else {
+        CSMini(armed ? armedLabel : label, busy: busy, destructive: armed) { tap() }
+      }
     }
     .task(id: armed) {
       onArm?(armed)
@@ -283,4 +290,6 @@ struct CSArmedButton: View {
       armed = false
     }
   }
+
+  private func tap() { if armed { action() } else { armed = true; CSHaptic.warning() } }
 }

@@ -430,7 +430,7 @@ struct ForfeitSettleSheet: View {
         }
       }
       Text("A line for the archive (optional)").csEyebrow().padding(.top, 8)
-      CSField("Settled on the 18th at Papago", text: $note, font: CSFont.body)
+      CSField("Settled on the 18th green", text: $note, font: CSFont.body)
     }
   }
 }

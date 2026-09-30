@@ -58,8 +58,7 @@ import Foundation
   }
   private func loadRecord(lastRound: UUID?, owner: UUID) async throws -> BetweenRoundsSnapshot.Record? {
     let achievements = try await YouRepository(svc).myAchievements()
-    let milestone = achievements.filter { $0.round_id != nil && ["sub_80", "sub_90", "sub_100", "personal_best", "low_round", "first_round"].contains($0.kind ?? "") }
-      .sorted { ($0.earned_on ?? "") > ($1.earned_on ?? "") }.first
+    let milestone = BetweenRoundsCopy.milestone(achievements)
     guard let id = milestone?.round_id ?? lastRound else { return nil }
     let receipt = ReceiptSeed.from(json: try await RoundsRepository(svc).roundCard(id))
     guard receipt.profileId == owner, let gross = receipt.gross, let holes = receipt.holesPlayed else { return nil }
@@ -84,6 +83,26 @@ import Foundation
 }
 
 public enum BetweenRoundsCopy {
+  /// The Record widget's milestone: the newest one that names its round.
+  ///
+  /// X39 (2) · a first round is a BASELINE (D399): a BESTS row that shares the
+  /// first round's `round_id` is not a milestone of its own — the debut is
+  /// FIRST ROUND, as the trophy case folds it (`TrophyCase.tiles`), so the
+  /// widget never heads a golfer's first round "Broke 90". The web has no
+  /// widget; this is the case's rule carried to the one other surface that
+  /// names a milestone.
+  public static func milestone(_ achievements: [Achievement]) -> Achievement? {
+    let kinds: Set<String> = ["sub_80", "sub_90", "sub_100", "personal_best", "low_round", "first_round"]
+    let firstRid = achievements.first { $0.kind == "first_round" && $0.round_id != nil }?.round_id
+    return achievements
+      .filter { a in
+        guard a.round_id != nil, kinds.contains(a.kind ?? "") else { return false }
+        if let firstRid, a.kind != "first_round", a.round_id == firstRid { return false }
+        return true
+      }
+      .sorted { ($0.earned_on ?? "") > ($1.earned_on ?? "") }.first
+  }
+
   public static func race(_ book: SeasonBookSnapshot) -> BetweenRoundsSnapshot.Race? {
     guard ["active", "cup_final", "complete"].contains(book.status) else { return nil }
     let rows = book.rows.filter { $0.kind == (book.hasSquads ? "squad" : "golfer") }
@@ -140,7 +159,11 @@ public enum BetweenRoundsCopy {
     case "tie", "halve", "halved", "draw": story = "The last week was tied."
     default: story = RivalryCopy.leadLabel(wins: row.wins ?? 0, losses: row.losses ?? 0).capitalized + "."
     }
-    return .init(opponent: opponent, name: name, scope: "Weekly clashes · All time", story: story,
+    // X36 (1) · the widget reads `my_rivalries`, which counts SEASON WEEKS, so
+    // its scope names that facet the way You's row does — never "weekly
+    // clashes", the settled D52/D108 spotlight (OWNER-QUESTIONS X36 lists the
+    // widget's scope among the phone's surfaces; the web has no widget)
+    return .init(opponent: opponent, name: name, scope: RivalryCopy.seasonFacet(row.meetings ?? 0), story: story,
       detail: latest?.wk.map { "Week of \(CSDate.short($0))" }, wins: row.wins ?? 0, losses: row.losses ?? 0, ties: row.ties ?? 0)
   }
 }

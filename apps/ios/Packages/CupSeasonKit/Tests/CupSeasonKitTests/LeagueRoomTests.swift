@@ -157,12 +157,25 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func awardsFirstNamesOnly() {
     let aw = StandingsMath.awards(rows)!
-    #expect(aw.king == "Joe" && aw.kingSub == "Points King · 21 pts")
+    // W7-060 · Joe and Dan are level on 21: the tile names both, and crowns
+    // neither by average
+    #expect(aw.king == "Joe and Dan" && aw.kingSub == "Points King · level on 21")
     #expect(aw.iron == "Dan" && aw.ironSub == "Iron Man · 2 rds")
     // DD-02 · most improved says the fact in words. A down-triangle here meant
     // the OPPOSITE of a down-triangle on the table, in the same face and size.
     #expect(aw.improved == "Dan" && aw.improvedSub == "Most Improved · 0.5 off the index")
     #expect(!aw.improvedSub.contains("\u{25BC}"))
+  }
+  /// W7-060 · three or more level on points: the first, and the rest spelled
+  /// out; one king stands alone with their points.
+  @Test func aTieForTheTopNamesWhoIsLevel() {
+    func row(_ n: String, _ pts: Double) -> IndRow {
+      IndRow(mid: UUID(), n: n, ci: 0, sq: "", r: 3, avg: 0, best: nil, pts: pts, d: nil, me: false, hist: [])
+    }
+    let three = StandingsMath.awards([row("Avery Fixture", 53), row("Blake Fixture", 53), row("Casey Fixture", 53), row("Devon Fixture", 40)])!
+    #expect(three.king == "Avery and two more" && three.kingSub == "Points King · level on 53")
+    let one = StandingsMath.awards([row("Avery Fixture", 53), row("Blake Fixture", 40)])!
+    #expect(one.king == "Avery" && one.kingSub == "Points King · 53 pts")
   }
   @Test func mostImprovedNeedsTwoRounds() {
     let one = StandingsMath.indRows(indiv: [indiv[1]], ranked: [ranked[2]], members: members, squads: squads, myMemberId: nil, capN: 4)
@@ -368,25 +381,78 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   func row(_ id: UUID, _ n: String, pts: Double, max: Double, clinched: Bool = false, out: Bool = false, needs: Double = 0) -> SeasonScenarios.Row {
     .init(id: id, name: n, points: pts, max_final: max, clinched: clinched, eliminated: out, needs: needs)
   }
+  /// W7-071 · sentences in sentence case, joined by a space, the unit named; a
+  /// squad takes the plural verb, a golfer the singular. Pins the web's
+  /// `renderScenarioLine` and `scenSeedWord` (f5c2f84b) word for word.
+  func said(_ sc: SeasonScenarios) -> String { ScenarioLine.parts(sc).map(\.text).joined() }
+  func locked(_ level: String, k: Int) -> SeasonScenarios.Meta {
+    .init(finish: "cup_final", structure: level == "squad" ? "squads4" : "solo", level: level, k: k, months_left: 1, locked: true, cap: 4)
+  }
   @Test func seedsLockedOnceTheFinalRuns() {
     let sc = SeasonScenarios(meta: meta(locked: true), rows: [row(a, "Squad 1", pts: 90, max: 90), row(b, "Squad 2", pts: 70, max: 70), row(c, "Squad 3", pts: 10, max: 10)])
-    #expect(ScenarioLine.parts(sc) == [.clinch("The Final is set"), .text(" — Squad 1 · Squad 2 into the Cup Final")])
+    #expect(ScenarioLine.parts(sc) == [.clinch("The Final is set:"), .text(" "), .bold("Squad 1"), .text(" and "), .bold("Squad 2"), .text(" are in.")])
+    #expect(said(sc) == "The Final is set: Squad 1 and Squad 2 are in.")
+    let three = SeasonScenarios(meta: locked("squad", k: 3), rows: sc.rows)
+    #expect(said(three) == "The Final is set: Squad 1, Squad 2 and Squad 3 are in.")
+    let golfer = SeasonScenarios(meta: locked("golfer", k: 1), rows: [row(a, "Avery Fixture", pts: 90, max: 90)])
+    #expect(said(golfer) == "The Final is set: Avery Fixture is in.")
+    let squad = SeasonScenarios(meta: locked("squad", k: 1), rows: [row(a, "Fixture Javelinas", pts: 90, max: 90)])
+    #expect(said(squad) == "The Final is set: Fixture Javelinas are in.")
   }
   @Test func aMagicNumberOnlyWhenReachable() {
     let sc = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 160, needs: 20), row(d, "Squad 4", pts: 5, max: 30, out: true)])
-    #expect(ScenarioLine.parts(sc) == [.bold("Squad 1"), .text(" · 20 more clinches a Cup seed"), .text(" · "), .out("Squad 4 out of the seed race")])
+    #expect(ScenarioLine.parts(sc) == [.bold("Squad 1"), .text(" clinch a Cup Final place with 20 more points."), .text(" "), .out("Squad 4 are out of the seed race.")])
+    #expect(!said(sc).contains(" · ") && !said(sc).contains("MORE"))
     let far = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 110, needs: 20)])
     #expect(ScenarioLine.parts(far).isEmpty)
+    // one point is one point
+    #expect(ScenarioLine.unit(1) == "1 more point" && ScenarioLine.unit(351) == "351 more points")
+  }
+
+  /// Q50 (A) · owner ruling 2026-09-29, D24 unchanged: the clinch number is a
+  /// RECEIPT DOOR. Its arithmetic is `season_scenarios`' own — the K-th best
+  /// other ceiling, less the leader's points, plus one — and the door is drawn
+  /// only when those figures add up to the number printed (L-44). Pins the
+  /// web's `csClinchBar` / `openClinchReceipt` (bcc60779) word for word.
+  @Test func theClinchNumberOpensItsReceipt() throws {
+    let two = SeasonScenarios.Meta(finish: "cup_final", structure: "squads2", level: "squad", k: 1, months_left: 2, locked: false, cap: 4)
+    let sc = SeasonScenarios(meta: two, rows: [row(a, "Fixture Javelinas", pts: 171, max: 900, needs: 351),
+                                               row(b, "Fixture Wrens", pts: 137, max: 521, needs: 0)])
+    #expect(ScenarioLine.parts(sc) == [.bold("Fixture Javelinas"), .text(" clinch the top seed with "), .door("351 more points"), .text(".")])
+    #expect(said(sc) == "Fixture Javelinas clinch the top seed with 351 more points.")
+    let r = try #require(ScenarioLine.clinchReceipt(sc))
+    #expect(r.title == "351 more points")
+    #expect(r.subtitle == "How Fixture Javelinas clinch the top seed")
+    #expect(r.rows == [
+      .init(label: "Fixture Wrens can still reach", value: "521", kind: .row),
+      .init(label: "137 now, and 384 more if every round left scores the top band", value: "", kind: .sub),
+      .init(label: "Less Fixture Javelinas\u{2019}s points", value: "\u{2212}171", kind: .row),
+      .init(label: "One more, to be clear of it", value: "+1", kind: .row),
+      .init(label: "Clinch the top seed with", value: "351", kind: .total),
+    ])
+    #expect(r.fine == "A ceiling counts every round still possible at the top band, so the number is what no run of results can take back, not a pace.")
+    // K ≥ 2 names the ceiling it is: the second-highest
+    let four = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 400, needs: 41),
+                                                    row(b, "Squad 2", pts: 90, max: 160), row(c, "Squad 3", pts: 60, max: 140)])
+    #expect(ScenarioLine.clinchReceipt(four)?.fine.hasPrefix("That is the second-highest ceiling behind the leader: a seat is locked once only 1 other could still pass. ") == true)
+    // figures that do not add up draw no door and open no receipt
+    let off = SeasonScenarios(meta: two, rows: [row(a, "Fixture Javelinas", pts: 171, max: 900, needs: 300),
+                                                row(b, "Fixture Wrens", pts: 137, max: 521)])
+    #expect(ScenarioLine.clinchReceipt(off) == nil)
+    #expect(!ScenarioLine.parts(off).contains(.door("300 more points")))
+    #expect(said(off) == "Fixture Javelinas clinch the top seed with 300 more points.")
   }
   @Test func neverInventsUnderAnUnlimitedCap() {
     let sc = SeasonScenarios(meta: meta(cap: 999), rows: [row(a, "Squad 1", pts: 100, max: 9999, needs: 20)])
     #expect(ScenarioLine.parts(sc).isEmpty)
   }
   @Test func theCrownAndTheRace() {
-    let sc = SeasonScenarios(meta: meta(finish: "points_table"), rows: [row(a, "Dan", pts: 100, max: 160, clinched: true), row(b, "Joe", pts: 1, max: 20, out: true)])
-    #expect(ScenarioLine.parts(sc) == [.bold("Dan"), .text(" is in the crown"), .text(" · "), .out("Joe out of the race")])
+    let solo = SeasonScenarios.Meta(finish: "points_table", structure: "solo", level: "golfer", k: 1, months_left: 2, locked: false, cap: 4)
+    let sc = SeasonScenarios(meta: solo, rows: [row(a, "Dan", pts: 100, max: 160, clinched: true), row(b, "Joe", pts: 1, max: 20, out: true)])
+    #expect(ScenarioLine.parts(sc) == [.bold("Dan"), .text(" has clinched the crown."), .text(" "), .out("Joe is out of the race.")])
     let two = SeasonScenarios(meta: meta(structure: "squads2"), rows: [row(a, "Squad 1", pts: 100, max: 160, clinched: true)])
-    #expect(ScenarioLine.parts(two) == [.bold("Squad 1"), .text(" is in the top seed · +10")])
+    #expect(ScenarioLine.parts(two) == [.bold("Squad 1"), .text(" have clinched the top seed.")])
+    #expect(ScenarioLine.seedWord(meta()) == "a Cup Final place")
   }
   @Test func quietAfterTheWindowAndWithoutRows() {
     #expect(ScenarioLine.parts(SeasonScenarios(meta: meta(monthsLeft: 0), rows: [row(a, "S", pts: 1, max: 2)])).isEmpty)

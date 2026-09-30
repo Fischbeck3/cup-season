@@ -51,12 +51,31 @@ final class N2YouUITests: N2UITestCase {
         .matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", "43, ", "nine holes")).firstMatch
       XCTAssertTrue(nine.waitForExistence(timeout: 15), "\(size): the nine says it is a nine")
       for _ in 0..<8 where !nine.isHittable { app.swipeUp() }
-      XCTAssertFalse(nine.label.contains("their best"), "\(size): a nine is never the best — \(nine.label)")
-      let best = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", ", their best"))
+      // W7-111 · on the golfer's own card the gold is "your best"
+      XCTAssertFalse(nine.label.contains("your best"), "\(size): a nine is never the best — \(nine.label)")
+      let best = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", ", your best"))
       XCTAssertEqual(best.count, 1, "\(size): one column is the best")
       XCTAssertFalse(best.firstMatch.label.contains("nine holes"), "\(size): the best is an 18 — \(best.firstMatch.label)")
       attach(app, "form-\(size)")
       app.terminate()
     }
+  }
+
+  /// W7-089 · the record holds more rounds than the form shows: "The other N"
+  /// opens every round, and a round opens its receipt.
+  @MainActor func testTheOtherRoundsAreOneDoorAway() {
+    let app = launch("season-live", "you")
+    _ = root(app, "you")
+    let door = app.buttons["you.allRounds"]
+    for _ in 0..<6 where !(door.exists && door.isHittable) { app.swipeUp() }
+    XCTAssertTrue(door.waitForExistence(timeout: 10), "the door to the other rounds")
+    XCTAssertTrue(door.label.lowercased().hasPrefix("the other "), door.label)
+    door.tap()
+    let row = app.buttons.matching(identifier: "you.allRounds.row").firstMatch
+    XCTAssertTrue(row.waitForExistence(timeout: 15), "every round, listed")
+    XCTAssertGreaterThan(app.buttons.matching(identifier: "you.allRounds.row").count, 5, "more than the form's five")
+    attach(app, "w7-089-your-rounds")
+    row.tap()
+    XCTAssertTrue(app.buttons["round.course"].waitForExistence(timeout: 15), "a round opens its receipt")
   }
 }

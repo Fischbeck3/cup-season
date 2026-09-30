@@ -69,10 +69,12 @@ public struct Career: Sendable, Equatable {
     FormRow.from(rounds: recent.map { r in figures[r.id].map { FormRow.Dot(pvi: $0, points: points[r.id]) } })
   }
 
-  // the tile strings, as the web writes them (`sign(v)`)
+  // the tile strings, as the web writes them. Q39 (a) · the best and the
+  // average say it in WORDS ("beat by 5.4", "1.0 over"), never a sign: the
+  // web's `renderCareer` #clBest / #clAvg (148d6d0f) take `vsShort`
   public var roundsText: String { String(rounds) }
-  public var bestText: String { best.map(RoundCopy.signed) ?? "—" }
-  public var avgText: String { avg.map(RoundCopy.signed) ?? "—" }
+  public var bestText: String { CSBands.vsShort(best) }
+  public var avgText: String { CSBands.vsShort(avg) }
   public var playedText: String { String(played) }
   /// Y-14 · what the best and the average are computed OVER — and, when the
   /// cell is a dash, why it is one. Both figures carry it because both are
@@ -157,6 +159,11 @@ public enum YouCopy {
   /// W7-053 · what the dashes are waiting for, in C's words: "No rounds
   /// count yet" read as a verdict on the golfer's rounds
   public static let noCountingRounds = "Best and average start once a round is scored in a season."
+  /// W7-089 · the door under the form row to the rounds it does not show:
+  /// "The other three", the rest spelled out, never repeating the head's count
+  public static func otherRounds(_ n: Int) -> String { "The other " + SeasonStoryCopy.word(n) }
+  /// W7-089 · the sheet those rounds open in
+  public static let allRoundsTitle = "Your rounds"
   /// D131/D208 · the tile that counts leagues and events
   public static let leaguesAndEvents = "Seasons & matches"
   public static let playedIn = "Played in"

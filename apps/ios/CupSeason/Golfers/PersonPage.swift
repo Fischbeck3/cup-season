@@ -339,7 +339,7 @@ struct PersonPage: View {
       firstCard(c)
     } else {
       sectionHead("Form", count: CredentialCopy.formCount(rounds.count))
-      ProfileFormRow(rounds: rounds)
+      ProfileFormRow(rounds: rounds, mine: c.profile.isMe)
     }
   }
 

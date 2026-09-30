@@ -220,16 +220,24 @@ public enum HeadToHeadCopy {
   /// L-19 · a tag is never a vouch, and the page says so where the tags are.
   public static let notAVouch = "A tag says who was out there. It says nothing about the score."
 
-  /// The headline: "You lead 6–5." · "Galen leads 6–5." · "All square, 5–5."
+  /// X36 (1) · owner ruling 2026-09-29: the sum SAYS WHAT IT SUMS. The record
+  /// here is `head_to_head`'s total over every facet, so every sentence that
+  /// states it ends "across every meeting" — it never reads as the one record
+  /// beside You's season weeks ("In the season · 7 weeks"). Web twin:
+  /// `csH2HHeadline` / `csH2HPersonClause` (bfce5aea).
+  public static let everyMeeting = "across every meeting"
+
+  /// The headline: "You lead 6–5 across every meeting." · "Galen leads 6–5
+  /// across every meeting." · "All square, 5–5, across every meeting."
   /// Nil when nothing has been decided — a record of nought is not a sentence
   /// (L-44), and the empty state below is what renders instead.
   public static func headline(_ h: HeadToHead) -> String? {
     guard h.record.settled > 0 else { return nil }
     let rec = h.record.line
     switch h.lead {
-    case .up:   return "You lead \(rec)."
-    case .down: return "\(h.opponent.name) leads \(RivalryCopy.record(wins: h.record.losses, losses: h.record.wins, ties: h.record.ties))."
-    case .even: return "All square, \(rec)."
+    case .up:   return "You lead \(rec) \(everyMeeting)."
+    case .down: return "\(h.opponent.name) leads \(RivalryCopy.record(wins: h.record.losses, losses: h.record.wins, ties: h.record.ties)) \(everyMeeting)."
+    case .even: return "All square, \(rec), \(everyMeeting)."
     }
   }
 
@@ -290,20 +298,22 @@ public enum HeadToHeadCopy {
   public static func usesHeuristic(_ h: HeadToHead) -> Bool { h.facets.contains { $0.heuristic > 0 } }
 
   /// The one-clause form the PERSON page and Home's rivalry item borrow:
-  /// "He has beaten you six times out of eleven." Nil when nothing is decided.
+  /// "Galen has beaten you six times out of eleven, across every meeting."
+  /// Nil when nothing is decided.
   public static func personClause(_ h: HeadToHead) -> String? {
     guard h.record.settled > 0 else { return nil }
     // W3 twin · a level record is said as level. "Blake has beaten you five
     // times out of ten" framed a 5–5 as a loss, over a record the same page
     // calls all square (owner E; the web's csH2HPersonClause).
+    // X36 (1) · every clause names its facet, "across every meeting" (bfce5aea).
     if h.lead == .even, h.record.wins == h.record.losses {
       let ties = h.record.ties > 0 ? "–\(h.record.ties)" : ""
-      return "All square between you, \(h.record.wins)–\(h.record.losses)\(ties)."
+      return "All square between you, \(h.record.wins)–\(h.record.losses)\(ties), \(everyMeeting)."
     }
     if h.record.losses > 0 {
-      return "\(h.opponent.name) has beaten you \(spelled(h.record.losses)) \(h.record.losses == 1 ? "time" : "times") out of \(spelled(h.record.settled))."
+      return "\(h.opponent.name) has beaten you \(spelled(h.record.losses)) \(h.record.losses == 1 ? "time" : "times") out of \(spelled(h.record.settled)), \(everyMeeting)."
     }
-    return "You have taken all \(spelled(h.record.settled)) of them."
+    return "You have taken all \(spelled(h.record.settled)), \(everyMeeting)."
   }
 
   /// The PERSON page's narrative head (IA §10.3): two clauses, each one

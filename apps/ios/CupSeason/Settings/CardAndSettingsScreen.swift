@@ -632,15 +632,18 @@ private struct SettingsPane: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       Text("Notifications").csEyebrow()
+      // W7-082 · the channels are NAMED. Push, email and in-app kinds sat in
+      // one row under one eyebrow, and "This device" read off while six kinds
+      // read on. Three groups now, each under its own head. Every switch stays
+      // enabled whatever This device says: Round posts and Chat are account
+      // flags the push function honours on every device.
+      NotificationGroupHead(title: NotificationsCopy.onDevices)
       PillFlow {
         pill(push.enabled ? "Disable on this device" : "Enable on this device") {
           Task { toast.show(push.enabled ? await push.disable() : await push.enable()) }
         }
         pill("Round posts: \(vm.notifyRounds ? "ON" : "OFF")") { Task { if let e = await vm.toggleRounds() { toast.show(e) } } }
         pill("Chat: \(vm.notifyChat ? "ON" : "OFF")") { Task { if let e = await vm.toggleChat() { toast.show(e) } } }
-        if let mail = vm.emailRecap {
-          pill("Season email: \(mail ? "ON" : "OFF")") { Task { if let e = await vm.toggleEmail() { toast.show(e) } } }
-        }
       }
       // The switch reads off a key on this phone; only the server can say the
       // device is really registered. When the launch sync could not reach it,
@@ -653,11 +656,21 @@ private struct SettingsPane: View {
         Text("This device is on here, but we haven't been able to confirm it with the server. Reopen the app with signal, or tap Disable then Enable.")
           .csType(.bodyS).foregroundStyle(cs.mut)
       }
+      Text(NotificationsCopy.onDevicesNote).csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      // its own line says what it is; the group stands down with the switch
+      if let mail = vm.emailRecap {
+        NotificationGroupHead(title: NotificationsCopy.byEmail)
+        PillFlow {
+          pill("Season email: \(mail ? "ON" : "OFF")") { Task { if let e = await vm.toggleEmail() { toast.show(e) } } }
+        }
+      }
       // TEN / W6 · ONE NOTIFICATIONS SECTION (W2, owner C): the three
-      // conversation switches the inbox sheet carried live here.
+      // conversation switches the inbox sheet carried live here, under their
+      // own head (W7-082)
       ConversationSwitches()
-      Text("Milestones, results and month closes always come through. Round posts and chat each have their own switch.")
-        .csType(.bodyS).foregroundStyle(cs.mut)
+      Text(NotificationsCopy.always).csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
 
       Text("Scorecard scanning").csEyebrow().padding(.top, CSTokens.Space.s4)
       Toggle(ScanConsentCopy.setting, isOn: Binding(get: { scanConsent.allowed }, set: { value in
@@ -823,7 +836,10 @@ private struct ConversationSwitches: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      // W7-082 · the in-app group, its head and its note with it: the whole
+      // group stands down when the server has no conversation switches
       if !values.isEmpty {
+        NotificationGroupHead(title: NotificationsCopy.inApp)
         ForEach(ConversationPrefs.all) { p in
           Toggle(isOn: Binding(get: { values[p.key] ?? true }, set: { on in save(p.key, on) })) {
             VStack(alignment: .leading, spacing: 2) {
@@ -835,6 +851,8 @@ private struct ConversationSwitches: View {
           .disabled(busy == p.key)
           .frame(minHeight: 44)
         }
+        Text(NotificationsCopy.inAppNote).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
     .task { await load() }
@@ -923,5 +941,27 @@ private struct PolishDeveloperSection: View {
         Fine("Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.").padding(.top, 6)
       }
     }
+  }
+}
+
+/// W7-082 · the Notifications block's channel names and lines, in the desk's
+/// words (the web's phNotify groups)
+enum NotificationsCopy {
+  static let onDevices = "On your devices"
+  static let onDevicesNote = "This device switches alerts on for this phone. Round posts and Chat choose which alerts you get, on every device."
+  static let byEmail = "By email"
+  static let inApp = "In Cup Season"
+  static let inAppNote = "Muted conversations stay quiet. You won\u{2019}t be notified of your own comments."
+  static let always = "Milestones, results and month closes always come through."
+}
+
+/// W7-082 · a channel's head: the agate label, heard as a heading
+private struct NotificationGroupHead: View {
+  @Environment(\.cs) private var cs
+  let title: String
+  var body: some View {
+    Text(title).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      .accessibilityAddTraits(.isHeader)
+      .padding(.top, CSTokens.Space.s2)
   }
 }

@@ -11,9 +11,12 @@ final class N2BookUITests: N2UITestCase {
     _ = root(app, "book")
     let golfers = app.segmentedControls.buttons["Golfers"]
     XCTAssertTrue(golfers.waitForExistence(timeout: 10))
+    // the book's load sets the view to Squads when it lands: a tap before
+    // then is undone, so the grid (its key) is on screen first
+    XCTAssertTrue(app.staticTexts["seasonBook.key"].waitForExistence(timeout: 10), "the grid has loaded")
     golfers.tap()
     let fullName = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'seasonBook.name.' AND label CONTAINS[c] %@", "Avery Fixture")).firstMatch
-    XCTAssertTrue(fullName.waitForExistence(timeout: 5), "Q34: the Book prints the full name, never A. Fixture")
+    XCTAssertTrue(fullName.waitForExistence(timeout: 10), "Q34: the Book prints the full name, never A. Fixture")
     let key = app.staticTexts["seasonBook.key"]
     XCTAssertTrue(key.waitForExistence(timeout: 10), "the key is on screen with the grid")
     let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'seasonBook.cell.'"))
