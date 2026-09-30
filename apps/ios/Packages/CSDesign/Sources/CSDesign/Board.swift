@@ -769,7 +769,8 @@ public struct CSTape: View {
 
   public var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+      HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+        VStack(spacing: CSTokens.Space.s2) {
         GeometryReader { g in
           ZStack(alignment: .leading) {
             Rectangle().fill(cs.ink).frame(height: 2)
@@ -785,19 +786,20 @@ public struct CSTape: View {
           .frame(height: 46, alignment: .center)
         }
         .frame(height: 46)
-        if let rows, !typeSize.isA11y {
-          VStack(alignment: .trailing, spacing: 14) {
-            Text(rows.mine).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            Text(rows.theirs).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          }
-          .fixedSize()
-        }
-      }
       if let dates {
         HStack {
           Text(dates.first).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           Spacer(minLength: CSTokens.Space.s3)
           Text(dates.last).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+      }
+        }
+        if let rows, !typeSize.isA11y {
+          VStack(alignment: .trailing, spacing: 14) {
+            Text(rows.mine).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            Text(rows.theirs).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          }
+          .fixedSize().frame(height: 46)
         }
       }
       Text(key).csType(.agateS, caps: false).foregroundStyle(cs.mut)
