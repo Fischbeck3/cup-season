@@ -424,6 +424,34 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// pinned order (the web's `CS_COVENANT_FACTS`): `facts(today:)` splices it
   /// in after the length, as the web's sheet splices `csCovenantClock`.
   public enum Fact: String, Sendable, Equatable, CaseIterable { case season, who, length, structure, rules, ending, stake, ledger, split, pay, starter, joining }
+  /// Q15(3): one grouping producer, matching csCovenantGroups on the web.
+  public enum Group: String, Sendable, CaseIterable {
+    case who, scores, money
+    public var title: String {
+      switch self { case .who: "Who"; case .scores: "How it scores"; case .money: "The money" }
+    }
+  }
+  public struct FactGroup: Sendable {
+    public let kind: Group
+    public let facts: [(Fact, String)]
+  }
+  public func groups(postedRounds: Int? = nil, today: String? = nil,
+                     calendar: Calendar = .current) -> [FactGroup] {
+    let all = facts(postedRounds: postedRounds, today: today, calendar: calendar)
+    return Group.allCases.compactMap { group in
+      let kept = all.filter { fact, _ in
+        let kind: Group
+        switch fact {
+        case .season, .who, .structure: kind = .who
+        case .length, .joining, .rules, .ending, .starter: kind = .scores
+        case .stake, .ledger, .split, .pay: kind = .money
+        }
+        return kind == group
+      }
+      return kept.isEmpty ? nil : FactGroup(kind: group, facts: kept)
+    }
+  }
+
   /// Every fact this covenant can actually say, in order. A fact with no read is
   /// simply not in the list (L-44) — which is what makes "absent facts render
   /// nothing" a test rather than a promise.

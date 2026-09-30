@@ -163,20 +163,21 @@ struct CovenantSheet: View {
           Button("Close") { onNo() }
             .buttonStyle(.csSecondary()).padding(.top, 8)
         } else {
-          // WHO comes before the money — and for a re-up, the season comes
-          // before who. The order is the producer's, not this file's —
-          // `Covenant.facts` decides it, and a fact with no read is simply
-          // not in the list (L-44). W4 · today's date passes the clock, so
-          // where the season stands is said after its length.
-          ForEach(covenant.facts(postedRounds: postedRounds, today: CSDate.today()), id: \.0) { fact, line in
-            Text(line)
-              .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
-              // W4 · the stake is money, and money is ink (UI_SYSTEM §2.5):
-              // gold is for the pot or a thing won, and a buy-in is neither (D359)
-              .foregroundStyle(cs.ink)
-              .fixedSize(horizontal: false, vertical: true)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel(line)
+          // Q15(3): the producer owns order and omission, including the $0 covenant.
+          ForEach(covenant.groups(postedRounds: postedRounds, today: CSDate.today()), id: \.kind) { group in
+            VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+              CSSectionHead(group.kind.title)
+                .accessibilityIdentifier("covenant.group." + group.kind.rawValue)
+              ForEach(group.facts, id: \.0) { fact, line in
+                Text(line)
+                  .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
+                  .foregroundStyle(cs.ink)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .accessibilityLabel(line)
+              }
+            }
+            .padding(.top, CSTokens.Space.s3)
           }
           Button(covenant.joinLabel) { onJoin() }
             .buttonStyle(.csPrimary()).padding(.top, 8)

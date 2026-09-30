@@ -229,4 +229,21 @@ import Foundation
     #expect(reup.isReUp)
     #expect(reup.head == "Season 2 of your league")
   }
+  @Test func namedGroupsKeepEveryReadFactAndOmitEmptyMoney() {
+    for stake in [0, 5000] {
+      let c = Covenant(name: "North Grove (fixture)", buyinCents: stake, preset: "standard",
+                       floor: 2, finish: "cup_final", proName: "Blake Sample", rosterCount: 8,
+                       startsOn: "2026-09-12", weeks: 13, countingCap: 3,
+                       split: .init(champion: 60, runnerUp: 25, pointsKing: 15), structure: "squads2")
+      let groups = c.groups(postedRounds: 0, today: "2026-09-30")
+      #expect(groups.map(\.kind) == (stake == 0 ? [.who, .scores] : [.who, .scores, .money]))
+      let flat = groups.flatMap(\.facts)
+      let source = c.facts(postedRounds: 0, today: "2026-09-30")
+      #expect(Set(flat.map(\.0)) == Set(source.map(\.0)))
+      for fact in source { #expect(flat.contains { $0.0 == fact.0 && $0.1 == fact.1 }) }
+      #expect(groups.allSatisfy { !$0.facts.isEmpty })
+      #expect(groups.first?.facts.last?.0 == .structure)
+    }
+  }
+
 }
