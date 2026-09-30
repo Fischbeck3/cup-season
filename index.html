@@ -2045,7 +2045,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    the figure stays on the rule. */
 .hfr-title{position:relative; isolation:isolate; display:flex; align-items:flex-end; justify-content:space-between; gap:var(--s3);
   margin-top:var(--s2); padding-bottom:var(--s1); border-bottom:1px solid var(--rule);}
-.hfr-title>b{flex:1; min-width:0; color:var(--ink); overflow-wrap:anywhere; text-wrap:balance; padding-bottom:var(--s1);}
+.hfr-title>b, .hfr-title>.hfrcpt{flex:1; min-width:0; color:var(--ink); overflow-wrap:anywhere; text-wrap:balance; padding-bottom:var(--s1);}   /* W7-083 put the title inside its receipt button, so the button is the flex item now: it takes the title's width, ink and wrap (a long club wraps whole, never past the gross) */
 .hfr-title .hfr-tee{color:var(--mut);}
 .hfr-topo{position:absolute; left:34%; top:50%; transform:translateY(-50%); width:min(30%, 130px); height:auto; z-index:-1; pointer-events:none; color:var(--mut);}
 .hfr-topo .t-sur{stroke-width:1.2; opacity:.08;}
@@ -12591,7 +12591,8 @@ function drawSettlementCard(d){
     }
   }
 
-  ctr(String(d.money||'').toUpperCase(), 1010, `600 30px ${BOARD}`, GOLD, 5);
+  /* X38 / D397 · outbound cards never print who pays whom.
+     showLiveRecap keeps that ledger inside the signed-in app. */
   x.strokeStyle='#8B8F8B'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,1060); x.lineTo(W-280,1060); x.stroke();
   { const cl=csFitCourseLines(x, (d.course||'A ROUND').toUpperCase(), { px:40, weight:700, face:BOARD, ls:2, maxW:W-192, twoMax:38 });
@@ -12934,6 +12935,11 @@ window.csShareRound = csShareRound;
    STAYS: a control that vanishes when you tap it is worse than one that tells
    you to come back, and after the owner's `db push` it works with no client
    change at all. */
+/* X38 · one disclosure producer per artifact, shared by every share door. */
+const CS_PERSON_SHARE_DISCLOSURE = "Anyone with this link sees your name, your marker and how many rounds you've posted.";
+const CS_SETTLEMENT_SHARE_DISCLOSURE = 'Anyone with this link sees the game, the course and every gross. Who pays whom stays in the app.';
+window.CS_PERSON_SHARE_DISCLOSURE = CS_PERSON_SHARE_DISCLOSURE;
+window.CS_SETTLEMENT_SHARE_DISCLOSURE = CS_SETTLEMENT_SHARE_DISCLOSURE;
 const CS_SHARE_NOT_YET = 'Links need the latest update — try again shortly.';
 window.CS_SHARE_NOT_YET = CS_SHARE_NOT_YET;
 function csShareKindNotDeployed(e){
@@ -18752,6 +18758,7 @@ function showLiveRecap(d, result, lrId){
   if(result && lrId && !state.demo)
     rows.push(`<button class="btn" id="lrShareCard" style="width:100%;margin-top:14px">Share the card</button>
       <button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement page</button>
+      <p class="fine" id="lrShareDisclosure">${esc(CS_SETTLEMENT_SHARE_DISCLOSURE)}</p>
       <button class="cs-tskip" id="lrShareRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
   /* F12 · YOUR ROUND — the truth about the save in the product's own words,
      then View round and Add a photo, which reuse the receipt's own pipeline. */
@@ -24616,7 +24623,8 @@ function csEmptyRootHtml(root){
     + `<p class="sub">${esc(root.sub)}</p>`
     + (root.def ? `<p class="def cs-body-s">${esc(root.def)}</p>` : '')
     /* TEN / W6 · one primary, the rest quiet links (W5's empty-Compete shape) */
-    + `<div class="doors">${root.doors.map((d, i)=>`<button type="button" class="${i===0?'btn':'alt'}" data-erdoor="${esc(d.k)}">${esc(d.t)}</button>`).join('')}</div></div>`;
+    + `<div class="doors">${root.doors.map((d, i)=>`<button type="button" class="${i===0?'btn':'alt'}" data-erdoor="${esc(d.k)}">${esc(d.t)}</button>`).join('')}</div>`
+    + (root.doors.some(d => d.k === 'personLink') ? `<p class="fine">${esc(CS_PERSON_SHARE_DISCLOSURE)}</p>` : '') + '</div>';
 }
 
 function csPeerRowHtml(r){
@@ -24800,6 +24808,7 @@ function renderGolfers(){
         <span>Send an invite link</span>
         <small class="cs-agate-s is-phrase">Works for anyone, account or not</small>
       </button>
+      <p class="fine" id="glfShareDisclosure">${esc(CS_PERSON_SHARE_DISCLOSURE)}</p>
       <div id="glfInvitePick" class="invpick" hidden role="group" aria-label="Invite them"></div>`;
     const btn=plink.querySelector('#glfInviteBtn'), pick=plink.querySelector('#glfInvitePick');
     const person=async()=>{
@@ -30419,7 +30428,7 @@ function csPaintCrewRoutes(){
     `<button class="btn ${r.key === 'contacts' ? '' : 'dark'}" type="button" data-crew="${r.key}" style="display:block;width:100%;text-align:left;margin-top:10px;padding:12px 14px">
        <span style="display:block">${esc(r.title)}</span>
        ${r.sub ? `<span class="fine" style="display:block;padding:2px 0 0">${esc(r.sub)}</span>` : ''}
-     </button>`).join('');
+     </button>${r.key === 'link' ? `<p class="fine">${esc(CS_PERSON_SHARE_DISCLOSURE)}</p>` : ''}`).join('');
   box.querySelectorAll('[data-crew]').forEach(b => b.addEventListener('click', () => csCrewTake(b.dataset.crew)));
   const go = document.getElementById('obCrewGo');
   if(go) go.style.display = csCrewAdded > 0 ? 'block' : 'none';
@@ -38814,8 +38823,9 @@ async function renderShareView(tok, _testInfo){
     /* D241 · IA §10.5's own card: a name, a marker, the number and the recent
        rounds. Every line is a FACT the server returned — a golfer with no
        rounds gets no rounds line rather than a zero (L-44), and there is no
-       handle, no city and no id on the page. (Whether D394 should narrow this
-       card is an open owner question, recorded by root, not decided here.) */
+       handle, no city and no id on the page. X38 / D397 now rules the
+       stranger shape: name, marker and round count. The held server migration
+       narrows this payload; optional legacy fields below tolerate deploy skew. */
     document.title = `${info.name} — Cup Season`;
     wrap.classList.add('sv-person');
     kind('A golfer');

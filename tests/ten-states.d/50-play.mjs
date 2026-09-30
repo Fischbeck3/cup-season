@@ -9,6 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
+import { mkdirSync } from 'node:fs'
 import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole, destMarked, noHeadingSkips } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
@@ -465,4 +466,46 @@ export default [
     expect: { view: 'view-play', sheet: 'Round posted', selectors: { '#sheet.room-dusk': 'visible', '#lrMine': 'text:Round posted', '#lrViewRound': 'visible' } },
     check: all(has('#shSub', '2 CARDS TO THE SEASON', 'the card count'),
       async (page) => { const f = await liveFacts(page); return !f.active ? true : 'the round is still live after the finish' }) },
+  /* X38 / D397 · exercise the real finish and export, with the private
+     settlement still present. Observe the canvas ink, not its input object. */
+  { family: 'play', id: 'settlement-share-private', variant: 'member', fullPage: false,
+    title: 'Settlement · the shared card omits who pays whom; the app keeps it',
+    drive: async (page, ctx) => {
+      await toSetup(page)
+      await pickCourse(page, 'Dry Creek', 'Dry Creek Nine', 'Forward')
+      await addGolfers(page, ['Devon Testwell'])
+      await click(page, '#gameSeg [data-g="match"]')
+      await page.locator('#lrStake').fill('5')
+      await teeOff(page)
+      await scoreHoles(page, 9, 2)
+      await click(page, '#finishBtn')
+      await until(page, () => !!document.getElementById('lrPost'))
+      await click(page, '#lrPost')
+      await until(page, () => !!document.getElementById('lrShareCard'))
+      await page.evaluate(() => {
+        window.__settlementInk = []
+        const proto = CanvasRenderingContext2D.prototype, original = proto.fillText
+        window.__restoreSettlementInk = () => { proto.fillText = original }
+        proto.fillText = function(text, ...args) { window.__settlementInk.push(String(text)); return original.call(this, text, ...args) }
+      })
+      const dir = `${ctx.out}/artifacts`; mkdirSync(dir, { recursive: true })
+      try {
+        const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), click(page, '#lrShareCard')])
+        const file = `${dir}/settlement-private--${ctx.vp.width}--${ctx.theme}.png`
+        await dl.saveAs(file); ctx.artifacts.push(file)
+      } finally { await page.evaluate(() => window.__restoreSettlementInk()) }
+      await page.locator('#lrShareLink').scrollIntoViewIfNeeded()
+    },
+    expect: { view: 'view-play', selectors: { '#lrShareCard': 'visible', '#lrShareLink': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const ink = window.__settlementInk || []
+      if (!ink.some(t => /MATCH PLAY/.test(t))) return 'the settlement PNG was not rendered'
+      if (ink.some(t => /PAYS? |SETTLE UP|FROM EACH|TAKES? THE BANK|HOLDS THE BANK/i.test(t))) return 'outbound PNG exposes the private settlement: ' + ink.join(' | ')
+      const privateText = document.getElementById('shBody').innerText
+      if (!/PAYS? .*\$5.*SETTLE UP/i.test(privateText)) return 'the in-app settlement lost who pays whom: ' + privateText
+      const note = document.getElementById('lrShareDisclosure')
+      return note && note.textContent === 'Anyone with this link sees the game, the course and every gross. Who pays whom stays in the app.'
+        ? true : 'the settlement share control is missing its disclosure'
+    }) },
+
 ]
