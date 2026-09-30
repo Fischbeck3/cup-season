@@ -5,7 +5,7 @@
 // the control, the figure, the line, and the two numbers that give the figure
 // something to be compared against.
 //
-// Q34: the rail has five44pt whole-star targets. The44pt half-step pair
+// Q34: the rail has five 44pt whole-star targets. The 44pt half-step pair
 // sits below it; there is no narrow half-star hit region or target carve-out.
 //
 // NO GOLD, IN OR OUT OF THE CONTROL. Filled stars are `ink`; the unfilled
@@ -120,7 +120,7 @@ struct RateCourseSheet: View {
 
   // MARK: the control
 
-  /// Q34: the same44pt star targets as the course page, with half steps below.
+  /// Q34: the same 44pt star targets as the course page, with half steps below.
   private var control: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       CSStarRail(stars, size: 44, onSet: { set($0, haptic: true) })
@@ -139,6 +139,7 @@ struct RateCourseSheet: View {
     }
     .buttonStyle(.plain)
     .disabled(!enabled)
+    .accessibilityIdentifier(glyph == "−½" ? "rating.half.decrease" : "rating.half.increase")
     .accessibilityLabel(glyph == "−½" ? "Decrease rating by half a star" : "Increase rating by half a star")
   }
 
