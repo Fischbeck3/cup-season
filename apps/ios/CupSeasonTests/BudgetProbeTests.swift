@@ -214,53 +214,39 @@ enum CSBudgetHarness {
 
   // MARK: - The objects the product actually ships
 
-  /// The credential is the one object that appears on four surfaces, so its own
-  /// budget is the one that would spread furthest if it drifted: **one display
-  /// (the name), one gold object (the slot or the medallion), and no nesting.**
+  /// Q47: a crest keeps only an earned slot; a photo additionally carries
+  /// its medallion. Measure the actually rendered component in all four cases.
   @Test func theCredentialHoldsItsOwnBudget() async {
-    let b = await CSBudgetHarness.measure(
-      CSCredential(
-        CSCredentialGolfer(
-          face: CSFace.Model(id: UUID(uuidString: "00000000-0000-0000-0000-0000000000AA")!,
-                             marker: "saguaro"),
-          name: "Galen Meyer", identity: "@galenm · Mesa, AZ · Papago",
-          slot: "FOUNDER",
-          figures: [.init("10.2", label: "Handicap index"),
-                    .init("79", label: "Best", note: "Papago")],
-          club: "The Saguaro"),
-        hasPhoto: false
-      ) { CSTokens.dark.ceremony }
-    )
-    #expect(b.display <= 1, "the credential spent \(b.display) display roles")
-    #expect(b.nestedContainers == 0, "the credential nests \(b.nestedContainers) container(s)")
-    /* TWO gold marks and one of them is paired by name: the slot the golfer
-       earned, and the medallion §19(i) puts on every card. That pair is the
-       ruling; a THIRD would not be, and this pins the number so nothing can
-       add one quietly. */
-    #expect(b.goldObjects == 2 && b.goldPaired == 1,
-            "the credential spent \(b.goldObjects) gold, \(b.goldPaired) paired")
-    #expect(b.breaches.isEmpty, "the credential breaches its own budget: \(b.breaches)")
+    for photo in [false, true] {
+      let b = await CSBudgetHarness.measure(
+        CSCredential(
+          CSCredentialGolfer(
+            face: CSFace.Model(id: UUID(uuidString: "00000000-0000-0000-0000-0000000000AA")!, marker: "saguaro"),
+            name: "Avery Fixture", identity: "@averyfixture",
+            slot: "FOUNDER", figures: [.init("10.2", label: "Handicap index")], club: "North Grove (fixture)"),
+          hasPhoto: photo
+        ) { CSTokens.dark.ceremony }
+      )
+      #expect(b.display <= 1)
+      #expect(b.nestedContainers == 0)
+      #expect(b.goldObjects == (photo ? 2 : 1) && b.goldPaired == (photo ? 1 : 0))
+      #expect(b.breaches.isEmpty, "\(b.breaches)")
+    }
   }
 
-  /// And the other direction: a card with **nothing earned** carries the
-  /// medallion and no slot, so it spends exactly ONE gold mark and pairs none.
-  /// If the whitelist ever started firing unconditionally it would hide a real
-  /// second gold on every card in the product, so it is asserted from both
-  /// sides — the same posture as the `lint` ratchet's own self-tests.
-  @Test func aCardWithNothingEarnedSpendsOneGold() async {
-    let b = await CSBudgetHarness.measure(
-      CSCredential(
-        CSCredentialGolfer(
-          face: CSFace.Model(id: UUID(uuidString: "00000000-0000-0000-0000-0000000000BB")!,
-                             marker: "lonetree"),
-          name: "Tash Okafor", identity: "@tash · Tempe, AZ",
-          figures: [.init("14.1", label: "Handicap index")],
-          club: "The Lone Tree"),
-        hasPhoto: false
-      ) { CSTokens.dark.ceremony }
-    )
-    #expect(b.goldObjects == 1 && b.goldPaired == 0,
-            "an unearned card spent \(b.goldObjects) gold, \(b.goldPaired) paired")
-    #expect(b.breaches.isEmpty, "\(b.breaches)")
+  @Test func anUnearnedCrestSpendsNoGoldAndAPhotoKeepsItsMedallion() async {
+    for photo in [false, true] {
+      let b = await CSBudgetHarness.measure(
+        CSCredential(
+          CSCredentialGolfer(
+            face: CSFace.Model(id: UUID(uuidString: "00000000-0000-0000-0000-0000000000BB")!, marker: "lonetree"),
+            name: "Blake Sample", identity: "@blakesample",
+            figures: [.init("14.1", label: "Handicap index")], club: "North Grove (fixture)"),
+          hasPhoto: photo
+        ) { CSTokens.dark.ceremony }
+      )
+      #expect(b.goldObjects == (photo ? 1 : 0) && b.goldPaired == 0)
+      #expect(b.breaches.isEmpty, "\(b.breaches)")
+    }
   }
 }
