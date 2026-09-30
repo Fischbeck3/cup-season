@@ -849,6 +849,10 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .sb-dialog .sb-round:hover{text-decoration-color:var(--ink);}
 .sb-dialog [data-book-row][aria-current="true"]{box-shadow:inset 0 0 0 2px var(--ink);}   /* W7-129 · the open receipt's cell: a drawn shape in ink, never ember */
 .sb-dialog .sb-back{min-height:44px; display:block;}
+/* W7-135 · 'Skip to adjustments': out of the way until it is the focused stop, then the Book's link in content (ink, a 2px mut rule, 44 tall) */
+.sb-skip{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap;}
+.sb-skip:focus-visible{position:static; width:auto; height:auto; overflow:visible; clip-path:none; display:inline-flex; align-items:center; min-height:44px; color:var(--ink); font-family:var(--sans); font-size:15px;
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px; outline:2px solid var(--ink); outline-offset:2px;}
 /* the crown on a finished Book, and what the ladder says when the top is level */
 .sb-crown{font-family:var(--sans);}
 .sb-crown b{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-right:var(--s2);}
@@ -23079,15 +23083,46 @@ function csSeasonBookBody(b,selection){
     /* W5 · the key is a legend strip: each mark beside its word, never split
        across a line end, and the one instruction on its own line under it */
     if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span>'+(b.weeks.some(w=>w.week>b.current_week)?'<span class="sb-key-i">• Future week</span>':'')+'<span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
-    h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
+    if(prominent) h+='<a href="#sb-adjust" class="sb-skip" data-sb-skip>Skip to adjustments</a>';   /* W7-135 · one Tab stop for the grid, and a way past it */
+    h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
     h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td${live&&c.week===b.current_week?' class="sb-now"':''}><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div></div>';
   }
   const adjustmentRows=group==='golfer'&&squad!=='all'?squads.filter(r=>r.squad_id===squad):rows;
-  if(prominent){h+='<h2>Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
+  if(prominent){h+='<h2 id="sb-adjust" tabindex="-1">Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
     let count=0;adjustmentRows.forEach(r=>r.entries.forEach((e,i)=>{if(e.round_id)return;count++;h+=`<button type="button" class="sb-adjustment" data-book-row="${b.rows.indexOf(r)}" data-book-entry="${i}">${esc(r.name)} · ${e.week==null?'Outside season weeks':'Week '+e.week} · ${csBookNum(e.contribution)} points<small>${esc(e.reason)}</small></button>`;}));
     if(!count)h+='<p>No adjustments recorded for this selection.</p>';
   }
   return h+'<p class="fine">Points counting today</p>';
+}
+/* W7-135 · THE GRID IS ONE TAB STOP. Up to 256 buttons (a name and a cell per week per row) were 256 Tab stops with no arrow keys, and the only way past them to 'Adjustments in the totals' was Tab, again and
+   again. The focused button holds tabindex 0 and every other -1 (a roving tabindex); Left and Right move along a row (its name is its first stop), Up and Down along a week, Home and End to a row's ends, Enter
+   and Space open the receipt (native to the button); a future week's disabled button is skipped. The region itself is no longer a stop, and 'Skip to adjustments' (first, and visible on focus) moves to that heading. */
+function csBookRoving(matrix, main){
+  const rows=[...matrix.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('button')]);
+  const all=rows.flat(); if(!all.length) return;
+  const ok=b=>!!b&&!b.disabled;
+  all.forEach(b=>{b.tabIndex=-1;});
+  const first=rows.map(r=>r.find(ok)).find(Boolean)||all[0]; first.tabIndex=0;
+  const stop=b=>{all.forEach(x=>{x.tabIndex=-1;}); b.tabIndex=0;};
+  matrix.addEventListener('focusin',e=>{const b=e.target.closest&&e.target.closest('button'); if(b&&all.includes(b)) stop(b);});
+  matrix.addEventListener('keydown',e=>{
+    if(e.metaKey||e.ctrlKey||e.altKey||e.shiftKey) return;
+    const b=e.target.closest&&e.target.closest('button'); if(!b) return;
+    const ri=rows.findIndex(r=>r.includes(b)); if(ri<0) return;
+    const row=rows[ri], ci=row.indexOf(b);
+    const near=(r,c)=>{ for(let i=Math.min(c,r.length-1);i>=0;i--) if(ok(r[i])) return r[i]; return null; };   /* the same week, or the nearest enabled one to its left */
+    let to=null;
+    if(e.key==='ArrowRight') to=row.slice(ci+1).find(ok);
+    else if(e.key==='ArrowLeft') to=row.slice(0,ci).reverse().find(ok);
+    else if(e.key==='ArrowDown') to=rows[ri+1]?near(rows[ri+1],ci):null;
+    else if(e.key==='ArrowUp') to=ri>0?near(rows[ri-1],ci):null;
+    else if(e.key==='Home') to=row.find(ok);
+    else if(e.key==='End') to=[...row].reverse().find(ok);
+    else return;
+    e.preventDefault();
+    if(to&&to!==b) to.focus();
+  });
+  main.querySelector('[data-sb-skip]')?.addEventListener('click',e=>{e.preventDefault(); main.querySelector('#sb-adjust')?.focus();});
 }
 function csCloseSeasonBook(){document.getElementById('seasonBookDialog')?.close();}
 window.csCloseSeasonBook=csCloseSeasonBook;
@@ -23190,6 +23225,7 @@ async function csOpenSeasonBook(league,season){
       const need=at?at.offsetLeft+at.offsetWidth-(matrix.clientWidth-fade)+2:0, colW=at?at.offsetWidth:1;
       matrix.scrollLeft=need>0?Math.ceil(need/colW)*colW:0;
       csBookEdge(matrix,matrix.parentElement);
+      csBookRoving(matrix,main);
     }
     markChosen();
   }

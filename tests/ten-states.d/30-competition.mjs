@@ -787,6 +787,34 @@ const bandSays = (re, what) => async (page) => page.evaluate(({ re, what }) => {
 const adopt = (name, opts) => async (W) => { adoptBook(W, readBook(name), opts) }
 const BOOK_LS = (name) => ({ cs_last_league: readBook(name).league_id })
 
+/* TEN / W8 · W7-135 [A2-competition-18] · the Book grid is ONE Tab stop with a roving tabindex (it was up to 256 buttons and no arrow keys): exactly one button holds tabindex 0, the region is not a stop of its own,
+   Left/Right move along a row (its name is the first stop), Up/Down along a week, Home/End to a row's ends (a future week's disabled button is skipped), and 'Skip to adjustments' moves to that heading */
+const bookGridKeys = async (page) => {
+  const info = await page.evaluate(() => {
+    const m = document.querySelector('#seasonBookDialog .sb-matrix'), btns = [...m.querySelectorAll('tbody button')]
+    return { total: btns.length, zero: btns.filter((b) => b.tabIndex === 0).length, region: m.getAttribute('tabindex') }
+  })
+  if (info.zero !== 1) return `${info.zero} of ${info.total} grid buttons are Tab stops, expected one`
+  if (info.region === '0') return 'the grid region is still a Tab stop of its own'
+  const at = (r, c) => page.evaluate(([r, c]) => { const b = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')][r].querySelectorAll('button')[c]; b.focus(); return true }, [r, c])
+  const where = () => page.evaluate(() => { const a = document.activeElement, rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')], ri = rows.findIndex((tr) => tr.contains(a)); return { ri, ci: ri < 0 ? -1 : [...rows[ri].querySelectorAll('button')].indexOf(a), week: a && a.dataset ? a.dataset.bookWeek : null } })
+  await at(0, 1); await page.keyboard.press('ArrowRight')
+  let w = await where(); if (w.ri !== 0 || w.ci !== 2) return `ArrowRight from week 1 lands on row ${w.ri} button ${w.ci}, expected row 0 button 2`
+  await page.keyboard.press('ArrowDown'); w = await where(); if (w.ri !== 1 || w.ci !== 2) return `ArrowDown lands on row ${w.ri} button ${w.ci}, expected row 1 button 2`
+  await page.keyboard.press('ArrowUp'); w = await where(); if (w.ri !== 0 || w.ci !== 2) return 'ArrowUp does not go back up'
+  await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft'); w = await where(); if (w.ri !== 0 || w.ci !== 0) return `two ArrowLefts land on button ${w.ci}, expected the row's name`
+  await page.keyboard.press('End'); w = await where();
+  const last = await page.evaluate(() => { const r = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')][0]; return [...r.querySelectorAll('button')].filter((b) => !b.disabled).length - 1 })
+  if (w.ri !== 0 || w.ci !== last) return `End lands on button ${w.ci}, expected the last enabled cell (${last})`
+  await page.keyboard.press('Home'); w = await where(); if (w.ci !== 0) return `Home lands on button ${w.ci}, expected the row's name`
+  const skipped = await page.evaluate(() => {
+    const link = document.querySelector('#seasonBookDialog [data-sb-skip]'); if (!link) return 'no Skip to adjustments link'
+    link.focus(); link.click(); const h = document.getElementById('sb-adjust')
+    return document.activeElement === h ? true : `Skip to adjustments leaves the focus on ${document.activeElement && (document.activeElement.id || document.activeElement.tagName)}`
+  })
+  await page.evaluate(() => { const a = document.activeElement; if (a && a.blur) a.blur() })
+  return skipped
+}
 /* TEN / W8 · W7-070 [A2-competition-1] · the Book's start edge: while earlier weeks sit behind the pinned name column (it opens on the live week) the mirror of the end fade says so
    (data-more-start, drawn from the name column's right edge), and from 1440 the dialog is wide enough for a 15-week season to show whole */
 const bookStartEdge = async (page) => page.evaluate(() => {
@@ -857,7 +885,7 @@ const BOOK = [
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-matrix': 'visible', '#seasonBookDialog #sb-group': 'visible', '#seasonBookDialog .sb-matrix th.sb-current': 'text:W13' } },
     check: all(bookIs({ title: 'The Book', head: 'North Grove (fixture) · Season 1 · Jul 6 – Oct 18, 2026' }),
-      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'), bookStartEdge,
+      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'), bookStartEdge, bookGridKeys,
       async (page) => page.evaluate(() => {
         const rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')]
         if (rows.length !== 4) return `${rows.length} squad rows, expected 4`
