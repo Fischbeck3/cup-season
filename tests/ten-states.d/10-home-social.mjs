@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast, standsDown, destMarked } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast, standsDown, destMarked, medallionOnPhotoOnly } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -631,7 +631,9 @@ const GOLFERS = [
     /* TEN / W7-045 [A2-golfers-7]: the page's one primary is the way to play, in the aside under the record */
     playPrimary,
     /* TEN / W7-048 [B2-golfers-13]: one course name, printed one way (the club, the layout only where the club does not say it, never the tee) */
-    oneCourseName) },
+    oneCourseName,
+    /* Q47 · Devon's crest card wears no gold-ringed medallion (§6.5 row 3) */
+    medallionOnPhotoOnly()) },
   /* TEN / W8 · W7-019 · at the desk a click on the scrim closes the board, as the sheet's does (a dialog) */
   { family: 'golfers', id: 'board-scrim', variant: 'member', desk: true, fullPage: false, title: 'The league board, dismissed by a click on the scrim (desk)',
     drive: async (page) => {

@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, medallionOnPhotoOnly } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -297,7 +297,7 @@ const recordInWords = async (page) => page.evaluate(() => {
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: all(recordState('some'), recordInWords, firstIsBaseline(2)) },
+    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly()) },
   { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
     title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
     drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
@@ -335,7 +335,8 @@ const RECORD = [
       await until(page, () => document.getElementById('sheet').classList.contains('open') && !!document.querySelector('#shBody .cred'), null, 10000)
       await page.waitForTimeout(500)
     },
-    expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'hidden' } } },
+    expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'hidden' } },
+    check: medallionOnPhotoOnly(true) },
   /* a withdrawn photograph: the public link Avery withdrew when the photo
      consent changed answers dead -- the photo is gone with it */
   { family: 'record', id: 'photo-withdrawn', variant: 'signed_out', url: '/?share=fe200000-0000-4000-8000-000000000004',

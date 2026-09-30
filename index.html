@@ -2103,7 +2103,13 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred .ccredit{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em;
   text-transform:uppercase; color:var(--scrim-ink); text-align:right;}
 /* the medallion: the ceremony disc, a 1px gold ring, the marker in gold. One
-   slot, one size, one treatment - on every card, photograph or crest. */
+   slot, one size, one treatment.
+   Q47 · owner ruling 2026-09-29 (UI_SYSTEM §6.5 row 3; IOS-047a's "every card" is
+   reverted): PRESENT ONLY WHEN THE PLATE IS A PHOTOGRAPH. On a crest card the crest is
+   the mark, "the crest or the corner, never both", and a card with nothing earned wears
+   no gold ring (gold is for what was won, §2.4). The rule below holds wherever a
+   photograph has not (yet) landed on the plate; the producers draw none on a crest. */
+.cred .cplate:not(:has(> img)) .cmed{display:none;}
 .cred .cmed{position:absolute; right:20px; bottom:72px; width:44px; height:44px; border-radius:50%;
   background:var(--ceremony); border:1px solid var(--ceremony-gold); display:grid; place-items:center;}
 .cred .cmed svg{width:24px; height:24px; fill:none; stroke:var(--ceremony-gold);
@@ -30401,7 +30407,10 @@ function refreshWhoChip(){
     bld.hidden = !say; bld.textContent = say ? csBuildingClause(true, nRounds) : '';
   }
   /* the medallion: the ceremony disc, the gold ring, the marker in gold. One
-     slot, one size, one treatment - the same one every other card carries. */
+     slot, one size, one treatment - the same one every other card carries.
+     Q47 · drawn only on a photographed plate (§6.5 row 3): the CSS rule
+     `.cplate:not(:has(> img)) .cmed` stands it down on a crest, and it comes
+     back by itself when a photograph lands. */
   const mkEl = $('#youMk');
   if(mkEl && window.MARKERS){
     const mk = MARKERS[p.marker] || MARKERS.saguaro;
@@ -30891,7 +30900,7 @@ function csCredentialHtml(profileId, card){
         ${slot ? `<span class="cslot">${esc(slot)}</span>` : '<span></span>'}
         ${credit ? `<span class="ccredit">${esc(credit)}</span>` : ''}
       </div>
-      ${mk ? `<span class="cmed" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}
+      ${mk && photo ? `<span class="cmed" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}
       <div class="cname">
         <b>${esc(p.display_name || '—')}</b>
         <small>${esc(csIdentityLine(p))}</small>
