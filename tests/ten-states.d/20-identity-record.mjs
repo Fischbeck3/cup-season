@@ -576,7 +576,33 @@ const COMPOSER = [
       if (b.getAttribute('aria-describedby') !== 'postErr') return 'Add my round is not described by its refusal'
       const e = document.getElementById('postErr').getBoundingClientRect(), r = b.getBoundingClientRect()
       if (!(e.bottom <= r.top + 1)) return 'the refusal does not stand above the button'
-      return e.top >= 0 && e.bottom <= innerHeight ? true : 'the refusal is off screen'
+      /* TEN / W7-158 · and the field it names is marked and has the focus (in view) */
+      const g = document.getElementById('inGross'), gr = g.getBoundingClientRect()
+      if (g.getAttribute('aria-invalid') !== 'true') return 'the gross field is not marked'
+      if (document.activeElement !== g) return 'focus is not on the gross field: ' + (document.activeElement && (document.activeElement.id || document.activeElement.tagName))
+      return gr.top >= 0 && gr.bottom <= innerHeight ? true : 'the gross field is off screen'
+    }) },
+  /* TEN / W7-158 · a card with everything but its date: the refusal stands in #postErr above the button (never a toast), the fold is
+     open, and the date field is marked and focused */
+  { family: 'composer', id: 'no-date', variant: 'member', title: 'Composer · a full card with its date cleared, and Add my round (the date refusal, inline)',
+    drive: async (page) => {
+      await toComposer(page)
+      await page.locator('#inGross').fill('84')
+      await fillCard(page)
+      await page.fill('#inDate', '')
+      await page.locator('#inDate').dispatchEvent('input')
+      await page.waitForTimeout(200)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postErr'), t = document.getElementById('toast'); return (!!e && !e.hidden) || (!!t && t.classList.contains('show')) }, null, 6000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-post', selectors: { '#postErr': 'text:^Pick the date you played$', '#postCardFold': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = document.getElementById('toast')
+      if (t.classList.contains('show') && /date/i.test(t.textContent)) return 'the date refusal left on a toast'
+      const d = document.getElementById('inDate')
+      if (d.getAttribute('aria-invalid') !== 'true') return 'the date field is not marked'
+      return document.activeElement === d ? true : 'focus is not on the date field'
     }) },
   /* a tee picked from the course search: the course, the rating and the slope
      arrive together, so nothing blocks and the preview scores the card */

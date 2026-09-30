@@ -13617,6 +13617,10 @@ function csPostBlockAnswered(){
   if(r) clear(rEl);
   if(sl) clear(sEl);
   if(r && sl) said('#postRateErr');
+  /* W7-158 · the gross and the date lose their marks the moment they are answered */
+  { const g = $('#inGross');   /* not clear(): the gross may be described by its nines (#postGrossFrom) */
+    if(g && g.getAttribute('aria-invalid') && typeof postEntry === 'function' && postEntry()){ g.removeAttribute('aria-invalid'); g.classList.remove('bad'); } }
+  const dEl = $('#inDate'); if(dEl && dEl.value) clear(dEl);
 }
 function recalc(){
   csPostBlockAnswered();
@@ -14090,7 +14094,11 @@ $('#postBtn').addEventListener('click', async ()=>{
        confirms the golfer's own action), so it stands above Add my round,
        tied to it, until the card changes. The phone's tapPost refuses the
        same way (refuse(PostCalc.Blocked.noCard.message)). */
-    csPostRefused('Enter your gross first');
+    /* TEN / W7-158 · and the field it names takes the mark and the focus
+       (which brings it into view), as the course and the rating do; the words
+       stay in #postErr, tied to Add my round, until the card changes */
+    csPostError('Enter your gross first');
+    { const g=$('#inGross'); g?.setAttribute('aria-invalid','true'); g?.classList.add('bad'); g?.scrollIntoView?.({block:'center'}); g?.focus?.(); }
     window.qaEvent?.('post_blocked', { reason: 'no_card' });
     return;
   }
@@ -14102,10 +14110,13 @@ $('#postBtn').addEventListener('click', async ()=>{
      golfer round a loop that could not succeed. Say it here, mark the field. */
   const dEl = $('#inDate');
   if(dEl && !dEl.value){
+    /* TEN / W7-158 · the date's refusal stands in #postErr above the button,
+       never a 2.4s toast away from the field, and the fold opens on it */
+    togglePostFold(true);
+    csPostError('Pick the date you played');
     dEl.setAttribute('aria-invalid','true');
     dEl.classList.add('bad');
     dEl.scrollIntoView?.({block:'center'}); dEl.focus?.();
-    toast('Pick the date you played');
     window.qaEvent?.('post_blocked', { reason: 'no_date' });
     return;
   }
