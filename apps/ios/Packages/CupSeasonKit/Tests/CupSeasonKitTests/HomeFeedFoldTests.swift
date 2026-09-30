@@ -8,8 +8,8 @@ import Foundation
 @testable import CupSeasonKit
 
 @Suite struct HomeFeedFoldTests {
-  static let wtb = UUID(), north grove (fixture) = UUID()
-  static let names = [wtb: "Who's the bitch?", north grove (fixture): "North Grove (fixture)"]
+  static let wtb = UUID(), northGrove = UUID()
+  static let names = [wtb: "Who's the bitch?", northGrove: "North Grove (fixture)"]
   static let booking = UUID(), liveA = UUID(), liveB = UUID(), roundX = UUID()
 
   static func at(_ day: String, _ hm: String = "09:00") -> Date {
@@ -42,14 +42,14 @@ import Foundation
   static func today() -> [HomeItem] {
     [
       post(wtb, "system", "Blake put a round on the books — Mon Sep 07 · Gold Canyon — Dinosaur Mountain · Black/Blue · with Avery", "2026-09-01", "18:10", scheduled: booking),
-      post(north grove (fixture), "system", "August is in the books. The ledger is posted. A partial month — floors waived.", "2026-09-01", "00:05"),
+      post(northGrove, "system", "August is in the books. The ledger is posted. A partial month — floors waived.", "2026-09-01", "00:05"),
       post(wtb, "system", "August is in the books. The ledger is posted. A partial month — floors waived.", "2026-09-01", "00:05"),
-      post(north grove (fixture), "system", "The clash this week: Emery v Avery.", "2026-08-31"),
+      post(northGrove, "system", "The clash this week: Emery v Avery.", "2026-08-31"),
       post(wtb, "system", "The clash this week: Blake v Avery.", "2026-08-31"),
       post(wtb, "system", "This week: Blake v Avery.", "2026-08-30"),
-      post(north grove (fixture), "system", "This week: Emery v Avery.", "2026-08-30"),
+      post(northGrove, "system", "This week: Emery v Avery.", "2026-08-30"),
       round("2026-08-28"),
-      post(north grove (fixture), "moment", "Avery took the week — 85 at Encanto GC.", "2026-08-28", "20:00", live: liveA),
+      post(northGrove, "moment", "Avery took the week — 85 at Encanto GC.", "2026-08-28", "20:00", live: liveA),
       post(wtb, "moment", "Blake took the week.", "2026-08-23", "20:00", live: liveB),
     ]
   }
@@ -64,7 +64,7 @@ import Foundation
     guard case .notes(let booking) = today[0], case .notes(let close) = today[1] else { Issue.record("expected two notes today"); return }
     #expect(booking.leagueNames == ["Who's the bitch?"] && booking.count == 1)
     #expect(booking.line(bucket: "Today") == "Who's the bitch? · 1 league note today")
-    #expect(close.leagueIds == [Self.north grove (fixture), Self.wtb] && close.leagueNames == ["North Grove (fixture)", "Who's the bitch?"] && close.count == 1)
+    #expect(close.leagueIds == [Self.northGrove, Self.wtb] && close.leagueNames == ["North Grove (fixture)", "Who's the bitch?"] && close.count == 1)
     #expect(close.line(bucket: "Today") == "North Grove (fixture) & Who's the bitch? · 1 league note today")
     // This week: the round and the settlement first, then one group per league
     let week = b[1].items
@@ -86,7 +86,7 @@ import Foundation
   func lineByBucket() {
     func notes(_ n: Int, names: [String] = ["North Grove (fixture)"]) -> HomeFeedNotes {
       HomeFeedNotes(leagueIds: names.map { _ in UUID() }, leagueNames: names,
-                    rows: (0..<n).map { HomePost(id: UUID(), league_id: Self.north grove (fixture), kind: "system", body: "note \($0)", created_at: nil) })
+                    rows: (0..<n).map { HomePost(id: UUID(), league_id: Self.northGrove, kind: "system", body: "note \($0)", created_at: nil) })
     }
     #expect(notes(2).line(bucket: "This week") == "North Grove (fixture) · 2 league notes this week")
     #expect(notes(1).line(bucket: "This week") == "North Grove (fixture) · 1 league note this week")
@@ -99,7 +99,7 @@ import Foundation
     // a note that lost its league name still reads
     #expect(notes(2, names: []).line(bucket: "Earlier") == "League · 2 earlier league notes")
     // and through the fold: three North Grove (fixture) lines from a fortnight ago land in Earlier and say so
-    let old = (0..<3).map { Self.post(Self.north grove (fixture), "system", "An old note \($0).", "2026-08-1\($0 + 5)") }
+    let old = (0..<3).map { Self.post(Self.northGrove, "system", "An old note \($0).", "2026-08-1\($0 + 5)") }
     let b = HomeFeedFold.fold(old, today: "2026-09-01")
     #expect(b.map(\.label) == ["Earlier"])
     guard case .notes(let n) = b[0].items[0] else { Issue.record("expected one folded note"); return }
@@ -122,15 +122,15 @@ import Foundation
     let one = HomeFeedFold.fold(sameLeague, today: "2026-09-01")
     guard case .notes(let n) = one[0].items[0] else { Issue.record("expected notes"); return }
     #expect(n.count == 2 && n.leagueIds == [Self.wtb])
-    let farApart = [Self.post(Self.wtb, "system", "Same words.", "2026-09-01"), Self.post(Self.north grove (fixture), "system", "Same words.", "2026-08-27")]
+    let farApart = [Self.post(Self.wtb, "system", "Same words.", "2026-09-01"), Self.post(Self.northGrove, "system", "Same words.", "2026-08-27")]
     let two = HomeFeedFold.fold(farApart, today: "2026-09-01")
     #expect(two.flatMap(\.items).count == 2)
-    let close = [Self.post(Self.wtb, "system", "Same words.", "2026-09-01"), Self.post(Self.north grove (fixture), "system", "same words. ", "2026-08-30", "10:00")]
+    let close = [Self.post(Self.wtb, "system", "Same words.", "2026-09-01"), Self.post(Self.northGrove, "system", "same words. ", "2026-08-30", "10:00")]
     let merged = HomeFeedFold.fold(close, today: "2026-09-01").flatMap(\.items)
     #expect(merged.count == 1)
     guard case .notes(let m) = merged[0] else { Issue.record("expected one merged note"); return }
     // the leagues read by name (canonical, see `canonicalKey`); the surviving row is still the newest
-    #expect(m.leagueIds == [Self.north grove (fixture), Self.wtb] && m.leagueNames == ["North Grove (fixture)", "Who's the bitch?"] && m.rows.first?.league_id == Self.wtb)
+    #expect(m.leagueIds == [Self.northGrove, Self.wtb] && m.leagueNames == ["North Grove (fixture)", "Who's the bitch?"] && m.rows.first?.league_id == Self.wtb)
   }
 
   @Test("the group's key is canonical — notes that survived as {A,B} and as {B,A} fold into ONE group")
@@ -140,21 +140,21 @@ import Foundation
     // were two groups, "Who's the bitch? & North Grove (fixture)" over "North Grove (fixture) & Who's the bitch?"
     let rows = [
       Self.post(Self.wtb, "system", "August is in the books.", "2026-09-01", "10:00"),
-      Self.post(Self.north grove (fixture), "system", "August is in the books.", "2026-09-01", "09:00"),
-      Self.post(Self.north grove (fixture), "system", "The clash this week is set.", "2026-09-01", "08:00"),
+      Self.post(Self.northGrove, "system", "August is in the books.", "2026-09-01", "09:00"),
+      Self.post(Self.northGrove, "system", "The clash this week is set.", "2026-09-01", "08:00"),
       Self.post(Self.wtb, "system", "The clash this week is set.", "2026-09-01", "07:00"),
     ]
     let b = HomeFeedFold.fold(rows, today: "2026-09-01")
     #expect(b.map(\.label) == ["Today"] && b[0].items.count == 1)
     guard case .notes(let n) = b[0].items[0] else { Issue.record("expected one folded group"); return }
-    #expect(n.leagueIds == [Self.north grove (fixture), Self.wtb] && n.leagueNames == ["North Grove (fixture)", "Who's the bitch?"])
-    #expect(n.count == 2 && n.rows.map(\.league_id) == [Self.wtb, Self.north grove (fixture)])
+    #expect(n.leagueIds == [Self.northGrove, Self.wtb] && n.leagueNames == ["North Grove (fixture)", "Who's the bitch?"])
+    #expect(n.count == 2 && n.rows.map(\.league_id) == [Self.wtb, Self.northGrove])
     #expect(n.line(bucket: "Today") == "North Grove (fixture) & Who's the bitch? · 2 league notes today")
     // a lone note in one league is its own group beside the pair, in the order first seen
     let three = HomeFeedFold.fold(rows + [Self.post(Self.wtb, "system", "Only here.", "2026-09-01", "06:00")], today: "2026-09-01")
     #expect(three[0].items.count == 2)
     guard case .notes(let pair) = three[0].items[0], case .notes(let lone) = three[0].items[1] else { Issue.record("expected two groups"); return }
-    #expect(pair.leagueIds == [Self.north grove (fixture), Self.wtb] && lone.leagueIds == [Self.wtb] && lone.line(bucket: "Today") == "Who's the bitch? · 1 league note today")
+    #expect(pair.leagueIds == [Self.northGrove, Self.wtb] && lone.leagueIds == [Self.wtb] && lone.line(bucket: "Today") == "Who's the bitch? · 1 league note today")
   }
 
   /// **D292 · the production shape this suite never had.** `round_moments()`
@@ -170,7 +170,7 @@ import Foundation
   func momentYieldsToItsRound() {
     let both = HomeFeedFold.fold([
       Self.round("2026-09-01"),
-      Self.post(Self.north grove (fixture), "moment", "Emery broke 80 for the first time.", "2026-09-01", "16:00", round: Self.roundX),
+      Self.post(Self.northGrove, "moment", "Emery broke 80 for the first time.", "2026-09-01", "16:00", round: Self.roundX),
       Self.post(Self.wtb, "moment", "Emery broke 80 for the first time.", "2026-09-01", "16:00", round: Self.roundX),
     ], today: "2026-09-01")
     #expect(both.reduce(0) { $0 + $1.items.count } == 1)
@@ -179,14 +179,14 @@ import Foundation
     // bounded: a moment whose round is not in the wire is the only telling.
     let orphan = HomeFeedFold.fold([
       Self.round("2026-09-01"),
-      Self.post(Self.north grove (fixture), "moment", "Emery broke 80.", "2026-09-01", "16:00", round: UUID()),
+      Self.post(Self.northGrove, "moment", "Emery broke 80.", "2026-09-01", "16:00", round: UUID()),
     ], today: "2026-09-01")
     #expect(orphan.reduce(0) { $0 + $1.items.count } == 2)
 
     // and it yields only to a round the wire KEPT — a spent round takes both.
     let spent = HomeFeedFold.fold([
       Self.round("2026-09-01"),
-      Self.post(Self.north grove (fixture), "moment", "A best.", "2026-09-01", "16:00", round: Self.roundX),
+      Self.post(Self.northGrove, "moment", "A best.", "2026-09-01", "16:00", round: Self.roundX),
     ], spent: [Self.roundX], today: "2026-09-01")
     #expect(spent.reduce(0) { $0 + $1.items.count } == 0)
   }

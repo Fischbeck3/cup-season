@@ -1709,7 +1709,7 @@
       'Standard rules: honest scores, best three a month count, two a month keeps you in, scored against your playing HCP — your index at 95 percent.');
     t('D126: the ending is a sentence, never a dial name',
       [F(full).ending, F({ name: 'x', buyin_cents: 0, finish: 'points_table' }).ending],
-      ['It ends with a four-week Cup Final between the top two.',
+      ['It ends with a four-week Cup Final.',
        "The season's points decide it. No reset."]);
     t('L-10: the split answers what $50 buys, and renders above $0 only',
       [F(full).split, F({ name: 'x', buyin_cents: 0, split: { champion: 60, runner_up: 25, points_king: 15 } }).split],

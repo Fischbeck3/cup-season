@@ -803,11 +803,11 @@ enum PostWorthDev {
     guard let i = a.firstIndex(of: "-cs_dev_worth"), i + 1 < a.count else { return nil }
     let json: String
     switch a[i + 1] {
-    case "room":   json = #"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":2,"worst":5}}]"#
-    case "full":   json = #"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":4,"worst":5}}]"#
-    case "capped": json = #"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":4,"worst":12}}]"#
+    case "room":   json = #"[{"league_name":"northGrove","cap":4,"counters":{"used":2,"worst":5}}]"#
+    case "full":   json = #"[{"league_name":"northGrove","cap":4,"counters":{"used":4,"worst":5}}]"#
+    case "capped": json = #"[{"league_name":"northGrove","cap":4,"counters":{"used":4,"worst":12}}]"#
     case "open":   json = #"[{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
-    case "two":    json = #"[{"league_name":"North Grove (fixture)","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
+    case "two":    json = #"[{"league_name":"northGrove","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
     default: return nil
     }
     return try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8))

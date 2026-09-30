@@ -60,7 +60,7 @@ struct LeaveSeasonTests {
 
   @Test("the result decodes, including the idempotent second call")
   func decodesResult() throws {
-    let json = #"{"left_at":"2026-09-05T17:00:00+00:00","league":"North Grove (fixture)","already":true}"#
+    let json = #"{"left_at":"2026-09-05T17:00:00+00:00","league":"northGrove","already":true}"#
     let r = try JSONDecoder().decode(LeaveResult.self, from: Data(json.utf8))
     #expect(r.already == true)
     #expect(r.league == "North Grove (fixture)")

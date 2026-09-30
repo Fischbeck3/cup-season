@@ -95,9 +95,9 @@ import Foundation
     #expect(SeasonPhase.of(wtb, today: "2026-09-02") == .season(week: 5, of: 13))
     #expect(SeasonPhase.of(wtb, today: "2026-08-03") == .season(week: 1, of: 13))
     #expect(SeasonPhase.of(wtb, today: "2026-11-02") == .season(week: 13, of: 13))
-    let north grove (fixture) = membership(phase: "season", status: "active", starts: "2026-07-20", ends: "2027-01-18")
+    let northGrove = membership(phase: "season", status: "active", starts: "2026-07-20", ends: "2027-01-18")
     #expect(LeagueDates.totalWeeks(start: "2026-07-20", end: "2027-01-18") == 26)
-    #expect(SeasonPhase.of(north grove (fixture), today: "2026-09-02") == .season(week: 7, of: 26))
+    #expect(SeasonPhase.of(northGrove, today: "2026-09-02") == .season(week: 7, of: 26))
     // an exact one, every day of a week: week 2 runs Aug 10 → Aug 16
     for d in ["2026-08-10", "2026-08-13", "2026-08-16"] {
       guard case .season(let w, let n) = SeasonPhase.of(wtb, today: d) else { Issue.record("expected season on \(d)"); continue }

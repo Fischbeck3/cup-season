@@ -176,7 +176,7 @@ struct RoundWorthTests {
     #expect(RoundWorth.servedLines(two, league: a).count == 2)
     #expect(RoundWorth.servedLines(two, known: 9, league: UUID()).count == 2)
     // one season: it is the league, whatever the caller could name
-    let one = try JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":2,"worst":6}}]"#.utf8))
+    let one = try JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"northGrove","cap":4,"counters":{"used":2,"worst":6}}]"#.utf8))
     #expect(RoundWorth.servedLines(one, known: 9) == ["This 9 counts: your best 4 count and you have 2, so +9 this month."])
   }
 }

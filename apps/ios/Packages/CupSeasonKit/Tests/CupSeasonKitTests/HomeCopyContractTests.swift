@@ -415,9 +415,9 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
 @Suite struct SeasonRowContractTests {
   @Test("in season: week, place, the race, the money — the hard-look's own line")
   func inSeason() {
-    let north grove (fixture) = heroMembership(name: "North Grove (fixture)", stake: 7500, starts: "2026-07-20", ends: "2027-01-18", rank: 1, points: 31,
+    let northGrove = heroMembership(name: "North Grove (fixture)", stake: 7500, starts: "2026-07-20", ends: "2027-01-18", rank: 1, points: 31,
                                 leaderPts: 31, gapLeader: 0, leader: "Avery", runnerUp: "Emery", runnerPts: 9, players: 2)
-    #expect(SeasonFacts.seasonLine(north grove (fixture), today: "2026-09-02")
+    #expect(SeasonFacts.seasonLine(northGrove, today: "2026-09-02")
               == "Week 7 of 26 · 1st of 2, 22 clear of Emery · $150 on the books · $0 collected")
     #expect(SeasonFacts.seasonLine(heroMembership(), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, 12 back of Blake")
     #expect(SeasonFacts.seasonLine(heroMembership(gapLeader: 0), today: "2026-09-02") == "Week 5 of 13 · 2nd of 2, level with Blake")
