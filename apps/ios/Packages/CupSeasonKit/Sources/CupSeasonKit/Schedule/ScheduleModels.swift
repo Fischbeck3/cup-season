@@ -362,7 +362,8 @@ public struct WeekLine: Sendable, Equatable, Identifiable {
   public static func empty(firstTee: String?) -> String {
     guard let firstTee, CSDate.local(firstTee, calendar: ScheduleDates.gregorian) != nil else { return empty }
     let close = LeagueDates.weekClose(start: firstTee, today: firstTee, calendar: ScheduleDates.gregorian)
-    let weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][ScheduleDates.jsDay(close)]
+    guard let closeDay = ScheduleDates.jsDay(close) else { return empty }
+    let weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][closeDay]
     return "Nothing recorded yet: the first week closes \(weekday) night, and every week lands here for the season."
   }
 }
