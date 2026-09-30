@@ -117,8 +117,7 @@ struct IntentSheet: View {
 /// one tap that avoids dropping a golfer into a live scorer they did not want.
 ///
 /// The same anatomy at `csFittedSheet(260)`: the question in `lead` 28, two
-/// rows, and `Right now` in `brand` — which is the one tint that stays, because
-/// it is the LIVE act (L-40) and not a default nobody chose.
+/// rows in ink. Q33 / OWNER-QUESTIONS §R confirms this choice is not yet a live round.
 struct WhenForkSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
