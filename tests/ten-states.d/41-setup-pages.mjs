@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked, btnNameRole } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -315,7 +315,7 @@ const WIZARD = [
     check: all(destMarked('compete'), isRow('#commishChip', 'the Pro row'),   /* TEN / W8 · W7-108: the wizard is a room of COMPETE, so COMPETE stays marked */
     /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
     async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
-    noRetiredGlyph()) },
+    noRetiredGlyph(), btnNameRole(['#wizNext'])) },   /* TEN / W6 · Q25 */
   { family: 'wizard', id: 'step-2-rules', variant: 'pro_setup', title: 'Wizard · step 2 of 3, the rules',
     drive: async (page) => { await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 2 of 3' } } },

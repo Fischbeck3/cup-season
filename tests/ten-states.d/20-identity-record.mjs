@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, btnNameRole } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -718,7 +718,7 @@ const COMPOSER = [
       const i = document.createElement('i'); i.style.color = 'var(--bg0)'; document.body.appendChild(i); const bg0 = getComputedStyle(i).color; i.remove()
       const c = getComputedStyle(document.getElementById('postBtn')).color
       return c === bg0 ? true : `Add my round's type is ${c}, not --bg0 ${bg0}`
-    }), worthBeforeGross, toastKinds) },
+    }), worthBeforeGross, toastKinds, btnNameRole(['#postBtn'])) },   /* Q25 */
   { family: 'composer', id: 'filled', variant: 'member', title: 'Composer · a full card entered, before Post',
     drive: async (page) => { await toComposer(page); await fillCard(page) },
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },

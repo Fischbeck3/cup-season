@@ -192,7 +192,7 @@ honoured**; the table says where.
 |---|---|---|---|---|
 | **The board** — display, names, ranks, every numeral, agate | **IBM Plex Sans Condensed** | SemiBold 600, Bold 700 | **BUNDLED** — 2 static TTFs | ~124 KB each ≈ **248 KB**. OFL 1.1 (Bold Monday for IBM). PostScript names `IBMPlexSansCondensed-SemiBold`, `IBMPlexSansCondensed-Bold` |
 | **The record** — columns of figures, codes, handles, times | **IBM Plex Mono** | Regular 400, Medium 500 | already bundled | already paid. OFL 1.1 |
-| **Now** — prose, standfirsts, controls, inputs | **SF Pro Text / Display** | 400, 600 | system (`Font.system`) | — |
+| **Now** — prose, standfirsts, inputs (a button's label is `name`, §7.1; Q25) | **SF Pro Text / Display** | 400, 600 | system (`Font.system`) | — |
 | **Memory** — one sentence a surface | **New York** (Apple's system serif) | Regular 400, Bold 700 | system (`Font.system(design: .serif)`) — four optical masters, chosen automatically by point size | — |
 
 **Three families, and the fence is answered rather than dodged.** `brand-canon` §4 says "no fourth
@@ -237,7 +237,7 @@ shipped eighteen does.
 | **`social`** | `CSType.social` | Plex Cond SemiBold | **17** | 600 | `flat` 0 | Title Case | 1.16 | `.headline` | none |
 | **`lead`** | `CSType.lead` | New York Bold | **28** | 700 | `tight` −1% | Sentence | 1.14 | `.title1` | ×1.5 |
 | **`story`** | `CSType.story` | New York Regular | **20** | 400 | `flat` 0 | Sentence | 1.34 | `.title3` | ×1.6 |
-| **`body`** | `CSType.body` / `.bodyS` | SF Pro Text | **17 · 15** | 400 (600 for buttons) | `flat` 0 | Sentence | 1.45 | `.body` / `.subheadline` | none |
+| **`body`** | `CSType.body` / `.bodyS` | SF Pro Text | **17 · 15** | 400 | `flat` 0 | Sentence | 1.45 | `.body` / `.subheadline` | none |
 | **`agate`** | `CSType.agate` / `.agateS` | Plex Cond SemiBold | **12 · 11** | 600 | `agate` +9% / +8% | UPPER *(or Sentence — §1.3)* | 1.20 | `.caption1` / `.caption2`, **both floored at 11pt** | **×2.2** |
 | **`column`** | `CSType.column` / `.columnM` / `.columnS` | Plex Mono | **17 · 14 · 12**, tabular at 14 and 12 | 500 (400 at 12) | −1% at 14, 0 elsewhere | — | 1.30 / 1.25 / 1.20 | `.body` / `.subheadline` / `.caption1` floored at 11 | none |
 
@@ -1023,15 +1023,15 @@ button a pressed state for free, and lets `ShareLink`, `NavigationLink` and `Men
 
 | Control | Geometry | Rest | Pressed | Disabled | Busy |
 |---|---|---|---|---|---|
-| **Primary** | 50pt, `rc` 10, full-width or intrinsic, label `name` 17 | `brand` fill, `bg0` label (5.27:1 / 5.39:1) | fill darkens by `a16`, label to 92% | `bg1` fill, `mut` label — **a disabled primary is never ember** | label replaced by **three mono dots that tally** — never a spinner |
+| **Primary** | 50pt, `rc` 10, full-width or intrinsic, label `name` 17 | `act` fill, `bg0` label (D359; Q25, 2026-09-29) | fill darkens by `a16`, label to 92% | `bg1` fill, `mut` label — **a disabled primary is never ember** | label replaced by **three mono dots that tally** — never a spinner |
 | **Secondary** | 50pt, `rc` 10 | `bg2` fill, `ink` label | fill → `rule`, label 92% | `bg1`, `mut` | as above |
 | **Tertiary — the link, LIVE** | intrinsic, 44pt target | `name` 15 in `ink`, **2px `brand` rule** beneath | rule darkens, label 92% | `mut` label, `mut` underline | — |
 | **Tertiary — the link, in content** | intrinsic, 44pt target | `name` 15 in `ink`, **2px `mut` rule** beneath (7.07 / 5.85) | rule → `ink`, label 92% | `mut` label, `mut` underline | — |
 | **Tertiary — the link, in a TOOLBAR** | intrinsic, 44pt target | `name` 15 in `ink`, **1px `mut` rule** beneath | rule → `ink` | `mut` label | — |
 | **Destructive, armed** | 50pt | `bg2` fill, `neg` label, copy **"Sure?"** (never an `alert()`) | fill → `neg` at `a16` | — | — |
 
-**One primary per screen**, and it is ember because ember means *the live thing you can do now*
-(§2.4). **There is no gold button** — the tier does not exist, and `CSButtonStyle.gold` is deleted.
+**One primary per screen**, and its fill is `act` (D359 moved the primary off ember; Q25 corrected this
+table, 2026-09-29). Ember keeps *the live thing you can do now* (§2.4). **There is no gold button** — the tier does not exist, and `CSButtonStyle.gold` is deleted.
 
 **The tertiary's rule is where ember kept leaking back, so the tier is split into three and the split
 is a ruling, not a preference.** §2.4 gives ember exactly two jobs; a *dismiss* verb is neither, a

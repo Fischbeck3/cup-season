@@ -9,7 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole, destMarked, noHeadingSkips } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole, destMarked, noHeadingSkips, btnNameRole } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -223,7 +223,7 @@ export default [
         return b === 'Check the pars' ? true : 'the pars button still asks for work already done: ' + JSON.stringify(b)
       }),
       /* TEN / W7-054 [A2-play-4]: the desk sets up on two columns; below 960 course, group, game read down */
-      setupColumns) },
+      setupColumns, btnNameRole(['#teeOffBtn'])) },   /* TEN / W6 · Q25 */
 
   /* TEN / W8 · W7-069 [X13] · the court: four golfers on Match Play turn the slots into two team zones, each labelled by a heading that follows the page's outline (an h2 under the h1, not an h5) */
   { family: 'play', id: 'setup-court', variant: 'member', title: 'Live setup · Match Play with four golfers: the court (two team zones)',

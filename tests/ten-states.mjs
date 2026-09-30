@@ -15,7 +15,7 @@ const go = (v) => async (page) => { await page.evaluate((v) => window.switchView
 import { readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { notMono, noRetiredGlyph, noRetiredShape, tertiaryDoor } from './ten-mono.mjs'
+import { notMono, noRetiredGlyph, noRetiredShape, tertiaryDoor, btnNameRole } from './ten-mono.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 
 /* Family modules: tests/ten-states.d/<family>.mjs, each `export default [ ...states ]`.
@@ -63,7 +63,8 @@ const gateWho = async (page) => {
 }
 const CORE = [
   /* ------------------------------------------------------------ door */
-  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } } },
+  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } },
+    check: btnNameRole(['#obEmail', '#obJoin']) },   /* TEN / W6 · Q25 */
   { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
     expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } } },
