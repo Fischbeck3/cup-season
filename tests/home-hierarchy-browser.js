@@ -30,7 +30,7 @@
                eyebrow:'FELLAS · THE CLASH · CLOSES TODAY', headline:'Jade has today to answer your 84.', standfirst:'Your round is the number to beat.',
                action:'See the receipt', route:{ kind:'receipt', id:'r0000000-0000-4000-8000-000000000001' } }),
         item({ key:'story:r0000000-0000-4000-8000-000000000002', tier:'circle', rank:2, at:isoAgo(3), eyebrow:'AROUND YOUR BUDDIES',
-               headline:'Galen posted 92 at Gold Canyon.', action:'See the round', route:{ kind:'receipt', id:'r0000000-0000-4000-8000-000000000002' } }),
+               headline:'Galen posted 92 at Whispering Fixture Pines.', action:'See the round', route:{ kind:'receipt', id:'r0000000-0000-4000-8000-000000000002' } }),
         item({ key:'chapter:'+B, rank:3, league_id:B, eyebrow:'WHO’S THE BITCH? · WEEK 6 OF 13', headline:'You are the one to catch.', standfirst:'50 days still to play.', action:'Open the season', route:{ kind:'season', id:B } }),
         item({ key:'chapter:'+A, rank:4, league_id:A, eyebrow:'FELLAS · WEEK 8 OF 26', headline:'You are the one to catch.', standfirst:'127 days still to play.', action:'Open the season', route:{ kind:'season', id:A } }),
         /* the same sentence about the same league, minted twice — one item */
@@ -158,7 +158,7 @@
        render, which is the only way to see either failure (missing, or twice). */
     const iso=n=>{ const d=new Date(); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
     window.mySchedule=[{ id:'50000000-0000-4000-8000-000000000001', mine:true, play_on:iso(2),
-                         course_label:'Papago', tee_time:'08:10', profile_id:window.CS.user.id }];
+                         course_label:'Saguaro Flats', tee_time:'08:10', profile_id:window.CS.user.id }];
     window.watchAll=[]; window.homeDispatch.items=[]; window.homePosts=[];
     const wholeHomeRender=()=>{ renderMeStrip(); renderHomeDispatch(); renderUpNext(); renderHomeTiles(); };
     const visible=el=>{ if(!el) return false; const r=el.getBoundingClientRect(); return !!(r.width && r.height); };
@@ -182,8 +182,8 @@
     const claimed=document.querySelector(places[0]==='chip'
       ? '#homeUpNext .upchip' : '[data-mego="my_next_round"]');
     const said=(claimed&&claimed.textContent)||'';
-    if(places[0]==='chip') check(/papago/i.test(said),'F1: the chip claimed the round without naming its course: '+said);
-    else check(/8:10/.test(said) || /papago/i.test(said),'F1: the desk strip claimed the round without naming its tee or course: '+said);
+    if(places[0]==='chip') check(/saguaro flats/i.test(said),'F1: the chip claimed the round without naming its course: '+said);
+    else check(/8:10/.test(said) || /saguaro flats/i.test(said),'F1: the desk strip claimed the round without naming its tee or course: '+said);
     /* with no plan at all the tile keeps its door, and nothing claims a fact */
     window.mySchedule=[];
     wholeHomeRender();

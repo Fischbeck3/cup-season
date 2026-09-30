@@ -610,7 +610,7 @@ const COMPOSER = [
       await click(page, '#postBtn')
       await until(page, () => { const e = document.getElementById('postCourseErr'); return !!e && !e.hidden }, null, 6000)
       await page.evaluate(snap, 'pressed')
-      await page.locator('#inCourse').fill('Pinecrest Muni (fixture)')
+      await page.locator('#inCourse').fill('Specimen Muni (fixture)')
       await page.waitForTimeout(400)
       await page.evaluate(snap, 'course')
       await click(page, '#postBtn')

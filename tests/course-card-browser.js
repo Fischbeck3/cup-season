@@ -7,7 +7,7 @@
   const holes=y=>[...Array(18).keys()].map(i=>({ hole:i+1,
     par:[4,5,3,4,4,5,3,4,4, 4,3,5,4,4,3,4,5,4][i], si:[7,1,15,9,3,5,17,11,13, 8,16,2,10,4,18,12,6,14][i],
     yards:y ? 300+i*11 : null }));
-  const book={ id:'fixture-course', club_name:'Fixture Club', course_name:'Fixture Club', city:'Tempe', state:'AZ',
+  const book={ id:'fixture-course', club_name:'Fixture Club', course_name:'Fixture Club', city:'Chandler', state:'AZ',
     savedAt:Date.now(), usedAt:Date.now(),
     tees:[{ tee_name:'Blue', gender:'male',   course_rating:71.2, slope_rating:131, number_of_holes:18, total_yards:6412, par_total:72, holes:holes(true) },
           { tee_name:'Gold', gender:'male',   course_rating:73.3, slope_rating:137, number_of_holes:18, total_yards:6980, par_total:72, holes:holes(true) },

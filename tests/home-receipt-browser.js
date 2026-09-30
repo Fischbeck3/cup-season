@@ -18,7 +18,7 @@
   const open=()=>sheet().classList.contains('open');
   const card=id=>({ id, gross:84, rating:71.2, slope:128, differential:11.4, index_at_post:11.4, playing_index:11.4,
                     points:7, month_rank:1, counting_cap:2, band:'Played to it', pvi:0.2, holes_played:18,
-                    course_label:'Papago', played_on:isoAgo(1), is_mine:true });
+                    course_label:'Saguaro Flats', played_on:isoAgo(1), is_mine:true });
   const out={};
   try{
     state.demo=false; window.CS.user={ id:'a0000000-0000-4000-8000-000000000099' }; window.qaEvent=()=>{};
@@ -86,7 +86,7 @@
 
     /* ── a SCHEDULED round still opens the scheduled round ── */
     calls.length=0;
-    window.mySchedule=[{ id:PLAN, mine:true, play_on:isoAgo(-2), course_label:'Papago', profile_id:window.CS.user.id }];
+    window.mySchedule=[{ id:PLAN, mine:true, play_on:isoAgo(-2), course_label:'Saguaro Flats', profile_id:window.CS.user.id }];
     const views=[]; const realView=switchView; switchView=v=>{ views.push(v); };
     try{
       const door=csItemDoor({ key:'plan:'+PLAN, route:{ kind:'plan', id:PLAN }, headline:'x' });

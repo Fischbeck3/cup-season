@@ -6,8 +6,8 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d }
 const BASE = arg('base', 'http://127.0.0.1:8801')
-const { chromium } = require(process.env.CS_PLAYWRIGHT || '/Users/fischbeck3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
-const b = await chromium.launch({ executablePath: '/Users/fischbeck3/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell' })
+const { chromium } = require(process.env.CS_PLAYWRIGHT || (process.env.HOME || '') + '/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
+const b = await chromium.launch({ executablePath: (process.env.HOME || '') + '/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell' })
 let bad=0
 for (const w of [320, 375, 402, 1280]) for (const theme of ['dark','light']) {
   const ctx = await b.newContext({ viewport: { width: w, height: 800 }, serviceWorkers: 'block' })

@@ -109,8 +109,8 @@ const ok = (cond, label) => eq(!!cond, true, label);
   const { csMilestoneSub } = env;
   const a = { kind: 'sub_80', label: 'Broke 80', earned_on: '2026-08-24', meta: { gross: 79 } };
 
-  eq(csMilestoneSub(a, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }),
-     '79 at Papago · Aug 24', 'the round in hand names its course');
+  eq(csMilestoneSub(a, { gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }),
+     '79 at Saguaro Flats · Aug 24', 'the round in hand names its course');
 
   // THE DEGRADE IS THE POINT. The desk holds 400 rounds and the phone holds
   // five; a milestone older than that window keeps its figure and its date
@@ -135,10 +135,10 @@ const ok = (cond, label) => eq(!!cond, true, label);
   // round earned them together — the owner's own complaint, arriving inside
   // the fix for it. The personal best keeps its differential and gains the
   // course; the threshold keeps its gross.
-  eq(csMilestoneSub(pb, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }),
-     '4.1 vs course · Papago · Aug 24', 'a personal best never borrows the threshold\'s sentence');
-  eq(csMilestoneSub(a, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }),
-     '79 at Papago · Aug 24', 'and the two never read the same on one round');
+  eq(csMilestoneSub(pb, { gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }),
+     '4.1 vs course · Saguaro Flats · Aug 24', 'a personal best never borrows the threshold\'s sentence');
+  eq(csMilestoneSub(a, { gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }),
+     '79 at Saguaro Flats · Aug 24', 'and the two never read the same on one round');
 }
 
 /* ── 5 · the lookup is absent, never wrong ──────────────────────────────── */
@@ -146,7 +146,7 @@ const ok = (cond, label) => eq(!!cond, true, label);
   const { csMilestoneRound, window: w } = env;
   eq(csMilestoneRound(null), null, 'no round id, no round');
   eq(csMilestoneRound('r1'), null, 'an id with nothing behind it is null, not undefined');
-  w.career.rows = [{ id: 'r1', gross: 79, course_label: 'Papago', played_on: '2026-08-24' }];
+  w.career.rows = [{ id: 'r1', gross: 79, course_label: 'Saguaro Flats', played_on: '2026-08-24' }];
   eq(csMilestoneRound('r1').gross, 79, 'the id finds its round');
   // ids come back from the server as strings and live in memory as strings,
   // but a uuid compared loosely is a class of bug worth one assertion

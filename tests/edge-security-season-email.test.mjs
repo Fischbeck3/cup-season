@@ -16,7 +16,7 @@ const SRC = stripTypeScriptTypes(readFileSync(new URL('../supabase/functions/sea
     return '';
   }));
 const ID = '5d0c6d2e-8b1a-4f3e-9c2d-1a2b3c4d5e6f';
-const DB_NOTICE = { id: ID, sent_at: null, payload: { league: 'PIGL', recipients: [
+const DB_NOTICE = { id: ID, sent_at: null, payload: { league: 'North Grove', recipients: [
   { email: 'ann@gmail.com', name: 'Ann', cents: 5000 }, { email: 'bo@gmail.com', name: 'Bo', cents: 0 }] } };
 
 function worker({ notices = [DB_NOTICE], readError = null, payload = null } = {}) {
@@ -91,13 +91,13 @@ test('C-11 · a hostile league name is one capped header line and escaped HTML',
 });
 
 test('the season recap still sends from the database payload', async () => {
-  const payload = { season_id: 's1', league: 'PIGL', champion: 'Mudsharks', runner_up: 'Birdies', points_king: null,
+  const payload = { season_id: 's1', league: 'North Grove', champion: 'Fixture Javelinas', runner_up: 'Birdies', points_king: null,
     champion_score: 412, runnerup_score: 388, tiebreak: null, starts_on: '2026-04-01', ends_on: '2026-09-01', solo: false,
-    rows: [{ name: 'Mudsharks', points: 412 }], recipients: [{ email: 'ann@gmail.com', name: 'Ann', token: 't1', cents: 0 }] };
+    rows: [{ name: 'Fixture Javelinas', points: 412 }], recipients: [{ email: 'ann@gmail.com', name: 'Ann', token: 't1', cents: 0 }] };
   const w = worker({ payload });
   const r = await w.hook({ type: 'INSERT', table: 'email_queue', record: { id: 'q1', season_id: 's1', sent_at: null } });
   assert.equal(r.status, 200);
   assert.equal(w.log.brevo.length, 1);
-  assert.equal(w.log.brevo[0].subject, 'The Cup goes to Mudsharks by 24 — PIGL');
+  assert.equal(w.log.brevo[0].subject, 'The Cup goes to Fixture Javelinas by 24 — North Grove');
   assert.deepEqual(w.log.rpc.map((x) => x[0]), ['season_email_payload', 'mark_email_sent']);
 });

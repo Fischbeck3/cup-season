@@ -31,9 +31,9 @@
   const rows=[
     row({ golfer:'FIXTURE · Sam Ridley', gross:89, pvi:-2.0, course:'UNM Championship Course', is_me:true }),
     row({ golfer:'FIXTURE · Priya Anand', gross:92, pvi:1.4, course:'The Championship Course at the University of New Mexico — North Loop' }),
-    row({ golfer:'FIXTURE · Marcus Lee', gross:84, pvi:null, course:'Papago' }),
-    row({ golfer:'FIXTURE · Dana Okafor', gross:79, pvi:3.1, course:'Aguila', played_on:ago(4) }),
-    row({ golfer:'FIXTURE · Galen Marr', gross:81, pvi:0.2, course:'Encanto', photo_url:photo, played_on:ago(1) }),
+    row({ golfer:'FIXTURE · Marcus Lee', gross:84, pvi:null, course:'Saguaro Flats' }),
+    row({ golfer:'FIXTURE · Dana Okafor', gross:79, pvi:3.1, course:'Dry Creek', played_on:ago(4) }),
+    row({ golfer:'FIXTURE · Galen Marr', gross:81, pvi:0.2, course:'Mesquite Wash', photo_url:photo, played_on:ago(1) }),
   ];
   /* the board cache already knows the fourth round's consequence */
   window.roundCache=window.roundCache||{};

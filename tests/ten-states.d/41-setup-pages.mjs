@@ -95,7 +95,7 @@ const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
     /* TEN / W6 · AW2-06: the weekday heads and the back link are agate, never mono; the dates stay a column */
-    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'), weekCloseMarks,
+    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Saguaro Flats', 'a planned course'), weekCloseMarks,
       notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink']),
       noRetiredGlyph()) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',

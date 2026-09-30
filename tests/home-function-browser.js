@@ -53,9 +53,9 @@
     const logged=[]; const realQa=window.qaEvent; window.qaEvent=(n,p)=>{logged.push([n,p]);};
     const PLAN='c0000000-0000-4000-8000-0000000000a1', PLAY=isoAgo(1);
     const card=()=>({key:'afterplan:'+PLAN,tier:'changed',rank:1,score:806,subject:'you',human_subject:true,
-      eyebrow:'SAT · PAPAGO',headline:'You planned a round for yesterday.',standfirst:'Nothing posted yet.',
+      eyebrow:'SAT · SAGUARO FLATS',headline:'You planned a round for yesterday.',standfirst:'Nothing posted yet.',
       action:'Add my round',route:{kind:'composer'},spine:'ember',at:PLAY,suppress:[],
-      context:{plan_id:PLAN,play_on:PLAY,course_label:'Papago',course_id:null,tee_time:null}});
+      context:{plan_id:PLAN,play_on:PLAY,course_label:'Saguaro Flats',course_id:null,tee_time:null}});
     window.homeDispatch={items:[card()],lead_suppress:[]};
     renderHomeDispatch();
     const lead=document.getElementById('homeLead');
@@ -71,7 +71,7 @@
     ['inF9','inB9','inRating','inSlope'].forEach(id=>{document.getElementById(id).value='';});
     lead.querySelector('[data-dgo]').click();
     check(dEl.value===PLAY,'The composer did not take the plan\u2019s day');
-    check(cEl.value==='Papago','The composer did not take the plan\u2019s course');
+    check(cEl.value==='Saguaro Flats','The composer did not take the plan\u2019s course');
     check(cEl.dataset.courseId==='','A course id was claimed without a tee');
     check(state.post.plan && state.post.plan.id===PLAN,'The plan identity was not kept beside the draft');
     check(views[views.length-1]==='post','The after-golf door did not open the composer');
@@ -121,7 +121,7 @@
     state.demo=true;switchView=realView;window.homeFeedRows=realRows;window.qaEvent=realQa;
     DEMO_FEED.splice(0,DEMO_FEED.length,
       {round_id:'a0000000-0000-4000-8000-000000000001',profile_id:'a0000000-0000-4000-8000-000000000011',golfer:'You',marker:'azalea',gross:84,pvi:0,course:'Oak Quarry',played_on:isoAgo(0),is_me:true,photo_url:bad,rx:{}},
-      {round_id:'a0000000-0000-4000-8000-000000000002',profile_id:'a0000000-0000-4000-8000-000000000012',golfer:'Sam',marker:'jug',gross:79,course:'Papago',played_on:isoAgo(1),is_pr:true,rx:{}});
+      {round_id:'a0000000-0000-4000-8000-000000000002',profile_id:'a0000000-0000-4000-8000-000000000012',golfer:'Sam',marker:'jug',gross:79,course:'Saguaro Flats',played_on:isoAgo(1),is_pr:true,rx:{}});
     const box=document.getElementById('homeFeed');
     const wrapper=document.createElement('main');wrapper.style.cssText='max-width:620px;margin:0 auto;padding:24px';
     const sprite=document.querySelector('#i-plus').closest('svg');

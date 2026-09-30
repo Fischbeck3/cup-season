@@ -43,9 +43,9 @@ const args = process.argv.slice(2)
 const arg = (k, d = null) => { const i = args.indexOf('--' + k); return i >= 0 && i + 1 < args.length ? args[i + 1] : d }
 const ROOT_ARG = resolve(arg('root', resolve(HERE, '..')))
 const REF = arg('ref', null)
-const OUT = resolve(arg('out', '/Users/fischbeck3/cup-season-claude-ten-gallery/wx/lock-probe'))
-const PW = process.env.TEN_PLAYWRIGHT || '/Users/fischbeck3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'
-const CHROME = process.env.TEN_CHROME || '/Users/fischbeck3/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell'
+const OUT = resolve(arg('out', (process.env.HOME || '') + '/cup-season-claude-ten-gallery/wx/lock-probe'))
+const PW = process.env.TEN_PLAYWRIGHT || (process.env.HOME || '') + '/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'
+const CHROME = process.env.TEN_CHROME || (process.env.HOME || '') + '/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell'
 const require = createRequire(import.meta.url)
 const { chromium } = require(PW)
 const LOCK_NAME = 'lock:sb-zddbfcokmvneltrgukzf-auth-token'
@@ -106,7 +106,7 @@ async function bootAndMeasure(page, t0) {
 async function run() {
   mkdirSync(OUT, { recursive: true })
   const browser = await chromium.launch({ headless: true, executablePath: CHROME })
-  const cdn = cdnCache('/Users/fischbeck3/cup-season-claude-ten-gallery/wx/cdn-cache')
+  const cdn = cdnCache((process.env.HOME || '') + '/cup-season-claude-ten-gallery/wx/cdn-cache')
   const results = []
   try {
     for (const vname of ['as-shipped', 'no-lock-option', 'navigator-lock']) {

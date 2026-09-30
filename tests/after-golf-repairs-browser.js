@@ -9,7 +9,7 @@
   const realPost=JSON.parse(JSON.stringify(state.post));
   const uid='f0000000-0000-4000-8000-000000000001';
   const PLAN='f0000000-0000-4000-8000-000000000002';
-  const ctx={plan_id:PLAN, play_on:isoAgo(1), course_label:'Papago', course_id:null, tee_time:null};
+  const ctx={plan_id:PLAN, play_on:isoAgo(1), course_label:'Saguaro Flats', course_id:null, tee_time:null};
   const msgs=[];
   try{
     window.fetch=async()=>{throw new Error('repair suite: network disabled')};
@@ -215,7 +215,7 @@
     document.getElementById('inB9').value='43';
     document.getElementById('inRating').value='71.2';
     document.getElementById('inSlope').value='128';
-    document.getElementById('inCourse').value='Papago';
+    document.getElementById('inCourse').value='Saguaro Flats';
     document.getElementById('inCourse').dataset.courseId='gc-1';
     state.post.playedWith=['f0000000-0000-4000-8000-00000000000b'];
     state.post.touched=true; state.post.side=9; state.post.rating9=true;

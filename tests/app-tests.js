@@ -483,17 +483,17 @@
   })();
 
   /* ══ Y-12 · a course label as it should be READ ══════════════════════════
-     GolfCourseAPI title-cases its club names upstream, so "Palo Verde GC"
-     lands in rounds.course_label as "Palo Verde Gc". csCourse repairs the
+     GolfCourseAPI title-cases its club names upstream, so "North Grove GC"
+     lands in rounds.course_label as "North Grove Gc". csCourse repairs the
      acronym and touches nothing else — re-casing the whole string is the bug
      one level up. Twin of the Kit's RoundCopy.course. */
   (function(){
-    t('Y-12: the club acronym is repaired', csCourse('Palo Verde Gc · Back'), 'Palo Verde GC · Back');
+    t('Y-12: the club acronym is repaired', csCourse('North Grove Gc · Back'), 'North Grove GC · Back');
     t('Y-12: and inside a longer label',
-      csCourse('Arizona Biltmore Cc — Links · Copper'), 'Arizona Biltmore CC — Links · Copper');
-    t('Y-12: a hand-typed label is left alone', csCourse('Papago GC'), 'Papago GC');
+      csCourse('Whispering Fixture Pines Cc — Links · Copper'), 'Whispering Fixture Pines CC — Links · Copper');
+    t('Y-12: a hand-typed label is left alone', csCourse('Saguaro Flats GC'), 'Saguaro Flats GC');
     t('Y-12: a small word is NOT re-cased', csCourse('Lone Tree at the Ranch'), 'Lone Tree at the Ranch');
-    t('Y-12: a lowercase name is left alone', csCourse('encanto gc'), 'encanto GC');
+    t('Y-12: a lowercase name is left alone', csCourse('mesquite wash gc'), 'mesquite wash GC');
     t('Y-12: null-safe', csCourse(null), '');
   })();
 
@@ -599,15 +599,15 @@
 
     const was = window.watchAll;
     window.watchAll = [
-      { id:'a', mine:false, tagged_me:true, play_on:iso(1), course_label:'Papago GC', tagged_names:['Galen'] },
-      { id:'b', mine:true,  my_rsvp:'out',  play_on:iso(0), course_label:'Encanto GC' },
-      { id:'c', mine:false,                 play_on:iso(2), course_label:'Aguila GC', display_name:'Ed' },
-      { id:'d', mine:true,                  play_on:iso(4), course_label:'Palo Verde GC' },
+      { id:'a', mine:false, tagged_me:true, play_on:iso(1), course_label:'Saguaro Flats GC', tagged_names:['Galen'] },
+      { id:'b', mine:true,  my_rsvp:'out',  play_on:iso(0), course_label:'Mesquite Wash GC' },
+      { id:'c', mine:false,                 play_on:iso(2), course_label:'Dry Creek GC', display_name:'Jules' },
+      { id:'d', mine:true,                  play_on:iso(4), course_label:'North Grove GC' },
     ];
     const up = upcomingFromSchedule();
-    t('D219: a round booked with me leads the list', up.map(r => r.what), ['Papago GC', 'Palo Verde GC']);
-    t('D219: my declined booking is not on it', up.some(r => r.what === 'Encanto GC'), false);
-    t('D219: a buddy\u2019s round is not on it', up.some(r => r.what === 'Aguila GC'), false);
+    t('D219: a round booked with me leads the list', up.map(r => r.what), ['Saguaro Flats GC', 'North Grove GC']);
+    t('D219: my declined booking is not on it', up.some(r => r.what === 'Mesquite Wash GC'), false);
+    t('D219: a buddy\u2019s round is not on it', up.some(r => r.what === 'Dry Creek GC'), false);
     t('D219: the tagged round names who booked it with me', up[0].who, 'with Galen');
     t('D219: tomorrow is TOMORROW', up[0].when, 'TOMORROW');
     window.watchAll = was;
@@ -759,7 +759,7 @@
     const savedClash = window.homeClash, savedFeed = window.homeFeedRows;
     window.homeClash = { week_no: 5, ends_on: '2026-09-06', days_left: 2, closes_today: false,
                          them_name: 'Galen Ward', mine: { gross: 89, round_id: null }, theirs: null };
-    window.homeFeedRows = [{ round_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Troon', is_me: false }];
+    window.homeFeedRows = [{ round_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Mesquite Wash', is_me: false }];
     const fb = csFallbackItems();
     t('D228: the fallback composes items', fb.length >= 2, true);
     t('D228: the fallback order is CLOSING then CIRCLE', fb.map(x => x.tier), ['closing', 'circle']);
@@ -767,12 +767,12 @@
        sets them as runs in the board face and the braces never show */
     t('D228: SA-2 — the subject is the opponent, and the verb is not "post again"',
       fb[0].headline, 'Galen has {2} days to answer your {89}.');
-    t('AW2-07: the circle headline marks its gross, never a digit in the course', fb[1].headline, 'Jade posted {81} at Troon.');
-    t('AW2-07: the lead sets the marked figure as a run', /Jade posted <span class="cfrun">81<\/span> at Troon\./.test(csLeadBlock(fb[1])) && !/[{}]/.test(csLeadBlock(fb[1]).replace(/data-[a-z-]+="[^"]*"/g, '')), true);
+    t('AW2-07: the circle headline marks its gross, never a digit in the course', fb[1].headline, 'Jade posted {81} at Mesquite Wash.');
+    t('AW2-07: the lead sets the marked figure as a run', /Jade posted <span class="cfrun">81<\/span> at Mesquite Wash\./.test(csLeadBlock(fb[1])) && !/[{}]/.test(csLeadBlock(fb[1]).replace(/data-[a-z-]+="[^"]*"/g, '')), true);
     t('D228: the fallback draws NO lead card', csRankDispatch(fb, { useServerRank: false }).lead, null);
     t('D228: ... and every fallback item still has a door', fb.every(x => !!x.route), true);
     /* the producer applies the fence itself: a circle round with no id is not an item */
-    window.homeFeedRows = [{ round_id: null, golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Troon', is_me: false }];
+    window.homeFeedRows = [{ round_id: null, golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Mesquite Wash', is_me: false }];
     t('D228: a fallback item with no door is never emitted', csFallbackItems().map(x => x.tier), ['closing']);
     /* TEN / W6 · AW2-05 (L-34, D360): the clash says its clock ONCE. The
        eyebrow names the competition only ("<RIVALRY> · THE CLASH"), and each
@@ -881,7 +881,7 @@
        siblings) of a golfer's first round, and still says it of a later one */
     {
       const epiText = (e, first) => {
-        showEpilogue(Object.assign({ gross: 85, pvi: null, points: null, rivals: [], played_with: [] }, e), 'Papago', first, null, {});
+        showEpilogue(Object.assign({ gross: 85, pvi: null, points: null, rivals: [], played_with: [] }, e), 'Saguaro Flats', first, null, {});
         const host = document.getElementById('epiPanel'), sh = document.getElementById('shBody');
         const said = ((host && host.style.display === 'block') ? host.textContent : (sh ? sh.textContent : '')).replace(/\s+/g, ' ');
         if(host){ host.style.display = 'none'; host.innerHTML = ''; }
@@ -1084,12 +1084,12 @@
     /* seen on a real account before it was fixed: `tagged_names` carries the
        VIEWER on a round a buddy booked with them */
     t('a plan never names the viewer twice',
-      csPlanLine({ tagged_names: ['Jerecho Fischbeck', 'Galen'] }, 'Jerecho Fischbeck'), 'You and Galen.');
+      csPlanLine({ tagged_names: ['Avery Fixture', 'Galen'] }, 'Avery Fixture'), 'You and Galen.');
     t('someone else’s round names its host',
-      csPlanLine({ mine: false, display_name: 'Galen Ross', tagged_names: ['Jerecho Fischbeck'] }, 'Jerecho Fischbeck'),
+      csPlanLine({ mine: false, display_name: 'Galen Ross', tagged_names: ['Avery Fixture'] }, 'Avery Fixture'),
       'Galen\u2019s round. You\u2019re on it.');
     t('…and the others on it',
-      csPlanLine({ mine: false, display_name: 'Galen Ross', tagged_names: ['Jerecho Fischbeck', 'Jade', 'Dev'] }, 'Jerecho Fischbeck'),
+      csPlanLine({ mine: false, display_name: 'Galen Ross', tagged_names: ['Avery Fixture', 'Jade', 'Dev'] }, 'Avery Fixture'),
       'Galen\u2019s round. You, Jade and Dev.');
 
     /* D252 · the moment row's noun and state — never a countdown (L-22) */
@@ -1157,10 +1157,10 @@
       'Galen has led for four straight weeks.');
     t('rung 2: a squad is a THEY, a golfer a she or a he',
       csSeasonStoryLine(Object.assign(P({ week_no:7, weeks_total:26, weeks_left:19, field:4,
-        leader:{ name:'Mudsharks', run_weeks:4, source:'standings_snapshots' },
+        leader:{ name:'Fixture Javelinas', run_weeks:4, source:'standings_snapshots' },
         runner_up:{ name:'The Frost', points:27 }, top_gap:4 }),
         { season:{ solo:false, status:'active' } })).text,
-      'Mudsharks have led for four straight weeks.');
+      'Fixture Javelinas have led for four straight weeks.');
     t('rung 2: a run of two weeks is not a run',
       csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:19, field:2,
         leader:{ name:'Galen', run_weeks:2, source:'standings_snapshots' },
@@ -1364,7 +1364,7 @@
         [csSpokenDay('2026-05-03'), csSpokenDay('nonsense')], ['May 3', '']);
 
       /* R5 · the board */
-      const me = { profile_id:'1', display_name:'Jerecho', rounds_30d:6, beats_30d:2, avg_vs_number_30d:0.4, is_me:true };
+      const me = { profile_id:'1', display_name:'Avery', rounds_30d:6, beats_30d:2, avg_vs_number_30d:0.4, is_me:true };
       const tash = { profile_id:'2', display_name:'Tash', rounds_30d:4, beats_30d:3, avg_vs_number_30d:2.4, is_me:false };
       const jade = { profile_id:'3', display_name:'Jade', rounds_30d:0, beats_30d:0, avg_vs_number_30d:null, is_me:false };
       t('R5: the form line names its denominator (L-01) and speaks for whose number it is',
@@ -1413,7 +1413,7 @@
     window.homeRx = {
       myPid: 'me', myIds: new Set(['memA']),
       mem2pid: { memA:'me', memB:'me', memG:'galen' },
-      names: { me:'Jerecho', galen:'Galen', memA:'Jerecho', memB:'Jerecho', memG:'Galen' },
+      names: { me:'Avery', galen:'Galen', memA:'Avery', memB:'Avery', memG:'Galen' },
     };
     t('D238: a profile-keyed reaction of mine is mine',
       csKudoMine({ post_id:'p', profile_id:'me', emoji:'🔥' }), true);
@@ -1512,14 +1512,14 @@
      correct in a test and wrong on a phone. `MeStripCopy.shortCourse` is the
      twin and `LongCourseNameTests` asserts the same four answers. */
   t('DEF-1: prod’s longest label becomes the club',
-    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'Gold Canyon');   /* W7-117 · the club as stored, the phone's answer (MeStripCopy.shortCourse) */
+    csShortCourse('Whispering Fixture Pines — Fixture Mountain · Black/Blue'), 'Whispering Fixture Pines');   /* W7-117 · the club as stored, the phone's answer (MeStripCopy.shortCourse) */
   t('DEF-1: the layout and the tee variant are both dropped',
-    [csShortCourse('Troon North Golf Course — Pinnacle Course · Gold'),
-     csShortCourse('Raven Golf Club-Phoenix · Silver')],
-    ['Troon North Golf Course', 'Raven Golf Club-Phoenix']);
+    [csShortCourse('Whispering Fixture Pines Golf Course — Fixture Course · Gold'),
+     csShortCourse('Dry Creek Golf Club-Phoenix · Silver')],
+    ['Whispering Fixture Pines Golf Course', 'Dry Creek Golf Club-Phoenix']);
   t('DEF-1: a plain name is left as it is, and nothing is invented from nothing',
-    [csShortCourse('Papago Golf Course'), csShortCourse(null), csShortCourse('   ')],
-    ['Papago Golf Course', null, null]);
+    [csShortCourse('Sandbox Fixture Links'), csShortCourse(null), csShortCourse('   ')],
+    ['Sandbox Fixture Links', null, null]);
 
   /* ============ WAVE 7 · intent, the callout, and the covenant ============
      D225 · the doors name what I want, not what the engine has. The whole
@@ -1763,7 +1763,7 @@
     t('L-14: and a fractional one still shows its place', csStarterText(12.4), '12.4');
 
     /* D247 · the two defaults, and the gate that is still marker AND handle */
-    t('D247: the handle derives from the name', csHandleFromName('Jerecho Fischbeck'), 'jerechofischbeck');
+    t('D247: the handle derives from the name', csHandleFromName('Avery Fixture'), 'averyfixture');
     t('D247: and never longer than 20', csHandleFromName('a'.repeat(40)).length, 20);
     t('D247: a two-letter nickname derives an illegal handle', csHandleIsLegal(csHandleFromName('JT')), false);
     t('CLAUDE.md landmine: the gate is marker AND handle',
@@ -1776,8 +1776,8 @@
        are asserted by `OnboardingTests` too — a floor that differs between a
        golfer's two screens is not a floor. */
     t('D247/L-24: the defaulted marker is the phone\'s marker',
-      ['jerecho','galen','jade','tash'].map(csMarkerDefault),
-      ['island','lighthouse','shark','dunes']);
+      ['avery','galen','jade','tash'].map(csMarkerDefault),
+      ['weebridge','lighthouse','shark','dunes']);   /* X37 · the first key is the synthetic cast's now; OnboardingTests' copy of this fixture moves with it */
     t('L-24: the footnote names it and says where to change it',
       csMarkerFootnote('The Island'),
       'Your marker is The Island — your face here until you add a photo, and your stamp on every round after. Tap it to pick another, or change it any time from You.');
@@ -1808,10 +1808,10 @@
       [null, 'One of your friends is already here.', '3 of your friends are already here.']);
     /* normalisation — the migration's own self-check cases, verbatim */
     t('C-11: email normalisation matches the server',
-      csNormaliseEmail('  Jerecho@Example.COM '), 'jerecho@example.com');
+      csNormaliseEmail('  Avery@Example.COM '), 'avery@example.com');
     t('C-11: no provider cleverness', csNormaliseEmail('a.b+golf@gmail.com'), 'a.b+golf@gmail.com');
     t('C-11: a non-address is not an address',
-      [csNormaliseEmail('jerecho'), csNormaliseEmail('@example.com'), csNormaliseEmail('')],
+      [csNormaliseEmail('avery'), csNormaliseEmail('@example.com'), csNormaliseEmail('')],
       [null, null, null]);
     t('C-11: phone normalisation matches the server',
       [csNormalisePhone('(480) 555-0134'), csNormalisePhone('+44 20 7946 0958'), csNormalisePhone('555-0134')],
@@ -1867,8 +1867,8 @@
     /* D364 (F3) · the ceiling and the counting rule, said separately; a full
        month shows the replacement arithmetic; a nine is half the band. */
     t('R-K/D364: the owner’s own sentence',
-      csRoundWorthLine('Tomorrow at Papago', 4, 2, null, null),
-      'Tomorrow at Papago can score up to 12, and it counts: your best 4 count and you have 2.');
+      csRoundWorthLine('Tomorrow at Saguaro Flats', 4, 2, null, null),
+      'Tomorrow at Saguaro Flats can score up to 12, and it counts: your best 4 count and you have 2.');
     t('D24: it is a ceiling, never a probability',
       /up to/.test(csRoundWorthLine('This round', 4, 2, null, null)), true);
     t('D364: a full month shows what a 12 replaces and what it adds',
@@ -1884,14 +1884,14 @@
     t('L-34: the season is named only when there is more than one',
       [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }], 'This round').length,
        csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 },
-                          { league_name: 'PIGL', cap: 3, used: 0 }], 'This round')[1].includes('in PIGL'),
+                          { league_name: 'North Grove', cap: 3, used: 0 }], 'This round')[1].includes('in North Grove'),
        csRoundWorthLines([{ cap: 4, used: 0 }, { cap: 4, used: 1 }, { cap: 4, used: 2 }], 'This round').length],
       [1, true, 2]);
     t('D364: seasons that say the same thing say it once, together',
-      [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'PIGL', cap: 4, used: 2 }], 'This round'),
+      [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'North Grove', cap: 4, used: 2 }], 'This round'),
        csRoundWorthLines([{ league_name: 'A', cap: 4, used: 2 }, { league_name: 'B', cap: 4, used: 2 }, { league_name: 'C', cap: 4, used: 2 }], 'This round').length,
-       csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'PIGL', cap: 4, used: 4, worst: 5 }], 'This round').length],
-      [['This round can score up to 12, and it counts in both The Fellas and PIGL: your best 4 count and you have 2.'], 1, 2]);
+       csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'North Grove', cap: 4, used: 4, worst: 5 }], 'This round').length],
+      [['This round can score up to 12, and it counts in both The Fellas and North Grove: your best 4 count and you have 2.'], 1, 2]);
     /* D366 (F6) · the pride-bet composer says what it is: record-only, no
        acceptance, what decides it, who confirms, where it shows, no points */
     t('D366: the composer never claims a challenge was sent or accepted',
@@ -1925,7 +1925,7 @@
 
     /* profile.md §7 / D-5 · a WIN takes the gold rule; a podium takes ink. */
     const leaf = csRecordLeaf([
-      { year:'2026', name:'Desert Mountain Cup', qualifier:null, finish:1, won:true },
+      { year:'2026', name:'Mesquite Wash Cup', qualifier:null, finish:1, won:true },
       { year:'2026', name:'The Fellas', qualifier:'SEASON ONE', finish:2, won:false },
       { year:'2026', name:'Dew Sweepers', qualifier:'SPRING', finish:5, won:false },
     ]);

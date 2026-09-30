@@ -61,4 +61,4 @@ export const PLAN = {
 }
 
 /* the course ids (api_courses) this module leans on */
-export const COURSE = { flats: 910001, wash: 910002, papago: 910003, long: 910004, nine: 910005 }
+export const COURSE = { flats: 910001, wash: 910002, sandbox: 910003, long: 910004, nine: 910005 }

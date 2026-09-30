@@ -132,11 +132,11 @@ export default function install(W) {
   const SEATS = {
     [CLAIM.valid]:     { round: tok(111), me: tok(121), status: 'final', claimed: false, guest_name: 'Kit', gross: 91, strokes: 18, course: pickerLabel(COURSE.wash, 'Black'), finished: W.iso(-1), game: 'skins' },
     [CLAIM.used]:      { round: tok(112), me: tok(122), status: 'final', claimed: true, guest_name: 'Kit', gross: 88, strokes: 18, course: pickerLabel(COURSE.flats, 'White'), finished: W.iso(-9), game: 'none' },
-    [CLAIM.abandoned]: { round: tok(113), me: tok(123), status: 'abandoned', claimed: false, guest_name: 'Kit', gross: null, strokes: 6, course: pickerLabel(COURSE.papago, 'Gold'), finished: null, game: 'wolf' },
+    [CLAIM.abandoned]: { round: tok(113), me: tok(123), status: 'abandoned', claimed: false, guest_name: 'Kit', gross: null, strokes: 6, course: pickerLabel(COURSE.sandbox, 'Gold'), finished: null, game: 'wolf' },
     [CLAIM.setup]:     { round: tok(114), me: tok(124), status: 'setup', claimed: false, guest_name: 'Kit', gross: null, strokes: 0, course: pickerLabel(COURSE.long, 'Tournament Tips (Championship Black)'), finished: null, game: 'match' },
   }
   const SCANS = {
-    [CLAIM.scan]: { guest_name: 'Kit Specimen', gross: 94, course_label: pickerLabel(COURSE.papago, 'Gold'), played_on: W.iso(-3), claimed: false },
+    [CLAIM.scan]: { guest_name: 'Kit Specimen', gross: 94, course_label: pickerLabel(COURSE.sandbox, 'Gold'), played_on: W.iso(-3), claimed: false },
   }
   /* guest_live_state · 20261122090000_one_card_one_claim.sql: a seat whose
      round is not live (or is claimed) answers only {round:{id,status}, me}.
@@ -213,13 +213,13 @@ export default function install(W) {
     { id: PLAN.taggedMe, host: 2, play_on: W.iso(5), tee_time: '08:10:00', course_id: COURSE.wash, tee: 'Black', name: null, game: 'match',
       note: 'Bring the good balls.', tagged: [1, 4], rsvp: { 2: 'in', 4: 'in' }, created_at: W.at(-2, 9, 30),
       comments: [{ by: 4, body: 'Blake and me against the field?', at: W.at(-1, 7, 45) }] },
-    { id: PLAN.leagueMate, host: 4, play_on: W.iso(6), tee_time: null, course_id: COURSE.papago, tee: 'Gold', name: null, game: null,
+    { id: PLAN.leagueMate, host: 4, play_on: W.iso(6), tee_time: null, course_id: COURSE.sandbox, tee: 'Gold', name: null, game: null,
       note: 'Looking for a fourth.', tagged: [], rsvp: { 4: 'in' }, created_at: W.at(-1, 12, 0), comments: [] },
     { id: PLAN.today, host: 3, play_on: W.iso(0), tee_time: '14:10:00', course_id: COURSE.long, tee: 'Tournament Tips (Championship Black)', name: null, game: null,
       note: null, tagged: [7], rsvp: { 3: 'in', 7: 'in' }, created_at: W.at(-4, 18, 0), comments: [] },
     { id: PLAN.nine, host: 1, play_on: W.iso(12), tee_time: null, course_id: COURSE.nine, tee: 'Forward', name: null, game: null,
       note: 'Nine after work.', tagged: [], rsvp: { 1: 'in' }, created_at: W.at(-1, 21, 0), comments: [] },
-    { id: PLAN.past, host: 2, play_on: W.iso(-2), tee_time: '07:00:00', course_id: COURSE.papago, tee: 'Gold', name: null, game: null,
+    { id: PLAN.past, host: 2, play_on: W.iso(-2), tee_time: '07:00:00', course_id: COURSE.sandbox, tee: 'Gold', name: null, game: null,
       note: null, tagged: [1], rsvp: { 2: 'in', 1: 'out' }, created_at: W.at(-8, 19, 0), comments: [] },
   ]
   function planLabel(p) { return pickerLabel(p.course_id, p.tee) }
@@ -337,7 +337,7 @@ export default function install(W) {
       notes: [{ n: 3, stars: 3, note: 'Muni pace on a Saturday. Bring a snack.' }] },
     [COURSE.long]: { stars: 4, note: 'Bring a sleeve for the par 3s.', at: W.at(-15, 21, 0), all: 4.5, count: 3, friends: 5, friends_count: 1,
       notes: [{ n: 8, stars: 5, note: 'Tips are a monster. Play it once from the back.' }] },
-    [COURSE.papago]: { stars: null, note: null, at: null, all: 3.5, count: 2, friends: 3.5, friends_count: 2, notes: [] },
+    [COURSE.sandbox]: { stars: null, note: null, at: null, all: 3.5, count: 2, friends: 3.5, friends_count: 2, notes: [] },
   }
   out.my_course_ratings = () => (!rated ? [] : Object.entries(RATINGS).filter(([, r]) => r.stars != null)
     .sort(([, a], [, b]) => b.stars - a.stars || (a.at < b.at ? 1 : -1))

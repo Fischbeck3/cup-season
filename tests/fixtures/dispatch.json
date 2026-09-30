@@ -91,7 +91,7 @@
           {
             "key": "live:44444444-4444-4444-4444-444444444444", "tier": "closing", "rank": 1,
             "score": 1070, "subject": "you", "human_subject": true,
-            "eyebrow": "PAPAGO", "headline": "You are on the card right now.",
+            "eyebrow": "SAGUARO FLATS", "headline": "You are on the card right now.",
             "standfirst": "Fellas — the card is open.",
             "action": "Back to the round",
             "route": { "kind": "live", "id": "44444444-4444-4444-4444-444444444444", "pane": null },

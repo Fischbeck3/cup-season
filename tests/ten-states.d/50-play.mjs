@@ -473,7 +473,7 @@ export default [
   { family: 'play', id: 'skins-scoring', variant: 'member', title: 'Live round · Skins, three golfers, $2 a skin, through five',
     drive: async (page) => {
       await toSetup(page)
-      await pickCourse(page, 'Papago', 'Papago Fixture Links', 'Gold')
+      await pickCourse(page, 'Sandbox', 'Sandbox Fixture Links', 'Gold')
       await addGolfers(page, ['Devon Testwell', 'Casey Placeholder'])
       await click(page, '#gameSeg [data-g="skins"]')
       await page.locator('#lrStake').fill('2')

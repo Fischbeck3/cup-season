@@ -22,7 +22,7 @@ const require = createRequire(import.meta.url)
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d }
 const BASE = arg('base', 'http://127.0.0.1:8801')
 const SHOTS = arg('shots', null); if (SHOTS) mkdirSync(SHOTS, { recursive: true })
-const { chromium } = require(process.env.CS_PLAYWRIGHT || '/Users/fischbeck3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
+const { chromium } = require(process.env.CS_PLAYWRIGHT || (process.env.HOME || '') + '/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
 const shell = () => { const r = join(homedir(), 'Library', 'Caches', 'ms-playwright'); for (const d of readdirSync(r).filter(d => d.startsWith('chromium_headless_shell')).sort().reverse()) { const p = join(r, d, 'chrome-headless-shell-mac-arm64', 'chrome-headless-shell'); if (existsSync(p)) return p } }
 const results = []
 const check = (name, ok, got) => { results.push({ ok: !!ok }); console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : '  got: ' + JSON.stringify(got).slice(0, 600))) }
@@ -36,9 +36,9 @@ const tee = (name, n, yards) => { const hs = holes(n, yards); return { tee_name:
   number_of_holes: n, total_yards: yards ? hs.reduce((a, h) => a + h.yards, 0) : null, par_total: hs.reduce((a, h) => a + h.par, 0), holes: hs } }
 const LEAD = { id: 'fixture-wash', club_name: 'Mesquite Wash Golf Club (Fixture)', course_name: 'Mesquite Wash', city: 'Scottsdale', state: 'AZ',
   savedAt: Date.now(), usedAt: Date.now(), tees: [tee('Black', 18, true)] }
-const LONG = { id: 'fixture-pines', club_name: 'The Championship Course at Whispering Fixture Pines Country Club', course_name: 'Championship', city: 'Gold Canyon', state: 'AZ',
+const LONG = { id: 'fixture-pines', club_name: 'The Championship Course at Whispering Fixture Pines Country Club', course_name: 'Championship', city: 'Fixture Junction', state: 'AZ',
   savedAt: Date.now(), usedAt: Date.now() - 1000, tees: [tee('Tournament Tips', 18, true)] }
-const NINE = { id: 'fixture-nine', club_name: 'Dry Creek Nine (Fixture)', course_name: 'Dry Creek', city: 'Tempe', state: 'AZ',
+const NINE = { id: 'fixture-nine', club_name: 'Dry Creek Nine (Fixture)', course_name: 'Dry Creek', city: 'Chandler', state: 'AZ',
   savedAt: Date.now(), usedAt: Date.now() - 2000, tees: [tee('Forward', 9, false)] }
 const NOTE = 'Greens roll true and fast all year. The 14th will ruin a card, and the walk from 9 to 10 is longer than it looks.'
 const RATINGS = {

@@ -33,13 +33,13 @@ export const cid = (n) => U('f9000000', n)          /* courses (api_courses ids 
 /* ---- people ---- */
 export const PEOPLE = [
   { n: 1,  name: 'Avery Fixture',               handle: 'avery',   marker: 'saguaro',    index: 14.2, city: 'Mesa, AZ',       email: 'avery.fixture@example.invalid' },
-  { n: 2,  name: 'Blake Sample',                handle: 'blake',   marker: 'lighthouse', index: 9.8,  city: 'Tempe, AZ',      email: 'blake.sample@example.invalid' },
+  { n: 2,  name: 'Blake Sample',                handle: 'blake',   marker: 'lighthouse', index: 9.8,  city: 'Chandler, AZ',      email: 'blake.sample@example.invalid' },
   { n: 3,  name: 'Casey Placeholder',           handle: 'casey',   marker: 'lonetree',   index: 18.4, city: 'Chandler, AZ',   email: 'casey.placeholder@example.invalid' },
   { n: 4,  name: 'Devon Testwell',              handle: 'devon',   marker: 'island',     index: 6.1,  city: 'Gilbert, AZ',    email: 'devon.testwell@example.invalid' },
   { n: 5,  name: 'Emery Mockridge',             handle: 'emery',   marker: 'dunes',      index: 21.7, city: 'Mesa, AZ',       email: 'emery.mockridge@example.invalid' },
   { n: 6,  name: 'Finley Stubbs',               handle: 'finley',  marker: 'shark',      index: 12.3, city: 'Phoenix, AZ',    email: 'finley.stubbs@example.invalid' },
   { n: 7,  name: 'Gray Dummett',                handle: 'gray',    marker: 'pews',       index: 15.9, city: 'Scottsdale, AZ', email: 'gray.dummett@example.invalid' },
-  { n: 8,  name: 'Harper Examplar',             handle: 'harper',  marker: 'jug',        index: 3.4,  city: 'Tempe, AZ',      email: 'harper.examplar@example.invalid' },
+  { n: 8,  name: 'Harper Examplar',             handle: 'harper',  marker: 'jug',        index: 3.4,  city: 'Chandler, AZ',      email: 'harper.examplar@example.invalid' },
   { n: 9,  name: 'Indigo Longname-Fixturington', handle: 'indigo', marker: 'thistle',    index: 27.0, city: 'Apache Junction, AZ', email: 'indigo.fixturington@example.invalid' },
   { n: 10, name: 'Jules Sandbox',               handle: 'jules',   marker: 'beer',       index: 11.1, city: 'Tucson, AZ',     email: 'jules.sandbox@example.invalid' },
   { n: 11, name: 'Kit Specimen',                handle: 'kit',     marker: 'no2',        index: 16.6, city: 'Flagstaff, AZ',  email: 'kit.specimen@example.invalid' },
@@ -53,11 +53,11 @@ export const COURSES = [
     { tee: 'White', gender: 'male', rating: 68.4, slope: 116, holes: 18, yards: 6011 } ] },
   { id: 910002, club: 'Mesquite Wash Golf Club (fixture)', course: 'Mesquite Wash', city: 'Scottsdale', state: 'AZ', tees: [
     { tee: 'Black', gender: 'male', rating: 71.8, slope: 129, holes: 18, yards: 6790 } ] },
-  { id: 910003, club: 'Papago Fixture Links', course: 'North', city: 'Phoenix', state: 'AZ', tees: [
+  { id: 910003, club: 'Sandbox Fixture Links', course: 'North', city: 'Phoenix', state: 'AZ', tees: [
     { tee: 'Gold', gender: 'male', rating: 68.9, slope: 115, holes: 18, yards: 5902 } ] },
-  { id: 910004, club: 'The Championship Course at Whispering Fixture Pines Country Club', course: 'Championship', city: 'Gold Canyon Fixture', state: 'AZ', tees: [
+  { id: 910004, club: 'The Championship Course at Whispering Fixture Pines Country Club', course: 'Championship', city: 'Fixture Junction', state: 'AZ', tees: [
     { tee: 'Tournament Tips (Championship Black)', gender: 'male', rating: 73.4, slope: 138, holes: 18, yards: 7244 } ] },
-  { id: 910005, club: 'Dry Creek Nine (fixture)', course: 'Dry Creek', city: 'Tempe', state: 'AZ', tees: [
+  { id: 910005, club: 'Dry Creek Nine (fixture)', course: 'Dry Creek', city: 'Chandler', state: 'AZ', tees: [
     { tee: 'Forward', gender: 'male', rating: 34.6, slope: 112, holes: 9, yards: null } ] },
 ]
 export const course = (id) => COURSES.find((c) => c.id === id)

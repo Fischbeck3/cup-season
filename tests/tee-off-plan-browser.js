@@ -13,13 +13,13 @@
   const row = { id:LR_OLD, league_id:null, game:'none', game_config:{}, join_code:'JOINME', starter_profile_id:'00000000-0000-0000-0000-000000000a1e', started_by:null,
     course_snapshot:{ label:'Bajamar', pars:PAR.slice(), holes:18 }, course_label:'Bajamar', started_at:new Date(Date.now()-3600e3).toISOString(),
     live_round_players:[ { id:'p1', position:1, guest_name:'Galen', guest_profile_id:'00000000-0000-0000-0000-000000000a1e' },
-                         { id:'p2', position:2, guest_name:'Jerecho', guest_profile_id:ME } ] };
+                         { id:'p2', position:2, guest_name:'Avery', guest_profile_id:ME } ] };
   let mode='plan';
   window.sb = {
     rpc: async (name, args)=>{
       calls.push(name);
       if(name==='start_live_round_from_plan'){
-        if(mode==='plan')  return { data:{ live_round_id:LR_NEW, join_code:'NEW', joined:false, players:[{id:'q1',position:1,guest_name:'Jerecho'}] }, error:null };
+        if(mode==='plan')  return { data:{ live_round_id:LR_NEW, join_code:'NEW', joined:false, players:[{id:'q1',position:1,guest_name:'Avery'}] }, error:null };
         if(mode==='join')  return { data:{ live_round_id:LR_OLD, join_code:'JOINME', joined:true }, error:null };
         if(mode==='skew')  return { data:null, error:{ message:'Could not find the function public.start_live_round_from_plan in the schema cache' } };
         if(mode==='denied')return { data:null, error:{ message:'Only the host and the tagged golfers can tee this booking up' } };
@@ -32,7 +32,7 @@
   };
   async function drive(m){
     mode=m; calls.length=0; announces=0;
-    ROSTER.length=0; ROSTER.push({ n:'Jerecho', i:8.4, ci:1, guest:true, me:true, locked:true, pid:ME }); sel.length=0; sel.push(0); LIVE.length=0; LIVE.push(ROSTER[0]);
+    ROSTER.length=0; ROSTER.push({ n:'Avery', i:8.4, ci:1, guest:true, me:true, locked:true, pid:ME }); sel.length=0; sel.push(0); LIVE.length=0; LIVE.push(ROSTER[0]);
     state.live={ stage:'setup', active:false, game:'score', planId:PLAN, pairing:0, mode:'teams', rating9:false };
     const b=document.getElementById('teeOffBtn'); check(!!b,'the tee-off button exists');
     b.click();

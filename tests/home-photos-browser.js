@@ -26,8 +26,8 @@
   const row=(o)=>Object.assign({ round_id:crypto.randomUUID(), profile_id:crypto.randomUUID(), marker:'saguaro', handle:'fixture',
     played_on:ago(1), created_at:new Date().toISOString(), is_pr:false, is_first:false, is_sub80:false, is_me:false }, o);
   const rows=[
-    row({ golfer:'FIXTURE · Galen Marr', gross:81, pvi:0.2, course:'Encanto', photo_path:'fixture/first.png' }),
-    row({ golfer:'FIXTURE · Jade Okafor', gross:77, pvi:2.6, course:'Aguila', photo_path:'fixture/second.png' }),
+    row({ golfer:'FIXTURE · Galen Marr', gross:81, pvi:0.2, course:'Mesquite Wash', photo_path:'fixture/first.png' }),
+    row({ golfer:'FIXTURE · Jade Okafor', gross:77, pvi:2.6, course:'Dry Creek', photo_path:'fixture/second.png' }),
   ];
   window.homeRx={ post:Object.fromEntries(rows.map(r=>[r.round_id,{ post_id:'p-'+r.round_id }])), kud:{}, names:{}, myPid:rows[0].profile_id };
   state.demo=false; window.homePosts=[];
@@ -108,7 +108,7 @@
 
   /* the score and course never wait for the picture: the band carries them in markup */
   const band=document.querySelector('#homeFeed [data-hfr="0"]');
-  check(/81/.test(band.textContent) && /Encanto/i.test(band.textContent),'the band does not carry score and course');
+  check(/81/.test(band.textContent) && /Mesquite Wash/i.test(band.textContent),'the band does not carry score and course');
   check(document.documentElement.scrollWidth<=innerWidth,'horizontal overflow');
   out.passed=true;
   return JSON.stringify(out);

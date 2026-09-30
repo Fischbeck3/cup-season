@@ -19,7 +19,7 @@ const require = createRequire(import.meta.url)
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d }
 const BASE = arg('base', 'http://127.0.0.1:8801')
 const WIDTH = parseInt(arg('width', '375'), 10)
-const PW = process.env.CS_PLAYWRIGHT || '/Users/fischbeck3/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'
+const PW = process.env.CS_PLAYWRIGHT || (process.env.HOME || '') + '/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'
 const { chromium } = require(PW)
 function shell(){
   const root = join(homedir(), 'Library', 'Caches', 'ms-playwright')
@@ -188,7 +188,7 @@ const producers = [
   ['Card & settings, synthetic profile', () => {
     window.CS = window.CS || {}
     CS.user = { id: '00000000-0000-4000-8000-00000000f1f1', email: 'avery@example.invalid' }
-    CS.profile = { id: '00000000-0000-4000-8000-00000000f1f1', display_name: 'Avery Fixture', handle: 'fixture_avery', marker: 'saguaro', city: 'Tempe', home_course: 'North Grove (fixture)' }
+    CS.profile = { id: '00000000-0000-4000-8000-00000000f1f1', display_name: 'Avery Fixture', handle: 'fixture_avery', marker: 'saguaro', city: 'Chandler', home_course: 'North Grove (fixture)' }
     CS.memberships = []
     openProfileHub()
   }],

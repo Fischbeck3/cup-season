@@ -8,9 +8,9 @@
   const out={};
   const ME='00000000-0000-0000-0000-0000000000e1', ALEX='00000000-0000-0000-0000-000000000a1e';
   /* identity decides */
-  let s=csSaveStatus([{name:'Jerecho',profile_id:ME,round_id:'r1'}],[],false,ME);
+  let s=csSaveStatus([{name:'Avery',profile_id:ME,round_id:'r1'}],[],false,ME);
   check(s.title==='Round posted' && s.hasRound && s.roundId==='r1','my posted card, by id, reads as posted with its round id');
-  s=csSaveStatus([],[{name:'Jerecho',profile_id:ME,reason:'No holes scored'}],false,ME);
+  s=csSaveStatus([],[{name:'Avery',profile_id:ME,reason:'No holes scored'}],false,ME);
   check(s.title==='Not posted' && s.detail==='No holes scored' && !s.hasRound,'my skipped card reads as not posted with the reason');
   /* Codex R3 · another Alex posted, this Alex was skipped */
   s=csSaveStatus([{name:'Alex',profile_id:ALEX,round_id:'r2'}],[{name:'Alex',profile_id:ME,reason:'incomplete card'}],false,ME);
@@ -20,7 +20,7 @@
   s=csSaveStatus([],[],true,ME);
   check(s.title==='Not posted' && /casual/.test(s.detail),'a casual round says what it is');
   /* an old payload names nobody: uncertain until evidence */
-  s=csSaveStatus([{name:'Jerecho'}],[],false,ME);
+  s=csSaveStatus([{name:'Avery'}],[],false,ME);
   check(s.unconfirmed && s.title==='Not confirmed yet' && !s.hasRound,'a payload without identities is unconfirmed');
   check(csConfirmStatus(s,{kind:'one',id:'r9'}).hasRound===true,'one authoritative match confirms it');
   check(csConfirmStatus(s,{kind:'ambiguous',ids:['a','b']}).unconfirmed===true,'two candidates leave it unconfirmed');
