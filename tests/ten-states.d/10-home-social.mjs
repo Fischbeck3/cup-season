@@ -218,6 +218,21 @@ const wireEmptyOneLine = async (page) => page.evaluate(() => {
   if (!/underline/.test(cs.textDecorationLine) || parseFloat(cs.textDecorationThickness) !== 2) return 'the door is not the in-content link'
   return a.getBoundingClientRect().height >= 40 ? true : `the door's hit box is ${Math.round(a.getBoundingClientRect().height)}px tall`
 })
+/* TEN / W6 · W7-074 · the lead's eyebrow breaks on its · separators, never inside a clause ('CLOSES IN' / '5 DAYS') */
+const eyebrowClauses = async (page) => page.evaluate(() => {
+  const eb = document.querySelector('#homeLead .csedn .eb > span:not(.dot):not(.cstate)')
+  if (!eb) return 'the lead draws no eyebrow'
+  const words = []
+  const w = document.createTreeWalker(eb, NodeFilter.SHOW_TEXT)
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const re = /\S+/g; let m
+    while ((m = re.exec(n.textContent))) { const r = document.createRange(); r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length); const b = r.getClientRects()[0]; if (b) words.push({ t: m[0], top: Math.round(b.top) }) }
+  }
+  for (let i = 1; i < words.length; i++) {
+    if (words[i].top > words[i - 1].top + 2 && words[i - 1].t !== '\u00b7' && words[i].t !== '\u00b7') return `the eyebrow breaks inside a clause: "${words[i - 1].t}" / "${words[i].t}"`
+  }
+  return true
+})
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
@@ -313,7 +328,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

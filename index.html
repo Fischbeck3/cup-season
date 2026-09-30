@@ -552,6 +552,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    and they are quiet wire lines now, at the weight their kind earns. */
 .csedn{display:block; text-align:left; margin:0 0 22px;}
 .csedn .eb{display:flex; align-items:baseline; gap:8px; color:var(--mut); margin-bottom:11px;}
+.csedn .eb .cl{white-space:nowrap;}   /* W7-074 · a clause wraps whole: the break falls on a · separator */
 .csedn.ember .eb{color:var(--brand);}
 /* the LIVE dot, 7px in ember. WAVE 11 adds the season head's eyebrow to the
    same rule rather than writing the mark a second time. */
@@ -22384,6 +22385,13 @@ async function csBookingPlayed(courseId, playOn){
 }
 window.csSaveStatus = csSaveStatus; window.csConfirmStatus = csConfirmStatus; window.csMyRoundMatch = csMyRoundMatch; window.csBookingPlayed = csBookingPlayed; window.csMyRoundsOn = csMyRoundsOn;
 window.csSaveStatus = csSaveStatus; window.csMyRoundMatch = csMyRoundMatch; window.csBookingPlayed = csBookingPlayed;
+/* TEN / W7-074 · UI_SYSTEM §16.3 (D279, CSClauseLine): a multi-clause agate
+   line breaks on its · separators, never inside a clause. Every clause after
+   the first is a nowrap run, so 'CLOSES IN 5 DAYS' wraps whole. */
+function csEyebrowClauses(t){
+  const parts = String(t || '').split(' \u00b7 ');
+  return parts.map((c, i) => i === 0 ? esc(c) : `<span class="cl">${esc(c)}</span>`).join(' \u00b7 ');
+}
 function csLeadBlock(it){
   /* F11 · ember identifies a COMPETITION, in any state — so the mark follows
      the item's family, not whether a clock is running, and the state arrives
@@ -22396,7 +22404,7 @@ function csLeadBlock(it){
      event per clash per day by deterministic attempt id. */
   try{ if(String(it.key||'').startsWith('clash:')) qaEvent('clash_seen', { attempt_id: String(it.key)+':'+csTodayISO(), league_id: it.league_id||null }); }catch(_){}
   return `<div class="csedn${live?' ember':''}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
-    ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span>${stateWord?`<span class="cstate">${esc(stateWord)}</span>`:''}</div>`:''}
+    ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${csEyebrowClauses(it.eyebrow)}</span>${stateWord?`<span class="cstate">${esc(stateWord)}</span>`:''}</div>`:''}
     <div class="hl cs-lead">${csFigRun(it.headline)}</div>
     ${it.standfirst?`<div class="sf cs-body">${esc(it.standfirst)}</div>`:''}
     ${it.action?`<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`:''}
