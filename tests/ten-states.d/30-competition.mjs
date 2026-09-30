@@ -828,6 +828,23 @@ const COMPETE = [
     drive: toCompete,
     expect: { view: 'view-compete', selectors: { '#cmpList .emptyroot h3': 'text:^Nothing running\\.$', '#cmpList [data-erdoor="startSomething"]': 'visible', '#cmpList [data-erdoor="joinWithCode"]': 'visible' } },
     check: async (page) => page.evaluate(() => document.querySelector('#cmpList [data-cband], #cmpList .peerrow') ? 'a season or a moment rendered for a golfer with none' : true) },
+  /* Q41 (a) · owner ruling 2026-09-29 (IA §6.1 amended to QB-21): with buddies and nothing running, the counted sentence
+     IS the head, said once, on a first visit to Compete (Golfers has not been opened); 'Nothing running.' leads only when
+     there is no count. A brand-new golfer with the fixture's five buddies and no season. */
+  { family: 'compete', id: 'empty-buddies', variant: 'brand_new', world: { flags: { friends: true } }, title: 'Compete · nothing running, five buddies (the counted head)',
+    drive: async (page) => {
+      await toCompete(page)
+      await until(page, () => /buddies/.test(((document.querySelector('#cmpList .emptyroot h3') || {}).textContent || '')), null, 8000).catch(() => {})
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-compete', selectors: { '#cmpList [data-erdoor="startSomething"]': 'visible', '#cmpList [data-erdoor="joinWithCode"]': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const h = document.querySelector('#cmpList .emptyroot h3'), t = h ? h.textContent.trim() : ''
+      if (t !== '5 buddies, and none of you is playing for anything.') return 'the head reads ' + JSON.stringify(t) + ` (buddy count ${JSON.stringify(window.__buddyCount)})`
+      if (document.querySelector('#cmpList .emptyroot .fact')) return 'the counted sentence is said twice (a fact line under the head)'
+      if (/Nothing running/.test(document.getElementById('cmpList').textContent)) return '"Nothing running." is still on the page'
+      return document.querySelector('#cmpList [data-erdoor="findGolfers"]') ? 'with buddies the second door is still Find golfers' : true
+    }) },
   { family: 'compete', id: 'populated', variant: 'member', title: 'Compete · the Scoreboard (North Grove), a second season, the moments, the finished shelf',
     prepare: async (W) => { ryderWorld(W) },
     drive: async (page) => { await toCompete(page); await until(page, () => /North Grove Ryder/.test((document.getElementById('cmpFinished') || {}).innerText || '')) },

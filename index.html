@@ -24443,6 +24443,19 @@ function renderCompete(){
     }));
   });
   csEmptyRootDoors(box, take);
+  /* Q41 (a) · the count IS the head now, and `__buddyCount` was only ever set by Golfers' own paint (renderCrewPeople,
+     in the module), so a golfer who opened Compete first read "Nothing running." over five buddies. With nothing
+     running and no count in hand, ask once — my_friends, the read Golfers makes, through the bridged `window.sb`
+     (psFriends is a module name this classic block cannot see) — and redraw when there is someone to count. */
+  if(list.nothingRunning && window.__buddyCount == null && !state.demo && !renderCompete.askedBuddies && window.sb){
+    renderCompete.askedBuddies = true;
+    Promise.resolve(window.sb.rpc('my_friends')).then(res => {
+      const d = res && !res.error ? res.data : null;
+      if(!Array.isArray(d)) return;
+      window.__buddyCount = d.filter(f => f && f.status === 'accepted').length;
+      if(window.__buddyCount > 0 && (document.querySelector('.view.active') || {}).id === 'view-compete') renderCompete();
+    }, () => {});
+  }
   function take(k){
     /* MW-01 · the same door Home opens. It went straight to the wizard, which
        skips the question the intent sheet asks and, for a member who is not
