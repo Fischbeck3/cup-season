@@ -45,6 +45,17 @@
     t('X37: the diorama names only the synthetic cast', [...new Set(names.filter(n=>!CAST.includes(n)))].length, 0);
     t('X37: the diorama\u2019s squads are the cast\u2019s', [...squadNames, ...teams.map(x=>x.name)].every(n=>['Wrens','Javelinas'].includes(n)), true);
     t('X37: the feedback line names the founder', [...document.scripts].some(x=>x.textContent.includes('Goes straight to the founder.')), true);
+    /* root's X37 rulings: the Door wings' example board and feed, and the league-name
+       examples, are cast values too (cast.mjs and ten-fixtures-build.mjs's synthetic side) */
+    const SRC = [...document.scripts].map(x=>x.textContent).join('\n');
+    const LBT_SRC = (SRC.match(/const LBT = \[([\s\S]*?)\];/)||[])[1]||'';
+    const lbtNames = [...LBT_SRC.matchAll(/n:'([^']+)'/g)].map(m=>m[1]);
+    t('X37: the Door wings\u2019 board names cast squads', lbtNames.length > 0 && lbtNames.every(n=>['Fixture Wrens','Fixture Javelinas','Fixture Quail','Fixture Gilas'].includes(n)), true);
+    const WF_SRC = (SRC.match(/const FEED = \[([\s\S]*?)\]\.map\(/)||[])[1]||'';
+    const wf = [...WF_SRC.matchAll(/\{n:'([^']+)', c:'([^']+)'/g)].map(m=>[m[1], m[2]]);
+    t('X37: the Door wings\u2019 feed is cast golfers at cast courses', wf.length > 0 && wf.every(([n,c])=>CAST.includes(n) && ['Saguaro Flats','Mesquite Wash','Dry Creek','North Grove','Whispering Fixture Pines'].includes(c)), true);
+    const nlEx = ((SRC.match(/id="nlName" placeholder="([^"]*)"/)||[])[1]||'').replace(/\u2026$/,'').split(', ');   /* the new-league sheet's input is drawn from a template */
+    t('X37: the league-name examples are cast values', nlEx.every(x=>['North Grove','The Saturday Fixture Cup','The Early Fixture Sweepers'].includes(x)), true);
   })();
 
   /* localDate — the Phoenix off-by-one landmine */

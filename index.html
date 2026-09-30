@@ -8385,14 +8385,14 @@ setInterval(function(){
     {n:'Gray', c:'Saguaro Flats', g:82, vs:2.4, sq:'--sq0'},
     {n:'Indigo', c:'Mesquite Wash', g:91, vs:-3.6, sq:'--sq1'},
     {n:'Jules', c:'Dry Creek', g:78, vs:4.1, sq:'--sq2'},
-    {n:'Kit', c:'Whispering Pines', g:87, vs:0.3, sq:'--sq3'},
+    {n:'Kit', c:'Whispering Fixture Pines', g:87, vs:0.3, sq:'--sq3'},
     {n:'Harper', c:'North Grove', g:84, vs:1.2, sq:'--sq0'}
   ].map(r => Object.assign(r, { b: vsPhrase(r.vs).replace(/\byour\b/g, 'their'), p: '+' + pointsFor(r.vs)[0] + ' pts' }));
   const LBT = [
-    {n:'Early Birds', sq:'--sq3', p:184},
-    {n:'The Grinders', sq:'--sq0', p:178},
-    {n:'Mulligan Militia', sq:'--sq1', p:171},
-    {n:'Cart Path Only', sq:'--sq2', p:166}
+    {n:'Fixture Wrens', sq:'--sq3', p:184},
+    {n:'Fixture Javelinas', sq:'--sq0', p:178},
+    {n:'Fixture Quail', sq:'--sq1', p:171},
+    {n:'Fixture Gilas', sq:'--sq2', p:166}
   ];
   const SLOT=88;
   /* D84: the board is bounded and every rung moves. Before this, lbTick only
@@ -16598,7 +16598,7 @@ function renderResumeBanner(){
   let thru=0; for(let k=0;k<18;k++){ if(holeDone(k)) thru=k+1; else break; }
   const course=($('#lrCourse')?.value||'Your round');
   const gl={score:'Stroke play', match:'Match play', wolf:'Wolf', skins:'Skins', sunningdale:'Sunningdale Rules'}[L.game]||'Live round';
-  /* D86 · two faces. Someone else's round is an INVITATION ("Marcus put you on
+  /* D86 · two faces. Someone else's round is an INVITATION ("Gray put you on
      the tee sheet"), not a resumption — "Continue your round" was a lie on a
      round you had never opened. Named host when we have it, unnamed otherwise;
      a round nobody has scored yet says so instead of "THRU 0". */
@@ -20628,7 +20628,7 @@ function renderHomeHero(){
            not be the champion at all. Reading teams[0] here named the wrong
            winner on the one screen a whole league is guaranteed to open
            (season sim 2026-08-30: the engine crowned Vic Slice 28-26 and this
-           card said "Ray Fairway took it"), and told the table leader "your
+           card said "Jules Sandbox took it"), and told the table leader "your
            name goes on the cup" when it did not. csSettlement() resolves both
            from seasons.champion_* — the same source the ceremony uses. */
         const S = window.CS?.season || {};
@@ -21797,8 +21797,8 @@ function dgItems(){
   return (window.homeFeedRows||[]).map(r=>({ t:(r.created_at||r.played_on||''), kind:'round', r }))
     .concat((window.homePosts||[]).map(p=>({ t:(p.created_at||''), kind:'post', p })));
 }
-/* serial comma is load-bearing here: "a personal best from Diego and Rosa broke
-   80" reads as one clause about two people. "…from Diego, and Rosa broke 80"
+/* serial comma is load-bearing here: "a personal best from Casey and Devon broke
+   80" reads as one clause about two people. "…from Casey, and Devon broke 80"
    doesn't. */
 function dgJoin(a){
   if(a.length<2) return a[0]||'';
@@ -25883,7 +25883,7 @@ function renderCareer(){
   const c = state.demo
     ? { rounds:42, best:4.8, avg:1.2, counting:42, played:3, recent:[
         {played_on:'2026-06-30', course_label:'Saguaro Flats',    gross:82, differential:9.1,  holes_played:18, pvi:3.3,  beat:true},
-        {played_on:'2026-06-22', course_label:'Whispering Pines', gross:86, differential:11.2, holes_played:18, pvi:1.2,  beat:true},
+        {played_on:'2026-06-22', course_label:'Whispering Fixture Pines', gross:86, differential:11.2, holes_played:18, pvi:1.2,  beat:true},
         {played_on:'2026-06-14', course_label:'North Grove',      gross:80, differential:7.8,  holes_played:18, pvi:4.6,  beat:true},
         {played_on:'2026-06-07', course_label:'Mesquite Wash',       gross:93, differential:14.6, holes_played:18, pvi:-2.2, beat:false},
         {played_on:'2026-05-31', course_label:'Dry Creek',        gross:84, differential:10.3, holes_played:18, pvi:2.1,  beat:true} ] }
@@ -27792,7 +27792,7 @@ const ADJ = [   /* demo adjustments — mirrors season_adjustments (migration 00
 /* demo round history — the receipts behind each player's number */
 const HIST = {};
 function seedHistory(){
-  const courses=['MESQUITE WASH','SAGUARO FLATS','DRY CREEK','NORTH GROVE','WHISPERING PINES'];
+  const courses=['MESQUITE WASH','SAGUARO FLATS','DRY CREEK','NORTH GROVE','WHISPERING FIXTURE PINES'];
   PLAYERS.forEach(p=>{
     const rows=[];
     for(let k=0;k<p.r;k++){
@@ -38333,7 +38333,7 @@ $('#wCreate').addEventListener('click', () => {
      The name is the first commitment — ask for it, THEN create the row. */
   const carried = window._runItBack?.name || '';
   openSheet('Name your league', 'The banner everything hangs under', `
-    <input class="f" id="nlName" placeholder="The Big Slice, The Sunday Cup, The Early Birds…" autocomplete="off" maxlength="40" style="font-family:var(--sans); font-size:16px" value="${esc(carried)}">
+    <input class="f" id="nlName" placeholder="North Grove, The Saturday Fixture Cup, The Early Fixture Sweepers…" autocomplete="off" maxlength="40" style="font-family:var(--sans); font-size:16px" value="${esc(carried)}">
     <p class="fine" style="padding-top:8px">You can rename it any time before the season starts.</p>
     <button class="btn" id="nlGo" style="margin-top:12px">Start the season</button>`);
   const go = async () => {

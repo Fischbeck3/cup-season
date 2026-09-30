@@ -7,8 +7,10 @@
  * email ends in the reserved `.invalid` TLD, and every league and course name
  * carries "(fixture)". Names that exist in tests/fixtures/home-states.json and
  * tests/fixtures/season-book/*.json are NOT reused -- those files name pilot
- * people and are rewritten through `SYNTHETIC_RENAMES` below before any
- * capture can show them.
+ * people, and tests/ten-fixtures-build.mjs rewrites them through its
+ * HOME_RENAMES and BOOK_RENAMES tables into the synthetic copies under
+ * tests/fixtures/ten/ (its FORBIDDEN scan fails the build if one survives)
+ * before any capture can show them.
  *
  * Deterministic: no Math.random, no Date.now. The capture clock is fixed at
  * CAPTURE_NOW, and every date here is an ISO literal or an offset from it. */
