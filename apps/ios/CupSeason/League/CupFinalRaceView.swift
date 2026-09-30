@@ -27,7 +27,7 @@ struct CupFinalRaceView: View {
       VStack(alignment: .leading, spacing: 0) {
         CSSectionHead("The Cup Final",
                       count: "\(dl) day\(dl == 1 ? "" : "s") left"
-                        + (race.seed_rung.map { " · in the Final by \($0)" } ?? ""))
+                        + (race.seed_rung.map { " · \(model.bylaws.structure == "squads2" ? "head start by" : "in the Final by") \($0)" } ?? ""))
           .csGutter()
           .padding(.bottom, CSTokens.Space.s2)
         CSStandingsBoard(count: race.race.count) { i, _ in
@@ -104,7 +104,7 @@ struct FinalistReceiptSheet: View {
       VStack(alignment: .leading, spacing: 0) {
         if f.head_start > 0 { RoomMathRow(k: "Head start · top seed", v: "+" + CSCopy.points(f.head_start), tone: cs.pos) }
         RoomMathRow(k: "Window rounds · scored fresh", v: CSCopy.points(f.window_points))
-        if let r = f.seed_rung { RoomMathRow(k: "In the Final by", v: r.uppercased()) }
+        if let r = f.seed_rung { RoomMathRow(k: model.bylaws.structure == "squads2" ? "Head start by" : "In the Final by", v: r.uppercased()) }
         RoomMathRow(k: "Total in the Final", v: CSCopy.points(f.total), total: true)
       }
       Text("The rounds").csEyebrow().padding(.top, 6)
@@ -138,7 +138,7 @@ struct FinalistReceiptSheet: View {
           }
         }
       }
-      RoomFine("Only rounds inside the four-week window count here, up to the monthly cap. The weeks before it decided who is in; this is the race.").padding(.top, 10)
+      RoomFine("Only rounds inside the four-week window count here, up to the monthly cap. \(model.bylaws.structure == "squads2" ? "The weeks before it decided the head start" : "The weeks before it decided who is in"); this is the race.").padding(.top, 10)
     }
   }
 }

@@ -15,6 +15,18 @@
     (ok ? console.log : console.error)((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : ` — got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`));
   };
 
+  /* Q2: a drawn seed survives a changed live leader and a one-squad seed race. */
+  t('Q2: locked Final reads the whole draw in seed order', window.csFinalSeedNames({k:1, seeds:[
+    {seed:2,id:'b',name:'Fixture Wrens'}, {seed:1,id:'a',name:'Fixture Javelinas'}]}),
+    ['Fixture Javelinas','Fixture Wrens']);
+  t('Q2: absent draw never invents finalists from points order', window.csFinalSeedNames({k:2}), []);
+  t('Q2: duplicate draw fails closed', window.csFinalSeedNames({seeds:[
+    {seed:1,id:'a',name:'Fixture Wrens'}, {seed:1,id:'a',name:'Fixture Wrens'}]}), []);
+  for(const structure of ['solo','squads2','squads3','squads4']) {
+    t('Q2: wizard help follows '+structure, csFinishNote('cup_final', structure).includes('both squads'), structure==='squads2');
+    t('Q2: +10 only at two squads '+structure, csFinishNote('cup_final', structure).includes('+10'), structure==='squads2');
+  }
+
   /* esc — the XSS gate */
   t('esc: angle brackets', esc('<b>hi</b>'), '&lt;b&gt;hi&lt;/b&gt;');
   t('esc: quotes + amp', esc(`a&'"z`), 'a&amp;&#39;&quot;z');

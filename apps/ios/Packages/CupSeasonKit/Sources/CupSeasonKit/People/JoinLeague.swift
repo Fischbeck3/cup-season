@@ -322,7 +322,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     if finish == "cup_final", let structure {
       return (structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh." : "The top two squads qualify for a four-week Cup Final, scored fresh.") + " " + LeagueCopy.finalCounting
     }
-    if finish == "cup_final" { return "It ends with a four-week Cup Final between the top two." }
+    if finish == "cup_final" { return "It ends with a four-week Cup Final." }
     return "The season’s ending will appear here when its rules are set."
   }
 

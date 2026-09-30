@@ -610,7 +610,7 @@ public enum ClimbMath {
       }
       var badge: String? = nil
       // D126/D136: "LOCKED" read as locked OUT; a clinched seat is IN.
-      if row?.clinched == true { badge = "IN" } else if row?.eliminated == true { badge = "OUT" }
+      if !seeded(scenarios?.meta), row?.clinched == true { badge = "IN" } else if !seeded(scenarios?.meta), row?.eliminated == true { badge = "OUT" }
       var al = isMe ? "You — \(ordinal(i + 1)), \(CSCopy.points(t.pts)) points" : "\(ordinal(i + 1)) — \(t.name), \(CSCopy.points(t.pts)) points"
       if let me, !isMe {
         let d = t.pts - me.pts
@@ -618,7 +618,7 @@ public enum ClimbMath {
       } else if me == nil && i > 0 {
         al += ", \(CSCopy.points(teams[0].pts - t.pts)) behind the leader"
       }
-      if row?.clinched == true { al += ", clinched" } else if row?.eliminated == true { al += ", eliminated" }
+      if !seeded(scenarios?.meta), row?.clinched == true { al += ", clinched" } else if !seeded(scenarios?.meta), row?.eliminated == true { al += ", eliminated" }
       out.append(.rung(ClimbRung(index: i, team: t, isMe: isMe, isLead: i == 0, gap: gap, voice: voice, badge: badge, accessibility: al)))
       prev = i
     }
@@ -723,6 +723,15 @@ public enum ScenarioLine {
     list.count < 3 ? list.joined(separator: " and ") : list.dropLast().joined(separator: ", ") + " and " + list[list.count - 1]
   }
 
+  /// Q2: read the actual draw, with no fallback to live points rank (L-44).
+  public static func finalSeedNames(_ meta: SeasonScenarios.Meta) -> [String] {
+    guard let seeds = meta.seeds, !seeds.isEmpty,
+          seeds.allSatisfy({ ($0.seed ?? 0) > 0 && $0.id != nil && !($0.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
+          Set(seeds.compactMap(\.id)).count == seeds.count,
+          Set(seeds.compactMap(\.seed)).count == seeds.count else { return [] }
+    return seeds.sorted { $0.seed! < $1.seed! }.compactMap(\.name)
+  }
+
   /// `renderScenarioLine`. Empty = hide. Never invents a clinch.
   ///
   /// W7-071 · every part is a SENTENCE in sentence case, joined by a space and
@@ -735,7 +744,7 @@ public enum ScenarioLine {
     let nm = { (s: String?) in s ?? "" }
     let plural = meta.level == "squad"
     if meta.locked == true {
-      let seeds = rows.prefix(max(0, meta.k ?? 0)).map { nm($0.name) }
+      let seeds = finalSeedNames(meta)
       guard !seeds.isEmpty else { return [] }
       // "The Final is set: A and B are in." — each name bold, as on the web
       var p: [ScenarioPart] = [.clinch("The Final is set:"), .text(" ")]

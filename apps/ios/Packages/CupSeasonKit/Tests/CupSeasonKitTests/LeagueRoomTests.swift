@@ -389,15 +389,24 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     .init(finish: "cup_final", structure: level == "squad" ? "squads4" : "solo", level: level, k: k, months_left: 1, locked: true, cap: 4)
   }
   @Test func seedsLockedOnceTheFinalRuns() {
-    let sc = SeasonScenarios(meta: meta(locked: true), rows: [row(a, "Squad 1", pts: 90, max: 90), row(b, "Squad 2", pts: 70, max: 70), row(c, "Squad 3", pts: 10, max: 10)])
-    #expect(ScenarioLine.parts(sc) == [.clinch("The Final is set:"), .text(" "), .bold("Squad 1"), .text(" and "), .bold("Squad 2"), .text(" are in.")])
-    #expect(said(sc) == "The Final is set: Squad 1 and Squad 2 are in.")
-    let three = SeasonScenarios(meta: locked("squad", k: 3), rows: sc.rows)
-    #expect(said(three) == "The Final is set: Squad 1, Squad 2 and Squad 3 are in.")
-    let golfer = SeasonScenarios(meta: locked("golfer", k: 1), rows: [row(a, "Avery Fixture", pts: 90, max: 90)])
-    #expect(said(golfer) == "The Final is set: Avery Fixture is in.")
-    let squad = SeasonScenarios(meta: locked("squad", k: 1), rows: [row(a, "Fixture Javelinas", pts: 90, max: 90)])
-    #expect(said(squad) == "The Final is set: Fixture Javelinas are in.")
+    let draw = [SeasonScenarios.Seed(seed: 2, id: b, name: "Fixture Wrens"),
+                SeasonScenarios.Seed(seed: 1, id: a, name: "Fixture Javelinas")]
+    let actual = SeasonScenarios.Meta(finish: "cup_final", structure: "squads2", level: "squad", k: 1,
+                                     months_left: 0, locked: true, cap: 4, seeds: draw)
+    // Live leader is a different row, and k is the one-squad head-start race.
+    let sc = SeasonScenarios(meta: actual, rows: [row(c, "Fixture Foxes", pts: 120, max: 120),
+                                                row(b, "Fixture Wrens", pts: 90, max: 90),
+                                                row(a, "Fixture Javelinas", pts: 70, max: 70)])
+    #expect(said(sc) == "The Final is set: Fixture Javelinas and Fixture Wrens are in.")
+    let absent = SeasonScenarios(meta: meta(locked: true), rows: sc.rows)
+    #expect(ScenarioLine.parts(absent).isEmpty)
+    let duplicate = SeasonScenarios.Meta(finish: "cup_final", structure: "squads4", level: "squad", k: 2,
+                                        months_left: 0, locked: true, cap: 4, seeds: [draw[0], draw[0]])
+    #expect(ScenarioLine.finalSeedNames(duplicate).isEmpty)
+    let single = SeasonScenarios.Meta(finish: "cup_final", structure: "solo", level: "member", k: 1,
+                                     months_left: 0, locked: true, cap: 4,
+                                     seeds: [.init(seed: 1, id: a, name: "Avery Fixture")])
+    #expect(said(.init(meta: single, rows: sc.rows)) == "The Final is set: Avery Fixture is in.")
   }
   @Test func aMagicNumberOnlyWhenReachable() {
     let sc = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 160, needs: 20), row(d, "Squad 4", pts: 5, max: 30, out: true)])

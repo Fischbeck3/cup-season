@@ -54,7 +54,7 @@ import Foundation
   }
 
   @Test func theEndingIsD126sSentenceNotADialName() {
-    #expect(Self.full.endingLine == "It ends with a four-week Cup Final between the top two.")
+    #expect(Self.full.endingLine == "It ends with a four-week Cup Final.")
     let table = Covenant(name: "x", buyinCents: 0, preset: nil, floor: 0, finish: "points_table")
     #expect(table.endingLine == "The season's points decide it. No reset.")
     for s in [Self.full.endingLine, table.endingLine] {

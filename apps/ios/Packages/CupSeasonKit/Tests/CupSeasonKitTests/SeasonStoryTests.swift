@@ -427,4 +427,13 @@ struct SeasonArcTests {
     let gone = row("Emery", 9, rank: 3, left: true)
     #expect(SeasonStoryCopy.rowClause(gone, leader: leader, cap: 3) == "22 back · stopped scoring")
   }
+  @Test func aFieldOfTwoNamesBothWithoutAFalseCut() {
+    for solo in [true, false] {
+      let p = payload(facts: SeasonStory.Facts(weeks_left: 6, field: 2,
+          leader: SeasonStory.Leader(name: "Blake", run_weeks: 1),
+          runner_up: SeasonStory.Side(name: "Avery", points: 31), top_gap: 0), solo: solo)
+      #expect(SeasonStoryCopy.line(p)?.text == "The two \(solo ? "golfers" : "squads") are level with six weeks to play.")
+    }
+  }
+
 }

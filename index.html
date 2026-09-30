@@ -9344,12 +9344,14 @@ function csSeasonStoryLine(p){
   if(gap != null && Number(gap) <= 2 && Number(f.field||0) >= 2 && f.runner_up){
     const left = Number(f.weeks_left||0);
     const clock = left > 0 ? ` with ${csWord(left)} week${left===1?'':'s'} to play` : '';
-    if(Number(gap) <= 0) return { rung:3, text:`The top two are level${clock}.`, source:'standings_snapshots' };
+    /* Q2 · owner ruling 2026-09-29: in a field of two "the top two" is everybody, a cut worded as a cut (spec §14.3, SA-3): the two are named for what they are */
+    const two = Number(f.field||0) === 2, pair = two ? `the two ${solo ? 'golfers' : 'squads'}` : 'the top two';
+    if(Number(gap) <= 0) return { rung:3, text:`${csCapFirst(pair)} are level${clock}.`, source:'standings_snapshots' };
     const g = Number(gap);
     const head = g === 1 ? 'One point separates'
                : g === Math.round(g) ? `${csCapWord(csWord(g))} points separate`
                : `${csNum(g)} points separate`;
-    return { rung:3, text:`${head} the top two${clock}.`, source:'standings_snapshots' };
+    return { rung:3, text:`${head} ${pair}${clock}.`, source:'standings_snapshots' };
   }
   /* rung 4 · somebody has closed half the gap in a fortnight */
   const c = f.closer;
@@ -9862,6 +9864,8 @@ function renderClimb(){
        it is the opposite: a seat secured. "SEEDED" collides with seeds 1/2,
        which only exist once the window opens. IN. */
     if(settled) badge = (champCid!=null && t.id===champCid) ? '<span class="badge lock">CUP</span>' : '';
+    /* Q2 · at two squads both play the Final: nobody is IN or OUT of it (the leader carries the +10, which the scenario line says), so neither badge is drawn */
+    else if(state.structure==='squads2') badge='';
     else if(row && row.clinched) badge='<span class="badge lock">IN</span>';
     else if(row && row.eliminated) badge='<span class="badge out">OUT</span>';
     const spark = isMe ? climbSpark(series[i]) : '';
@@ -9871,6 +9875,7 @@ function renderClimb(){
     if(me && !isMe){ const d=t.pts-me.pts; al += d===0?', level with you':(d>0?`, ${d} ahead of you`:`, ${-d} behind you`); }
     else if(!me && i>0){ al += `, ${teams[0].pts-t.pts} behind the leader`; }
     if(settled){ if(champCid!=null && t.id===champCid) al+=', took the cup'; }
+    else if(state.structure==='squads2') al+='';   /* Q2 · both squads play the Final */
     else if(row && row.clinched) al+=', clinched'; else if(row && row.eliminated) al+=', eliminated';
     const cls='climb-rung'
       + (isMe?' me':'')
@@ -10010,7 +10015,7 @@ function renderCupRace(){
      that straddles two months lets one golfer count more than it says. The
      phone prints the count alone; the cap's own sentence is the server's
      cap_note, in the finalist's receipt. */
-  let html=`<tr><th colspan="2" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 IN THE FINAL BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th><th class="num">Pts</th></tr>`;   /* W7-066 · the totals stand under a head */
+  let html=`<tr><th colspan="2" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 ${state.structure==='squads2'?'HEAD START BY':'IN THE FINAL BY'} ${esc(String(race.seed_rung).toUpperCase())}`:''}</th><th class="num">Pts</th></tr>`;   /* W7-066 · the totals stand under a head */
   fins.forEach((f,i)=>{
     const id=f.squad_id||f.member_id, t=teams.find(x=>x.id===id);
     const ci=t?t.ci:(i%4), name=t?t.name:(f.name||'\u2014');
@@ -10036,7 +10041,8 @@ function showFinalist(f){
   let h='';
   if(head) h+=`<div class="mathrow pos"><span>Head start \u00b7 top seed</span><b>+${head}</b></div>`;
   h+=`<div class="mathrow"><span>Window rounds \u00b7 scored fresh</span><b>${wp}</b></div>`;
-  if(f.seed_rung) h+=`<div class="mathrow"><span>In the Final by</span><b class="mw">${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
+  /* Q2 · owner ruling 2026-09-29: at TWO SQUADS both are in the Final (spec §14.3, D126), so what a tiebreak rung decides is the +10 head start, not entry: 'Head start by', never 'In the Final by' */
+  if(f.seed_rung) h+=`<div class="mathrow"><span>${state.structure==='squads2'?'Head start by':'In the Final by'}</span><b class="mw">${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
   h+=`<div class="mathrow tot"><span>Total in the Final</span><b>${tot}</b></div>`;
   h+=`<div class="eyebrow" style="margin-top:18px">The rounds</div>`;
   /* D212 · the calendar cap does not stop at the window's edge. The sentence is
@@ -10047,7 +10053,7 @@ function showFinalist(f){
   h+= rounds.length
     ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(csRoundDay(r.played_on)).toUpperCase()}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs your playing HCP \u00b7 ${r.points} PTS</b></div>`).join('')
     : `<p class="fine">No rounds in the window yet.</p>`;
-  h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The weeks before it decided who is in; this is the race.</p>`;
+  h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. ${state.structure==='squads2'?'The weeks before it decided the head start':'The weeks before it decided who is in'}; this is the race.</p>`;
   openSheet(name, `SEED ${f.seed} \u00b7 ${tot} PTS IN THE FINAL`, h);
 }
 /* D108: the weekly clash — one spotlighted pairing per season week, as a chip
@@ -15854,7 +15860,7 @@ function syncWizSegs(){
   /* W5 · the squads note follows the chosen squads on every paint — it kept
      its markup default ("4 squads · best with 8 or more.") under 2 Squads */
   const sn=$('#structNote'); if(sn) sn.textContent=STRUCT_NOTES[state.structure]||'';
-  const fn=$('#finishNote'); if(fn) fn.textContent=FINISH_NOTES[state.finish||'cup_final'];
+  const fn=$('#finishNote'); if(fn) fn.textContent=csFinishNote(state.finish||'cup_final', state.structure);
   const pn=$('#payoutNote'); if(pn) pn.textContent=PAY_NOTES[payKey]||PAY_NOTES['60,25,15'];
   /* W-48 / D201 · #presetSummary stays SILENT: the selected card above it
      already says its one sentence, and a second copy read as a second fact. */
@@ -15990,11 +15996,18 @@ const FINISH_NOTES={
   cup_final:'Cup Final: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.',
   points_table:'Points table: whoever leads when the season ends takes the cup. The whole year is the race — no reset.',
 };
+/* Q2 (row 7) · owner ruling 2026-09-29: TWO SQUADS both play the Final (spec §14.3, D126), so the finish help says so instead of "the top two compete", a cut a field of two does not have */
+function csFinishNote(finish, structure){
+  if(finish !== 'cup_final') return FINISH_NOTES.points_table;
+  return structure === 'squads2'
+    ? 'Cup Final: both squads play the last four weeks, and the leader starts +10. ' + CS_FINAL_COUNTING
+    : FINISH_NOTES.cup_final;
+}
 $$('#finishSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#finishSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
   state.finish=b.dataset.e;
-  $('#finishNote').textContent=FINISH_NOTES[state.finish];
+  $('#finishNote').textContent=csFinishNote(state.finish, state.structure);
   renderBylaws();
 }));
 /* the pot split (payout columns already in league_settings) */
@@ -34177,6 +34190,14 @@ function scenSeedWord(meta){
   if(meta.level==='squad' && meta.structure==='squads2') return 'the top seed';
   return 'a Cup Final place';
 }
+/* Empty/incomplete reads cannot invent a seed. The draw's seed order survives a lead change. */
+function csFinalSeedNames(meta){
+  const seeds = Array.isArray(meta?.seeds) ? meta.seeds : [];
+  if(!seeds.length || seeds.some(s=>!s?.id || !Number.isInteger(s.seed) || s.seed<1 || !String(s.name||'').trim())
+    || new Set(seeds.map(s=>s.id)).size!==seeds.length || new Set(seeds.map(s=>s.seed)).size!==seeds.length) return [];
+  return seeds.slice().sort((a,b)=>a.seed-b.seed).map(s=>String(s.name));
+}
+window.csFinalSeedNames = csFinalSeedNames;
 function renderScenarioLine(){
   const box = document.getElementById('scenarioLine'); if(!box) return;
   const sc = window.scenarios;
@@ -34193,7 +34214,9 @@ function renderScenarioLine(){
   const plural = meta.level==='squad';
   const names = list => list.length<3 ? list.join(' and ') : list.slice(0,-1).join(', ')+' and '+list[list.length-1];
   if(meta.locked){
-    const seeds = rows.slice(0, meta.k).map(r=>`<b>${nm(r.name)}</b>`);
+    /* Q2 row 2 · the engine's drawn finalists, never the current points order. */
+    const seeds = csFinalSeedNames(meta).map(name=>`<b>${nm(name)}</b>`);
+    if(!seeds.length) return hide();
     /* W7-068 [X05] · 'The Final is set' is the state's word (TERMINOLOGY row 141: 'seed' is never a verb; the phone's ScenarioLine says it) */
     box.innerHTML = `<span class="clinch">The Final is set:</span> ${names(seeds)} ${seeds.length>1||plural?'are':'is'} in.`;   /* D126 */
     box.style.display='block'; return;
@@ -35136,7 +35159,7 @@ function csCovenantFacts(info, postedRounds){
   const shortSeason = wk > 0 && wk < 6;
   const table = info.finish === 'points_table' || shortSeason;
   const ending = table ? "The season's points decide it. No reset."
-    : !st ? 'It ends with a four-week Cup Final between the top two.'
+    : !st ? 'It ends with a four-week Cup Final.'   /* Q2 row 9 · the older server's fallback said 'between the top two' of a field whose size it does not know */
     : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start. ' + window.CS_FINAL_COUNTING
     : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING
     : 'The top two squads qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING;   /* Q35 (a): and its counting limit */

@@ -427,4 +427,16 @@ import Foundation
     #expect(DraftCopy.lockTheirs("Logan") == "Logan is picking: only their account can select")
     #expect(DraftCopy.proPicked("Ed", for: "Logan") == "Pro picked Ed for Logan, logged")
   }
+  @Test func finishHelpFollowsStructure() {
+    var d = WizardDials()
+    for structure in ["solo", "squads2", "squads3", "squads4"] {
+      d.structure = structure; d.finish = "cup_final"
+      #expect(d.finishNote.contains("both squads") == (structure == "squads2"))
+      #expect(d.finishNote.contains("+10") == (structure == "squads2"))
+      #expect(d.finishNote.contains(LeagueCopy.finalCounting))
+    }
+    d.finish = "points_table"
+    #expect(!d.finishNote.contains("+10") && !d.finishNote.contains(LeagueCopy.finalCounting))
+  }
+
 }

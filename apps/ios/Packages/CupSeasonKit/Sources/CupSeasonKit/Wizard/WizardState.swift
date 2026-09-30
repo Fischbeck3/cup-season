@@ -291,7 +291,12 @@ public struct WizardDials: Sendable, Equatable, Codable {
   public var payKey: String { payout.map(String.init).joined(separator: ",") }
   public var structNote: String { Self.structNotes[structure] ?? "" }
   public var draftNote: String { Self.draftNotes[draftType] ?? Self.draftNotes["random"]! }
-  public var finishNote: String { Self.finishNotes[finish] ?? Self.finishNotes["cup_final"]! }
+  public var finishNote: String {
+    if finish == "cup_final", structure == "squads2" {
+      return "Cup Final: both squads play the last four weeks, and the leader starts +10. " + LeagueCopy.finalCounting
+    }
+    return Self.finishNotes[finish] ?? Self.finishNotes["cup_final"]!
+  }
   public var payNote: String { Self.payNotes[payKey] ?? Self.payNotes["60,25,15"]! }
 
   // MARK: season dates (7081–7099)
@@ -629,7 +634,7 @@ public enum WizardCopy {
   public static let fillEyebrow = "How squads fill"
   public static let fillHelp = "How squads get filled. Random draw shuffles everyone and announces the reveal to the board, so nobody can rig the hat. Picking them yourself lets you place golfers, for groups who picked teams in the group chat."
   public static let endsEyebrow = "How it ends"
-  public static let endsHelp = "Cup Final: the top two compete in the last four weeks, with the monthly counting limit still applying. Points table: whoever leads at season end wins."
+  public static let endsHelp = "Cup Final: the last four weeks, with the monthly counting limit still applying. At two squads, both play and the leader starts +10; otherwise, the top two qualify. Points table: whoever leads at season end wins."
   public static let potEyebrow = "The pot split"
   public static let potHelp = "How the pot pays out at season’s end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — " + MoneyCopy.ledger
   /// W5 · the dial's second line says what it means: "N" was a variable
