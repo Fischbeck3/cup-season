@@ -61,12 +61,28 @@ const gateWho = async (page) => {
   await page.waitForTimeout(600)
   return true
 }
+/* TEN / W8 · W7-109 [A2-door-5, B2-door-3, A2-desk-23] · the Door's field rows stack: each open row's field takes the whole row, its action sits beneath it at the same
+   width, and the address being sent to (`whole`, the email field's id) is WHOLE in its field, with nothing to scroll: the two moments a golfer checks it for a typo */
+const doorStacked = (whole) => async (page) => page.evaluate((whole) => {
+  const rows = [...document.querySelectorAll('#emailbox.open, #codebox.open, #joinbox.open')]
+  if (!rows.length) return 'no Door field row is open'
+  for (const row of rows) {
+    const inp = row.querySelector('input'), btn = row.querySelector('.btn')
+    const ri = inp.getBoundingClientRect(), rb = btn.getBoundingClientRect(), rr = row.getBoundingClientRect()
+    if (!ri.width || !rb.width) continue   /* a field or action the state has put away (the email row's Send code once the code step is open) */
+    if (ri.width < rr.width - 1) return `#${inp.id} is ${Math.round(ri.width)}px in a ${Math.round(rr.width)}px row: it shares the row with its action`
+    if (rb.top < ri.bottom - 0.5) return `#${btn.id} is beside #${inp.id}, not beneath it`
+    if (Math.abs(rb.width - rr.width) > 1) return `#${btn.id} is ${Math.round(rb.width)}px, not the row's ${Math.round(rr.width)}px`
+  }
+  if (whole) { const i = document.getElementById(whole); if (i.scrollWidth > i.clientWidth + 1) return `the address in #${whole} is cut: ${i.scrollWidth}px of text in ${i.clientWidth}px` }
+  return true
+}, whole)
 const CORE = [
   /* ------------------------------------------------------------ door */
   { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } } },
   { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } } },
+    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } }, check: doorStacked() },
   { family: 'door', id: 'sending', variant: 'signed_out', url: '/', short: true,
     hold: (e) => e.method === 'POST' && /\/auth\/v1\/otp/.test(e.path),
     drive: async (page) => {
@@ -74,14 +90,14 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => /Sending/.test(document.getElementById('obStatus').textContent))
     },
-    expect: { door: true, selectors: { '#obStatus': 'text:Sending', '#obEmailGo': 'visible' } } },
+    expect: { door: true, selectors: { '#obStatus': 'text:Sending', '#obEmailGo': 'visible' } }, check: doorStacked('obEmailIn') },
   { family: 'door', id: 'code-entry', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => {
       await click(page, '#obEmail'); await page.fill('#obEmailIn', 'avery.fixture@example.invalid')
       await click(page, '#obEmailGo')
       await until(page, () => document.querySelector('#codebox').classList.contains('open'))
     },
-    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } } },
+    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } }, check: doorStacked() },
   { family: 'door', id: 'code-error', variant: 'signed_out', url: '/', short: true,
     expectConsole: [/^\[cs\] (That code|Code didn|The code|That sign-in|Something went wrong)/, /^\[cs\] error: Code didn/, /status of 403/],
     drive: async (page) => {
@@ -91,7 +107,7 @@ const CORE = [
       await page.fill('#obCodeIn', '12345678')
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
-    expect: { door: true, selectors: { '#obStatus.err': 'visible' } } },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: doorStacked() },
   { family: 'door', id: 'send-failed', variant: 'signed_out', url: '/', short: true,
     world: { errors: { auth: { otp: { status: 429, body: { code: 429, error_code: 'over_email_send_rate_limit', msg: 'email rate limit exceeded' } } } } },
     expectConsole: [/^\[cs\] Too many sign-in emails/, /status of 429/],
@@ -100,10 +116,10 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
-    expect: { door: true, selectors: { '#obStatus.err': 'visible' } } },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: doorStacked('obEmailIn') },
   { family: 'door', id: 'league-code', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#joinCode': 'visible' } } },
+    expect: { door: true, selectors: { '#joinCode': 'visible' } }, check: doorStacked() },
 
   /* ---------------------------------------------------- onboarding gate */
   { family: 'onboarding', id: 'card-gate', variant: 'no_card', short: true,

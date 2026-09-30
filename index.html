@@ -4302,7 +4302,11 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .joinbox{display:none; gap:8px; margin-top:9px;}
 .joinbox.open{display:flex;}
 /* Every door field's label stays above its field and action at every width. */
-#emailbox.open, #codebox.open, #joinbox.open{display:grid; grid-template-columns:minmax(0,1fr) auto;}
+/* W7-109 [A2-door-5, B2-door-3, A2-desk-23] · THE ADDRESS BEING SENT TO IS WHOLE IN ITS FIELD. The field shared its row with Send code (about 210px of field at 375, 240 in the desk's
+   360px column), so 'avery.fixture@example.invalid' was cut at the right edge while it was sent, and scrolled cut at both ends after a refusal: the two moments a golfer
+   checks it for a typo. The Door's three field rows stack at every width, the field on the whole row and the action beneath it at full width, the phone's own order
+   (DoorView emailStage: the field, then the primary; §7.1). Scoped to the Door's ids: the wizard's #wJoinBox shares .joinbox and keeps its side-by-side row. */
+#emailbox.open, #codebox.open, #joinbox.open{display:grid; grid-template-columns:minmax(0,1fr);}
 #emailbox label.f, #codebox label.f, #joinbox label.f{grid-column:1 / -1; margin:0; color:var(--mut);}
 .joinbox input{
   /* min-width:0 · a flex item's default minimum is its placeholder's width, and
@@ -4323,6 +4327,7 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 }
 .joinbox input:focus-visible{outline:2px solid var(--act);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
+#emailbox .btn, #codebox .btn, #joinbox .btn{width:100%;}   /* W7-109 · after the shared rule: the Door's actions sit under their fields at full width */
 
 /* ---- the wings: two worked EXAMPLES beside the centered door (>=1100px only).
    Hand-authored (the door is pre-auth, anon reads no table), so they are
