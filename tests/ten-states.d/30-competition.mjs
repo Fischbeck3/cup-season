@@ -893,6 +893,47 @@ const BOOK = [
         if (names.join('|') !== 'Fixture Quail|Fixture Wrens|Fixture Javelinas|Fixture Gilas') return 'squad order ' + names.join('|')
         return document.querySelectorAll('#seasonBookDialog .sb-adjustment').length >= 3 ? true : 'the adjustments in the totals are missing'
       })) },
+  /* TEN / W8 · W7-134 [A2-competition-16] · 'Open the round's receipt' CLOSED the Book with no way back to the cell being read: the round's sheet, dismissed (Escape here; the × and the backdrop take the same path),
+     puts the reader back on the same cell: the Book reopened on the same view, squad, display and follow, that cell's receipt open and the cell marked. The Book's round ids are not the world's, so the state gives
+     the world a round for each entry of the cell (Avery's, cloned) and the sheet can open one. */
+  { family: 'book', id: 'receipt-return', variant: 'rounds_no_league', fullPage: false, title: 'The Book, after the round opened from a cell\u2019s receipt is dismissed: the reader is back on the cell (Fixture Javelinas, week 12)',
+    prepare: async (W) => {
+      adoptBook(W, readBook('squads'))
+      const b = readBook('squads'), row = b.rows.find((r) => r.id === 'squad:c50b0000-0000-4000-8000-000000000300'), base = W.tables.rounds.find((r) => r.profile_id === W.ids.uid(1))
+      for (const e of row.entries.filter((x) => x.week === 12 && x.round_id)) if (!W.tables.rounds.some((r) => r.id === e.round_id)) W.tables.rounds.push(Object.assign({}, base, { id: e.round_id }))
+    },
+    localStorage: BOOK_LS('squads'),
+    drive: async (page) => {
+      await bookFromCompete(page)
+      const row = await page.evaluate(() => {
+        const th = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody th button')].find((b) => /^Fixture Javelinas/.test(b.innerText.trim()))
+        return th ? th.dataset.bookRow : null
+      })
+      if (row == null) throw new Error('no Fixture Javelinas row in the Book')
+      await click(page, `#seasonBookDialog .sb-matrix td button[data-book-row="${row}"][data-book-week="12"]`)
+      await until(page, () => /Fixture Javelinas · Week 12/.test((document.querySelector('#seasonBookDialog .sb-receipts h2') || {}).textContent || ''))
+      await page.evaluate((row) => { window.__w8Cell = { row, week: '12' } }, row)
+      await click(page, '#seasonBookDialog .sb-receipts [data-book-round]')
+      await until(page, () => !document.getElementById('seasonBookDialog') && document.getElementById('sheet').classList.contains('open'), null, 12000)
+      await page.waitForTimeout(800)
+      await page.keyboard.press('Escape')
+      await until(page, () => { const d = document.getElementById('seasonBookDialog'); return !!d && d.open && !!d.querySelector('[data-book-row][aria-current="true"]') && /Fixture Javelinas · Week 12/.test((d.querySelector('.sb-receipts h2') || {}).textContent || '') }, null, 12000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-receipts h2': 'text:^Fixture Javelinas \u00b7 Week 12$' } },
+    check: async (page) => page.evaluate(() => {
+      const d = document.getElementById('seasonBookDialog'); if (!d || !d.open) return 'the Book is not open after the round was dismissed'
+      if (document.getElementById('sheet').classList.contains('open')) return 'the round\u2019s sheet is still open'
+      const marked = [...d.querySelectorAll('[data-book-row][aria-current="true"]')]
+      if (marked.length !== 1) return `${marked.length} cells are marked, expected the one that was open`
+      if (marked[0].dataset.bookRow !== window.__w8Cell.row || marked[0].dataset.bookWeek !== window.__w8Cell.week) return `the marked cell is row ${marked[0].dataset.bookRow} week ${marked[0].dataset.bookWeek}, not the one that was open`
+      const g = d.querySelector('#sb-group [aria-pressed="true"]'), m = d.querySelector('#sb-mode [aria-pressed="true"]')
+      if (!g || g.dataset.v !== 'squad' || !m || m.dataset.v !== 'Weeks') return 'the Book did not keep its view and display'
+      const sc = d.querySelector('.sb-matrix'), r = marked[0].getBoundingClientRect(), s = sc.getBoundingClientRect()
+      if (r.right < s.left || r.left > s.right) return 'the marked cell is scrolled out of the grid'
+      if (window.csBookReturn) return 'the return was not cleared once used'
+      return true
+    }) },
   /* EXPECTED TO FAIL on current source. The Scoreboard names a season's state
      in one of three words (F11: Upcoming · Live · Final). Seven days before
      this season's first tee its row facts already say "No standing yet. First

@@ -8540,6 +8540,7 @@ window.csComposerEyebrow = csComposerEyebrow;
 window.csRenderComposerEyebrow = csRenderComposerEyebrow;
 
 function switchView(v){
+  window.csBookReturn = null;   /* W7-134 · a door inside the round that changes the page never sends the golfer back to the Book */
   v = csViewFor(v);
   if(v==='post') csRenderComposerEyebrow();
   /* Q-10 · D40 restored at the choke point. D40 ruled "a member must never see
@@ -23171,8 +23172,9 @@ function csBookEdge(scroller,host,axis){
   try{ const ro=new ResizeObserver(again); ro.observe(el); [...el.children].forEach(c=>ro.observe(c)); new MutationObserver(again).observe(el, { childList:true, subtree:true }); }
   catch(_){ window.addEventListener('resize', again, {passive:true}); }
 }); })();
-async function csOpenSeasonBook(league,season){
+async function csOpenSeasonBook(league,season,resume){
   if(!window.CS?.user || !window.sb || state.demo)return;
+  if(!resume) window.csBookReturn=null;   /* W7-134 · a Book opened by its door is not a return */
   csCloseSeasonBook();
   const user=window.CS.user.id, dialog=document.createElement('dialog');dialog.id='seasonBookDialog';dialog.className='sb-dialog';
   dialog.setAttribute('aria-labelledby','sb-title');
@@ -23252,10 +23254,22 @@ async function csOpenSeasonBook(league,season){
       receipts.querySelector('.sb-back').onclick=()=>{const c=main.querySelector('[data-book-row][aria-current="true"]');if(c){c.scrollIntoView({block:'center',inline:'nearest'});c.focus();}};
     }
   });
-  receipts.addEventListener('click',e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){dialog.close();window.csOpenPostedRound?.(button.dataset.bookRound);}});
+  receipts.addEventListener('click',async e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){
+    /* W7-134 · 'Open the round’s receipt' CLOSED the Book with no way back to the cell being read (the phone pushes the Book on its stack and presents the round over it). The reader's place is kept: the
+       sheet's own dismissal (×, backdrop, Escape) reopens the Book on it, once; a door inside the round that leaves the page clears it (switchView) */
+    window.csBookReturn={league,season,selection:{group:selection.group,squad:selection.squad,mode:selection.mode,follow:selection.follow},chosen:chosen?Object.assign({},chosen):null};
+    dialog.close();
+    const opened=await window.csOpenPostedRound?.(button.dataset.bookRound);
+    if(opened===false) window.csBookReturn=null;   /* it did not open (gone, muted, offline): nothing to come back from */
+  }});
   async function load(){
     main.innerHTML=CS_BOOK_LOADING;settleReceipts(false);
-    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'The Book':'Rounds & points';render();}
+    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'The Book':'Rounds & points';
+      /* W7-134 · a RETURN restores the reader's place: the view, squad, display and follow they had, then the same receipt open with its cell marked, scrolled into view */
+      if(resume&&resume.selection)['group','squad','mode','follow'].forEach(k=>{if(resume.selection[k]!=null)selection[k]=resume.selection[k];});
+      render();
+      if(resume&&resume.chosen){const c=resume.chosen, cell=main.querySelector(`[data-book-row="${c.row}"]`+(c.week!=null?`[data-book-week="${c.week}"]`:'')+(c.entry!=null?`[data-book-entry="${c.entry}"]`:''));if(cell){cell.click();cell.scrollIntoView?.({block:'center',inline:'nearest'});}}
+      resume=null;}
     catch(error){if(!alive())return;settleReceipts(false);main.innerHTML=`<p role="alert">${esc(error.message||'The Book did not load. Try again.')}</p><button type="button" id="sb-retry" class="btn sb-retry">Try again</button>`;main.querySelector('#sb-retry').onclick=load;}
   }
   await load();
@@ -27265,6 +27279,10 @@ function openSheet(title, sub, bodyHtml){
 function dismissSheet(){
   if(window.csSheetGuard && window.csSheetGuard() === false) return;
   closeSheet();
+  /* W7-134 · the round was opened from a Book cell's receipt: dismissing it (the ×, the backdrop, Escape) puts the reader back on that cell, once */
+  const back = window.csBookReturn; window.csBookReturn = null;
+  /* a task later, not inline: Escape's own default action closes the topmost modal dialog, and a Book opened inside the keydown would be that dialog and close at once */
+  if(back && window.csOpenSeasonBook) setTimeout(() => window.csOpenSeasonBook(back.league, back.season, back), 0);
 }
 window.dismissSheet = dismissSheet;
 function closeSheet(){
