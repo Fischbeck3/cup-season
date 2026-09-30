@@ -1536,6 +1536,8 @@ th.deskonly, td.deskonly{display:none;}
   font-variant-numeric:tabular-nums; color:var(--ink); line-height:1;}
 .fbrow .fbv small{display:block; font-family:var(--board); font-size:11px; letter-spacing:.08em;
   color:var(--mut); margin-top:3px; white-space:nowrap;}
+/* Q18 (4) · the band word's gloss sits under it, in the same agate: the word names a 30-day average, not a round */
+.fbrow .fbv small.fbgloss{margin-top:1px;}
 /* 16A.3 - the column says which way is good, over the column. NOT "lower is
    better": in this product a POSITIVE figure means the golfer beat their
    playing HCP by that much (bandName(+3) is "Torched it"). */
@@ -31491,7 +31493,11 @@ function csBoardBand(r){
   const name = bandName(Number(r.avg_vs_number_30d));
   return r.is_me ? name : name.replace('your', 'their');
 }
-window.csBoardFormLine = csBoardFormLine; window.csBoardBand = csBoardBand;
+/* Q18 (4) · owner ruling 2026-09-29: a band is defined per ROUND (spec §2.2), and the board names a 30-day AVERAGE
+   with one (D245, D281), so the word carries its gloss beside it, said once: "Beat their number · on average".
+   Twin: FriendsBoard.Row.band with the same gloss. */
+const CS_BOARD_AVG_GLOSS = 'on average';
+window.csBoardFormLine = csBoardFormLine; window.csBoardBand = csBoardBand; window.CS_BOARD_AVG_GLOSS = CS_BOARD_AVG_GLOSS;
 
 let CS_BOARD_LENS = 'form';
 async function renderFriendsBoard(){
@@ -31564,12 +31570,13 @@ async function renderFriendsBoard(){
       const fig = lens === 'form'
         ? (n && r.avg_vs_number_30d != null ? signed(Number(r.avg_vs_number_30d)) : '\u2014')
         : (r.index_current != null ? fmtIdx(r.index_current) : '\u2014');
-      const word = lens === 'form' ? (csBoardBand(r) || (n ? '' : 'Nothing yet')) : '';
+      const band = lens === 'form' ? csBoardBand(r) : null;
+      const word = lens === 'form' ? (band || (n ? '' : 'Nothing yet')) : '';
       return `<div class="fbrow${r.is_me ? ' mine' : ''} tap" tabindex="0" role="button" data-person="${esc(r.profile_id)}">
         <span class="rk">${String(rank(r)).padStart(2, '0')}</span>
         ${window.face ? window.face(r.profile_id, r.marker, 38) : ''}
         <span class="fbn"><b>${esc(name)}</b><small>${esc(sub)}</small></span>
-        <span class="fbv"><b>${esc(fig)}</b>${word ? `<small>${esc(word)}</small>` : ''}</span></div>`;
+        <span class="fbv"><b>${esc(fig)}</b>${word ? `<small>${esc(word)}</small>` : ''}${band ? `<small class="fbgloss">${CS_BOARD_AVG_GLOSS}</small>` : ''}</span></div>`;
     }).join('')}
     <p class="fine" style="padding:10px 0 0">Your buddies, by how they are playing. No badges, no streaks \u2014 just rounds.</p>`;
   box.querySelectorAll('[data-lens]').forEach(b => b.addEventListener('click', () => {
