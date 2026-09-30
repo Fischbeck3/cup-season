@@ -13,6 +13,10 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { execFileSync } from 'node:child_process'
+/* Q12 · a split tree's source is index.html + app/*.js; the manifest's
+   indexLine is in the joined numbering (ten-capture maps /app/ frames), so the
+   report reads the joined source. Optional: an older checkout has no tool. */
+const SPLIT = await import('../tools/split-scripts.mjs').catch(() => null)
 
 const args = process.argv.slice(2)
 const arg = (k, d = null) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d }
@@ -23,8 +27,9 @@ let src = []
 /* the source lines come from the exact commit the run served when it was a
    snapshot (--ref), else from the working tree the run read */
 try {
-  if (man.ref && man.gitSha) src = execFileSync('git', ['-C', root, 'show', `${man.gitSha}:index.html`], { encoding: 'utf8', maxBuffer: 64 << 20 }).split('\n')
-  else src = readFileSync(join(root, 'index.html'), 'utf8').split('\n')
+  const gitShow = (f) => execFileSync('git', ['-C', root, 'show', `${man.gitSha}:${f}`], { encoding: 'utf8', maxBuffer: 64 << 20 })
+  if (man.ref && man.gitSha) { const html = gitShow('index.html'); src = (SPLIT ? SPLIT.appSourceOf(html, gitShow, { strict: false }) : html).split('\n') }
+  else src = (SPLIT ? SPLIT.readAppSource(root, { strict: false }) : readFileSync(join(root, 'index.html'), 'utf8')).split('\n')
 } catch { /* no source */ }
 
 const norm = (t) => String(t || '')

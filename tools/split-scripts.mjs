@@ -346,7 +346,8 @@ export const WIRE = [
     ["  const missing = shell.filter(p => !cpLine.includes(p.replace(/^\\//, '')));", "  const missing = shell.filter(p => { const f = p.replace(/^\\//, ''); return !cpLine.includes(f) && !cpDirs.some(d => f.startsWith(d)); });"],
     ['/* 2 · every client RPC has an execute grant in a migration ----------------- */', "/* 1b · Q12 · the split layout holds (tools/split-scripts.mjs check) --------- */\n{\n  const r = splitCheck(root);\n  !r.split && !r.problems.length ? pass('split layout', 'index.html is one file')\n    : r.problems.length === 0 ? pass('split layout', 'app/classic.js + app/module.js join back byte for byte · stamped · precached · no defer/async')\n    : fail('split layout', r.problems.join(' · '));\n}\n\n/* 2 · every client RPC has an execute grant in a migration ----------------- */"],
   ] },
-  ...['attribution-trace.test.mjs', 'homefold.test.mjs', 'post-request.test.mjs', 'rating.test.mjs', 'sunningdale.test.mjs', 'trophycase.test.mjs', 'ten-report.mjs']
+  /* tests/ten-report.mjs and tests/ten-capture.mjs read the split directly (loose, for old commits too) */
+  ...['attribution-trace.test.mjs', 'homefold.test.mjs', 'post-request.test.mjs', 'rating.test.mjs', 'sunningdale.test.mjs', 'trophycase.test.mjs']
     .map((f) => ({ file: 'tests/' + f, imports: [IMP_TESTS], edits: [READ_STD] })),
   { file: 'tests/season-book.test.mjs', imports: [IMP_TESTS], edits: [["readFileSync(new URL('../index.html',import.meta.url),'utf8')", "readAppSource(new URL('..',import.meta.url).pathname)"]] },
   { file: 'tests/share-consent-flow.test.mjs', imports: [IMP_TESTS], edits: [["readFileSync(new URL('../index.html', import.meta.url), 'utf8')", "readAppSource(new URL('..', import.meta.url).pathname)"]] },
@@ -354,6 +355,8 @@ export const WIRE = [
   { file: 'tools/build-markers.mjs', imports: [IMP_TOOLS], edits: [READ_STD] },
   { file: 'tools/extract-strings.mjs', imports: [IMP_TOOLS], edits: [READ_STD] },
   { file: 'tools/deploy-status.mjs', edits: [["'index.html', 'sw.js', 'manifest.webmanifest'", "'index.html', 'app', 'sw.js', 'manifest.webmanifest'"]] },
+  /* true only after the split, so it rides the apply */
+  { file: 'package.json', edits: [['The client ships as a single static index.html \u2014 nothing here is served', 'The client ships as a static index.html plus app/classic.js and app/module.js (tools/split-scripts.mjs) \u2014 nothing here is served']] },
 ]
 export function wire(root, { dry = false } = {}) {
   const planned = [], problems = []
