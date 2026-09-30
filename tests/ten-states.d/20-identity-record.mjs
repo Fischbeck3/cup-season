@@ -144,6 +144,8 @@ const footStays = async (page) => page.evaluate(() => {
 const receiptActions = async (page) => page.evaluate(() => {
   const sheet = document.getElementById('shBody'), share = document.getElementById('rcptCardShare'), del = document.getElementById('rcptDelete'), talk = document.getElementById('rcptTalk'), row = document.getElementById('rcptDelRow')
   if (!share) return 'the receipt has no Share'
+  /* TEN / W6 · Q23 · the one Share says what it sends: the round, never "the card" (the person, T-01) */
+  if ((share.textContent || '').trim() !== 'Share your round') return 'the receipt\u2019s Share reads ' + JSON.stringify((share.textContent || '').trim())
   /* the conversation's own Send is a form control, not one of the receipt's actions */
   const filled = [...sheet.querySelectorAll('.btn')].filter((b) => b.getBoundingClientRect().width > 0 && !b.closest('#rcptTalk'))
   if (filled.length !== 1 || filled[0] !== share) return `the receipt has ${filled.length} filled buttons, expected Share alone: ${JSON.stringify(filled.map((b) => (b.id || b.textContent || '').trim().slice(0, 24)))}`
@@ -889,6 +891,9 @@ function shareState(id, title, card, extra = {}) {
       await until(page, () => !!document.getElementById('epiRevokeWrap'), null, 10000).catch(() => {})
       return page.evaluate(() => {
         if (!window.__tenArtifact) return 'the card was not downloaded'
+        /* TEN / W6 · Q23 · the ceremony's Share says "Share your round" (the epilogue's producer), never "Share the card" */
+        const fsText = (document.getElementById('finShare')?.textContent || '').trim()
+        if (!/^Share your (first )?round$/.test(fsText)) return 'the ceremony\u2019s Share reads ' + JSON.stringify(fsText)
         const said = (document.getElementById('finStatus')?.textContent || '').trim()
         if (!/link/i.test(said)) return 'the ceremony shared no link (D380): ' + JSON.stringify(said)
         /* TEN / W7-006 [B2-share-1] · ONE Share per posted round: the epilogue

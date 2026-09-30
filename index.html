@@ -8028,7 +8028,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- TEN / W7-006 · what a yes publishes, under the switch that asks
              (D380; RoundCopy.photoIncludeFine under the phone's toggle) -->
         <p class="finish-fine" id="finFine" hidden></p>
-        <button class="finish-share" id="finShare" type="button">Share the card</button>
+        <button class="finish-share" id="finShare" type="button">Share your round</button>
         <p class="finish-status" id="finStatus" role="status" aria-live="polite"></p>
         <!-- TEN / W7-139 · Close, the one dismiss word for every sheet and cover: "Back to the board" closed onto Home, and a golfer with no league has no board -->
         <button class="finish-back" id="finBack" type="button">Close</button>
@@ -13458,6 +13458,11 @@ function finishCeremony(o){
     ff.hidden = !says; ff.textContent = says ? CS_SHARE_PHOTO_FINE : '';
   }
   const fs=$('#finStatus'); if(fs) fs.textContent='';
+  /* TEN / W6 · Q23 (owner, 2026-09-29 §R: 1) · "Share your round", the
+     epilogue's own producer: D380 shares the round (the card AND the link), and
+     "card" is the person (T-01). Counted before this post reloads the career,
+     as the epilogue counts it. */
+  const fsb=$('#finShare'); if(fsb) fsb.textContent = csShareRoundLabel(!state.demo && !!window.career && Number(window.career.rounds) === 0);
   finishPreview();
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
@@ -26576,7 +26581,10 @@ async function csRemoveRoundPhoto(rid, oldPath){
 const CS_CARD = {
   head: 'The card',
   strokesOnly: 'Hole by hole',
-  share: 'Share the card',
+  /* TEN / W6 · Q23 (owner, 2026-09-29 §R: 1) · the receipt's one Share sends
+     the round (card and link, D380): it says so, as the ceremony and the
+     epilogue do. RoundCopy.share on the phone owes the same words (E). */
+  share: 'Share your round',
   shareFailed: 'That card didn\u2019t render. Try again.',
 };
 
