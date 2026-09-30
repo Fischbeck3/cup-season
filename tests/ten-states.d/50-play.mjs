@@ -117,6 +117,26 @@ const deskCardDash = async (page) => page.evaluate(() => {
   if (cells.some((c) => c.textContent.trim() === '\u00b7')) return 'THE CARD draws a dot for a hole not played'
   return cells.some((c) => c.textContent.trim() === '\u2013') ? true : 'THE CARD shows no unplayed hole, so its dash cannot be read'
 })
+/* TEN / W7-128 [B2-play-7] · the stepper's names say what a tap does: an empty seat's first tap enters par,
+   so both buttons say so; a scored seat's say one stroke fewer and one more. The empty seat is an em dash
+   in mut on a 2px line (the phone's) */
+const stepperNamed = async (page) => page.evaluate(() => {
+  const steps = [...document.querySelectorAll('#playerRows .lrow .step')]
+  if (!steps.length) return 'no steppers'
+  const probe = (el, v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; el.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  for (const st of steps) {
+    const sv = st.querySelector('.sv'), [minus, plus] = st.querySelectorAll('button'), v = sv.textContent.trim()
+    const a = [minus.getAttribute('aria-label'), plus.getAttribute('aria-label')]
+    if (!/^\d+$/.test(v)) {
+      if (v !== '\u2014') return `an empty seat reads ${JSON.stringify(v)}, not an em dash`
+      if (!a.every((l) => /^Enter par \(\d\) for .+, hole \d+$/.test(l))) return 'an empty seat’s buttons are named ' + JSON.stringify(a)
+      const cs = getComputedStyle(sv)
+      if (cs.color !== probe(sv.parentElement, '--mut')) return 'the empty seat is not mut'
+      if (cs.borderBottomWidth !== '2px' || cs.borderBottomColor !== probe(sv.parentElement, '--rule')) return 'the empty seat has no 2px rule line'
+    } else if (!/^One stroke fewer for /.test(a[0]) || !/^One more stroke for /.test(a[1])) return 'a scored seat’s buttons are named ' + JSON.stringify(a)
+  }
+  return true
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -261,7 +281,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, deskCardDash, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, deskCardDash, stepperNamed, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {
@@ -382,7 +402,7 @@ export default [
     /* AW2-16 · the match state is said once, by the scoreboard hero; the card
        keeps the terms (who, strokes, stake) and its status line stays hidden */
     expect: { view: 'view-play', selectors: { '#matchCard': 'visible', '#matchStatus': 'hidden', '#sbHero': 'visible' } },
-    check: all(scoredCheck(4), async (page) => { const f = await liveFacts(page); return f.game === 'match' ? true : 'the game is ' + f.game },
+    check: all(scoredCheck(4), stepperNamed, async (page) => { const f = await liveFacts(page); return f.game === 'match' ? true : 'the game is ' + f.game },
       has('#matchMeta', 'THRU 4', 'the match line'),
       /* TEN / W6 · AW2-15: the side games' gloss is a phrase, in sentence case (§1.3) */
       readsAsWritten([['p.eb-gloss.sg-head', 'Tracked live, settled between friends']]),
