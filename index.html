@@ -2759,6 +2759,11 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   font-family:var(--board); font-weight:600; font-size:15px; color:var(--ink);
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
 .notifrow .ivdec:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:4px;}
+/* TEN / W7-094 · Home's buddy-request answers: the same tertiary in-content link */
+.hreq-acts .hreq-q{min-height:44px; padding:0 var(--s1); background:none; border:0; cursor:pointer;
+  font-family:var(--board); font-weight:600; font-size:15px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.hreq-acts .hreq-q:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .mini{
   font-family:var(--board); font-size:13px; font-weight:600; letter-spacing:.02em;
   color:var(--ink); background:var(--bg2); border:0;
@@ -22911,7 +22916,7 @@ function csDispatchCarries(prefix){
 }
 window.csDispatchCarries = csDispatchCarries;
 function renderHomeRequests(){
-  renderRequestsInto($('#homeRequests'), { skip: csDispatchCarries('friend:') });
+  renderRequestsInto($('#homeRequests'), { skip: csDispatchCarries('friend:'), quiet: true });
   paintBuddyDoor();
 }
 function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); csDedupeCrReq(); }
@@ -22929,6 +22934,10 @@ function csDedupeCrReq(){
 function renderRequestsInto(box, opts){
   if(!box) return;
   const skip = opts && opts.skip instanceof Set ? opts.skip : null;
+  /* TEN / W7-094 · on Home the pair is tertiary: in-content links (the
+     invitation's Decline recipe), so no tier-2 control stands beside the
+     lead's door. The Golfers page head keeps its .mini pair. */
+  const quiet = !!(opts && opts.quiet);
   /* `window.homeRequests` is also the #homeRequests element until the read
      lands (named access), so the rows are an array or nothing */
   const rows = state.demo ? DEMO_REQUESTS : (Array.isArray(window.homeRequests) ? window.homeRequests : []);
@@ -22946,8 +22955,8 @@ function renderRequestsInto(box, opts){
       return `<div class="hreq">${mk}
         <div class="tt"><b class="cs-social">${name}${founderTag(f.profile_id, f.display_name)}</b><small class="cs-agate-s is-phrase">${h}${h?' · ':''}wants to be golf buddies</small></div>
         <span class="hreq-acts">
-          <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
-          <button class="mini" data-hreqdec="${f.friendship_id}">Decline</button>
+          <button class="${quiet?'hreq-q':'mini'}" data-hreqacc="${f.friendship_id}">Accept</button>
+          <button class="${quiet?'hreq-q':'mini'}" data-hreqdec="${f.friendship_id}">Decline</button>
         </span></div>`;
     }).join('');
   box.querySelectorAll('[data-hreqacc],[data-hreqdec]').forEach(b=>b.addEventListener('click', async()=>{

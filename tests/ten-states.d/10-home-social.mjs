@@ -171,6 +171,15 @@ const answersRule = async (page) => page.evaluate(() => {
   const bad = bs.find((b) => { const cs = getComputedStyle(b); return cs.borderBottomWidth !== '2px' || cs.borderBottomColor !== mut })
   return bad ? `an answer's rule is ${getComputedStyle(bad).borderBottomWidth} ${getComputedStyle(bad).borderBottomColor}, not 2px of mut` : true
 })
+/* TEN / W6 · W7-094 · on Home a buddy request's Accept and Decline are tertiary in-content links, never two filled .mini buttons
+   beside the lead's door (inert where Home draws no request) */
+const requestsQuiet = async (page) => page.evaluate(() => {
+  const bs = [...document.querySelectorAll('#homeRequests .hreq-acts button')].filter((b) => b.getBoundingClientRect().height > 0)
+  if (!bs.length) return true
+  if (bs.some((b) => b.classList.contains('mini'))) return 'Home draws the request’s answers as filled .mini buttons'
+  const bad = bs.find((b) => { const cs = getComputedStyle(b); return !/underline/.test(cs.textDecorationLine) || parseFloat(cs.textDecorationThickness) !== 2 || cs.backgroundColor !== 'rgba(0, 0, 0, 0)' })
+  return bad ? 'a request answer is not the in-content link: ' + bad.textContent.trim() : true
+})
 const DISPATCH_IDS = ['preseason', 'event_live', 'invited', 'round_morning', 'round_evening',
   'after_golf', 'after_golf_wire', 'ceremony_night', 'between_seasons', 'inactive']
 const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
@@ -181,7 +190,7 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
     world: { flags: { homeState: id } },
     drive: homePainted,
     expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => ex), meStripShown, lastOnce, answersRule),
+    check: all(arrangementCheck(() => ex), meStripShown, lastOnce, answersRule, requestsQuiet),
   }
 })
 
