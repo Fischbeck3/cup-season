@@ -614,6 +614,9 @@ const COMPOSER = [
       if (!f || f.offsetParent === null || getComputedStyle(f).display === 'none') return 'the course fold is shut on first open'
       const chips = [...document.querySelectorAll('#courseChips button, #courseChips [data-ci], #courseChips .chip')].filter((c) => c.getBoundingClientRect().height > 0)
       if (!chips.length) return 'the recent courses are not on show under the course search'
+      /* TEN / W7-155 · the inherit line's key names what its value prints: course · rating / slope · day */
+      const k = (document.querySelector('#postInherit .il-k') || {}).textContent || ''
+      if (k.trim() !== 'Course · rating / slope · day') return 'the inherit line’s key reads ' + JSON.stringify(k.trim())
       /* TEN / W7-137 · no bordered card, no boxed calc, no pill segment on the composer */
       const cards = [...document.querySelectorAll('#view-post .card')].filter((c) => c.getBoundingClientRect().height > 0)
       if (cards.length) return `${cards.length} bordered card(s) still hold the composer`
