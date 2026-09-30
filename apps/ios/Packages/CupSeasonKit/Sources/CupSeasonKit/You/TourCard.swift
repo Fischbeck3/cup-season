@@ -116,6 +116,19 @@ public struct TourCard: Sendable {
       }
       return s
     }
+
+    /// X40 (1) · the round as the career block's Best round row says it:
+    /// "83 at Papago · Aug 24", each clause dropped rather than guessed. The
+    /// web's `openTourCard` (`brSaid`, 6de9e7f8).
+    public var said: String {
+      var s = String(gross)
+      if let c = courseLabel, !c.isEmpty { s += " at \(RoundCopy.course(c))" }
+      if let on = playedOn {
+        let d = BoardText.shortDate(on)
+        if !d.isEmpty { s += " · \(d)" }
+      }
+      return s
+    }
   }
 
   public struct Recent: Sendable, Equatable, Identifiable {
@@ -292,16 +305,23 @@ public struct TourCard: Sendable {
   public var playingLens: Bool { career.playingLens }
 
   /// The best round. Under the allowance lens it is the playing-HCP figure,
-  /// said in words; before it, the old course score, which runs the other
-  /// way and is never given a `+`.
+  /// said in words; before it, THE ROUND the golfer remembers.
   ///
   /// Q39 (a) · owner ruling 2026-09-29: the card's career figures say the
   /// comparison in WORDS (`CSBands.vsShort`: "beat by 1.6", "1.0 over"),
   /// never a sign a reader has to be told the direction of. The web's
   /// `openTourCard` (c3187a81) and the record's tiles (148d6d0f).
+  ///
+  /// X40 (1) · off the lens the best is `career.best_round` — the lowest
+  /// 18-hole gross, where and when: "83 at Papago · Aug 24" — never the
+  /// differential (`career.best`), which stays on the receipt. With no round
+  /// it is a dash, and `showsBestRow` says the row is not drawn (6de9e7f8).
   public var bestText: String {
-    career.playingLens ? CSBands.vsShort(career.bestPvi) : (career.best.map(RoundCopy.f1) ?? "—")
+    career.playingLens ? CSBands.vsShort(career.bestPvi) : (bestRound?.said ?? "—")
   }
+  /// X40 · the Best round row is drawn under the lens, or when there is a
+  /// round to name (the web's `best !== '—' || lens`).
+  public var showsBestRow: Bool { career.playingLens || bestRound != nil }
   /// Under the lens, the allowance average; before it, the 100% one — which
   /// is a real number for a golfer no season has ever ranked, and the reason
   /// this row does not go to a dash the day the migration lands. Both in
@@ -386,10 +406,12 @@ public struct TourCard: Sendable {
   public static let weekNotYet =
     "not switched on yet \u{2014} post a round the same week as them and the record still fills in"
 
-  /// Under the lens this is the You tab's own row, word for word
-  /// (`YouCopy.bestRound`), so the two surfaces read as one number.
+  /// The You tab's own row, word for word (`YouCopy.bestRound`), so the two
+  /// surfaces read as one number. X40 (1) · off the lens too: "vs course"
+  /// named the differential, which stays on the receipt; the row names the
+  /// round (6de9e7f8). The parameter stays for the callers that pass it.
   public static func bestLabel(playingLens: Bool) -> String {
-    playingLens ? YouCopy.bestRound : "Best round vs course"
+    YouCopy.bestRound
   }
   /// The tail of "Avg vs your playing HCP" lives in the eyebrow above it;
   /// the old figure keeps the whole label, because the old figure is a

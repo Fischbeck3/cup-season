@@ -174,20 +174,22 @@ struct BetweenRoundsWidgetTests {
   }
 }
 
-/// N4-192 · "Personal best 81" sat beside a record whose best was 79: the
-/// widget's milestone headline says what the best is measured by, with the
-/// trophy case's own fact.
+/// X40 (1) · owner ruling 2026-09-29: the widget's personal-best headline is
+/// its title. N4-192 carried the differential beside it ("Personal best · 7.8
+/// vs course"); the differential stays on the receipt, and the widget prints
+/// the round itself beneath the headline. (The web has no widget; the rule is
+/// `achSubtitle`'s and `csMilestoneSub`'s, 6de9e7f8.)
 @Suite struct WidgetMilestoneHeadlineTests {
-  @Test func aPersonalBestSaysItsMeasure() {
+  @Test func aPersonalBestIsItsTitle() {
     let pb = Achievement(kind: "personal_best", label: "Personal best", earned_on: "2026-09-20",
                          meta: .object(["diff": .number(7.8)]))
-    #expect(TrophyMeta.headline(pb) == "Personal best · 7.8 vs course")
+    #expect(TrophyMeta.headline(pb) == "Personal best")
     let bare = Achievement(kind: "personal_best", label: "Personal best", earned_on: "2026-09-20", meta: nil)
     #expect(TrophyMeta.headline(bare) == "Personal best")
     let sub80 = Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-09-20", meta: .object(["gross": .number(79)]))
     #expect(TrophyMeta.headline(sub80) == "Broke 80")
-    // N4-082 · marked for the widget's serif line, the figure is a run
-    #expect(TrophyMeta.headline(pb, marked: true) == "Personal best · {7.8} vs course")
+    // N4-082 · marked for the widget's serif line, a threshold's number is a run
+    #expect(TrophyMeta.headline(pb, marked: true) == "Personal best")
     #expect(TrophyMeta.headline(sub80, marked: true) == "Broke {80}")
     #expect(TrophyMeta.headline(bare, marked: true) == "Personal best")
   }
