@@ -137,6 +137,16 @@ const stepperNamed = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W7-122 [B2-play-5] · a settlement is a sentence about who pays whom (LiveCopy.settleRows), never a
+   typed arrow (§5.2, LINT-13) */
+const settlePays = async (page) => page.evaluate(() => {
+  const rows = [...document.querySelectorAll('#settle .srow span')].map((s) => s.textContent.trim())
+  if (!rows.length) return 'the settlement has no rows'
+  const arrow = rows.filter((t) => /[\u2190-\u21ff]|->|<-/.test(t))
+  if (arrow.length) return 'the settlement types an arrow: ' + JSON.stringify(arrow)
+  const pays = rows.filter((t) => /\bpays\b/i.test(t))
+  return pays.length ? true : 'no settlement row says who pays whom: ' + JSON.stringify(rows)
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -474,7 +484,8 @@ export default [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-play', selectors: { '#skinsCard': 'visible', '#skinsStatus': 'visible' } },
-    check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game },
+    check: all(settlePays,   /* TEN / W7-122: who pays whom, in words */
+      scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game },
       /* TEN / W6 · DX2 OB2-02: the meta line's caps are its role's, not typed into the string */
       capsFromRole(['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'], ['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'])) },
 
