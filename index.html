@@ -24275,8 +24275,13 @@ function csEmptyRoot(which, opts){
   }
   const n = o.buddies;
   const has = (n||0) > 0;
-  return { state:'empty', head:'Nothing running.',
-    fact: has ? `${n} ${n===1?'buddy':'buddies'}, and none of you is playing for anything.` : null,
+  /* Q41 (a) · owner ruling 2026-09-29, amending IA §6.1 to QB-21 on both clients: the COUNTED sentence is the head
+     when there is a count (two blind readers read "Nothing running." as "leave"), and "Nothing running." leads only
+     when there is nothing true to count (L-44). Said once: no fact line under a head that already says it. Twin:
+     CompeteRoot.empty (head: counted ?? "Nothing running.", fact: nil). */
+  return { state:'empty',
+    head: has ? `${n} ${n===1?'buddy':'buddies'}, and none of you is playing for anything.` : 'Nothing running.',
+    fact: null,
     sub:'Your next competition starts here — a season, a weekend, or going head to head.',
     /* L-26 · the code door is promised everywhere a golfer might arrive with a
        code, so it is always here; IA §6.1's first two doors keep their places */

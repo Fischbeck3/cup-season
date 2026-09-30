@@ -1025,10 +1025,12 @@
 
     /* the design's words, and the one conditional true fact */
     t('IA §6.1: Compete’s empty root, verbatim', empty.head, 'Nothing running.');
-    t('IA §6.1: the fact is real when it is real',
-      csEmptyRoot('compete', { buddies: 5 }).fact, '5 buddies, and none of you is playing for anything.');
-    t('IA §6.1: one buddy is one buddy',
-      csEmptyRoot('compete', { buddies: 1 }).fact, '1 buddy, and none of you is playing for anything.');
+    /* Q41 (a) · IA §6.1 amended to QB-21: with a count the counted sentence IS the head, said once */
+    t('Q41: the counted sentence leads when there is a count',
+      [csEmptyRoot('compete', { buddies: 5 }).head, csEmptyRoot('compete', { buddies: 5 }).fact],
+      ['5 buddies, and none of you is playing for anything.', null]);
+    t('Q41: one buddy is one buddy',
+      csEmptyRoot('compete', { buddies: 1 }).head, '1 buddy, and none of you is playing for anything.');
     t('L-44: with none, the fact is omitted rather than guessed', empty.fact, null);
     t('IA §6.1 + L-26: with no buddies the second door becomes Find golfers, and the code door is still there',
       empty.doors.map(d => d.k), ['startSomething', 'findGolfers', 'joinWithCode']);
