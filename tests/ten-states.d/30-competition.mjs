@@ -207,6 +207,17 @@ const clinchDoor = async (page) => {
   await page.waitForTimeout(400)
   return got
 }
+/* Q39 (a) · root's ruling 2026-09-29: the Every golfer table's "Avg vs playing HCP" column says it in words (vsShort) on the real
+   path, as the diorama's has since Q-23 — one producer, never a signed figure */
+const raceInWords = async (page) => page.evaluate(() => {
+  const cells = [...document.querySelectorAll('#indTable td.dw')].filter((el) => el.getBoundingClientRect().width > 0).map((el) => el.textContent.trim())
+  if (!cells.length) return 'the Every golfer table draws no average'
+  const off = cells.filter((t) => t !== '—' && !/^(beat by \d+\.\d|played to it|\d+\.\d over)$/.test(t))
+  if (off.length) return 'an average is not in words: ' + JSON.stringify(off.slice(0, 3))
+  /* the words are wider than a signed figure: the table still fits its column */
+  const t = document.getElementById('indTable'), box = t.parentElement.getBoundingClientRect(), r = t.getBoundingClientRect()
+  return r.right <= box.right + 1 && r.right <= innerWidth ? true : `the table runs ${Math.round(r.right - Math.min(box.right, innerWidth))}px past its column`
+})
 const clinchSentence = async (page) => page.evaluate(() => {
   const b = document.getElementById('scenarioLine')
   if (!b || !(b.getBoundingClientRect().width > 0)) return 'the season page draws no clinch line'
@@ -360,7 +371,7 @@ const SEASON = [
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
       /* W7-071 (C): the clinch line is a body sentence now, so it leaves the role-caps check for clinchSentence */
-      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence, clinchDoor,
+      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence, clinchDoor, raceInWords,
       /* TEN / W6 · W7-024 [B2-season-5] (D's delta): the clash head and its sides' lines were built with toUpperCase(); the
          words are typed as said and the caps are the roles' (.tbl th, #clashTbl .tc) */
       capsFromRole(['#clashTbl th', '#clashTbl .tc'], ['#clashTbl th', '#clashTbl .tc']),

@@ -25792,7 +25792,6 @@ function renderIndStatsReal(){
     return;
   }
   const me=rows.find(p=>p.me);
-  const sgn=v=>(v>=0?'+':'')+v.toFixed(1);
   const cnt = (me && me.hist) ? me.hist.length : 0;
   $('#msR').textContent = me ? me.r : '—';
   /* Q39 (a) · This season's tiles speak as All time's do (vsShort), so the two strips stay one grammar and
@@ -25838,6 +25837,8 @@ function renderIndStatsReal(){
      P&L axis, and neg is kept for errors (UI_SYSTEM 2.5) */
   /* W7-023 · the desk's Last five, inside the row (D280): the standings of a solo
      season carry it, and the individual board of a squads season had none */
+  /* Q39 (a) · root's ruling 2026-09-29: the Avg column says it in WORDS on the real path too (vsShort, as the
+     diorama's table has since Q-23): one producer, and the two paths must never differ */
   let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="deskonly">Last five</th><th class="num">Avg vs playing HCP</th><th class="num">Pts</th></tr>`;
   const rkOf = []; rows.forEach((p,i) => { rkOf[i] = (i > 0 && p.pts === rows[i-1].pts) ? rkOf[i-1] : i + 1; });
   const tiedAt = (i) => rows.filter(q => q.pts === rows[i].pts).length > 1;
@@ -25847,7 +25848,7 @@ function renderIndStatsReal(){
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${esc(p.n)}</div><div class="tc">${esc(p.sq||'')}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
       <td class="deskonly">${csFormFive(p.hist)}</td>
-      <td class="num dw">${p.r?sgn(p.avg):'—'}</td>
+      <td class="num dw">${p.r?vsShort(p.avg):'—'}</td>
       <td class="num pts">${p.pts}</td></tr>`;
   });
   $('#indTable').innerHTML=html;
