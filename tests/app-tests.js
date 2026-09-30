@@ -883,6 +883,25 @@
       t('X39: a later round still broke 90 for the first time',
         /You broke 90 for the first time/.test(epiText({ earned: [{ kind: 'sub_90' }] }, false)), true);
     }
+    /* X39 · D399 · the circle item's claim and spine are home_dispatch's own (20261217090000): a debut first, quiet */
+    {
+      const cm = (r) => (typeof csCircleMile === 'function' ? csCircleMile(r) : null);
+      t('X39: a buddy’s debut reads as a debut, in the quiet spine, as the server says it',
+        [cm({ is_first: true, is_pr: true, is_sub80: true, holes_played: 18 }), cm({ is_pr: true }), cm({ gross: 84 })],
+        [{ standfirst: 'Their first posted round.', spine: 'mut' }, { standfirst: 'A personal best.', spine: 'gold' }, { standfirst: null, spine: 'mut' }]);
+    }
+    /* …and csFallbackItems, the path Home takes when the dispatch is not deployed, prints the same claim and spine */
+    {
+      const keep = { f: window.homeFeedRows, c: window.homeClash };
+      window.homeClash = null;
+      window.homeFeedRows = [{ is_me: false, gross: 88, golfer: 'Blake Sample', course: 'Papago', holes_played: 18,
+                               is_first: true, is_pr: true, is_sub80: false, round_id: 'x39circle', played_on: '2026-09-28' }];
+      let circ = null;
+      try { circ = (csFallbackItems() || []).find(i => i.tier === 'circle') || null; } catch(e) { circ = { standfirst: 'threw: ' + e.message }; }
+      window.homeFeedRows = keep.f; window.homeClash = keep.c;
+      t('X39: the fallback’s circle item says the server’s debut, in the quiet spine',
+        circ && [circ.standfirst, circ.spine], ['Their first posted round.', 'mut']);
+    }
     t('X39: the feed says a first round before a personal best',
       [homeRoundDetail({ gross: 84, is_first: true, is_pr: true, is_me: true }), homeRoundDetail({ gross: 84, is_pr: true, is_me: true })],
       ['your first round posted.', 'a personal best.']);

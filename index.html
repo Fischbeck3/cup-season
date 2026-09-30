@@ -22289,6 +22289,17 @@ function csShortCourse(raw){
 }
 window.csShortCourse = csShortCourse;
 
+/* X39 · D399 (agent F's held 20261217090000) · the circle item's one claim and its spine, in home_dispatch's own
+   order and words, so the fallback and the server say one thing: a buddy's DEBUT reads as a debut ("Their first
+   posted round.") in the quiet `mut` spine, never a first time under 80 in gold; a later round keeps its claims.
+   The server's order was is_pr, is_sub80, is_first with gold for either barrier. Twin: HomeFallbackItems. */
+function csCircleMile(r){
+  if(r && r.is_first) return { standfirst:'Their first posted round.', spine:'mut' };
+  if(r && r.is_pr)    return { standfirst:'A personal best.', spine:'gold' };
+  if(csSub80(r))      return { standfirst:'Under 80 for the first time.', spine:'gold' };
+  return { standfirst:null, spine:'mut' };
+}
+window.csCircleMile = csCircleMile;
 function csFallbackItems(){
   const out = [];
   const push = (o) => out.push(Object.assign({ human_subject:false, suppress:[], spine:'mut' }, o));
@@ -22361,11 +22372,11 @@ function csFallbackItems(){
   /* the circle's freshest round — the one CIRCLE item, never mine */
   const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
   if(r){
-    const mile = r.is_first ? 'Their first round posted.' : r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : null;   /* X39 */
-    push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
+    const mile = csCircleMile(r);   /* X39 · D399: home_dispatch's own claim and spine */
+    push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile.spine,
            eyebrow:'AROUND YOUR BUDDIES',
            headline:`${(r.golfer||'A golfer').split(' ')[0]} posted {${r.gross}}${r.course?` at ${r.course}`:''}.`,
-           standfirst:mile, action:'See the round',
+           standfirst:mile.standfirst, action:'See the round',
            route: r.round_id ? {kind:'receipt', id:r.round_id} : null, at:r.played_on });
   }
   /* the fence, applied by the PRODUCER as well as by the arrangement: a
