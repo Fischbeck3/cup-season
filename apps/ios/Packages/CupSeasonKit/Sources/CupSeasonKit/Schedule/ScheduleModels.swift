@@ -283,7 +283,8 @@ public enum CalendarBuilder {
       }
       for d in 1...month.daysInMonth {
         let iso = month.iso(d)
-        if ScheduleDates.jsDay(iso) == 0 && iso > cur.startsOn && iso <= cur.endsOn {
+        if CSDate.local(cur.startsOn, calendar: cal) != nil && iso > cur.startsOn && iso <= cur.endsOn
+            && LeagueDates.weekClose(start: cur.startsOn, today: iso, calendar: cal) == iso {
           add(iso, .league(text: "Week closes — the table is recorded", gold: false))   // TERMINOLOGY §3.1
         }
       }
@@ -357,7 +358,13 @@ public struct WeekLine: Sendable, Equatable, Identifiable {
     }
   }
 
-  public static let empty = "Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season."
+  public static let empty = "Nothing recorded yet: every week lands here for the season."
+  public static func empty(firstTee: String?) -> String {
+    guard let firstTee, CSDate.local(firstTee, calendar: ScheduleDates.gregorian) != nil else { return empty }
+    let close = LeagueDates.weekClose(start: firstTee, today: firstTee, calendar: ScheduleDates.gregorian)
+    let weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][ScheduleDates.jsDay(close)]
+    return "Nothing recorded yet: the first week closes \(weekday) night, and every week lands here for the season."
+  }
 }
 
 // MARK: - Up Next (10653–10681)

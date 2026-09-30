@@ -335,7 +335,7 @@ struct ScheduleScreen: View {
     if vm.inLeague {
       CSSectionHead("Week by week")
       if vm.weekLines.isEmpty {
-        CSFine(WeekLine.empty)
+        CSFine(WeekLine.empty(firstTee: vm.firstTee))
       } else {
         // rows on ground with hairlines, not a card (IOS-019 rule 2)
         VStack(spacing: 0) {
@@ -373,6 +373,7 @@ final class ScheduleModel {
   var byDay: [Int: [CalendarItem]] = [:]
   var weekLines: [WeekLine] = []
   var inLeague = false
+  var firstTee: String?
   var busy = Set<UUID>()
   /// W7-040 · why the last read failed (the month's or the next fortnight's),
   /// in the product's words. A failed read is never an empty one: the rows
@@ -422,6 +423,7 @@ final class ScheduleModel {
     rivals = await r
     let memberships = me?.memberships ?? []
     let cur = memberships.first { $0.league_id == current } ?? memberships.first
+    firstTee = cur?.season?.starts_on
     let spans = LeagueSpan.from(memberships)
     byDay = CalendarBuilder.items(month: month, schedule: schedule, spans: spans, current: cur?.league_id)
     // week-by-week history: league seasons only (state.phase==='season' && seasonStart)

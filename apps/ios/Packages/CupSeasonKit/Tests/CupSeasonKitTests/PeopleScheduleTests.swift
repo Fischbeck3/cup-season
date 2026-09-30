@@ -65,7 +65,7 @@ private func row(id: UUID = UUID(), name: String = "Blake", playOn: String, mine
     let byDay = CalendarBuilder.items(month: month, schedule: rounds, spans: spans, current: cur)
     #expect(byDay[26]?.contains(.league(text: "North Grove (fixture) — season ends, cup decided", gold: true)) == true)
     #expect(byDay[1]?.contains(.league(text: "Aug closes — minimums & bonuses assessed", gold: false)) == true)
-    #expect(byDay[6]?.contains(.league(text: "Week closes — the table is recorded", gold: false)) == true)   // a Sunday inside the season
+    #expect(byDay[5]?.contains(.league(text: "Week closes — the table is recorded", gold: false)) == true)   // a Saturday close for the Sunday first tee
     #expect(byDay[6]?.contains(where: { if case .round = $0 { return true }; return false }) == false)
     #expect(byDay[13]?.contains(.league(text: "The Sunday Cup — first tee", gold: false)) == true)
     #expect(byDay[5]?.filter { if case .round = $0 { return true }; return false }.count == 2)
@@ -340,5 +340,19 @@ private func row(id: UUID = UUID(), name: String = "Blake", playOn: String, mine
     #expect(dot(ScheduledRound(id: UUID(), mine: false, tagged_me: true)) == .round)
     #expect(dot(ScheduledRound(id: UUID(), mine: false, tagged_me: true, my_rsvp: "out")) == .leagueMate)
     #expect(dot(ScheduledRound(id: UUID(), mine: false, shared_league: true)) == .leagueMate)
+  }
+}
+
+@Suite struct OwnerW088WeekTests {
+  @Test func theCalendarAndEmptyHistoryUseTheSeasonsOwnWeek() {
+    let league = UUID()
+    let month = CalendarMonth(year: 2026, month: 9)
+    let spans = [LeagueSpan(leagueId: league, name: "North Grove (fixture)", startsOn: "2026-09-02", endsOn: "2026-09-30")]
+    let calendar = CalendarBuilder.items(month: month, schedule: [], spans: spans, current: league)
+    let closes = calendar.filter { $0.value.contains(.league(text: "Week closes — the table is recorded", gold: false)) }.keys.sorted()
+    #expect(closes == [8, 15, 22, 29])
+    #expect(WeekLine.empty(firstTee: "2026-09-02").contains("Tuesday night"))
+    #expect(WeekLine.empty(firstTee: nil) == WeekLine.empty)
+    #expect(WeekLine.empty(firstTee: "unknown") == WeekLine.empty)
   }
 }
