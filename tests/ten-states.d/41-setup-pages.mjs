@@ -829,7 +829,26 @@ const staticPage = (id, url, title, want) => ({
   }, want),
 })
 const STATIC = [
-  staticPage('get', '/get.html', 'get.html · the install page', 'Cup Season'),
+  /* TEN / W8 · W7-159 [A2-get-1, B2-get-4] · at a desk pointer the page says how to get to the phone: 'On your phone, open cupseason.app/get' in the page's h2 role, the sentence in mut and the
+     address in ink, directly under the summary; on a phone it is not drawn (a phone is already where the page is going) */
+  { ...staticPage('get', '/get.html', 'get.html · the install page', 'Cup Season'),
+    check: async (page) => {
+      const base = await staticPage('get', '/get.html', '', 'Cup Season').check(page); if (base !== true) return base
+      return page.evaluate(() => {
+        const h = document.querySelector('.handoff'), desk = matchMedia('(min-width:720px) and (pointer:fine)').matches
+        if (!h) return 'the page has no hand-off line'
+        const drawn = getComputedStyle(h).display !== 'none' && h.getBoundingClientRect().width > 0
+        if (!desk) return drawn ? 'a phone is shown the hand-off to a phone' : true
+        if (!drawn) return 'a desk pointer is offered no way to get to the phone'
+        if (h.textContent.trim() !== 'On your phone, open cupseason.app/get') return `the hand-off reads ${JSON.stringify(h.textContent.trim())}`
+        const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+        const cs = getComputedStyle(h), b = getComputedStyle(h.querySelector('b'))
+        if (cs.fontSize !== '24px' || cs.fontWeight !== '700') return `the hand-off is ${cs.fontWeight} ${cs.fontSize}, not the h2 role`
+        if (cs.color !== probe('--mut') || b.color !== probe('--ink')) return `the hand-off is ${cs.color} with the address ${b.color}, not mut and ink`
+        const prev = h.previousElementSibling
+        return prev && prev.classList.contains('sum') ? true : 'the hand-off is not directly under the summary'
+      })
+    } },
   staticPage('support', '/support.html', 'support.html', 'Cup Season'),
   staticPage('legal', '/legal.html', 'legal.html · terms and privacy', 'Privacy'),
 ]
