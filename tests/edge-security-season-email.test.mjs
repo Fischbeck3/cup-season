@@ -17,7 +17,7 @@ const SRC = stripTypeScriptTypes(readFileSync(new URL('../supabase/functions/sea
   }));
 const ID = '5d0c6d2e-8b1a-4f3e-9c2d-1a2b3c4d5e6f';
 const DB_NOTICE = { id: ID, sent_at: null, payload: { league: 'North Grove', recipients: [
-  { email: 'ann@gmail.com', name: 'Ann', cents: 5000 }, { email: 'bo@gmail.com', name: 'Bo', cents: 0 }] } };
+  { email: 'ann@example.com', name: 'Ann', cents: 5000 }, { email: 'bo@example.com', name: 'Bo', cents: 0 }] } };
 
 function worker({ notices = [DB_NOTICE], readError = null, payload = null } = {}) {
   const log = { brevo: [], inits: [], rpc: [], reads: 0 };
@@ -51,7 +51,7 @@ test('C-11 · the addresses in a request body are ignored; the notice is re-read
   const w = worker();
   const r = await w.hook(forged(ID));
   assert.equal(r.status, 200);
-  assert.deepEqual(w.log.brevo.map((m) => m.to[0].email), ['ann@gmail.com', 'bo@gmail.com']);
+  assert.deepEqual(w.log.brevo.map((m) => m.to[0].email), ['ann@example.com', 'bo@example.com']);
   assert.ok(w.log.brevo.every((m) => !JSON.stringify(m).includes('victim-corp') && !m.subject.includes('locked')));
   assert.deepEqual(w.log.rpc, [['mark_cancellation_sent', { p_id: ID, p_error: null }]]);
   assert.ok(w.log.inits.every((i) => i.signal && typeof i.signal.aborted === 'boolean'), 'each Brevo call has a clock');
@@ -80,7 +80,7 @@ test('C-11 · a notice the database cannot read is a 500, not a send', async () 
 
 test('C-11 · a hostile league name is one capped header line and escaped HTML', async () => {
   const league = '<img src=https://evil.example/p.gif>Refund\r\nBcc: all@x.example ' + 'x'.repeat(200);
-  const w = worker({ notices: [{ ...DB_NOTICE, payload: { league, recipients: [{ email: 'ann@gmail.com', name: 'Ann\r\nX-Evil: 1', cents: 5000 }] } }] });
+  const w = worker({ notices: [{ ...DB_NOTICE, payload: { league, recipients: [{ email: 'ann@example.com', name: 'Ann\r\nX-Evil: 1', cents: 5000 }] } }] });
   await w.hook(forged(ID));
   const [m] = w.log.brevo;
   assert.doesNotMatch(m.subject, /[\r\n]/);
@@ -93,7 +93,7 @@ test('C-11 · a hostile league name is one capped header line and escaped HTML',
 test('the season recap still sends from the database payload', async () => {
   const payload = { season_id: 's1', league: 'North Grove', champion: 'Fixture Javelinas', runner_up: 'Birdies', points_king: null,
     champion_score: 412, runnerup_score: 388, tiebreak: null, starts_on: '2026-04-01', ends_on: '2026-09-01', solo: false,
-    rows: [{ name: 'Fixture Javelinas', points: 412 }], recipients: [{ email: 'ann@gmail.com', name: 'Ann', token: 't1', cents: 0 }] };
+    rows: [{ name: 'Fixture Javelinas', points: 412 }], recipients: [{ email: 'ann@example.com', name: 'Ann', token: 't1', cents: 0 }] };
   const w = worker({ payload });
   const r = await w.hook({ type: 'INSERT', table: 'email_queue', record: { id: 'q1', season_id: 's1', sent_at: null } });
   assert.equal(r.status, 200);
