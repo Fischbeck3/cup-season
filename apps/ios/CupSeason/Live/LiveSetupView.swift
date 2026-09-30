@@ -215,7 +215,7 @@ struct LiveSetupView: View {
         if !store.held {
           CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
         }
-        CSMini("Enter the pars") { showCard = true }
+        CSMini(store.state.course.parsVerified ? "Check the pars" : "Enter the pars") { showCard = true }
           .disabled(store.held)
         Button("Save courses for offline") { showOfflineCourses = true }
           .buttonStyle(.csTertiary(.content))
