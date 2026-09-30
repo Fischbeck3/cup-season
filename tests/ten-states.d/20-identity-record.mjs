@@ -821,7 +821,7 @@ function shareState(id, title, card, extra = {}) {
       }).then(async (r) => {
         if (r !== true) return r
         /* TEN / W7-140 [A2-share-5] · a tap on the ceremony's empty field leaves
-           it open: its exits are "Back to the board" and Escape, as it draws them */
+           it open: its exits are "Close" (W7-139) and Escape, as it draws them */
         const hit = await page.evaluate(() => (document.elementFromPoint(6, 6) || {}).id)
         if (hit !== 'finish') return `the backdrop probe did not land on the ceremony's field: ${hit}`
         await page.mouse.click(6, 6)
@@ -832,7 +832,9 @@ function shareState(id, title, card, extra = {}) {
         const eb = await eyebrowNoDangle(page); if (eb !== true) return eb
         /* TEN / W7-144 · the exported card's address clears its frame */
         const addr = await recapAddressClears(page); if (addr !== true) return addr
-        return shareRowHiddenFirst(page)
+        const row = await shareRowHiddenFirst(page); if (row !== true) return row
+        /* TEN / W7-139 · the ceremony's way out is Close, the one dismiss word */
+        return page.evaluate(() => { const b = document.getElementById('finBack'); return b && b.textContent.trim() === 'Close' ? true : 'the ceremony’s way out reads ' + JSON.stringify(b && b.textContent.trim()) })
       })
     },
     ...extra,
