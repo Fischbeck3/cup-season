@@ -935,6 +935,14 @@ function shareState(id, title, card, extra = {}) {
         if (!/^Message included with the card/.test(fc.textContent.trim())) return 'the message has no head: ' + JSON.stringify(fc.textContent.trim().slice(0, 80))
         const sent = csShareRoundText(_finishShare.gross, _finishShare.course)
         if (fct.textContent !== sent) return 'the shown message is not the one sent: ' + JSON.stringify([fct.textContent, sent])
+        /* TEN / W7-146 [A2-share-8] · D336: the card that leaves is the public round card: its facts line has the
+           played year and no points, and it carries no milestone badge, even when the caller passes both */
+        const drawn = [], P = CanvasRenderingContext2D.prototype, keep = P.fillText
+        P.fillText = function (t, ...rest) { drawn.push(String(t)); return keep.call(this, t, ...rest) }
+        try { drawRecapCard({ name: 'Avery Fixture', marker: 'saguaro', gross: 83, pvi: 1.5, points: 9, badge: 'FIXTURE BADGE', course: 'Saguaro Flats (fixture)', date: new Date(2026, 8, 27) }) } finally { P.fillText = keep }
+        if (drawn.some((t) => /\bPTS\b/.test(t))) return 'the shared card still prints points: ' + JSON.stringify(drawn.filter((t) => /PTS/.test(t)))
+        if (drawn.includes('FIXTURE BADGE')) return 'the shared card still draws a milestone badge'
+        if (!drawn.includes('SUN \u00b7 SEP 27 \u00b7 2026')) return 'the shared card\u2019s date has no year: ' + JSON.stringify(drawn.filter((t) => /SEP/.test(t)))
         return true
       }).then(async (r) => {
         if (r !== true) return r

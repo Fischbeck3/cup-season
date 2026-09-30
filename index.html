@@ -12336,7 +12336,7 @@ function drawRecapCard(d){
        phone. */
   }
   /* TEN / W7-144 · the lower block rides 40 higher, so the signature's address clears the frame's inner edge (y 1313) by more than the frame's own 36 inset */
-  if(d.badge) ctr(d.badge, 932, `600 31px ${BOARD}`, GOLD, 5);
+  /* TEN / W7-146 · D336: no milestone badge on the public round card (PostRecap.publicRoundCard strips it) */
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,980); x.lineTo(W-280,980); x.stroke();
   /* one line on the date's own rule, or two that start 14px under the hairline
@@ -12351,7 +12351,9 @@ function drawRecapCard(d){
   }
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
-  const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
+  /* TEN / W7-146 [A2-share-8] · D336: the card that leaves is the public round card, so its facts line
+     carries no points (a league the reader is not in) and gains the played year */
+  const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()} · ${dt.getFullYear()}`;
   ctr(when, whenY, `600 29px ${BOARD}`, MUT, 4);
   csArtifactSignature(x, W, 1140, { ink:INK, mut:MUT });
   return cv;
