@@ -592,6 +592,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
 .hstart a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .wire-empty{margin:0; color:var(--mut);}   /* TEN / W6 · the empty wire's head: body, mut (EmptyRoot) */
+/* TEN / W7-073 · the door inside the sentence is §2.5's in-content link: ink on a 2px mut rule, its hit box padded to 44 (the padding of an inline box moves no line) */
+.wire-empty a{color:var(--ink); text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px; padding:var(--s3) 0;}
+.wire-empty a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* TEN / W7-036/038 · S18 (UI_SYSTEM §13.3): the dateline of a read that did
    not land, above what is kept: agate (its caps are the role's), mut */
 .homestale{margin:0 0 var(--s3); color:var(--mut);}
@@ -21745,7 +21748,10 @@ function renderHomeFeed(){
      door is true to the golfer's life: `csWireEmpty`, below. */
   const we = html ? null : csWireEmpty();
   box.innerHTML = staleFeed + (html
-    || `<p class="cs-body wire-empty">${esc(we.head)}</p><div class="hstart"><a href="#" ${we.table ? 'data-wiretable' : 'data-gopeople'}>${esc(we.door)}</a></div>`);
+    /* TEN / W7-073 · ONE sentence with its door inside it ("… Post one, or add
+       some buddies."): the door on its own line left the sentence ending on
+       "or" (UI_SYSTEM §13.1, §2.5's in-content link) */
+    || `<p class="cs-body wire-empty">${esc(we.head)} <a href="#" ${we.table ? 'data-wiretable' : 'data-gopeople'}>${esc(we.door)}</a></p>`);
   box.querySelectorAll('img.hsbg').forEach(img => {
     const old = keep.get(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'));
     if(old) img.replaceWith(old);

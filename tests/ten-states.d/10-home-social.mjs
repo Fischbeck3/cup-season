@@ -205,10 +205,23 @@ const leadShown = (re) => async (page) => page.evaluate((re) => {
   if (hero) return 'the hero did not stand down behind the lead: ' + JSON.stringify(hero.slice(0, 80))
   return new RegExp(re, 'i').test(lead) ? true : 'the lead reads ' + JSON.stringify(lead.slice(0, 120))
 }, re)
+/* TEN / W6 · W7-073 · the empty wire is ONE sentence with its door inside it ("No rounds from your buddies yet. Post one, or add
+   some buddies."), the door §2.5's in-content link: ink on a 2px mut rule, a hit box of 44 */
+const wireEmptyOneLine = async (page) => page.evaluate(() => {
+  const p = document.querySelector('#homeFeed .wire-empty')
+  if (!p || p.getBoundingClientRect().height === 0) return 'the empty wire is not drawn'
+  const a = p.querySelector('a[data-gopeople], a[data-wiretable]')
+  if (!a) return 'the wire’s door is not inside its sentence'
+  const t = p.textContent.replace(/\s+/g, ' ').trim()
+  if (!/^No rounds from your buddies yet\. (Post one, or add some buddies\.|See who’s in .+\.)$/.test(t)) return 'the sentence reads ' + JSON.stringify(t)
+  const cs = getComputedStyle(a)
+  if (!/underline/.test(cs.textDecorationLine) || parseFloat(cs.textDecorationThickness) !== 2) return 'the door is not the in-content link'
+  return a.getBoundingClientRect().height >= 40 ? true : `the door's hit box is ${Math.round(a.getBoundingClientRect().height)}px tall`
+})
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew) },
+    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine) },
   { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
     expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown,
