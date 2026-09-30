@@ -13914,7 +13914,11 @@ function recalc(){
     const on = $('#inDate')?.value || null;
     const known = _shows ? pts : null;
     const worth = _ss === 'live' ? csComposerWorthLine(on, undefined, known) : null;
-    _sn.textContent = worth || seasonNote('long') || 'Counts in every league you\u2019re in.';
+    /* TEN / W6 · Q38 · a nine in a season that counts eighteens only: the
+       note below it said "Counts in every league you're in", which is the
+       one thing that nine does not do. Nothing is promised instead. */
+    const nineOut = _ss === 'live' && !!entry && entry.holes === 9 && window.CS?.settings?.nine_hole_allowed === false;
+    _sn.textContent = nineOut ? '' : (worth || seasonNote('long') || 'Counts in every league you\u2019re in.');
     /* and ask the server; when its answer lands for this same date, say it */
     if(_ss === 'live') csLoadMyCounters(on).then(c => {
       if(!c || c.rows==null) return;
@@ -37544,10 +37548,25 @@ function csComposerWorthLine(playedOn, capGiven, pts){
   const on = String(playedOn || isoOf(new Date())).slice(0,10);
   /* the shared producer first: one sentence per season the date falls in,
      the season named only when there is more than one */
-  /* D364 (F3) · the card's own side — a nine is never promised an
-     eighteen-hole ceiling */
-  const holes = (typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18;
-  const known = (pts != null && isFinite(Number(pts)) && holes === 18) ? Number(pts) : null;
+  /* D364 (F3) · the card's own holes — a nine is never promised an
+     eighteen-hole ceiling. The ENTRY decides once there is one (a single nine
+     on the 18-hole form is a nine, postEntry); the side before that. */
+  const ent = (typeof postEntry === 'function') ? postEntry() : null;
+  const holes = ent ? ent.holes : ((typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18);
+  /* TEN / W6 · Q38 (Codex on 113b7209, P2) · ONCE A GROSS IS TYPED, THE
+     CARD'S OWN ARITHMETIC, nine or eighteen. The engine's half-round rules
+     (`v_rounds_ranked`): a nine's points are half the band rounded up, which
+     recalc has already applied to `pts`; it ranks for the counting cap on
+     those points, one slot like any round; and its half-round credit is the
+     MINIMUM's (floor_credit 0.5), which this line does not speak to. So
+     csRoundWorthKnown is exact for a nine too. A valid nine still printed
+     the hypothetical ceiling (§R: never under a real score). */
+  const known = (pts != null && isFinite(Number(pts))) ? Number(pts) : null;
+  /* ... and a nine counts only where the season allows nines: the view drops
+     it otherwise (`league_settings.nine_hole_allowed`, the open league's row,
+     read whole into CS.settings). There the typed nine adds nothing to the
+     total, and no worth line is promised under it. */
+  if(known != null && holes === 9 && window.CS?.settings && window.CS.settings.nine_hole_allowed === false) return null;
   const served = capGiven === undefined && window.myCounters && window.myCounters.on === on ? window.myCounters.rows : null;
   if(served){
     const rows = served.map(x => ({ league_id: x.league_id, league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
