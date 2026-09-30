@@ -38,7 +38,7 @@ import CupSeasonKit
 
 @MainActor
 enum CompeteFixture {
-  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_compete_fixture") }
+  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_compete_fixture") || MatchProgrammeFixture.on }
 
   /// The decoded payload, or nil if the hatch is off. Built once per launch.
   static let me: Me? = on ? decode() : nil

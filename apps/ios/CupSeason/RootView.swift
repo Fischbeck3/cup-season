@@ -251,7 +251,7 @@ struct RootView: View {
     // cannot be photographed is a screen nobody looked at. It reads a fixture
     // and never the server, so nothing here can touch anybody's real season.
     .overlay {
-      if CompeteFixture.on {
+      if CompeteFixture.on && !MatchProgrammeFixture.on {
         NavigationStack { CompeteScreen(links: CSLinks()) }
           .background(cs.bg0.ignoresSafeArea())
           // The fixture is an OVERLAY on the root, so it never passes through
@@ -260,6 +260,9 @@ struct RootView: View {
           // all, and F11 asks for exactly that proof.
           .csDevTextSize(CSDevHatch.textSize)
       }
+    }
+    .overlay {
+      if MatchProgrammeFixture.on { MainTabView().background(cs.bg0.ignoresSafeArea()) }
     }
     .overlay {
       if (CSDevHatch.live || CSDevHatch.nearby || ProcessInfo.processInfo.arguments.contains("-cs_dev_offline_trip")) && devLive {

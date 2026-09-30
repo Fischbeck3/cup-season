@@ -27,6 +27,16 @@ public struct KnownHoles: Sendable, Equatable {
 }
 
 public enum HomeWireCopy {
+  /// Programme figure owns the score; the existing producer owns the context.
+  public static func roundContext(_ r: HomeFeedRow, holes: Int? = nil) -> String {
+    let line = roundLine(r, holes: holes)
+    guard let gross = r.gross else { return line }
+    for prefix in ["\(gross) at ", "\(gross). "] where line.hasPrefix(prefix) {
+      return String(line.dropFirst(prefix.count))
+    }
+    return line
+  }
+
 
   /// `csSub80` · the flag, and a round known to be eighteen holes.
   public static func claimsSub80(_ r: HomeFeedRow, holes: Int?) -> Bool {

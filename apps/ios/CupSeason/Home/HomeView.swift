@@ -64,7 +64,12 @@ struct HomeView: View {
 
   /// The payload the strip and the wire are drawn from: the dispatch's own
   /// `me` when it served one (one read, one instant), the session's otherwise.
-  private var me: Me? { vm.me ?? store.me }
+  private var me: Me? {
+    #if DEBUG
+    if MatchProgrammeFixture.on { return vm.me ?? MatchProgrammeFixture.payload?.me }
+    #endif
+    return vm.me ?? store.me
+  }
 
   var body: some View {
     ScrollView {
@@ -299,7 +304,7 @@ struct HomeView: View {
     // the defect the capability exists to prevent.
     case .block(let item):
       VStack(alignment: .leading, spacing: 0) {
-        HomeLead(item: item, membership: league(item), act: { take(item) }, compact: item.key.hasPrefix("clash:") || item.key.hasPrefix("move:"))
+        HomeLead(item: item, membership: league(item), act: { take(item) })
         answers(item)
       }
       .padding(.horizontal, CSTokens.Space.gutter)
@@ -452,7 +457,7 @@ struct HomeView: View {
       let rows = page.rows.filter { $0.period == period }
       if !rows.isEmpty {
         if headed.contains(period) {
-          CSSectionHead(period.head, weight: .display)
+          CSSectionHead(period.head, weight: .programme)
             .padding(.horizontal, CSTokens.Space.gutter)
             .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s3 : CSTokens.Space.s5)
             .padding(.bottom, CSTokens.Space.s2)
@@ -462,7 +467,7 @@ struct HomeView: View {
           // the first row of a headless period takes one too — unless it
           // brings its own edge (a photograph, a card).
           if (i > 0 || !headed.contains(period)), row.leadsWithRule { CSRule() }
-          wireRow(row, context: page.wireContext)
+          wireRow(row, context: page.wireContext, showRoundDay: !(period == .today && headed.contains(period)))
         }
       }
     }
@@ -482,7 +487,7 @@ struct HomeView: View {
     [HomeWirePeriod.today, .week, .earlier, .ahead].first { p in page.rows.contains { $0.period == p } }
   }
 
-  @ViewBuilder private func wireRow(_ row: HomeWireRow, context: [String: String] = [:]) -> some View {
+  @ViewBuilder private func wireRow(_ row: HomeWireRow, context: [String: String] = [:], showRoundDay: Bool = true) -> some View {
     switch row.body {
     case .round(let r, let url):
       VStack(alignment: .leading, spacing: 0) {
@@ -492,18 +497,19 @@ struct HomeView: View {
         // what it has. Only a round with no attachment is a record from here.
         if url != nil || (r.photo_path.map { !$0.isEmpty } ?? false) {
           HomeWireBand(row: r, photo: url, photos: HomePhotoStore.shared,
-                       denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false,
+                       denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false, showDay: showRoundDay,
                        open: { if let id = r.round_id { presenter.receipt = id } },
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
+            .padding(.horizontal, CSTokens.Space.gutter)
         } else {
-          HomeWireSlat(row: r,
+          HomeWireSlat(row: r, showDay: showRoundDay,
                        open: { if let id = r.round_id { presenter.receipt = id } },
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
             .padding(.horizontal, CSTokens.Space.gutter)
         }
         if let rid = r.round_id, let state = vm.social.state(for: rid) {
           // one fact, one place: a record's identity row already carries the day
-          HomeWireReactions(state: state, day: url == nil ? nil : HomeWireCopy.dayMarker(r.played_on),
+          HomeWireReactions(state: state, day: nil,
                             commentCount: vm.roundSocial[rid]?["comment_count"]?.int,
                             openComments: vm.roundSocial[rid] == nil ? nil : { discussion = RoundDiscussionDoor(roundId: rid) }) { emoji in
             react(r, emoji)
@@ -867,6 +873,11 @@ final class HomeModel {
     // still needed a real account — and the states it exists to photograph are
     // exactly the ones no account this product has can reach. A build machine
     // signed out got a blank screen and no explanation.
+    if MatchProgrammeFixture.on {
+      runFixture(MatchProgrammeFixture.mode == "empty" ? "brand_new" : "event_live")
+      items = MatchProgrammeFixture.items
+      return
+    }
     if let want = CSDevHatch.homeState { runFixture(want); return }
     #endif
     guard let sessionMe else { return }
