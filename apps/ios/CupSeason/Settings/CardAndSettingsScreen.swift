@@ -460,7 +460,8 @@ private struct CardEditorPane: View {
 
       A11yStack(rowAlignment: .top, spacing: 10) {
         VStack(alignment: .leading, spacing: 6) {
-          label("Handle · 60-day lock")
+          label("Handle")
+      Fine(OnboardingCopy.handleRule)
           CSField("@handle", text: $vm.handle).textInputAutocapitalization(.never).autocorrectionDisabled()
             .accessibilityLabel("Handle")
         }
