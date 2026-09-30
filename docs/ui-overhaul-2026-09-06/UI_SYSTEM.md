@@ -81,7 +81,7 @@ numbers.**
 | **The Forge, the ceremonies, the Tracer mark** | Kept | The strongest sequence and the strongest asset in the product. The Forge's heat ramp survives as three private constants inside the door, not as palette tokens (§2.6). |
 | **The voice · band words · the ledger line · "the Pro"** | Kept verbatim | The audit calls the copy the strongest asset in the product; it was only ever wrong in its *size*, which the display tier fixes. |
 | **The five destinations** — Home · Compete · ⊕ Play · Golfers · You | Kept | `OWNER_RULINGS` **R-A / D222** is a flow ruling, not a visual one, and it overrides D82, D93, D94 and IOS-011. What changes is the chrome around it. §12 |
-| **A visible build identity** | Kept | `v23 · <sha>` in Settings and at the foot of the desk's sidebar. |
+| **A diagnostic build identity** | Amended 2026-09-29 — Q5, [OWNER-QUESTIONS §R](../design/ten-2026-09-27/launch/OWNER-QUESTIONS.md) | Settings keeps its build line and developer door. The Door stamp is hidden from its face (phone: reveal by long-press on the pennant); the web caption stays readable by diagnostics and feedback. The sidebar stamp is removed. |
 
 ### Changed — each naming the row it overrides
 
