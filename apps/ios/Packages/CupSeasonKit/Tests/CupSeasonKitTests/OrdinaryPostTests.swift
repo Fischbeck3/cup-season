@@ -209,10 +209,10 @@ import Foundation
     // a refusal whose reason is not a golfer's sentence is the honest unknown
     let shrug = OrdinaryPost.refusal(RpcError(name: "post_round_once", underlying: #"{"code":"XX000"}"#, droppedArgs: []))
     #expect(shrug == OrdinaryPost.refusedUnknown)
-    #expect(shrug == "The server didn’t accept this card and didn’t say why. Nothing was posted, and your card is kept — press Add my round to try again.")
+    #expect(shrug == "The server didn’t accept this scorecard and didn’t say why. Nothing was posted, and your scorecard is kept — press Add my round to try again.")
     // the server's own sentence is passed through, once, closed with a period
     let ours = OrdinaryPost.refusal(rejected())
-    #expect(ours.hasPrefix("Nothing was posted: ") && ours.hasSuffix(". Your card is kept."), "\(ours)")
+    #expect(ours.hasPrefix("Nothing was posted: ") && ours.hasSuffix(". Your scorecard is kept."), "\(ours)")
     #expect(!ours.contains(".. "))
     // no answer names a button the composer does not have
     for s in [OrdinaryPost.saveFailed, OrdinaryPost.ambiguousCopy, OrdinaryPost.refusedUnknown,
@@ -237,7 +237,7 @@ import Foundation
     // W1 · a definite refusal: nothing was posted, the card is kept, and the
     // server's reason (or the honest unknown) is said, never "press Post"
     #expect(msg.hasPrefix("Nothing was posted: ") || msg == OrdinaryPost.refusedUnknown, "\(msg)")
-    #expect(msg.hasSuffix("Your card is kept.") || msg == OrdinaryPost.refusedUnknown)
+    #expect(msg.hasSuffix("Your scorecard is kept.") || msg == OrdinaryPost.refusedUnknown)
     #expect(!msg.contains("press Post"))
     #expect(try disk.read(owner, request)?.accepted == nil)
     let fixed = card("85")

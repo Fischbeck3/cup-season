@@ -725,7 +725,7 @@ private struct PostRoundBody: View {
   /// (UI_SYSTEM §7.1) — and the second, within four seconds, clears; left
   /// alone it disarms.
   private var startOver: some View {
-    CSArmedButton(label: "Start over", armedLabel: "Sure? This clears the card") { model.startOver() }   // F-13
+    CSArmedButton(label: "Start over", armedLabel: "Sure? This clears the scorecard") { model.startOver() }   // F-13
       .frame(maxWidth: .infinity)
       .accessibilityIdentifier("post.startOver")
   }

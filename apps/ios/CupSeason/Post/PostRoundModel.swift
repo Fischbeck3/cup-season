@@ -363,7 +363,7 @@ final class PostRoundModel {
     if seededFrom != nil {
       toast.show("Close this scorecard to keep it. Open a new round separately."); return
     }
-    card.startOver(); setPhoto(nil); clearDraft(); toast.show("Card cleared", kind: .confirmed)
+    card.startOver(); setPhoto(nil); clearDraft(); toast.show("Scorecard cleared", kind: .confirmed)
   }
   func scrapScan() { card.scrapScan(); toast.show("Scan scrapped — type your nines in", kind: .confirmed) }
 
