@@ -850,6 +850,28 @@ const shareRowHiddenFirst = async (page) => page.evaluate(() => {
   const from = [...k.cssRules].find((x) => x.keyText === '0%' || x.keyText === 'from')
   return from && from.style.visibility === 'hidden' ? true : `the share row is hittable while invisible (${anim} never hides it)`
 })
+/* TEN / W7-145 [A2-share-3, B2-share-3] · on a phone the ceremony's preview enlarges in place so the card's words can be
+   read (a button, named for it, expanded to the row's measure up to 402px), and shrinks again; the desk keeps an image */
+const previewEnlarges = async (page) => {
+  const before = await page.evaluate(() => {
+    const b = document.getElementById('finPreview')
+    if (!b || b.hidden) return 'no preview'
+    if (innerWidth >= 960) return b.getAttribute('role') === 'img' && !b.hasAttribute('tabindex') ? 'desk' : 'the desk preview is not a plain image'
+    if (b.getAttribute('role') !== 'button' || b.tabIndex !== 0) return 'the phone preview is not a button'
+    if (b.getAttribute('aria-expanded') !== 'false' || !/Tap to enlarge\.$/.test(b.getAttribute('aria-label') || '')) return 'the phone preview does not offer to enlarge: ' + JSON.stringify([b.getAttribute('aria-expanded'), b.getAttribute('aria-label')])
+    return { w: b.getBoundingClientRect().width, y: window.scrollY, st: document.getElementById('finish').scrollTop }
+  })
+  if (before === 'desk') return true
+  if (typeof before === 'string') return before
+  await page.evaluate(() => document.getElementById('finPreview').click())
+  await page.waitForTimeout(150)
+  const open = await page.evaluate(() => { const b = document.getElementById('finPreview'); return { w: b.getBoundingClientRect().width, x: b.getAttribute('aria-expanded'), row: getComputedStyle(b.closest('.finish-share-row')).flexDirection, vw: innerWidth } })
+  await page.evaluate((st) => { document.getElementById('finPreview').click(); document.getElementById('finish').scrollTop = st }, before.st)
+  await page.waitForTimeout(150)
+  const shut = await page.evaluate(() => document.getElementById('finPreview').getAttribute('aria-expanded'))
+  if (open.x !== 'true' || open.row !== 'column' || open.w < Math.min(402, open.vw - 48) - 1) return 'the preview did not enlarge in place: ' + JSON.stringify(open)
+  return shut === 'false' ? true : 'the preview did not shrink again'
+}
 function shareState(id, title, card, extra = {}) {
   return {
     family: 'share', id, variant: 'member', fullPage: false, title,
@@ -929,6 +951,8 @@ function shareState(id, title, card, extra = {}) {
         /* TEN / W7-144 · the exported card's address clears its frame */
         const addr = await recapAddressClears(page); if (addr !== true) return addr
         const row = await shareRowHiddenFirst(page); if (row !== true) return row
+        /* TEN / W7-145 · on a phone the preview enlarges in place, and shrinks again */
+        const pv = await previewEnlarges(page); if (pv !== true) return pv
         /* TEN / W7-139 · the ceremony's way out is Close, the one dismiss word */
         return page.evaluate(() => { const b = document.getElementById('finBack'); return b && b.textContent.trim() === 'Close' ? true : 'the ceremony’s way out reads ' + JSON.stringify(b && b.textContent.trim()) })
       })

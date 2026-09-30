@@ -5337,6 +5337,13 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .finish-preview{flex:none; width:128px; aspect-ratio:4/5; border-radius:8px; overflow:hidden; background:var(--ceremony); box-shadow:0 0 0 1px var(--rule);}
 .finish-preview[hidden]{display:none;}
 .finish-preview canvas{display:block; width:100%; height:100%;}
+/* TEN / W7-145 · below 960 the preview is a button that enlarges the card in place (csFinPreviewMode) */
+@media (max-width:959px){
+  .finish-preview[role="button"]{cursor:zoom-in;}
+  .finish-preview[role="button"]:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
+  .finish-share-row.is-open{flex-direction:column; align-items:stretch;}
+  .finish-share-row.is-open .finish-preview{width:100%; max-width:402px; margin:0 auto; cursor:zoom-out;}
+}
 .finish-controls{flex:1; min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:var(--s2);}
 .finish-photoopt{
   display:flex; align-items:center; justify-content:space-between; gap:var(--s3); min-height:44px; width:100%;
@@ -13445,6 +13452,7 @@ function finishCeremony(o){
     ff.hidden = !says; ff.textContent = says ? CS_SHARE_PHOTO_FINE : '';
   }
   const fs=$('#finStatus'); if(fs) fs.textContent='';
+  $('#finPreview')?.closest('.finish-share-row')?.classList.remove('is-open');   /* TEN / W7-145 · every post opens on the small card */
   /* TEN / W7-142 · the caption Share hands over (csShareRoundText, the one producer), shown before it leaves */
   const fc=$('#finCaption'), fct=$('#finCaptionText');
   if(fc && fct){ fct.textContent = csShareRoundText(_finishShare.gross, _finishShare.course); fc.hidden = false; }
@@ -13473,7 +13481,22 @@ async function finishPreview(){
   let cv=null; try{ cv=csPaintRecap(d); }catch(_){ cv=null; }
   if(!cv){ box.hidden=true; return; }
   box.replaceChildren(cv); box.hidden=false;
-  box.setAttribute('aria-label', `The card that will be shared: ${d.gross!=null?d.gross:''} at ${d.course||'the course'}${d._img?', over your round photo':''}.`);
+  box.dataset.label = `The card that will be shared: ${d.gross!=null?d.gross:''} at ${d.course||'the course'}${d._img?', over your round photo':''}.`;
+  csFinPreviewMode();
+}
+/* TEN / W7-145 [A2-share-3, B2-share-3] · below 960 the preview is 128px wide, so the words on the card that is
+   about to leave draw at 3-6px: it is a button that enlarges the card in place (the row stacks and the card takes
+   the measure, up to 402px) and shrinks it again. The desk already draws it at a readable size and keeps an image */
+function csFinPreviewMode(){
+  const box=document.getElementById('finPreview'), row=box && box.closest('.finish-share-row'); if(!box || !row) return;
+  const base = box.dataset.label || 'The card that will be shared.';
+  if(matchMedia('(min-width:960px)').matches){
+    row.classList.remove('is-open'); box.setAttribute('role','img'); box.removeAttribute('tabindex'); box.removeAttribute('aria-expanded');
+    box.setAttribute('aria-label', base); return;
+  }
+  const open=row.classList.contains('is-open');
+  box.setAttribute('role','button'); box.tabIndex=0; box.setAttribute('aria-expanded', open ? 'true' : 'false');
+  box.setAttribute('aria-label', open ? base : base + ' Tap to enlarge.');
 }
 function finishDismiss(){
   const el=document.getElementById('finish');
@@ -13486,6 +13509,16 @@ function finishDismiss(){
 }
 (function wireFinish(){
   const el=document.getElementById('finish'); if(!el) return;
+  /* TEN / W7-145 · the phone-width preview enlarges in place, and shrinks again */
+  const fp=$('#finPreview');
+  const fpToggle=()=>{
+    if(!fp || fp.getAttribute('role')!=='button') return;
+    fp.closest('.finish-share-row')?.classList.toggle('is-open'); csFinPreviewMode();
+    try{ fp.scrollIntoView({ block:'nearest' }); }catch(_){}
+  };
+  fp?.addEventListener('click', fpToggle);
+  fp?.addEventListener('keydown', e=>{ if(fp.getAttribute('role')==='button' && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); fpToggle(); } });
+  try{ matchMedia('(min-width:960px)').addEventListener('change', csFinPreviewMode); }catch(_){}
   $('#finPhoto')?.addEventListener('click',e=>{
     const b=e.currentTarget;
     b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
