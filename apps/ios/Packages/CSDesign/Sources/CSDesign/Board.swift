@@ -445,13 +445,14 @@ public struct CSStandingsBoard<Row: View>: View {
   /// sat 42pt right of every squad name it labelled.
   let hasFaces: Bool
   let showsGap: Bool
+  let changeHead: String
 
   public init(count: Int, cut: String? = nil, cutAfter: Int? = nil, names: [String] = [],
-              nameHead: String = "Golfer", hasFaces: Bool = true, showsGap: Bool = true,
+              nameHead: String = "Golfer", changeHead: String = "Gap", hasFaces: Bool = true, showsGap: Bool = true,
               @ViewBuilder rows: @escaping (Int, Bool) -> Row) {
     self.count = count; self.cut = cut; self.cutAfter = cutAfter
     self.names = names; self.nameHead = nameHead; self.hasFaces = hasFaces
-    self.rows = rows; self.showsGap = showsGap
+    self.rows = rows; self.showsGap = showsGap; self.changeHead = changeHead
   }
 
   public var body: some View {
@@ -475,7 +476,7 @@ public struct CSStandingsBoard<Row: View>: View {
       Text("Pos").frame(width: CSTokens.Space.rail)
       Text(nameHead).frame(maxWidth: .infinity, alignment: .leading)
         .padding(.leading, CSSlatMetrics.nameInset(hasFace: hasFaces))
-      if showsGap { Text("Gap").frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing) }
+      if showsGap { Text(changeHead).fixedSize(horizontal: false, vertical: true).frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing) }
       Text("Pts").frame(width: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
     }
     .csType(.agateS, caps: true)
