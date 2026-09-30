@@ -139,8 +139,19 @@ const CORE = [
     },
     expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: doorStacked('obEmailIn') },
   { family: 'door', id: 'league-code', variant: 'signed_out', url: '/', short: true,
-    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#joinCode': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorEdgesMut(['#joinCode'])(page) : r } },
+    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await page.waitForTimeout(900) },
+    expect: { door: true, selectors: { '#joinCode': 'visible' } },
+    check: async (page) => {
+      const r = await doorStacked()(page); if (r !== true) return r
+      const e = await doorEdgesMut(['#joinCode'])(page); if (e !== true) return e
+      /* TEN / W8 · W7-161 [B2-door-2] · with the keyboard up (the 375x380 proxy) the league-code field and Join land WHOLE, mid-view, as the email branch's sentence does: the
+         box's bottom edge clears the view by a 44px target (§13.2a: whole or clearly half-scrolled, never sheared) */
+      return page.evaluate(() => {
+        if (innerHeight > 400) return true
+        const b = document.getElementById('joinbox').getBoundingClientRect()
+        return b.bottom + 44 <= innerHeight + 0.5 && b.top >= 0 ? true : `the league-code box is cut by the ${innerHeight}px view: top ${Math.round(b.top)}, bottom ${Math.round(b.bottom)}`
+      })
+    } },
 
   /* ---------------------------------------------------- onboarding gate */
   { family: 'onboarding', id: 'card-gate', variant: 'no_card', short: true,
