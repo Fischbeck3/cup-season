@@ -289,7 +289,7 @@ public struct CSStarRail: View {
     .csAnimation(CSMotion.snap, value: value)
     .accessibilityElement(children: .contain)
     .accessibilityLabel("Your rating")
-    .accessibilityValue(unrated ? "Not yours yet" : CSStarRail.spoken(value))
+    .accessibilityValue(unrated ? "Your rating · not yet" : CSStarRail.spoken(value))
     .accessibilityAdjustableAction { d in
       // a step, bounded like the pair's: at 5 an increment set the SAME
       // value, which the caller reads as "take it off"
@@ -436,7 +436,7 @@ public struct CSRating: View {
   }
 
   @ViewBuilder private var mineLine: some View {
-    Text(mine.map { "Your rating · " + CSRating.format($0) } ?? "Not yours yet")
+    Text(mine.map { "Your rating · " + CSRating.format($0) } ?? "Your rating · not yet")
       .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
   }
