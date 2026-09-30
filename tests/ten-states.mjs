@@ -77,12 +77,33 @@ const doorStacked = (whole) => async (page) => page.evaluate((whole) => {
   if (whole) { const i = document.getElementById(whole); if (i.scrollWidth > i.clientWidth + 1) return `the address in #${whole} is cut: ${i.scrollWidth}px of text in ${i.clientWidth}px` }
   return true
 }, whole)
+/* TEN / W8 · Q46 (owner, 2026-09-29) [B2-door-8] · the Door's field edges and its quiet button's outline are OPAQUE mut, at 3:1 or better against the ground they sit on
+   and against a field's own fill (WCAG 1.4.11): 7.07:1 dark and 5.85:1 light. `sels` are the Door's own fields and its quiet button; each must be drawn and carry a 1px edge */
+const doorEdgesMut = (sels) => async (page) => page.evaluate((sels) => {
+  const rgb = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number)
+  const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+  const lum = (c) => { const [r, g, b] = rgb(c); return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) }
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+  const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+  const mut = probe('--mut'), ground = probe('--bg0')
+  for (const sel of sels) {
+    const el = document.querySelector(sel)
+    if (!el || !el.getBoundingClientRect().width) return `${sel} is not drawn`
+    const cs = getComputedStyle(el)
+    if (cs.borderTopWidth !== '1px') return `${sel} has a ${cs.borderTopWidth} edge, not 1px`
+    if (cs.borderTopColor !== mut) return `${sel}'s edge is ${cs.borderTopColor}, not opaque mut (${mut})`
+    if (ratio(cs.borderTopColor, ground) < 3) return `${sel}'s edge is ${ratio(cs.borderTopColor, ground).toFixed(2)}:1 against the ground`
+    const fill = cs.backgroundColor
+    if (rgb(fill).length && !/rgba\(.*, 0\)$/.test(fill) && ratio(cs.borderTopColor, fill) < 3) return `${sel}'s edge is ${ratio(cs.borderTopColor, fill).toFixed(2)}:1 against its own fill`
+  }
+  return true
+}, sels)
 const CORE = [
   /* ------------------------------------------------------------ door */
-  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } } },
+  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } }, check: doorEdgesMut(['#obJoin']) },
   { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } }, check: doorStacked() },
+    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorEdgesMut(['#obEmailIn'])(page) : r } },
   { family: 'door', id: 'sending', variant: 'signed_out', url: '/', short: true,
     hold: (e) => e.method === 'POST' && /\/auth\/v1\/otp/.test(e.path),
     drive: async (page) => {
@@ -97,7 +118,7 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => document.querySelector('#codebox').classList.contains('open'))
     },
-    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } }, check: doorStacked() },
+    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorEdgesMut(['#obCodeIn'])(page) : r } },
   { family: 'door', id: 'code-error', variant: 'signed_out', url: '/', short: true,
     expectConsole: [/^\[cs\] (That code|Code didn|The code|That sign-in|Something went wrong)/, /^\[cs\] error: Code didn/, /status of 403/],
     drive: async (page) => {
@@ -119,7 +140,7 @@ const CORE = [
     expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: doorStacked('obEmailIn') },
   { family: 'door', id: 'league-code', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#joinCode': 'visible' } }, check: doorStacked() },
+    expect: { door: true, selectors: { '#joinCode': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorEdgesMut(['#joinCode'])(page) : r } },
 
   /* ---------------------------------------------------- onboarding gate */
   { family: 'onboarding', id: 'card-gate', variant: 'no_card', short: true,

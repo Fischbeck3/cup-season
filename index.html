@@ -4297,7 +4297,7 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 /* UI_SYSTEM §16.1: secondary text uses opaque mut; dim is non-text. */
 .onboard #obDoor .fine{color:var(--mut);}
 /* D339 · the quiet secondary entry: the same 46 tall, a hairline, the ink — not a second filled button */
-.onboard #obDoor .btn.quiet{background:transparent; color:var(--ink); border:1px solid var(--rule); box-shadow:none;}
+.onboard #obDoor .btn.quiet{background:transparent; color:var(--ink); border:1px solid var(--mut); box-shadow:none;}   /* Q46 (owner, 2026-09-29): the quiet button's outline is opaque mut, 7.07:1 dark and 5.85:1 light (WCAG 1.4.11); it was the 1px rule hairline at 2.66:1 and 2.30:1 */
 .onboard #obDoor .btn.quiet:hover{background:var(--bg1);}
 .joinbox{display:none; gap:8px; margin-top:9px;}
 .joinbox.open{display:flex;}
@@ -4326,6 +4326,8 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
   letter-spacing:.02em; text-transform:none;
 }
 .joinbox input:focus-visible{outline:2px solid var(--act);}
+/* Q46 (owner, 2026-09-29) · THE DOOR'S FIELD EDGES ARE OPAQUE mut (WCAG 1.4.11): 7.07:1 dark and 5.85:1 light against the ground, where the 1px rule hairline was 2.66:1 and 2.30:1 (UI_SYSTEM §16.1: rule may separate, never state). Scoped to the Door (.onboard): the wizard's join box shares .joinbox and is not the Door. The phone's borderless fields owe the same (N4). */
+.onboard .joinbox input{border-color:var(--mut);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 #emailbox .btn, #codebox .btn, #joinbox .btn{width:100%;}   /* W7-109 · after the shared rule: the Door's actions sit under their fields at full width */
 
