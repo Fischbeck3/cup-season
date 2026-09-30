@@ -4923,6 +4923,15 @@ body:not(.noleague) #hubLeagueless{display:none;}
    lead still coming keeps its room. */
 .view#view-home[data-held]{display:none;}
 #homeLead[data-coming]{min-height:224px; margin:0 0 14px;}
+/* TEN / W6 · Q14 · the install nudge in league-less Home's page: the reason on
+   its own line, then the in-content door (ink over a 2px mut rule, W7-080's
+   promo rule) and Not now, on a rule, at the head of the page */
+#homeInstall{display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--s4); margin:0 0 var(--s4); padding:0 0 var(--s1); border-bottom:1px solid var(--rule);}
+#homeInstall[hidden]{display:none;}
+#homeInstall p{flex:1 1 100%; margin:0; color:var(--ink);}
+#homeInstall .go{flex:none; background:none; border:0; border-bottom:2px solid var(--mut); padding:var(--s3) 0 var(--s1); min-height:44px; color:var(--ink); cursor:pointer;}
+#homeInstall .x{flex:none; margin-left:auto; background:none; border:0; min-width:44px; min-height:44px; color:var(--mut); cursor:pointer; display:flex; align-items:center; justify-content:center;}
+#homeInstall .go:focus-visible, #homeInstall .x:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
 /* F15 · on a phone the grid reaches into its card's padding so every day is a
@@ -6480,6 +6489,15 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              fold and D218's head kept). Below 960 the two stack in the
              phone's own order. This is not the phone's lane in a browser —
              it is the same producer in the shape a desk earns. -->
+        <!-- TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · D186's install nudge on
+             league-less Home: IN THE PAGE, at its head, drawn with Home's first
+             paint (csInstallInPage), never an overlay above the header 3.4 s
+             after landing. League-less Home is the slot's only page. -->
+        <div id="homeInstall" class="hinstall" hidden>
+          <p class="cs-body-s" data-install-why></p>
+          <button type="button" class="go cs-name-s" data-install-go>Add to Home Screen</button>
+          <button type="button" class="x" data-install-x aria-label="Not now"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+        </div>
         <div id="homeHub" class="deskbody">
           <div class="deskmain">
             <!-- TEN / W7-050 [A2-home-11] · THE DOM IS THE PAGE'S ORDER. Below
@@ -25011,6 +25029,7 @@ function renderHomeHub(){
    if(bg) bg.style.display = (!state.demo && window.CS?.league) ? '' : 'none';}
   /* AW2-01 · held: Home's containers wait for csHomeRelease's one paint */
   if(window.__homeHold){ renderClubGroups(); return; }
+  window.csInstallInPage?.();   /* Q14 · league-less Home's install nudge, in the page, with this paint */
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
   renderMeStrip();        /* D236: my number, my last round, my next round, my money */
   renderHomeDispatch();   /* D228/D231: the lead and the deck, ranked, one read */
@@ -29840,34 +29859,55 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
   var n = document.getElementById('installNudge');
   var deferred = null, shown = false;
   function eligible(){ try{ return !standalone && !localStorage.getItem('cs_nudge_done'); }catch(_){ return !standalone; } }
+  /* TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · ONE sentence for both shapes
+     (D186's reason), painted into each, and one dismissal for both. On
+     league-less Home the nudge is IN THE PAGE (#homeInstall), drawn with
+     Home's first paint; the overlay stays for the other two earned moments
+     (the first round, joining by invite) and stands down while the page's
+     own is showing. */
+  var WHY = 'Safari signs you out after a week away. On your home screen, you stay signed in.';
+  if(n){ var sp = n.querySelector('span'); if(sp) sp.textContent = WHY; }
+  function slot(){ return document.getElementById('homeInstall'); }
+  function inPage(){ var s = slot(); return !!s && !s.hidden; }
+  window.csInstallInPage = function(){
+    var s = slot(); if(!s) return;
+    var on = eligible() && !state.demo && !!(window.CS && window.CS.user) && !((window.CS.memberships || []).length);
+    s.hidden = !on;
+    if(on){ var w = s.querySelector('[data-install-why]'); if(w) w.textContent = WHY; if(n) n.style.display = 'none'; }
+  };
   /* never over a full-screen working surface: the live round, the composer,
      the wizard and squad formation each own the whole viewport */
   /* B25 (code audit 2026-08-30): the composer is `view-post`; the list named
      only `view-record`, so the nudge could sit over the card being typed */
   var BUSY = ['view-play','view-post','view-record','view-wizard','view-draft'];
   function busy(){ return BUSY.some(function(id){ var v=document.getElementById(id); return v && v.classList.contains('active'); }); }
-  function show(){ if(shown || !eligible() || !n || busy()) return; shown = true; n.style.display = 'flex'; }
+  function show(){ if(shown || !eligible() || !n || busy() || inPage()) return; shown = true; n.style.display = 'flex'; }
   window.csHideInstallNudge = function(){
     if(!n) return;
-    if(busy()) n.style.display = 'none';
+    if(busy() || inPage()) n.style.display = 'none';
     else if(shown && eligible()) n.style.display = 'flex';
   };
   /* B25 · a dismissal is final for the session too: `shown` stood true, so the
      next view switch (csHideInstallNudge) painted the banner back (D186: once) */
-  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; shown = false; if(n) n.style.display = 'none'; }
+  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; shown = false; if(n) n.style.display = 'none';
+    var s = slot(); if(s) s.hidden = true; }
   window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; });  /* hold — don't show until earned */
   window.csEarnInstallNudge = function(){ show(); };
+  function install(){
+    if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
+    openSheet('Add to your home screen', 'Installs like an app, no App Store needed',
+      '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.'
+      + '<br><br>Full screen, your icon, your leagues one tap away — and you stay signed in. '
+      + 'Safari clears a site’s data after a week away; a home-screen app keeps yours.</p>');
+    dismiss();
+  }
   if(n){
-    document.getElementById('nudgeGo').addEventListener('click', function(){
-      if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
-      openSheet('Add to your home screen', 'Installs like an app, no App Store needed',
-        '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.'
-        + '<br><br>Full screen, your icon, your leagues one tap away — and you stay signed in. '
-        + 'Safari clears a site’s data after a week away; a home-screen app keeps yours.</p>');
-      dismiss();
-    });
+    document.getElementById('nudgeGo').addEventListener('click', install);
     document.getElementById('nudgeX').addEventListener('click', dismiss);
   }
+  (function(){ var s = slot(); if(!s) return;
+    s.querySelector('[data-install-go]')?.addEventListener('click', install);
+    s.querySelector('[data-install-x]')?.addEventListener('click', dismiss); })();
 })();
 $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
   e.preventDefault(); e.stopPropagation();
@@ -38047,8 +38087,12 @@ function showWelcome(){
      takes: no habit yet, so most likely to be away longer than a week. Landing
      in the app league-less IS a completed step, so it qualifies under the same
      rule the other two use. show() is still once ever per device, still silent
-     when installed, still silent on a working surface. */
-  setTimeout(() => window.csEarnInstallNudge?.(), 3400);
+     when installed, still silent on a working surface.
+     TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · this moment is drawn IN THE
+     PAGE now, at the head of league-less Home, with Home's first paint
+     (renderHomeHub → csInstallInPage): no overlay above the header, and
+     nothing shifts at 3.4 s. */
+  window.csInstallInPage?.();
 }
 /* THE PUBLIC PLAN'S WHO-LINE · round 2's P0 (category judge, 2026-09-29): the
    link said "Avery and Devon are in." while the plan's own sheet showed Avery

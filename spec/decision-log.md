@@ -5151,6 +5151,8 @@ Both restored; verified in a rolled-back prod transaction: 2 board posts written
 
 **CONFLICT:** none. IOS-023's Apple door is completed, not changed; D82/D151's onboarding moments gain a third; no mechanic moves.
 
+- **Amended 2026-09-29 (Q14 / X18, owner §R, option b):** on league-less Home the nudge is drawn IN THE PAGE, at the head of Home, with its first paint. The slot is named for league-less Home only. It is no longer an overlay above the header 3.4 s after landing. The reason, the once-per-device rule and the working-surface silence are unchanged, and one dismissal covers both shapes. The first-round and invite moments keep the overlay, which stands down while the page's own is showing.
+
 ### D187 · The switcher was running other people's HTML — and the guard that should have caught it could not fail
 *(2026-09-01. The ship audit's stop-ship block, built. Owner: "Lets pick up where they left off, start building.")*
 

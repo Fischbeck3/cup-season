@@ -278,6 +278,23 @@ const monthFact = async (page) => page.evaluate(() => {
   const t = lines[0].textContent.trim()
   return /^(Best \d+ a month count|Every round counts) · (.+ · )?(\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
 })
+/* TEN / W6 · Q14 (owner, 2026-09-29 §R: b) · league-less Home draws D186's install nudge in the page, at its head, with
+   the first paint: the reason, an ink door (never the action colour), and no overlay over the header */
+const installInPage = async (page) => page.evaluate(() => {
+  const s = document.getElementById('homeInstall'), o = document.getElementById('installNudge')
+  if (!s || s.hidden || s.getBoundingClientRect().height === 0) return 'league-less Home draws no install nudge in the page'
+  if (!/Safari signs you out after a week away/.test(s.textContent || '')) return 'the nudge does not lead with D186\u2019s reason'
+  const hub = document.getElementById('homeHub')
+  if (hub && s.getBoundingClientRect().top > hub.getBoundingClientRect().top) return 'the nudge is not at the head of Home'
+  if (o && getComputedStyle(o).display !== 'none') return 'the overlay is still drawn over the page'
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const go = s.querySelector('[data-install-go]')
+  return go && getComputedStyle(go).color === probe('--ink') ? true : 'the nudge\u2019s door is not ink'
+})
+const installNotForMembers = async (page) => page.evaluate(() => {
+  const s = document.getElementById('homeInstall')
+  return s && !s.hidden ? 'a member\u2019s Home draws the league-less install slot' : true
+})
 /* TEN / W6 · AW2-01 · Home opens once: by the time it is on screen the cold open's hold has let go (no data-held, no
    aria-busy), and no lead slot is still keeping room for a lead that already answered. The jump itself is measured by the
    CLS probe (layout-shift entries through a cold signed-in boot, 375 and 1280, CPU 1x and 4x), not by a still frame. */
@@ -306,7 +323,7 @@ const cardsNotButtons = async (page) => page.evaluate(() => {
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine, brandNewPrimary) },
+    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine, brandNewPrimary, installInPage) },   /* Q14 */
   { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
     expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown,
@@ -398,7 +415,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce, installNotForMembers,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
