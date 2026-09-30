@@ -906,6 +906,13 @@ function shareState(id, title, card, extra = {}) {
           const mut = getComputedStyle(probe).color; probe.remove()
           if (getComputedStyle(ff).color !== mut) return 'the fine print is not ceremony-mut: ' + getComputedStyle(ff).color
         } else if (!ff.hidden) return 'fine print with no switch to explain'
+        /* TEN / W7-142 [B2-share-4] · the words that travel with the card are on screen, under the phone's head,
+           and they are exactly what Share handed over (csShareRoundText) */
+        const fc = document.getElementById('finCaption'), fct = document.getElementById('finCaptionText')
+        if (!fc || fc.hidden || !fct) return 'the ceremony never shows the message that leaves with the card'
+        if (!/^Message included with the card/.test(fc.textContent.trim())) return 'the message has no head: ' + JSON.stringify(fc.textContent.trim().slice(0, 80))
+        const sent = csShareRoundText(_finishShare.gross, _finishShare.course)
+        if (fct.textContent !== sent) return 'the shown message is not the one sent: ' + JSON.stringify([fct.textContent, sent])
         return true
       }).then(async (r) => {
         if (r !== true) return r

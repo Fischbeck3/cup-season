@@ -5361,6 +5361,9 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .finish-status{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut); overflow-wrap:anywhere;}
 .finish-fine{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut);}   /* TEN / W7-006 · the switch's fine print, the status line's voice */
 .finish-status:empty{display:none;}
+/* TEN / W7-142 · the message that leaves with the card: the status line's voice, under a head in the same */
+.finish-caption{margin:0; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ceremony-mut); overflow-wrap:anywhere;}
+.finish-caption-h{display:block; font-weight:600;}
 .finish-back{align-self:flex-start; min-height:44px; padding:0; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ceremony-ink);
   text-decoration:underline; text-decoration-color:var(--ceremony-mut); text-decoration-thickness:2px; text-underline-offset:4px;}
@@ -8016,6 +8019,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              (D380; RoundCopy.photoIncludeFine under the phone's toggle) -->
         <p class="finish-fine" id="finFine" hidden></p>
         <button class="finish-share" id="finShare" type="button">Share the card</button>
+        <!-- TEN / W7-142 [B2-share-4] · the words that travel with the card, shown before they leave,
+             under the phone's own head (RoundSharePreview: "Message included with the card") -->
+        <p class="finish-caption" id="finCaption" hidden><span class="finish-caption-h">Message included with the card</span><span id="finCaptionText"></span></p>
         <p class="finish-status" id="finStatus" role="status" aria-live="polite"></p>
         <!-- TEN / W7-139 · Close, the one dismiss word for every sheet and cover: "Back to the board" closed onto Home, and a golfer with no league has no board -->
         <button class="finish-back" id="finBack" type="button">Close</button>
@@ -13439,6 +13445,9 @@ function finishCeremony(o){
     ff.hidden = !says; ff.textContent = says ? CS_SHARE_PHOTO_FINE : '';
   }
   const fs=$('#finStatus'); if(fs) fs.textContent='';
+  /* TEN / W7-142 · the caption Share hands over (csShareRoundText, the one producer), shown before it leaves */
+  const fc=$('#finCaption'), fct=$('#finCaptionText');
+  if(fc && fct){ fct.textContent = csShareRoundText(_finishShare.gross, _finishShare.course); fc.hidden = false; }
   finishPreview();
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
