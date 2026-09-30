@@ -413,7 +413,6 @@ struct ScenarioLineView: View {
       case .door:
         run.foregroundColor = cs.ink
         run.underlineStyle = .single
-        run.underlineColor = cs.mut
       default: break
       }
       text.append(run)

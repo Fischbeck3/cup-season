@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Cup Season · the guest-claim journey, stage by stage, against the REAL
 functions with row security ON (sandbox: tests/sim/sandbox/apply.sh).
+SIM_HOST / SIM_PORT / SIM_DB select an isolated local cluster.
 
 An account-less golfer is seated in a live round, the host finishes, and a
 link is the only thing that golfer holds. Five stages, reported separately
@@ -15,14 +16,17 @@ so a failure names WHERE the journey dies:
 
 Every denial runs as `authenticated`/`anon` with sim.uid set; the superuser
 is used only to seed. Exit non-zero on any FAIL."""
-import subprocess, json, sys, uuid, datetime
+import subprocess, json, sys, uuid, datetime, os
 
-PG = "/opt/homebrew/opt/postgresql@17/bin/psql"
+PG = os.environ.get("PSQL", "/opt/homebrew/opt/postgresql@17/bin/psql")
+HOSTP = os.environ.get("SIM_HOST", "/tmp/cs-sim-sock")
+PORT = os.environ.get("SIM_PORT", "5478")
+DB = os.environ.get("SIM_DB", "cupseason")
 R = []
 
 def sql(stmt, uid=None, role="authenticated"):
     pre = f"set role {role}; set sim.role = '{role}'; set sim.uid = '{uid or ''}';\n" if role else ""
-    r = subprocess.run([PG, "-h", "/tmp/cs-sim-sock", "-p", "5478", "-U", "postgres", "-d", "cupseason",
+    r = subprocess.run([PG, "-h", HOSTP, "-p", PORT, "-U", "postgres", "-d", DB,
                         "-X", "-q", "-t", "-A", "-v", "ON_ERROR_STOP=1", "-c", pre + stmt],
                        capture_output=True, text=True)
     if r.returncode and role is None:
