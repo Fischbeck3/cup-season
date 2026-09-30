@@ -6853,7 +6853,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <button data-lh="18" class="on" type="button">18 holes</button>
               <button data-lh="9" type="button">9 holes</button>
             </div>
-            <p class="fine" style="padding-top:10px" id="cardNote">Standard par-72 card. The stepper opens on each hole's par — pick your course above and the real pars load.</p>
+            <p class="fine" style="padding-top:10px" id="cardNote">Standard par 72. Tap + to start each hole at par — pick your course above and the real pars load.</p>
             <button class="mini" id="editCard" style="margin-top:2px">Enter the pars</button>
           </div>
           <div class="card lrgroup" style="margin-bottom:10px">
@@ -6881,7 +6881,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <button data-g="skins">Skins</button>
               <button data-g="sunningdale">Sunningdale Rules</button>
             </div>
-            <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four golfers; post when you’re done.</p>
+            <p class="fine" id="gameNote">Stroke play — your scorecard, your pace. One to four golfers; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--rule); padding-top:12px;">
               <label class="f" for="lrStake">Stake per side<span class="f-gloss cs-agate-s is-phrase">$0 is bragging rights</span></label>
               <!-- max=200 to match the season buy-in ladder's own ceiling. The
@@ -15425,7 +15425,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
     }
     recomputeStrokes();
     const cn = $('#cardNote');
-    if(cn) cn.textContent = `Card loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course's card.`;
+    if(cn) cn.textContent = `Pars loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course.`;   /* TEN / W7-116 · the course's pars, never its card */
     /* TEN / W7-127 · the pars are in, so the button checks them rather than
        asking for work already done (the phone's CSMini, LiveSetupView.swift:197) */
     { const ec = $('#editCard'); if(ec) ec.textContent = 'Check the pars'; }
@@ -18184,7 +18184,7 @@ $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   try{ b.scrollIntoView({ block:'nearest', inline:'nearest' }); }catch(_){}   /* W1 · the row scrolls: the chosen game stays in view */
   state.live.game=b.dataset.g;
   renderRoster();   /* match extras (stake, strokes preview, side swap) follow the game */
-  const GN={score:'Stroke play — your card, your pace. One to four golfers; post when you’re done.',
+  const GN={score:'Stroke play — your scorecard, your pace. One to four golfers; post when you’re done.',
     match:'Singles (2) or 2v2 net best ball (4). Keep scoring; we tally the match as you go.',
     wolf:'A round of Wolf — needs four. We run the rotation and the side tally; scores still post.',
     skins:'Low net takes the hole’s skin; ties carry the pot. Two to four golfers; scores still post.',
@@ -18553,14 +18553,14 @@ function finishRealLiveRound(){
          const m=missingOf(x.i); if(!m.length) return `${who} — has scores past hole ${liveHoles()}`;
          const shown=m.slice(0,5).join(', ');
          return `${who} — missing hole${m.length===1?'':'s'} ${shown}${m.length>5?` +${m.length-5} more`:''}`;
-       }).join(' · ')}. ${open.length===1?'That card':'Those cards'} won’t post — go back and ${anyStray?'fix it':'fill in'}, or finish without.</p>`
+       }).join(' · ')}. ${open.length===1?'That scorecard':'Those scorecards'} won’t post — go back and ${anyStray?'fix it':'fill in'}, or finish without.</p>`
     : '';
   const result = gameResult();
   openSheet('Finish the round', 'ONE FINISH FOR THE WHOLE GROUP',
-    `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, vouched by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a scorecard link`:''}. A partial card is skipped, not lost.</p>
+    `<p class="fine" style="padding-top:0">${_lg?'Complete scorecards post to the season':'Every complete scorecard posts to its golfer'}, vouched by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a scorecard link`:''}. A partial scorecard is skipped, not lost.</p>
      ${warn}
      <button class="btn" id="lrPost" style="margin-top:12px">${done.length
-       ? `Post ${done.length} card${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`
+       ? `Post ${done.length} round${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`   /* TEN / W7-116 · a card is the golfer (T-01): what posts is rounds */
        : 'Finish the round'}</button>
      <p class="lrcasual-row"><button type="button" class="lrcasual cs-body-s" id="lrCasual">${esc(CS_LIVE_CASUAL.label)}</button></p>`);
   const go = async (casual) => {
@@ -18742,7 +18742,7 @@ function showLiveRecap(d, result, lrId){
     <span class="fine" style="padding:0;display:block">${esc(st.detail)}</span>
     <span id="lrMineDoors" style="display:flex;gap:8px;margin-top:8px"></span></div></div>`);
   openSheet(d.casual?'Casual — nothing posted':st.title,
-    `${posted.length} CARD${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
+    `${posted.length} ROUND${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
     rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
   $('#sheet').classList.add('room-dusk');   /* the post-round settlement is a ceremony - dusk for every viewer, like #finish */
   (async()=>{
@@ -20132,9 +20132,9 @@ function openCardSheet(){
        holes in play so a nine's SI is 1-9. */
     estimateSI(nine?9:18); SI_LOADED=null;
     closeSheet();
-    $('#cardNote').textContent=`Card saved: par ${sumStr(f)+(nine?0:sumStr(b))}${nine?' · 9 holes':''}. The stepper opens on each hole's par.`;
+    $('#cardNote').textContent=`Pars saved: par ${sumStr(f)+(nine?0:sumStr(b))}${nine?' · 9 holes':''}. Tap + to start each hole at par.`;   /* TEN / W7-116 */
     renderPlay();
-    toast('Card saved: every league gets it from here', 'pos');
+    toast('Pars saved: every league gets it from here', 'pos');
   });
   refresh();
   f9.focus();

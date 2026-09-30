@@ -188,6 +188,9 @@ export default [
     drive: toSetup,
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#playLive': 'hidden', '#teeOffBtn': 'visible', '#lrCourse': 'visible' } },
     check: all(destMarked('record'), gamesOnScreen,   /* TEN / W8 · W7-108: the live setup is a room of PLAY, so PLAY stays marked; W7-092: every game on screen below 640 */
+      /* TEN / W7-116 [A2-play-8] · your scorecard, the course's pars, and 'tap + to start at par' (TERMINOLOGY :88, :153) */
+      has('#gameNote', '^Stroke play \u2014 your scorecard, your pace\\.', 'the game note'),
+      has('#cardNote', '^Standard par 72\\. Tap \\+ to start each hole at par', 'the pars note'),
       async (page) => page.evaluate(() => {
       /* TEN / W6 · AW2-14: Play's "Score it live" door is an action — its word and dot are act, never ember */
       const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
@@ -211,6 +214,7 @@ export default [
     },
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#selCount': 'text:^3$', '#teeOffBtn': 'visible' } },
     check: all(teeFieldsNamed,
+      has('#cardNote', '^Pars loaded: 18-hole pars and stroke index from the course\\.$', 'the pars note'),   /* TEN / W7-116 */
       async (page) => page.evaluate(() => {
         const [c, t, r, s] = ['lrCourse', 'lrTee', 'lrRate', 'lrSlope'].map((id) => document.getElementById(id).value)
         return /Saguaro Flats/.test(c) && t === 'Blue' && r === '70.1' && s === '121' ? true : `the fields read ${JSON.stringify([c, t, r, s])}`
@@ -219,7 +223,7 @@ export default [
       /* TEN / W7-127: the course's pars loaded, so the pars button checks them, never asks for them */
       async (page) => page.evaluate(() => {
         const n = (document.getElementById('cardNote') || {}).textContent || '', b = document.getElementById('editCard').textContent.trim()
-        if (!/^Card loaded/.test(n)) return 'the card did not load its pars here, so the button cannot be read: ' + JSON.stringify(n.slice(0, 60))
+        if (!/^Pars loaded/.test(n)) return 'the card did not load its pars here, so the button cannot be read: ' + JSON.stringify(n.slice(0, 60))   /* W7-116 renamed the note */
         return b === 'Check the pars' ? true : 'the pars button still asks for work already done: ' + JSON.stringify(b)
       }),
       /* TEN / W7-054 [A2-play-4]: the desk sets up on two columns; below 960 course, group, game read down */
@@ -445,11 +449,14 @@ export default [
       await until(page, () => document.getElementById('sheet').classList.contains('open') && /Finish the round/.test(document.getElementById('shTitle').textContent))
       await page.waitForTimeout(400)
     },
-    expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 cards to the season$', '#lrCasual': 'text:^This one was casual — post nothing$' } },
-    check: async (page) => { const f = await liveFacts(page); if (f.holes !== 9) return `the round is ${f.holes} holes, expected the nine`; return noLiveGold(page) } },
+    /* TEN / W7-116 [A2-play-8] · what posts is rounds and what is complete is a scorecard: a card is the golfer (T-01) */
+    expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 rounds to the season$', '#lrCasual': 'text:^This one was casual — post nothing$' } },
+    check: all(async (page) => { const f = await liveFacts(page); return f.holes === 9 ? true : `the round is ${f.holes} holes, expected the nine` },
+      noLiveGold,   /* TEN / W6 · W7-096 */
+      has('#shBody', 'Complete scorecards post to the season[\\s\\S]*A partial scorecard is skipped, not lost', 'the finish sheet\u2019s fine print')) },
 
   /* Post: finish_live_round answers, the settlement sheet (the ceremony) */
-  { family: 'play', id: 'finish', variant: 'member', fullPage: false, title: 'Live round · posted: the round’s settlement (two cards to the season)',
+  { family: 'play', id: 'finish', variant: 'member', fullPage: false, title: 'Live round · posted: the round’s settlement (two rounds to the season)',
     drive: async (page) => {
       await toSetup(page)
       await pickCourse(page, 'Dry Creek', 'Dry Creek Nine', 'Forward')
@@ -463,6 +470,6 @@ export default [
       await page.waitForTimeout(700)
     },
     expect: { view: 'view-play', sheet: 'Round posted', selectors: { '#sheet.room-dusk': 'visible', '#lrMine': 'text:Round posted', '#lrViewRound': 'visible' } },
-    check: all(has('#shSub', '2 CARDS TO THE SEASON', 'the card count'),
+    check: all(has('#shSub', '2 ROUNDS TO THE SEASON', 'the round count'),   /* TEN / W7-116 */
       async (page) => { const f = await liveFacts(page); return !f.active ? true : 'the round is still live after the finish' }) },
 ]
