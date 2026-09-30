@@ -278,6 +278,20 @@ const monthFact = async (page) => page.evaluate(() => {
   const t = lines[0].textContent.trim()
   return /^(Best \d+ a month count|Every round counts) · (.+ · )?(\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
 })
+/* TEN / W6 · W7-083 · a wire card is no role="button" around four buttons: it is a plain block whose one receipt control is a real
+   button, named with the printed story, beside the face, applause, course and comment buttons */
+const cardsNotButtons = async (page) => page.evaluate(() => {
+  const cards = [...document.querySelectorAll('#homeFeed .hfcard')].filter((c) => c.getBoundingClientRect().height > 0)
+  if (!cards.length) return 'the wire draws no round card'
+  for (const c of cards) {
+    if (c.getAttribute('role') === 'button' || c.hasAttribute('tabindex')) return 'a round card is still a role="button" wrapper'
+    const r = c.querySelectorAll('button[data-rcptbtn]')
+    if (r.length !== 1) return `a round card has ${r.length} receipt buttons`
+    const story = (c.querySelector('.hfr-story') || {}).textContent
+    if (story && !r[0].getAttribute('aria-label').includes(story.trim())) return 'the receipt button is not named with the printed story'
+  }
+  return true
+})
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
@@ -353,11 +367,11 @@ const readingOrder = async (page) => {
       : 'the reading order is not the painted order: DOM ' + dom.map(name).join(' > ') + ' | seen ' + seen.map(name).join(' > ')
   })
   if (r !== 'desk') return r
-  const lines = await page.evaluate(() => [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].filter((el) => el.offsetParent !== null).length)
+  const lines = await page.evaluate(() => [...document.querySelectorAll('#homeDeck .cswire, #homeFeed [data-rcptbtn]')].filter((el) => el.offsetParent !== null).length)
   if (lines < 2) return true
-  await page.evaluate(() => { const f = [...document.querySelectorAll('#homeDeck .cswire, #homeFeed .hfcard')].find((el) => el.offsetParent !== null); f.focus(); window.__slat0 = f })
+  await page.evaluate(() => { const f = [...document.querySelectorAll('#homeDeck .cswire, #homeFeed [data-rcptbtn]')].find((el) => el.offsetParent !== null); f.focus(); window.__slat0 = f })
   await page.keyboard.press('ArrowDown')
-  const moved = await page.evaluate(() => { const a = document.activeElement; const ok = a && a !== window.__slat0 && a.matches('.cswire, .hfcard'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return ok })
+  const moved = await page.evaluate(() => { const a = document.activeElement; const ok = a && a !== window.__slat0 && a.matches('.cswire, [data-rcptbtn]'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); return ok })
   return moved ? true : '↓ on a deck line does not move to the next slat'
 }
 /* TEN / W7-051 [B2-home-3] · a course's circle is printed once per wire, on its newest round */
@@ -373,7 +387,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

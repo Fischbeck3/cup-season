@@ -598,6 +598,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .hstart a{display:inline-flex; align-items:center; min-height:44px; color:var(--ink);
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
 .hstart a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.hfrcpt{background:none; border:0; padding:0; margin:0; color:inherit; font:inherit; text-align:left; cursor:pointer; display:block; min-height:44px;}   /* W7-083 · the card's receipt control is its name line, drawn as the line */
+.hfrcpt:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .wire-empty{margin:0; color:var(--mut);}   /* TEN / W6 · the empty wire's head: body, mut (EmptyRoot) */
 /* TEN / W7-073 · the door inside the sentence is §2.5's in-content link: ink on a 2px mut rule, its hit box padded to 44 (the padding of an inline box moves no line) */
 .wire-empty a{color:var(--ink); text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px; padding:var(--s3) 0;}
@@ -11064,7 +11066,7 @@ document.addEventListener('keydown', e=>{
      ↑/↓ move between them and → opens (UI_SYSTEM §14.4). Scoped to Home's
      deck and wire: the sidebar strip's rows are `.cswire` buttons as well,
      and are not a list the arrows walk. */
-  const SLAT = '.tbl tr.tap, .fbrow.tap, .peerrow, .rdrow, #homeDeck .cswire, #homeFeed .hfcard';
+  const SLAT = '.tbl tr.tap, .fbrow.tap, .peerrow, .rdrow, #homeDeck .cswire, #homeFeed [data-rcptbtn]';   /* W7-083 · a wire card's slat is its receipt button */
   const editing = t => !!t && (t.isContentEditable ||
     /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ''));
 
@@ -21153,13 +21155,17 @@ function feedRow(r, idx, stamp, opts){
        (whose label could not be read on it), the two controls stacked in the
        band, and nothing said Receipt. The marker medal keeps the plate's top
        corner, as the board's stamp does. */
-    return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
+    /* TEN / W7-083 · no role="button" around four buttons (an ARIA button makes
+       its children presentational): the card is a plain block, and the one
+       receipt control is the plate's name line, a real <button> named with the
+       printed story, beside the face, applause, course and comment buttons */
+    return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''}>
       <div class="hsplate">
         <img class="hsbg" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async">
         <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
         <div class="hscopy">
           ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
-          <div class="hsid"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(csDayMarker(r.played_on))}</span>`:''}</small></div>
+          <button type="button" class="hsid hfrcpt" data-rcptbtn aria-label="${who} — ${esc(homeRoundLine(r))}${story ? ' · ' + esc(story) : ''}, receipt"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(csDayMarker(r.played_on))}</span>`:''}</small></button>
           ${r.gross!=null?`<div class="hsg"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
         </div>
       </div>
@@ -21186,14 +21192,14 @@ function feedRow(r, idx, stamp, opts){
   const cl = (r.course||'').trim(), cut = cl.lastIndexOf(' · ');
   const title = !cl ? 'Course not recorded'
     : cut > 0 ? `${esc(cl.slice(0, cut))}<span class="hfr-tee"> · ${esc(cl.slice(cut + 3))}</span>` : esc(cl);
-  return `<div class="hfcard hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
+  return `<div class="hfcard hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''}>
     <div class="hfr-id">
       ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,32)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,32)}</span>`}
       <b class="cs-social hfr-who">${whoTag}</b>
       ${day?`<span class="hfr-day cs-agate-s">${esc(day)}</span>`:''}
     </div>
     <div class="hfr-title">
-      <b class="cs-social">${title}</b>
+      <button type="button" class="hfrcpt" data-rcptbtn aria-label="${who} — ${esc(homeRoundLine(r))}${story ? ' · ' + esc(story) : ''}, receipt"><b class="cs-social">${title}</b></button>
       ${r.gross!=null?`<div class="hfr-gross"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
       <svg class="hfr-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
         <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
@@ -21711,7 +21717,13 @@ function wireFeedReceipts(box){
       if(r && typeof openRoundReceipt==='function') openRoundReceipt(r);
     };
     el.addEventListener('click', open);
-    el.addEventListener('keydown', e=>{ if(e.target.closest('[data-tc],button')) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(e); } });
+    /* W7-083 · the keyboard's way in is the receipt button itself (a native
+       button: Enter and Space are its own), never the card */
+    el.querySelector('[data-rcptbtn]')?.addEventListener('click', () => {
+      const src = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
+      const r = src[Number(el.dataset.hfr)];
+      if(r && typeof openRoundReceipt==='function') openRoundReceipt(r);
+    });
   });
 }
 /* TEN / W6 · QB-05 · WHAT THE WIRE SAYS WHEN NO BUDDY HAS POSTED — the web
