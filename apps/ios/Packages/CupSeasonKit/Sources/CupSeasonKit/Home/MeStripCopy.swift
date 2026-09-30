@@ -589,7 +589,7 @@ public enum MeStripCopy {
   /// follows for a glance: the club, never the layout and never the tee
   /// variant. Both are facts the PLAN CARD carries, and one fact has one
   /// place (L-34).
-  static func shortCourse(_ raw: String?) -> String? {
+  public static func shortCourse(_ raw: String?) -> String? {
     guard let raw, !raw.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
     // the API's own separators: an em-dash for the layout, a middot for the tee
     let club = raw.components(separatedBy: " — ").first ?? raw

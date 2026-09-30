@@ -16,7 +16,7 @@
   };
 
   /* Q2: a drawn seed survives a changed live leader and a one-squad seed race. */
-  t('Q2: locked Final reads the whole draw in seed order', window.csFinalSeedNames({k:1, seeds:[
+  t('Q2: locked Final reads the whole draw in seed order', window.csFinalSeedNames({structure:'squads2',k:1, seeds:[
     {seed:2,id:'b',name:'Fixture Wrens'}, {seed:1,id:'a',name:'Fixture Javelinas'}]}),
     ['Fixture Javelinas','Fixture Wrens']);
   t('Q2: absent draw never invents finalists from points order', window.csFinalSeedNames({k:2}), []);
