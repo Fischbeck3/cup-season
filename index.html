@@ -1743,6 +1743,10 @@ html[data-theme="light"] #inDate{color-scheme:light;}
    underline segment (a 44px row, agate labels, a 2px ink underline on the chosen side, no pill) */
 #view-post .postform{padding:var(--s3) 0; border-top:1px solid var(--rule);}
 #view-post .postbands{padding:var(--s2) 0; border-top:1px solid var(--rule);}
+/* TEN / W6 · Q48 · the rail's index: a figure in ink, or the building line in mut */
+#view-post .postidx{margin:0 0 var(--s4);}
+#view-post .postidx .cs-fig-s{color:var(--ink);}
+#view-post .postidx .cs-body-s{color:var(--mut);}
 #view-post #calcPts{display:inline-block; padding-bottom:var(--s1); border-bottom:2px solid var(--ink);}
 #postSide{background:none; border:0; padding:0; gap:var(--s4);}
 #postSide button{flex:0 0 auto; background:none; border:0; border-radius:0; min-height:44px; padding:0;
@@ -7083,6 +7087,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             </div>
           </div>
           <div>
+            <!-- TEN / W6 · Q48 · the index is a figure under its own head in the
+                 preview rail (§9.9, D319), not a clause in the eyebrow; painted
+                 by csRenderComposerEyebrow on every entry -->
+            <div class="eyebrow" id="postIdxHead">Your index</div>
+            <p class="postidx" id="postIdx"></p>
             <div class="eyebrow">How this round scores</div>
             <div class="calc" aria-live="polite">
               <div class="k">League points this round</div>
@@ -8658,13 +8667,21 @@ window.csRouteResolves = csRouteResolves;
    and never used interchangeably. This screen shows BOTH: `#calcVs`'s label a
    hundred lines below says "your playing HCP", and under a Standard league's
    95% allowance the two differ by about half a shot. `PostRoundModel.eyebrow`
-   is the phone's twin and says the same sentence. */
-function csComposerEyebrow(){
+   is the phone's twin and says the same sentence.
+
+   TEN / W6 · Q48 (root's ruling, §9.9, D319) · the eyebrow says the act ALONE.
+   A number set as a caption clause wore the eyebrow's quiet role; it is a
+   figure now, in the preview rail under its own "Your index" head
+   (csComposerIndex), beside the "vs your playing HCP" it is told apart from. */
+function csComposerEyebrow(){ return 'Add my round'; }
+/* the rail's figure: the golfer's REAL index, or the sentence for a number not
+   yet minted (setup-QA S6-03: "building", never a flat 18.0) */
+function csComposerIndex(){
   const ix = window.CS?.profile ? window.CS.profile.index_current : null;
-  /* setup-QA S6-03: no minted number = say "building", not a flat 18.0 */
-  return ix == null ? 'Add my round \u00b7 your index builds at 3 rounds'
-                    : 'Add my round \u00b7 your index ' + Number(ix).toFixed(1);
+  return ix == null || !isFinite(Number(ix)) ? { fig: null, line: 'Builds at 3 rounds' }
+                                              : { fig: Number(ix).toFixed(1), line: null };
 }
+window.csComposerIndex = csComposerIndex;
 /* MW-05 · WHAT THIS ROUND COUNTS TOWARD, IN THIS LEAGUE'S OWN RULES. The
    composer printed one sentence for every league: "Your best few each month
    count toward your squad." In a solo season there is no squad — the walk on
@@ -8696,6 +8713,9 @@ window.csCountingNote = csCountingNote;
 function csRenderComposerEyebrow(){
   const pe = document.getElementById('postEyebrow');
   if(pe) pe.textContent = csComposerEyebrow();
+  const pi = document.getElementById('postIdx');
+  if(pi){ const x = csComposerIndex();
+    pi.innerHTML = x.fig != null ? `<b class="cs-fig-s">${esc(x.fig)}</b>` : `<span class="cs-body-s">${esc(x.line)}</span>`; }
   const cn = document.getElementById('postCountingNote');
   if(cn) cn.textContent = csCountingNote();
   /* F09 · before a gross is typed the figure's label already says what the

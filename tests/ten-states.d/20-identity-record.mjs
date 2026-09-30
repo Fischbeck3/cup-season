@@ -473,7 +473,7 @@ const playIsWhereYouAre = async (page) => page.evaluate(() => {
 })
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^Builds at 3 rounds$' } },   /* Q48 */
     /* both lanes' checks (root's merge): Play is where you are (B, W7-125), then the hero's ring, focused
        last so the capture shows it (C, W7-063) */
     check: async (page) => { const p = await playIsWhereYouAre(page); return p !== true ? p : heroRing(page) } },
@@ -679,7 +679,7 @@ const COMPOSER = [
       })
     } },
   { family: 'composer', id: 'member', variant: 'member', short: true, title: 'Composer · a league member (the inherit line holds the last course)',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:your index 14\\.2' } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^14\\.2$' } },   /* Q48 */
     /* TEN / W6 · AW2-17: the primary's type is the token's own (bg0 on act), never a typed hex */
     check: async (page) => page.evaluate(() => {
       const i = document.createElement('i'); i.style.color = 'var(--bg0)'; document.body.appendChild(i); const bg0 = getComputedStyle(i).color; i.remove()
