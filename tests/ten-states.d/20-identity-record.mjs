@@ -189,7 +189,14 @@ const YOU = [
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3); Q39 (a): in words (vsPhrase) */
       readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 (beat your playing HCP by \\d+\\.\\d|played to your playing HCP|\\d+\\.\\d over your playing HCP)', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */
-      noRetiredGlyph()) },
+      noRetiredGlyph(),
+      /* X36 (1) · a rivalry row names its facet: season weeks are "In the season · N weeks", never "head-to-head" */
+      async (page) => page.evaluate(() => {
+        const subs = [...document.querySelectorAll('#youRivals .yriv small')].map((el) => el.textContent.replace(/\s+/g, ' ').trim())
+        if (!subs.length) return 'no rivalry row is drawn'
+        const off = subs.filter((t) => /head-to-head/i.test(t) || (/week/.test(t) && !/^In the season · \d+ weeks?( · |$)/.test(t)))
+        return off.length ? 'a rivalry row does not name its facet: ' + JSON.stringify(off[0]) : true
+      })) },
   /* the career read fails both ways (the full select and its skew retry):
      the record must say the READ failed, never "no rounds" (F10) */
   { family: 'you', id: 'error', variant: 'member', title: 'You · the rounds read failed',

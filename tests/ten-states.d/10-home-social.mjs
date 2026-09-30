@@ -619,7 +619,9 @@ const GOLFERS = [
       /* the verdict is the head's sentence at the desk (W7-010 stands the aside's headline down there) and the aside's headline on the phone */
       const aside = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
       const t = document.getElementById('view-person').innerText.replace(/\s+/g, ' ')
-      return /The record between you/i.test(aside) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
+      /* X36 (1) · the sum names its facet, "across every meeting", and nothing claims to be "the" record */
+      if (/the (whole )?record/i.test(aside)) return 'the aside still claims to be the record: ' + aside.slice(0, 160)
+      return /Between you/i.test(aside) && /(You lead|Devon Testwell leads|All square)[^.]*across every meeting\./.test(t) && /See every meeting/.test(aside) ? true : `the record is missing or unnamed: ${t.slice(0, 160)}`
     }),
     /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
     notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),

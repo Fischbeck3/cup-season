@@ -850,7 +850,7 @@
     const epi = (o) => Object.assign({ gross: 84, pvi: 1.1, points: 9, month_rank: null, earned: [], rivals: [], played_with: [] }, o || {});
     t('P-3: the clash outranks everything',
       csNextAct(epi({ rank_before: 4, rank_after: 2, passed: ['Jade'] }), { clash: { id: 'x', weeks_running: 2 } }).sentence,
-      'That takes the clash. Second week running.');
+      'That takes the weekly clash. Second week running.');   /* X36 (1) · the facet is named */
     t('P-3: the movement is the second rung',
       csNextAct(epi({ rank_before: 3, rank_after: 2, passed: ['Jade'] }), {}).key, 'movement');
     t('D239: a partner with no shared season is offered one',
@@ -1291,7 +1291,8 @@
         [csH2HHeadline(full),
          csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:6,ties:0,total:11}, lead:'down', facets:{} })),
          csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:5,ties:0,total:10}, lead:'even', facets:{} }))],
-        ['You lead 6–5.', 'Galen leads 6–5.', 'All square, 5–5.']);
+        /* X36 (1) · the sum says what it sums */
+        ['You lead 6–5 across every meeting.', 'Galen leads 6–5 across every meeting.', 'All square, 5–5, across every meeting.']);
       t('R4: nothing decided means no headline at all (L-44)',
         csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:0,losses:0,ties:0,total:2}, lead:'even',
           facets:{ played_together:{wins:0,losses:0,ties:0,meetings:2,unsettled:2} } })), null);
@@ -1304,11 +1305,11 @@
         csH2HParse({ visible:true, opponent:opp, record:{wins:1,losses:1,ties:0,total:2}, lead:'even',
           streak:{ who:'me', n:1 }, facets:{} }).streak, null);
       t('R4: the person clause is the one the card borrows',
-        csH2HPersonClause(full), 'Galen has beaten you five times out of eleven.');
+        csH2HPersonClause(full), 'Galen has beaten you five times out of eleven, across every meeting.');
       /* TEN (W3) · a 5–5 is level, never "has beaten you five times out of ten" */
       t('TEN: a level record is said as level',
         csH2HPersonClause(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:5,ties:0,total:10}, lead:'even', facets:{} })),
-        'All square between you, 5–5.');
+        'All square between you, 5–5, across every meeting.');
       /* a real screenshot caught the first cut naming the golfer twice in two
          consecutive clauses — "Galen has won one title. Galen has beaten you…" */
       t('the day said out loud never shouts mid-sentence (L-33)',

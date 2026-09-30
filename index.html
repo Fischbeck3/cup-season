@@ -12975,7 +12975,8 @@ function csNextAct(epi, ctx){
   const partners=(epi && epi.played_with) || [];
   if(ctx.clash){
     const running = (ctx.clash.weeks_running>=2) ? ` ${csCapFirst(csPlace(ctx.clash.weeks_running))} week running.` : '';
-    return { key:'clash', sentence:`That takes the clash.${running}`, label:'See the head-to-head', door:'head_to_head', ref:ctx.clash.id||null };
+    /* X36 (1) · the settled spotlight is named as the weekly clash, the head-to-head's own facet for it */
+    return { key:'clash', sentence:`That takes the weekly clash.${running}`, label:'See the head-to-head', door:'head_to_head', ref:ctx.clash.id||null };
   }
   const moved = csMovementSentence(epi && {
     rank_before: epi.rank_before, rank_after: epi.rank_after,
@@ -30575,8 +30576,10 @@ async function renderRivalries(){
     /* the faceted record (batch-3 #18): clashes and Ryder clashes side by side,
        never one blended number */
     const dTot=(r.duel_wins||0)+(r.duel_losses||0)+(r.duel_halves||0);
+    /* X36 (1) · the row NAMES ITS FACET: my_rivalries counts season weeks, so the row says "In the season",
+       the head-to-head's own name for that facet, and never reads as the one record the person page sums */
     const facets=[
-      r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
+      r.meetings?`In the season · ${r.meetings} week${r.meetings===1?'':'s'}`:null,
       dTot?`Ryder clashes ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
     /* M3: a christened rivalry wears its name above the opponent — in the
@@ -30647,14 +30650,15 @@ async function openRivalrySheet(oppId, name, rec){
     return `<div class="check"><span class="num mono" style="font-size:11px; line-height:1.25">WK OF<br>${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
       <small>BEST ROUND VS YOUR PLAYING HCP THAT WEEK</small></div></div>`;
-  }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
+  }).join('') : '<p class="fine">No weeks in the season yet. A week counts when you both post in a season you share.</p>';   /* X36 · a season week is not a clash */
   /* M3/D18: name the rivalry — either rival can name, rename, or clear it */
   const eyebrow = curName?`<div class="eyebrow" style="color:var(--gold); margin-bottom:10px">“${esc(curName.toUpperCase())}”</div>`:'';
   const nameBtn = `<button class="btn dark" id="rivNameBtn" style="margin-top:12px">${curName?`Rename “${esc(curName)}”`:'Name this rivalry'}</button>`;
   /* D209 · `rivalry_weeks` builds my_pvi/opp_pvi from max(rr.pvi) over
      v_rounds_ranked — the ALLOWANCE figure — so both captions name the playing
      HCP, not the index (R-M). Verbatim with the phone's RivalryCopy. */
-  openSheet(`You and ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS YOUR PLAYING HCP TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
+  /* X36 (1) · these are season weeks (rivalry_weeks), not the settled weekly clash (D52/D108): the sub names the facet */
+  openSheet(`You and ${name}`, `${rec||''} · IN THE SEASON · BETTER ROUND VS YOUR PLAYING HCP TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
   document.getElementById('rivNameBtn')?.addEventListener('click', ()=>openNameRivalry(oppId, name, curName));
 }
 window.openRivalrySheet = openRivalrySheet;
@@ -31272,12 +31276,14 @@ function csH2HParse(j){
 }
 /* "You lead 6-5." / "Alex leads 6-5." / "All square, 5-5." Nothing decided,
    no sentence - a record of nought is not a headline (L-44). */
+/* X36 (1) · the sum says what it sums: "across every meeting", so it never reads as the one record beside
+   You's season weeks. Twin: HeadToHeadCopy.headline. */
 function csH2HHeadline(h){
   if(!h || !h.settled) return null;
   const rec = `${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}`;
-  if(h.lead === 'up')   return `You lead ${rec}.`;
-  if(h.lead === 'down') return `${h.name} leads ${h.losses}–${h.wins}${h.ties ? '–' + h.ties : ''}.`;
-  return `All square, ${rec}.`;
+  if(h.lead === 'up')   return `You lead ${rec} across every meeting.`;
+  if(h.lead === 'down') return `${h.name} leads ${h.losses}–${h.wins}${h.ties ? '–' + h.ties : ''} across every meeting.`;
+  return `All square, ${rec}, across every meeting.`;
 }
 /* every clause dropped rather than guessed */
 function csH2HStandfirst(h){
@@ -31316,9 +31322,10 @@ function csH2HPersonClause(h){
   /* TEN · a level record is said as level. "Devon Testwell has beaten you
      five times out of ten" framed a 5–5 as a loss over a record the same
      page calls all square (owner E). Twin: HeadToHeadCopy.personClause. */
-  if(h.lead === 'even' && h.wins === h.losses) return `All square between you, ${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}.`;
-  if(h.losses > 0) return `${h.name} has beaten you ${csSpelled(h.losses)} ${h.losses === 1 ? 'time' : 'times'} out of ${csSpelled(h.settled)}.`;
-  return `You have taken all ${csSpelled(h.settled)} of them.`;
+  /* X36 (1) · every clause names its facet, "across every meeting" (twin: HeadToHeadCopy.personClause) */
+  if(h.lead === 'even' && h.wins === h.losses) return `All square between you, ${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}, across every meeting.`;
+  if(h.losses > 0) return `${h.name} has beaten you ${csSpelled(h.losses)} ${h.losses === 1 ? 'time' : 'times'} out of ${csSpelled(h.settled)}, across every meeting.`;
+  return `You have taken all ${csSpelled(h.settled)}, across every meeting.`;
 }
 window.csH2HParse = csH2HParse; window.csH2HHeadline = csH2HHeadline;
 window.csH2HStandfirst = csH2HStandfirst; window.csH2HFacetSub = csH2HFacetSub;
@@ -31590,12 +31597,12 @@ async function openPerson(profileId){
     const object = csCredentialHtml(profileId, card) + (status ? `<p class="cstatus">${status}</p>` : '');
     if(h2h && (h2h.settled > 0 || h2h.facets.length)){
       aside.innerHTML = object + `
-        <div class="eyebrow" style="margin-top:24px">The record between you</div>
+        <div class="eyebrow" style="margin-top:24px">Between you</div>
         ${csH2HHeadline(h2h) ? `<p class="perhl"><b>${esc(csH2HHeadline(h2h))}</b></p>` : ''}
         ${csH2HStandfirst(h2h) ? `<p class="fine" style="padding-top:0">${esc(csH2HStandfirst(h2h))}</p>` : ''}
         ${h2h.facets.map(f => `<div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>`).join('')}
         ${csH2HUsesHeuristic(h2h) ? `<p class="fine">${esc(CS_H2H_HEURISTIC)}</p>` : ''}
-        <p class="hstart"><a href="#" id="perOpenH2H">See the whole record</a></p>` + playDoor;
+        <p class="hstart"><a href="#" id="perOpenH2H">See every meeting</a></p>` + playDoor;   /* X36 · nothing claims to be "the" record */
       document.getElementById('perOpenH2H')?.addEventListener('click', (e) => { e.preventDefault(); openHeadToHead(profileId, name); });
     } else {
       aside.innerHTML = object + `<div class="eyebrow" style="margin-top:24px">The record between you</div>
@@ -35587,15 +35594,18 @@ function rivalryTag(pid){
   if(!r) return null;
   const first = esc((r.display_name||'They').split(' ')[0]);
   let rec = null;
+  /* X36 (1) · the tag names what it counts: season weeks are "in the season · N weeks", and the fallback's
+     duels are Ryder clashes, never a bare "clashes" (which also names the weekly clash) */
   if(r.meetings > 0){
-    rec = r.wins > r.losses ? `you lead ${r.wins}–${r.losses}`
-        : r.wins < r.losses ? `${first} leads ${r.losses}–${r.wins}`
-        : `even ${r.wins}–${r.losses}`;
+    const wks = ` in the season · ${r.meetings} week${r.meetings===1?'':'s'}`;
+    rec = r.wins > r.losses ? `you lead ${r.wins}–${r.losses}${wks}`
+        : r.wins < r.losses ? `${first} leads ${r.losses}–${r.wins}${wks}`
+        : `even ${r.wins}–${r.losses}${wks}`;
   } else {
     const dw = r.duel_wins||0, dl = r.duel_losses||0;
-    if(dw||dl) rec = dw>dl ? `you lead clashes ${dw}–${dl}`
-                    : dw<dl ? `${first} leads clashes ${dl}–${dw}`
-                    : `even in clashes ${dw}–${dl}`;
+    if(dw||dl) rec = dw>dl ? `you lead ${dw}–${dl} in Ryder clashes`
+                    : dw<dl ? `${first} leads ${dl}–${dw} in Ryder clashes`
+                    : `even ${dw}–${dl} in Ryder clashes`;
   }
   if(!rec) return null;
   const nm = r.rivalry_name ? `“${esc(r.rivalry_name)}” · ` : '';
