@@ -25837,6 +25837,55 @@ function csYouStripsDedupe(){
   if(strip) strip.hidden = ![...strip.querySelectorAll('.youfig')].some(c => !c.hidden);
 }
 window.csYouStripsDedupe = csYouStripsDedupe;
+/* W7-089 · ONE ROW for the record's rounds: the five under Recent rounds and the full list behind the door beneath them are the same markup. D291: the GROSS is the row's object (a tabular
+   figure on a shared right edge, bare), the course in `nameS`, the date and the figure it was measured against in one agate line, the course's own card between them where this device has kept
+   one, and THE WHOLE ROW the door to the receipt. `ri` indexes the array the click handler reads; `isBest` marks the best of the five (a five-window fact: the full list has none). The
+   figure is the row's own (`pvi`, set on the five) or the engine's (`career.figures`, for a row from the full read). */
+function csRecordRowHtml(r, ri, isBest, attr){
+  const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
+  /* TEN / W6 · TP-11 · case is the role's (§1.3, LINT-14): the name role
+     sets the course in caps; the sub-line is an agate PHRASE */
+  const when = r.played_on ? csMonthDay(r.played_on) : '';
+  const course = esc(r.course_label||'') || 'Somewhere out there';
+  const fig = r.pvi!=null ? Number(r.pvi) : ((window.career?.figures||{})[r.id] != null ? Number((window.career.figures)[r.id]) : null);
+  /* Q39 (a) · the line says it in WORDS, as the composer and the receipt do (D1, Q-23 phase 2): a
+     signed "+2.4 vs your playing HCP" read backwards to six of seven blind testers, and nothing on the
+     page said plus is better. The sign stays only in the receipt's arithmetic row (D2). */
+  const sub = [when, fig!=null ? vsPhrase(fig) : null,
+               r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
+  const bk = bookOf(r.api_course_id);
+  const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
+  /* W7-111 · the row is named by its own facts, not 'course, gross': the day, the score and what it was against your number, and a nine says so */
+  const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null, isBest ? 'best of the five' : null].filter(Boolean).join(', ');
+  return `<div class="yrow${isBest ? ' best' : ''}" ${attr || 'data-rcpt-i'}="${ri}" role="button" tabindex="0" aria-label="${spoken}">
+            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}${isBest ? ' · <span class="yrowbest">best of the five</span>' : ''}</small>`:''}</span>
+            ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
+            <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
+}
+/* W7-089 [B2-history-2] · THE RECORD HOLDS EIGHT ROUNDS AND LISTS FIVE, WITH NO DOOR TO THE OTHER THREE. `career.recent` is the newest five and `career.rows` every round the read returned (up
+   to 400); nothing followed the fifth row, so a golfer's first round was reachable only as a slat with no door. A quiet door under the last row names what is LEFT and never repeats the count
+   (§16A.2: 'THE REST', 'THE OTHER EIGHT'), and opens the whole record in a sheet: the same rows, newest first, each opening its receipt as the five do. The archive test (§15.6, §15.7). */
+function csRoundsDoorLabel(left){
+  const n = Number(left) || 0;
+  return n > 0 ? 'The other ' + csSpelled(n) : '';
+}
+function csRoundsDoorHtml(c, five){
+  const rows = c && Array.isArray(c.rows) ? c.rows : null;
+  const left = rows ? rows.length - five.length : 0;
+  return left > 0 ? `<button type="button" class="cs-tskip" id="youRoundsAll">${esc(csRoundsDoorLabel(left))}</button>` : '';
+}
+window.csRoundsDoorLabel = csRoundsDoorLabel;
+function csOpenAllRounds(){
+  const rows = window.career && Array.isArray(window.career.rows) ? window.career.rows : [];
+  if(!rows.length) return;
+  openSheet('Your rounds', 'Newest first', `<div class="yrows" id="allRoundsList">${rows.map((r,ri)=>csRecordRowHtml(r, ri, false, 'data-allr')).join('')}</div>`);
+  const box = document.getElementById('allRoundsList');
+  box?.querySelectorAll('[data-allr]').forEach(b=>{
+    const go = () => { const r = rows[Number(b.dataset.allr)]; if(r) openRoundReceipt(r); };
+    b.addEventListener('click', go);
+    b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+  });
+}
 function renderCareer(){
   /* diorama form is fabricated coherently (index 12.4: beat = 12.4−diff ≥ 1) */
   const c = state.demo
@@ -25925,7 +25974,6 @@ function renderCareer(){
        W1 · and the delete went with it: a bare × inside a row that itself
        opens the receipt, confirmed by the browser's confirm(). It lives on the
        receipt now, labelled and armed (csReceiptDeleteRow). */
-    const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
     /* Q40 (b) · the head names the window, as the Form head did ("Recent rounds · Last five"), with a count slot
        only under five; the best is formRowHtml's rule: the lowest 18-hole gross, and only with a field of two */
     const five = (c.recent || []).slice(0, 5);
@@ -25936,26 +25984,9 @@ function renderCareer(){
     let bestSeen = false;
     yr.innerHTML = five.length
       ? five.map((r,ri)=>{
-          /* TEN / W6 · TP-11 · case is the role's (§1.3, LINT-14): the name role
-             sets the course in caps; the sub-line is an agate PHRASE */
-          const when = r.played_on ? csMonthDay(r.played_on) : '';
-          const course = esc(r.course_label||'') || 'Somewhere out there';
-          const fig = r.pvi!=null ? Number(r.pvi) : null;
-          /* Q39 (a) · the line says it in WORDS, as the composer and the receipt do (D1, Q-23 phase 2): a
-             signed "+2.4 vs your playing HCP" read backwards to six of seven blind testers, and nothing on the
-             page said plus is better. The sign stays only in the receipt's arithmetic row (D2). */
-          const sub = [when, fig!=null ? vsPhrase(fig) : null,
-                       r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
           const isBest = !bestSeen && bestGross != null && r.gross === bestGross && !csFormNine(r); if(isBest) bestSeen = true;
-          const bk = bookOf(r.api_course_id);
-          const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
-          /* W7-111 · the row is named by its own facts, not 'course, gross': the day, the score and what it was against your number, and a nine says so */
-          const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null, isBest ? 'best of the five' : null].filter(Boolean).join(', ');
-          return `<div class="yrow${isBest ? ' best' : ''}" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${spoken}">
-            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}${isBest ? ' · <span class="yrowbest">best of the five</span>' : ''}</small>`:''}</span>
-            ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
-            <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
-        }).join('')
+          return csRecordRowHtml(r, ri, isBest);
+        }).join('') + csRoundsDoorHtml(c, five)
       /* W7-115 · the empty record is a DRAWN OBJECT, an eyebrow and a headline, as the phone draws it (YouScreen: CSEmpty(glyph .scorecard, 'The first card', 'Your record fills as you play.')): a blank
          scorecard (the phone's own path) at 64px in mut, not a headline about the golfer's omission ('No rounds yet') over a sentence that repeats it */
       : `<div class="tempty"><svg class="youempty-obj" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3h15v18h-15zM4.5 8.4h15M4.5 13.2h15M4.5 18h15M9.5 3v18M14.5 3v18"/></svg>`
@@ -25972,6 +26003,7 @@ function renderCareer(){
       b.addEventListener('click', go);
       b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(e); } });
     });
+    $('#youRoundsAll')?.addEventListener('click', csOpenAllRounds);   /* W7-089 */
   }
 }
 /* D177 · #youPost is gone from You — the ⊕ is a permanent tab an inch below

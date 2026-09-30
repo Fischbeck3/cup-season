@@ -1469,6 +1469,10 @@
        csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
       [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
+    /* W7-089 · the door under the record's five names what is LEFT, never the head's count */
+    t('W7-089: the record\u2019s door says how many are left',
+      [csRoundsDoorLabel(3), csRoundsDoorLabel(1), csRoundsDoorLabel(37), csRoundsDoorLabel(0), csRoundsDoorLabel(-2), csRoundsDoorLabel(undefined)],
+      ['The other three', 'The other one', 'The other 37', '', '', '']);
     /* W7-169 · a guest's scorecard offered to a golfer signed in as someone else says whose it is, in ink, once; alike or unknown names say nothing new */
     t('W7-169: the claim ask names both when the names differ',
       [csLinkClaimMismatch('Kit', 'Avery Fixture'),

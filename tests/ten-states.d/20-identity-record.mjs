@@ -301,10 +301,53 @@ const recordInWords = async (page) => page.evaluate(() => {
   const off = tiles.filter((el) => !/^(beat by \d+\.\d|played to it|\d+\.\d over)$/.test(el.textContent.trim()))
   return off.length ? `${off[0].id} reads ${JSON.stringify(off[0].textContent.trim())}, not vsShort's words` : true
 })
+/* TEN / W8 · W7-089 [B2-history-2] · the record holds eight rounds and lists five: a quiet door under the fifth row names what is LEFT ('The other three', never the head's count) and opens
+   every round in a sheet, newest first, in the same rows, each opening its receipt as the five do. `door` pins the link under the five; `list` pins the sheet */
+const roundsDoor = async (page) => page.evaluate(() => {
+  const b = document.getElementById('youRoundsAll')
+  if (!b) return 'the record lists five of eight rounds and offers no door to the rest'
+  if (b.textContent.trim() !== 'The other three') return `the door reads ${JSON.stringify(b.textContent.trim())}, not 'The other three'`
+  if (!b.classList.contains('cs-tskip')) return 'the door is not the quiet link'
+  if (b.getBoundingClientRect().height < 43.5) return `the door is ${Math.round(b.getBoundingClientRect().height)}px tall, not 44`
+  const rows = [...document.querySelectorAll('#youRecent [data-rcpt-i]')]
+  if (rows.length !== 5) return `${rows.length} rows under the door, not five`
+  return rows[4].compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the door is not under the fifth row'
+})
+const allRoundsList = async (page) => page.evaluate(() => {
+  const t = (document.getElementById('shTitle') || {}).textContent
+  if (!document.getElementById('sheet').classList.contains('open') || t !== 'Your rounds') return `the sheet is ${JSON.stringify(t)}, not 'Your rounds'`
+  const rows = [...document.querySelectorAll('#allRoundsList [data-allr]')]
+  if (rows.length !== 8) return `${rows.length} rows in the list, not all eight`
+  const five = [...document.querySelectorAll('#youRecent [data-rcpt-i]')].map((r) => r.getAttribute('aria-label'))
+  if (JSON.stringify(rows.slice(0, 5).map((r) => r.getAttribute('aria-label'))) !== JSON.stringify(five.map((l) => l.replace(/, best of the five$/, '')))) return 'the first five of the list are not the five on the record'
+  if (rows.some((r) => r.getAttribute('role') !== 'button' || !/\d/.test(r.getAttribute('aria-label') || ''))) return 'a list row is not a named button'
+  return true
+})
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly()) },
+    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly(), roundsDoor) },
+  /* W7-089 · the door opens the whole record: eight rows, newest first */
+  { family: 'record', id: 'all-rounds', variant: 'member', fullPage: false, title: 'The record · the door to the other three rounds opens all eight',
+    drive: async (page) => { await youSettled('some')(page); await click(page, '#youRoundsAll'); await until(page, () => document.getElementById('sheet').classList.contains('open') && !!document.getElementById('allRoundsList')); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Your rounds$', selectors: { '#allRoundsList [data-allr]': 'visible' } },
+    check: all(recordState('some'), allRoundsList) },
+  /* W7-089 · and a round from the far end of the list opens its receipt: the sixth row is the first the record did not list */
+  { family: 'record', id: 'all-rounds-sixth', variant: 'member', fullPage: false, title: 'The record · the sixth round, from the list, opens its receipt',
+    drive: async (page) => {
+      await youSettled('some')(page); await click(page, '#youRoundsAll'); await until(page, () => !!document.getElementById('allRoundsList'))
+      await page.evaluate(() => { const r = document.querySelectorAll('#allRoundsList [data-allr]')[5]; window.__tenSixth = r.querySelector('b').textContent.trim() + '|' + r.querySelector('.yrowg').textContent.trim() })
+      await page.locator('#allRoundsList [data-allr]').nth(5).click({ timeout: 8000 })
+      await until(page, () => !document.getElementById('allRoundsList') && document.getElementById('sheet').classList.contains('open'), null, 10000)
+      await page.waitForTimeout(700)
+    },
+    expect: { view: 'view-stats', sheet: true },
+    check: async (page) => page.evaluate(() => {
+      const [course, gross] = String(window.__tenSixth || '').split('|'), t = (document.getElementById('sheet') || {}).innerText || ''
+      if (!course) return 'the sixth row was not read'
+      if (!new RegExp(course.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(t)) return `the receipt does not name the sixth round's course (${course}): ${JSON.stringify(t.slice(0, 80))}`
+      return new RegExp('\\b' + gross + '\\b').test(t) ? true : `the receipt does not show the sixth round's gross (${gross})`
+    }) },
   { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
     title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
     drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
