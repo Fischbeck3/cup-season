@@ -15,8 +15,7 @@ struct SeasonBookPage: View {
   @Environment(SessionStore.self) private var session: SessionStore?
   @State private var store: SeasonBookStore
   @State private var mode = "Weeks"
-  @State private var group = "golfer"
-  @State private var squad = "all"
+  @State private var selection = SeasonBookSelection()
   @State private var follow = "leaders"
   /// N4-111 · where the grid's content ends, and the scroller's own width
   @State private var gridEnd: CGFloat = 0
@@ -24,7 +23,6 @@ struct SeasonBookPage: View {
   /// W7-070 · where the grid's content starts, in the scroller's own space:
   /// below zero, earlier weeks sit behind the pinned names
   @State private var gridStart: CGFloat = 0
-  @State private var week = 1
   @ScaledMetric(relativeTo: .body) private var rowHeight = 64.0
   @State private var nameHeights: [String: CGFloat] = [:]
   /// F11 · how far a cell's status marks sit above the figure's baseline — a
@@ -40,20 +38,27 @@ struct SeasonBookPage: View {
   let openRound: @MainActor (UUID) -> Void
   #if DEBUG
   private var fixtureOnly = false
+  @State private var fixtureReadCount = 0
   init(fixture: SeasonBookSnapshot, openRound: @escaping @MainActor (UUID) -> Void = { _ in }) {
     leagueID=fixture.league_id; seasonID=fixture.season_id; self.openRound=openRound
-    let value=SeasonBookStore(); value.seed(fixture); _store=State(initialValue:value)
-    _group=State(initialValue:fixture.hasSquads ? "squad" : "golfer")
-    _week=State(initialValue:max(1,fixture.current_week)); fixtureOnly=true
+    let refreshRead = CompeteSelectedFixture.arg("-cs_selected_refresh_read", "") == "yes"
+    let value = refreshRead ? SeasonBookStore(read: { _, _ in
+      try await Task.sleep(for: .milliseconds(150))
+      return fixture
+    }) : SeasonBookStore()
+    if !refreshRead { value.seed(fixture) }
+    _store=State(initialValue:value)
+    _selection=State(initialValue:refreshRead ? SeasonBookSelection() : SeasonBookSelection(book:fixture))
+    fixtureOnly = !refreshRead
     _mode=State(initialValue:CompeteSelectedFixture.arg("-cs_selected_mode","Weeks"))
-    if CompeteSelectedFixture.arg("-cs_selected_group","") == "golfers" { _group=State(initialValue:"golfer") }
+    if CompeteSelectedFixture.arg("-cs_selected_group","") == "golfers" { _selection=State(initialValue:SeasonBookSelection(book:fixture,group:"golfer")) }
   }
   #endif
   init(leagueID: UUID, seasonID: UUID, openRound: @escaping @MainActor (UUID) -> Void) {
     self.leagueID=leagueID; self.seasonID=seasonID; self.openRound=openRound
     let value=SeasonBookStore()
     #if DEBUG
-    if CompeteSelectedFixture.on { value.seed(CompeteSelectedFixture.book(leagueID)); fixtureOnly=true; _group=State(initialValue:CompeteSelectedFixture.book(leagueID).hasSquads ? "squad" : "golfer") }
+    if CompeteSelectedFixture.on { value.seed(CompeteSelectedFixture.book(leagueID)); fixtureOnly=true; _selection=State(initialValue:SeasonBookSelection(book:CompeteSelectedFixture.book(leagueID))) }
     #endif
     _store=State(initialValue:value)
   }
@@ -62,7 +67,10 @@ struct SeasonBookPage: View {
     if fixtureOnly { return }
     #endif
     await store.load(league:leagueID,season:seasonID)
-    if let book=store.snapshot { group=book.hasSquads ? "squad" : "golfer"; week=max(1,book.current_week); squad="all" }
+    if let book=store.snapshot { selection.receive(book) }
+    #if DEBUG
+    if CompeteSelectedFixture.arg("-cs_selected_refresh_read", "") == "yes" { fixtureReadCount += 1 }
+    #endif
   }
   var body: some View {
     ScrollView {
@@ -89,7 +97,12 @@ struct SeasonBookPage: View {
           }.padding(CSTokens.Space.gutter).csRedacted(true).accessibilityLabel("Loading the Book")
         }
       }.padding(.bottom,CSTokens.Space.s5)
-    }.clipped().csLookGround().csBareBar().csStatusCap(cs.bg0)
+    }
+      #if DEBUG
+      .accessibilityIdentifier("seasonBook.scroll")
+      .accessibilityValue(CompeteSelectedFixture.arg("-cs_selected_refresh_read", "") == "yes" ? "Book read \(fixtureReadCount)" : "")
+      #endif
+      .clipped().csLookGround().csBareBar().csStatusCap(cs.bg0)
       .task(id:seasonID) { if store.snapshot?.season_id != seasonID || store.snapshot?.league_id != leagueID { await load() } }
       .refreshable { await load() }
   }
@@ -99,8 +112,8 @@ struct SeasonBookPage: View {
     session?.me?.memberships.first { $0.league_id == book.league_id }?.season
   }
   private func rows(_ book: SeasonBookSnapshot) -> [SeasonBookSnapshot.Row] {
-    if group == "golfer", squad != "all" { return book.rows.filter { $0.kind == "contribution" && $0.squad_id?.uuidString == squad } }
-    return book.rows.filter { $0.kind == group }
+    if selection.group == "golfer", selection.squad != "all" { return book.rows.filter { $0.kind == "contribution" && $0.squad_id?.uuidString == selection.squad } }
+    return book.rows.filter { $0.kind == selection.group }
   }
   @ViewBuilder private func content(_ book: SeasonBookSnapshot) -> some View {
     let visible=rows(book)
@@ -120,13 +133,13 @@ struct SeasonBookPage: View {
         }.accessibilityElement(children:.combine).accessibilityIdentifier("seasonBook.crown")
       }
       if book.hasSquads {
-        Picker("View",selection:$group) { Text("Squads").tag("squad"); Text("Golfers").tag("golfer") }.pickerStyle(.segmented)
-        if group == "golfer" {
-          Picker("Squad contributions",selection:$squad) {
+        Picker("View",selection:$selection.group) { Text("Squads").tag("squad"); Text("Golfers").tag("golfer") }.pickerStyle(.segmented).accessibilityIdentifier("seasonBook.group")
+        if selection.group == "golfer" {
+          Picker("Squad contributions",selection:$selection.squad) {
             Text("Every golfer").tag("all")
             ForEach(book.rows.filter { $0.kind == "squad" }) { Text($0.name).tag($0.squad_id?.uuidString ?? "all") }
           }
-          if squad != "all" { Text("Round contributions. Squad adjustments follow below.").csType(.bodyS).foregroundStyle(cs.mut) }
+          if selection.squad != "all" { Text("Round contributions. Squad adjustments follow below.").csType(.bodyS).foregroundStyle(cs.mut) }
         }
       }
       if prominent { Picker("Display",selection:$mode) { ForEach(["Weeks","Totals","Race"],id:\.self) { Text($0).tag($0) } }
@@ -163,7 +176,7 @@ struct SeasonBookPage: View {
     let width=max(64.0,Double(rows.flatMap { row in row.cells.map { SeasonBookSnapshot.label(row:row,cell:$0,cumulative:mode == "Totals").count } }.max() ?? 1)*12)
     return HStack(alignment:.top,spacing:0) {
       VStack(spacing:0) {
-        Text(group == "squad" ? "SQUAD / TOTAL" : "GOLFER / TOTAL").csType(.agateS).frame(height:44)
+        Text(selection.group == "squad" ? "SQUAD / TOTAL" : "GOLFER / TOTAL").csType(.agateS).frame(height:44)
         ForEach(rows) { row in
           NavigationLink { receipts(row.name,row.entries) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
@@ -263,11 +276,11 @@ struct SeasonBookPage: View {
   }
   private func accessible(_ book: SeasonBookSnapshot,_ rows: [SeasonBookSnapshot.Row]) -> some View {
     VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
-      Picker("Week",selection:$week) { ForEach(book.weeks) { Text("Week \($0.week)").tag($0.week) } }
+      Picker("Week",selection:$selection.week) { ForEach(book.weeks) { Text("Week \($0.week)").tag($0.week) } }
         .accessibilityIdentifier("seasonBook.week")
       ForEach(rows) { row in
-        if let cell=row.cells.first(where: { $0.week == week }) {
-          NavigationLink { receipts("\(row.name) · Week \(week)",SeasonBookSnapshot.selectedEntries(row,week:week,cumulative:mode == "Totals"),week:true) } label: {
+        if let cell=row.cells.first(where: { $0.week == selection.week }) {
+          NavigationLink { receipts("\(row.name) · Week \(selection.week)",SeasonBookSnapshot.selectedEntries(row,week:selection.week,cumulative:mode == "Totals"),week:true) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
               Text(row.name).csType(.name)
               Text(SeasonBookSnapshot.spoken(row:row,cell:cell,cumulative:mode == "Totals")).csType(.body)
@@ -386,12 +399,12 @@ struct SeasonBookPage: View {
     .accessibilityHidden(true)
   }
   private func adjustments(_ book: SeasonBookSnapshot,_ rows: [SeasonBookSnapshot.Row]) -> some View {
-    let sources = group == "golfer" && squad != "all"
-      ? book.rows.filter { $0.kind == "squad" && $0.squad_id?.uuidString == squad } : rows
+    let sources = selection.group == "golfer" && selection.squad != "all"
+      ? book.rows.filter { $0.kind == "squad" && $0.squad_id?.uuidString == selection.squad } : rows
     let entries = sources.flatMap { row in row.entries.filter { !$0.isRound }.map { (name:row.name,entry:$0) } }
     return VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
       Text("Adjustments in the totals").csType(.displayS)
-      Text(squad != "all" && group == "golfer" ? "Add these squad adjustments to the round contributions above." : "Already included in the totals. Kept in their assessed week, with their reason.")
+      Text(selection.squad != "all" && selection.group == "golfer" ? "Add these squad adjustments to the round contributions above." : "Already included in the totals. Kept in their assessed week, with their reason.")
         .csType(.bodyS).foregroundStyle(cs.mut)
       if entries.isEmpty { Text("No adjustments recorded for this selection.").csType(.bodyS) }
       ForEach(Array(entries.enumerated()),id:\.offset) { _,item in

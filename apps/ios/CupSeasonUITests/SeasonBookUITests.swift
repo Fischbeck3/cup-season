@@ -40,4 +40,24 @@ final class SeasonBookUITests: XCTestCase {
     let race=launch(extra:["-cs_selected_mode","Race"])
     XCTAssertTrue(race.staticTexts["seasonBook.race.title"].waitForExistence(timeout:15))
   }
+  @MainActor func testDelayedRefreshKeepsTheGolfersViewAndTotals() {
+    let app=launch(extra:["-cs_selected_refresh_read","yes"])
+    let group=app.segmentedControls["seasonBook.group"]
+    XCTAssertTrue(group.waitForExistence(timeout:15))
+    group.buttons["Golfers"].tap()
+    let mode=app.segmentedControls["seasonBook.mode"]
+    mode.buttons["Totals"].tap()
+    let scroll=app.scrollViews["seasonBook.scroll"]
+    XCTAssertEqual(scroll.value as? String,"Book read 1")
+    scroll.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.2))
+      .press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.85)))
+    let completed=NSPredicate(format:"value == %@","Book read 2")
+    expectation(for:completed,evaluatedWith:scroll)
+    waitForExpectations(timeout:10)
+    XCTAssertTrue(group.waitForExistence(timeout:10))
+    XCTAssertTrue(group.buttons["Golfers"].isSelected)
+    XCTAssertTrue(mode.buttons["Totals"].isSelected)
+    let shot=XCTAttachment(screenshot:app.screenshot()); shot.name="Book refreshed · Golfers and Totals"; shot.lifetime = .keepAlways; add(shot)
+  }
+
 }
