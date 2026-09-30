@@ -38910,6 +38910,24 @@ function csDeadJoinLanding(){
   el.scrollIntoView({ block: 'start' });
   return el;
 }
+/* W7-107 [A2-claim-invite-1, B2-claim-invite-1, A2-claim-invite-11, A2-desk-10] · A SCORECARD LINK THAT CANNOT LAND IS SAID AT THE TOP, as a dead league code
+   is (csDeadJoinLanding, above): the landing itself, announced as a status, with the email field and Join below it. It was the generic welcome as the lead, with the
+   link's one true sentence wedged between the two doors, neg for two of the four outcomes. A spent link is not the golfer's error (§2.5), so the lead is ink on
+   all four; the sentences are D374's, every word kept, split at the full stop (each constant is exactly two: the outcome, then what to do). The kind is
+   'claim-<outcome>', never 'dead', so the join-unavailable pins keep meaning the join. The phone's ClaimDoor gives every outcome its own screen already. */
+const CS_CLAIM_OUTCOME = { 'claim-unfinished': CS_CLAIM_UNFINISHED, 'claim-not-started': CS_CLAIM_NOT_STARTED, 'claim-used': CS_CLAIM_USED, 'claim-dead': CS_CLAIM_DEAD };
+function csClaimOutcomeLanding(kind){
+  const said = /^(.*?\.)\s+(.*)$/.exec(CS_CLAIM_OUTCOME[kind] || '');
+  if(!said) return null;
+  const el = csLinkLanding({ kind, label: 'Your scorecard link', headHtml: esc(said[1]), sub: said[2] });
+  if(!el) return null;
+  el.setAttribute('role', 'status');
+  authStatus('');   /* the sentence lives in the landing; the status line under the field stays empty */
+  const h = el.querySelector('h1');
+  if(h){ h.tabIndex = -1; h.focus({ preventScroll: true }); }
+  el.scrollIntoView({ block: 'start' });
+  return el;
+}
 function csJoinLanding(name){
   return csLinkLanding({ kind: 'join', label: 'A season invite',
     headHtml: name ? `You’re invited to ${esc(name)}.` : 'You’re invited to a season.' });
@@ -39384,11 +39402,9 @@ async function safeBoot(force){
       const gs = guestSeen?.round?.status;
       if(gs === 'abandoned'){
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_UNFINISHED, 'err');
+        csClaimOutcomeLanding('claim-unfinished');
       } else if(gs === 'setup'){
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_NOT_STARTED);          /* not an error: the pencil is kept */
+        csClaimOutcomeLanding('claim-not-started');   /* not an error: the pencil is kept */
       } else {
       /* the door card serves both claim sources (live guests + scan partners) */
       let data=null;
@@ -39418,8 +39434,7 @@ async function safeBoot(force){
       } else if(data && data.claimed){
         /* already kept: say so (it was the plain door, with nothing said) */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_USED);
+        csClaimOutcomeLanding('claim-used');
       } else {
         /* F3 (shareability audit): a dead/garbage token failed SILENT — the
            recipient tapped "your scorecard" and got the marketing door, and the
@@ -39427,8 +39442,7 @@ async function safeBoot(force){
            plainly (same answer for every bad token — nothing to enumerate) and
            drop the token. */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_DEAD, 'err');
+        csClaimOutcomeLanding('claim-dead');
       }
       }
     }catch(_){}

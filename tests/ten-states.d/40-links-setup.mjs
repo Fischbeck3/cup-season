@@ -138,6 +138,22 @@ const claimDoor = (id, token, ready, selectors, extra = {}) => ({
   family: 'links', id, variant: 'signed_out', url: `/?claim=${token}`, short: true,
   settle: doorSettle(ready), expect: { door: true, selectors }, ...extra,
 })
+/* TEN / W8 · W7-107 [A2-claim-invite-1, B2-claim-invite-1, A2-claim-invite-11, A2-desk-10] · a scorecard link that cannot land is the LANDING at the top, as the dead
+   league code is (41cf8050): announced as a status, the outcome's first sentence in the lead in INK (a spent link is not the golfer's error, §2.5) and what to do
+   under it, the status line under the field empty, and the email field below the landing, focus on the lead. The kind is claim-<outcome>, never 'dead'. */
+const outcomeLanding = (kind) => async (page) => page.evaluate((kind) => {
+  const el = document.querySelector(`#obLink[data-kind="${kind}"]`); if (!el) return `no #obLink[data-kind="${kind}"] landing is drawn`
+  if (el.getAttribute('role') !== 'status') return 'the landing is not announced as a status'
+  const h = el.querySelector('h1'), sub = el.querySelector('.sub')
+  if (!h || !sub) return 'the landing has no lead and sub'
+  const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+  if (getComputedStyle(h).color !== probe('--ink')) return `the lead is ${getComputedStyle(h).color}, not ink`
+  const st = (document.getElementById('obStatus').textContent || '').trim()
+  if (st !== '') return `the status line under the field still speaks: ${JSON.stringify(st)}`
+  if (!document.getElementById('onboard').classList.contains('ob-linked')) return 'the generic welcome is still the lead (the hero did not collapse)'
+  if (!(el.compareDocumentPosition(document.getElementById('obEmail')) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the email field is not below the landing'
+  return document.activeElement === h ? true : 'the lead does not hold focus'
+}, kind)
 /* TEN / W6 · craft (round 2): at 375 × 667 the covenant's terms outran the
    sheet and its answers sat at their end — Join cut at the screen's edge,
    Not now out of sight. At rest both answers are inside the visible sheet. */
@@ -182,21 +198,25 @@ const LINKS = [
     /* W4 · a kept scorecard SAYS so (owner R, critique B P2): it was the plain
        door, pixel for pixel. Not an error, and no more than CS_CLAIM_DEAD
        already says to any token. */
-    { '#obEmail': 'visible', '#obJoin': 'visible', '#emailbox': 'hidden', '#obStatus': 'text:^That scorecard is already on a golfer’s record\\. If it’s yours, sign in with the same email' },
-    { check: async (page) => ((await page.evaluate(() => !document.getElementById('obStatus').classList.contains('err'))) ? true : 'the kept-scorecard line is styled as an error') }),
+    { '#obEmail': 'visible', '#obJoin': 'visible', '#emailbox': 'hidden', '#obLink[data-kind="claim-used"] h1': 'text:^That scorecard is already on a golfer’s record\\.$',
+      '#obLink[data-kind="claim-used"] .sub': 'text:^If it’s yours, sign in with the same email and it’s in your rounds\\.$' },
+    { check: outcomeLanding('claim-used') }),
   claimDoor('claim-unfinished', CLAIM.abandoned,
-    () => /never finished/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#obStatus.err': 'visible', '#obStatus': 'text:^This round was never finished' },
-    { expectConsole: [/^\[cs\] This round was never finished/] }),
+    () => /never finished/.test((document.querySelector('#obLink[data-kind="claim-unfinished"] h1') || {}).textContent || ''),
+    { '#obEmail': 'visible', '#obLink[data-kind="claim-unfinished"] h1': 'text:^This round was never finished, so there’s no scorecard to keep\\.$',
+      '#obLink[data-kind="claim-unfinished"] .sub': 'text:^Whoever ran it can tee off again and send your link from the new round\\.$' },
+    { check: outcomeLanding('claim-unfinished') }),
   claimDoor('claim-not-started', CLAIM.setup,
-    () => /hasn.t teed off yet/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#obStatus': 'text:^That round hasn.t teed off yet' },
-    { check: async (page) => ((await page.evaluate(() => !document.getElementById('obStatus').classList.contains('err') && localStorage.getItem('cs_claim') !== null)) ? true : 'the not-started line is an error, or the pencil was dropped') }),
+    () => /hasn.t teed off yet/.test((document.querySelector('#obLink[data-kind="claim-not-started"] h1') || {}).textContent || ''),
+    { '#obEmail': 'visible', '#obLink[data-kind="claim-not-started"] h1': 'text:^That round hasn.t teed off yet\\.$',
+      '#obLink[data-kind="claim-not-started"] .sub': 'text:^Open this link again once it tees off to keep your own score, or once it finishes to keep your scorecard\\.$' },
+    { check: async (page) => { const r = await outcomeLanding('claim-not-started')(page); if (r !== true) return r; return (await page.evaluate(() => localStorage.getItem('cs_claim') !== null)) ? true : 'the pencil was dropped: a round not yet started keeps its link' } }),
   claimDoor('claim-dead', CLAIM.dead,
-    () => /expired or was already claimed/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#obStatus.err': 'visible', '#obStatus': 'text:^That scorecard link has expired or was already claimed' },
+    () => /expired or was already claimed/.test((document.querySelector('#obLink[data-kind="claim-dead"] h1') || {}).textContent || ''),
+    { '#obEmail': 'visible', '#obLink[data-kind="claim-dead"] h1': 'text:^That scorecard link has expired or was already claimed\\.$',
+      '#obLink[data-kind="claim-dead"] .sub': 'text:^Whoever sent it can share a fresh one from the round\\.$' },
     { world: { errors: { rpc: { guest_live_state: { __error: 'No such round', status: 400 }, scan_claim_info: { __error: 'Claim link not recognized', status: 400 } } } },
-      expectConsole: [/^\[cs\] That scorecard link has expired/, /status of 400/] }),
+      expectConsole: [/status of 400/], check: outcomeLanding('claim-dead') }),
   /* signed in: the card asks before anything is claimed (R5) */
   { family: 'links', id: 'claim-signed-in-ask', variant: 'member', url: `/?claim=${CLAIM.valid}`,
     settle: async (page) => { await bootDone(page, 600); await until(page, () => document.getElementById('sheet').classList.contains('open') && /A scorecard link/.test(document.getElementById('shTitle').textContent), null, 12000); await page.waitForTimeout(500) },
