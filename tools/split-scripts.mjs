@@ -212,6 +212,17 @@ export function appSourceOf(html, readFile, { strict = true } = {}) {
 /* the served paths of the split files */
 export const APP_PATHS = MOVED.map((mv) => '/' + mv.file)
 
+/* pathname -> the joined line of that file's line 1 (joined = offset + line - 1),
+   or null for an unsplit tree. Computed once per run by ten-capture, which
+   maps console frames from /app/<file> into the numbering its report reads. */
+export function joinedLineOffsets(root = '.') {
+  const html = readFileSync(resolve(root, 'index.html'), 'utf8')
+  if (!isSplit(html)) return null
+  const whole = readAppSource(root, { strict: false })
+  const blocks = scriptBlocks(whole)
+  return Object.fromEntries(MOVED.map((mv) => ['/' + mv.file, lineOf(whole, blocks[mv.index].bodyStart)]))
+}
+
 /* joined line -> the real file and line (for messages that cite index.html:N) */
 export function where(root, joinedLine) {
   const html = readFileSync(resolve(root, 'index.html'), 'utf8')

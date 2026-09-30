@@ -111,6 +111,12 @@ const APP_PATHS = SPLIT ? SPLIT.APP_PATHS : []
 const appDisk = () => { const o = {}; for (const p of APP_PATHS) { const f = join(ROOT, '.' + p); if (existsSync(f)) o[p.slice(1)] = sha(readFileSync(f)) } return Object.keys(o).length ? o : null }
 const diskAppSha = appDisk()
 const diskJoinedSha = diskAppSha ? (() => { try { return sha(SPLIT.readAppSource(ROOT, { strict: false })) } catch { return null } })() : null
+/* Q12 · console attribution survives the split: a frame in /app/<file> gets
+   its line in the numbering every index.html:N citation uses, the joined
+   (pre-split) line (tools/split-scripts.mjs joinedLine), so the report's
+   "index.html line / source" columns read the same on a split tree. */
+const LINE_OFFSETS = diskAppSha ? (() => { try { return SPLIT.joinedLineOffsets(ROOT) } catch { return null } })() : null
+const appLine = (url, base, ln0) => { if (!LINE_OFFSETS || !url || !url.startsWith(base)) return null; try { const off = LINE_OFFSETS[new URL(url).pathname]; return off == null ? null : off + ln0 } catch { return null } }
 
 /* classify one console line: `injected` when the state said it would provoke
    it, `harness` when it is the browser reporting a request we aborted or the
@@ -216,10 +222,11 @@ async function captureOne(browser, state, vp, theme, cdn) {
   await cdp.send('Runtime.enable')
   cdp.on('Runtime.consoleAPICalled', (e) => {
     const frames = (e.stackTrace && e.stackTrace.callFrames) || []
-    const ownFrames = frames.filter((f) => /127\.0\.0\.1/.test(f.url) && /\/(index\.html)?$/.test(f.url.replace(/\?.*$/, '')))
+    const ownFrames = frames.filter((f) => (/127\.0\.0\.1/.test(f.url) && /\/(index\.html)?$/.test(f.url.replace(/\?.*$/, ''))) || appLine(f.url, base, f.lineNumber) != null)
+    const lineOfFrame = (f) => appLine(f.url, base, f.lineNumber) ?? f.lineNumber + 1
     const own = ownFrames[0]
     const text = (e.args || []).map((a) => a.value !== undefined ? (typeof a.value === 'string' ? a.value : JSON.stringify(a.value)) : (a.description || a.unserializableValue || '')).join(' ')
-    messages.push({ level: e.type, text: text.slice(0, 1200), src: frames[0] ? `${frames[0].url.replace(base, '')}:${frames[0].lineNumber + 1}` : null, indexLine: own ? own.lineNumber + 1 : null, indexFrames: ownFrames.slice(0, 4).map((f) => `${f.functionName || '(anon)'}:${f.lineNumber + 1}`), via: 'console' })
+    messages.push({ level: e.type, text: text.slice(0, 1200), src: frames[0] ? `${frames[0].url.replace(base, '')}:${frames[0].lineNumber + 1}` : null, indexLine: own ? lineOfFrame(own) : null, indexFrames: ownFrames.slice(0, 4).map((f) => `${f.functionName || '(anon)'}:${lineOfFrame(f)}`), via: 'console' })
   })
   /* browser-originated lines (network failures, deprecations, interventions,
      CSP, violations) arrive on the Log domain, never as console API calls */
@@ -228,7 +235,7 @@ async function captureOne(browser, state, vp, theme, cdn) {
     if (entry.source === 'console-api') return
     messages.push({ level: entry.level === 'warning' ? 'warning' : entry.level, text: String(entry.text || '').slice(0, 1200), url: entry.url || null,
       src: entry.source === 'network' ? 'network' : `browser:${entry.source}${entry.url ? ' ' + entry.url.replace(base, '') + (entry.lineNumber != null ? ':' + (entry.lineNumber + 1) : '') : ''}`,
-      indexLine: entry.url && entry.url.replace(/\?.*$/, '').replace(base, '').match(/^\/(index\.html)?$/) && entry.lineNumber != null ? entry.lineNumber + 1 : null, via: 'browser' })
+      indexLine: entry.url && entry.lineNumber != null ? (entry.url.replace(/\?.*$/, '').replace(base, '').match(/^\/(index\.html)?$/) ? entry.lineNumber + 1 : appLine(entry.url, base, entry.lineNumber)) : null, via: 'browser' })
   })
   page.on('pageerror', (e) => exceptions.push({ text: String(e.message).slice(0, 600), stack: String(e.stack || '').split('\n').slice(0, 6).join(' <- ') }))
 
