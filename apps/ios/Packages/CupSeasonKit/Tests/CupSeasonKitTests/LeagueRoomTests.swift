@@ -630,7 +630,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueDates.currentWeek(start: "2026-05-03", end: "2026-09-26", today: "2027-01-01") == 21)
     #expect(LeagueDates.cupFinalStart(end: "2026-09-26") == "2026-08-30")
     #expect(LeagueDates.spanText(start: "2026-05-03", end: "2026-09-26") == "Sun May 3 \u{2013} Sat Sep 26 · 21 wks")
-    #expect(LeagueDates.durLabel(6) == "6 wk" && LeagueDates.durLabel(26) == "6 mo")
+    #expect(LeagueDates.durLabel(6) == "6 weeks" && LeagueDates.durLabel(26) == "26 weeks")
     #expect(LeagueDates.nextSunday("2026-08-27") == "2026-08-30" && LeagueDates.nextSunday("2026-08-30") == "2026-08-30")
     #expect(LeagueDates.firstOfNextMonth("2026-12-05") == "2027-01-01" && LeagueDates.firstOfMonth("2026-08-27") == "2026-08-01")
     #expect(LeagueDates.monthLong("2026-08-27") == "August" && LeagueDates.daysInMonth("2026-02-10") == 28)

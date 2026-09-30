@@ -229,6 +229,9 @@ public struct WizardDials: Sendable, Equatable, Codable {
   public var stakeText: String { stake == 0 ? "None" : PotMath.dollars(stake) }
   /// `durLabel`
   public var lengthText: String { LeagueDates.durLabel(durWeeks) }
+  public var lengthGloss: String {
+    durWeeks >= 8 ? "About \(Self.durMonths(durWeeks)) months · ends the same weekday" : "Ends the same weekday"
+  }
   public var capText: String { Bylaws.capLabel(capN) }
   public var floorText: String { "\(floor) / mo" }
   /// D347 · the STORED cap, when the ladder does not carry it.
@@ -627,7 +630,7 @@ public enum WizardCopy {
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"
   public static let buyIn = ("Buy-in", "Per golfer · $0 is bragging rights")
-  public static let seasonLength = ("Season length", "Weeks or months · ends the same weekday")
+  public static let seasonLength = ("Season length", "Ends the same weekday")
   public static let firstTee = ("First tee", "Pick any day")
   public static let teamsEyebrow = "Squads"
   public static let teamsHelp = "How the league is organized. Solo means everyone competes individually: no squads. Squad modes split the league into squads the Pro picks or draws; more squads want more golfers (4 squads plays best at 8+)."

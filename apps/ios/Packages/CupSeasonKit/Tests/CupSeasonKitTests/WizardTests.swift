@@ -37,7 +37,7 @@ import Foundation
   /// D206: 13 weeks by default; D142: Standard's Best 3.
   @Test func aRealLeagueStartsAtBraggingRights() {
     let d = WizardDials()
-    #expect(d.stake == 0 && d.stakeText == "None" && d.preset == 1 && d.durWeeks == 13 && d.lengthText == "3 mo")
+    #expect(d.stake == 0 && d.stakeText == "None" && d.preset == 1 && d.durWeeks == 13 && d.lengthText == "13 weeks")
     #expect(d.cap == 1 && d.capText == "Best 3" && d.floor == 2)
   }
   @Test func steppersWalkTheLadders() {
@@ -163,10 +163,10 @@ import Foundation
     var d = WizardDials()
     d.structure = "solo"; d.durWeeks = 26
     let p = WizardPortrait(d, roster: 1)
-    #expect(p.stake == 0 && p.structLine == "SOLO · EVERY GOLFER" && p.months == 6 && p.canCup && p.seasonTail == "6 mo")
+    #expect(p.stake == 0 && p.structLine == "SOLO · EVERY GOLFER" && p.months == 6 && p.canCup && p.seasonTail == "26 weeks")
     d.durWeeks = 4; d.finish = "points_table"
     let q = WizardPortrait(d, roster: 1)
-    #expect(q.months == 1 && !q.canCup && q.seasonTail == "4 wk · POINTS TABLE")
+    #expect(q.months == 1 && !q.canCup && q.seasonTail == "4 weeks · POINTS TABLE")
   }
 }
 
@@ -439,4 +439,16 @@ import Foundation
     #expect(!d.finishNote.contains("+10") && !d.finishNote.contains(LeagueCopy.finalCounting))
   }
 
+}
+
+@Suite struct OwnerW171LengthTests {
+  @Test func neighboringLengthsNeverRoundToTheSameValue() {
+    var d = WizardDials()
+    d.durWeeks = 8
+    #expect(d.lengthText == "8 weeks" && d.lengthGloss == "About 2 months · ends the same weekday")
+    d.durWeeks = 9
+    #expect(d.lengthText == "9 weeks" && d.lengthGloss == "About 2 months · ends the same weekday")
+    d.durWeeks = 6
+    #expect(d.lengthText == "6 weeks" && d.lengthGloss == "Ends the same weekday")
+  }
 }

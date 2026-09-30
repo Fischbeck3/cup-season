@@ -127,9 +127,9 @@ public enum LeagueDates {
     "\(dowMonDay(start, calendar: calendar)) \u{2013} \(dowMonDay(end, calendar: calendar)) · \(totalWeeks(start: start, end: end, calendar: calendar)) wks"
   }
 
-  /// `durLabel` — "6 wk" under eight weeks, months above.
+  /// W7-171 · the stored length is weeks; months are a separate gloss.
   public static func durLabel(_ weeks: Int) -> String {
-    weeks < 8 ? "\(weeks) wk" : "\(Int((Double(weeks) / 4.345).rounded())) mo"
+    "\(weeks) weeks"
   }
 
   /// `curMonth()` — the device's current month, long.
