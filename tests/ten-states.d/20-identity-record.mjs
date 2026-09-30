@@ -727,6 +727,10 @@ const COMPOSER = [
       if (document.activeElement !== b) return 'focus left the button: ' + (document.activeElement && (document.activeElement.id || document.activeElement.tagName))
       if (b.getAttribute('aria-describedby') !== 'postErr') return 'the button is not described by the refusal'
       if (/press Post again/i.test(document.getElementById('postErr').textContent)) return 'the refusal names a button that is not there'
+      /* TEN / W6 · W7-136 · 'card' is the person: the post path says scorecard, in the refusal, the armed Start over and the toast */
+      const said = document.getElementById('postErr').textContent || ''
+      if (/\byour card\b|\bthis card\b/i.test(said) || !/your scorecard is kept/i.test(said)) return 'the refusal does not say scorecard: ' + JSON.stringify(said)
+      if (typeof CS_POST_RESET === 'undefined' || CS_POST_RESET.armed !== 'Sure? This clears the scorecard' || CS_POST_RESET.done !== 'Scorecard cleared') return 'Start over does not say scorecard: ' + JSON.stringify(typeof CS_POST_RESET === 'undefined' ? null : CS_POST_RESET)
       return true
     }) },
 ]

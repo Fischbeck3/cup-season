@@ -229,7 +229,7 @@
     document.getElementById('postReset').click();
     await new Promise(r=>setTimeout(r,60));
     check(document.getElementById('inGross').value==='84','N4-022: the first tap on Start over cleared the card');
-    check(document.getElementById('postReset').textContent==='Sure? This clears the card','N4-022: the first tap did not say what the second does');
+    check(document.getElementById('postReset').textContent==='Sure? This clears the scorecard','N4-022 / W7-136: the first tap did not say what the second does');
     document.getElementById('postReset').click();
     await new Promise(r=>setTimeout(r,60));
     check(document.getElementById('postReset').textContent==='Start over','N4-022: Start over stayed armed after it cleared');

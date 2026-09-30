@@ -14556,9 +14556,9 @@ $('#postBtn').addEventListener('click', async ()=>{
       csPostRefused(e && e.csKind === 'ambiguous'
           ? 'Couldn’t confirm the post. Press Add my round again to retry the same round — it can’t post twice.'
         : e && e.csKind === 'refused'
-          ? (shrug ? 'The server didn’t accept this card and didn’t say why. Nothing was posted, and your card is kept — press Add my round to try again.'
-                   : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your card is kept.')
-        : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your card is kept.');
+          ? (shrug ? 'The server didn’t accept this round and didn’t say why. Nothing was posted, and your scorecard is kept — press Add my round to try again.'
+                   : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your scorecard is kept.')
+        : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your scorecard is kept.');
     }
     finally { btn.disabled=false; }
     return;
@@ -14879,8 +14879,11 @@ function csArmTap(b, rest, armed){
   return true;
 }
 window.csArmTap = csArmTap;
-/* N4-022 · the phone's words (PostRoundScreen's CSArmedButton) */
-const CS_POST_RESET = { label: 'Start over', armed: 'Sure? This clears the card' };
+/* N4-022 · the phone's words (PostRoundScreen's CSArmedButton).
+   TEN / W6 · W7-136 (TERMINOLOGY 70, 88; D131 / T-01) · 'card' is the PERSON;
+   what this clears is the scorecard, so the post path says so, and the toast
+   rides the same producer. */
+const CS_POST_RESET = { label: 'Start over', armed: 'Sure? This clears the scorecard', done: 'Scorecard cleared' };
 $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
   if(!csArmTap(e.currentTarget, CS_POST_RESET.label, CS_POST_RESET.armed)) return;
@@ -14890,7 +14893,7 @@ $('#postReset')?.addEventListener('click',e=>{
      ambiguous failure is exactly the case the id exists for: the next post,
      under a different card, asks the server whether the earlier one landed. */
   resetPostComposer();
-  toast('Card cleared');
+  toast(CS_POST_RESET.done);
 });
 $('#postScanBack')?.addEventListener('click',e=>{
   e.preventDefault();
