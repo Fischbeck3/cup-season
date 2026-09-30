@@ -934,8 +934,8 @@
        version is the deploy's own stamp and is never hand-edited: locally it
        reads the raw placeholder, which is the tell that this is not a Netlify
        build (CLAUDE.md rule 2). */
-    t('D280: the sidebar foot carries the build identity',
-      /v23/.test(document.querySelector('.side .foot .bld')?.textContent || ''), true);
+    t('Q5: the sidebar foot no longer carries the build identity (Settings and the Door keep it)',
+      !document.querySelector('.side .foot .bld') && /v23 · /.test(document.getElementById('obCaption')?.textContent || ''), true);
     t('D280: the wordmark is in the sidebar, and the header does not print it twice',
       !!document.querySelector('.side .brand b') &&
         getComputedStyle(document.getElementById('hdrLogo')).display === 'none' ||

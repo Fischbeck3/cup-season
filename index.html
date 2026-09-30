@@ -1050,10 +1050,6 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
   font-family:var(--board); font-size:11px; color:var(--mut); margin-top:12px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
 }
-.side .foot .bld{
-  font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:12px;
-  letter-spacing:calc(var(--agate-s) * 1em);
-}
 
 /* ============ main column ============ */
 .main{min-width:0; padding-bottom:140px;} /* clears the tabbar AND the floating Post tee */
@@ -4288,6 +4284,11 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .ob-hero h1 em{font-style:normal; color:var(--brand);}
 .ob-hero p{font-size:14.5px; color:var(--mut); line-height:1.65; max-width:36ch; margin-left:auto; margin-right:auto;}
 .ob-caption{text-align:left; font-family:var(--mono); font-size:11.5px; color:var(--mut); margin-top:12px; letter-spacing:.04em;}
+/* TEN / W6 · Q5 (owner, 2026-09-29 §R: B1) · the build stamp is off the
+   Door's face. #obCaption stays in the DOM: the curl diagnostic (CLAUDE.md),
+   the feedback sheet's version and the Door test all read it. A long-press
+   on the pennant shows it. */
+.ob-caption:not(.is-shown){display:none;}
 /* UI_SYSTEM §16.1: secondary text uses opaque mut; dim is non-text. */
 .onboard #obDoor .fine{color:var(--mut);}
 /* D339 · the quiet secondary entry: the same 46 tall, a hairline, the ink — not a second filled button */
@@ -6402,9 +6403,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         </div>
       </div>
       <div class="lgline"><span id="sideLeague">The Sunday Cup</span> &middot; <span id="sideMeta">7 golfers</span></div>
-      <!-- the deploy's own stamp. NEVER hand-edited: stamp-version.sh does
-           the substitution at build time (CLAUDE.md rule 2). -->
-      <div class="bld">v23 &middot; __CS_VERSION__</div>
+      <!-- TEN / W6 · Q5 (owner, 2026-09-29 §R: B1) · the build stamp left the
+           sidebar's foot; Settings keeps its line, and the Door keeps it in
+           the DOM behind a long-press on the pennant. -->
     </div>
   </aside>
 
@@ -38074,10 +38075,21 @@ function csPlanWhoLine(info){
 }
 window.csPlanWhoLine = csPlanWhoLine;
 
+/* TEN / W6 · Q5 · a long-press on the Door's pennant shows the build stamp
+   (and a second one hides it): the diagnostic stays one gesture away without
+   sitting on the welcome's face. The phone's Door follows (E). */
+(function(){
+  const pen = document.querySelector('.ob-sig .cs-mark-door'); if(!pen) return;
+  let held = null;
+  const cancel = () => { clearTimeout(held); held = null; };
+  pen.addEventListener('pointerdown', () => { cancel(); held = setTimeout(() => {
+    held = null; document.getElementById('obCaption')?.classList.toggle('is-shown'); }, 600); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => pen.addEventListener(ev, cancel));
+})();
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';
   $('#obDoor').style.display = 'block';
-  $('#obCaption').style.display = 'block';
+  $('#obCaption').style.display = '';   /* Q5 · the stylesheet decides: hidden until the pennant's long-press */
   const hero = document.querySelector('.onboard .ob-hero');
   if(hero) hero.style.display = 'block';
 }

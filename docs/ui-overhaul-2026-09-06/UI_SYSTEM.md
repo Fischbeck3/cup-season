@@ -81,7 +81,7 @@ numbers.**
 | **The Forge, the ceremonies, the Tracer mark** | Kept | The strongest sequence and the strongest asset in the product. The Forge's heat ramp survives as three private constants inside the door, not as palette tokens (§2.6). |
 | **The voice · band words · the ledger line · "the Pro"** | Kept verbatim | The audit calls the copy the strongest asset in the product; it was only ever wrong in its *size*, which the display tier fixes. |
 | **The five destinations** — Home · Compete · ⊕ Play · Golfers · You | Kept | `OWNER_RULINGS` **R-A / D222** is a flow ruling, not a visual one, and it overrides D82, D93, D94 and IOS-011. What changes is the chrome around it. §12 |
-| **A visible build identity** | Kept | `v23 · <sha>` in Settings and at the foot of the desk's sidebar. |
+| **A visible build identity** | Kept | `v23 · <sha>` in Settings. Off the Door's face and out of the sidebar (Q5, 2026-09-29): the Door keeps it in the DOM behind a long-press on the pennant. |
 
 ### Changed — each naming the row it overrides
 
@@ -1710,7 +1710,7 @@ the column count are not.
 - **Sidebar 236pt**, `bg0` with a 1px `rule` on its right edge: the mark and the wordmark at the top;
   nav items in `agate` 12 with a **3px `brand` tick on the left edge of the selected one** — the tab
   bar's underline, rotated; `THE DESK ▸` (the Pro's section) below a rule; the viewer's own face and
-  index at the foot with the build identity (`v23 · <sha>`) under them.
+  index at the foot (the build identity left the foot, Q5, 2026-09-29; it lives in Settings).
 - **Body: `1fr + 340pt`, gutter 40.** Left: the chapter line, the week ticks, the board. Right: the
   clash, the story as a list of weeks, the pot with its ledger line.
 - **The visual language is the same; the shape is not.** The desk is a sidebar and a two-column body,
