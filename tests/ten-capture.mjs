@@ -20,7 +20,10 @@
  *     aborted) or `normal` (normal operation -- the I04 table);
  *   - a manifest row: file, sha256, family, state, viewport, theme, route
  *     assertion, console summary, fixture gaps, git SHA and the sha256 of the
- *     index.html actually served.
+ *     index.html actually served — and, on a split tree (Q12,
+ *     tools/split-scripts.mjs), of each /app/*.js it served, in
+ *     documentsServed beside the page, so a provenance check proves every
+ *     served byte against `git show <sha>:<path>`.
  * No request reaches production Supabase: every *.supabase.co request and
  * the realtime socket are answered in-process or aborted and logged as a
  * fixture gap. Test-only; tests/ is not in the dist allowlist. */
@@ -34,6 +37,10 @@ import { startStaticServer, stopStaticServer, cdnCache, supabaseResponder, realt
 import { makeWorld, loadHandlers, worldApi } from './fixtures/ten/world.mjs'
 import { CAPTURE_NOW } from './fixtures/ten/cast.mjs'
 import { STATES } from './ten-states.mjs'
+/* Q12 · the split tool, when the running checkout has it (an older one does
+   not). Without it, or on an unsplit tree, every field this harness writes is
+   exactly what it was before the split existed. */
+const SPLIT = await import('../tools/split-scripts.mjs').catch(() => null)
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const args = process.argv.slice(2)
@@ -89,12 +96,21 @@ if (flag('list')) {
 
 function git(root, ...a) { try { return execFileSync('git', ['-C', root, ...a], { encoding: 'utf8' }).trim() } catch { return null } }
 const gitSha = git(ROOT_ARG, 'rev-parse', REF || 'HEAD')
-const gitDirty = REF ? false : (git(ROOT_ARG, 'status', '--porcelain', '--', 'index.html') || '').length > 0
+/* index.html AND app/ (Q12): a dirty split script is as dirty as a dirty page */
+const gitDirty = REF ? false : (git(ROOT_ARG, 'status', '--porcelain', '--', 'index.html', 'app') || '').length > 0
 const harnessSha = git(HERE, 'rev-parse', 'HEAD')
 /* the harness's own uncommitted files: a capture made with a dirty fixture
    module says so, so a gallery never claims provenance it does not have */
 const harnessDirty = (git(HERE, 'status', '--porcelain', '--', '.') || '').split('\n').filter(Boolean)
 const diskIndexSha = sha(readFileSync(join(ROOT, 'index.html')))
+/* Q12 · a split tree. indexSha256Disk keeps its meaning (index.html's own
+   bytes, which provenance-r3.py holds to `git show <sha>:index.html`); the
+   split files get their own disk hashes, and the joined source its hash (on a
+   split tree it equals the pre-split commit's index.html). */
+const APP_PATHS = SPLIT ? SPLIT.APP_PATHS : []
+const appDisk = () => { const o = {}; for (const p of APP_PATHS) { const f = join(ROOT, '.' + p); if (existsSync(f)) o[p.slice(1)] = sha(readFileSync(f)) } return Object.keys(o).length ? o : null }
+const diskAppSha = appDisk()
+const diskJoinedSha = diskAppSha ? (() => { try { return sha(SPLIT.readAppSource(ROOT, { strict: false })) } catch { return null } })() : null
 
 /* classify one console line: `injected` when the state said it would provoke
    it, `harness` when it is the browser reporting a request we aborted or the
@@ -139,7 +155,7 @@ async function captureOne(browser, state, vp, theme, cdn) {
       if (SERVE === 'route') {
         const f = diskFile(u.pathname)
         if (!f) return route.fulfill({ status: 404, body: '' })
-        if (req.resourceType() === 'document') served[u.pathname] = sha(f.body)
+        if (req.resourceType() === 'document' || APP_PATHS.includes(u.pathname)) served[u.pathname] = sha(f.body)
         return route.fulfill({ status: 200, contentType: f.type, headers: { 'cache-control': 'no-store' }, body: f.body })
       }
       if (req.resourceType() === 'document') {
@@ -186,6 +202,16 @@ async function captureOne(browser, state, vp, theme, cdn) {
     } catch (_) {}
   })
   const page = await context.newPage()
+  /* Q12 · the split's scripts, hashed from the bytes the browser received,
+     keyed by path with the query dropped (`/app/module.js` maps to
+     `git show <sha>:app/module.js`). Read from the response, never
+     fetched-and-fulfilled, so the harness observes their delivery without
+     changing it: the page still gets them straight from the server. */
+  const appBodies = []
+  if (diskAppSha && SERVE !== 'route') page.on('response', (resp) => {
+    let p; try { const u = new URL(resp.url()); if (u.origin !== base) return; p = u.pathname } catch { return }
+    if (APP_PATHS.includes(p)) appBodies.push(resp.body().then((b) => { served[p] = sha(b) }, () => { served[p] = null }))
+  })
   const cdp = await context.newCDPSession(page)
   await cdp.send('Runtime.enable')
   cdp.on('Runtime.consoleAPICalled', (e) => {
@@ -228,6 +254,7 @@ async function captureOne(browser, state, vp, theme, cdn) {
   } catch (e) {
     result.assert = { ok: false, detail: 'driver: ' + String(e.message || e).split('\n')[0] }
   }
+  await Promise.all(appBodies)   /* every served script's hash is in before the row is written */
   /* a held request (the "sending" state) stays held until after the screenshot */
   return { page, context, cdp, world, log, gaps, blocked, messages, exceptions, aborted, served, storm, result, hold, ms: Date.now() - t0 }
 }
@@ -294,7 +321,7 @@ async function main() {
   const cdn = cdnCache(CDN_DIR, { offline: flag('offline') })
   const rows = []
   const t0 = Date.now()
-  console.log(`ten-capture · root ${ROOT} @ ${gitSha ? gitSha.slice(0, 10) : '?'}${gitDirty ? ' (index.html dirty)' : ''} · ${selected.length} state(s) · ${SERVE === 'route' ? 'served in-process (no port bound)' : `server pid ${srv.pid} on :${PORT}`}`)
+  console.log(`ten-capture · root ${ROOT} @ ${gitSha ? gitSha.slice(0, 10) : '?'}${gitDirty ? (diskAppSha ? ' (index.html or app/ dirty)' : ' (index.html dirty)') : ''} · ${selected.length} state(s) · ${SERVE === 'route' ? 'served in-process (no port bound)' : `server pid ${srv.pid} on :${PORT}`}`)
   /* the job list: every state x viewport x theme, in catalogue order; a pool
      of --workers contexts runs them (each capture still gets its own fresh
      context); rows are written back in job order so manifests diff cleanly */
@@ -355,6 +382,7 @@ async function main() {
       artifacts: (cap.result.artifacts || []).map((f) => { try { const b = readFileSync(f); return { file: f.startsWith(OUT) ? f.slice(OUT.length + 1) : f, sha256: sha(b), bytes: b.length } } catch { return { file: f, missing: true } } }),
       authRequests: cap.log.filter((e) => (e.path || '').startsWith('/auth/v1/')).map((e) => `${e.method} ${e.path}${(e.query || '').slice(0, 40)} -> ${e.result}`),
       gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
+      ...(diskAppSha ? { appSha256Disk: diskAppSha } : {}),
       /* a state that is not the app (get/support/legal) records the page it did serve */
       documentsServed: Object.keys(cap.served).length ? cap.served : null,
       capturedAt: new Date().toISOString(), ms: cap.ms,
@@ -378,6 +406,7 @@ async function main() {
   const manifest = {
     harness: 'tests/ten-capture.mjs', harnessGitSha: harnessSha, harnessDirty, root: ROOT_ARG, ref: REF, servedFrom: SNAPSHOT ? 'git archive snapshot of ' + REF : 'working tree', gitSha, indexDirty: gitDirty, indexSha256Disk: diskIndexSha,
     indexSha256DiskAfter: SNAPSHOT ? diskIndexSha : sha(readFileSync(join(ROOT, 'index.html'))), captureClock: CAPTURE_NOW, port: PORT, serverPid: srv.pid,
+    ...(diskAppSha ? { appSha256Disk: diskAppSha, appSha256DiskAfter: SNAPSHOT ? diskAppSha : appDisk(), joinedSha256Disk: diskJoinedSha } : {}),
     serve: SERVE, widths: WIDTHS, themes: THEMES, dsf: DSF, cdn: cdn.stats, startedAt: new Date(t0).toISOString(), finishedAt: new Date().toISOString(),
     serviceWorkers: 'blocked per context (Playwright serviceWorkers:block); registrations unregistered and caches cleared after load',
     network: 'every *.supabase.co request and the realtime socket answered in-process from tests/fixtures/ten or aborted as a fixture gap; esm.sh and Google Fonts replayed from the local record/replay cache; anything else aborted',
@@ -416,6 +445,7 @@ async function main() {
   writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1))
   console.log(`\n${manifest.counts.captures} capture(s), ${manifest.counts.routeFailed} route failure(s), ${manifest.counts.errors} error(s), ${manifest.counts.withGaps} with fixture gaps, ${manifest.counts.withPageErrors} with page errors · ${((Date.now() - t0) / 1000).toFixed(0)}s · manifest ${join(OUT, 'manifest.json')}`)
   if (manifest.indexSha256DiskAfter !== diskIndexSha) console.log('WARNING: index.html changed on disk during the run; per-row indexSha256Served says which bytes each capture saw.')
+  if (diskAppSha && JSON.stringify(manifest.appSha256DiskAfter) !== JSON.stringify(diskAppSha)) console.log('WARNING: an app/*.js file changed on disk during the run; per-row documentsServed says which bytes each capture saw.')
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

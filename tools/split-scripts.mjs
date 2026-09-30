@@ -188,19 +188,29 @@ export function join(html, readFile) {
   return out
 }
 
-/* THE reader. Returns what index.html was before the split (or is, unsplit). */
-export function readAppSource(root = '.') {
+/* THE reader. Returns what index.html was before the split (or is, unsplit).
+   `strict: false` is for the capture harness and its report, which also read
+   OLD commits: an unsplit index.html is then returned as it is, whatever its
+   block count. A half split, or /app/ tags this tool did not write, still throw. */
+export function readAppSource(root = '.', { strict = true } = {}) {
   const html = readFileSync(resolve(root, 'index.html'), 'utf8')
+  return appSourceOf(html, (f) => readFileSync(resolve(root, f), 'utf8'), { strict })
+}
+/* the same, from any byte source (e.g. `git show <sha>:<file>`) */
+export function appSourceOf(html, readFile, { strict = true } = {}) {
   if (!isSplit(html)) {
     /* not the exact split layout: it must then be the whole single file, or a
        reader would silently scan an index.html with no script in it */
     if (MOVED.some((mv) => html.includes(mv.tag))) throw new Error('split-scripts: index.html is half split (one external tag without the other)')
     if (/<script\b[^>]*\bsrc=["']?\/?app\//i.test(html)) throw new Error('split-scripts: index.html loads /app/ scripts, but not with the exact tags this tool writes (defer/async/renamed?)')
-    assertSplittable(html)
+    if (strict) assertSplittable(html)
     return html
   }
-  return join(html, (f) => readFileSync(resolve(root, f), 'utf8'))
+  return join(html, readFile)
 }
+
+/* the served paths of the split files */
+export const APP_PATHS = MOVED.map((mv) => '/' + mv.file)
 
 /* joined line -> the real file and line (for messages that cite index.html:N) */
 export function where(root, joinedLine) {
