@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, phraseAsSaid, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, phraseAsSaid, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown, namesWrapWhole } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -207,6 +207,17 @@ const clinchDoor = async (page) => {
   await page.waitForTimeout(400)
   return got
 }
+/* Q39 (a) · root's ruling 2026-09-29: the Every golfer table's "Avg vs playing HCP" column says it in words (vsShort) on the real
+   path, as the diorama's has since Q-23 — one producer, never a signed figure */
+const raceInWords = async (page) => page.evaluate(() => {
+  const cells = [...document.querySelectorAll('#indTable td.dw')].filter((el) => el.getBoundingClientRect().width > 0).map((el) => el.textContent.trim())
+  if (!cells.length) return 'the Every golfer table draws no average'
+  const off = cells.filter((t) => t !== '—' && !/^(beat by \d+\.\d|played to it|\d+\.\d over)$/.test(t))
+  if (off.length) return 'an average is not in words: ' + JSON.stringify(off.slice(0, 3))
+  /* the words are wider than a signed figure: the table still fits its column */
+  const t = document.getElementById('indTable'), box = t.parentElement.getBoundingClientRect(), r = t.getBoundingClientRect()
+  return r.right <= box.right + 1 && r.right <= innerWidth ? true : `the table runs ${Math.round(r.right - Math.min(box.right, innerWidth))}px past its column`
+})
 const clinchSentence = async (page) => page.evaluate(() => {
   const b = document.getElementById('scenarioLine')
   if (!b || !(b.getBoundingClientRect().width > 0)) return 'the season page draws no clinch line'
@@ -360,7 +371,7 @@ const SEASON = [
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
       /* W7-071 (C): the clinch line is a body sentence now, so it leaves the role-caps check for clinchSentence */
-      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence, clinchDoor,
+      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence, clinchDoor, raceInWords,
       /* TEN / W6 · W7-024 [B2-season-5] (D's delta): the clash head and its sides' lines were built with toUpperCase(); the
          words are typed as said and the caps are the roles' (.tbl th, #clashTbl .tc) */
       capsFromRole(['#clashTbl th', '#clashTbl .tc'], ['#clashTbl th', '#clashTbl .tc']),
@@ -656,6 +667,19 @@ const SEASON = [
       return /Couldn.t load this/i.test(arc) && document.getElementById('seasonStoryRetry') ?   /* innerText carries the head's caps */
         true : 'the second league\'s story pane does not say the read failed'
     }) },
+  /* Q34 (1) · owner ruling 2026-09-29: on the slat a long name wraps whole — no "abbreviate first, ellipsis last" (§9.1 yields
+     to the program brief). South Wash Weekday is solo and seats the fixture's longest name, Indigo Longname-Fixturington. */
+  { family: 'season', id: 'slat-long-name', variant: 'member', title: 'The season page of South Wash Weekday (solo): the slat with the longest name', fullPage: false,
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await page.evaluate((id) => window.enterLeagueById(id, false), SW.league)
+      await until(page, () => /South Wash/.test((document.getElementById('seasonTitle') || {}).textContent || '') && /Longname/i.test((document.getElementById('view-hub') || {}).textContent || ''), null, 15000).catch(() => {})
+      await page.waitForTimeout(500)
+      await page.evaluate(() => { const n = [...document.querySelectorAll('#view-hub .tbl .tn')].find((el) => /Longname/i.test(el.textContent)); if (n) n.scrollIntoView({ block: 'center' }) })
+      await scrollSettled(page)
+    },
+    expect: { view: 'view-hub' },
+    check: namesWrapWhole('#view-hub .tbl .tn', 'Longname') },
   /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
      the first week closes" (the phone's storyRead == .failed) */
   { family: 'season', id: 'story-failed', variant: 'member', title: 'The season page, the story, when the story read failed', fullPage: false,
@@ -812,6 +836,23 @@ const COMPETE = [
     drive: toCompete,
     expect: { view: 'view-compete', selectors: { '#cmpList .emptyroot h3': 'text:^Nothing running\\.$', '#cmpList [data-erdoor="startSomething"]': 'visible', '#cmpList [data-erdoor="joinWithCode"]': 'visible' } },
     check: async (page) => page.evaluate(() => document.querySelector('#cmpList [data-cband], #cmpList .peerrow') ? 'a season or a moment rendered for a golfer with none' : true) },
+  /* Q41 (a) · owner ruling 2026-09-29 (IA §6.1 amended to QB-21): with buddies and nothing running, the counted sentence
+     IS the head, said once, on a first visit to Compete (Golfers has not been opened); 'Nothing running.' leads only when
+     there is no count. A brand-new golfer with the fixture's five buddies and no season. */
+  { family: 'compete', id: 'empty-buddies', variant: 'brand_new', world: { flags: { friends: true } }, title: 'Compete · nothing running, five buddies (the counted head)',
+    drive: async (page) => {
+      await toCompete(page)
+      await until(page, () => /buddies/.test(((document.querySelector('#cmpList .emptyroot h3') || {}).textContent || '')), null, 8000).catch(() => {})
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-compete', selectors: { '#cmpList [data-erdoor="startSomething"]': 'visible', '#cmpList [data-erdoor="joinWithCode"]': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const h = document.querySelector('#cmpList .emptyroot h3'), t = h ? h.textContent.trim() : ''
+      if (t !== '5 buddies, and none of you is playing for anything.') return 'the head reads ' + JSON.stringify(t) + ` (buddy count ${JSON.stringify(window.__buddyCount)})`
+      if (document.querySelector('#cmpList .emptyroot .fact')) return 'the counted sentence is said twice (a fact line under the head)'
+      if (/Nothing running/.test(document.getElementById('cmpList').textContent)) return '"Nothing running." is still on the page'
+      return document.querySelector('#cmpList [data-erdoor="findGolfers"]') ? 'with buddies the second door is still Find golfers' : true
+    }) },
   { family: 'compete', id: 'populated', variant: 'member', title: 'Compete · the Scoreboard (North Grove), a second season, the moments, the finished shelf',
     prepare: async (W) => { ryderWorld(W) },
     drive: async (page) => { await toCompete(page); await until(page, () => /North Grove Ryder/.test((document.getElementById('cmpFinished') || {}).innerText || '')) },
@@ -1103,7 +1144,9 @@ const BOOK = [
         const rows = document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr').length
         if (rows !== 16) return `${rows} golfer rows, expected 16`
         return document.querySelector('#seasonBookDialog .sb-matrix th.sb-current') ? 'a complete season marks a current week' : true
-      })) },
+      }),
+      /* Q34 (1) · the Book's pinned names wrap whole: no initial, no ellipsis, no word broken or run past the column */
+      namesWrapWhole('#seasonBookDialog .sb-matrix tbody th button', 'Longname')) },
   { family: 'book', id: 'error', variant: 'rounds_no_league', title: 'The Book when its read fails: the error and Try again', fullPage: false,
     prepare: adopt('squads'), localStorage: BOOK_LS('squads'),
     world: { errors: { rpc: { season_book: { __error: 'fixture: the Book read failed', status: 503, code: 'XX000' } } } },

@@ -369,8 +369,23 @@
 
   /* ══ D210 · the banned word leaves the user surfaces ══════════════════════ */
   (function(){
-    t('D210: the personal-best tile names what the figure is measured against',
-      achSubtitle({ kind: 'personal_best', meta: { diff: 7.8 } }), '7.8 vs course');
+    /* X40 (1) · the differential never leaves the receipt: a personal best names its gross, or nothing */
+    t('X40: the personal-best tile never prints the differential',
+      [achSubtitle({ kind: 'personal_best', meta: { diff: 7.8 } }), achSubtitle({ kind: 'personal_best', meta: { diff: 7.8, gross: 83 } })], ['', '83 gross']);
+    /* X40 (1) · one round, one line: a round that is BROKE 80 and a PERSONAL BEST prints its line once */
+    (function(){
+      const keep = { a: window.achievements, t: window.trophies, c: window.career, d: state.demo };
+      state.demo = false;   /* the case reads the diorama's trophies in demo mode */
+      window.trophies = [];
+      window.career = { rows: [{ id: 'x40r', gross: 79, course_label: 'Papago', played_on: '2026-08-24', holes_played: 18 }] };
+      window.achievements = [
+        { kind: 'personal_best', label: 'Personal best', earned_on: '2026-08-24', round_id: 'x40r', meta: { diff: 4.1 } },
+        { kind: 'sub_80', label: 'Broke 80', earned_on: '2026-08-24', round_id: 'x40r', meta: { gross: 79 } }];
+      renderTrophyCase();
+      const subs = [...document.querySelectorAll('#trophyCase .tslat.is-bests')].map(el => (el.querySelector('small') || {}).textContent || '');
+      window.achievements = keep.a; window.trophies = keep.t; window.career = keep.c; state.demo = keep.d; renderTrophyCase();
+      t('X40: one round that earns two bests prints its line once', subs, ['79 at Papago · Aug 24', '']);
+    })();
     t('Y-24: every marker is a "The"', window.MARKERS?.no2?.n, 'The No. 2');
   })();
 
@@ -867,6 +882,25 @@
         [/broke (90|100) for the first time/.test(first), /Your first round is on the board/.test(first)], [false, true]);
       t('X39: a later round still broke 90 for the first time',
         /You broke 90 for the first time/.test(epiText({ earned: [{ kind: 'sub_90' }] }, false)), true);
+    }
+    /* X39 · D399 · the circle item's claim and spine are home_dispatch's own (20261217090000): a debut first, quiet */
+    {
+      const cm = (r) => (typeof csCircleMile === 'function' ? csCircleMile(r) : null);
+      t('X39: a buddy’s debut reads as a debut, in the quiet spine, as the server says it',
+        [cm({ is_first: true, is_pr: true, is_sub80: true, holes_played: 18 }), cm({ is_pr: true }), cm({ gross: 84 })],
+        [{ standfirst: 'Their first posted round.', spine: 'mut' }, { standfirst: 'A personal best.', spine: 'gold' }, { standfirst: null, spine: 'mut' }]);
+    }
+    /* …and csFallbackItems, the path Home takes when the dispatch is not deployed, prints the same claim and spine */
+    {
+      const keep = { f: window.homeFeedRows, c: window.homeClash };
+      window.homeClash = null;
+      window.homeFeedRows = [{ is_me: false, gross: 88, golfer: 'Blake Sample', course: 'Papago', holes_played: 18,
+                               is_first: true, is_pr: true, is_sub80: false, round_id: 'x39circle', played_on: '2026-09-28' }];
+      let circ = null;
+      try { circ = (csFallbackItems() || []).find(i => i.tier === 'circle') || null; } catch(e) { circ = { standfirst: 'threw: ' + e.message }; }
+      window.homeFeedRows = keep.f; window.homeClash = keep.c;
+      t('X39: the fallback’s circle item says the server’s debut, in the quiet spine',
+        circ && [circ.standfirst, circ.spine], ['Their first posted round.', 'mut']);
     }
     t('X39: the feed says a first round before a personal best',
       [homeRoundDetail({ gross: 84, is_first: true, is_pr: true, is_me: true }), homeRoundDetail({ gross: 84, is_pr: true, is_me: true })],

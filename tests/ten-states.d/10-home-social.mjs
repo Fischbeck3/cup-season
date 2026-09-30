@@ -757,6 +757,18 @@ const GOLFERS = [
     }),
     /* TEN / W6 · AW2-15: the form lens's note is a phrase, in sentence case (§1.3) */
     readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']]),
+    /* Q18 (4) · a band word on a 30-day average carries its gloss beside it, 'on average', and a row with no band carries none */
+    async (page) => page.evaluate(() => {
+      const rows = [...document.querySelectorAll('#glfBoard .fbrow')]
+      const banded = rows.filter((r) => /^(Torched it|Beat (your|their) number|Played to it|A little loose|Posted anyway)$/i.test(((r.querySelector('.fbv small:not(.fbgloss)') || {}).textContent || '').trim()))
+      if (!banded.length) return 'no row on the board names a band'
+      const bare = banded.filter((r) => { const g = r.querySelector('.fbv .fbgloss'); return !g || g.textContent.trim() !== 'on average' || g.getBoundingClientRect().width === 0 })
+      if (bare.length) return `${bare.length} band word(s) without 'on average' beside them`
+      const stray = rows.filter((r) => !banded.includes(r) && r.querySelector('.fbv .fbgloss'))
+      if (stray.length) return 'a row with no band carries the gloss'
+      const over = rows.filter((r) => r.getBoundingClientRect().right > innerWidth + 1 || r.scrollWidth > r.clientWidth + 1)
+      return over.length ? 'a board row runs past the page with the gloss' : true
+    }),
     /* TEN / W7-044 [B2-golfers-3]: one golfer, one disc, on the board and in the buddies list */
     oneDisc) },
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',

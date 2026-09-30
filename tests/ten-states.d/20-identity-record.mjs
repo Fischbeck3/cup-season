@@ -130,6 +130,21 @@ const firstIsBaseline = (wantBests) => async (page) => page.evaluate((wantBests)
   return /^\d+( at .+)? · [A-Z][a-z]+ \d{1,2}$/.test(sub) ? true : 'the FIRST ROUND slat does not name its round: ' + JSON.stringify(sub)
 }, wantBests)
 
+/* X40 (1) · owner ruling 2026-09-29: a personal best prints the round the golfer remembers ('83 at ‹course› · ‹date›'),
+   and the differential ('7.9 vs course') stays on the receipt: nothing outside a receipt says 'vs course' */
+const noVsCourse = (sel) => async (page) => page.evaluate((sel) => {
+  const el = document.querySelector(sel)
+  if (!el) return `${sel} is missing`
+  const t = el.innerText.replace(/\s+/g, ' ')
+  return /vs course/i.test(t) ? `${sel} still prints the differential: ${JSON.stringify(t.match(/.{0,40}vs course.{0,20}/i)[0])}` : true
+}, sel)
+const pbNamesItsRound = async (page) => page.evaluate(() => {
+  const pb = [...document.querySelectorAll('#trophyCase .tslat.is-bests')].find((el) => /personal best/i.test(el.querySelector('b').textContent))
+  if (!pb) return 'the case draws no PERSONAL BEST'
+  const sub = ((pb.querySelector('small') || {}).textContent || '').trim()
+  return /^\d+ at .+ · [A-Z][a-z]{2} \d{1,2}$/.test(sub) ? true : 'the personal best does not name its round: ' + JSON.stringify(sub)
+})
+
 /* the sidebar's foot stays pinned to the column's bottom when its block stands down: display:none took #sideMe's margin-top:auto with it
    (B's find on 51211947; W7-030's check, col.bottom − foot.bottom ≤ 48). The yields below collapse #sideMe or hide its children, never #sideMe. */
 const footStays = async (page) => page.evaluate(() => {
@@ -299,7 +314,7 @@ const recordInWords = async (page) => page.evaluate(() => {
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly()) },
+    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly(), pbNamesItsRound, noVsCourse('#trophyCase')) },
   { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
     title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
     drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
@@ -338,7 +353,23 @@ const RECORD = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'hidden' } },
-    check: medallionOnPhotoOnly(true) },
+    check: all(medallionOnPhotoOnly(true), noVsCourse('#shBody'),
+      /* Q39 (a) · the card's career figures are words (vsShort), never a sign, and no line explains a sign */
+      async (page) => page.evaluate(() => {
+        const rows = [...document.querySelectorAll('#shBody .mathrow')].map((el) => ({ k: el.querySelector('span').textContent.trim(), v: el.querySelector('b').textContent.trim() }))
+        const figs = rows.filter((r) => /^(Best round|Avg)/.test(r.k))
+        if (!figs.length) return 'the card draws no career figures'
+        const off = figs.filter((r) => r.v !== '—' && !/^(beat by \d+\.\d|played to it|\d+\.\d over|\d+ at .+)$/.test(r.v))
+        if (off.length) return 'a career figure is signed: ' + JSON.stringify(off[0])
+        return /\+ is better/.test(document.getElementById('shBody').innerText) ? 'the card still explains a sign' : true
+      }),
+      /* X36 (1) · the tour card's head-to-head chip names its facet: tour_card.vs_you counts season weeks */
+      async (page) => page.evaluate(() => {
+        const c = document.getElementById('tcVs')
+        if (!c) return 'the tour card draws no head-to-head chip (Blake is a rival)'
+        const t = c.textContent.replace(/\s+/g, ' ').trim()
+        return /^IN THE SEASON · \d+–\d+(–\d+)? · \S/.test(t) ? true : 'the chip does not name its facet: ' + JSON.stringify(t)
+      })) },
   /* a withdrawn photograph: the public link Avery withdrew when the photo
      consent changed answers dead -- the photo is gone with it */
   { family: 'record', id: 'photo-withdrawn', variant: 'signed_out', url: '/?share=fe200000-0000-4000-8000-000000000004',
@@ -362,6 +393,14 @@ const RECEIPT = [
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
     check: all(heroState('photo'), receiptActions,
+      /* Q45 · the private receipt's plate is signed with the pennant alone: no tagline on it (the exported card and the Door keep theirs) */
+      async (page) => page.evaluate(() => {
+        const f = document.querySelector('#rcptHero .rm-foot')
+        if (!f) return 'the receipt plate has no foot'
+        if (!f.querySelector('.rm-mark')) return 'the receipt plate lost its pennant'
+        const said = f.textContent.replace(/\s+/g, ' ').trim()
+        return said === '' && !/any time\. anywhere/i.test(document.getElementById('rcptHero').innerText) ? true : 'the receipt plate still signs itself with a line: ' + JSON.stringify(said || document.getElementById('rcptHero').innerText.slice(0, 80))
+      }),
       /* TEN / W8 · W7-086: while the photo opens, Share asks about it (the tick is there, checked) */
       async (page) => page.evaluate(() => { const ok = document.getElementById('rcptPhotoOk'); return ok && ok.checked ? true : 'the receipt of a round whose photo opens does not offer Include round photo' }),
       /* S9 · a picture that is showing says nothing */
@@ -376,7 +415,8 @@ const RECEIPT = [
     }),
     /* TEN / W6 · AW2-06: a math row's label is body and the words in its value
        are agateS; only the figures keep mono, in the column role (§1.4) */
-    notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag']),
+    /* Q45 · the plate's tagline (.rm-tag) is gone from the private receipt, so it leaves this pair */
+    notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw']),
     /* TEN / W6 · AW2-07: the moment's sentence sets its figure as a run (vsPhraseMarked), never the serif */
     noSerifFigure(['#rcptHero .rm-say'], ['#rcptHero .rm-say .cfrun']),
     noRetiredGlyph()) },

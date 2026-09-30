@@ -1296,7 +1296,14 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .tbl .sw{width:4px; height:14px; border-radius:0; display:inline-block; vertical-align:-2px;}
 .tbl .sw.side{width:6px; height:30px;}
 .tbl .tn{font-family:var(--board); font-size:15px; font-weight:600; line-height:1.16;
-  letter-spacing:.035em; text-transform:uppercase; overflow-wrap:anywhere;}
+  letter-spacing:.035em; text-transform:uppercase; overflow-wrap:break-word;}
+/* Q34 (1) · owner ruling 2026-09-29: on the slat a long name WRAPS WHOLE, at its spaces and its own hyphen. `anywhere`
+   let a table cell's min-content fall to one letter, so the auto table squeezed the name column (88px at 375 beside
+   the Avg column's words) and cut FIXTURINGTON mid-word; `break-word` keeps the longest part of a name as the
+   column's floor and leaves the words beside it to wrap. Still never an ellipsis and never an initial.
+   Below 360 (a 320 screen) the longest part of a surname beside the table's figures is wider than the page allows,
+   so there, and only there, a part may break as the last resort rather than push the table off the screen. */
+@media (max-width:359px){ .tbl .tn{overflow-wrap:anywhere;} }
 /* the name and its line WRAP. They were nowrap + ellipsis, but an ellipsis
    cannot act inside an auto-width table cell, so a long line widened the
    column instead and, whenever the board face had not arrived yet (a slow
@@ -1547,6 +1554,8 @@ th.deskonly, td.deskonly{display:none;}
   font-variant-numeric:tabular-nums; color:var(--ink); line-height:1;}
 .fbrow .fbv small{display:block; font-family:var(--board); font-size:11px; letter-spacing:.08em;
   color:var(--mut); margin-top:3px; white-space:nowrap;}
+/* Q18 (4) · the band word's gloss sits under it, in the same agate: the word names a 30-day average, not a round */
+.fbrow .fbv small.fbgloss{margin-top:1px;}
 /* 16A.3 - the column says which way is good, over the column. NOT "lower is
    better": in this product a POSITIVE figure means the golfer beat their
    playing HCP by that much (bandName(+3) is "Torched it"). */
@@ -1966,7 +1975,9 @@ button.payer{cursor:pointer;}
 .rcpt-moment .rm-say{font-family:var(--serif); font-size:21px; line-height:1.3; margin:var(--s2) 0 0; max-width:22ch;}
 .rcpt-moment .cs-brandrule{margin-top:var(--s3);}
 .rcpt-moment .rm-foot{display:flex; align-items:center; gap:var(--s3); width:100%; margin-top:auto; padding-top:var(--s4);}
-.rcpt-moment .rm-tag{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); opacity:.7;}   /* TEN / W6 · AW2-06: the statement's caps form is agateS, never mono (two sentences) */
+/* Q45 · owner ruling 2026-09-29: the PRIVATE receipt's plate is signed with the pennant alone. A receipt is a thing a
+   golfer reads, not a thing a golfer sends, so the tagline ("Any time. Anywhere.") stays on the exported card and the
+   Door and leaves this plate (the .rm-tag rule went with it). Twin: ReceiptMoment.swift. */
 .rcpt-moment .rm-mark{width:34px; height:20px; margin-left:auto; flex:none; color:inherit;}
 .rcpt-plate .mkstamp{right:var(--s3); top:var(--s3); bottom:auto; z-index:1;}   /* D59 · the medallion rides the photograph, on its plate */
 @media(max-width:360px){ .rcpt-moment .rm-fig{font-size:62px;} }
@@ -22356,6 +22367,17 @@ function csShortCourse(raw){
 }
 window.csShortCourse = csShortCourse;
 
+/* X39 · D399 (agent F's held 20261217090000) · the circle item's one claim and its spine, in home_dispatch's own
+   order and words, so the fallback and the server say one thing: a buddy's DEBUT reads as a debut ("Their first
+   posted round.") in the quiet `mut` spine, never a first time under 80 in gold; a later round keeps its claims.
+   The server's order was is_pr, is_sub80, is_first with gold for either barrier. Twin: HomeFallbackItems. */
+function csCircleMile(r){
+  if(r && r.is_first) return { standfirst:'Their first posted round.', spine:'mut' };
+  if(r && r.is_pr)    return { standfirst:'A personal best.', spine:'gold' };
+  if(csSub80(r))      return { standfirst:'Under 80 for the first time.', spine:'gold' };
+  return { standfirst:null, spine:'mut' };
+}
+window.csCircleMile = csCircleMile;
 function csFallbackItems(){
   const out = [];
   const push = (o) => out.push(Object.assign({ human_subject:false, suppress:[], spine:'mut' }, o));
@@ -22427,11 +22449,11 @@ function csFallbackItems(){
   /* the circle's freshest round — the one CIRCLE item, never mine */
   const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
   if(r){
-    const mile = r.is_first ? 'Their first round posted.' : r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : null;   /* X39 */
-    push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
+    const mile = csCircleMile(r);   /* X39 · D399: home_dispatch's own claim and spine */
+    push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile.spine,
            eyebrow:'AROUND YOUR BUDDIES',
            headline:`${(r.golfer||'A golfer').split(' ')[0]} posted {${r.gross}}${r.course?` at ${r.course}`:''}.`,
-           standfirst:mile, action:'See the round',
+           standfirst:mile.standfirst, action:'See the round',
            route: r.round_id ? {kind:'receipt', id:r.round_id} : null, at:r.played_on });
   }
   /* the fence, applied by the PRODUCER as well as by the arrangement: a
@@ -23768,8 +23790,12 @@ function csSeasonBookBody(b,selection){
      own row says "You" — a mark in words, never colour alone (§16.4) */
   const standingOf=r=>[r.mine?'You':null,SeasonBook.standing(r)].filter(Boolean).join(' · ');
   /* a name breaks at its spaces, never at its own hyphen ("Stand-" / "In"):
-     the pinned column is narrow on a phone, and a name wraps whole */
-  const nameOf=r=>esc(r.name).replace(/-/g,'\u2011');
+     the pinned column is narrow on a phone, and a name wraps whole.
+     Q34 (1) · owner ruling 2026-09-29 (a long name wraps whole; §9.1's "abbreviate first, ellipsis last" yields
+     to the program brief): a hyphenated word too long for the pinned column's line keeps its hyphen as a break
+     ("Longname-" / "Fixturington" at 375), where the non-breaking one ran it past the column into the week cells.
+     A short one ("Stand-In") still never splits. Never an initial, never an ellipsis. */
+  const nameOf=r=>esc(r.name).split(' ').map(w=>w.length>=14?w:w.replace(/-/g,'\u2011')).join(' ');
   const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${nameOf(r)}<small${r.mine?' class="sb-you"':''}>${esc(standingOf(r))}</small><strong${r.points_rank===1?' class="sb-lead"':''}>${csBookNum(r.points)} pts</strong></button>`;
   if(!prominent || mode==='Race'){
     if(mode==='Race')h+=csSeasonBookRace(b,rows,follow,selection.width);
@@ -24774,6 +24800,19 @@ function renderCompete(){
     }));
   });
   csEmptyRootDoors(box, take);
+  /* Q41 (a) · the count IS the head now, and `__buddyCount` was only ever set by Golfers' own paint (renderCrewPeople,
+     in the module), so a golfer who opened Compete first read "Nothing running." over five buddies. With nothing
+     running and no count in hand, ask once — my_friends, the read Golfers makes, through the bridged `window.sb`
+     (psFriends is a module name this classic block cannot see) — and redraw when there is someone to count. */
+  if(list.nothingRunning && window.__buddyCount == null && !state.demo && !renderCompete.askedBuddies && window.sb){
+    renderCompete.askedBuddies = true;
+    Promise.resolve(window.sb.rpc('my_friends')).then(res => {
+      const d = res && !res.error ? res.data : null;
+      if(!Array.isArray(d)) return;
+      window.__buddyCount = d.filter(f => f && f.status === 'accepted').length;
+      if(window.__buddyCount > 0 && (document.querySelector('.view.active') || {}).id === 'view-compete') renderCompete();
+    }, () => {});
+  }
   function take(k){
     /* MW-01 · the same door Home opens. It went straight to the wizard, which
        skips the question the intent sheet asks and, for a member who is not
@@ -25517,7 +25556,8 @@ function achSubtitle(a){
   const m=a.meta||{};
   /* D210 · the banned word leaves the tile. "vs course" is the house name for
      the figure — the same words the receipt's arithmetic row now carries. */
-  if(a.kind==='personal_best' && m.diff!=null) return Number(m.diff).toFixed(1)+' vs course';
+  /* X40 (1) · never the differential off the receipt: a personal best names its gross, or nothing */
+  if(a.kind==='personal_best') return m.gross!=null ? m.gross+' gross' : '';
   if(a.kind && a.kind.indexOf('sub_')===0 && m.gross!=null) return m.gross+' gross';
   if(a.kind && a.kind.indexOf('streak_')===0 && m.weeks!=null) return m.weeks+' weeks';
   if(a.kind==='first_round') return 'Posted';
@@ -25567,21 +25607,15 @@ function csMilestoneSub(a, round){
   const m = a.meta || {};
   const c = round && round.course_label ? csCourse(round.course_label) : null;
   let lead = '';
-  /* A MILESTONE PRINTS THE FIGURE IT IS ABOUT. A threshold is about a gross,
-     so it reads `79 at Papago`; a personal best is about the DIFFERENTIAL
-     (D210's "vs course"), so it reads `4.1 vs course · Papago`. Taking the
-     gross for both put the same sentence under BROKE 80 and PERSONAL BEST
-     when one round earned them together — which is the owner's own
-     complaint, arriving inside the fix for it. */
-  if(a.kind === 'personal_best' && m.diff != null){
-    lead = Number(m.diff).toFixed(1) + ' vs course';
-    if(c) lead += ' \u00b7 ' + c;
-  } else {
-    const g = (round && round.gross != null) ? round.gross : (m.gross != null ? m.gross : null);
-    if(g != null){
-      lead = String(g);
-      if(c) lead += ' at ' + c;
-    }
+  /* X40 (1) · owner ruling 2026-09-29: A MILESTONE PRINTS THE ROUND THE GOLFER REMEMBERS — `83 at Papago ·
+     Aug 24` — a personal best as much as a threshold. D291 printed the PB's DIFFERENTIAL ("4.1 vs course"),
+     and the differential lives on the receipt beside its arithmetic and nowhere else (TERMINOLOGY row 92,
+     P-16, L-14). D291's own worry, one sentence under BROKE 80 and PERSONAL BEST, is answered in the case:
+     when two slats share a round, the line prints once (renderTrophyCase). */
+  const g = (round && round.gross != null) ? round.gross : (m.gross != null ? m.gross : null);
+  if(g != null){
+    lead = String(g);
+    if(c) lead += ' at ' + c;
   }
   /* NEVER `achSubtitle`'s label fallback here: the slat's own title already
      says BROKE 80, and "Broke 80 · Aug 24" beneath it is the name twice
@@ -25630,6 +25664,9 @@ function renderTrophyCase(){
   const firstRid = firstAch ? String(firstAch.round_id) : null;
   const foldsIntoFirst = a => !!firstRid && a.kind !== 'first_round' && csTrophyShelf(a.kind, false) === 'bests' && String(a.round_id || '') === firstRid;
   const folded = ach.some(foldsIntoFirst);
+  /* X40 (1) · one round, one line: when two BESTS slats share a round (a 79 that is BROKE 80 and a PERSONAL
+     BEST), the round's line prints on the first and the second keeps its door and its title only */
+  const saidRound = new Set();
   hw.forEach(t=>{
     const id='t'+keyOf(t); ids.push(id);
     tiles.push({ shelf:'hardware', glyph:trophyGlyph(t.kind, t.placement), numeral:null,
@@ -25655,7 +25692,7 @@ function renderTrophyCase(){
     tiles.push({ shelf, glyph:m.glyph, numeral, title:m.title, mint:fresh(id), rid, trail:null,
       /* a BESTS slat names the round it was won on; the quiet shelf keeps the
          dated line it has always had — "Posted · '26" is the whole of it. */
-      sub: shelf==='bests' ? csMilestoneSub(a, csMilestoneRound(rid))
+      sub: shelf==='bests' ? ((rid && saidRound.has(String(rid))) ? '' : (rid && saidRound.add(String(rid)), csMilestoneSub(a, csMilestoneRound(rid))))
          : (folded && a === firstAch) ? csMilestoneSub(a, csMilestoneRound(firstRid))   /* X39 · the slat names its round */
          : achSubtitle(a)+yr });
   });
@@ -26144,7 +26181,6 @@ function renderIndStatsReal(){
     return;
   }
   const me=rows.find(p=>p.me);
-  const sgn=v=>(v>=0?'+':'')+v.toFixed(1);
   const cnt = (me && me.hist) ? me.hist.length : 0;
   $('#msR').textContent = me ? me.r : '—';
   /* Q39 (a) · This season's tiles speak as All time's do (vsShort), so the two strips stay one grammar and
@@ -26190,6 +26226,8 @@ function renderIndStatsReal(){
      P&L axis, and neg is kept for errors (UI_SYSTEM 2.5) */
   /* W7-023 · the desk's Last five, inside the row (D280): the standings of a solo
      season carry it, and the individual board of a squads season had none */
+  /* Q39 (a) · root's ruling 2026-09-29: the Avg column says it in WORDS on the real path too (vsShort, as the
+     diorama's table has since Q-23): one producer, and the two paths must never differ */
   let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="deskonly">Last five</th><th class="num">Avg vs playing HCP</th><th class="num">Pts</th></tr>`;
   const rkOf = []; rows.forEach((p,i) => { rkOf[i] = (i > 0 && p.pts === rows[i-1].pts) ? rkOf[i-1] : i + 1; });
   const tiedAt = (i) => rows.filter(q => q.pts === rows[i].pts).length > 1;
@@ -26199,7 +26237,7 @@ function renderIndStatsReal(){
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${esc(p.n)}</div><div class="tc">${esc(p.sq||'')}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
       <td class="deskonly">${csFormFive(p.hist)}</td>
-      <td class="num dw">${p.r?sgn(p.avg):'—'}</td>
+      <td class="num dw">${p.r?vsShort(p.avg):'—'}</td>
       <td class="num pts">${p.pts}</td></tr>`;
   });
   $('#indTable').innerHTML=html;
@@ -27146,7 +27184,6 @@ function openRoundReceipt(x, opts){
         ${sentence ? `<div class="rm-say">${csFigRun(sentence)}</div>` : ''}
         <i class="cs-brandrule" aria-hidden="true"></i>
         <div class="rm-foot">
-          <span class="rm-tag">${esc(window.CS_BRAND ? CS_BRAND.taglineCaps : 'ANY TIME. ANYWHERE.')}</span>
           <svg class="rm-mark cs-mark" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
         </div>
       </div>
@@ -31348,7 +31385,8 @@ async function openTourCard(profileId){
   if(vs && (vs.wins+vs.losses+vs.ties)>0){
     const rec2 = `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`;
     const lead = csLeadLabel(vs.wins, vs.losses);
-    vsChip = `<button class="cvs" id="tcVs">VS YOU · ${rec2} · ${lead}</button>`;
+    /* X36 (1) · root's ruling 2026-09-29: tour_card.vs_you counts season weeks, so the chip names that facet */
+    vsChip = `<button class="cvs" id="tcVs">IN THE SEASON · ${rec2} · ${lead}</button>`;
   }
   const mkMeta = (typeof MARKERS!=='undefined' && (MARKERS[p.marker]||MARKERS.saguaro)) || null;
   const est = estSince(p.member_since);
@@ -31394,12 +31432,17 @@ async function openTourCard(profileId){
   const avgIdx   = newShape ? (c.avg_vs_index!=null ? Number(c.avg_vs_index) : null)
                             : (c.avg_pvi!=null ? Number(c.avg_pvi) : null);
   const lens     = avgPvi!=null || bestPvi!=null;
-  const sgn1     = v => (v>=0?'+':'')+v.toFixed(1);
+  /* Q39 (a) · the card's career figures say it in WORDS (vsShort, as the phone's TourCard follows with CSBands),
+     never a sign a reader has to be told the direction of */
   const whose    = p.is_me?'your':'their';
-  const best = lens ? (bestPvi!=null ? sgn1(bestPvi) : '—')
-                    : (c.best!=null ? Number(c.best).toFixed(1) : '—');
-  const avg  = lens ? (avgPvi!=null ? sgn1(avgPvi) : '—')
-                    : (avgIdx!=null ? sgn1(avgIdx) : '—');
+  /* X40 (1) · off the lens the best is THE ROUND the golfer remembers (career.best_round: the lowest 18-hole
+     gross, where and when), never the differential (it lives on the receipt); with no round the row is absent */
+  const br = c.best_round && c.best_round.gross != null ? c.best_round : null;
+  const brSaid = br ? `${br.gross}${br.course_label ? ' at ' + esc(csCourse(br.course_label)) : ''}${br.played_on ? ' \u00b7 ' + esc(csMonthDay(br.played_on)) : ''}` : null;
+  const best = lens ? (bestPvi!=null ? vsShort(bestPvi) : '—')
+                    : (brSaid || '—');
+  const avg  = lens ? (avgPvi!=null ? vsShort(avgPvi) : '—')
+                    : (avgIdx!=null ? vsShort(avgIdx) : '—');
   /* R-M · the comparison noun is the PLAYING HCP. Wave D renamed both
      clients' producers and missed these three, because they are built by
      interpolation inside a template literal and preflight 42's web scan reads
@@ -31407,17 +31450,18 @@ async function openTourCard(profileId){
      `avgLabel` and `careerSignsLine`; these now say the same words. Check 42
      part C pins this block so the miss cannot come back. */
   const eyebrow  = lens ? `Career · vs ${whose} playing HCP` : 'Career';
-  const bestK    = lens ? 'Best round' : 'Best round vs course';
+  const bestK    = 'Best round';   /* X40 · 'vs course' named the differential, which stays on the receipt */
   const avgK     = lens ? 'Avg' : `Avg vs ${whose} playing HCP`;
   /* 8c · the two OLD figures run opposite ways — a course score where lower
      wins beside a delta where + wins — and one table cannot sign both the same
      way, so the table says which is which. Under the lens they are one
      measurement signed one way and this line has nothing left to explain. */
-  const signsLine = lens ? ''
-    : `<div class="fine" style="padding-top:6px">Lower is better against the course; against ${whose} playing HCP, + is better.</div>`;
+  /* X40 + Q39 · the course score is gone from the card and the playing-HCP figures are words, so no sign is
+     left to explain (the phone's careerSignsLine goes with it) */
+  const signsLine = '';
   const stats = `<div class="eyebrow" style="margin-top:16px">${eyebrow}</div>
       <div class="mathrow"><span>Rounds</span><b>${c.rounds||0}</b></div>
-      <div class="mathrow"><span>${bestK}</span><b>${best}</b></div>
+      ${best !== '—' || lens ? `<div class="mathrow"><span>${bestK}</span><b>${best}</b></div>` : ''}
       <div class="mathrow"><span>${avgK}</span><b>${avg}</b></div>
       ${p.home_course?`<div class="mathrow"><span>Home course</span><b>${esc(csCourse(p.home_course))}</b></div>`:''}
       ${p.ghin?`<div class="mathrow"><span>GHIN</span><b>${esc(p.ghin)}</b></div>`:''}${signsLine}`;
@@ -31471,9 +31515,9 @@ async function openTourCard(profileId){
   if(rec.length){
     recHtml = `<div class="eyebrow" style="margin-top:16px">Recent rounds</div>`
       + rec.map(r=>{ const d=new Date(r.played_on+'T00:00:00');
-          const diff=r.differential!=null?Number(r.differential).toFixed(1):'—';
+          /* X40 (1) · a recent round is its gross and its course; the differential ("VS COURSE 9.1") is the receipt's */
           return `<div class="check"><span class="num mono" style="font-size:11px">${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
-            <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b><small>${r.course_label?esc(r.course_label.toUpperCase())+' · ':''}VS COURSE ${diff}</small></div></div>`;
+            <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b>${r.course_label?`<small>${esc(r.course_label.toUpperCase())}</small>`:''}</div></div>`;
         }).join('');
   }
   /* W4 (iOS arc, Guideline 1.2): mute lives on the card — the one place you
@@ -31848,7 +31892,11 @@ function csBoardBand(r){
   const name = bandName(Number(r.avg_vs_number_30d));
   return r.is_me ? name : name.replace('your', 'their');
 }
-window.csBoardFormLine = csBoardFormLine; window.csBoardBand = csBoardBand;
+/* Q18 (4) · owner ruling 2026-09-29: a band is defined per ROUND (spec §2.2), and the board names a 30-day AVERAGE
+   with one (D245, D281), so the word carries its gloss beside it, said once: "Beat their number · on average".
+   Twin: FriendsBoard.Row.band with the same gloss. */
+const CS_BOARD_AVG_GLOSS = 'on average';
+window.csBoardFormLine = csBoardFormLine; window.csBoardBand = csBoardBand; window.CS_BOARD_AVG_GLOSS = CS_BOARD_AVG_GLOSS;
 
 let CS_BOARD_LENS = 'form';
 async function renderFriendsBoard(){
@@ -31921,12 +31969,13 @@ async function renderFriendsBoard(){
       const fig = lens === 'form'
         ? (n && r.avg_vs_number_30d != null ? signed(Number(r.avg_vs_number_30d)) : '\u2014')
         : (r.index_current != null ? fmtIdx(r.index_current) : '\u2014');
-      const word = lens === 'form' ? (csBoardBand(r) || (n ? '' : 'Nothing yet')) : '';
+      const band = lens === 'form' ? csBoardBand(r) : null;
+      const word = lens === 'form' ? (band || (n ? '' : 'Nothing yet')) : '';
       return `<div class="fbrow${r.is_me ? ' mine' : ''} tap" tabindex="0" role="button" data-person="${esc(r.profile_id)}">
         <span class="rk">${String(rank(r)).padStart(2, '0')}</span>
         ${window.face ? window.face(r.profile_id, r.marker, 38) : ''}
         <span class="fbn"><b>${esc(name)}</b><small>${esc(sub)}</small></span>
-        <span class="fbv"><b>${esc(fig)}</b>${word ? `<small>${esc(word)}</small>` : ''}</span></div>`;
+        <span class="fbv"><b>${esc(fig)}</b>${word ? `<small>${esc(word)}</small>` : ''}${band ? `<small class="fbgloss">${CS_BOARD_AVG_GLOSS}</small>` : ''}</span></div>`;
     }).join('')}
     <p class="fine" style="padding:10px 0 0">Your buddies, by how they are playing. No badges, no streaks \u2014 just rounds.</p>`;
   box.querySelectorAll('[data-lens]').forEach(b => b.addEventListener('click', () => {

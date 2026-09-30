@@ -127,18 +127,18 @@ const ok = (cond, label) => eq(!!cond, true, label);
   eq(csMilestoneSub(a, { gross: 78, course_label: null, played_on: '2026-08-20' }),
      '78 · Aug 20', 'the round outranks the snapshot');
 
-  // a personal best carries a DIFFERENTIAL, not a gross — D210's words survive
+  // X40 (1) · owner ruling 2026-09-29: a personal best prints THE ROUND the
+  // golfer remembers, never its differential (which lives on the receipt,
+  // TERMINOLOGY row 92 / P-16 / L-14). With no round in hand and no gross on
+  // the meta, it is the date alone — never "4.1 vs course".
   const pb = { kind: 'personal_best', label: 'Personal best', earned_on: '2026-08-24', meta: { diff: 4.1 } };
-  eq(csMilestoneSub(pb, null), '4.1 vs course · Aug 24', 'a personal best keeps the house name for its figure');
-  // A MILESTONE PRINTS THE FIGURE IT IS ABOUT. Taking the round's GROSS here
-  // put the identical sentence under BROKE 80 and PERSONAL BEST whenever one
-  // round earned them together — the owner's own complaint, arriving inside
-  // the fix for it. The personal best keeps its differential and gains the
-  // course; the threshold keeps its gross.
-  eq(csMilestoneSub(pb, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }),
-     '4.1 vs course · Papago · Aug 24', 'a personal best never borrows the threshold\'s sentence');
+  eq(csMilestoneSub(pb, null), 'Aug 24', 'a personal best never prints its differential');
+  eq(csMilestoneSub(pb, { gross: 83, course_label: 'Papago', played_on: '2026-08-24' }),
+     '83 at Papago · Aug 24', 'a personal best names its round: the gross, the course, the day');
+  // one round that earned both reads the same under both; the CASE prints the
+  // line once (renderTrophyCase's saidRound, pinned in tests/app-tests.js)
   eq(csMilestoneSub(a, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }),
-     '79 at Papago · Aug 24', 'and the two never read the same on one round');
+     csMilestoneSub(pb, { gross: 79, course_label: 'Papago', played_on: '2026-08-24' }), 'one round, one sentence');
 }
 
 /* ── 5 · the lookup is absent, never wrong ──────────────────────────────── */
