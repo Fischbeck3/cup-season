@@ -577,6 +577,8 @@ private struct YourRoundsSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
+          CSSheetHeader(title: YouCopy.allRoundsTitle, sub: nil)
+            .padding(.bottom, CSTokens.Space.s3)
           if let failed, rows.isEmpty {
             VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
               Text(failed).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
@@ -593,7 +595,8 @@ private struct YourRoundsSheet: View {
         .padding(.horizontal, CSTokens.Space.gutter)
       }
       .background(cs.bg0)
-      .navigationTitle(YouCopy.allRoundsTitle).navigationBarTitleDisplayMode(.inline)
+      // LINT-24 · the sheet names itself once, in its own header
+      .navigationTitle("").navigationBarTitleDisplayMode(.inline)
       .csCloseButton { dismiss() }
     }
     .task { await load() }
