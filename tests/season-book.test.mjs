@@ -12,7 +12,15 @@ const source=html.slice(html.indexOf('/* D381 · the Book.'),html.indexOf('/* EN
 const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const localDate=iso=>{const [y,m,d]=String(iso||'').slice(0,10).split('-').map(Number);return new Date(y,(m||1)-1,d||1);};
 const csRoundDay=iso=>{const d=localDate(String(iso||'').slice(0,10));if(isNaN(d))return String(iso||'');const y=d.getFullYear()!==new Date().getFullYear()?', '+d.getFullYear():'';return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}${y}`;};
-const ctx={window:{},MOS,DOW,localDate,csRoundDay,esc:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),climbOrd:n=>n+(['st','nd','rd'][n-1]||'th')};vm.createContext(ctx);vm.runInContext(source,ctx);
+/* TEN · the Book's slice also carries boot-time page wiring since 561d5c12:
+   the desk rail's and the desk asides' scroll-edge IIFEs (W7-027/029) sit
+   between the D381 markers, beside csBookEdge, and run at top level. On the
+   page they look up their elements; here there is no page, so the context
+   carries an EMPTY document. querySelector finds nothing and querySelectorAll
+   finds an empty list, so both IIFEs return before touching anything, exactly
+   as on a page without those elements. The Book's own code is untouched. */
+const emptyDocument={querySelector:()=>null,querySelectorAll:()=>[]};
+const ctx={window:{},document:emptyDocument,MOS,DOW,localDate,csRoundDay,esc:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),climbOrd:n=>n+(['st','nd','rd'][n-1]||'th')};vm.createContext(ctx);vm.runInContext(source,ctx);
 const B=ctx.window.SeasonBook,read=n=>JSON.parse(readFileSync(new URL('./fixtures/season-book/'+n+'.json',import.meta.url)));
 let count=0;function test(name,body){body();count++;console.log('PASS '+name);}
 test('actual RPC fixtures reconcile in both clients',()=>{for(const n of ['squads','tie','upcoming','finished']){const b=read(n);B.validate(b,b.league_id,b.season_id);}});

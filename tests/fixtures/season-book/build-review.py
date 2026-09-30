@@ -2,6 +2,10 @@
 from pathlib import Path
 import json,sys,shutil
 root=Path(__file__).resolve().parents[3];html=(root/'index.html').read_text()
+# Q12 · on a split tree the scripts live in app/*.js: read the joined single file
+# (byte for byte the pre-split index.html) that tools/split-scripts.mjs gives every reader.
+if 'src="/app/classic.js?v=' in html:
+ import subprocess;html=subprocess.run(['node',str(root/'tools/split-scripts.mjs'),'join','--root',str(root)],capture_output=True,text=True,check=True).stdout
 out=Path(sys.argv[1]);out.mkdir(parents=True,exist_ok=True)
 css=html[html.index('<style>')+7:html.index('</style>')]
 # Bundle the same licensed faces the app already ships, keeping this harness offline.
