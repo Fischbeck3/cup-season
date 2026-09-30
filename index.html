@@ -12050,6 +12050,9 @@ async function openBuyInTerms(){
   });
 }
 window.openBuyInTerms = openBuyInTerms;
+/* Q35 (a) · the counting-limit clause of the Cup Final, ONE sentence for every place the Final is stated (the endgame line, the rules page, the covenant); the wizard's help and agreement already say it in these words. */
+const CS_FINAL_COUNTING = 'Final rounds must also fit the monthly counting limit; an earlier round can take a place.';
+window.CS_FINAL_COUNTING = CS_FINAL_COUNTING;
 function endgameLine(opts){
   const o = opts || {};
   const finish = o.finish || state.finish || 'cup_final';
@@ -12073,9 +12076,11 @@ function endgameLine(opts){
      the head start. The owner's panel read that line beside the climb's
      "BOTH SQUADS PLAY THE CUP FINAL". `LeagueCopy.endgame` is the twin, and
      tests/fixtures/endgame.json holds both clients to it. */
+  /* Q35 (a) · owner ruling 2026-09-29: the Final keeps "scored fresh" (spec §14.3, D126) AND says its counting limit, wherever it is stated: the engine ranks the Final by the monthly cap
+     (D346's CONFLICT), so "scored fresh" alone promised a reset the counting rule does not give. The clause is the one the wizard's help and agreement already say (CS_FINAL_COUNTING). */
   if(structure === 'squads2')
-    return `Both squads play a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, and the leader carries +10 in. Level on points? Months won breaks it.`;
-  return `${who} go into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it.`;
+    return `Both squads play a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, and the leader carries +10 in. ${CS_FINAL_COUNTING} Level on points? Months won breaks it.`;
+  return `${who} go into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the weeks before it decide who is in, not who wins. ${CS_FINAL_COUNTING} Level on points? Months won breaks it.`;
 }
 function vsShort(v){
   /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have
@@ -34796,9 +34801,9 @@ function csCovenantFacts(info, postedRounds){
   const table = info.finish === 'points_table' || shortSeason;
   const ending = table ? "The season's points decide it. No reset."
     : !st ? 'It ends with a four-week Cup Final between the top two.'
-    : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.'
-    : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh.'
-    : 'The top two squads qualify for a four-week Cup Final, scored fresh.';
+    : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start. ' + window.CS_FINAL_COUNTING
+    : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING
+    : 'The top two squads qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING;   /* Q35 (a): and its counting limit */
   out.push({ k:'ending', t: ending });
   /* L-10 · every money line is ABOVE $0 only */
   if(paid){

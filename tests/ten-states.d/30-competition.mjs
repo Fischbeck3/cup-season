@@ -542,6 +542,12 @@ const SEASON = [
       }),
       /* TEN / W8 · W7-093 [A2-rules-2]: the minimum's sentence says WHICH months carry none (it read 'Post 2 rounds a month.' with no word on the partial first and last month) */
       has('#bylawsHub', 'A partial first or last month has no minimum\\.', 'the rules say which months carry no minimum'),
+      /* TEN / W8 · Q35 (a) (owner, 2026-09-29): the rules state the Cup Final as 'scored fresh' AND say its counting limit, in the one sentence every place the Final is stated says */
+      async (page) => page.evaluate(() => {
+        const t = document.getElementById('bylawsHub').innerText.replace(/\s+/g, ' ')
+        if (!/scored fresh/.test(t)) return 'the rules no longer say the Final is scored fresh'
+        return /Final rounds must also fit the monthly counting limit; an earlier round can take a place\./.test(t) ? true : 'the rules state the Final without its counting limit'
+      }),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
          scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
          scrolled back, the rules again (the scroll-spy, not only the click) */

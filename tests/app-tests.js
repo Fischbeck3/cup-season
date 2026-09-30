@@ -1666,19 +1666,21 @@
        what competes is its own `structure` fact (JoinLeague.swift:366) and the
        ending is JoinLeague.endingLine (:264-269). The web keeps its own
        branching — D384's short season and the older server's one sentence. */
+    /* Q35 (a) (owner, 2026-09-29) · the Final keeps "scored fresh" and says its counting limit wherever it is stated: the same clause the wizard's help and agreement carry, pinned here as words */
+    const CS_FINAL_COUNTING_SP = ' Final rounds must also fit the monthly counting limit; an earlier round can take a place.';
     t('L-23: solo stands alone; no minimum is promised to a solo season',
       [F({ ...full, structure: 'solo' }).structure, F({ ...full, structure: 'solo' }).ending, F({ ...full, structure: 'solo' }).rules],
       ['Every golfer plays for their own place.',
-       'The top two golfers qualify for a four-week Cup Final, scored fresh.',
+       'The top two golfers qualify for a four-week Cup Final, scored fresh.'+CS_FINAL_COUNTING_SP,
        'Standard rules: honest scores, best three a month count.']);
     t('L-23: two squads both reach the Final, the leader 10 up',
       [F({ ...full, structure: 'squads2' }).structure, F({ ...full, structure: 'squads2' }).ending],
       ['Two squads. Your round points contribute to your squad\u2019s season.',
-       'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.']);
+       'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.'+CS_FINAL_COUNTING_SP]);
     t('L-23: larger squads send the top two; a points table has no reset',
       [F({ ...full, structure: 'squads3' }).structure, F({ ...full, structure: 'squads3' }).ending, F({ ...full, structure: 'squads4', finish: 'points_table' }).ending],
       ['Squads compete together. Your round points contribute to your squad\u2019s season.',
-       'The top two squads qualify for a four-week Cup Final, scored fresh.',
+       'The top two squads qualify for a four-week Cup Final, scored fresh.'+CS_FINAL_COUNTING_SP,
        "The season's points decide it. No reset."]);
     t('L-23: a season under six weeks is decided by the points table',
       F({ ...full, structure: 'solo', weeks: 4 }).ending,
