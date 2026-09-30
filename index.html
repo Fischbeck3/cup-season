@@ -4083,6 +4083,14 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   max-width:86%; text-align:left; z-index:100000;   /* AW2-23 · the transition is the roll-out's below (opacity + transform), never `all` */
 }
 .toast::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--rule);}
+/* TEN / W6 · K077 kinds (§13.4, the phone's toast): confirmed = the check on a
+   pos rail; failed = the cross on a neg rail; neutral = the rule rail above,
+   no glyph */
+.toast .toastglyph{flex:none; width:16px; height:16px; margin-right:var(--s2); vertical-align:0;}
+.toast[data-kind="pos"]::before{background:var(--pos);}
+.toast[data-kind="pos"] .toastglyph{color:var(--pos);}
+.toast[data-kind="neg"]::before{background:var(--neg);}
+.toast[data-kind="neg"] .toastglyph{color:var(--neg);}
 @media(min-width:960px){ .toast{bottom:28px;} }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
@@ -6077,6 +6085,15 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
   </symbol>
   <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M5 5 19 19M19 5 5 19"/>
+  </symbol>
+  <!-- TEN / W6 · K077 kinds · the phone's CSGlyph .check and .cross
+       (Chrome.swift:57-58), ported VERBATIM (root's ruling: a port, not a
+       drawing): the toast's confirmed and failed kinds, and nothing else -->
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.5 12.6l4.8 4.8L19.5 7"/>
+  </symbol>
+  <symbol id="i-cross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 6l12 12M18 6L6 18"/>
   </symbol>
   <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="5 9 12 16 19 9"/>
@@ -8436,7 +8453,13 @@ setInterval(function(){
 
 })();
 
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
+/* TEN / W6 · K077 kinds · `kind` is 'pos' (a confirmation of the golfer's own
+   act), 'neg' (a humanError refusal) or nothing (the rule rail: everything
+   else). The glyph is aria-hidden: what a screen reader hears is unchanged. */
+function toast(m, kind){const t=$('#toast');const k=(kind==='pos'||kind==='neg')?kind:'';t.textContent=m;
+  if(k){ t.dataset.kind=k; t.insertAdjacentHTML('afterbegin', `<svg class="ic toastglyph" aria-hidden="true" focusable="false"><use href="#i-${k==='pos'?'check':'cross'}"/></svg>`); }
+  else delete t.dataset.kind;
+  t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
 /* Batch C: the signed-scorecard stamp + haptic thock on a posted round */
 let stampT;
 function stampPosted(label){
@@ -10651,7 +10674,7 @@ async function toggleRx(f, emoji){
   if(error){ /* revert the optimistic flip — and say so */
     console.warn('[reaction]', emoji, error);
     rxFlip(cur, me, had);
-    rerenderFeeds(); toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'));
+    rerenderFeeds(); toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'), 'neg');
   } else if(emoji===APPLAUSE.key && !had) csApplauseFirstSend();
 }
 /* D365 · first-use feedback, once per browser — and only for a GIVE */
@@ -10668,7 +10691,7 @@ async function sendComment(f, text){
   if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
   const { error } = await window.sb.from('post_comments').insert({
     post_id:f.post_id, member_id:window.CS.member.id, body:v });
-  if(error){ cm.pop(); rerenderFeeds(); toast(humanError(error, 'Comment did not send.')); }
+  if(error){ cm.pop(); rerenderFeeds(); toast(humanError(error, 'Comment did not send.'), 'neg'); }
 }
 /* re-render the feed. renderFeed() already cascades to the full board when
    it's open, so one call refreshes both views. */
@@ -10743,9 +10766,9 @@ async function reportPost(f){
       const { error } = await window.sb.rpc('report_content', { p_post: f.post_id, p_reason: reason });
       if(error) throw error;
       closeSheet();
-      toast('Reported — thanks. We’ll take a look.');
+      toast('Reported — thanks. We’ll take a look.', 'pos');
       try{ if(typeof qaEvent==='function') qaEvent('content_reported', { post: f.post_id }); }catch(_){}
-    }catch(e){ if(go) go.disabled = false; toast(humanError(e, 'Could not send the report.')); }
+    }catch(e){ if(go) go.disabled = false; toast(humanError(e, 'Could not send the report.'), 'neg'); }
   });
 }
 /* R8 (S7, Guideline 1.2) · a comment gets the two doors a post has. Report
@@ -10776,15 +10799,15 @@ function csOpenCommentSafety(c){
       const { error } = await window.sb.rpc('report_content', { p_post: null, p_reason: reason, p_kind: kind, p_comment: c.id });
       if(error) throw error;
       closeSheet();
-      toast('Reported — thanks. We’ll take a look.');
+      toast('Reported — thanks. We’ll take a look.', 'pos');
       try{ if(typeof qaEvent==='function') qaEvent('content_reported', { comment: c.id, kind }); }catch(_){}
-    }catch(e){ if(go) go.disabled = false; toast(humanError(e, 'Could not send the report.')); }
+    }catch(e){ if(go) go.disabled = false; toast(humanError(e, 'Could not send the report.'), 'neg'); }
   });
   document.getElementById('crptBlock')?.addEventListener('click', async () => {
     const b = document.getElementById('crptBlock'); if(b) b.disabled = true;
     const on = !blocked;
     const { error } = await window.sb.rpc('set_mute', { p_profile: c.pid, p_on: on });
-    if(error){ if(b) b.disabled = false; toast(humanError(error, 'Could not change that.')); return; }
+    if(error){ if(b) b.disabled = false; toast(humanError(error, 'Could not change that.'), 'neg'); return; }
     window.MUTED = window.MUTED instanceof Set ? window.MUTED : new Set();
     on ? window.MUTED.add(c.pid) : window.MUTED.delete(c.pid);
     closeSheet();
@@ -11661,7 +11684,7 @@ async function sendChatFrom(inp){
       member_id: window.CS.member?.id,
       body: v
     });
-    if(error){ inp.value=v; feed.pop(); renderFeed(); toast(humanError(error, 'Message did not send.')); }
+    if(error){ inp.value=v; feed.pop(); renderFeed(); toast(humanError(error, 'Message did not send.'), 'neg'); }
   }
 }
 $('#chatSend').addEventListener('click',()=>sendChatFrom($('#chatIn')));
@@ -11806,7 +11829,7 @@ $('#dShuffle').addEventListener('click',()=>{
   d.order=[...base, ...[...base].reverse(), ...base];
   feed.push({d:TODAY, sys:true, txt:`PICK ORDER SET — ${base.map(i=>captains[i].toUpperCase()).join(' · ')}`});
   renderFeed(); renderDraft();
-  toast('Order randomized and posted to the board');
+  toast('Order randomized and posted to the board', 'pos');
 });
 $('#dPickFor').addEventListener('click',()=>{
   toast('You already can: as the Pro, any golfer not on a squad yet is tappable on any clock');
@@ -11990,8 +12013,8 @@ async function openBuyInTerms(){
       const { error } = await sb.rpc('set_buy_in_terms', { p_league: CS.league.id, p_note: note || null, p_due_on: d });
       if(error) throw error;
       CS.settings = { ...(CS.settings||{}), buy_in_note: note || null, buy_in_due_on: d };
-      closeSheet(); renderPot(); toast('Saved — the crew can see it on the pot');
-    } catch(e){ toast(humanError(e, 'Could not save.')); }
+      closeSheet(); renderPot(); toast('Saved — the crew can see it on the pot', 'pos');
+    } catch(e){ toast(humanError(e, 'Could not save.'), 'neg'); }
   });
 }
 window.openBuyInTerms = openBuyInTerms;
@@ -12398,8 +12421,8 @@ async function shareRoundCard(d){
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='cup-season-card.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded \u00b7 caption copied'); }
-    catch(e){ toast('Card downloaded'); }
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded \u00b7 caption copied', 'pos'); }
+    catch(e){ toast('Card downloaded', 'pos'); }
   }catch(e){
     if(e && e.name==='AbortError') return;
     console.warn('[round card]', e);
@@ -12570,8 +12593,8 @@ async function shareSettlementCard(d){
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='cup-season-settlement.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
-    catch(e){ toast('Card downloaded'); }
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied', 'pos'); }
+    catch(e){ toast('Card downloaded', 'pos'); }
   }catch(e){
     if(e && e.name==='AbortError') return;
     toast('Could not make the card.');
@@ -12902,7 +12925,7 @@ async function csShareIntentLink(kind, ref, text){
     data = r.data;
   }catch(e){
     if(csShareKindNotDeployed(e)){ toast(CS_SHARE_NOT_YET); return { ok:false, notYet:true }; }
-    toast(humanError(e, 'Could not make that link.'));
+    toast(humanError(e, 'Could not make that link.'), 'neg');
     return { ok:false };
   }
   const url = location.origin + '/?' + (kind === 'person' ? 'p' : 'plan') + '=' + data;
@@ -12946,7 +12969,7 @@ async function csRevokeLink(kind, ref, failed = 'Could not revoke.'){
     const r2 = await sb.rpc('revoke_share', { p_token: data });
     if(r2.error) throw r2.error;
     toast('Link is off — the page stops working for everyone');
-  }catch(e){ toast(humanError(e, failed)); }
+  }catch(e){ toast(humanError(e, failed), 'neg'); }
 }
 /* D385 §3 · the round's live link, for drawing "Turn off this link" only when there is one */
 async function csRoundLinkLive(rid){
@@ -14147,7 +14170,7 @@ function openPostParsSheet(){
     state.post.scores = state.post.pars.slice();   /* grid re-opens on the new pars */
     closeSheet();
     renderPostHoles();
-    toast('Pars set — adjust the holes you didn’t par');
+    toast('Pars set — adjust the holes you didn’t par', 'pos');
   });
   refresh();
   f9.focus();
@@ -14550,7 +14573,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       /* W1 · the answer stays above the button it answers. The server's own
          sentence when it wrote one for a golfer; an honest unknown when not.
          A failure AFTER the server took the round is not "nothing was posted". */
-      if(accepted){ toast(humanError(e, 'Round posted.')); return; }
+      if(accepted){ toast(humanError(e, 'Round posted.'), 'neg'); return; }
       const why = humanError(e, null);
       const shrug = /^Something went wrong/.test(why);
       csPostRefused(e && e.csKind === 'ambiguous'
@@ -14786,7 +14809,7 @@ function scanPartnersSheet(ctx){
       b.textContent='Copied';
       qaEvent('scan_claim_minted');
       growthEvent('artifact_shared', 'claim', p._token);
-    }catch(err){ toast(humanError(err, 'Could not make the link.')); b.disabled=false; }
+    }catch(err){ toast(humanError(err, 'Could not make the link.'), 'neg'); b.disabled=false; }
   }));
 }
 
@@ -14893,7 +14916,7 @@ $('#postReset')?.addEventListener('click',e=>{
      ambiguous failure is exactly the case the id exists for: the next post,
      under a different card, asks the server whether the earlier one landed. */
   resetPostComposer();
-  toast(CS_POST_RESET.done);
+  toast(CS_POST_RESET.done, 'pos');
 });
 $('#postScanBack')?.addEventListener('click',e=>{
   e.preventDefault();
@@ -15150,7 +15173,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
          listeners (syncTeeInputs) need the event to recompute strokes */
       [ra,sl].forEach(el=>{ if(el) el.dispatchEvent(new Event('input',{bubbles:true})); });
       if(ratingSel==='#inRating' && typeof recalc==='function') recalc();
-      hide(); toast('Tees set — rating and slope filled');
+      hide(); toast('Tees set — rating and slope filled', 'pos');
       const cached = window.sb.functions.invoke('courses', { body:{ action:'cache', id:c.id } }).catch(()=>{});
       csCourseKeep(c, t);   /* D261 · this device keeps what you picked */
       if(typeof onTee==='function') onTee({ course:c, tee:t, cached });
@@ -15515,7 +15538,7 @@ function renderPot(){
           if(error) throw error;
           (window.buyIns ||= {})[m.id] = { ...(bi[m.id]||{}), paid: !paid, amount_cents: state.stake*100 };
           renderPot();
-        }catch(e){ toast(humanError(e, 'Mark failed.')); row.disabled=false; }
+        }catch(e){ toast(humanError(e, 'Mark failed.'), 'neg'); row.disabled=false; }
       });
       el.appendChild(row);
     });
@@ -18308,7 +18331,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
          The pocket half (push_nudges) fired server-side inside the RPC. */
       window.liveAnnounceOpen?.(state.live.lr);
     }catch(e){
-      toast(humanError(e, 'Could not start the round.'));
+      toast(humanError(e, 'Could not start the round.'), 'neg');
       state.live.active=false; state.live.stage='setup'; btn.disabled=false; renderPlay(); return;
     }
     btn.disabled=false;
@@ -18552,7 +18575,7 @@ function finishRealLiveRound(){
       showLiveRecap(data||{}, casual?null:result, lrId);
       if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
     }catch(e){
-      toast(humanError(e, 'Finish failed.'));
+      toast(humanError(e, 'Finish failed.'), 'neg');
       if(pb) pb.disabled=false; if(cb) cb.disabled=false;
     }
   };
@@ -18746,7 +18769,7 @@ function showLiveRecap(d, result, lrId){
     try{ await (window.loadHome?.()); }catch(_){}
   })();
   document.querySelectorAll('#shBody [data-copylink]').forEach(b=>b.addEventListener('click',()=>{
-    try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Scorecard link copied'); }
+    try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Scorecard link copied', 'pos'); }
     catch(_){ toast('Copy failed'); }
   }));
   /* D77: this read `story` — a feed row, composed for a screen that already
@@ -18825,7 +18848,7 @@ $('#discardBtn')?.addEventListener('click', async ()=>{
   if(typeof renderPlay==='function') renderPlay();
   renderResumeBanner();
   switchView('home');
-  toast('Round scrapped — nothing posted');
+  toast('Round scrapped — nothing posted', 'pos');
 });
 $('#finishBtn').addEventListener('click',()=>{
   /* real accounts: one finish posts every complete card at once (§13.1) —
@@ -19872,7 +19895,7 @@ function wireBag(){
       window.loadHome?.();
     }catch(e){
       if(btn) btn.disabled = false;
-      toast(humanError(e, 'Could not save your bag.'));
+      toast(humanError(e, 'Could not save your bag.'), 'neg');
     }
   });
 }
@@ -20093,7 +20116,7 @@ function openCardSheet(){
     closeSheet();
     $('#cardNote').textContent=`Card saved: par ${sumStr(f)+(nine?0:sumStr(b))}${nine?' · 9 holes':''}. The stepper opens on each hole's par.`;
     renderPlay();
-    toast('Card saved: every league gets it from here');
+    toast('Card saved: every league gets it from here', 'pos');
   });
   refresh();
   f9.focus();
@@ -21023,7 +21046,7 @@ async function toggleHomeRx(r, emoji){
     console.warn('[reaction:home]', emoji, error);
     rxFlip(cur, me, had);
     renderHomeFeed();
-    toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'));
+    toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'), 'neg');
   } else if(emoji===APPLAUSE.key && !had) csApplauseFirstSend();
 }
 function wireHomeSocial(box){
@@ -22816,7 +22839,7 @@ async function csAnswerPlan(planId, answer, btns){
     renderHomeDispatch();
   }catch(e){
     (btns||[]).forEach(b => { b.disabled = false; });
-    toast(humanError(e, 'Couldn’t send that — try again.'));
+    toast(humanError(e, 'Couldn’t send that — try again.'), 'neg');
   }
 }
 window.csAnswerPlan = csAnswerPlan;
@@ -23153,7 +23176,7 @@ function renderRequestsInto(box, opts){
       window.loadHome?.();
       /* D93: refresh whichever copy is on screen, not just Home's */
       window.renderCrewPeople?.();
-    }catch(e){ b.disabled=false; toast(humanError(e)); }
+    }catch(e){ b.disabled=false; toast(humanError(e), 'neg'); }
   }));
 }
 /* ============ D236 - the ME strip, as the desk's IDENTITY BLOCK ============
@@ -24711,7 +24734,7 @@ function renderGolfers(){
     const season=lg=>{
       const url=`https://cupseason.app/?join=${lg.code}`;
       if(navigator.share) navigator.share({ title:'Cup Season', text:`You're invited to ${lg.name} on Cup Season`, url }).catch(()=>{});
-      else { navigator.clipboard?.writeText(url); toast('Invite link copied'); }
+      else { navigator.clipboard?.writeText(url); toast('Invite link copied', 'pos'); }
     };
     btn.addEventListener('click', ()=>{
       if(!codes.length) return person();
@@ -26783,7 +26806,7 @@ async function csOpenPostedRound(id, opts){
       }
       return true;
     }
-    if(gate.state === 'error'){ closeSheet(); toast(humanError(gate.error, 'Couldn\u2019t open that round.')); return false; }
+    if(gate.state === 'error'){ closeSheet(); toast(humanError(gate.error, 'Couldn\u2019t open that round.'), 'neg'); return false; }
     /* 'skew' · the old path, below */
   }
   const cached = (opts && opts.fresh) ? null : (window.roundCache||{})[rid];
@@ -26805,7 +26828,7 @@ async function csOpenPostedRound(id, opts){
     const gate = await csRoundGate(rid);
     if(gate.state === 'ok'){ openRoundReceipt(gate.round, Object.assign({ carded:true }, intent)); return true; }
     closeSheet();
-    toast(humanError(e, 'Couldn\u2019t open that round.'));
+    toast(humanError(e, 'Couldn\u2019t open that round.'), 'neg');
     return false;
   }
 }
@@ -27338,7 +27361,7 @@ async function csTalkState(slot, rid, next){
     if(error) throw error;
     const d = slot.__talk;
     if(d){ d.thread = { state: next, following: next==='following', muted: next==='muted' }; csTalkRender(slot, rid); }
-  }catch(e){ toast(humanError(e, 'That setting did not save.')); }
+  }catch(e){ toast(humanError(e, 'That setting did not save.'), 'neg'); }
 }
 async function csTalkRemove(slot, rid, b){
   if(!b.dataset.armed){ b.dataset.armed = '1'; b.textContent = CS_TALK.removeArm; return; }
@@ -27347,7 +27370,7 @@ async function csTalkRemove(slot, rid, b){
     const { error } = await window.sb.rpc('remove_posted_round_comment', { p_comment: b.dataset.talkRemove });
     if(error) throw error;
     await csPaintRoundTalk(rid);
-  }catch(e){ b.disabled = false; toast(humanError(e, 'Could not remove that comment.')); }
+  }catch(e){ b.disabled = false; toast(humanError(e, 'Could not remove that comment.'), 'neg'); }
 }
 /* the report is inline: a sheet here would replace the round it is about */
 function csTalkReportForm(slot, cid){
@@ -27367,7 +27390,7 @@ function csTalkReportForm(slot, cid){
       if(error) throw error;
       box.hidden = true; box.innerHTML = '';
       toast(CS_TALK.reported);
-    }catch(err){ go.disabled = false; toast(humanError(err, 'Could not send the report.')); }
+    }catch(err){ go.disabled = false; toast(humanError(err, 'Could not send the report.'), 'neg'); }
   });
 }
 
@@ -27462,7 +27485,7 @@ function csInboxRender(){
       csInbox.items.forEach(n=>{ n.read = true; });
       csBadgeSet(data && data.unread);
       csInboxRender();
-    }catch(err){ toast(humanError(err, 'That did not save.')); csInboxRender(); }
+    }catch(err){ toast(humanError(err, 'That did not save.'), 'neg'); csInboxRender(); }
   });
   body.querySelector('[data-inbox-more]')?.addEventListener('click', async e=>{
     e.currentTarget.disabled = true;
@@ -27478,7 +27501,7 @@ function csInboxRender(){
       csInbox.items = csInbox.items.concat(((data && data.items) || []).filter(n=>!have.has(n.id)));
       csInbox.next = (data && data.next_before) || null;
       csInbox.nextId = (data && data.next_before_id) || null;
-    }catch(err){ toast(humanError(err, 'Couldn’t load older notifications.')); }
+    }catch(err){ toast(humanError(err, 'Couldn’t load older notifications.'), 'neg'); }
     csInboxRender();
   });
   body.querySelector('[data-inbox-prefs]')?.addEventListener('click', e=>{
@@ -28360,7 +28383,7 @@ function renderBylaws(){
         state.finish=next;
         toast(next==='cup_final' ? 'The Cup Final is on — final 4 weeks, scored fresh' : 'Points table crowns the champion — posted to the board');
         renderBylaws(); renderStats();
-      }catch(e){ toast(humanError(e)); }
+      }catch(e){ toast(humanError(e), 'neg'); }
     });
   }
   /* #3 (pilot): "if this is just for points does the pot section need to be
@@ -28617,7 +28640,7 @@ function renderRosterDoor(){
     }
     btn.disabled=true;
     const { error } = await sb.rpc('close_roster', { p_league: CS.league.id, p_open: !d.open });
-    if(error){ toast(humanError(error,'Could not change the roster.')); btn.disabled=false; return; }
+    if(error){ toast(humanError(error,'Could not change the roster.'), 'neg'); btn.disabled=false; return; }
     toast(d.open ? "Roster's set" : "Roster's open — the link works again");
     /* re-read the bylaws row so CS.settings.roster_closed_at is authoritative;
        applyBylaws re-renders, and this repaint is the belt for a skewed load */
@@ -29545,12 +29568,12 @@ async function shareMajorCard(d){
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='cup-season-major.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
-    catch(e){ toast('Card downloaded'); }
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied', 'pos'); }
+    catch(e){ toast('Card downloaded', 'pos'); }
   }catch(e){
     if(e && e.name==='AbortError') return;
     console.warn('[major card]', e);
-    toast(humanError(e, 'Could not make the card.'));
+    toast(humanError(e, 'Could not make the card.'), 'neg');
   }
 }
 window.shareMajorCard=shareMajorCard;
@@ -30388,7 +30411,7 @@ function csPaintCrewMatches(people){
       b.textContent = 'Sent';
       csCrewAdded += 1;
       csPaintCrewRoutes();
-    } catch(e){ b.disabled = false; toast(humanError(e, "Couldn't send that.")); }
+    } catch(e){ b.disabled = false; toast(humanError(e, "Couldn't send that."), 'neg'); }
   }));
 }
 
@@ -30766,7 +30789,7 @@ async function renderCrewPeople(){
     box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const acc=b.hasAttribute('data-facc');
       const {error}=await sb.rpc('friend_respond',{p_id:b.dataset.facc||b.dataset.fdec, p_accept:acc});
-      if(error) toast(humanError(error)); else toast(acc?'Golf buddies':'Request declined');
+      if(error) toast(humanError(error), 'neg'); else toast(acc?'Golf buddies':'Request declined');
       paint(); window.loadHome?.();
     }));
   };
@@ -30781,7 +30804,7 @@ async function renderCrewPeople(){
     rb.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true;
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
-      if(error){ toast(humanError(error, 'Could not send.')); b.disabled=false; return; }
+      if(error){ toast(humanError(error, 'Could not send.'), 'neg'); b.disabled=false; return; }
       toast(rr==='friend'?'Golf buddies':'Request sent');
       b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
       paint(); window.loadHome?.();
@@ -30916,7 +30939,7 @@ function openNameRivalry(oppId, oppName, cur){
       toast(clear?'Name cleared':'Rivalry named — “'+val+'”');
       if(window.renderRivalries) await window.renderRivalries();
       openRivalrySheet(oppId, oppName);   /* reopen with the fresh name */
-    }catch(e){ toast(humanError(e, 'Could not save.')); if(sb2) sb2.disabled=false; if(cb) cb.disabled=false; }
+    }catch(e){ toast(humanError(e, 'Could not save.'), 'neg'); if(sb2) sb2.disabled=false; if(cb) cb.disabled=false; }
   };
   document.getElementById('rivNameSave')?.addEventListener('click', ()=>save(false));
   document.getElementById('rivNameClear')?.addEventListener('click', ()=>save(true));
@@ -31329,12 +31352,12 @@ async function openTourCard(profileId){
     ab.disabled=true;
     if(tcRel==='incoming' && tcFid){
       const {error}=await sb.rpc('friend_respond',{p_id:tcFid, p_accept:true});
-      if(error){ toast(humanError(error,'Could not accept.')); ab.disabled=false; return; }
+      if(error){ toast(humanError(error,'Could not accept.'), 'neg'); ab.disabled=false; return; }
       toast('Golf buddies');
       ab.outerHTML='<span class="ptag ok">Buddies</span>';
     } else {
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:profileId});
-      if(error){ toast(humanError(error,'Could not send.')); ab.disabled=false; return; }
+      if(error){ toast(humanError(error,'Could not send.'), 'neg'); ab.disabled=false; return; }
       toast(rr==='friend'?'Golf buddies':'Request sent');
       ab.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
     }
@@ -31371,7 +31394,7 @@ async function openTourCard(profileId){
       window.loadStandingsAndFeed?.();
     }catch(err){
       sb2.disabled = false; sb2.dataset.armed='0';
-      toast(humanError(err, 'Could not change that.'));
+      toast(humanError(err, 'Could not change that.'), 'neg');
     }
   });
   const mb=document.getElementById('tcMute');
@@ -31386,7 +31409,7 @@ async function openTourCard(profileId){
       closeSheet();
       toast(on ? csBlockDone(csFirstName(p.display_name)) : CS_BLOCK.undone);
       window.refreshSocial?.();
-    }catch(e){ mb.disabled=false; toast(humanError(e, 'Could not change that.')); }
+    }catch(e){ mb.disabled=false; toast(humanError(e, 'Could not change that.'), 'neg'); }
   });
   /* D59 moderation: two-tap report, no native confirm (S4-03 lesson) */
   const rb=document.getElementById('tcReport');
@@ -31402,7 +31425,7 @@ async function openTourCard(profileId){
     }catch(err){
       rb.style.pointerEvents=''; rb.dataset.armed='';
       rb.textContent='Report photo';
-      toast(humanError(err, 'Could not send that report.'));
+      toast(humanError(err, 'Could not send that report.'), 'neg');
     }
   });
 }
@@ -31605,7 +31628,7 @@ function csOpenSafety(pid, name){
   document.getElementById('sfMute')?.addEventListener('click', async () => {
     const on = !muted;
     const { error } = await sb.rpc('set_mute', { p_profile: pid, p_on: on });
-    if(error){ toast(humanError(error, 'Could not change that.')); return; }
+    if(error){ toast(humanError(error, 'Could not change that.'), 'neg'); return; }
     if(window.MUTED instanceof Set){ on ? window.MUTED.add(pid) : window.MUTED.delete(pid); }
     toast(on ? csBlockDone(first) : CS_BLOCK.undone);
     closeSheet?.();
@@ -32002,14 +32025,14 @@ function openPeoplePicker(opts){
     listBox.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true;
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
-      if(error){ toast(humanError(error, 'Could not send.')); b.disabled=false; return; }
+      if(error){ toast(humanError(error, 'Could not send.'), 'neg'); b.disabled=false; return; }
       toast(rr==='friend'?'Golf buddies':'Request sent');
       b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
     }));
     listBox.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const r=rowCache.get(b.dataset.pick);
       try{ if(opts.onPick) await opts.onPick(r); staged.add(b.dataset.pick); b.outerHTML='<span class="ptag ok">Added</span>'; }
-      catch(e){ toast(humanError(e, 'Could not add.')); b.disabled=false; }
+      catch(e){ toast(humanError(e, 'Could not add.'), 'neg'); b.disabled=false; }
     }));
   };
   const render=(rows)=>{ rows.forEach(r=>rowCache.set(r.profile_id, r));
@@ -32296,8 +32319,8 @@ function openProfileHub(){
       window.avatarUrl = window.avatarUrl || {};
       if(s?.signedUrl) window.avatarUrl[CS.user.id] = s.signedUrl;
       if(CS.profile) CS.profile.photo_path = path;
-      phPaint(); refreshWhoChip(); toast('Photo on the card');
-    }catch(err){ toast(humanError(err, 'Could not add the photo.')); }
+      phPaint(); refreshWhoChip(); toast('Photo on the card', 'pos');
+    }catch(err){ toast(humanError(err, 'Could not add the photo.'), 'neg'); }
     btn.disabled=false; phPaint();
   });
   $('#phPhotoRm')?.addEventListener('click', async () => {
@@ -32311,7 +32334,7 @@ function openProfileHub(){
       if(window.avatarUrl) delete window.avatarUrl[CS.user.id];
       if(CS.profile) CS.profile.photo_path = null;
       phPaint(); refreshWhoChip(); toast('Back to the marker');
-    }catch(err){ toast(humanError(err, 'Could not remove it.')); }
+    }catch(err){ toast(humanError(err, 'Could not remove it.'), 'neg'); }
     btn.disabled=false;
   });
 
@@ -32346,7 +32369,7 @@ function openProfileHub(){
       }
       await loadProfile();
       refreshWhoChip();
-      toast('Card saved');
+      toast('Card saved', 'pos');
       /* the sheet stays open, so confirm inside it too (pilot feedback) */
       $('#phStatus').textContent = 'Card saved'; $('#phStatus').style.color = 'var(--pos)';
       btn.classList.remove('armed'); btn.textContent = 'Save card';
@@ -32414,7 +32437,7 @@ function openProfileHub(){
       window.location.replace(window.location.pathname);
     } catch(e) {
       btn.disabled = false; btn.textContent = 'Delete permanently';
-      toast(humanError(e, 'Could not delete the account.'));
+      toast(humanError(e, 'Could not delete the account.'), 'neg');
     }
   });
   /* the feedback door moved here from You (owner H) — the same handler */
@@ -32442,7 +32465,7 @@ function openProfileHub(){
   discPaint();
   $('#phDisc').querySelectorAll('[data-disc]').forEach(b => b.addEventListener('click', async () => {
     const { error } = await sb.rpc('set_discoverable', { p_mode: b.dataset.disc });
-    if(error) return toast(humanError(error, 'Could not change who can find you.'));
+    if(error) return toast(humanError(error, 'Could not change who can find you.'), 'neg');
     CS.profile.discoverable = b.dataset.disc; discPaint();
   }));
 
@@ -32479,7 +32502,7 @@ function openProfileHub(){
     roundsBtn.disabled = true;
     const next = !(CS.profile?.notify_rounds ?? true);
     const { error } = await sb.rpc('set_notify_rounds', { p_on: next });
-    if(error) toast(humanError(error, 'Round posts didn’t change — try again.'));
+    if(error) toast(humanError(error, 'Round posts didn’t change — try again.'), 'neg');
     else { if(CS.profile) CS.profile.notify_rounds = next; roundsPaint(); }
     roundsBtn.disabled = false;
   });
@@ -32496,7 +32519,7 @@ function openProfileHub(){
     chatBtn.disabled = true;
     const next = !(CS.profile?.notify_chat ?? true);
     const { error } = await sb.rpc('set_notify_chat', { p_on: next });
-    if(error) toast(humanError(error, 'Chat didn’t change — try again.'));
+    if(error) toast(humanError(error, 'Chat didn’t change — try again.'), 'neg');
     else { CS.profile.notify_chat = next; chatPaint(); }
     chatBtn.disabled = false;
   });
@@ -32521,7 +32544,7 @@ function openProfileHub(){
             if(e2) throw e2;
             phSwitchSet(el, (d2 && d2[k] != null) ? d2[k] !== false : on);
             if(typeof csInbox !== 'undefined' && csInbox) csInbox.prefs = d2 || Object.assign({}, csInbox.prefs || {}, { [k]: on });
-          }catch(err){ toast(humanError(err, 'That didn’t change — try again.')); }
+          }catch(err){ toast(humanError(err, 'That didn’t change — try again.'), 'neg'); }
           el.disabled = false;
         });
       });
@@ -32553,7 +32576,7 @@ function openProfileHub(){
       mailBtn.disabled = true;
       const next = mailBtn.getAttribute('aria-checked') !== 'true';
       const { data, error } = await sb.rpc('set_email_recap', { p_on: next });
-      if(error) toast(humanError(error, 'Season email didn’t change — try again.'));
+      if(error) toast(humanError(error, 'Season email didn’t change — try again.'), 'neg');
       else paint(data !== false);
       mailBtn.disabled = false;
     });
@@ -32588,7 +32611,7 @@ $('#annBtn')?.addEventListener('click', async () => {
   if(!CS.league) return;
   const btn = $('#annBtn'); btn.disabled = true;
   const { error } = await sb.rpc('announce', { p_league: CS.league.id, p_body: v });
-  if(error) toast(humanError(error, 'Could not announce.'));
+  if(error) toast(humanError(error, 'Could not announce.'), 'neg');
   else { $('#chatIn').value = ''; toast('Announced. The league heard you.'); }
   btn.disabled = false;
 });
@@ -32831,9 +32854,9 @@ async function enablePush(){
     const tok = await apnsToken(P);
     if(!tok){ toast('Could not get a device token from Apple. Try again.'); return false; }
     const { error } = await sb.rpc('register_device_token', { p_token: tok, p_platform: 'ios' });
-    if(error){ toast(humanError(error, 'Could not save this device.')); return false; }
+    if(error){ toast(humanError(error, 'Could not save this device.'), 'neg'); return false; }
     localStorage.setItem(APNS_KEY, tok);
-    toast('Notifications on. The board will find you.');
+    toast('Notifications on. The board will find you.', 'pos');
     return true;
   }
   if(VAPID_PUBLIC.startsWith('PASTE_')){ toast("Notifications aren't switched on here yet — try again shortly."); return false; }
@@ -32853,8 +32876,8 @@ async function enablePush(){
     profile_id: CS.user.id, endpoint: sub.endpoint,
     p256dh: j.keys.p256dh, auth: j.keys.auth,
   }, { onConflict: 'endpoint' });
-  if(error){ toast(humanError(error, 'Could not save this device.')); return false; }
-  toast('Notifications on. The board will find you.');
+  if(error){ toast(humanError(error, 'Could not save this device.'), 'neg'); return false; }
+  toast('Notifications on. The board will find you.', 'pos');
   return true;
 }
 async function disablePush(){
@@ -32871,16 +32894,16 @@ async function disablePush(){
     }
     localStorage.removeItem(APNS_KEY);
     await P.removeAllListeners().catch(() => {});
-    toast('Notifications off on this device');
+    toast('Notifications off on this device', 'pos');
     return;
   }
   const sub = await getPushSub();
   if(sub){
     const { error } = await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-    if(error){ toast(humanError(error, "Couldn't turn notifications off.")); return; }
+    if(error){ toast(humanError(error, "Couldn't turn notifications off."), 'neg'); return; }
     await sub.unsubscribe();
   }
-  toast('Notifications off on this device');
+  toast('Notifications off on this device', 'pos');
 }
 
 /* S16 (security review 2026-09-25; D-08 in part) · SIGNING OUT TAKES THIS
@@ -33079,7 +33102,7 @@ async function runItBack(oldLeague, membership){
       if(error) throw error;
       try { localStorage.setItem('cs_runback_ask:' + lid, '1'); } catch(_){}
       toast(CS_RUNBACK_ASK_SENT);
-    } catch(e){ toast(humanError(e, "Couldn't send that.")); }
+    } catch(e){ toast(humanError(e, "Couldn't send that."), 'neg'); }
     return;
   }
 
@@ -33610,7 +33633,7 @@ async function leaveSeasonNow(){
       : `You left ${(data && data.league) || CS.league.name || 'the season'}. Your rounds stay where they are.`);
     renderLeaveSeason();
     await loadStandingsAndFeed();
-  } catch(e){ toast(humanError(e, 'Could not leave the season.')); }
+  } catch(e){ toast(humanError(e, 'Could not leave the season.'), 'neg'); }
 }
 window.leaveSeasonNow = leaveSeasonNow;
 
@@ -33748,7 +33771,7 @@ function renderFormation(){
       if(error) throw error;
       toast('The hat has spoken');
       await loadLeagueData();
-    } catch(e){ toast(humanError(e, 'Draw failed.')); draw.disabled = false; }
+    } catch(e){ toast(humanError(e, 'Draw failed.'), 'neg'); draw.disabled = false; }
   });
   const start = $('#fmStart');
   if(start) start.addEventListener('click', async () => {
@@ -33760,7 +33783,7 @@ function renderFormation(){
       renderPhase(); switchView('home');
       toast('The season is live \u2014 post a round');
       await loadStandingsAndFeed();
-    } catch(e){ toast(humanError(e)); start.disabled = false; }
+    } catch(e){ toast(humanError(e), 'neg'); start.disabled = false; }
   });
   if(isC && state.draftType === 'assign'){
     $('#pool').querySelectorAll('[data-mem]').forEach(b => b.addEventListener('click', () => {
@@ -33773,7 +33796,7 @@ function renderFormation(){
         if(error) throw error;
         CS.sel = null;
         await loadLeagueData();
-      } catch(e){ toast(humanError(e, 'Assign failed.')); }
+      } catch(e){ toast(humanError(e, 'Assign failed.'), 'neg'); }
     }));
   }
 }
@@ -34803,7 +34826,7 @@ $('#joinGo').addEventListener('click', async () => {
     await enterLeague(m);
     toast('Joined ' + m.league.name);
     openLeagueWelcome(m.league.name);
-  } catch(err){ toast(humanError(err, 'Could not join.')); }
+  } catch(err){ toast(humanError(err, 'Could not join.'), 'neg'); }
 });
 
 $('#lockBtn').addEventListener('click', async () => {
@@ -34858,7 +34881,7 @@ $('#lockBtn').addEventListener('click', async () => {
     try {
       await loadMemberships();
       switchView('home');
-      toast('Season started');
+      toast('Season started', 'pos');
       /* growth (2026-07-17): creation ends on the SHARE moment, not a Done
          toast — a league is only real once the crew is in it */
       await openLockShare(locked.nextPhase, locked.emails || 0);
@@ -34927,7 +34950,7 @@ document.getElementById('wizCancel')?.addEventListener('click', async () => {
       if(CS.user) clearCreateRequest(CS.user.id, CS.league.id);   /* D355 · a discarded league must not resume */
       await loadMemberships();
     }
-  } catch(e){ toast(humanError(e, 'Could not discard.')); return; }
+  } catch(e){ toast(humanError(e, 'Could not discard.'), 'neg'); return; }
   resetWizard();
   goClubhouse();
   toast('League discarded');
@@ -35035,9 +35058,9 @@ window.openFeedback = function(){
       const { error } = await sb.rpc('submit_feedback', { p_category: cat || 'other', p_body: body, p_context: ctx });
       if(error) throw error;
       closeSheet();
-      toast('Sent — thank you.');
+      toast('Sent — thank you.', 'pos');
     }catch(err){
-      toast(humanError(err, 'Could not send.'));
+      toast(humanError(err, 'Could not send.'), 'neg');
       $('#fbGo').disabled = false;
     }
   };
@@ -35065,7 +35088,7 @@ window.openFounderNote = function(){
       const { error } = await sb.rpc('founder_note', { p_body: body });
       if(error) throw error;
       closeSheet(); toast('Noted.');
-    }catch(err){ $('#fnGo').disabled = false; toast(humanError(err, 'Could not save.')); }
+    }catch(err){ $('#fnGo').disabled = false; toast(humanError(err, 'Could not save.'), 'neg'); }
   });
 };
 window.openFounderDesk = async function(){
@@ -35291,7 +35314,7 @@ async function openLeagueSwitcher(){
       toast(nm + ' deleted');
       await loadMemberships();
       openLeagueSwitcher();            /* re-render the sheet with it gone */
-    } catch(err){ toast(humanError(err)); b.disabled = false; }
+    } catch(err){ toast(humanError(err), 'neg'); b.disabled = false; }
   }));
 }
 window.openLeagueSwitcher = openLeagueSwitcher;
@@ -35623,7 +35646,7 @@ async function csOpenSeason(id, opts){
   try{
     await window.enterLeagueById(id, false, { requireRoom:true });
   }catch(e){
-    toast(humanError(e, 'Couldn\u2019t open that season.'));
+    toast(humanError(e, 'Couldn\u2019t open that season.'), 'neg');
     return false;
   }
   if(window.CS?.league?.id !== id){
@@ -35695,16 +35718,16 @@ async function cancelVote(approve){
     if(data==='done'){ window.cancelReq=null; toast(CS.league.name+' cancelled. Every round stays on its golfer.'); await loadMemberships(); goClubhouse(); return; }
     if(data==='declined'){ window.cancelReq=null; renderCancelBanner(); toast('You declined — the cancellation is off.'); return; }
     await refreshCancelStatus();
-    toast('Approved — waiting on the rest.');
-  }catch(e){ toast(humanError(e)); }
+    toast('Approved — waiting on the rest.', 'pos');
+  }catch(e){ toast(humanError(e), 'neg'); }
 }
 async function cancelWithdraw(){
   if(!CS.league) return;
   try{
     const { error } = await sb.rpc('withdraw_league_cancel', { p_league: CS.league.id });
     if(error) throw error;
-    window.cancelReq=null; renderCancelBanner(); toast('Cancellation called off.');
-  }catch(e){ toast(humanError(e)); }
+    window.cancelReq=null; renderCancelBanner(); toast('Cancellation called off.', 'pos');
+  }catch(e){ toast(humanError(e), 'neg'); }
 }
 
 document.getElementById('hhDelete')?.addEventListener('click', async e => {
@@ -35726,8 +35749,8 @@ document.getElementById('hhDelete')?.addEventListener('click', async e => {
         if(error) throw error;
         closeSheet();
         if(data==='done'){ toast(nm+' cancelled. Every round stays on its golfer.'); await loadMemberships(); goClubhouse(); }
-        else { toast('Cancellation requested — every member must approve.'); await refreshCancelStatus(); }
-      }catch(err){ toast(humanError(err)); }
+        else { toast('Cancellation requested — every member must approve.', 'pos'); await refreshCancelStatus(); }
+      }catch(err){ toast(humanError(err), 'neg'); }
     });
     return;
   }
@@ -35750,7 +35773,7 @@ document.getElementById('hhDelete')?.addEventListener('click', async e => {
       toast(nm + ' deleted. Every round stays on its golfer.');
       await loadMemberships();
       goClubhouse();
-    } catch(err){ toast(humanError(err)); }
+    } catch(err){ toast(humanError(err), 'neg'); }
   };
   if(others === 0){
     openSheet('Delete '+nm+'?', 'ONLY POSSIBLE BEFORE THE FIRST TEE', `
@@ -35931,7 +35954,7 @@ function csPlanRowsWire(root, o){
       b.disabled = true;
       try{ const { error } = await sb.rpc('set_round_rsvp', { p_round: sr.id, p_status: 'in' }); if(error) throw error;
         toast(CS_PLAN_ME.in); if(o.sheet) closeSheet(); reload(); }
-      catch(e){ toast(humanError(e, 'RSVP did not save.')); b.disabled = false; }
+      catch(e){ toast(humanError(e, 'RSVP did not save.'), 'neg'); b.disabled = false; }
       return;
     }
     if(o.sheet) closeSheet();
@@ -35944,8 +35967,8 @@ function csPlanRowsWire(root, o){
     if(!csArmTap(b, 'Cancel round', 'Sure? Cancel for everyone')) return;
     b.disabled = true;
     try{ const { error } = await sb.rpc('scratch_round', { p_id: b.dataset.scratch }); if(error) throw error;
-      if(o.sheet) closeSheet(); toast('Round cancelled'); reload(); }
-    catch(e){ toast(humanError(e, 'That did not cancel.')); b.disabled = false; }
+      if(o.sheet) closeSheet(); toast('Round cancelled', 'pos'); reload(); }
+    catch(e){ toast(humanError(e, 'That did not cancel.'), 'neg'); b.disabled = false; }
   }));
 }
 window.csPlanRowsWire = csPlanRowsWire;
@@ -36277,7 +36300,7 @@ async function openRyderSetup(){
       closeSheet(); await loadMyEvents();
       toast(rsStaged.size ? `The Ryder is set — ${rsStaged.size} invited` : 'The Ryder is set — add your golfers');
       window.openEvent(data);        /* create_event returns the event uuid */
-    }catch(e){ toast(humanError(e, 'Could not set the Ryder.')); go.disabled=false; }
+    }catch(e){ toast(humanError(e, 'Could not set the Ryder.'), 'neg'); go.disabled=false; }
   });
 }
 window.openRyderSetup = openRyderSetup;
@@ -36411,7 +36434,7 @@ window.majorEnter = async (eventId)=>{
     if(error) throw error;
     toast("You're in");
     await loadMyEvents(); await loadEvent(eventId);
-  }catch(e){ toast(humanError(e)); }
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 window.majorOpenNow = async (sessionId)=>{
   try{
@@ -36419,15 +36442,15 @@ window.majorOpenNow = async (sessionId)=>{
     if(error) throw error;
     toast('The window is open');
     await loadEvent(window.CS_EVENT.event.id);
-  }catch(e){ toast(humanError(e)); }
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 window.majorSettle = async (sessionId)=>{
   try{
     const { error } = await sb.rpc('settle_major', { p_session:sessionId });
     if(error) throw error;
-    toast('Settled — the jug has a name');
+    toast('Settled — the jug has a name', 'pos');
     await loadEvent(window.CS_EVENT.event.id);
-  }catch(e){ toast(humanError(e)); }
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 /* ---------- Batch 13: lineage rematches + the whisper + the stakes ---------- */
 /* D61/D62 — run it back: the rematch tap is the ONLY door into a lineage.
@@ -36501,23 +36524,23 @@ window.stakeCreate = async (p)=>{
       p_league: window.CS?.league?.id, p_name: p.name, p_terms: p.terms,
       p_kind: p.kind||'custom', p_other: p.other||null, p_hangs: p.hangs||null });
     if(error) throw error;
-    toast('Pride bet posted — the board heard it');
+    toast('Pride bet posted — the board heard it', 'pos');
     await loadStakes(); return true;
-  }catch(e){ toast(humanError(e, 'Could not post the pride bet.')); return false; }
+  }catch(e){ toast(humanError(e, 'Could not post the pride bet.'), 'neg'); return false; }
 };
 window.stakeSettle = async (id, winner, note)=>{
   try{
     const { error } = await sb.rpc('settle_forfeit', { p_id:id, p_winner:winner||null, p_note:note||null });
     if(error) throw error;
-    toast('Settled — into the archive'); await loadStakes();
-  }catch(e){ toast(humanError(e)); }
+    toast('Settled — into the archive', 'pos'); await loadStakes();
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 window.stakeScrap = async (id)=>{
   try{
     const { error } = await sb.rpc('scrap_forfeit', { p_id:id });
     if(error) throw error;
-    toast('Scrapped'); await loadStakes();
-  }catch(e){ toast(humanError(e)); }
+    toast('Scrapped', 'pos'); await loadStakes();
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 
 /* the organizer's escape hatch — scrap an event created by mistake. The RPC
@@ -36535,7 +36558,7 @@ window.scrapEvent = async (eventId)=>{
     await loadMyEvents();
     goClubhouse();
     if(window.renderHomeHub) window.renderHomeHub();
-  }catch(e){ toast(humanError(e)); }
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 
 async function ryderCandidates(E){
@@ -36570,23 +36593,23 @@ window.openRyderPlayers = async function(){
       if(epid) await sb.rpc('set_event_team',{p_player:epid, p_team:b.dataset.team});
       b.parentElement.innerHTML='<span class="fine" style="color:var(--pos); padding:0">ADDED</span>';
       await loadEvent(E.event.id);   /* refresh behind the sheet */
-    }catch(e){ toast(humanError(e)); b.disabled=false; }
+    }catch(e){ toast(humanError(e), 'neg'); b.disabled=false; }
   }));
 };
 window.ryderAssign = async (playerId, teamId)=>{
   try{ const {error}=await sb.rpc('set_event_team',{p_player:playerId,p_team:teamId}); if(error)throw error;
-    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e)); }
+    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e), 'neg'); }
 };
 window.ryderPair = async (sessionId)=>{
   try{ const {data,error}=await sb.rpc('generate_pairings',{p_session:sessionId}); if(error)throw error;
     /* setup-QA S5-01: 0 pairs used to toast "Pairings set" while the session
        read "Pairings not set." — say what actually happened */
     toast(Number(data)>0 ? 'Pairings set' : 'Both teams need golfers first — no pairings made.');
-    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Pairing failed.')); }
+    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Pairing failed.'), 'neg'); }
 };
 window.ryderResolve = async (sessionId)=>{
   try{ const {error}=await sb.rpc('resolve_session',{p_session:sessionId}); if(error)throw error;
-    toast('Week scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Score failed.')); }
+    toast('Week scored', 'pos'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Score failed.'), 'neg'); }
 };
 window.ryderNotify = async (eventId, on)=>{
   try{
@@ -36594,7 +36617,7 @@ window.ryderNotify = async (eventId, on)=>{
     if(error) throw error;
     toast(on ? "Taunts on — you'll hear the moment your opponent posts" : 'Taunts muted');
     await loadEvent(eventId);
-  }catch(e){ toast(humanError(e)); }
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 
 /* ---------- invites (decision B): consent-based add for leagues + events ---------- */
@@ -36642,7 +36665,7 @@ window.respondInvite = async (id, accept)=>{
       if(inv.kind !== 'event'){ const m = CS.memberships.find(x => x.league.id === inv.container_id); if(m) await enterLeague(m); }
     }
     else toast('That invitation was already answered — nothing changed');
-  }catch(e){ toast(humanError(e)); }
+  }catch(e){ toast(humanError(e), 'neg'); }
 };
 
 /* D363 · the invitation "Start a season with <name>" carried through the
@@ -36658,7 +36681,7 @@ async function csInviteSeasonWith(leagueId){
     const { error } = await sb.rpc('invite_golfer', { p_league: leagueId, p_event: null, p_profile: w.pid });
     if(error) throw error;
     toast(`Invited ${first} — they choose whether to join.`);
-  } catch(err){ toast(humanError(err, `Couldn't send ${first} the invitation. Add golfers from the season page instead.`)); }
+  } catch(err){ toast(humanError(err, `Couldn't send ${first} the invitation. Add golfers from the season page instead.`), 'neg'); }
 }
 window.csInviteSeasonWith = csInviteSeasonWith;
 /* Add golfers to a league OR event — now a thin wrapper over the one People
@@ -37228,7 +37251,7 @@ async function openDeclareSheet(prefillISO, opts){
         : tagged.size ? 'On the schedule: your group is named on the boards' : 'On the schedule: the boards know');
       loadSchedule(); loadWatchList();
       if(CS.league) loadStandingsAndFeed();
-    } catch(e){ toast(humanError(e)); btn.disabled = false; }
+    } catch(e){ toast(humanError(e), 'neg'); btn.disabled = false; }
   });
 }
 window.openDeclareSheet = openDeclareSheet;
@@ -37601,11 +37624,11 @@ function renderRoundSheet(id, d){
   $('#shBody').querySelectorAll('[data-rsvp]').forEach(b=>b.addEventListener('click', async()=>{
     b.disabled=true;
     try{ const {error}=await sb.rpc('set_round_rsvp',{p_round:id,p_status:b.dataset.rsvp}); if(error) throw error; reload(); }
-    catch(e){ toast(humanError(e, 'RSVP did not save.')); b.disabled=false; }
+    catch(e){ toast(humanError(e, 'RSVP did not save.'), 'neg'); b.disabled=false; }
   }));
   const send=async()=>{ const inp=$('#rsComment'); const v=(inp&&inp.value||'').trim(); if(!v) return;
     try{ const {error}=await sb.rpc('add_round_comment',{p_round:id,p_body:v}); if(error) throw error; reload(); }
-    catch(e){ toast(humanError(e, 'Could not post.')); } };
+    catch(e){ toast(humanError(e, 'Could not post.'), 'neg'); } };
   $('#rsSend')?.addEventListener('click', send);
   $('#rsComment')?.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
   $('#rrLink')?.addEventListener('click', async(e)=>{
@@ -37619,8 +37642,8 @@ function renderRoundSheet(id, d){
     if(!csArmTap(b, 'Cancel round', 'Sure? Cancel for everyone')) return;   /* W7-049 · §7.1: the first tap asks, the second does it */
     b.disabled=true;
     /* W7-079 · the words are the list's own ('Round cancelled', 'That did not cancel.'): a host who cancels from the sheet and one who cancels from the row read the same toast */
-    try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round cancelled'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
-    catch(err){ toast(humanError(err, 'That did not cancel.')); b.disabled=false; }
+    try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round cancelled', 'pos'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
+    catch(err){ toast(humanError(err, 'That did not cancel.'), 'neg'); b.disabled=false; }
   });
 }
 /* weather rides in async; if there's no location or it's out of range, the chip
@@ -37656,9 +37679,9 @@ async function openRetagSheet(id){
       const { error } = await sb.rpc('retag_round', { p_id: id, p_tagged: [...tagged] });
       if(error) throw error;
       closeSheet();
-      toast('Group updated');
+      toast('Group updated', 'pos');
       loadSchedule();
-    } catch(e){ toast(humanError(e)); btn.disabled = false; }
+    } catch(e){ toast(humanError(e), 'neg'); btn.disabled = false; }
   });
 }
 
@@ -37691,7 +37714,7 @@ function csOpenSeatSheet(m){
       toast(`${who} is on ${q ? q.name : 'the squad'}. Their rounds count for it from today.`);
       closeSheet();
       await loadLeagueData();
-    }catch(e){ document.querySelectorAll('[data-seatsq]').forEach(x => x.disabled = false); toast(humanError(e, 'Could not seat them.')); }
+    }catch(e){ document.querySelectorAll('[data-seatsq]').forEach(x => x.disabled = false); toast(humanError(e, 'Could not seat them.'), 'neg'); }
   }));
 }
 async function openMembersSheet(){
@@ -37766,7 +37789,7 @@ async function openMembersSheet(){
         if(me){ me.marker = k; me.mk = k || me.profile?.marker || 'saguaro'; }
         toast(k ? 'Marker set for this league' : 'Back to your card marker');
         closeSheet(); openMembersSheet();
-      }catch(err){ b.disabled=false; toast(humanError(err, 'Could not set the marker.')); }
+      }catch(err){ b.disabled=false; toast(humanError(err, 'Could not set the marker.'), 'neg'); }
     }));
   });
   document.querySelectorAll('[data-msrm]').forEach(b => b.addEventListener('click', async () => {
@@ -37776,10 +37799,10 @@ async function openMembersSheet(){
     try {
       const { error } = await sb.rpc('remove_member', { p_member: b.dataset.msrm });
       if(error) throw error;
-      toast('Removed. The board knows.');
+      toast('Removed. The board knows.', 'pos');
       closeSheet();
       await loadLeagueData();
-    } catch(e){ toast(humanError(e)); b.disabled = false; }
+    } catch(e){ toast(humanError(e), 'neg'); b.disabled = false; }
   }));
   document.querySelectorAll('[data-msbye]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.msbye);
@@ -37790,9 +37813,9 @@ async function openMembersSheet(){
     try {
       const { error } = await sb.rpc('set_member_bye', { p_member: b.dataset.msbye, p_month: monISO, p_on: true });
       if(error) throw error;
-      toast('Bye granted — posted to the board');
+      toast('Bye granted — posted to the board', 'pos');
       closeSheet();
-    } catch(e){ toast(humanError(e)); b.disabled = false; }
+    } catch(e){ toast(humanError(e), 'neg'); b.disabled = false; }
   }));
   /* D376 · the Pro's pen: a ruling is a ledger row with a reason, a board post
      and a log row — never a round edit (D37, D125, D284). The server refuses
@@ -37816,7 +37839,7 @@ async function openMembersSheet(){
       const { error } = await sb.rpc('invite_golfer', { p_league: CS.league.id, p_event: null, p_profile: m.profile_id });
       if(error) throw error;
       toast(csAskedAgain(String(m.profile?.display_name || '').trim().split(' ')[0] || null));
-    } catch(e){ toast(humanError(e, 'Could not ask again.')); b.disabled = false; }
+    } catch(e){ toast(humanError(e, 'Could not ask again.'), 'neg'); b.disabled = false; }
   }));
   document.querySelectorAll('[data-mspro]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.mspro);
@@ -37828,7 +37851,7 @@ async function openMembersSheet(){
       closeSheet();
       toast('The shop has a new Pro');
       setTimeout(() => location.reload(), 900); /* role change reshapes the whole UI */
-    } catch(e){ toast(humanError(e)); b.disabled = false; }
+    } catch(e){ toast(humanError(e), 'neg'); b.disabled = false; }
   }));
   document.querySelectorAll('[data-msidx]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.msidx);
@@ -37852,10 +37875,10 @@ async function openMembersSheet(){
       try {
         const { error } = await sb.rpc('set_member_index', { p_member: mid, p_index: idx });
         if(error) throw error;
-        toast('Starter index set — posted to the board');
+        toast('Starter index set — posted to the board', 'pos');
         closeSheet();
         await loadLeagueData();
-      } catch(e){ toast(humanError(e)); go.disabled = false; }
+      } catch(e){ toast(humanError(e), 'neg'); go.disabled = false; }
     });
   }));
 }
@@ -38206,7 +38229,7 @@ async function boot(){
         await loadMemberships();
         const m = CS.memberships.find(x => x.league.code === pend);
         if(m){ await enterLeague(m); toast('Joined ' + m.league.name); openLeagueWelcome(m.league.name); return; }
-      } catch(e){ toast(humanError(e, 'Auto-join failed.')); }
+      } catch(e){ toast(humanError(e, 'Auto-join failed.'), 'neg'); }
       }
     }
 
@@ -38282,7 +38305,7 @@ async function resumeAfterProfile(){
           window.qaEvent?.('covenant_declined', { via: 'signup' });
           toast('Not joined \u2014 the invite is still here when you\u2019re ready.');
         }
-      }catch(e){ toast(humanError(e, 'Auto-join failed.')); }
+      }catch(e){ toast(humanError(e, 'Auto-join failed.'), 'neg'); }
     }
     window.csHomeHold?.();   /* TEN / AW2-01 */
     bootStep = 'memberships';
@@ -39027,7 +39050,7 @@ async function csClaimAct(tok){
         return;
       }
       try{ localStorage.removeItem('cs_claim'); }catch(_){}
-      toast(humanError((firstErr||e2), 'Claim failed.'));
+      toast(humanError((firstErr||e2), 'Claim failed.'), 'neg');
       return;
     }
   }
@@ -39154,7 +39177,7 @@ async function redeemPendingShares(){
         /* not deployed yet — keep the token, say nothing, try again next boot */
         if(/PGRST202|does not exist|schema cache|42883/i.test(msg)) continue;
         drop();
-        toast(humanError(e, 'Could not open that link.'));
+        toast(humanError(e, 'Could not open that link.'), 'neg');
         continue;
       }
       drop();

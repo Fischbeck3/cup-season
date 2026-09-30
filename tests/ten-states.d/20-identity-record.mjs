@@ -486,6 +486,24 @@ const worthAfterGross = async (page) => page.evaluate(() => {
   if (/can score up to/.test(t)) return 'the ceiling stayed under a real score: ' + JSON.stringify(t)
   return /^(This \d+ (counts|replaces)|Your best \d+)/.test(t) ? true : 'with a gross the preview does not say the card\u2019s arithmetic: ' + JSON.stringify(t)
 })
+/* TEN / W6 · K077 kinds (§13.4, a port of the phone's CSGlyph): pos = the check on a pos rail, neg = the cross on a neg
+   rail, none = the rule rail and no glyph; the glyph never changes what the toast says. The toast is put away before
+   the capture. */
+const toastKinds = async (page) => page.evaluate(() => {
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const t = document.getElementById('toast')
+  if (!t || typeof toast !== 'function') return 'no toast'
+  const read = () => { const g = t.querySelector('svg.toastglyph'); const u = g && g.querySelector('use'); return { rail: getComputedStyle(t, '::before').backgroundColor, use: u ? u.getAttribute('href') : null, glyph: g ? getComputedStyle(g).color : null, text: t.textContent } }
+  toast('Card saved', 'pos'); const a = read()
+  toast('Couldn\u2019t save that \u2014 try again.', 'neg'); const b = read()
+  toast('Still loading \u2014 try again in a second'); const c = read()
+  t.style.transition = 'none'; t.classList.remove('show'); t.textContent = ''; delete t.dataset.kind; void t.offsetWidth; t.style.transition = ''
+  const pos = probe('--pos'), neg = probe('--neg'), rule = probe('--rule')
+  if (a.rail !== pos || a.use !== '#i-check' || a.glyph !== pos) return 'pos: ' + JSON.stringify(a)
+  if (b.rail !== neg || b.use !== '#i-cross' || b.glyph !== neg) return 'neg: ' + JSON.stringify(b)
+  if (c.rail !== rule || c.use !== null) return 'neutral: ' + JSON.stringify(c)
+  return a.text === 'Card saved' ? true : 'the glyph changed what the toast says: ' + JSON.stringify(a.text)
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
     drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:^Add my round$', '#postIdx': 'text:^Builds at 3 rounds$' } },   /* Q48 */
@@ -700,7 +718,7 @@ const COMPOSER = [
       const i = document.createElement('i'); i.style.color = 'var(--bg0)'; document.body.appendChild(i); const bg0 = getComputedStyle(i).color; i.remove()
       const c = getComputedStyle(document.getElementById('postBtn')).color
       return c === bg0 ? true : `Add my round's type is ${c}, not --bg0 ${bg0}`
-    }), worthBeforeGross) },
+    }), worthBeforeGross, toastKinds) },
   { family: 'composer', id: 'filled', variant: 'member', title: 'Composer · a full card entered, before Post',
     drive: async (page) => { await toComposer(page); await fillCard(page) },
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
