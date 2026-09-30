@@ -75,6 +75,20 @@ const playIsWhereYouAre = async (page) => page.evaluate(() => {
   if (marked[0].dataset.v !== 'record') return 'the marked destination is ' + marked[0].dataset.v + ', not Play'
   return marked[0].getAttribute('aria-current') === 'page' ? true : 'Play is marked but not current to a screen reader'
 })
+/* TEN / W6 · W7-096 · gold is earned (D359): no live state wears it. The mid-round leader chip is ink-outlined with an ink name, and a
+   finished card's status line is ink (inert where neither is drawn) */
+const noLiveGold = async (page) => page.evaluate(() => {
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const gold = probe('--gold'), ink = probe('--ink')
+  const lead = [...document.querySelectorAll('.scoreboard .sbchip.lead')].find((c) => c.getBoundingClientRect().height > 0)
+  if (lead) {
+    if (getComputedStyle(lead).borderTopColor === gold || getComputedStyle(lead.querySelector('b')).color === gold) return 'the live leader chip wears gold'
+    if (getComputedStyle(lead).borderTopColor !== ink) return 'the live leader chip is not ink-outlined: ' + getComputedStyle(lead).borderTopColor
+  }
+  const fs = document.getElementById('finishStatus')
+  if (fs && fs.getBoundingClientRect().height > 0 && getComputedStyle(fs).color === gold) return 'the finish line turns gold'
+  return true
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -209,7 +223,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), playIsWhereYouAre, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {
@@ -398,7 +412,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 cards to the season$', '#lrCasual': 'text:^This one was casual — post nothing$' } },
-    check: async (page) => { const f = await liveFacts(page); return f.holes === 9 ? true : `the round is ${f.holes} holes, expected the nine` } },
+    check: async (page) => { const f = await liveFacts(page); if (f.holes !== 9) return `the round is ${f.holes} holes, expected the nine`; return noLiveGold(page) } },
 
   /* Post: finish_live_round answers, the settlement sheet (the ceremony) */
   { family: 'play', id: 'finish', variant: 'member', fullPage: false, title: 'Live round · posted: the round’s settlement (two cards to the season)',

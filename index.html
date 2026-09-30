@@ -2409,8 +2409,8 @@ table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size
 }
 .scoreboard .sbchip b{color:var(--ink); font-weight:600;}
 .scoreboard .sbchip .lv{width:6px; height:6px; border-radius:50%; background:var(--pos); flex:none;}
-.scoreboard .sbchip.lead{border-color:var(--gold);}
-.scoreboard .sbchip.lead b{color:var(--gold);}
+/* TEN / W7-096 · gold is EARNED (D359, §2.4); a mid-round leader is live state, drawn in ink, and the hero already names the leader in words */
+.scoreboard .sbchip.lead{border-color:var(--ink);}
 /* W1 · the sync line is a sentence ("8 scores saved on this phone; they send
    when you have signal"), so it is set as one — never mono caps (§1.4) */
 .scoreboard .sb-sub{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut); margin-top:8px;}
@@ -17368,7 +17368,7 @@ function renderPlay(){
    const _done=liveRoundComplete();
    if(_fs){ const _line=liveFinishStatus();
      _fs.textContent=_line; _fs.style.display=_line?'':'none';
-     _fs.style.color=_done?'var(--gold)':'var(--mut)'; }
+     _fs.style.color=_done?'var(--ink)':'var(--mut)'; }   /* W7-096 · the ready state is ink (the promoted Finish carries it), never gold */
    if(_fb){
      _fb.textContent = 'Finish the round';
      _fb.classList.toggle('dark', !_done); }   /* .btn.dark IS the web's quiet */
