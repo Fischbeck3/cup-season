@@ -158,9 +158,24 @@ const doorCodeBranch = (want) => async (page) => page.evaluate((want) => {
   if (toast && toast.classList.contains('show') && toast.textContent.trim()) return `a toast covers the field: ${JSON.stringify(toast.textContent.trim())}`
   return true
 }, want)
+/* TEN / W8 · Q24 (owner, 2026-09-29, option 3) [W7-Q24] · the Door signs with the product's ONE lockup (the pennant in its 32 x 20 box, s2, then the name in the `name` role: the board face,
+   600, 17px, caps, ink) and keeps its editorial SERIF for the statement under it. The name is not in the serif any more, and the statement still is */
+const doorLockup = async (page) => page.evaluate(() => {
+  const lk = document.querySelector('.ob-sig .cs-lockup')
+  if (!lk) return 'the Door signs with no lockup'
+  const name = lk.querySelector('.cs-name'), mark = lk.querySelector('svg'), cs = getComputedStyle(name), m = mark.getBoundingClientRect()
+  const face = (v) => { const d = document.createElement('i'); d.style.fontFamily = `var(${v})`; document.body.appendChild(d); const f = getComputedStyle(d).fontFamily; d.remove(); return f }
+  if (cs.fontFamily === face('--serif')) return "the Door's name is still set in the serif"
+  if (!/IBM Plex Sans Condensed/.test(cs.fontFamily)) return `the Door's name is set in ${cs.fontFamily}, not the board face`
+  if (cs.fontWeight !== '600' || cs.fontSize !== '17px' || cs.textTransform !== 'uppercase') return `the Door's name is ${cs.fontWeight} ${cs.fontSize} ${cs.textTransform}, not the name role`
+  if (Math.round(m.width) !== 32 || Math.round(m.height) !== 20) return `the Door's mark is ${Math.round(m.width)}x${Math.round(m.height)}, not the lockup's 32x20`
+  const h1 = document.querySelector('.onboard .ob-hero .cs-brandline')
+  if (!h1 || getComputedStyle(h1).fontFamily !== face('--serif')) return "the Door's statement lost its serif"
+  return true
+})
 const CORE = [
   /* ------------------------------------------------------------ door */
-  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } }, check: async (page) => { const r = await doorEdgesMut(['#obJoin'])(page); return r === true ? doorHelp(false)(page) : r } },
+  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } }, check: async (page) => { const r = await doorEdgesMut(['#obJoin'])(page); if (r !== true) return r; const h = await doorHelp(false)(page); return h === true ? doorLockup(page) : h } },
   { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
     expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); if (r !== true) return r; const e = await doorEdgesMut(['#obEmailIn'])(page); return e === true ? doorHelp(false)(page) : e } },

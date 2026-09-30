@@ -419,10 +419,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    in the `name` role — the share card's cut (the pennant and the condensed
    caps, `csArtifactSignature`) in the app's type roles. The header, the
    sidebar, the public pages and get/support/legal (their own inline copy of
-   the same rule) all draw it. The Door keeps its serif name for now: the
-   owner's 2026-09-14 board sets the lockup in a serif, which is a brand call
-   (root, 2026-09-28), so it waits for the owner memo. Nothing under brand/
-   changes. The mark takes `ink` on both grounds (D358's two variations). */
+   the same rule) all draw it, and so does the Door since Q24 (owner, 2026-09-29:
+   the lockup's name on the Door, its serif kept for the statement). Nothing under
+   brand/ changes. The mark takes `ink` on both grounds (D358's two variations). */
 .cs-lockup{display:inline-flex; align-items:center; gap:var(--s2); min-width:0; color:var(--ink);}
 .cs-lockup .cs-mark{width:var(--s5); height:var(--s4); flex:none; display:block;}
 .cs-lockup .cs-name{color:var(--ink); overflow-wrap:anywhere;}   /* the name wraps whole at enlarged text, never an ellipsis (§12.3) */
@@ -4185,11 +4184,9 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
    keyboard takes the viewport (`.onboard` is overflow:auto). Left-aligned
    like the phone's welcome; the profile and crew frames were already. */
 .ob-sig{display:flex; align-items:center; gap:12px; color:var(--ink); margin:12px 0 0;}
-.ob-sig .cs-mark-door{width:40px; height:23px; flex:none; color:var(--ink); display:block;}
-/* the board's lockup sets CUP SEASON in the editorial serif, tracked wide —
-   not the condensed competition face */
-.ob-sig .cs-name{color:var(--ink); font-family:var(--serif); font-weight:700;
-  letter-spacing:calc(var(--caps) * 1em);}
+/* Q24 (owner, 2026-09-29, option 3) · THE DOOR SIGNS WITH THE PRODUCT'S ONE LOCKUP (.cs-lockup: the pennant in its 32 x 20 box, then the name in the `name` role, as the
+   header, the sidebar and the public pages do), and the Door's editorial serif is KEPT FOR ITS STATEMENT, the sentence under the name (.cs-brandline below). The name was the
+   Door's own serif, tracked wide: three serif lines on a viewport where UI_SYSTEM §1.4 allows one appearance; it is two now. Nothing under brand/ changes. */
 .onboard .ob-hero{margin:44px 0 0;}
 /* THE STATEMENT IS THE EDITORIAL SERIF (owner board, 2026-09-14 · taglines).
    It was set in the condensed board face in caps, which is this product's voice
@@ -4229,7 +4226,7 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .cs-brandrule{display:block; width:52px; height:2px; background:var(--mut); opacity:.5; margin:var(--s3) 0 0;}
 /* the name beside the mark, and the sentence under the statement, take the
    same rule: enlarged, they wrap rather than push the column sideways */
-.ob-sig .cs-name, .onboard .ob-hero .cs-standfirst{overflow-wrap:anywhere;}
+.onboard .ob-hero .cs-standfirst{overflow-wrap:anywhere;}   /* the sentence under the statement wraps rather than pushing the column sideways (the lockup's name already does, .cs-lockup .cs-name) */
 .ob-sig{flex-wrap:wrap;}
 .onboard .ob-hero .cs-standfirst{color:var(--mut); margin:20px 0 0; max-width:36ch; margin-left:0; margin-right:0;}
 @media(min-width:760px){
@@ -6205,8 +6202,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          these paths). Nothing waits on an animation; the controls are live
          at first paint. -->
     <div class="ob-sig" role="img" aria-label="Cup Season">
-      <svg class="cs-mark cs-mark-door" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
+      <span class="cs-lockup">
+      <svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
       <b class="cs-name">Cup Season</b>
+      </span>
     </div>
     <div class="ob-hero">
       <h1 class="cs-brandline">Any time.<br>Anywhere.</h1>

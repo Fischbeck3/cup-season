@@ -12,8 +12,8 @@
      · the public shell (/?share=…, whose signature is drawn before the read,
        so a refused read still shows it);
      · get, support and legal (their own inline twin of the rule).
-   The Door keeps its serif name until the owner rules on the 2026-09-14 board
-   (root, 2026-09-28) — it is deliberately NOT walked here.
+     · the Door (Q24, owner 2026-09-29): the lockup's name on the Door, the Door's serif kept
+       for its statement (the board's 2026-09-14 serif name is retired from the name).
 
      node tests/lockup-browser.mjs [--base http://127.0.0.1:8801]
 
@@ -89,6 +89,7 @@ const run = async (label, path, sel, width, theme) => {
 for (const theme of ['dark', 'light']) {
   for (const w of [320, 390]) await run('phone header', '/?exit', '#hdrLogo .cs-lockup', w, theme)
   for (const w of [1440, 1600]) await run('desk sidebar', '/?exit', 'aside.side .brand .cs-lockup', w, theme)
+  for (const w of [390, 1440]) await run('the Door', '/?exit', '.ob-sig .cs-lockup', w, theme)   /* Q24 */
   for (const w of [390, 1440]) await run('public shell', '/?share=lockup-probe-token', '#shareView .sv-signature .cs-lockup', w, theme)
   for (const pg of ['get', 'support', 'legal'])
     for (const w of [390, 1440]) await run(`/${pg}`, `/${pg}.html`, 'header.mast .home', w, theme)
