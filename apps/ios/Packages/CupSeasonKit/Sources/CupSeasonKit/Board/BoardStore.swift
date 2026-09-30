@@ -30,6 +30,7 @@ public final class BoardStore {
   public private(set) var items: [BoardItem] = []
   public private(set) var rounds: [UUID: BoardRound] = [:]
   public private(set) var members: [BoardMember] = []
+  public private(set) var squads: [SquadRoster] = []
   public private(set) var names = BoardText.NameRegistry()
   public private(set) var founderId: UUID?
   public private(set) var loading = false
@@ -80,6 +81,10 @@ public final class BoardStore {
   public func face(profile: UUID?) -> URL? { members.first { $0.profileId == profile }?.photoURL }
   /// `myBoardName` — how my optimistic rows and reactions are labelled.
   public var myName: String { memberId.flatMap { id in members.first { $0.id == id }?.name } ?? "You" }
+  public func squad(member id: UUID?) -> (name: String, ci: Int)? {
+    guard let id, let member = member(id), let squad = squads.first(where: { $0.memberIds.contains(id) }) else { return nil }
+    return (squad.name, member.ci)
+  }
   public var myMember: BoardMember? { member(memberId) }
   public var pinnedIndex: Int? { items.lastIndex { $0.kind == .announce } }
 
@@ -94,6 +99,7 @@ public final class BoardStore {
       async let posts = repo.posts(league: leagueId, limit: pageSize, before: nil)
       let (ld, rows) = try await (data, posts)
       members = ld.members
+      squads = ld.squads
       names.learn(ld.members.map(\.name) + ld.squads.map(\.name))
       hasEarlier = rows.count >= pageSize
       if founderId == nil { founderId = await repo.founderId() }

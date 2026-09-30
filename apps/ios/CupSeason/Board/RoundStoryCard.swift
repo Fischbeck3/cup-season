@@ -45,7 +45,7 @@ struct RoundStoryCard: View {
       if item.social { ReactionBar(item: item, store: store) }
     }
     // WAVE 8 · the round is the board's one WEIGHTED row, and weight is the
-    // raised ground plus a squad spine — not a border. The bordered tile was
+    // raised ground and a named squad — not a border. The bordered tile was
     // the last card on the board after the Pro's word and the moments lost
     // theirs (non-negotiable 1: a container needs a job, and "this row is a
     // door" is said by the row's own ground).
@@ -58,7 +58,6 @@ struct RoundStoryCard: View {
     // accessibility sizes: the PvI chip and the points drop UNDER the text instead of squeezing the name to a column of letters
     A11yStack(rowAlignment: hasPhoto ? .bottom : .center, spacing: 12, columnSpacing: 8) {
       HStack(alignment: hasPhoto ? .bottom : .center, spacing: 12) {
-        Rectangle().fill(cs.squad(item.ci)).frame(width: 3)
         VStack(alignment: .leading, spacing: 3) {
           HStack(spacing: 8) {
             CSFace(.init(id: round.profileId ?? UUID(), marker: store.marker(profile: round.profileId), photoURL: store.face(profile: round.profileId)), size: .inline)
@@ -74,6 +73,15 @@ struct RoundStoryCard: View {
           // N4-086 · a course's name wraps whole, at every size
           Text(BoardLogic.courseLine(round)).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
             .fixedSize(horizontal: false, vertical: true)
+          if let squad = store.squad(member: item.memberId) {
+            HStack(spacing: CSTokens.Space.s1) {
+              CSGlyph(.dot, size: .inline).foregroundStyle(cs.squad(squad.ci)).accessibilityHidden(true)
+              Text(squad.name).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("board.round.squad")
+          }
           // AW2-06 · phrases are agate, never mono (UI_SYSTEM §1.4); the margin
           // stays the one figure in the column face
           Text(BoardLogic.grossLine(round, viewer: store.profileId)).csType(.agateS).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
