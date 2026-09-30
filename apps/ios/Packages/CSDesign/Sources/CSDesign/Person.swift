@@ -972,7 +972,7 @@ public struct CSCrestPlate: View {
       CSTokens.dark.ceremony
       CSContour(seed: seed, levels: 6, lineWidth: 1.2,
                 tint: CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a24),
-                mark: hasCourse ? CSTokens.dark.ceremonyBrand : nil,
+                mark: hasCourse ? CSTokens.dark.ceremonyInk : nil,
                 // **The credential's plate carries COPY.** The name sets
                 // bottom-left, the slot top-left, the medallion bottom-right;
                 // the upper right is the quadrant nothing else uses, and it is

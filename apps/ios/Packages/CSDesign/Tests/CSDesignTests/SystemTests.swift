@@ -185,12 +185,11 @@ import SwiftUI
     #expect(CSRankRail(12, field: .mine).text == "12")
   }
 
-  /// **Per BOARD, not per row.** At ten or more every given name abbreviates,
-  /// including the short ones, so the column keeps one grammar.
-  @Test func abbreviationIsDecidedForTheWholeBoard() {
-    #expect(CSStandingsBoard(count: 9) { _, _ in EmptyView() }.abbreviateNames == false)
-    #expect(CSStandingsBoard(count: 10) { _, _ in EmptyView() }.abbreviateNames == true)
-    #expect(CSStandingsBoard(count: 12) { _, _ in EmptyView() }.abbreviateNames == true)
+  /// Q34: field size never abbreviates a golfer's name.
+  @Test func namesStayWholeAtEveryFieldSize() {
+    for count in [2, 9, 10, 12, 40] {
+      #expect(!CSStandingsBoard(count: count) { _, _ in EmptyView() }.abbreviateNames)
+    }
   }
 
   /// One ordinal, product-wide, uppercase, on the baseline.

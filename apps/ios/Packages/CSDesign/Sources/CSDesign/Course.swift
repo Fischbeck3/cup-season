@@ -244,25 +244,14 @@ public struct CSStarRail: View {
   /// The unfilled outline's tone. `mut` when the whole rail is empty — an
   /// unrated course still shows a rail a golfer can see.
   let unrated: Bool
-  /// **D289 · the rail as a CONTROL.** Non-nil turns on ten half-star targets
-  /// and makes the rail adjustable to VoiceOver. Tapping the value already set
-  /// calls it with the SAME value, and the caller reads that as "take it off"
-  /// — one tap in, one tap out, no confirm and no sheet (`VISUAL_PASS` §5.1).
-  ///
-  /// **The geometry is the reason `rate` forces 48pt.** WCAG 2.5.8 wants
-  /// 24 × 24, and a half star is half the glyph: at the 22pt display size the
-  /// target would be 11pt. `RateCourseSheet`'s 28pt half rides a stated
-  /// carve-out because the sheet also carries 44pt steppers; a rail sitting
-  /// alone on a page has no stepper to lean on, so it grows instead of
-  /// borrowing an exemption it has not earned.
+  /// Q34: five whole-star buttons, each at least44pt. Half-star changes
+  /// use the existing44pt steppers or VoiceOver adjustment, never a hidden
+  /// half-width target. Tapping the held whole value still takes it off.
   let onSet: ((Double) -> Void)?
 
-  /// `paired`: the rail sits between a −½ / +½ pair at 44 (`CSRating`'s, as
-  /// `RateCourseSheet`'s), which is §16.2's carve-out whole — a half star's
-  /// target may then draw below 44, and the rail keeps the size it is given.
   public init(_ value: Double, size: CGFloat = 22, unrated: Bool = false,
               onSet: ((Double) -> Void)? = nil, paired: Bool = false) {
-    self.value = value; self.size = onSet == nil || paired ? size : max(size, 48); self.unrated = unrated
+    self.value = value; self.size = onSet == nil ? size : max(size, 44); self.unrated = unrated
     self.onSet = onSet
   }
 
@@ -289,17 +278,16 @@ public struct CSStarRail: View {
   private func control(_ set: @escaping (Double) -> Void) -> some View {
     HStack(spacing: CSTokens.Space.s1) {
       ForEach(0..<5, id: \.self) { i in
-        ZStack(alignment: .leading) {
-          star(i)
-          HStack(spacing: 0) {
-            half(Double(i) + 0.5, set)
-            half(Double(i) + 1.0, set)
-          }
+        Button { CSHaptic.selection(); set(Double(i + 1)) } label: {
+          star(i).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(CSStarRail.spoken(Double(i + 1)))
+        .accessibilityIdentifier("rating.star.\(i + 1)")
       }
     }
     .csAnimation(CSMotion.snap, value: value)
-    .accessibilityElement(children: .ignore)
+    .accessibilityElement(children: .contain)
     .accessibilityLabel("Your rating")
     .accessibilityValue(unrated ? "Not yours yet" : CSStarRail.spoken(value))
     .accessibilityAdjustableAction { d in
@@ -307,14 +295,6 @@ public struct CSStarRail: View {
       // value, which the caller reads as "take it off"
       if let next = CSStarRail.step(from: unrated ? nil : value, up: d == .increment) { set(next) }
     }
-  }
-
-  private func half(_ v: Double, _ set: @escaping (Double) -> Void) -> some View {
-    Button { CSHaptic.selection(); set(v) } label: {
-      Color.clear.frame(width: size / 2, height: size)
-    }
-    .buttonStyle(.plain)
-    .accessibilityHidden(true)
   }
 
   private var rail: some View {
@@ -427,16 +407,16 @@ public struct CSRating: View {
     }
   }
 
-  /// Root's star-rail twin (AW2-19's phone half): as a control the rail sits
-  /// between `RateCourseSheet`'s own −½ / +½ pair — 44 × 44, `figureS`, s3
-  /// apart — and so draws at the sheet's 40, not 48. The pair is hidden from
-  /// VoiceOver; the rail stays the one adjustable element, in half steps.
+  /// Q34: the rail and the half-step pair each keep their44pt targets.
+  /// The pair sits below, so the five stars fit inside an SE's335pt measure.
   @ViewBuilder private var rail: some View {
     if let onSet {
-      HStack(spacing: CSTokens.Space.s3) {
-        stepper("−", to: CSStarRail.step(from: mine, up: false), onSet)
-        CSStarRail(mine ?? 0, size: 40, unrated: mine == nil, onSet: onSet, paired: true)
-        stepper("+", to: CSStarRail.step(from: mine, up: true), onSet)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSStarRail(mine ?? 0, size: 44, unrated: mine == nil, onSet: onSet)
+        HStack(spacing: CSTokens.Space.s3) {
+          stepper("−½", to: CSStarRail.step(from: mine, up: false), onSet)
+          stepper("+½", to: CSStarRail.step(from: mine, up: true), onSet)
+        }
       }
     } else {
       CSStarRail(mine ?? 0, size: 22, unrated: mine == nil)
@@ -452,7 +432,7 @@ public struct CSRating: View {
     }
     .buttonStyle(.plain)
     .disabled(next == nil)
-    .accessibilityHidden(true)
+    .accessibilityLabel(glyph == "−½" ? "Decrease rating by half a star" : "Increase rating by half a star")
   }
 
   @ViewBuilder private var mineLine: some View {

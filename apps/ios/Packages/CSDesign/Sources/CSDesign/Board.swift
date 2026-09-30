@@ -13,9 +13,7 @@
 //       metrics, both half-empty at any field size, and separately they ate
 //       ~130pt the name column needs.
 //   2 · a held row prints ONE mark. `— —` reads as a rendering error.
-//   3 · at a field of ten or more, EVERY row abbreviates the given name to an
-//       initial before any name is truncated — per BOARD, not per row, so the
-//       column keeps one grammar.
+//   3 · Q34: full names wrap at every field size; rows grow to fit.
 //   4 · the header row ships at EVERY field size, including the season page's.
 //       One reviewer called the unlabelled `+4 / +9 / +12` column "the single
 //       most confusing element in the set".
@@ -150,22 +148,10 @@ public enum CSSlatMetrics {
     hasFace ? railGap + CSFace.Size.slat.rawValue + railGap : railGap
   }
 
-  /// **Does this field of names fit the column it is being read in?**
-  ///
-  /// `MeStripLayout`'s model, applied to the board: measure the actual
-  /// characters in the actual face at the size being read, and abbreviate the
-  /// whole board's given names when the longest one does not fit. `count >= 10`
-  /// stays as the floor — a big field keeps one grammar whatever the phone —
-  /// and this is what catches the eight-row board on an SE, where the same
-  /// eight rows fit perfectly on a Max.
+  /// Q34 / OWNER-QUESTIONS §R: keep every full name, at every measure.
+  /// The compatibility argument remains for callers; the slat grows vertically.
   public static func abbreviates(names: [String], count: Int,
-                                 measure: CGFloat, size: DynamicTypeSize) -> Bool {
-    if count >= 10 { return true }
-    guard !names.isEmpty, !size.isA11y else { return count >= 10 }
-    let column = nameWidth(at: measure)
-    guard column > 0 else { return false }
-    return names.filter(isAbbreviable).contains { CSAdvance.width($0, .name, size) > column }
-  }
+                                 measure: CGFloat, size: DynamicTypeSize) -> Bool { false }
 
   /// **A HANDLE IS NOT A NAME, AND IT MAY NOT ABBREVIATE THE FIELD.**
   ///
@@ -341,8 +327,8 @@ public struct CSSlat<Trailing: View>: View {
     if let face { CSFace(face, size: variant.face).padding(.leading, CSSlatMetrics.railGap) }
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       Text(name).csType(.name).foregroundStyle(cs.ink)
-        .lineLimit(typeSize.isA11y ? 3 : 1).truncationMode(.tail)
-        .fixedSize(horizontal: false, vertical: typeSize.isA11y)
+        .lineLimit(nil)
+        .fixedSize(horizontal: false, vertical: true)
       HStack(spacing: CSTokens.Space.s2) {
         if let squad {
           // **A squad's OWN row takes the 6 × 30 bar; a golfer's row in a
@@ -362,8 +348,7 @@ public struct CSSlat<Trailing: View>: View {
         }
         // N4-102 / N4-120 · the sub-line is a sentence, and it wraps whole at
         // every size ('Seed 1 · Starts +2 · top seed…', the Major's 'doesn't
-        // c…'); the slat grows (UI_SYSTEM §16.3). The NAME above keeps
-        // "abbreviate first, ellipsis last" (DEC-N4-5 (1)).
+        // c…'); the slat grows (UI_SYSTEM §16.3). Q34 extends whole wrapping to names.
         Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
@@ -453,18 +438,9 @@ public struct CSStandingsBoard<Row: View>: View {
   let names: [String]
   let rows: (Int, Bool) -> Row
 
-  /// `abbreviate` is decided per BOARD, not per row: at a field of ten or more
-  /// EVERY given name goes to an initial, including the short ones, so the
-  /// column keeps one grammar.
-  ///
-  /// **WAVE 10 · and also whenever the longest name in THIS field does not fit
-  /// the name column at the width this board is being read at.** Eight rows
-  /// that set perfectly on a Max truncated two surnames on an SE, because the
-  /// threshold was a count and the column is a measure.
-  public var abbreviateNames: Bool { count >= 10 }
-  var abbreviatesHere: Bool {
-    CSSlatMetrics.abbreviates(names: names, count: count, measure: measure, size: typeSize)
-  }
+  /// Q34: names wrap whole, including fields of ten or more.
+  public var abbreviateNames: Bool { false }
+  var abbreviatesHere: Bool { false }
 
   /// **The name column's head, because not every board is a board of people.**
   /// A squads season's top table ranks SQUADS, and it printed `GOLFER` over
