@@ -21930,6 +21930,14 @@ function renderHomeFeed(){
      hidden row never earns a whole "show 1 more" button. */
   const CAP=8;
   let html='';
+  /* TEN / W6 · Q19 (owner, 2026-09-29 §R; TERMINOLOGY §2.2 amended) · the
+     head names what the list holds: "Your rounds" when rounds are listed and
+     none of them is a buddy's, "Around your buddies" otherwise (its true
+     scope, D217/D218). A golfer with no buddies read "Around your buddies"
+     over a list of their own rounds. */
+  { const hd = document.getElementById('homeFeedHead');
+    if(hd){ const rs = fold.buckets.flatMap(b => b.items).filter(x => x.kind === 'round');
+      hd.textContent = rs.length && rs.every(x => x.r && x.r.is_me) ? 'Your rounds' : 'Around your buddies'; } }
   /* L-34 · one course's circle per course, on its newest round (the fold
      orders newest first). TEN / W7-051 [B2-home-3] · per WIRE, not per
      section: declared inside the loop, the same sentence landed once under
