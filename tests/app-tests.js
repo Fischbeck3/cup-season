@@ -20,6 +20,8 @@
     {seed:2,id:'b',name:'Fixture Wrens'}, {seed:1,id:'a',name:'Fixture Javelinas'}]}),
     ['Fixture Javelinas','Fixture Wrens']);
   t('Q2: absent draw never invents finalists from points order', window.csFinalSeedNames({k:2}), []);
+  t('Q2: two-squad Final refuses a partial draw', window.csFinalSeedNames({structure:'squads2',k:1,seeds:[{seed:1,id:'a',name:'Fixture Wrens'}]}), []);
+  t('Q2: missing first seed refuses a broken draw', window.csFinalSeedNames({k:1,seeds:[{seed:2,id:'a',name:'Fixture Wrens'}]}), []);
   t('Q2: duplicate draw fails closed', window.csFinalSeedNames({seeds:[
     {seed:1,id:'a',name:'Fixture Wrens'}, {seed:1,id:'a',name:'Fixture Wrens'}]}), []);
   for(const structure of ['solo','squads2','squads3','squads4']) {

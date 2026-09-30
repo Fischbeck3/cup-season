@@ -34195,8 +34195,10 @@ function scenSeedWord(meta){
 /* Empty/incomplete reads cannot invent a seed. The draw's seed order survives a lead change. */
 function csFinalSeedNames(meta){
   const seeds = Array.isArray(meta?.seeds) ? meta.seeds : [];
-  if(!seeds.length || seeds.some(s=>!s?.id || !Number.isInteger(s.seed) || s.seed<1 || !String(s.name||'').trim())
-    || new Set(seeds.map(s=>s.id)).size!==seeds.length || new Set(seeds.map(s=>s.seed)).size!==seeds.length) return [];
+  const count = meta?.structure==='squads2' ? 2 : (Number.isInteger(meta?.k) && meta.k>0 ? meta.k : null);
+  if((count!=null && seeds.length!==count) || !seeds.length || seeds.some(s=>!s?.id || !Number.isInteger(s.seed) || s.seed<1 || !String(s.name||'').trim())
+    || new Set(seeds.map(s=>s.id)).size!==seeds.length || new Set(seeds.map(s=>s.seed)).size!==seeds.length
+    || seeds.slice().sort((a,b)=>a.seed-b.seed).some((s,i)=>s.seed!==i+1)) return [];
   return seeds.slice().sort((a,b)=>a.seed-b.seed).map(s=>String(s.name));
 }
 window.csFinalSeedNames = csFinalSeedNames;

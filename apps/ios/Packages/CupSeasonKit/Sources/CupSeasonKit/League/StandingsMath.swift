@@ -725,10 +725,12 @@ public enum ScenarioLine {
 
   /// Q2: read the actual draw, with no fallback to live points rank (L-44).
   public static func finalSeedNames(_ meta: SeasonScenarios.Meta) -> [String] {
-    guard let seeds = meta.seeds, !seeds.isEmpty,
+    let count = meta.structure == "squads2" ? 2 : ((meta.k ?? 0) > 0 ? meta.k : nil)
+    guard let seeds = meta.seeds, !seeds.isEmpty, count == nil || seeds.count == count,
           seeds.allSatisfy({ ($0.seed ?? 0) > 0 && $0.id != nil && !($0.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
           Set(seeds.compactMap(\.id)).count == seeds.count,
-          Set(seeds.compactMap(\.seed)).count == seeds.count else { return [] }
+          Set(seeds.compactMap(\.seed)).count == seeds.count,
+          seeds.sorted(by: { $0.seed! < $1.seed! }).enumerated().allSatisfy({ $0.element.seed == $0.offset + 1 }) else { return [] }
     return seeds.sorted { $0.seed! < $1.seed! }.compactMap(\.name)
   }
 

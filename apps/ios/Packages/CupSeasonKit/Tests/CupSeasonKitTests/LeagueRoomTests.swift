@@ -403,6 +403,10 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let duplicate = SeasonScenarios.Meta(finish: "cup_final", structure: "squads4", level: "squad", k: 2,
                                         months_left: 0, locked: true, cap: 4, seeds: [draw[0], draw[0]])
     #expect(ScenarioLine.finalSeedNames(duplicate).isEmpty)
+    let partial = SeasonScenarios.Meta(structure: "squads2", k: 1, seeds: [.init(seed: 1, id: UUID(), name: "Fixture Wrens")])
+    #expect(ScenarioLine.finalSeedNames(partial).isEmpty)
+    let missingFirst = SeasonScenarios.Meta(k: 1, seeds: [.init(seed: 2, id: UUID(), name: "Fixture Wrens")])
+    #expect(ScenarioLine.finalSeedNames(missingFirst).isEmpty)
     let single = SeasonScenarios.Meta(finish: "cup_final", structure: "solo", level: "member", k: 1,
                                      months_left: 0, locked: true, cap: 4,
                                      seeds: [.init(seed: 1, id: a, name: "Avery Fixture")])
