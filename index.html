@@ -24850,8 +24850,13 @@ function renderGolfers(){
     /* TEN · a sentence line says its day in sentence case ("today", "Sun"),
        not the caps token a rail uses ("TODAY" mid-sentence read as a shout) */
     const dayWord = iso => { const t = String(csDayToken(iso)||''); return t === 'TODAY' ? 'today' : t.charAt(0) + t.slice(1).toLowerCase(); };
+    /* W7-110 [A2-golfers-5] · 'PLAYING SOON' WAS A DEAD END: a buddy's plan was one line of plain text with no face and nothing to open. Each plan is a DOOR row now, as the buddies
+       list's rows are (and the phone's PlayingSoonSection row): the host's face, their name in the social role, one sub-line (the day, then the club as the glance says it), and the
+       whole row opens the plan's sheet through the board's delegated [data-planrow] listener. The trailing 'Ask for a seat' (R16, ask_for_a_seat) is NOT here: the request writes a
+       push_nudges row for the host and this client's inbox draws no such row, so the ask would disappear (IA §10.1); it waits for a recipient surface. */
     soon.innerHTML = rows.length
-      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(dayWord(sr.play_on))} · ${esc(csShortCourse(sr.course_label))}</div>`).join('')
+      ? rows.map(sr=>`<div class="prow"><span class="pmk">${window.face ? window.face(sr.profile_id, sr.marker, 36) : mkr(sr.marker||'saguaro')}</span>
+          <span class="pmeta" data-planrow="${esc(sr.id)}" role="button" tabindex="0"><b class="cs-social">${esc(sr.display_name||'A golfer')}</b><small>${esc(dayWord(sr.play_on))} · ${esc(csShortCourse(sr.course_label))}</small></span></div>`).join('')
       : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one</a></p>';
     soon.querySelector('#glfSoonPlan')?.addEventListener('click', e=>{ e.preventDefault(); window.openDeclareSheet?.(); });
   }

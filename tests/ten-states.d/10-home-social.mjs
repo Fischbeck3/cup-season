@@ -676,6 +676,21 @@ const squadInWords = (solo) => async (page) => page.evaluate(({ solo, SWATCH }) 
   return true
 }, { solo, SWATCH })
 const SOLO_LEAGUE = 'f3000000-0000-4000-8000-000000000002'   /* South Wash Weekday (fixture): a solo season, no squads */
+/* TEN / W8 · W7-110 [A2-golfers-5] · 'Playing soon' is not a dead end: each buddy's plan is a DOOR row like the buddies list's (a face, the host's name in the social role, one sub-line
+   'day · club'), and the row opens the plan's sheet. It was plain text with no face and nothing to open */
+const playingSoonDoors = async (page) => page.evaluate(() => {
+  const rows = [...document.querySelectorAll('#glfSoon .prow')]
+  if (!rows.length) return 'Playing soon draws no plan rows to read'
+  for (const r of rows) {
+    const face = r.querySelector('.pmk'), door = r.querySelector('.pmeta[data-planrow]')
+    if (!face || !face.querySelector('.fc')) return 'a Playing-soon row has no face'
+    if (!door || door.getAttribute('role') !== 'button' || door.tabIndex !== 0) return 'a Playing-soon row is not a door (no button role, tab stop or plan id)'
+    const name = door.querySelector('b.cs-social'), sub = door.querySelector('small')
+    if (!name || !name.textContent.trim() || !sub || !/^\S.* · \S/.test(sub.textContent.trim())) return `a Playing-soon row's lines read ${JSON.stringify(door.innerText)}`
+    if (r.getBoundingClientRect().height < 43.5) return `a Playing-soon row is ${Math.round(r.getBoundingClientRect().height)}px tall, under the 44px target`
+  }
+  return true
+})
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -708,7 +723,24 @@ const GOLFERS = [
     /* TEN / W6 · AW2-15: the form lens's note is a phrase, in sentence case (§1.3) */
     readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']]),
     /* TEN / W7-044 [B2-golfers-3]: one golfer, one disc, on the board and in the buddies list */
-    oneDisc) },
+    oneDisc,
+    playingSoonDoors) },
+  /* W7-110 · and a Playing-soon row opens the plan: the sheet names the host */
+  { family: 'golfers', id: 'soon-open', variant: 'member', fullPage: false, title: 'Golfers · a Playing-soon row opens the buddy\u2019s plan',
+    drive: async (page) => {
+      await toGolfers(page)
+      await until(page, () => document.querySelectorAll('#glfSoon .prow .pmeta').length >= 1, null, 10000)
+      await page.evaluate(() => { window.__tenSoon = document.querySelector('#glfSoon .prow .pmeta b').textContent.trim() })
+      await page.locator('#glfSoon .prow .pmeta').first().scrollIntoViewIfNeeded().catch(() => {})
+      await click(page, '#glfSoon .prow .pmeta')
+      await until(page, () => document.getElementById('sheet').classList.contains('open'), null, 10000)
+      await page.waitForTimeout(600)
+    },
+    expect: { view: 'view-golfers', sheet: true },
+    check: async (page) => page.evaluate(() => {
+      const t = (document.getElementById('sheet') || {}).innerText || ''
+      return window.__tenSoon && t.includes(window.__tenSoon) ? true : `the sheet a Playing-soon row opens does not name its host (${window.__tenSoon}): ${JSON.stringify(t.slice(0, 80))}`
+    }) },
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },
