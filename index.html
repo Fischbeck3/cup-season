@@ -22648,7 +22648,7 @@ function csLeadBlock(it){
          the quietest control on a page whose only green was a promo */
       ? `<button type="button" class="btn csedn-go" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`
       : `<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`):''}
-    ${csAnswerControls(it)}
+    ${csAnswerControls(it)}${csInviteControls(it)}
   </div>`;
 }
 
@@ -22662,6 +22662,18 @@ function csAnswerControls(it){
   return `<div class="csans" role="group" aria-label="Answer about this round">
     <button type="button" class="csans-b cs-name-s" data-ans="later" data-plan="${esc(c.plan_id)}" data-dkey="${esc(it.key)}">Later</button>
     <button type="button" class="csans-b cs-name-s" data-ans="didnt_play" data-plan="${esc(c.plan_id)}" data-dkey="${esc(it.key)}">Didn’t play</button>
+  </div>`;
+}
+/* W7-149 [A2-claim-invite-3, B2-claim-invite-4] · THE INVITATION CAN BE DECLINED WHERE HOME SHOWS IT. D351 keeps declining one tap and ungated, and D389 gives a golfer
+   until the first tee an invitation with its Decline; Home's item carried 'See the terms' only, and the banner's own Decline stands down for what the dispatch carries
+   (csDispatchCarries), so the one Decline left was the × in the league switcher. Like Later and Didn't play (D353) it is a LAYOUT control on the item, never a new route
+   kind: both clients drop an item whose route they do not know, so a new kind would make the card vanish on every build in the field. One quiet word at the 44px target;
+   'Not now' in the covenant still writes nothing, and this writes the answer. */
+function csInviteControls(it){
+  const key = String(it && it.key || '');
+  if(!key.startsWith('invite:') || key.length <= 7) return '';
+  return `<div class="csans" role="group" aria-label="Answer this invitation">
+    <button type="button" class="csans-b cs-name-s" data-ivdec="${esc(key.slice(7))}">Decline</button>
   </div>`;
 }
 /* `Today` - `Mon` - `Aug 21`. The phone's `HomeWireCopy.dayMarker`, in the
@@ -22696,7 +22708,7 @@ function csWireLine(it, ctx){
      block it put a second serif headline and a second action door in the
      viewport, under the real lead (critique-B P2, §15.1's one serif, §16A.5's
      one primary). Later · Didn't play keep their 44px targets. */
-  if(csAfterplan(it) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}</div>`;
+  if((csAfterplan(it) || csInviteControls(it)) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}${csInviteControls(it)}</div>`;   /* W7-149 · an invitation that is not the lead answers the same way */
   const mk = csWireStamp(it.at);   /* W7-087 · a future line wears a clock ('2 days'), never its own weekday as its marker */
   /* MW-02 · the league, when the sentence alone would not say which. Two
      `chapter:` items read "You are the one to catch." for two leagues and the
@@ -22840,6 +22852,15 @@ function renderHomeDispatch(){
     const btns = card ? Array.from(card.querySelectorAll('[data-ans]')) : [b];
     qaEvent('cta_tapped', { door: 'afterplan', tier: ans });   /* the family and the answer, nothing else */
     csAnswerPlan(plan, ans, btns);
+  }));
+  /* W7-149 · Decline on the invitation's item: one tap, no confirm (D351). respondInvite writes the answer and says 'Declined'; the dispatch is read again so the item
+     leaves Home, and a failed answer leaves it (and its button) where it was */
+  document.querySelectorAll('#homeLead [data-ivdec], #homeDeck [data-ivdec]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    qaEvent('cta_tapped', { door: 'invite_decline' });
+    await window.respondInvite?.(b.getAttribute('data-ivdec'), false);
+    try{ await loadHomeDispatch(); }catch(_){}
+    renderHomeDispatch();
   }));
 }
 window.renderHomeDispatch = renderHomeDispatch;

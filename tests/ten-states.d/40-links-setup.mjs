@@ -179,6 +179,19 @@ const toastIsTheBlock = async (page) => page.evaluate(() => {
   if (be.content === 'none' || be.width !== '3px' || be.backgroundColor !== want.rule) return 'the toast has no 3pt rail in rule: ' + JSON.stringify(got)
   return got.align === 'left' ? true : 'the toast sentence is centred, not led by its rail'
 })
+/* TEN / W8 · W7-149 [A2-claim-invite-3, B2-claim-invite-4] · the invitation is answerable where Home shows it: one quiet 'Decline' on the item itself (D351: one tap,
+   ungated; D389: until the first tee they see an invitation with its Decline), a 44px target in a group named for the answer, and never a second filled button (§16A.5) */
+const inviteDeclineOnItem = async (page) => page.evaluate(() => {
+  const b = document.querySelector('#homeLead [data-ivdec], #homeDeck [data-ivdec]')
+  if (!b) return 'the invitation on Home has no Decline'
+  if (b.textContent.trim() !== 'Decline') return `the invitation's answer reads ${JSON.stringify(b.textContent.trim())}, not 'Decline'`
+  const r = b.getBoundingClientRect()
+  if (r.height < 43.5) return `Decline is ${Math.round(r.height)}px tall, under the 44px target`
+  const g = b.closest('[role="group"]')
+  if (!g || g.getAttribute('aria-label') !== 'Answer this invitation') return 'Decline is not in a group named for the answer'
+  if (b.classList.contains('btn')) return 'Decline is a filled button beside the one primary'
+  return true
+})
 const LINKS = [
   /* W4 · the round LEADS the door (#obLink, the lead serif) and the status line
      keeps the next step: the same ruled sentence (TERMINOLOGY §6), split,
@@ -272,7 +285,20 @@ const LINKS = [
       const drawn = [...document.querySelectorAll('#homeLead [data-dkey], #homeDeck [data-dgo]')].filter((n) => (n.getAttribute('data-dkey') || n.getAttribute('data-dgo')) === key && shown(n)).length
         + [...document.querySelectorAll('#notifBanner [data-inv]')].filter((n) => n.getAttribute('data-inv') === id && shown(n)).length
       return drawn === 1 ? true : `the invitation is drawn ${drawn} times on Home`
-    }) },
+    }).then((r) => r === true ? inviteDeclineOnItem(page) : r) },
+  /* W7-149 · and the tap answers: one respond_invite with p_accept false, no confirm in between (D351) */
+  { family: 'links', id: 'invite-decline', variant: 'brand_new', world: { flags: { invite: true } },
+    settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-ivdec]'), null, 15000); await page.waitForTimeout(400) },
+    drive: async (page) => {
+      let asked = null
+      const req = page.waitForRequest((r) => /rpc\/respond_invite/.test(r.url()), { timeout: 8000 }).then((r) => { asked = r.postData() || '' }).catch(() => {})
+      await click(page, '#homeLead [data-ivdec]')
+      await req
+      await page.evaluate((b) => { window.__tenAsked = b }, asked)
+      await page.waitForTimeout(600)
+    },
+    expect: { allowDoor: false },
+    check: async (page) => page.evaluate(() => /"p_accept"\s*:\s*false/.test(window.__tenAsked || '') ? true : `Decline did not send respond_invite with p_accept false: ${JSON.stringify(window.__tenAsked)}`) },
   { family: 'links', id: 'invite-terms', variant: 'brand_new', world: { flags: { invite: true } },
     settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dgo^="invite:"]'), null, 15000); await page.waitForTimeout(300) },
     drive: async (page) => { await click(page, '#homeLead [data-dgo^="invite:"]'); await until(page, () => /Before you join/.test(document.getElementById('shTitle').textContent) && document.getElementById('sheet').classList.contains('open')) },
