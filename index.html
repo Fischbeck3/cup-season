@@ -4330,6 +4330,8 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .onboard .joinbox input{border-color:var(--mut);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 #emailbox .btn, #codebox .btn, #joinbox .btn{width:100%;}   /* W7-109 · after the shared rule: the Door's actions sit under their fields at full width */
+/* W7-164 · a held Send code is UI_SYSTEM §7.1's disabled primary, as #lockBtn:disabled is: bg1 fill, mut label, no act green (a disabled .btn has no paint of its own, so it looked live) */
+#obEmailGo[data-hold]{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}
 
 /* ---- the wings: two worked EXAMPLES beside the centered door (>=1100px only).
    Hand-authored (the door is pre-auth, anon reads no table), so they are
@@ -34480,18 +34482,26 @@ $('#obCodeIn')?.addEventListener('input', () => {
 
 /* Phase 5: resend with a cooldown, and a spam hint that appears only while
    actually waiting (box open, nothing typed, no error on screen). */
-let resendT = null, spamT = null;
+let resendT = null, spamT = null, holdT = null;
+/* W7-164 · ONE cooldown for the Door's two clocks: a button reads its label and the seconds left, is disabled while they run, and gives itself back when they end.
+   `data-hold` lets CSS paint the wait (a disabled .btn has no paint of its own, so a held Send code looked live). Resend code's is 30s; Send code's, after a
+   rate-limit refusal, is the server's own number. */
+function csCooldown(b, label, secs, timerKey){
+  let left = secs;
+  b.disabled = true; b.dataset.hold = '1';
+  b.textContent = `${label} (${left}s)`;
+  clearInterval(timerKey === 'hold' ? holdT : resendT);
+  const t = setInterval(() => {
+    left--;
+    if(left <= 0){ clearInterval(t); b.disabled = false; delete b.dataset.hold; b.textContent = label; }
+    else b.textContent = `${label} (${left}s)`;
+  }, 1000);
+  if(timerKey === 'hold') holdT = t; else resendT = t;
+}
 function startResendCooldown(){
   const b = $('#obResend'); if(!b) return;
-  let left = 30;
-  b.style.display = 'block'; b.disabled = true;
-  b.textContent = `Resend code (${left}s)`;
-  clearInterval(resendT);
-  resendT = setInterval(() => {
-    left--;
-    if(left <= 0){ clearInterval(resendT); b.disabled = false; b.textContent = 'Resend code'; }
-    else b.textContent = `Resend code (${left}s)`;
-  }, 1000);
+  b.style.display = 'block';
+  csCooldown(b, 'Resend code', 30, 'resend');
 }
 function scheduleSpamHint(){
   clearTimeout(spamT);
@@ -34533,6 +34543,7 @@ $('#obEmailGo').addEventListener('click', async () => {
     return;
   }
   const btn = $('#obEmailGo');
+  let held = false;   /* W7-164 · a rate-limit refusal keeps Send code behind its clock: the finally below does not give it back */
   btn.disabled = true; btn.textContent = 'Sending…';
   authStatus('Sending sign-in code…');
   try {
@@ -34552,18 +34563,26 @@ $('#obEmailGo').addEventListener('click', async () => {
     const code = (err.code || err.error_code || '').toString().toLowerCase();
     const banned = code.includes('ban') || m.includes('ban') || m.includes('deleted') || err.status === 403;
     const rate = m.includes('rate') || err.status === 429;
+    if(rate && !banned){
+      /* W7-164 [A2-door-7, B2-door-4] · the refusal says how long, and keeps a code already sent usable: Send code is held behind a clock (the number in the server's own
+         sentence, 'after 47 seconds', else 60) instead of live again at once, and the code field opens for a code from an earlier email. Resend had a clock; this did not. */
+      held = true;
+      const said = /after\s+(\d+)\s*seconds?/i.exec(err.message || '');
+      csCooldown(btn, 'Send code', said ? Math.max(1, Math.min(3600, Number(said[1]))) : 60, 'hold');
+      $('#codebox').classList.add('open');
+    }
     authStatus(
       banned
         ? 'This account was closed and can’t sign in again. Start fresh with a different email.'
       : rate
-        ? 'Too many sign-in emails for now — give it a few minutes and try again.'
+        ? 'Too many sign-in emails for now — give it a few minutes and try again. Have a code from an earlier email? Enter it below.'
         : 'Couldn’t send a sign-in code. If you deleted this account it can’t be reused — try a different email. Otherwise wait a minute and retry.',
       'err');
     /* AW2-18 · the disabled Send code button took focus with it, so a failure
        left a keyboard golfer on <body>. The address is what the sentence asks
        them to change, so focus waits there. */
     $('#obEmailIn').focus();
-  } finally { btn.disabled = false; btn.textContent = 'Send code'; }
+  } finally { if(!held){ btn.disabled = false; btn.textContent = 'Send code'; } }
 });
 
 /* obCreate retired: "Create" and "Sign in" were the same OTP with different

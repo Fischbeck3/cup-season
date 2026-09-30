@@ -124,6 +124,22 @@ const doorHelp = (shown) => async (page) => {
     return r.height >= 43.5 ? true : `the help link is ${Math.round(r.height)}px tall, under the 44px target`
   })
 }
+/* TEN / W8 · W7-164 [A2-door-7, B2-door-4] · after a rate-limit refusal Send code is HELD behind a clock, not live again at once: it reads 'Send code (Ns)' (`secs` is the range the
+   server's number, or 60, can have ticked to), is disabled and painted as §7.1's disabled primary (bg1 fill, mut label), and the code field is OPEN for a code from an earlier email
+   under a status that says so */
+const doorHeld = (secs) => async (page) => page.evaluate((secs) => {
+  const b = document.getElementById('obEmailGo'), st = document.getElementById('obStatus')
+  if (!b.disabled || !b.hasAttribute('data-hold')) return 'Send code is live again after the refusal'
+  const m = /^Send code \((\d+)s\)$/.exec(b.textContent.trim())
+  if (!m) return `the held button reads ${JSON.stringify(b.textContent.trim())}, not 'Send code (Ns)'`
+  if (Number(m[1]) < secs[0] || Number(m[1]) > secs[1]) return `the clock reads ${m[1]}s, not ${secs[0]} to ${secs[1]}`
+  const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+  const cs = getComputedStyle(b)
+  if (cs.backgroundColor !== probe('--bg1') || cs.color !== probe('--mut')) return `the held button is ${cs.backgroundColor} on ${cs.color}, not bg1 with a mut label`
+  if (!document.getElementById('codebox').classList.contains('open')) return 'the refusal leaves no place to type a code from an earlier email'
+  if (!/Have a code from an earlier email\? Enter it below\.$/.test(st.textContent.trim())) return `the status does not offer the code field: ${JSON.stringify(st.textContent.trim())}`
+  return true
+}, secs)
 const CORE = [
   /* ------------------------------------------------------------ door */
   { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } }, check: async (page) => { const r = await doorEdgesMut(['#obJoin'])(page); return r === true ? doorHelp(false)(page) : r } },
@@ -163,7 +179,18 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
-    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: async (page) => { const r = await doorStacked('obEmailIn')(page); return r === true ? doorHelp(true)(page) : r } },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: async (page) => { const r = await doorStacked('obEmailIn')(page); if (r !== true) return r; const h = await doorHelp(true)(page); return h === true ? doorHeld([55, 60])(page) : h } },
+  /* W7-164 · and the clock is the server's own number when its sentence carries one ('after 47 seconds') */
+  { family: 'door', id: 'send-held', variant: 'signed_out', url: '/', short: true,
+    world: { errors: { auth: { otp: { status: 429, body: { code: 429, error_code: 'over_email_send_rate_limit', msg: 'For security purposes, you can only request this after 47 seconds.' } } } } },
+    expectConsole: [/^\[cs\] Too many sign-in emails/, /status of 429/],
+    drive: async (page) => {
+      await click(page, '#obEmail'); await page.fill('#obEmailIn', 'avery.fixture@example.invalid')
+      await click(page, '#obEmailGo')
+      await until(page, () => /err/.test(document.getElementById('obStatus').className))
+      await page.waitForTimeout(400)
+    },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible', '#codebox.open': 'visible' } }, check: doorHeld([44, 47]) },
   { family: 'door', id: 'league-code', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await page.waitForTimeout(900) },
     expect: { door: true, selectors: { '#joinCode': 'visible' } },
