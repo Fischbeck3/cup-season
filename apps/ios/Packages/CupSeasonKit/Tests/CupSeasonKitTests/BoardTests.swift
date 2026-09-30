@@ -344,3 +344,39 @@ import CSDesign
     }
   }
 }
+
+/// N4-094 · a colour alone never supplies a squad name. Resolve membership
+/// from the season's loaded roster; a profile id is not a member id.
+@MainActor @Suite struct BoardSquadOwnerTests {
+  @Test func onlyARecordedSquadMembershipNamesTheRound() async {
+    let member = UUID(), profile = UUID(), other = UUID(), league = UUID()
+    let data = BoardLeagueData(members: [
+      .init(id: member, profileId: profile, name: "Avery Fixture", marker: "saguaro", role: "player", squadIndex: 2),
+      .init(id: other, profileId: UUID(), name: "Blake Sample", marker: "dunes", role: "player", squadIndex: nil)
+    ], squads: [.init(id: UUID(), name: "Fixture Wrens", color: 2, memberIds: [member])])
+    let store = BoardStore(leagueId: league, leagueName: "North Grove (fixture)", membership: nil,
+                           profileId: profile, repo: SquadBoardFixture(data: data))
+    await store.load()
+    #expect(store.squad(member: member)?.name == "Fixture Wrens")
+    #expect(store.squad(member: member)?.ci == 2)
+    #expect(store.squad(member: profile) == nil)
+    #expect(store.squad(member: other) == nil)
+    #expect(store.squad(member: nil) == nil)
+  }
+}
+
+private struct SquadBoardFixture: BoardRepository {
+  let data: BoardLeagueData
+  func leagueData(league: UUID, season: UUID?) async throws -> BoardLeagueData { data }
+  func posts(league: UUID, limit: Int, before: Date?) async throws -> [PostRow] { [] }
+  func rounds(ids: [UUID], season: UUID?) async throws -> [UUID: BoardRound] { [:] }
+  func social(postIds: [UUID]) async throws -> (kudos: [KudoRow], comments: [CommentRow]) { ([], []) }
+  func signedURLs(paths: [String]) async -> [String: URL] { [:] }
+  func founderId() async -> UUID? { nil }
+  func insertChat(league: UUID, season: UUID?, member: UUID, body: String) async throws {}
+  func writeKudo(post: UUID, profile: UUID?, member: UUID?, emoji: String, had: Bool) async throws {}
+  func insertComment(post: UUID, member: UUID, body: String) async throws {}
+  func announce(league: UUID, body: String) async throws {}
+  func report(post: UUID, reason: String) async throws {}
+  func scorecard(liveRound: UUID) async throws -> JSONValue { .null }
+}
