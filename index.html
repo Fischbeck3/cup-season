@@ -31019,16 +31019,17 @@ async function openTourCard(profileId){
   const avgIdx   = newShape ? (c.avg_vs_index!=null ? Number(c.avg_vs_index) : null)
                             : (c.avg_pvi!=null ? Number(c.avg_pvi) : null);
   const lens     = avgPvi!=null || bestPvi!=null;
-  const sgn1     = v => (v>=0?'+':'')+v.toFixed(1);
+  /* Q39 (a) · the card's career figures say it in WORDS (vsShort, as the phone's TourCard follows with CSBands),
+     never a sign a reader has to be told the direction of */
   const whose    = p.is_me?'your':'their';
   /* X40 (1) · off the lens the best is THE ROUND the golfer remembers (career.best_round: the lowest 18-hole
      gross, where and when), never the differential (it lives on the receipt); with no round the row is absent */
   const br = c.best_round && c.best_round.gross != null ? c.best_round : null;
   const brSaid = br ? `${br.gross}${br.course_label ? ' at ' + esc(csCourse(br.course_label)) : ''}${br.played_on ? ' \u00b7 ' + esc(csMonthDay(br.played_on)) : ''}` : null;
-  const best = lens ? (bestPvi!=null ? sgn1(bestPvi) : '—')
+  const best = lens ? (bestPvi!=null ? vsShort(bestPvi) : '—')
                     : (brSaid || '—');
-  const avg  = lens ? (avgPvi!=null ? sgn1(avgPvi) : '—')
-                    : (avgIdx!=null ? sgn1(avgIdx) : '—');
+  const avg  = lens ? (avgPvi!=null ? vsShort(avgPvi) : '—')
+                    : (avgIdx!=null ? vsShort(avgIdx) : '—');
   /* R-M · the comparison noun is the PLAYING HCP. Wave D renamed both
      clients' producers and missed these three, because they are built by
      interpolation inside a template literal and preflight 42's web scan reads
@@ -31042,9 +31043,9 @@ async function openTourCard(profileId){
      wins beside a delta where + wins — and one table cannot sign both the same
      way, so the table says which is which. Under the lens they are one
      measurement signed one way and this line has nothing left to explain. */
-  /* X40 · the course score is gone from the card, so only one signed figure is left to explain */
-  const signsLine = lens ? ''
-    : `<div class="fine" style="padding-top:6px">Against ${whose} playing HCP, + is better.</div>`;
+  /* X40 + Q39 · the course score is gone from the card and the playing-HCP figures are words, so no sign is
+     left to explain (the phone's careerSignsLine goes with it) */
+  const signsLine = '';
   const stats = `<div class="eyebrow" style="margin-top:16px">${eyebrow}</div>
       <div class="mathrow"><span>Rounds</span><b>${c.rounds||0}</b></div>
       ${best !== '—' || lens ? `<div class="mathrow"><span>${bestK}</span><b>${best}</b></div>` : ''}

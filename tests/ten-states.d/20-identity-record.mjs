@@ -352,6 +352,15 @@ const RECORD = [
     },
     expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'hidden' } },
     check: all(medallionOnPhotoOnly(true), noVsCourse('#shBody'),
+      /* Q39 (a) · the card's career figures are words (vsShort), never a sign, and no line explains a sign */
+      async (page) => page.evaluate(() => {
+        const rows = [...document.querySelectorAll('#shBody .mathrow')].map((el) => ({ k: el.querySelector('span').textContent.trim(), v: el.querySelector('b').textContent.trim() }))
+        const figs = rows.filter((r) => /^(Best round|Avg)/.test(r.k))
+        if (!figs.length) return 'the card draws no career figures'
+        const off = figs.filter((r) => r.v !== '—' && !/^(beat by \d+\.\d|played to it|\d+\.\d over|\d+ at .+)$/.test(r.v))
+        if (off.length) return 'a career figure is signed: ' + JSON.stringify(off[0])
+        return /\+ is better/.test(document.getElementById('shBody').innerText) ? 'the card still explains a sign' : true
+      }),
       /* X36 (1) · the tour card's head-to-head chip names its facet: tour_card.vs_you counts season weeks */
       async (page) => page.evaluate(() => {
         const c = document.getElementById('tcVs')
