@@ -90,18 +90,26 @@ struct MomentRow: View {
   let text: String
   var item: BoardItem? = nil
   var store: BoardStore? = nil
+  /// Only a confirmed live competition may supply this; a finished
+  /// liveRoundId is a receipt link and does not establish live state.
+  var live = false
   var body: some View {
-    BoardSpine(metal: cs.brand) {
-      HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-        CSGlyph(.dot, size: .inline).foregroundStyle(cs.brand).accessibilityHidden(true)
-        Text(text).csType(.body).foregroundStyle(cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      if live {
+        HStack(spacing: CSTokens.Space.s2) {
+          CSGlyph(.dot, size: .inline).foregroundStyle(cs.brand).accessibilityHidden(true)
+          Text("Live").csType(.agateS, caps: true).foregroundStyle(cs.brand)
+        }
+        .accessibilityIdentifier("board.moment.live")
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .accessibilityElement(children: .combine)
-      .accessibilityLabel("A moment: \(text)")
+      Text(text).csType(.body).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityLabel(live ? "Live moment: \(text)" : "A moment: \(text)")
       if let item, let store, item.social { ReactionBar(item: item, store: store) }
     }
+    .padding(.vertical, CSTokens.Space.s3)
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 
