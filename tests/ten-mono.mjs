@@ -324,6 +324,16 @@ export const standsDown = (sels) => async (page) => page.evaluate((sels) => {
   return bad.length ? 'the desk prints a fact twice (§16A.4): ' + bad.join('; ') : true
 }, sels)
 
+/* TEN / W8 · the .tempty sweep (W7-115's rule for the whole family) · a .tempty headline is a SENTENCE ("The case is empty", "Couldn't load this.",
+ * "The schedule didn't load"), so it takes the lead role in sentence case (UI_SYSTEM §1.3); the name role's caps are for names. `scope` names the box, and
+ * the check FAILS when no headline is drawn there, so a state that stopped drawing it cannot pass by silence. */
+export const temptyLead = (scope) => async (page) => page.evaluate((scope) => {
+  const heads = [...document.querySelectorAll(`${scope} :is(h2, h3)`)].filter((h) => h.getBoundingClientRect().width > 0)
+  if (!heads.length) return `no headline is drawn in ${scope}`
+  const bad = heads.filter((h) => getComputedStyle(h).textTransform === 'uppercase' || !h.classList.contains('cs-lead'))
+  return bad.length ? `${bad.length} headline(s) in ${scope} are not in the lead role: ${JSON.stringify(bad[0].textContent.trim())} (${bad[0].className}, ${getComputedStyle(bad[0]).textTransform})` : true
+}, scope)
+
 /* TEN / W8 · W7-011, W7-012 · UI_SYSTEM §16.1 and WCAG 1.4.11: rule may
  * separate and never state, and a mark that carries a state reads at 3:1 or
  * better on its ground. `stateContrast(parts)` measures each part

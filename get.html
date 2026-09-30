@@ -77,11 +77,19 @@
   .mast .where{margin-left:auto; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); text-align:right;}
   h1{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.01em; margin:0 0 var(--s3); text-wrap:balance;}
   .sum{color:var(--mut); margin:0 0 var(--s5); text-wrap:pretty;}
+  /* W7-159 [A2-get-1, B2-get-4] · at a desk the page said 'Get it on your phone.' and had no way to get there: its one button opens the web app in the DESK browser, and the only address
+     was the footer's 13px line. The hand-off is said once, in the page's h2 role, only for a desk pointer (a phone is already where the page is going). No QR code: the repo has no
+     generator and PRODUCT.md authorises no dependency; the address is the whole change. */
+  .handoff{display:none; color:var(--mut);}
+  .handoff b{color:var(--ink); font-weight:inherit;}
+  @media (min-width:720px) and (pointer:fine){ .handoff{display:block; font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s5);} }
   section{padding-top:var(--s4); margin-top:var(--s5); border-top:var(--hair) solid var(--rule); scroll-margin-top:var(--s4);}
   section.first{padding-top:0; margin-top:0; border-top:0;}
   h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s3);}
   p{margin:0 0 var(--s3); text-wrap:pretty;} p:last-child{margin-bottom:0;}
   b,strong{font-weight:650;}
+  ol,ul{margin:0 0 var(--s3); padding-left:var(--s4);} li{margin:0 0 var(--s2);}   /* W7-160 · support.html's own list rule */
+  .lead-in{margin:0 0 var(--s2);}
   /* TEN / W6 · ONE CTA GRAMMAR (craft C; UI_SYSTEM §7.1: a primary's label is the
      `name` role — board 600, 17, caps): the public pages' action says "OPEN CUP
      SEASON" in it, and this page said "Open Cup Season" at weight 700. */
@@ -116,6 +124,7 @@
   <main>
   <h1>Where amateur golf counts. Get it on your phone.</h1>
   <p class="sum">It works in your phone’s browser today, and the iPhone app is in beta.</p>
+  <p class="handoff">On your phone, open <b>cupseason.app/get</b></p>
 
   <!-- the web app LEADS: it is the one path that works on every phone now,
        and the iPhone app is a line until its link exists (craft H, critique B) -->
@@ -125,7 +134,20 @@
       <div><h2>Any phone, today</h2><p class="sub">The web app</p></div>
     </div>
     <a class="btn" href="/">Open Cup Season</a>
-    <p>To keep it on your Home Screen: on iPhone, open it in Safari and choose Add to Home Screen from the share sheet. On Android, choose Add to Home screen from Chrome’s menu. It opens like an app, on the same account and the same seasons.</p>
+    <!-- W7-160 [A2-get-3, B2-get-1] · the Home Screen steps, as steps: two ordered lists, each OPENING Cup Season first, so nobody pins this install page instead of the app (this page carries no
+         manifest). The iPhone words are the app's own install sheet's (index.html: 'the square with the arrow'). -->
+    <p><b>To keep it on your Home Screen:</b></p>
+    <p class="lead-in"><b>iPhone</b></p>
+    <ol>
+      <li>Open Cup Season in Safari.</li>
+      <li>Tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.</li>
+    </ol>
+    <p class="lead-in"><b>Android</b></p>
+    <ol>
+      <li>Open Cup Season in Chrome.</li>
+      <li>Open Chrome’s menu and tap <b>Add to Home screen</b>.</li>
+    </ol>
+    <p>It opens like an app, on the same account and the same seasons.</p>
   </section>
 
   <section id="iphone">

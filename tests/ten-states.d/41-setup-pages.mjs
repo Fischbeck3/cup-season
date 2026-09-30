@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked, btnNameRole } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor, destMarked, btnNameRole, temptyLead } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -109,13 +109,13 @@ const SCHEDULE = [
     drive: async (page) => { await toSchedule(page); await until(page, () => !!document.getElementById('schRetry'), null, 20000).catch(() => {}); await page.waitForTimeout(400) },
     expectConsole: [/status of 503/],
     expect: { view: 'view-schedule', selectors: { '#schRetry': 'visible', '#calDeclare': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(temptyLead('#view-schedule .tempty'), async (page) => page.evaluate(() => {
       const t = (document.getElementById('schNext') || {}).innerText || ''
       if (/Nothing on the schedule yet|Put a round up|Nothing of yours on the schedule/i.test(t)) return `a failed read reads as an empty schedule: ${JSON.stringify(t.slice(0, 80))}`
       if (!/The schedule didn.t load/i.test(t)) return `the lead does not say the read failed: ${JSON.stringify(t.slice(0, 80))}`
       const primaries = [...document.querySelectorAll('#view-schedule .btn')].filter((b) => b.getBoundingClientRect().width > 0)
       return primaries.length === 1 && primaries[0].id === 'calDeclare' ? true : `the page has ${primaries.length} filled buttons, not #calDeclare alone`
-    }) },
+    })) },
   /* ...and with rows on screen, a refresh that fails keeps them and says so once, above 'Coming up' */
   { family: 'schedule', id: 'refresh-failed', variant: 'member', fullPage: false, title: 'Schedule · a refresh failed (the plans stay, one line says so above Coming up)',
     drive: async (page, ctx) => {
@@ -329,6 +329,14 @@ const WIZARD = [
     /* TEN / W6 · DX2 TP-22: the Pro row is a row, not a card whose content
        touched its sides (delta G6's inset patched the card; the card is gone) */
     check: all(destMarked('compete'), isRow('#commishChip', 'the Pro row'),   /* TEN / W8 · W7-108: the wizard is a room of COMPETE, so COMPETE stays marked */
+    /* TEN / W8 · Q27 (a) (owner, 2026-09-29): a Pro who resumes setup finds the league's CURRENT name in step 1's field, editable (the field, not a caption), and the name is the league's, so saving writes the same league */
+    async (page) => page.evaluate(() => {
+      const f = document.getElementById('setName')
+      if (!f) return 'step 1 has no name field'
+      if (f.value !== 'Desert Setup League (fixture)') return `the name field holds ${JSON.stringify(f.value)}, not the league's current name`
+      if (f.disabled || f.readOnly) return 'the resumed name is not editable'
+      return (document.getElementById('sideLeague') || {}).textContent === f.value ? true : 'the field and the sidebar name different leagues'
+    }),
     /* TEN / W6 · AW2-08: the Pro's marker is drawn (the saguaro floor), never ◆ */
     async (page) => page.evaluate(() => document.querySelector('#commishChip .pmk svg') ? true : 'the Pro row draws no marker'),
     noRetiredGlyph(), btnNameRole(['#wizNext'])) },   /* TEN / W6 · Q25 */
@@ -462,6 +470,21 @@ const teeSaid = (want) => async (page) => page.evaluate((want) => {
   if (said) { const facts = sec.querySelector('.cs-facts'), sel = sec.querySelector('select[data-cstee]'); if (!(facts.compareDocumentPosition(said) & Node.DOCUMENT_POSITION_FOLLOWING) || (sel && !(said.compareDocumentPosition(sel) & Node.DOCUMENT_POSITION_FOLLOWING))) return 'the sentence is not between the facts and the tee picker' }
   return true
 }, want)
+/* TEN / W8 · Q34 (3) (owner, 2026-09-29) · every star-rail target meets 44 x 44: FIVE whole stars, each at least 44 wide and tall (the half-star buttons, 16 wide, are gone); the halves are the
+   -1/2 / +1/2 pair's, also 44; and in a column that cannot hold pair, rail and pair (348) the pair sits under the rail, nothing running past the edge */
+const starRailTargets = async (page) => page.evaluate(() => {
+  const rail = document.querySelector('#youCourses .cs-stars.is-rate')
+  if (!rail) return 'no rating rail is drawn'
+  const stars = [...rail.querySelectorAll('.csh')]
+  if (stars.length !== 5) return `${stars.length} star targets, not five whole stars`
+  for (const b of stars) { const r = b.getBoundingClientRect(); if (r.width < 43.5 || r.height < 43.5) return `a star target is ${Math.round(r.width)}x${Math.round(r.height)}, under 44x44 (${b.getAttribute('aria-label')})` }
+  const ctl = rail.closest('.cs-rate-ctl'), steps = [...ctl.querySelectorAll('.cs-step')]
+  if (steps.length !== 2 || steps.some((b) => { const r = b.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5 })) return 'the half-star pair is not two 44px targets'
+  if ([...stars, ...steps].some((b) => b.getBoundingClientRect().right > innerWidth + 0.5 || b.getBoundingClientRect().left < -0.5)) return 'the rating control runs past the edge of the screen'
+  const rr = rail.getBoundingClientRect()
+  if (ctl.closest('.cs-rating').getBoundingClientRect().width < 348 && steps.some((b) => b.getBoundingClientRect().top < rr.bottom - 1)) return 'the pair shares the rail\u2019s row in a column that cannot hold both'
+  return true
+})
 const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
@@ -474,7 +497,7 @@ const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee)),
+    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee), starRailTargets),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -482,7 +505,7 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: all(courseBookWide, rowYours, teeSaid(true), async (page) => page.evaluate(() => {
+    check: all(courseBookWide, rowYours, teeSaid(true), starRailTargets, async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
@@ -754,7 +777,7 @@ const SETTINGS = [
     check: async (page) => page.evaluate(() => {
       const body = document.getElementById('shBody'), keys = [...body.querySelectorAll('.cs-agate')].map((e) => e.textContent.trim()), said = [...body.querySelectorAll('.cs-body-s')].map((e) => e.textContent.trim())
       if (keys.join('|') !== 'Up and Down|Right|/|g, then t|Esc') return `the keys read ${JSON.stringify(keys)}`
-      if (said.join('|') !== 'Move between rows.|Open the row.|Find a golfer.|Jump to the table.|Close what is open.') return `the sentences read ${JSON.stringify(said)}`
+      if (said.join('|') !== 'Move between rows.|Open the row.|Find a golfer or a course.|Jump to the table.|Close what is open.') return `the sentences read ${JSON.stringify(said)}`
       if (/[\u2191\u2193\u2192\u203a]/.test(body.textContent)) return 'the legend types an arrow'
       return getComputedStyle(body.querySelector('.cs-agate')).textTransform === 'uppercase' ? true : 'a key is not set in the agate role'
     }) },
@@ -839,9 +862,64 @@ const staticPage = (id, url, title, want) => ({
     return tc.content.toUpperCase() === (light ? '#F4F1E9' : '#0F1A15') ? true : `theme-color is ${tc.content} on the ${light ? 'light' : 'dark'} printing`
   }, want),
 })
+/* TEN / W8 · W7-160 [A2-get-3, B2-get-1] · the Home Screen instructions are STEPS: an iPhone list and an Android list, each opening Cup Season first (this page carries no manifest, so a visitor who
+   followed the old one-paragraph sentence pinned /get, the install page), the iPhone words the app's own install sheet's; the closing sentence stays */
+const homeScreenSteps = async (page) => page.evaluate(() => {
+  const lists = [...document.querySelectorAll('#web ol')]
+  if (lists.length !== 2) return `the Home Screen instructions are ${lists.length} ordered lists, not two (iPhone, Android)`
+  const first = lists.map((l) => (l.querySelector('li') || {}).textContent)
+  if (first[0] !== 'Open Cup Season in Safari.' || first[1] !== 'Open Cup Season in Chrome.') return `the lists do not open Cup Season first: ${JSON.stringify(first)}`
+  const t = document.getElementById('web').innerText.replace(/\s+/g, ' ')
+  if (!/Tap the Share button \(the square with the arrow\), scroll down, tap Add to Home Screen\./.test(t)) return 'the iPhone step is not the app\'s own install words'
+  if (!/Open Chrome.s menu and tap Add to Home screen\./.test(t)) return 'the Android step is missing'
+  if (/choose Add to Home Screen from the share sheet/.test(t)) return 'the one-paragraph instructions are still on the page'
+  if (!/It opens like an app, on the same account and the same seasons\./.test(t)) return 'the closing sentence is gone'
+  if (!lists.every((l) => parseFloat(getComputedStyle(l).paddingLeft) >= 16)) return 'the lists are not indented as steps'
+  return true
+})
 const STATIC = [
-  staticPage('get', '/get.html', 'get.html · the install page', 'Cup Season'),
-  staticPage('support', '/support.html', 'support.html', 'Cup Season'),
+  /* TEN / W8 · W7-159 [A2-get-1, B2-get-4] · at a desk pointer the page says how to get to the phone: 'On your phone, open cupseason.app/get' in the page's h2 role, the sentence in mut and the
+     address in ink, directly under the summary; on a phone it is not drawn (a phone is already where the page is going) */
+  { ...staticPage('get', '/get.html', 'get.html · the install page', 'Cup Season'),
+    check: async (page) => {
+      const base = await staticPage('get', '/get.html', '', 'Cup Season').check(page); if (base !== true) return base
+      const steps = await homeScreenSteps(page); if (steps !== true) return steps
+      return page.evaluate(() => {
+        const h = document.querySelector('.handoff'), desk = matchMedia('(min-width:720px) and (pointer:fine)').matches
+        if (!h) return 'the page has no hand-off line'
+        const drawn = getComputedStyle(h).display !== 'none' && h.getBoundingClientRect().width > 0
+        if (!desk) return drawn ? 'a phone is shown the hand-off to a phone' : true
+        if (!drawn) return 'a desk pointer is offered no way to get to the phone'
+        if (h.textContent.trim() !== 'On your phone, open cupseason.app/get') return `the hand-off reads ${JSON.stringify(h.textContent.trim())}`
+        const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+        const cs = getComputedStyle(h), b = getComputedStyle(h.querySelector('b'))
+        if (cs.fontSize !== '24px' || cs.fontWeight !== '700') return `the hand-off is ${cs.fontWeight} ${cs.fontSize}, not the h2 role`
+        if (cs.color !== probe('--mut') || b.color !== probe('--ink')) return `the hand-off is ${cs.color} with the address ${b.color}, not mut and ink`
+        const prev = h.previousElementSibling
+        return prev && prev.classList.contains('sum') ? true : 'the hand-off is not directly under the summary'
+      })
+    } },
+  /* TEN / W8 · W7-162 [A2-support-1, B2-support-2] · the contents rows are marked as links: ink text under a 2px mut underline, in a 44px row, and no chevron (§16.4, §2.5, §5.1) */
+  { ...staticPage('support', '/support.html', 'support.html', 'Cup Season'),
+    check: async (page) => {
+      const base = await staticPage('support', '/support.html', '', 'Cup Season').check(page); if (base !== true) return base
+      return page.evaluate(() => {
+        const links = [...document.querySelectorAll('nav[aria-label="On this page"] .toc a')]
+        if (!links.length) return 'the support page has no contents rows'
+        const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+        const mut = probe('--mut'), ink = probe('--ink')
+        for (const a of links) {
+          const cs = getComputedStyle(a), r = a.getBoundingClientRect(), label = JSON.stringify(a.textContent.trim().slice(0, 30))
+          if (!/underline/.test(cs.textDecorationLine)) return `the contents row ${label} has no underline`
+          if (parseFloat(cs.textDecorationThickness) !== 2) return `the contents row ${label} is underlined ${cs.textDecorationThickness}, not 2px`
+          if (cs.textDecorationColor !== mut) return `the contents row ${label} is underlined ${cs.textDecorationColor}, not mut`
+          if (cs.color !== ink) return `the contents row ${label} is ${cs.color}, not ink`
+          if (r.height < 43.5) return `the contents row ${label} is ${Math.round(r.height)}px tall, not 44`
+          if (/[›»>→]|&rsaquo;/.test(a.textContent)) return `the contents row ${label} carries a chevron`
+        }
+        return true
+      })
+    } },
   staticPage('legal', '/legal.html', 'legal.html · terms and privacy', 'Privacy'),
 ]
 

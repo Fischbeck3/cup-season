@@ -1529,6 +1529,31 @@
        csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
       [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
+    /* Q37 (a) · the clash head's rider is the Kit's ClashCopy.rider (WeekClash.swift's own four samples, WeekClashTests.swift:80-83) */
+    t('Q37: the clash head\u2019s rider is the Kit\u2019s',
+      [csClashRider(false, '', false, 'Thu'), csClashRider(true, 'Blake Fixture', false, 'Thu'), csClashRider(true, 'Avery Fixture', true, 'Thu'), csClashRider(true, '', false, 'Thu')],
+      ['through Thu', 'Blake took the week', 'You took the week', 'All square']);
+    /* W7-089 · the door under the record's five names what is LEFT, never the head's count */
+    t('W7-089: the record\u2019s door says how many are left',
+      [csRoundsDoorLabel(3), csRoundsDoorLabel(1), csRoundsDoorLabel(37), csRoundsDoorLabel(0), csRoundsDoorLabel(-2), csRoundsDoorLabel(undefined)],
+      ['The other three', 'The other one', 'The other 37', '', '', '']);
+    /* W7-169 · a guest's scorecard offered to a golfer signed in as someone else says whose it is, in ink, once; alike or unknown names say nothing new */
+    t('W7-169: the claim ask names both when the names differ',
+      [csLinkClaimMismatch('Kit', 'Avery Fixture'),
+       csLinkClaimMismatch('Avery', 'Avery Fixture'),
+       csLinkClaimMismatch('avery quinn', 'Avery Fixture'),
+       csLinkClaimMismatch('', 'Avery Fixture'),
+       csLinkClaimMismatch('Kit', ''),
+       csLinkClaimMismatch(null, null)],
+      ['Scored as Kit — you’re signed in as Avery Fixture. Add it only if it’s yours.', '', '', '', '', '']);
+    t('W7-169: whose it is is said once, in the mismatch line and not again in the facts',
+      [csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Kit', played_on: '2026-09-27' }, 'Avery Fixture').facts,
+       csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Kit', played_on: '2026-09-27' }, 'Avery Fixture').mismatch,
+       csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Avery', played_on: '2026-09-27' }, 'Avery Fixture').facts,
+       csLinkCard('claim', { gross: 91, course_label: 'Mesquite Wash Golf Club — Black', guest_name: 'Avery', played_on: '2026-09-27' }, 'Avery Fixture').mismatch],
+      ['Black · Sun Sep 27', 'Scored as Kit — you’re signed in as Avery Fixture. Add it only if it’s yours.',
+       'Scored as Avery · Black · Sun Sep 27', '']);
+
     /* L-32 · a kind the CHECK does not admit yet is NOT an error the golfer
        caused, and the row removes itself rather than offering a door that fails */
     t('D241: an undeployed kind is "not yet", not a failure',
@@ -1701,19 +1726,21 @@
        what competes is its own `structure` fact (JoinLeague.swift:366) and the
        ending is JoinLeague.endingLine (:264-269). The web keeps its own
        branching — D384's short season and the older server's one sentence. */
+    /* Q35 (a) (owner, 2026-09-29) · the Final keeps "scored fresh" and says its counting limit wherever it is stated: the same clause the wizard's help and agreement carry, pinned here as words */
+    const CS_FINAL_COUNTING_SP = ' Final rounds must also fit the monthly counting limit; an earlier round can take a place.';
     t('L-23: solo stands alone; no minimum is promised to a solo season',
       [F({ ...full, structure: 'solo' }).structure, F({ ...full, structure: 'solo' }).ending, F({ ...full, structure: 'solo' }).rules],
       ['Every golfer plays for their own place.',
-       'The top two golfers qualify for a four-week Cup Final, scored fresh.',
+       'The top two golfers qualify for a four-week Cup Final, scored fresh.'+CS_FINAL_COUNTING_SP,
        'Standard rules: honest scores, best three a month count.']);
     t('L-23: two squads both reach the Final, the leader 10 up',
       [F({ ...full, structure: 'squads2' }).structure, F({ ...full, structure: 'squads2' }).ending],
       ['Two squads. Your round points contribute to your squad\u2019s season.',
-       'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.']);
+       'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.'+CS_FINAL_COUNTING_SP]);
     t('L-23: larger squads send the top two; a points table has no reset',
       [F({ ...full, structure: 'squads3' }).structure, F({ ...full, structure: 'squads3' }).ending, F({ ...full, structure: 'squads4', finish: 'points_table' }).ending],
       ['Squads compete together. Your round points contribute to your squad\u2019s season.',
-       'The top two squads qualify for a four-week Cup Final, scored fresh.',
+       'The top two squads qualify for a four-week Cup Final, scored fresh.'+CS_FINAL_COUNTING_SP,
        "The season's points decide it. No reset."]);
     t('L-23: a season under six weeks is decided by the points table',
       F({ ...full, structure: 'solo', weeks: 4 }).ending,

@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, phraseAsSaid, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown, namesWrapWhole } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, phraseAsSaid, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor, standsDown, namesWrapWhole, temptyLead } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -377,6 +377,15 @@ const SEASON = [
       capsFromRole(['#clashTbl th', '#clashTbl .tc'], ['#clashTbl th', '#clashTbl .tc']),
       /* root's ruling (§1.3): the head's rider after "The clash" is a phrase, sentence case */
       phraseAsSaid(['#clashTbl th .is-phrase'], ['#clashTbl th .is-phrase']),
+      /* TEN / W8 · Q37 (a) (owner, 2026-09-29): the clash head is the Kit's words: the label 'This week · the clash' (SeasonPhases.swift) and ClashCopy.rider (WeekClash.swift): 'through Sun' while open,
+         once settled 'Devon took the week', 'You took the week' or 'All square'; never the pair ('You v Devon'), which the rows beneath name */
+      async (page) => page.evaluate(() => {
+        const th = document.querySelector('#clashTbl th')
+        if (!th) return 'the season page draws no clash head'
+        const t = th.textContent.trim()
+        if (/ v /.test(t)) return `the clash head names the pair its rows already name: ${JSON.stringify(t)}`
+        return /^This week \u00b7 the clash \u00b7 (through (Sun|Mon|Tue|Wed|Thu|Fri|Sat)|\S+ took the week|All square)$/.test(t) ? true : `the clash head is ${JSON.stringify(t)}, not the Kit's words`
+      }),
       /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
       headGap(['#climbEyebrow', '#standingsEyebrow']),
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
@@ -544,6 +553,12 @@ const SEASON = [
       }),
       /* TEN / W8 · W7-093 [A2-rules-2]: the minimum's sentence says WHICH months carry none (it read 'Post 2 rounds a month.' with no word on the partial first and last month) */
       has('#bylawsHub', 'A partial first or last month has no minimum\\.', 'the rules say which months carry no minimum'),
+      /* TEN / W8 · Q35 (a) (owner, 2026-09-29): the rules state the Cup Final as 'scored fresh' AND say its counting limit, in the one sentence every place the Final is stated says */
+      async (page) => page.evaluate(() => {
+        const t = document.getElementById('bylawsHub').innerText.replace(/\s+/g, ' ')
+        if (!/scored fresh/.test(t)) return 'the rules no longer say the Final is scored fresh'
+        return /Final rounds must also fit the monthly counting limit; an earlier round can take a place\./.test(t) ? true : 'the rules state the Final without its counting limit'
+      }),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
          scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
          scrolled back, the rules again (the scroll-spy, not only the click) */
@@ -693,7 +708,7 @@ const SEASON = [
     },
     expectConsole: [/status of 503/],
     expect: { view: 'view-hub', selectors: { '#seasonStoryRetry': 'visible', '#seasonArc': 'text:Couldn.t load this' } },
-    check: all(onNorthGrove, async (page) => page.evaluate(() => /starts when the first week closes/i.test(document.getElementById('seasonArc').innerText) ? 'a failed story read says the story has not started' : true)) },
+    check: all(onNorthGrove, temptyLead('#seasonArc .tempty'), async (page) => page.evaluate(() => /starts when the first week closes/i.test(document.getElementById('seasonArc').innerText) ? 'a failed story read says the story has not started' : true)) },
   /* TEN / W8 · W7-020 [A2-season-2] · the season page opened from HOME (Home's season door, csOpenSeason): the way back reads Home, and the
      tab band still marks COMPETE, as the event room's does */
   { family: 'season', id: 'from-home', variant: 'member', title: 'The season page opened from Home (the way back says Home)', fullPage: false, phoneOnly: true,

@@ -1579,7 +1579,7 @@ and 11 covers.
 
 > **2026-09-11:** For current Home anatomy, see the D318/D319/D321 supersession note in §9.6.
 
-> **2026-09-28 (TEN / W6, root's lockup ruling):** the mono setting below describes the Tracer-era lockups. The product signs with ONE lockup — the pennant in an s5 × s4 box, s2, then the name in the `name` role (`CSMasthead.wordmark`; the web's `.cs-lockup`) — on the phone header, the desk sidebar, the public pages and get/support/legal; the Door's serif name waits on the owner (the 2026-09-14 board), and nothing under `brand/` was re-cut.
+> **2026-09-28 (TEN / W6, root's lockup ruling):** the mono setting below describes the Tracer-era lockups. The product signs with ONE lockup — the pennant in an s5 × s4 box, s2, then the name in the `name` role (`CSMasthead.wordmark`; the web's `.cs-lockup`) — on the phone header, the desk sidebar, the public pages and get/support/legal; the Door's serif name waited on the owner (the 2026-09-14 board), and nothing under `brand/` was re-cut. **2026-09-29 (Q24, the owner's ruling, option 3):** the Door signs with the lockup too, and its editorial serif is kept for the statement under the name; nothing under `brand/` changes.
 
 Home only, and it is the reason Home reads as an edition of something rather than a screen:
 **the wordmark · the dateline in agate flush right · a 2pt `ink` rule beneath, full measure.** No ember

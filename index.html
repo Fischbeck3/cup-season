@@ -419,10 +419,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    in the `name` role — the share card's cut (the pennant and the condensed
    caps, `csArtifactSignature`) in the app's type roles. The header, the
    sidebar, the public pages and get/support/legal (their own inline copy of
-   the same rule) all draw it. The Door keeps its serif name for now: the
-   owner's 2026-09-14 board sets the lockup in a serif, which is a brand call
-   (root, 2026-09-28), so it waits for the owner memo. Nothing under brand/
-   changes. The mark takes `ink` on both grounds (D358's two variations). */
+   the same rule) all draw it, and so does the Door since Q24 (owner, 2026-09-29:
+   the lockup's name on the Door, its serif kept for the statement). Nothing under
+   brand/ changes. The mark takes `ink` on both grounds (D358's two variations). */
 .cs-lockup{display:inline-flex; align-items:center; gap:var(--s2); min-width:0; color:var(--ink);}
 .cs-lockup .cs-mark{width:var(--s5); height:var(--s4); flex:none; display:block;}
 .cs-lockup .cs-name{color:var(--ink); overflow-wrap:anywhere;}   /* the name wraps whole at enlarged text, never an ellipsis (§12.3) */
@@ -3010,7 +3009,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   font-family:var(--board); font-size:15px; font-weight:600; letter-spacing:calc(var(--caps2) * 1em); color:var(--ink);
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
 #view-wizard .wiznav .btn.dark:hover{filter:none; text-decoration-color:var(--ink);}
-#view-wizard #lockBtn:disabled{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}
+#view-wizard #lockBtn:disabled, #sfSend:disabled{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}   /* W7-091 · the report sheet's Send is the same disabled primary until a reason is picked (§7.1: bg1 fill, mut label, never the act fill) */
 /* Stage 3d-2: Start something as schema-art doors, competition-forward */
 .startgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--rule); border-radius:14px; cursor:pointer; color:var(--ink);}
@@ -4212,11 +4211,9 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
    keyboard takes the viewport (`.onboard` is overflow:auto). Left-aligned
    like the phone's welcome; the profile and crew frames were already. */
 .ob-sig{display:flex; align-items:center; gap:12px; color:var(--ink); margin:12px 0 0;}
-.ob-sig .cs-mark-door{width:40px; height:23px; flex:none; color:var(--ink); display:block;}
-/* the board's lockup sets CUP SEASON in the editorial serif, tracked wide —
-   not the condensed competition face */
-.ob-sig .cs-name{color:var(--ink); font-family:var(--serif); font-weight:700;
-  letter-spacing:calc(var(--caps) * 1em);}
+/* Q24 (owner, 2026-09-29, option 3) · THE DOOR SIGNS WITH THE PRODUCT'S ONE LOCKUP (.cs-lockup: the pennant in its 32 x 20 box, then the name in the `name` role, as the
+   header, the sidebar and the public pages do), and the Door's editorial serif is KEPT FOR ITS STATEMENT, the sentence under the name (.cs-brandline below). The name was the
+   Door's own serif, tracked wide: three serif lines on a viewport where UI_SYSTEM §1.4 allows one appearance; it is two now. Nothing under brand/ changes. */
 .onboard .ob-hero{margin:44px 0 0;}
 /* THE STATEMENT IS THE EDITORIAL SERIF (owner board, 2026-09-14 · taglines).
    It was set in the condensed board face in caps, which is this product's voice
@@ -4256,7 +4253,7 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .cs-brandrule{display:block; width:52px; height:2px; background:var(--mut); opacity:.5; margin:var(--s3) 0 0;}
 /* the name beside the mark, and the sentence under the statement, take the
    same rule: enlarged, they wrap rather than push the column sideways */
-.ob-sig .cs-name, .onboard .ob-hero .cs-standfirst{overflow-wrap:anywhere;}
+.onboard .ob-hero .cs-standfirst{overflow-wrap:anywhere;}   /* the sentence under the statement wraps rather than pushing the column sideways (the lockup's name already does, .cs-lockup .cs-name) */
 .ob-sig{flex-wrap:wrap;}
 .onboard .ob-hero .cs-standfirst{color:var(--mut); margin:20px 0 0; max-width:36ch; margin-left:0; margin-right:0;}
 @media(min-width:760px){
@@ -4329,12 +4326,16 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 /* UI_SYSTEM §16.1: secondary text uses opaque mut; dim is non-text. */
 .onboard #obDoor .fine{color:var(--mut);}
 /* D339 · the quiet secondary entry: the same 46 tall, a hairline, the ink — not a second filled button */
-.onboard #obDoor .btn.quiet{background:transparent; color:var(--ink); border:1px solid var(--rule); box-shadow:none;}
+.onboard #obDoor .btn.quiet{background:transparent; color:var(--ink); border:1px solid var(--mut); box-shadow:none;}   /* Q46 (owner, 2026-09-29): the quiet button's outline is opaque mut, 7.07:1 dark and 5.85:1 light (WCAG 1.4.11); it was the 1px rule hairline at 2.66:1 and 2.30:1 */
 .onboard #obDoor .btn.quiet:hover{background:var(--bg1);}
 .joinbox{display:none; gap:8px; margin-top:9px;}
 .joinbox.open{display:flex;}
 /* Every door field's label stays above its field and action at every width. */
-#emailbox.open, #codebox.open, #joinbox.open{display:grid; grid-template-columns:minmax(0,1fr) auto;}
+/* W7-109 [A2-door-5, B2-door-3, A2-desk-23] · THE ADDRESS BEING SENT TO IS WHOLE IN ITS FIELD. The field shared its row with Send code (about 210px of field at 375, 240 in the desk's
+   360px column), so 'avery.fixture@example.invalid' was cut at the right edge while it was sent, and scrolled cut at both ends after a refusal: the two moments a golfer
+   checks it for a typo. The Door's three field rows stack at every width, the field on the whole row and the action beneath it at full width, the phone's own order
+   (DoorView emailStage: the field, then the primary; §7.1). Scoped to the Door's ids: the wizard's #wJoinBox shares .joinbox and keeps its side-by-side row. */
+#emailbox.open, #codebox.open, #joinbox.open{display:grid; grid-template-columns:minmax(0,1fr);}
 #emailbox label.f, #codebox label.f, #joinbox label.f{grid-column:1 / -1; margin:0; color:var(--mut);}
 .joinbox input{
   /* min-width:0 · a flex item's default minimum is its placeholder's width, and
@@ -4354,7 +4355,12 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
   letter-spacing:.02em; text-transform:none;
 }
 .joinbox input:focus-visible{outline:2px solid var(--act);}
+/* Q46 (owner, 2026-09-29) · THE DOOR'S FIELD EDGES ARE OPAQUE mut (WCAG 1.4.11): 7.07:1 dark and 5.85:1 light against the ground, where the 1px rule hairline was 2.66:1 and 2.30:1 (UI_SYSTEM §16.1: rule may separate, never state). Scoped to the Door (.onboard): the wizard's join box shares .joinbox and is not the Door. The phone's borderless fields owe the same (N4). */
+.onboard .joinbox input{border-color:var(--mut);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
+#emailbox .btn, #codebox .btn, #joinbox .btn{width:100%;}   /* W7-109 · after the shared rule: the Door's actions sit under their fields at full width */
+/* W7-164 · a held Send code is UI_SYSTEM §7.1's disabled primary, as #lockBtn:disabled is: bg1 fill, mut label, no act green (a disabled .btn has no paint of its own, so it looked live) */
+#obEmailGo[data-hold]{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}
 
 /* ---- the wings: two worked EXAMPLES beside the centered door (>=1100px only).
    Hand-authored (the door is pre-auth, anon reads no table), so they are
@@ -4828,8 +4834,9 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* D289 · the rail is a CONTROL. The fill is a second copy of the same five
    stars behind a clipping window whose width IS the value, so setting a rating
    is a width change and §22's 180ms left-to-right sweep is the transition on
-   it. `--star` is the instance's size; the ten half-star buttons are absolute
-   over it, 48pt tall so the target clears 44 in the axis that can. */
+   it. `--star` is the instance's size; the five whole-star buttons are absolute
+   over it, each as wide as its star (44) and 60 tall, so every target clears
+   44 × 44 (Q34 (3): the half-star carve-out is struck). */
 .cs-stars{position:relative; display:inline-flex; gap:var(--s1); vertical-align:middle;
   line-height:0; --star:22px;}
 .cs-stars .csr-base,.cs-stars .csr-inner{display:inline-flex; gap:var(--s1); flex:0 0 auto;}
@@ -4841,12 +4848,16 @@ body:not(.noleague) #hubLeagueless{display:none;}
   pointer-events:none; transition:clip-path 180ms cubic-bezier(.2,.7,.3,1);}
 .cs-stars svg{width:var(--star); height:var(--star); flex:0 0 auto;}
 .cs-stars .csh{position:absolute; top:-8px; height:calc(var(--star) + 16px);
-  width:calc(var(--star) / 2); padding:0; margin:0; border:0; background:none;
+  width:var(--star); padding:0; margin:0; border:0; background:none;
   cursor:pointer; -webkit-appearance:none; appearance:none;}
 .cs-stars .csh:focus-visible{outline:2px solid var(--ink); outline-offset:2px; border-radius:var(--p);}
 /* AW2-19 · §16.2 · the rail between its −½ / +½ pair: bare glyphs in the
    figure face at 44 × 44, the way RateCourseSheet draws them */
 .cs-rate-ctl{display:flex; align-items:center; gap:var(--s3);}
+/* Q34 (3) · a column that cannot hold −½, five 44 stars and +½ (348) puts the pair on its own row under the rail, both at 44, rather than shrinking a star. The COLUMN decides, not
+   the viewport: at the desk a course card's column is narrower than a phone's. */
+.cs-rating{container-type:inline-size;}
+@container (max-width:347px){ .cs-rate-ctl{flex-wrap:wrap; row-gap:0;} .cs-rate-ctl .cs-stars{order:-1; flex:0 0 100%;} }
 .cs-step{flex:none; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center;
   padding:0; margin:0; background:none; border:0; color:var(--ink); cursor:pointer; -webkit-appearance:none; appearance:none;}
 .cs-step[aria-disabled="true"]{color:var(--mut); cursor:default;}
@@ -5494,6 +5505,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    at 12%, one head, one line. Not a card with a grey sentence in it. */
 .tempty{border-top:1px solid var(--rule); padding-top:var(--s4);}
 .tempty-marks{display:flex; align-items:center; gap:var(--s4); opacity:.12;}
+/* a .tempty headline is a SENTENCE ("The case is empty", "Couldn’t load this."), so it takes the lead role in sentence case (§1.3); the name role's caps are for names (W7-115, root at the W6 x W8 merge; the .tempty sweep) */
 .tempty :is(h2,h3){margin:var(--s4) 0 0; color:var(--ink);}
 .tempty .youempty-obj{display:block; width:64px; height:64px; color:var(--mut); margin:0 0 var(--s3);}   /* W7-115 · the empty record's blank scorecard, the phone's object */
 .tempty .youempty-obj + .cs-agate + h3{margin-top:var(--s1);}
@@ -6246,8 +6258,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          these paths). Nothing waits on an animation; the controls are live
          at first paint. -->
     <div class="ob-sig" role="img" aria-label="Cup Season">
-      <svg class="cs-mark cs-mark-door" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
+      <span class="cs-lockup">
+      <svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
       <b class="cs-name">Cup Season</b>
+      </span>
     </div>
     <div class="ob-hero">
       <h1 class="cs-brandline">Any time.<br>Anywhere.</h1>
@@ -6272,12 +6286,15 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     </div>
     <div class="ob-status" id="obStatus" role="status" aria-live="polite"></div>
     <button class="cs-tskip" id="obResend" type="button" style="display:none">Resend code</button>
+    <!-- W7-163 [A2-door-2, B2-door-9] · the way to help, from the moment a golfer needs it: shown when the code step opens and after a sign-in error, in a new tab so the Door keeps what was typed. Hidden by inline style, as #obResend is: .cs-tskip's display:block outranks the hidden attribute. -->
+    <a class="cs-tskip" id="obHelp" href="/support#code" target="_blank" rel="noopener" style="display:none">Trouble signing in?</a>
 
     <button class="btn quiet" id="obJoin">I have a league code</button>
       <div class="joinbox" id="joinbox">
       <label class="f" for="joinCode">League code</label>
-      <input id="joinCode" maxlength="8" autocomplete="off" aria-describedby="obStatus">
-      <button class="btn" id="joinGo">Join</button>
+      <!-- W7-166 [A2-door-8, B2-door-6, B2-door-11] · the field shows the SHAPE of a code (codeFor mints four letters of the league's name, then four letters or digits) and asks for the characters keyboard, as the phone's field does; the button says what a tap does, not 'Join' before anything is joined (DoorView: 'That's my code') -->
+      <input id="joinCode" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="NORT4K7Q" aria-describedby="obStatus">
+      <button class="btn" id="joinGo">That’s my code</button>
     </div>
 <!-- D83: the demo season retired — the door sells with its own splash -->
     <p class="fine" style="text-align:left; margin-top:20px">By continuing you agree to the <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Terms</a> &amp; <a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Privacy Policy</a>.</p>
@@ -8991,7 +9008,7 @@ function switchView(v){
   } else window._postFoldShutByHand = false;   /* W7-151 · a new visit starts unshut */
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
-  if(v==='wizard' && !state.demo) window.renderProChip?.();
+  if(v==='wizard' && !state.demo){ window.renderProChip?.(); csPrefillLeagueName(); }   /* Q27 · and a resumed league's own name is in step 1's field: every entry path lands here */
   if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
   if(v==='hub'){
     if(typeof renderClubGroups==='function') renderClubGroups();
@@ -9445,7 +9462,7 @@ function renderSeasonStory(){
        story that it starts when the first week closes */
     if(!p && window.seasonStoryFailed){
       const e = csEmptyRoot('story', { failed:true });
-      arc.innerHTML = `<div class="tempty" role="status"><h3 class="cs-name">${esc(e.head)}</h3><p class="cs-body-s">${esc(e.sub)}</p>`
+      arc.innerHTML = `<div class="tempty" role="status"><h3 class="cs-lead">${esc(e.head)}</h3><p class="cs-body-s">${esc(e.sub)}</p>`
         + `<button type="button" class="mini" id="seasonStoryRetry" style="margin-top:var(--s2)">Try again</button></div>`;
       $('#seasonStoryRetry')?.addEventListener('click', () => { const b=$('#seasonStoryRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadSeasonStory?.(); });
     } else
@@ -10036,6 +10053,15 @@ function showFinalist(f){
    a settled week reads the archived a_best/b_best. Receipts tap through (§16).
    Renders nothing without a row: demo, pre-season, a database without the
    table, and a quiet settled week (both idle — D52's honesty rule). */
+/* Q37 (a) · the clash head's rider, ONE producer with the Kit's ClashCopy.rider (WeekClash.swift): "through Thu" while the week is open; once settled "Blake took the week" (the winner's
+   first name), "You took the week", or "All square" when nobody did. Both suites pin the same four strings. */
+function csClashRider(settled, winner, winnerIsYou, through){
+  if(!settled) return 'through ' + through;
+  if(winnerIsYou) return 'You took the week';
+  if(!winner) return 'All square';
+  return fn1(winner) + ' took the week';
+}
+window.csClashRider = csClashRider;
 function renderClash(){
   const wrap=$('#clashWrap'), el=$('#clashTbl');
   if(!wrap||!el) return;
@@ -10058,21 +10084,14 @@ function renderClash(){
     return rows[0]||null;
   };
   const aB=settled?wc.a_best:bestOf(wc.a_member), bB=settled?wc.b_best:bestOf(wc.b_member);
-  /* TEN / W6 · W7-024 [B2-season-5] (D's delta) · the head and its sides'
-     lines were built with toUpperCase(): capitals typed into the string. The
-     words are typed as said (ClashCopy's: "took the week", "through Sun", "No
-     round yet"). Root's ruling (§1.3): the head's LABEL, "The clash", keeps
-     its caps from the row's role (.tbl th); the RIDER after it is a phrase a
-     person reads aloud ("Devon took the week", "You v Devon · through Sun"),
-     so it is the agate role's phrase form, sentence case, on both clients.
-     The sides' lines keep their caps from their role (#clashTbl .tc), as the
-     phone's agateS lines set them. */
-  const up1 = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : t;   /* a phrase opens on a capital ("you" is the viewer) */
-  const pair = `${esc(nm(wc.a_member))} v ${esc(nm(wc.b_member))}`;
-  const rider = settled
-    ? (wc.winner_member ? `${esc(nm(wc.winner_member))} took the week` : `${pair} \u00b7 all square`)
-    : `${pair} \u00b7 through ${DOW[we.getDay()]}`;
-  const head = `The clash \u00b7 <span class="is-phrase">${up1(rider)}</span>`;
+  /* Q37 (a) · owner ruling 2026-09-29: where the two clients say one fact two ways and no ruling picks the words, they are the Kit's where the Kit is the older producer. The head is
+     the phone's own: the label "This week · the clash" (SeasonPhases.swift, D108) and the rider ClashCopy.rider (WeekClash.swift): "through Thu" while the week is open, once
+     settled "Blake took the week", "You took the week" or "All square". The web's rider named the pair as well ("You v Devon · through Sun"); the sides' rows under the head name
+     both golfers already, and the head no longer says a fact its rows say. Root's §1.3 stays: the label keeps its caps from the row's role (.tbl th), the rider is a phrase
+     a person reads aloud, typed as said (.is-phrase, sentence case), the sides' lines keep their caps from #clashTbl .tc. */
+  const winnerIsYou = !!wc.winner_member && wc.winner_member === meId;
+  const rider = csClashRider(settled, wc.winner_member && !winnerIsYou ? (window.memName?.(wc.winner_member) || 'A golfer') : '', winnerIsYou, DOW[we.getDay()]);
+  const head = `This week \u00b7 the clash \u00b7 <span class="is-phrase">${esc(rider)}</span>`;
   const side=(id,b,key)=>{
     const band=b ? (b.band || bandName(Number(b.pvi))) : null;
     const sub=b
@@ -12134,6 +12153,9 @@ async function openBuyInTerms(){
   });
 }
 window.openBuyInTerms = openBuyInTerms;
+/* Q35 (a) · the counting-limit clause of the Cup Final, ONE sentence for every place the Final is stated (the endgame line, the rules page, the covenant); the wizard's help and agreement already say it in these words. */
+const CS_FINAL_COUNTING = 'Final rounds must also fit the monthly counting limit; an earlier round can take a place.';
+window.CS_FINAL_COUNTING = CS_FINAL_COUNTING;
 function endgameLine(opts){
   const o = opts || {};
   const finish = o.finish || state.finish || 'cup_final';
@@ -12157,9 +12179,11 @@ function endgameLine(opts){
      the head start. The owner's panel read that line beside the climb's
      "BOTH SQUADS PLAY THE CUP FINAL". `LeagueCopy.endgame` is the twin, and
      tests/fixtures/endgame.json holds both clients to it. */
+  /* Q35 (a) · owner ruling 2026-09-29: the Final keeps "scored fresh" (spec §14.3, D126) AND says its counting limit, wherever it is stated: the engine ranks the Final by the monthly cap
+     (D346's CONFLICT), so "scored fresh" alone promised a reset the counting rule does not give. The clause is the one the wizard's help and agreement already say (CS_FINAL_COUNTING). */
   if(structure === 'squads2')
-    return `Both squads play a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, and the leader carries +10 in. Level on points? Months won breaks it.`;
-  return `${who} go into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it.`;
+    return `Both squads play a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, and the leader carries +10 in. ${CS_FINAL_COUNTING} Level on points? Months won breaks it.`;
+  return `${who} go into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the weeks before it decide who is in, not who wins. ${CS_FINAL_COUNTING} Level on points? Months won breaks it.`;
 }
 function vsShort(v){
   /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have
@@ -13610,13 +13634,22 @@ function finishCeremony(o){
    the photo switch flips; the newest request wins. */
 const csPaintRecap = drawRecapCard;
 let _finishPreviewSeq = 0;
+const CS_PREVIEW_PHOTO_MS = 10000;
+/* a promise's value, or null once `ms` passes; the timer never outlives the answer */
+function csWithin(ms, p){
+  let t;
+  return Promise.race([p, new Promise(res => { t = setTimeout(() => res(null), ms); })]).finally(() => clearTimeout(t));
+}
 async function finishPreview(){
   const box=document.getElementById('finPreview'); if(!box || !_finishShare) return;
   const seq=++_finishPreviewSeq;
   const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
   const d=Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null });
   try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(_){}
-  if(d.photo && typeof photoDrawable==='function'){ try{ d._img = await photoDrawable(d.photo, 1200); }catch(_){ d._img=null; } }
+  /* TEN / W8 · the preview never waits on the photograph past CS_PREVIEW_PHOTO_MS: a decode that does not land (a slow read, a huge HEIC) leaves the card painted
+     without it, as a decode that fails does, and says nothing new (the aria-label below already names the photo only when it is drawn). The phone's preview
+     bounds its photo fetch at the same 10s (E's 6081015c). */
+  if(d.photo && typeof photoDrawable==='function'){ try{ d._img = await csWithin(CS_PREVIEW_PHOTO_MS, photoDrawable(d.photo, 1200)); }catch(_){ d._img=null; } }
   if(seq!==_finishPreviewSeq) return;
   let cv=null; try{ cv=csPaintRecap(d); }catch(_){ cv=null; }
   if(!cv){ box.hidden=true; return; }
@@ -19334,10 +19367,10 @@ async function csUnrateCourse(id){
    of the same five stars behind a clipping window whose width is the value —
    so setting a rating is a WIDTH change and §22's 180ms left-to-right sweep is
    the transition on it, with nothing else on the page moving. `rate` turns on
-   ten half-star buttons, each 48pt tall over a 16pt-wide half; below this
-   system's 44 in one axis, which is the same carve-out `RateCourseSheet`
-   carries by name (`UI_SYSTEM` §16.2) and the reason the value is also
-   reversible in one tap rather than only draggable. */
+   FIVE whole-star buttons, each a 44 × 44 target or more (Q34 (3), owner,
+   2026-09-29: the half-star carve-out in §16.2 is struck). The halves are the
+   −½ / +½ pair's (at 44 too), and a tap on your own value takes the rating
+   off, as before. */
 const CS_STAR_PATH = 'M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z';
 function csStarsWidth(value){
   const v = Math.max(0, Math.min(5, Number(value) || 0));
@@ -19354,11 +19387,10 @@ function csStarsSvg(value, unrated, opts){
             : `<path d="${CS_STAR_PATH}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`)
     + `</svg>`;
   const five = fill => one(fill) + one(fill) + one(fill) + one(fill) + one(fill);
-  const taps = o.rate ? [1,2,3,4,5,6,7,8,9,10].map(i=>{
-    const val = i / 2, idx = Math.floor((i-1)/2), half = (i-1) % 2;
-    const left = `calc(${idx} * (var(--star) + var(--s1)) + ${half} * var(--star) / 2)`;
-    return `<button type="button" class="csh" data-csrate="${esc(String(o.rate))}" data-csval="${val}"`
-      + ` style="left:${left}" aria-label="${val} star${val===1?'':'s'}"></button>`;
+  const taps = o.rate ? [1,2,3,4,5].map(i=>{
+    const left = `calc(${i-1} * (var(--star) + var(--s1)))`;
+    return `<button type="button" class="csh" data-csrate="${esc(String(o.rate))}" data-csval="${i}"`
+      + ` style="left:${left}" aria-label="${i} star${i===1?'':'s'}"></button>`;
   }).join('') : '';
   return `<span class="cs-stars${o.rate?' is-rate':''}${unrated?' is-unrated':''}"`
     + ` style="--star:${starLen}"${o.rate?` role="group" aria-label="Your rating"`:' aria-hidden="true"'}>`
@@ -19371,10 +19403,9 @@ function csStarsSvg(value, unrated, opts){
    ½ and has nothing to take from an unrated course; + stops at 5. At a bound
    the button says so with aria-disabled and keeps its focus — `disabled`
    dropped a keyboard golfer's focus to <body> on the step that reached it. */
-/* the rate control's star: the sheet's 40, and never wider than the pair and
-   the rail can share a phone column — 5 stars + 4 gaps + 2 × 44 + 2 × 12 = 5s + 128,
-   inside the 16px gutters, so 40 at 375 and on the desk, 32 at 320 (AW2-19) */
-const CS_RATE_STAR = 'min(40px, calc((100vw - 160px) / 5))';
+/* the rate control's star: 44, the target's own size (Q34 (3)). 5 stars + 4 gaps + 2 × 44 + 2 × 12 = 348, so a column narrower than that gives the −½ / +½ pair its own
+   row under the rail instead of shrinking the stars (AW2-19 shrank them to 40, and to 32 at 320, which is what the owner struck) */
+const CS_RATE_STAR = '44px';   /* Q34 (3): a whole star is a 44 × 44 target, so the star is 44 wide; the −½ / +½ pair drops under the rail where the column cannot hold both (CSS) */
 function csStepOff(mine, dir){
   return dir < 0 ? !(mine != null && mine > 0.5) : (mine != null && mine >= 5);
 }
@@ -22901,7 +22932,7 @@ function csLeadBlock(it){
          the quietest control on a page whose only green was a promo */
       ? `<button type="button" class="btn csedn-go" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`
       : `<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`):''}
-    ${csAnswerControls(it)}
+    ${csAnswerControls(it)}${csInviteControls(it)}
   </div>`;
 }
 
@@ -22915,6 +22946,18 @@ function csAnswerControls(it){
   return `<div class="csans" role="group" aria-label="Answer about this round">
     <button type="button" class="csans-b cs-name-s" data-ans="later" data-plan="${esc(c.plan_id)}" data-dkey="${esc(it.key)}">Later</button>
     <button type="button" class="csans-b cs-name-s" data-ans="didnt_play" data-plan="${esc(c.plan_id)}" data-dkey="${esc(it.key)}">Didn’t play</button>
+  </div>`;
+}
+/* W7-149 [A2-claim-invite-3, B2-claim-invite-4] · THE INVITATION CAN BE DECLINED WHERE HOME SHOWS IT. D351 keeps declining one tap and ungated, and D389 gives a golfer
+   until the first tee an invitation with its Decline; Home's item carried 'See the terms' only, and the banner's own Decline stands down for what the dispatch carries
+   (csDispatchCarries), so the one Decline left was the × in the league switcher. Like Later and Didn't play (D353) it is a LAYOUT control on the item, never a new route
+   kind: both clients drop an item whose route they do not know, so a new kind would make the card vanish on every build in the field. One quiet word at the 44px target;
+   'Not now' in the covenant still writes nothing, and this writes the answer. */
+function csInviteControls(it){
+  const key = String(it && it.key || '');
+  if(!key.startsWith('invite:') || key.length <= 7) return '';
+  return `<div class="csans" role="group" aria-label="Answer this invitation">
+    <button type="button" class="csans-b cs-name-s" data-ivdec="${esc(key.slice(7))}">Decline</button>
   </div>`;
 }
 /* `Today` - `Mon` - `Aug 21`. The phone's `HomeWireCopy.dayMarker`, in the
@@ -22949,7 +22992,7 @@ function csWireLine(it, ctx){
      block it put a second serif headline and a second action door in the
      viewport, under the real lead (critique-B P2, §15.1's one serif, §16A.5's
      one primary). Later · Didn't play keep their 44px targets. */
-  if(csAfterplan(it) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}</div>`;
+  if((csAfterplan(it) || csInviteControls(it)) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}${csInviteControls(it)}</div>`;   /* W7-149 · an invitation that is not the lead answers the same way */
   const mk = csWireStamp(it.at);   /* W7-087 · a future line wears a clock ('2 days'), never its own weekday as its marker */
   /* MW-02 · the league, when the sentence alone would not say which. Two
      `chapter:` items read "You are the one to catch." for two leagues and the
@@ -23093,6 +23136,15 @@ function renderHomeDispatch(){
     const btns = card ? Array.from(card.querySelectorAll('[data-ans]')) : [b];
     qaEvent('cta_tapped', { door: 'afterplan', tier: ans });   /* the family and the answer, nothing else */
     csAnswerPlan(plan, ans, btns);
+  }));
+  /* W7-149 · Decline on the invitation's item: one tap, no confirm (D351). respondInvite writes the answer and says 'Declined'; the dispatch is read again so the item
+     leaves Home, and a failed answer leaves it (and its button) where it was */
+  document.querySelectorAll('#homeLead [data-ivdec], #homeDeck [data-ivdec]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    qaEvent('cta_tapped', { door: 'invite_decline' });
+    await window.respondInvite?.(b.getAttribute('data-ivdec'), false);
+    try{ await loadHomeDispatch(); }catch(_){}
+    renderHomeDispatch();
   }));
 }
 window.renderHomeDispatch = renderHomeDispatch;
@@ -24667,7 +24719,9 @@ const CS_LINK_ASK = {
   no: 'Not now',
   person: { title: 'A buddy link', yes: 'Add as a buddy', note: 'Buddies see each other’s rounds and plans.' },
   plan:   { title: 'A plan link', yes: 'Take the seat' },
-  claim:  { title: 'A scorecard link', yes: 'Add it to my record', note: 'It posts to your rounds and counts in your seasons.' },
+  claim:  { title: 'A scorecard link', yes: 'Add it to my record', note: 'It posts to your rounds and counts in your seasons.',
+            /* W7-169 · a guest's scorecard offered to a golfer signed in as someone else names both, in ink: {guest} and {me} are the two names as written */
+            mismatch: 'Scored as {guest} — you’re signed in as {me}. Add it only if it’s yours.' },
 };
 function csLinkName(s, dflt){ return String(s == null ? '' : s).trim() || dflt; }
 function csFirstName(s){ return String(s == null ? '' : s).trim().split(/\s+/)[0] || ''; }
@@ -24684,6 +24738,15 @@ function csLinkClub(course){ return String(course == null ? '' : course).split('
 function csLinkAskClaim(gross, course){
   const at = csLinkName(csLinkClub(course), 'the course'), g = csLinkName(gross, '');
   return (g ? 'Add this ' + g + ' at ' + at : 'Add this scorecard from ' + at) + ' to your record?';
+}
+/* W7-169 [A2-claim-invite-2] · the ask ('Add this 91 at … to your record?') never said whose the scorecard is except in its quietest line (mut, 'Scored as Kit'), so a
+   signed-in golfer opening a link meant for someone else was one filled button from taking it. When the guest's first word and the golfer's differ, one line says both
+   names in ink and what to do (R5: the card asks first, from the preview alone; spec §16: a round is its golfer's own record). A first-word match is a heuristic: a nickname
+   shows the line, which is the safe error. With either name missing, or the two alike, nothing new prints (L-44). Twin: LinkConfirmation.swift owes the same producer. */
+function csLinkClaimMismatch(guest, me){
+  const g = csFirstName(guest), m = csFirstName(me);
+  if(!g || !m || g.toLowerCase() === m.toLowerCase()) return '';
+  return CS_LINK_ASK.claim.mismatch.replace('{guest}', String(guest).trim()).replace('{me}', String(me).trim());
 }
 
 /* R8 (S7, Guideline 1.2) · MUTE BECOMES BLOCK, and it is one real thing. The
@@ -25071,8 +25134,13 @@ function renderGolfers(){
     /* TEN · a sentence line says its day in sentence case ("today", "Sun"),
        not the caps token a rail uses ("TODAY" mid-sentence read as a shout) */
     const dayWord = iso => { const t = String(csDayToken(iso)||''); return t === 'TODAY' ? 'today' : t.charAt(0) + t.slice(1).toLowerCase(); };
+    /* W7-110 [A2-golfers-5] · 'PLAYING SOON' WAS A DEAD END: a buddy's plan was one line of plain text with no face and nothing to open. Each plan is a DOOR row now, as the buddies
+       list's rows are (and the phone's PlayingSoonSection row): the host's face, their name in the social role, one sub-line (the day, then the club as the glance says it), and the
+       whole row opens the plan's sheet through the board's delegated [data-planrow] listener. The trailing 'Ask for a seat' (R16, ask_for_a_seat) is NOT here: the request writes a
+       push_nudges row for the host and this client's inbox draws no such row, so the ask would disappear (IA §10.1); it waits for a recipient surface. */
     soon.innerHTML = rows.length
-      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(dayWord(sr.play_on))} · ${esc(csShortCourse(sr.course_label))}</div>`).join('')
+      ? rows.map(sr=>`<div class="prow"><span class="pmk">${window.face ? window.face(sr.profile_id, sr.marker, 36) : mkr(sr.marker||'saguaro')}</span>
+          <span class="pmeta" data-planrow="${esc(sr.id)}" role="button" tabindex="0"><b class="cs-social">${esc(sr.display_name||'A golfer')}</b><small>${esc(dayWord(sr.play_on))} · ${esc(csShortCourse(sr.course_label))}</small></span></div>`).join('')
       : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one</a></p>';
     soon.querySelector('#glfSoonPlan')?.addEventListener('click', e=>{ e.preventDefault(); window.openDeclareSheet?.(); });
   }
@@ -25861,7 +25929,7 @@ function renderTrophyCase(){
        inch below where one would sit (D177). */
     box.innerHTML = `<div class="tempty">
       <div class="tempty-marks" aria-hidden="true">${CS_CASE_EMPTY.marks.map(m=>csTrophyMark(m[0],m[1],28)).join('')}</div>
-      <h3 class="cs-name">${esc(CS_CASE_EMPTY.head)}</h3>
+      <h3 class="cs-lead">${esc(CS_CASE_EMPTY.head)}</h3>
       <p class="cs-body-s">${esc(CS_CASE_EMPTY.lead)}</p></div>`;
     return;
   }
@@ -26056,6 +26124,55 @@ function csYouStripsDedupe(){
   if(strip) strip.hidden = ![...strip.querySelectorAll('.youfig')].some(c => !c.hidden);
 }
 window.csYouStripsDedupe = csYouStripsDedupe;
+/* W7-089 · ONE ROW for the record's rounds: the five under Recent rounds and the full list behind the door beneath them are the same markup. D291: the GROSS is the row's object (a tabular
+   figure on a shared right edge, bare), the course in `nameS`, the date and the figure it was measured against in one agate line, the course's own card between them where this device has kept
+   one, and THE WHOLE ROW the door to the receipt. `ri` indexes the array the click handler reads; `isBest` marks the best of the five (a five-window fact: the full list has none). The
+   figure is the row's own (`pvi`, set on the five) or the engine's (`career.figures`, for a row from the full read). */
+function csRecordRowHtml(r, ri, isBest, attr){
+  const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
+  /* TEN / W6 · TP-11 · case is the role's (§1.3, LINT-14): the name role
+     sets the course in caps; the sub-line is an agate PHRASE */
+  const when = r.played_on ? csMonthDay(r.played_on) : '';
+  const course = esc(r.course_label||'') || 'Somewhere out there';
+  const fig = r.pvi!=null ? Number(r.pvi) : ((window.career?.figures||{})[r.id] != null ? Number((window.career.figures)[r.id]) : null);
+  /* Q39 (a) · the line says it in WORDS, as the composer and the receipt do (D1, Q-23 phase 2): a
+     signed "+2.4 vs your playing HCP" read backwards to six of seven blind testers, and nothing on the
+     page said plus is better. The sign stays only in the receipt's arithmetic row (D2). */
+  const sub = [when, fig!=null ? vsPhrase(fig) : null,
+               r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
+  const bk = bookOf(r.api_course_id);
+  const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
+  /* W7-111 · the row is named by its own facts, not 'course, gross': the day, the score and what it was against your number, and a nine says so */
+  const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null, isBest ? 'best of the five' : null].filter(Boolean).join(', ');
+  return `<div class="yrow${isBest ? ' best' : ''}" ${attr || 'data-rcpt-i'}="${ri}" role="button" tabindex="0" aria-label="${spoken}">
+            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}${isBest ? ' · <span class="yrowbest">best of the five</span>' : ''}</small>`:''}</span>
+            ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
+            <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
+}
+/* W7-089 [B2-history-2] · THE RECORD HOLDS EIGHT ROUNDS AND LISTS FIVE, WITH NO DOOR TO THE OTHER THREE. `career.recent` is the newest five and `career.rows` every round the read returned (up
+   to 400); nothing followed the fifth row, so a golfer's first round was reachable only as a slat with no door. A quiet door under the last row names what is LEFT and never repeats the count
+   (§16A.2: 'THE REST', 'THE OTHER EIGHT'), and opens the whole record in a sheet: the same rows, newest first, each opening its receipt as the five do. The archive test (§15.6, §15.7). */
+function csRoundsDoorLabel(left){
+  const n = Number(left) || 0;
+  return n > 0 ? 'The other ' + csSpelled(n) : '';
+}
+function csRoundsDoorHtml(c, five){
+  const rows = c && Array.isArray(c.rows) ? c.rows : null;
+  const left = rows ? rows.length - five.length : 0;
+  return left > 0 ? `<button type="button" class="cs-tskip" id="youRoundsAll">${esc(csRoundsDoorLabel(left))}</button>` : '';
+}
+window.csRoundsDoorLabel = csRoundsDoorLabel;
+function csOpenAllRounds(){
+  const rows = window.career && Array.isArray(window.career.rows) ? window.career.rows : [];
+  if(!rows.length) return;
+  openSheet('Your rounds', 'Newest first', `<div class="yrows" id="allRoundsList">${rows.map((r,ri)=>csRecordRowHtml(r, ri, false, 'data-allr')).join('')}</div>`);
+  const box = document.getElementById('allRoundsList');
+  box?.querySelectorAll('[data-allr]').forEach(b=>{
+    const go = () => { const r = rows[Number(b.dataset.allr)]; if(r) openRoundReceipt(r); };
+    b.addEventListener('click', go);
+    b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+  });
+}
 function renderCareer(){
   /* diorama form is fabricated coherently (index 12.4: beat = 12.4−diff ≥ 1) */
   const c = state.demo
@@ -26144,7 +26261,6 @@ function renderCareer(){
        W1 · and the delete went with it: a bare × inside a row that itself
        opens the receipt, confirmed by the browser's confirm(). It lives on the
        receipt now, labelled and armed (csReceiptDeleteRow). */
-    const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
     /* Q40 (b) · the head names the window, as the Form head did ("Recent rounds · Last five"), with a count slot
        only under five; the best is formRowHtml's rule: the lowest 18-hole gross, and only with a field of two */
     const five = (c.recent || []).slice(0, 5);
@@ -26155,26 +26271,9 @@ function renderCareer(){
     let bestSeen = false;
     yr.innerHTML = five.length
       ? five.map((r,ri)=>{
-          /* TEN / W6 · TP-11 · case is the role's (§1.3, LINT-14): the name role
-             sets the course in caps; the sub-line is an agate PHRASE */
-          const when = r.played_on ? csMonthDay(r.played_on) : '';
-          const course = esc(r.course_label||'') || 'Somewhere out there';
-          const fig = r.pvi!=null ? Number(r.pvi) : null;
-          /* Q39 (a) · the line says it in WORDS, as the composer and the receipt do (D1, Q-23 phase 2): a
-             signed "+2.4 vs your playing HCP" read backwards to six of seven blind testers, and nothing on the
-             page said plus is better. The sign stays only in the receipt's arithmetic row (D2). */
-          const sub = [when, fig!=null ? vsPhrase(fig) : null,
-                       r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
           const isBest = !bestSeen && bestGross != null && r.gross === bestGross && !csFormNine(r); if(isBest) bestSeen = true;
-          const bk = bookOf(r.api_course_id);
-          const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
-          /* W7-111 · the row is named by its own facts, not 'course, gross': the day, the score and what it was against your number, and a nine says so */
-          const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null, isBest ? 'best of the five' : null].filter(Boolean).join(', ');
-          return `<div class="yrow${isBest ? ' best' : ''}" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${spoken}">
-            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}${isBest ? ' · <span class="yrowbest">best of the five</span>' : ''}</small>`:''}</span>
-            ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
-            <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
-        }).join('')
+          return csRecordRowHtml(r, ri, isBest);
+        }).join('') + csRoundsDoorHtml(c, five)
       /* W7-115 · the empty record is a DRAWN OBJECT, an eyebrow and a headline, as the phone draws it (YouScreen: CSEmpty(glyph .scorecard, 'The first card', 'Your record fills as you play.')): a blank
          scorecard (the phone's own path) at 64px in mut, not a headline about the golfer's omission ('No rounds yet') over a sentence that repeats it */
       : `<div class="tempty"><svg class="youempty-obj" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3h15v18h-15zM4.5 8.4h15M4.5 13.2h15M4.5 18h15M9.5 3v18M14.5 3v18"/></svg>`
@@ -26191,6 +26290,7 @@ function renderCareer(){
       b.addEventListener('click', go);
       b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(e); } });
     });
+    $('#youRoundsAll')?.addEventListener('click', csOpenAllRounds);   /* W7-089 */
   }
 }
 /* D177 · #youPost is gone from You — the ⊕ is a permanent tab an inch below
@@ -30063,7 +30163,19 @@ function csRenderWizStep(){
   });
 }
 window.csRenderWizStep = csRenderWizStep;
+/* Q27 (a) · owner ruling 2026-09-29 (OWNER-QUESTIONS §R, the recommendation as written): a Pro who comes back to a league still in setup finds step 1's name field showing the league's CURRENT
+   name, editable, not empty over a league the desk's sidebar already names. Confirmed first (D346's "known created league"): resuming writes to the league already created, since the lock
+   goes through lock_league({ p_league: CS.league.id, p_name: the field, else the current name }) and createLeague runs only with no league at all. The scaffold 'My Cup' is not a choice (D5) and
+   is never shown as one; a name the Pro has typed or cleared in this session is theirs (data-touched) and is not put back. */
+function csPrefillLeagueName(){
+  const nm = document.getElementById('setName'), L = window.CS && window.CS.league;
+  if(!nm || nm.value || nm.dataset.touched || state.demo || !L || L.phase !== 'setup') return;
+  const n = String(L.name || '').trim();
+  if(!n || n === 'My Cup') return;
+  nm.value = n;
+}
 function renderWizard(){
+  csPrefillLeagueName();
   csRenderWizStep();
   if(state.wiz===2){
     if(!state.startISO) state.startISO=isoOf(seasonStartDate());
@@ -30143,6 +30255,7 @@ $('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(2,state.wiz+1);re
    re-renders from current state. */
 $('#wizFastPath')?.addEventListener('click',()=>{ renderBylaws(); state.wiz=2; renderWizard(); });
 $('#setName').addEventListener('input',e=>{
+  e.target.dataset.touched = '1';   /* Q27 · a name typed or cleared here is the Pro's, not a resume's to put back */
   const n=e.target.value.trim()||'Your league';
   $('#leagueName').textContent=n; $('#sideLeague').textContent=n;
 });
@@ -30824,7 +30937,7 @@ const GUIDE = {
   keys: ['Keyboard','THE DESK\u2019S FIVE KEYS', `
     <div class="cs-agate">Up and Down</div><p class="cs-body-s" style="margin:2px 0 12px">Move between rows.</p>
     <div class="cs-agate">Right</div><p class="cs-body-s" style="margin:2px 0 12px">Open the row.</p>
-    <div class="cs-agate">/</div><p class="cs-body-s" style="margin:2px 0 12px">Find a golfer.</p>
+    <div class="cs-agate">/</div><p class="cs-body-s" style="margin:2px 0 12px">Find a golfer or a course.</p>
     <div class="cs-agate">g, then t</div><p class="cs-body-s" style="margin:2px 0 12px">Jump to the table.</p>
     <div class="cs-agate">Esc</div><p class="cs-body-s" style="margin:2px 0 12px">Close what is open.</p>`],
 };
@@ -31989,15 +32102,16 @@ function csOpenSafety(pid, name){
     <p class="fine" style="padding:4px 0 10px">${esc(muted ? CS_BLOCK.undoWhat : CS_BLOCK.what)}</p>
     <div class="eyebrow">Report</div>
     <p class="fine" style="padding-top:0">Pick a reason, then confirm. It goes to the founder desk. Nothing is sent until you confirm.</p>
-    <div id="sfReasons">${CS_SAFETY_REASONS.map((r,i)=>`<button class="mini" type="button" data-sfr="${i}" style="margin:0 6px 6px 0">${esc(r)}</button>`).join('')}</div>
+    <div id="sfReasons" role="group" aria-label="Reason">${CS_SAFETY_REASONS.map((r,i)=>`<button class="mini" type="button" data-sfr="${i}" aria-pressed="false" style="margin:0 6px 6px 0">${esc(r)}</button>`).join('')}</div>
     <button class="btn" id="sfSend" style="margin-top:10px" disabled>Pick a reason</button>
     <p class="fine" id="sfErr" style="padding-top:6px; display:none; color:var(--neg)"></p>`);
   let reason = null;
   const send = document.getElementById('sfSend');
   document.querySelectorAll('[data-sfr]').forEach(b => b.addEventListener('click', () => {
     reason = CS_SAFETY_REASONS[+b.dataset.sfr];
-    document.querySelectorAll('[data-sfr]').forEach(x => x.style.borderColor = '');
-    b.style.borderColor = 'var(--brand)';
+    /* W7-091 [A2-golfers-4] · the picked reason is the chip's selected state (.mini.sel, ink) with aria-pressed, as the wizard's and the composer's chosen pills are: it set a border colour
+       on a .mini that has no border (border:0), in --brand, which is the competition ember (D359), and said nothing to a screen reader */
+    document.querySelectorAll('[data-sfr]').forEach(x => { const on = x === b; x.classList.toggle('sel', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     send.disabled = false; send.textContent = 'Send this report';
   }));
   document.getElementById('sfMute')?.addEventListener('click', async () => {
@@ -33019,7 +33133,7 @@ function resetWizard(){
      a REAL league starts at bragging rights; the Pro dials money up on
      purpose ("$0 is bragging rights" is the dial's own promise). */
   state.stake = 0;
-  const nm = document.getElementById('setName'); if(nm) nm.value = '';
+  const nm = document.getElementById('setName'); if(nm){ nm.value = ''; delete nm.dataset.touched; }   /* Q27 · a fresh league starts from a clean field */
   if(typeof updateInviteNote === 'function') updateInviteNote();
 }
 window.resetWizard = resetWizard;
@@ -34606,6 +34720,9 @@ function bootTrace(m){
   b.style.borderTop='1px solid #2FD3BE'; b.style.color='#CDEFE3';
   b.textContent = 'boot: ' + m;
 }
+/* W7-163 · 'Trouble signing in?' opens support's own answer for a code that did not come or did not work (support.html #code) in a new tab. It shows once the code step is
+   open and after an error on the email or code step (not the league-code branch: a wrong league code is not a sign-in trouble), and goes with Back. */
+function doorHelp(on){ const a = $('#obHelp'); if(a) a.style.display = on ? 'block' : 'none'; }
 function authStatus(msg, kind){
   const el=$('#obStatus');
   /* the Door's fields name #obStatus as their description; an error marks the
@@ -34620,6 +34737,7 @@ function authStatus(msg, kind){
        "Code didn't take…" sat under the fold of a 380px view */
     if(msg){ try{ el.scrollIntoView({ block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }catch(_){} } }
   if(kind === 'err'){
+    if(open('emailbox') || open('codebox')) doorHelp(true);
     console.error('[cs]', msg);
     if(!window.CS_DEBUG) return;
     const b = document.getElementById('errbar');
@@ -34634,6 +34752,7 @@ function openEmailBox(afterEl, msg){
   box.insertAdjacentElement('afterend', $('#codebox'));
   $('#codebox').insertAdjacentElement('afterend', $('#obStatus'));
   const rs = $('#obResend'); if(rs) $('#obStatus').insertAdjacentElement('afterend', rs);
+  const hp = $('#obHelp'); if(hp && rs) rs.insertAdjacentElement('afterend', hp);   /* W7-163 · the status, then Resend, then the way to help */
   box.classList.add('open');
   /* Q-18 · once a branch is open the OTHER door is dead weight that pushes the
      code box below the fold — the audit's joiner had six stacked controls and
@@ -34661,6 +34780,7 @@ function doorBack(anchor, branch){
       $('#codebox')?.classList.remove('open');
       $('#joinbox')?.classList.remove('open');
       const rs = $('#obResend'); if(rs) rs.style.display = 'none';
+      doorHelp(false);
       const em = $('#obEmail'), jn = $('#obJoin');
       if(em) em.style.display = '';
       if(jn) jn.style.display = '';
@@ -34744,18 +34864,26 @@ $('#obCodeIn')?.addEventListener('input', () => {
 
 /* Phase 5: resend with a cooldown, and a spam hint that appears only while
    actually waiting (box open, nothing typed, no error on screen). */
-let resendT = null, spamT = null;
+let resendT = null, spamT = null, holdT = null;
+/* W7-164 · ONE cooldown for the Door's two clocks: a button reads its label and the seconds left, is disabled while they run, and gives itself back when they end.
+   `data-hold` lets CSS paint the wait (a disabled .btn has no paint of its own, so a held Send code looked live). Resend code's is 30s; Send code's, after a
+   rate-limit refusal, is the server's own number. */
+function csCooldown(b, label, secs, timerKey){
+  let left = secs;
+  b.disabled = true; b.dataset.hold = '1';
+  b.textContent = `${label} (${left}s)`;
+  clearInterval(timerKey === 'hold' ? holdT : resendT);
+  const t = setInterval(() => {
+    left--;
+    if(left <= 0){ clearInterval(t); b.disabled = false; delete b.dataset.hold; b.textContent = label; }
+    else b.textContent = `${label} (${left}s)`;
+  }, 1000);
+  if(timerKey === 'hold') holdT = t; else resendT = t;
+}
 function startResendCooldown(){
   const b = $('#obResend'); if(!b) return;
-  let left = 30;
-  b.style.display = 'block'; b.disabled = true;
-  b.textContent = `Resend code (${left}s)`;
-  clearInterval(resendT);
-  resendT = setInterval(() => {
-    left--;
-    if(left <= 0){ clearInterval(resendT); b.disabled = false; b.textContent = 'Resend code'; }
-    else b.textContent = `Resend code (${left}s)`;
-  }, 1000);
+  b.style.display = 'block';
+  csCooldown(b, 'Resend code', 30, 'resend');
 }
 function scheduleSpamHint(){
   clearTimeout(spamT);
@@ -34797,12 +34925,14 @@ $('#obEmailGo').addEventListener('click', async () => {
     return;
   }
   const btn = $('#obEmailGo');
+  let held = false;   /* W7-164 · a rate-limit refusal keeps Send code behind its clock: the finally below does not give it back */
   btn.disabled = true; btn.textContent = 'Sending…';
   authStatus('Sending sign-in code…');
   try {
     await requestOtpCode(email);
     CS.pendingEmail = email;
     $('#codebox').classList.add('open');
+    doorHelp(true);   /* W7-163 · a code that never arrives has somewhere to go */
     /* one filled action per step: once the code is out, Verify is the step's
        action and Resend covers a second send, so Send code steps aside (it
        comes back if the address is edited) */
@@ -34815,18 +34945,26 @@ $('#obEmailGo').addEventListener('click', async () => {
     const code = (err.code || err.error_code || '').toString().toLowerCase();
     const banned = code.includes('ban') || m.includes('ban') || m.includes('deleted') || err.status === 403;
     const rate = m.includes('rate') || err.status === 429;
+    if(rate && !banned){
+      /* W7-164 [A2-door-7, B2-door-4] · the refusal says how long, and keeps a code already sent usable: Send code is held behind a clock (the number in the server's own
+         sentence, 'after 47 seconds', else 60) instead of live again at once, and the code field opens for a code from an earlier email. Resend had a clock; this did not. */
+      held = true;
+      const said = /after\s+(\d+)\s*seconds?/i.exec(err.message || '');
+      csCooldown(btn, 'Send code', said ? Math.max(1, Math.min(3600, Number(said[1]))) : 60, 'hold');
+      $('#codebox').classList.add('open');
+    }
     authStatus(
       banned
         ? 'This account was closed and can’t sign in again. Start fresh with a different email.'
       : rate
-        ? 'Too many sign-in emails for now — give it a few minutes and try again.'
+        ? 'Too many sign-in emails for now — give it a few minutes and try again. Have a code from an earlier email? Enter it below.'
         : 'Couldn’t send a sign-in code. If you deleted this account it can’t be reused — try a different email. Otherwise wait a minute and retry.',
       'err');
     /* AW2-18 · the disabled Send code button took focus with it, so a failure
        left a keyboard golfer on <body>. The address is what the sentence asks
        them to change, so focus waits there. */
     $('#obEmailIn').focus();
-  } finally { btn.disabled = false; btn.textContent = 'Send code'; }
+  } finally { if(!held){ btn.disabled = false; btn.textContent = 'Send code'; } }
 });
 
 /* obCreate retired: "Create" and "Sign in" were the same OTP with different
@@ -34846,7 +34984,13 @@ $('#obJoin').addEventListener('click', () => {
   $('#codebox').classList.remove('open');
   const rs=$('#obResend'); if(rs) rs.style.display='none';
   $('#joinbox').classList.add('open');
+  /* W7-166 · the status line follows THIS box (as openEmailBox does for its own) so an answer sits under the field it is about, and it says where a code comes from */
+  $('#joinbox').insertAdjacentElement('afterend', $('#obStatus'));
+  authStatus('From your Pro’s invite.');
   $('#joinCode').focus();
+  /* W7-161 [B2-door-2] · with the keyboard up (a 380px view) the league-code field and Join sat sheared by the bottom edge: this branch placed nothing, and the email
+     branch reaches authStatus, which lands its sentence. The box lands mid-view as that sentence does, so the field, Join and the line under them are whole (§13.2a). */
+  try{ $('#joinbox').scrollIntoView({ block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }catch(_){}
 });
 
 /* D83: the door-side demo entry lived here (F7 restored it in 1.2, v23.137
@@ -34982,9 +35126,9 @@ function csCovenantFacts(info, postedRounds){
   const table = info.finish === 'points_table' || shortSeason;
   const ending = table ? "The season's points decide it. No reset."
     : !st ? 'It ends with a four-week Cup Final between the top two.'
-    : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.'
-    : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh.'
-    : 'The top two squads qualify for a four-week Cup Final, scored fresh.';
+    : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start. ' + window.CS_FINAL_COUNTING
+    : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING
+    : 'The top two squads qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING;   /* Q35 (a): and its counting limit */
   out.push({ k:'ending', t: ending });
   /* L-10 · every money line is ABOVE $0 only */
   if(paid){
@@ -35227,14 +35371,15 @@ function showCovenant(info){
 
 $('#joinGo').addEventListener('click', async () => {
   const code = $('#joinCode').value.trim().toUpperCase();
-  if(!code) return toast('Enter the league code');
+  /* W7-166 · a refusal is said under the field it is about (authStatus marks #joinCode invalid, and the typed code stays in view), not in a toast that covers it */
+  if(!code) return authStatus('Enter the league code.', 'err');
   if(!CS.user){
     /* validate BEFORE the email round-trip: a typo fails here, not after the
        code arrives. `undefined` = RPC not deployed yet \u2192 arm anyway (degrade). */
     let name;
     try { const { data } = await sb.rpc('league_by_code', { p_code: code }); name = data; }
     catch(e){ name = undefined; }
-    if(name === null){ toast(CS_NO_LEAGUE); return; }
+    if(name === null){ authStatus(CS_NO_LEAGUE, 'err'); return; }
     localStorage.setItem('cs_code', code);
     if(name) localStorage.setItem('cs_code_name', name); else localStorage.removeItem('cs_code_name');
     openEmailBox($('#joinbox'), name
@@ -36433,7 +36578,7 @@ function csRenderPlanLead(rows){
   const next = rows.find(r => isMyPlan(r)) || null;
   const fail = csScheduleFail();
   if(!next && !rows.length && fail){
-    box.innerHTML = `<div class="tempty schnone" role="status"><h2 class="cs-name">The schedule didn’t load</h2><p class="cs-body-s">${esc(humanError(fail))}</p>`
+    box.innerHTML = `<div class="tempty schnone" role="status"><h2 class="cs-lead">The schedule didn’t load</h2><p class="cs-body-s">${esc(humanError(fail))}</p>`
       + `<button type="button" class="mini" id="schRetry" style="margin-top:var(--s2)">Try again</button></div>`;
     $('#schRetry')?.addEventListener('click', e => csScheduleRetry(e.currentTarget));
     return;
@@ -37276,7 +37421,7 @@ async function renderAlbum(){
       box.querySelector('.alfail')?.remove();
       box.insertAdjacentHTML('afterbegin', `<p class="fine alfail" role="status" style="grid-column:1/-1; padding:4px 2px 8px">The album didn’t refresh. <button type="button" class="cs-tskip" id="albumRetry" style="display:inline-flex; margin:0">Try again</button></p>`);
     } else {
-      box.innerHTML = `<div class="tempty" role="status" style="grid-column:1/-1"><h2 class="cs-name">The album didn’t load</h2>`
+      box.innerHTML = `<div class="tempty" role="status" style="grid-column:1/-1"><h2 class="cs-lead">The album didn’t load</h2>`
         + `<p class="cs-body-s">${esc(humanError(e))}</p>`
         + `<button type="button" class="mini" id="albumRetry" style="margin-top:10px">Try again</button></div>`;
     }
@@ -39246,7 +39391,26 @@ function csDeadJoinLanding(){
   const em = $('#obEmail'), jn = $('#obJoin'), bk = $('#obBack'), rs = $('#obResend');
   if(em) em.style.display = ''; if(jn) jn.style.display = '';
   if(bk) bk.style.display = 'none'; if(rs) rs.style.display = 'none';
+  doorHelp(false);
   authStatus('');
+  const h = el.querySelector('h1');
+  if(h){ h.tabIndex = -1; h.focus({ preventScroll: true }); }
+  el.scrollIntoView({ block: 'start' });
+  return el;
+}
+/* W7-107 [A2-claim-invite-1, B2-claim-invite-1, A2-claim-invite-11, A2-desk-10] · A SCORECARD LINK THAT CANNOT LAND IS SAID AT THE TOP, as a dead league code
+   is (csDeadJoinLanding, above): the landing itself, announced as a status, with the email field and Join below it. It was the generic welcome as the lead, with the
+   link's one true sentence wedged between the two doors, neg for two of the four outcomes. A spent link is not the golfer's error (§2.5), so the lead is ink on
+   all four; the sentences are D374's, every word kept, split at the full stop (each constant is exactly two: the outcome, then what to do). The kind is
+   'claim-<outcome>', never 'dead', so the join-unavailable pins keep meaning the join. The phone's ClaimDoor gives every outcome its own screen already. */
+const CS_CLAIM_OUTCOME = { 'claim-unfinished': CS_CLAIM_UNFINISHED, 'claim-not-started': CS_CLAIM_NOT_STARTED, 'claim-used': CS_CLAIM_USED, 'claim-dead': CS_CLAIM_DEAD };
+function csClaimOutcomeLanding(kind){
+  const said = /^(.*?\.)\s+(.*)$/.exec(CS_CLAIM_OUTCOME[kind] || '');
+  if(!said) return null;
+  const el = csLinkLanding({ kind, label: 'Your scorecard link', headHtml: esc(said[1]), sub: said[2] });
+  if(!el) return null;
+  el.setAttribute('role', 'status');
+  authStatus('');   /* the sentence lives in the landing; the status line under the field stays empty */
   const h = el.querySelector('h1');
   if(h){ h.tabIndex = -1; h.focus({ preventScroll: true }); }
   el.scrollIntoView({ block: 'start' });
@@ -39378,6 +39542,7 @@ async function csLinkAskOnce(card){
       openSheet(card.title, CS_LINK_ASK.eyebrow, `<div id="lnkAsk">
         <p class="lead" style="padding-top:0">${card.mark ? card.mark + ' ' : ''}${esc(card.ask)}</p>
         ${card.facts ? `<p class="fine" style="padding-top:4px">${esc(card.facts)}</p>` : ''}
+        ${card.mismatch ? `<p class="fine" style="padding-top:4px; color:var(--ink)">${esc(card.mismatch)}</p>` : ''}
         ${card.note ? `<p class="fine" style="padding-top:4px">${esc(card.note)}</p>` : ''}
         <button class="btn" id="lnkYes" style="margin-top:12px">${esc(card.yes)}</button>
         <button class="btn dark" id="lnkNo" data-decline style="margin-top:8px">${esc(CS_LINK_ASK.no)}</button>
@@ -39402,7 +39567,7 @@ async function csLinkAskOnce(card){
 /* R5 · the card, from the preview alone. Every line is a fact the preview
    returned — a line it did not carry is left out, never guessed (L-44). */
 function csLinkDay(iso){ return /^\d{4}-\d{2}-\d{2}$/.test(String(iso || '')) ? csDowMonDay(iso) : ''; }
-function csLinkCard(kind, info){
+function csLinkCard(kind, info, me){
   const i = info || {};
   if(kind === 'person'){
     const n = Number(i.rounds_n || 0);
@@ -39419,11 +39584,14 @@ function csLinkCard(kind, info){
              facts: [tee ? tee + ' tee' : '', csPlanWhoLine(i)].filter(Boolean).join(' · ') };
   }
   const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
+  /* W7-169 · whose it is is said ONCE: in ink under the facts when the names differ, in the facts' own 'Scored as' otherwise */
+  const mismatch = csLinkClaimMismatch(i.guest_name, me === undefined ? window.CS?.profile?.display_name : me);
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
-           mark: '', ask: csLinkAskClaim(i.gross, i.course_label),
-           facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
+           mark: '', ask: csLinkAskClaim(i.gross, i.course_label), mismatch,
+           facts: [i.guest_name && !mismatch ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
 }
 window.csLinkCard = csLinkCard;
+window.csLinkClaimMismatch = csLinkClaimMismatch;   /* W7-169 · the pins reach the producer through window */
 /* R5 · what a claim link is, before anything is claimed. The two sources
    answer a token they do not know differently — claim_round_info with null,
    scan_claim_info with a raise — so DEAD is said only when both have
@@ -39726,11 +39894,9 @@ async function safeBoot(force){
       const gs = guestSeen?.round?.status;
       if(gs === 'abandoned'){
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_UNFINISHED, 'err');
+        csClaimOutcomeLanding('claim-unfinished');
       } else if(gs === 'setup'){
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_NOT_STARTED);          /* not an error: the pencil is kept */
+        csClaimOutcomeLanding('claim-not-started');   /* not an error: the pencil is kept */
       } else {
       /* the door card serves both claim sources (live guests + scan partners) */
       let data=null;
@@ -39760,8 +39926,7 @@ async function safeBoot(force){
       } else if(data && data.claimed){
         /* already kept: say so (it was the plain door, with nothing said) */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_USED);
+        csClaimOutcomeLanding('claim-used');
       } else {
         /* F3 (shareability audit): a dead/garbage token failed SILENT — the
            recipient tapped "your scorecard" and got the marketing door, and the
@@ -39769,8 +39934,7 @@ async function safeBoot(force){
            plainly (same answer for every bad token — nothing to enumerate) and
            drop the token. */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
-        csLinkLanding(null);
-        authStatus(CS_CLAIM_DEAD, 'err');
+        csClaimOutcomeLanding('claim-dead');
       }
       }
     }catch(_){}

@@ -86,10 +86,10 @@ const ok = (cond, label) => eq(!!cond, true, label);
   ok(!(ctl.match(/<button[^>]*>/g) || []).some(b => b.includes('aria-hidden')), 'and no target in it is hidden');
   eq((ctl.match(/<svg aria-hidden="true"/g) || []).length, (ctl.match(/<svg/g) || []).length,
      'every drawn star in it is a picture — the targets say the value, the stars do not say it again');
-  eq((ctl.match(/<button/g) || []).length, 10, 'ten half-star targets, one per half');
-  ok(ctl.includes('data-csval="0.5"') && ctl.includes('data-csval="5"'),
-     'the first target is half a star and the last is five — a rail cannot be dragged to zero');
-  ok(ctl.includes('aria-label="0.5 stars"') && ctl.includes('aria-label="1 star"'),
+  eq((ctl.match(/<button/g) || []).length, 5, 'five whole-star targets (Q34 (3): the half-star carve-out is struck), one per star');
+  ok(ctl.includes('data-csval="1"') && ctl.includes('data-csval="5"') && !ctl.includes('data-csval="0.5"'),
+     'the first target is one star and the last is five — a rail cannot be dragged to zero, and the halves are the pair\u2019s');
+  ok(ctl.includes('aria-label="1 star"') && ctl.includes('aria-label="5 stars"') && !ctl.includes('0.5 stars'),
      'and each target says its own value, singular at one');
 }
 

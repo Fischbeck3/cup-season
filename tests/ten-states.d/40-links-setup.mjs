@@ -138,6 +138,22 @@ const claimDoor = (id, token, ready, selectors, extra = {}) => ({
   family: 'links', id, variant: 'signed_out', url: `/?claim=${token}`, short: true,
   settle: doorSettle(ready), expect: { door: true, selectors }, ...extra,
 })
+/* TEN / W8 · W7-107 [A2-claim-invite-1, B2-claim-invite-1, A2-claim-invite-11, A2-desk-10] · a scorecard link that cannot land is the LANDING at the top, as the dead
+   league code is (41cf8050): announced as a status, the outcome's first sentence in the lead in INK (a spent link is not the golfer's error, §2.5) and what to do
+   under it, the status line under the field empty, and the email field below the landing, focus on the lead. The kind is claim-<outcome>, never 'dead'. */
+const outcomeLanding = (kind) => async (page) => page.evaluate((kind) => {
+  const el = document.querySelector(`#obLink[data-kind="${kind}"]`); if (!el) return `no #obLink[data-kind="${kind}"] landing is drawn`
+  if (el.getAttribute('role') !== 'status') return 'the landing is not announced as a status'
+  const h = el.querySelector('h1'), sub = el.querySelector('.sub')
+  if (!h || !sub) return 'the landing has no lead and sub'
+  const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+  if (getComputedStyle(h).color !== probe('--ink')) return `the lead is ${getComputedStyle(h).color}, not ink`
+  const st = (document.getElementById('obStatus').textContent || '').trim()
+  if (st !== '') return `the status line under the field still speaks: ${JSON.stringify(st)}`
+  if (!document.getElementById('onboard').classList.contains('ob-linked')) return 'the generic welcome is still the lead (the hero did not collapse)'
+  if (!(el.compareDocumentPosition(document.getElementById('obEmail')) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the email field is not below the landing'
+  return document.activeElement === h ? true : 'the lead does not hold focus'
+}, kind)
 /* TEN / W6 · craft (round 2): at 375 × 667 the covenant's terms outran the
    sheet and its answers sat at their end — Join cut at the screen's edge,
    Not now out of sight. At rest both answers are inside the visible sheet. */
@@ -163,6 +179,19 @@ const toastIsTheBlock = async (page) => page.evaluate(() => {
   if (be.content === 'none' || be.width !== '3px' || be.backgroundColor !== want.rule) return 'the toast has no 3pt rail in rule: ' + JSON.stringify(got)
   return got.align === 'left' ? true : 'the toast sentence is centred, not led by its rail'
 })
+/* TEN / W8 · W7-149 [A2-claim-invite-3, B2-claim-invite-4] · the invitation is answerable where Home shows it: one quiet 'Decline' on the item itself (D351: one tap,
+   ungated; D389: until the first tee they see an invitation with its Decline), a 44px target in a group named for the answer, and never a second filled button (§16A.5) */
+const inviteDeclineOnItem = async (page) => page.evaluate(() => {
+  const b = document.querySelector('#homeLead [data-ivdec], #homeDeck [data-ivdec]')
+  if (!b) return 'the invitation on Home has no Decline'
+  if (b.textContent.trim() !== 'Decline') return `the invitation's answer reads ${JSON.stringify(b.textContent.trim())}, not 'Decline'`
+  const r = b.getBoundingClientRect()
+  if (r.height < 43.5) return `Decline is ${Math.round(r.height)}px tall, under the 44px target`
+  const g = b.closest('[role="group"]')
+  if (!g || g.getAttribute('aria-label') !== 'Answer this invitation') return 'Decline is not in a group named for the answer'
+  if (b.classList.contains('btn')) return 'Decline is a filled button beside the one primary'
+  return true
+})
 const LINKS = [
   /* W4 · the round LEADS the door (#obLink, the lead serif) and the status line
      keeps the next step: the same ruled sentence (TERMINOLOGY §6), split,
@@ -182,25 +211,42 @@ const LINKS = [
     /* W4 · a kept scorecard SAYS so (owner R, critique B P2): it was the plain
        door, pixel for pixel. Not an error, and no more than CS_CLAIM_DEAD
        already says to any token. */
-    { '#obEmail': 'visible', '#obJoin': 'visible', '#emailbox': 'hidden', '#obStatus': 'text:^That scorecard is already on a golfer’s record\\. If it’s yours, sign in with the same email' },
-    { check: async (page) => ((await page.evaluate(() => !document.getElementById('obStatus').classList.contains('err'))) ? true : 'the kept-scorecard line is styled as an error') }),
+    { '#obEmail': 'visible', '#obJoin': 'visible', '#emailbox': 'hidden', '#obLink[data-kind="claim-used"] h1': 'text:^That scorecard is already on a golfer’s record\\.$',
+      '#obLink[data-kind="claim-used"] .sub': 'text:^If it’s yours, sign in with the same email and it’s in your rounds\\.$' },
+    { check: outcomeLanding('claim-used') }),
   claimDoor('claim-unfinished', CLAIM.abandoned,
-    () => /never finished/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#obStatus.err': 'visible', '#obStatus': 'text:^This round was never finished' },
-    { expectConsole: [/^\[cs\] This round was never finished/] }),
+    () => /never finished/.test((document.querySelector('#obLink[data-kind="claim-unfinished"] h1') || {}).textContent || ''),
+    { '#obEmail': 'visible', '#obLink[data-kind="claim-unfinished"] h1': 'text:^This round was never finished, so there’s no scorecard to keep\\.$',
+      '#obLink[data-kind="claim-unfinished"] .sub': 'text:^Whoever ran it can tee off again and send your link from the new round\\.$' },
+    { check: outcomeLanding('claim-unfinished') }),
   claimDoor('claim-not-started', CLAIM.setup,
-    () => /hasn.t teed off yet/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#obStatus': 'text:^That round hasn.t teed off yet' },
-    { check: async (page) => ((await page.evaluate(() => !document.getElementById('obStatus').classList.contains('err') && localStorage.getItem('cs_claim') !== null)) ? true : 'the not-started line is an error, or the pencil was dropped') }),
+    () => /hasn.t teed off yet/.test((document.querySelector('#obLink[data-kind="claim-not-started"] h1') || {}).textContent || ''),
+    { '#obEmail': 'visible', '#obLink[data-kind="claim-not-started"] h1': 'text:^That round hasn.t teed off yet\\.$',
+      '#obLink[data-kind="claim-not-started"] .sub': 'text:^Open this link again once it tees off to keep your own score, or once it finishes to keep your scorecard\\.$' },
+    { check: async (page) => { const r = await outcomeLanding('claim-not-started')(page); if (r !== true) return r; return (await page.evaluate(() => localStorage.getItem('cs_claim') !== null)) ? true : 'the pencil was dropped: a round not yet started keeps its link' } }),
   claimDoor('claim-dead', CLAIM.dead,
-    () => /expired or was already claimed/.test((document.getElementById('obStatus') || {}).textContent || ''),
-    { '#obStatus.err': 'visible', '#obStatus': 'text:^That scorecard link has expired or was already claimed' },
+    () => /expired or was already claimed/.test((document.querySelector('#obLink[data-kind="claim-dead"] h1') || {}).textContent || ''),
+    { '#obEmail': 'visible', '#obLink[data-kind="claim-dead"] h1': 'text:^That scorecard link has expired or was already claimed\\.$',
+      '#obLink[data-kind="claim-dead"] .sub': 'text:^Whoever sent it can share a fresh one from the round\\.$' },
     { world: { errors: { rpc: { guest_live_state: { __error: 'No such round', status: 400 }, scan_claim_info: { __error: 'Claim link not recognized', status: 400 } } } },
-      expectConsole: [/^\[cs\] That scorecard link has expired/, /status of 400/] }),
+      expectConsole: [/status of 400/], check: outcomeLanding('claim-dead') }),
   /* signed in: the card asks before anything is claimed (R5) */
   { family: 'links', id: 'claim-signed-in-ask', variant: 'member', url: `/?claim=${CLAIM.valid}`,
     settle: async (page) => { await bootDone(page, 600); await until(page, () => document.getElementById('sheet').classList.contains('open') && /A scorecard link/.test(document.getElementById('shTitle').textContent), null, 12000); await page.waitForTimeout(500) },
-    expect: { sheet: '^A scorecard link$', selectors: { '#lnkYes': 'text:^Add it to my record$', '#lnkNo': 'visible', '#lnkAsk .lead': 'text:Add this 91 at Mesquite Wash' } } },
+    expect: { sheet: '^A scorecard link$', selectors: { '#lnkYes': 'text:^Add it to my record$', '#lnkNo': 'visible', '#lnkAsk .lead': 'text:Add this 91 at Mesquite Wash' } },
+    /* TEN / W8 · W7-169 [A2-claim-invite-2] · the guest's name (Kit) and the golfer's (Avery Fixture) differ, so the ask says both, in INK, between the facts and the note;
+       whose the scorecard is is said once (the facts line does not repeat 'Scored as') */
+    check: async (page) => page.evaluate(() => {
+      const fines = [...document.querySelectorAll('#lnkAsk p.fine')], mm = fines.find((p) => /you.re signed in as/.test(p.textContent))
+      if (!mm) return 'the ask names no mismatch: ' + JSON.stringify(fines.map((p) => p.textContent))
+      if (mm.textContent.trim() !== 'Scored as Kit — you’re signed in as Avery Fixture. Add it only if it’s yours.') return `the mismatch line reads ${JSON.stringify(mm.textContent.trim())}`
+      const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+      if (getComputedStyle(mm).color !== probe('--ink')) return `the mismatch line is ${getComputedStyle(mm).color}, not ink`
+      const note = fines.find((p) => /posts to your rounds/.test(p.textContent))
+      if (!note || !(mm.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the mismatch line is not above the note'
+      if (fines.some((p) => p !== mm && /Scored as/.test(p.textContent))) return 'whose the scorecard is is said twice (the facts line repeats Scored as)'
+      return true
+    }) },
 
   /* the league invite link, /?join=CODE (the format shareInvite writes, index.html:27224) */
   /* W4 · the invitation leads the door (#obLink) and the status keeps the next
@@ -252,7 +298,20 @@ const LINKS = [
       const drawn = [...document.querySelectorAll('#homeLead [data-dkey], #homeDeck [data-dgo]')].filter((n) => (n.getAttribute('data-dkey') || n.getAttribute('data-dgo')) === key && shown(n)).length
         + [...document.querySelectorAll('#notifBanner [data-inv]')].filter((n) => n.getAttribute('data-inv') === id && shown(n)).length
       return drawn === 1 ? true : `the invitation is drawn ${drawn} times on Home`
-    }) },
+    }).then((r) => r === true ? inviteDeclineOnItem(page) : r) },
+  /* W7-149 · and the tap answers: one respond_invite with p_accept false, no confirm in between (D351) */
+  { family: 'links', id: 'invite-decline', variant: 'brand_new', world: { flags: { invite: true } },
+    settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-ivdec]'), null, 15000); await page.waitForTimeout(400) },
+    drive: async (page) => {
+      let asked = null
+      const req = page.waitForRequest((r) => /rpc\/respond_invite/.test(r.url()), { timeout: 8000 }).then((r) => { asked = r.postData() || '' }).catch(() => {})
+      await click(page, '#homeLead [data-ivdec]')
+      await req
+      await page.evaluate((b) => { window.__tenAsked = b }, asked)
+      await page.waitForTimeout(600)
+    },
+    expect: { allowDoor: false },
+    check: async (page) => page.evaluate(() => /"p_accept"\s*:\s*false/.test(window.__tenAsked || '') ? true : `Decline did not send respond_invite with p_accept false: ${JSON.stringify(window.__tenAsked)}`) },
   { family: 'links', id: 'invite-terms', variant: 'brand_new', world: { flags: { invite: true } },
     settle: async (page) => { await until(page, () => !!document.querySelector('#homeLead [data-dgo^="invite:"]'), null, 15000); await page.waitForTimeout(300) },
     drive: async (page) => { await click(page, '#homeLead [data-dgo^="invite:"]'); await until(page, () => /Before you join/.test(document.getElementById('shTitle').textContent) && document.getElementById('sheet').classList.contains('open')) },

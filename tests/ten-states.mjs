@@ -79,13 +79,125 @@ const gateWho = async (page) => {
   await page.waitForTimeout(600)
   return true
 }
+/* TEN / W8 · W7-109 [A2-door-5, B2-door-3, A2-desk-23] · the Door's field rows stack: each open row's field takes the whole row, its action sits beneath it at the same
+   width, and the address being sent to (`whole`, the email field's id) is WHOLE in its field, with nothing to scroll: the two moments a golfer checks it for a typo */
+const doorStacked = (whole) => async (page) => page.evaluate((whole) => {
+  const rows = [...document.querySelectorAll('#emailbox.open, #codebox.open, #joinbox.open')]
+  if (!rows.length) return 'no Door field row is open'
+  for (const row of rows) {
+    const inp = row.querySelector('input'), btn = row.querySelector('.btn')
+    const ri = inp.getBoundingClientRect(), rb = btn.getBoundingClientRect(), rr = row.getBoundingClientRect()
+    if (!ri.width || !rb.width) continue   /* a field or action the state has put away (the email row's Send code once the code step is open) */
+    if (ri.width < rr.width - 1) return `#${inp.id} is ${Math.round(ri.width)}px in a ${Math.round(rr.width)}px row: it shares the row with its action`
+    if (rb.top < ri.bottom - 0.5) return `#${btn.id} is beside #${inp.id}, not beneath it`
+    if (Math.abs(rb.width - rr.width) > 1) return `#${btn.id} is ${Math.round(rb.width)}px, not the row's ${Math.round(rr.width)}px`
+  }
+  if (whole) { const i = document.getElementById(whole); if (i.scrollWidth > i.clientWidth + 1) return `the address in #${whole} is cut: ${i.scrollWidth}px of text in ${i.clientWidth}px` }
+  return true
+}, whole)
+/* TEN / W8 · Q46 (owner, 2026-09-29) [B2-door-8] · the Door's field edges and its quiet button's outline are OPAQUE mut, at 3:1 or better against the ground they sit on
+   and against a field's own fill (WCAG 1.4.11): 7.07:1 dark and 5.85:1 light. `sels` are the Door's own fields and its quiet button; each must be drawn and carry a 1px edge */
+const doorEdgesMut = (sels) => async (page) => page.evaluate((sels) => {
+  const rgb = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number)
+  const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+  const lum = (c) => { const [r, g, b] = rgb(c); return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) }
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+  const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+  const mut = probe('--mut'), ground = probe('--bg0')
+  for (const sel of sels) {
+    const el = document.querySelector(sel)
+    if (!el || !el.getBoundingClientRect().width) return `${sel} is not drawn`
+    const cs = getComputedStyle(el)
+    if (cs.borderTopWidth !== '1px') return `${sel} has a ${cs.borderTopWidth} edge, not 1px`
+    if (cs.borderTopColor !== mut) return `${sel}'s edge is ${cs.borderTopColor}, not opaque mut (${mut})`
+    if (ratio(cs.borderTopColor, ground) < 3) return `${sel}'s edge is ${ratio(cs.borderTopColor, ground).toFixed(2)}:1 against the ground`
+    const fill = cs.backgroundColor
+    if (rgb(fill).length && !/rgba\(.*, 0\)$/.test(fill) && ratio(cs.borderTopColor, fill) < 3) return `${sel}'s edge is ${ratio(cs.borderTopColor, fill).toFixed(2)}:1 against its own fill`
+  }
+  return true
+}, sels)
+/* TEN / W8 · W7-163 [A2-door-2, B2-door-9] · a route to help from the Door, at the moment of need: once the code step is open or a sign-in error is on screen, 'Trouble signing in?'
+   is a quiet in-content link (2px mut underline, 44px) to support's own answer, in a NEW tab so the Door keeps what was typed; before that (`shown` false) it is not drawn */
+const doorHelp = (shown) => async (page) => {
+  const r = await page.evaluate((shown) => {
+    const a = document.getElementById('obHelp')
+    if (!a) return 'the Door has no help link'
+    const drawn = a.getBoundingClientRect().width > 0 && getComputedStyle(a).display !== 'none'
+    if (!shown) return drawn ? 'the help link is drawn before anything went wrong' : true
+    if (!drawn) return 'no help link on the Door after the code step opened or an error'
+    if (a.textContent.trim() !== 'Trouble signing in?') return `the help link reads ${JSON.stringify(a.textContent.trim())}`
+    if (a.getAttribute('href') !== '/support#code' || a.getAttribute('target') !== '_blank' || !/noopener/.test(a.getAttribute('rel') || '')) return `the help link is ${a.getAttribute('href')} target=${a.getAttribute('target')} rel=${a.getAttribute('rel')}, not /support#code in a new tab`
+    const rs = document.getElementById('obResend')
+    if (rs && rs.getBoundingClientRect().width > 0 && !(rs.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the help link is not after Resend code'
+    return true
+  }, shown)
+  if (r !== true || !shown) return r
+  /* the Door's own quiet link (.cs-tskip, as Back and Resend code are): a word in opaque mut under an underline, in a 44px box (§7.1, §16.2) */
+  return page.evaluate(() => {
+    const a = document.getElementById('obHelp'), cs = getComputedStyle(a), r = a.getBoundingClientRect()
+    const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+    if (!a.classList.contains('cs-tskip')) return 'the help link is not the Door\'s quiet link (.cs-tskip)'
+    if (!/underline/.test(cs.textDecorationLine)) return 'the help link has no underline'
+    if (cs.color !== mut) return `the help link is ${cs.color}, not opaque mut`
+    return r.height >= 43.5 ? true : `the help link is ${Math.round(r.height)}px tall, under the 44px target`
+  })
+}
+/* TEN / W8 · W7-164 [A2-door-7, B2-door-4] · after a rate-limit refusal Send code is HELD behind a clock, not live again at once: it reads 'Send code (Ns)' (`secs` is the range the
+   server's number, or 60, can have ticked to), is disabled and painted as §7.1's disabled primary (bg1 fill, mut label), and the code field is OPEN for a code from an earlier email
+   under a status that says so */
+const doorHeld = (secs) => async (page) => page.evaluate((secs) => {
+  const b = document.getElementById('obEmailGo'), st = document.getElementById('obStatus')
+  if (!b.disabled || !b.hasAttribute('data-hold')) return 'Send code is live again after the refusal'
+  const m = /^Send code \((\d+)s\)$/.exec(b.textContent.trim())
+  if (!m) return `the held button reads ${JSON.stringify(b.textContent.trim())}, not 'Send code (Ns)'`
+  if (Number(m[1]) < secs[0] || Number(m[1]) > secs[1]) return `the clock reads ${m[1]}s, not ${secs[0]} to ${secs[1]}`
+  const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+  const cs = getComputedStyle(b)
+  if (cs.backgroundColor !== probe('--bg1') || cs.color !== probe('--mut')) return `the held button is ${cs.backgroundColor} on ${cs.color}, not bg1 with a mut label`
+  if (!document.getElementById('codebox').classList.contains('open')) return 'the refusal leaves no place to type a code from an earlier email'
+  if (!/Have a code from an earlier email\? Enter it below\.$/.test(st.textContent.trim())) return `the status does not offer the code field: ${JSON.stringify(st.textContent.trim())}`
+  return true
+}, secs)
+/* TEN / W8 · W7-166 [A2-door-8, B2-door-6, B2-door-11] · the league-code branch: the field shows the SHAPE of a code (placeholder NORT4K7Q) and asks for the characters keyboard, the button says
+   what a tap does ("That's my code", not "Join" before anything is joined), and the status line FOLLOWS the box: it says where a code comes from until an answer replaces it, and a refusal is
+   said there (never a toast over the field) with the field marked invalid and the typed code kept */
+const doorCodeBranch = (want) => async (page) => page.evaluate((want) => {
+  const f = document.getElementById('joinCode'), b = document.getElementById('joinGo'), st = document.getElementById('obStatus'), box = document.getElementById('joinbox')
+  if (f.getAttribute('placeholder') !== 'NORT4K7Q') return `the field's placeholder is ${JSON.stringify(f.getAttribute('placeholder'))}, not the shape of a code`
+  if (f.getAttribute('autocapitalize') !== 'characters') return 'the field does not ask for the characters keyboard'
+  if (b.textContent.trim() !== 'That’s my code') return `the button reads ${JSON.stringify(b.textContent.trim())}`
+  if (box.nextElementSibling !== st) return 'the status line does not follow the league-code box'
+  const said = st.textContent.trim(), err = st.classList.contains('err')
+  if (want.said !== undefined && said !== want.said) return `the status reads ${JSON.stringify(said)}, not ${JSON.stringify(want.said)}`
+  if (want.err !== undefined && err !== want.err) return want.err ? 'the answer is not marked as a refusal' : 'the helper line is marked as an error'
+  if (f.getAttribute('aria-invalid') !== (want.err ? 'true' : 'false')) return `the field is aria-invalid=${f.getAttribute('aria-invalid')}`
+  if (want.kept !== undefined && f.value !== want.kept) return `the typed code was lost: ${JSON.stringify(f.value)}`
+  const toast = document.getElementById('toast')
+  if (toast && toast.classList.contains('show') && toast.textContent.trim()) return `a toast covers the field: ${JSON.stringify(toast.textContent.trim())}`
+  return true
+}, want)
+/* TEN / W8 · Q24 (owner, 2026-09-29, option 3) [W7-Q24] · the Door signs with the product's ONE lockup (the pennant in its 32 x 20 box, s2, then the name in the `name` role: the board face,
+   600, 17px, caps, ink) and keeps its editorial SERIF for the statement under it. The name is not in the serif any more, and the statement still is */
+const doorLockup = async (page) => page.evaluate(() => {
+  const lk = document.querySelector('.ob-sig .cs-lockup')
+  if (!lk) return 'the Door signs with no lockup'
+  const name = lk.querySelector('.cs-name'), mark = lk.querySelector('svg'), cs = getComputedStyle(name), m = mark.getBoundingClientRect()
+  const face = (v) => { const d = document.createElement('i'); d.style.fontFamily = `var(${v})`; document.body.appendChild(d); const f = getComputedStyle(d).fontFamily; d.remove(); return f }
+  if (cs.fontFamily === face('--serif')) return "the Door's name is still set in the serif"
+  if (!/IBM Plex Sans Condensed/.test(cs.fontFamily)) return `the Door's name is set in ${cs.fontFamily}, not the board face`
+  if (cs.fontWeight !== '600' || cs.fontSize !== '17px' || cs.textTransform !== 'uppercase') return `the Door's name is ${cs.fontWeight} ${cs.fontSize} ${cs.textTransform}, not the name role`
+  if (Math.round(m.width) !== 32 || Math.round(m.height) !== 20) return `the Door's mark is ${Math.round(m.width)}x${Math.round(m.height)}, not the lockup's 32x20`
+  const h1 = document.querySelector('.onboard .ob-hero .cs-brandline')
+  if (!h1 || getComputedStyle(h1).fontFamily !== face('--serif')) return "the Door's statement lost its serif"
+  return true
+})
 const CORE = [
   /* ------------------------------------------------------------ door */
   { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } },
-    check: all(btnNameRole(['#obEmail', '#obJoin']), stampOffTheDoor) },   /* TEN / W6 · Q25, Q5 */
+    check: all(btnNameRole(['#obEmail', '#obJoin']), stampOffTheDoor, doorEdgesMut(['#obJoin']), doorHelp(false), doorLockup) },   /* TEN / W6 · Q25, Q5; W8 · Q46, W7-163, Q24 */
   { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } } },
+    expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); if (r !== true) return r; const e = await doorEdgesMut(['#obEmailIn'])(page); return e === true ? doorHelp(false)(page) : e } },
   { family: 'door', id: 'sending', variant: 'signed_out', url: '/', short: true,
     hold: (e) => e.method === 'POST' && /\/auth\/v1\/otp/.test(e.path),
     drive: async (page) => {
@@ -93,14 +205,14 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => /Sending/.test(document.getElementById('obStatus').textContent))
     },
-    expect: { door: true, selectors: { '#obStatus': 'text:Sending', '#obEmailGo': 'visible' } } },
+    expect: { door: true, selectors: { '#obStatus': 'text:Sending', '#obEmailGo': 'visible' } }, check: doorStacked('obEmailIn') },
   { family: 'door', id: 'code-entry', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => {
       await click(page, '#obEmail'); await page.fill('#obEmailIn', 'avery.fixture@example.invalid')
       await click(page, '#obEmailGo')
       await until(page, () => document.querySelector('#codebox').classList.contains('open'))
     },
-    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } } },
+    expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } }, check: async (page) => { const r = await doorStacked()(page); if (r !== true) return r; const e = await doorEdgesMut(['#obCodeIn'])(page); return e === true ? doorHelp(true)(page) : e } },
   { family: 'door', id: 'code-error', variant: 'signed_out', url: '/', short: true,
     expectConsole: [/^\[cs\] (That code|Code didn|The code|That sign-in|Something went wrong)/, /^\[cs\] error: Code didn/, /status of 403/],
     drive: async (page) => {
@@ -110,7 +222,7 @@ const CORE = [
       await page.fill('#obCodeIn', '12345678')
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
-    expect: { door: true, selectors: { '#obStatus.err': 'visible' } } },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: async (page) => { const r = await doorStacked()(page); return r === true ? doorHelp(true)(page) : r } },
   { family: 'door', id: 'send-failed', variant: 'signed_out', url: '/', short: true,
     world: { errors: { auth: { otp: { status: 429, body: { code: 429, error_code: 'over_email_send_rate_limit', msg: 'email rate limit exceeded' } } } } },
     expectConsole: [/^\[cs\] Too many sign-in emails/, /status of 429/],
@@ -119,10 +231,41 @@ const CORE = [
       await click(page, '#obEmailGo')
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
-    expect: { door: true, selectors: { '#obStatus.err': 'visible' } } },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible' } }, check: async (page) => { const r = await doorStacked('obEmailIn')(page); if (r !== true) return r; const h = await doorHelp(true)(page); return h === true ? doorHeld([55, 60])(page) : h } },
+  /* W7-164 · and the clock is the server's own number when its sentence carries one ('after 47 seconds') */
+  { family: 'door', id: 'send-held', variant: 'signed_out', url: '/', short: true,
+    world: { errors: { auth: { otp: { status: 429, body: { code: 429, error_code: 'over_email_send_rate_limit', msg: 'For security purposes, you can only request this after 47 seconds.' } } } } },
+    expectConsole: [/^\[cs\] Too many sign-in emails/, /status of 429/],
+    drive: async (page) => {
+      await click(page, '#obEmail'); await page.fill('#obEmailIn', 'avery.fixture@example.invalid')
+      await click(page, '#obEmailGo')
+      await until(page, () => /err/.test(document.getElementById('obStatus').className))
+      await page.waitForTimeout(400)
+    },
+    expect: { door: true, selectors: { '#obStatus.err': 'visible', '#codebox.open': 'visible' } }, check: doorHeld([44, 47]) },
   { family: 'door', id: 'league-code', variant: 'signed_out', url: '/', short: true,
-    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')) },
-    expect: { door: true, selectors: { '#joinCode': 'visible' } } },
+    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await page.waitForTimeout(900) },
+    expect: { door: true, selectors: { '#joinCode': 'visible' } },
+    check: async (page) => {
+      const r = await doorStacked()(page); if (r !== true) return r
+      const e = await doorEdgesMut(['#joinCode'])(page); if (e !== true) return e
+      /* TEN / W8 · W7-161 [B2-door-2] · with the keyboard up (the 375x380 proxy) the league-code field and Join land WHOLE, mid-view, as the email branch's sentence does: the
+         box's bottom edge clears the view by a 44px target (§13.2a: whole or clearly half-scrolled, never sheared) */
+      const cut = await page.evaluate(() => {
+        if (innerHeight > 400) return true
+        const b = document.getElementById('joinbox').getBoundingClientRect()
+        return b.bottom + 44 <= innerHeight + 0.5 && b.top >= 0 ? true : `the league-code box is cut by the ${innerHeight}px view: top ${Math.round(b.top)}, bottom ${Math.round(b.bottom)}`
+      })
+      return cut === true ? doorCodeBranch({ said: 'From your Pro’s invite.', err: false })(page) : cut
+    } },
+  /* W7-166 · an empty tap on 'That's my code' is answered under the field, in the refusal's own line */
+  { family: 'door', id: 'league-code-empty', variant: 'signed_out', url: '/', short: true, expectConsole: [/^\[cs\] Enter the league code/],
+    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await click(page, '#joinGo'); await until(page, () => /err/.test(document.getElementById('obStatus').className)); await page.waitForTimeout(700) },
+    expect: { door: true, selectors: { '#obStatus.err': 'text:^Enter the league code\\.$' } }, check: doorCodeBranch({ said: 'Enter the league code.', err: true, kept: '' }) },
+  /* W7-166 · a code that matches no league is answered there too, and the typed code stays under the sentence */
+  { family: 'door', id: 'league-code-wrong', variant: 'signed_out', url: '/', short: true, expectConsole: [/^\[cs\] No league with that code/],
+    drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')); await page.fill('#joinCode', 'ZZZZ9999'); await click(page, '#joinGo'); await until(page, () => /err/.test(document.getElementById('obStatus').className)); await page.waitForTimeout(700) },
+    expect: { door: true, selectors: { '#obStatus.err': 'text:^No league with that code\\. Check with your Pro\\.$' } }, check: doorCodeBranch({ said: 'No league with that code. Check with your Pro.', err: true, kept: 'ZZZZ9999' }) },
 
   /* ---------------------------------------------------- onboarding gate */
   { family: 'onboarding', id: 'card-gate', variant: 'no_card', short: true,

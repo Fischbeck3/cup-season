@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, btnNameRole, medallionOnPhotoOnly } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown, btnNameRole, medallionOnPhotoOnly, temptyLead } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -228,6 +228,13 @@ const YOU = [
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
     check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youRecentFive('ONE OF FIVE'), firstIsBaseline(0)) },
+  /* TEN / W8 · the .tempty sweep · a record with rounds and nothing earned: the trophy case says so in a headline that is a sentence, so it is the lead role in
+     sentence case (§1.3), not the name role's caps. The fixture derives an achievement from any round (rederive_achievements), so this world clears them */
+  { family: 'you', id: 'case-empty', variant: 'member', title: 'You · rounds posted, nothing earned: the trophy case is empty', fullPage: false,
+    prepare: async (W) => { W.tables.achievements = [] },
+    drive: async (page) => { await youSettled('some')(page); await page.evaluate(() => document.getElementById('trophyCase').scrollIntoView({ block: 'center' })); await page.waitForTimeout(400) },
+    expect: { view: 'view-stats', selectors: { '#trophyCase .tempty': 'visible' } },
+    check: all(recordState('some'), temptyLead('#trophyCase .tempty'), async (page) => page.evaluate(() => /The case is empty/i.test(document.getElementById('trophyCase').innerText) ? true : 'the empty case does not say so')) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
@@ -311,10 +318,53 @@ const recordInWords = async (page) => page.evaluate(() => {
   const off = tiles.filter((el) => !/^(beat by \d+\.\d|played to it|\d+\.\d over)$/.test(el.textContent.trim()))
   return off.length ? `${off[0].id} reads ${JSON.stringify(off[0].textContent.trim())}, not vsShort's words` : true
 })
+/* TEN / W8 · W7-089 [B2-history-2] · the record holds eight rounds and lists five: a quiet door under the fifth row names what is LEFT ('The other three', never the head's count) and opens
+   every round in a sheet, newest first, in the same rows, each opening its receipt as the five do. `door` pins the link under the five; `list` pins the sheet */
+const roundsDoor = async (page) => page.evaluate(() => {
+  const b = document.getElementById('youRoundsAll')
+  if (!b) return 'the record lists five of eight rounds and offers no door to the rest'
+  if (b.textContent.trim() !== 'The other three') return `the door reads ${JSON.stringify(b.textContent.trim())}, not 'The other three'`
+  if (!b.classList.contains('cs-tskip')) return 'the door is not the quiet link'
+  if (b.getBoundingClientRect().height < 43.5) return `the door is ${Math.round(b.getBoundingClientRect().height)}px tall, not 44`
+  const rows = [...document.querySelectorAll('#youRecent [data-rcpt-i]')]
+  if (rows.length !== 5) return `${rows.length} rows under the door, not five`
+  return rows[4].compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the door is not under the fifth row'
+})
+const allRoundsList = async (page) => page.evaluate(() => {
+  const t = (document.getElementById('shTitle') || {}).textContent
+  if (!document.getElementById('sheet').classList.contains('open') || t !== 'Your rounds') return `the sheet is ${JSON.stringify(t)}, not 'Your rounds'`
+  const rows = [...document.querySelectorAll('#allRoundsList [data-allr]')]
+  if (rows.length !== 8) return `${rows.length} rows in the list, not all eight`
+  const five = [...document.querySelectorAll('#youRecent [data-rcpt-i]')].map((r) => r.getAttribute('aria-label'))
+  if (JSON.stringify(rows.slice(0, 5).map((r) => r.getAttribute('aria-label'))) !== JSON.stringify(five.map((l) => l.replace(/, best of the five$/, '')))) return 'the first five of the list are not the five on the record'
+  if (rows.some((r) => r.getAttribute('role') !== 'button' || !/\d/.test(r.getAttribute('aria-label') || ''))) return 'a list row is not a named button'
+  return true
+})
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly(), pbNamesItsRound, noVsCourse('#trophyCase')) },
+    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly(), pbNamesItsRound, noVsCourse('#trophyCase'), roundsDoor) },
+  /* W7-089 · the door opens the whole record: eight rows, newest first */
+  { family: 'record', id: 'all-rounds', variant: 'member', fullPage: false, title: 'The record · the door to the other three rounds opens all eight',
+    drive: async (page) => { await youSettled('some')(page); await click(page, '#youRoundsAll'); await until(page, () => document.getElementById('sheet').classList.contains('open') && !!document.getElementById('allRoundsList')); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Your rounds$', selectors: { '#allRoundsList [data-allr]': 'visible' } },
+    check: all(recordState('some'), allRoundsList) },
+  /* W7-089 · and a round from the far end of the list opens its receipt: the sixth row is the first the record did not list */
+  { family: 'record', id: 'all-rounds-sixth', variant: 'member', fullPage: false, title: 'The record · the sixth round, from the list, opens its receipt',
+    drive: async (page) => {
+      await youSettled('some')(page); await click(page, '#youRoundsAll'); await until(page, () => !!document.getElementById('allRoundsList'))
+      await page.evaluate(() => { const r = document.querySelectorAll('#allRoundsList [data-allr]')[5]; window.__tenSixth = r.querySelector('b').textContent.trim() + '|' + r.querySelector('.yrowg').textContent.trim() })
+      await page.locator('#allRoundsList [data-allr]').nth(5).click({ timeout: 8000 })
+      await until(page, () => !document.getElementById('allRoundsList') && document.getElementById('sheet').classList.contains('open'), null, 10000)
+      await page.waitForTimeout(700)
+    },
+    expect: { view: 'view-stats', sheet: true },
+    check: async (page) => page.evaluate(() => {
+      const [course, gross] = String(window.__tenSixth || '').split('|'), t = (document.getElementById('sheet') || {}).innerText || ''
+      if (!course) return 'the sixth row was not read'
+      if (!new RegExp(course.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(t)) return `the receipt does not name the sixth round's course (${course}): ${JSON.stringify(t.slice(0, 80))}`
+      return new RegExp('\\b' + gross + '\\b').test(t) ? true : `the receipt does not show the sixth round's gross (${gross})`
+    }) },
   { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
     title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
     drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
@@ -1069,7 +1119,47 @@ const flipState = (() => {
   })
   return st
 })()
+/* TEN / W8 · the share preview's photo bound (root's list, E's twin of 6081015c): the preview waits on the round's photograph for at most 10 seconds. A decode
+   that never lands (here, the preview's own 1200px call never settles) leaves the card painted WITHOUT the photograph, as a decode that fails does, and says
+   nothing new: no line in the status, the preview's label names no photograph, and the preview appears after the bound, not never. */
+const slowPhotoState = {
+  family: 'share', id: 'preview-slow-photo', variant: 'member', fullPage: false, title: 'Share · the photograph never decodes: the preview paints the card without it after 10s',
+  drive: async (page) => {
+    await toComposer(page)
+    await page.setInputFiles('#postPhotoFile', { name: 'fixture-photo.png', mimeType: 'image/png', buffer: await page.evaluate(() => new Promise((res) => {
+      const c = document.createElement('canvas'); c.width = 1200; c.height = 800; const g = c.getContext('2d')
+      g.fillStyle = '#4f6b3a'; g.fillRect(0, 0, 1200, 800)
+      c.toBlob((b) => b.arrayBuffer().then((ab) => res(Array.from(new Uint8Array(ab)))), 'image/png')
+    })).then((a) => Buffer.from(a)) })
+    await until(page, () => { const i = document.getElementById('postPhotoImg'); return !!i && i.offsetParent !== null && (i.src || i.style.backgroundImage) }, null, 8000).catch(() => {})
+    /* only the preview's own decode (maxDim 1200) hangs; the upload's and the export's decodes are untouched */
+    await page.evaluate(() => { const orig = window.photoDrawable; window.__tenSlow = { hung: 0 }; window.photoDrawable = (f, m) => { if (m === 1200) { window.__tenSlow.hung++; return new Promise(() => {}) } return orig(f, m) } })
+    await fillCard(page)
+    await click(page, '#postBtn')
+    await until(page, () => document.getElementById('finish').classList.contains('open'), null, 12000)
+    await page.evaluate(() => {
+      const b = document.getElementById('finPreview'); window.__tenT0 = performance.now(); window.__tenT1 = null
+      new MutationObserver((_, o) => { if (b.querySelector('canvas')) { window.__tenT1 = performance.now(); o.disconnect() } }).observe(b, { childList: true })
+    })
+    await until(page, () => window.__tenT1 != null, null, 16000).catch(() => {})
+    await page.waitForTimeout(400)
+  },
+  expect: { view: 'view-home', selectors: { '#finish.open': 'visible', '#finPreview canvas': 'visible' } },
+  check: async (page) => page.evaluate(() => {
+    if (window.__tenT1 == null) return 'the preview never drew the card: a photo that does not decode held it for good'
+    const took = window.__tenT1 - window.__tenT0
+    if (window.__tenSlow.hung < 1) return 'the preview never asked for the photograph, so the bound was not exercised'
+    if (took < 9000) return `the preview gave up after ${Math.round(took)}ms, before the 10s bound`
+    if (took > 13500) return `the preview took ${Math.round(took)}ms, past the 10s bound`
+    const box = document.getElementById('finPreview')
+    if (box.hidden) return 'the preview is hidden'
+    if (/round photo/i.test(box.getAttribute('aria-label') || '')) return `the preview names a photograph it did not draw: ${box.getAttribute('aria-label')}`
+    const said = (document.getElementById('finStatus').textContent || '').trim()
+    return said === '' ? true : `the ceremony says something new: ${JSON.stringify(said)}`
+  }),
+}
 const SHARE = [
+  slowPhotoState,
   shareState('recap-no-photo', 'Share · the recap card for a posted 83 (no photo)', {}),
   flipState,
   shareState('recap-photo', 'Share · the recap card carrying the round photograph', {}, { photo: true }),
