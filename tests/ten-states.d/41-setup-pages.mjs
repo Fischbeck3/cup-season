@@ -152,6 +152,13 @@ const SCHEDULE = [
         const yous = seats.filter((t) => /^You\b/.test(t))
         if (yous.length !== 1) return `Who's in has ${yous.length} seats reading You: ${JSON.stringify(seats)}`
         return seats.some((t) => /Avery/.test(t)) ? `the viewer is also named: ${JSON.stringify(seats)}` : seats.some((t) => /Blake/.test(t)) ? true : `the host is not named: ${JSON.stringify(seats)}`
+      }),
+      /* X36 (1) · the plan's head-to-head names what it counts: "… leads 4–3 in the season · 7 weeks", never a bare record */
+      async (page) => page.evaluate(() => {
+        const t = document.getElementById('sheet').innerText.replace(/\s+/g, ' ')
+        const m = t.match(/(you lead|\S+ leads|even) \d+–\d+[^.·]*(· \d+ weeks?)?/i)
+        if (!m) return 'the plan draws no head-to-head with its host'
+        return /^(you lead|\S+ leads|even) \d+–\d+ in the season · \d+ weeks?$/i.test(m[0].trim()) ? true : 'the plan’s record does not name its facet: ' + JSON.stringify(m[0])
       })) },
   /* ...answered ('I'm in' tapped through the app's own set_round_rsvp), 'Tee it up' is the primary again and 'I'm in' is the chosen chip, not a second primary */
   { family: 'schedule', id: 'plan-sheet-in', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday, after I’m in (Tee it up is the primary)',

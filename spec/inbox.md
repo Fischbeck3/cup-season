@@ -31,6 +31,15 @@ sorting.
 ---
 
 
+### 2026-09-29 · Four small follow-ups found at the round-3 merge (after launch)
+
+Verified 2026-09-29 at integration `e033161d`. None is a launch blocker; each is known debt, named so it is not relearned.
+
+- **The roster's Reopen and the league's timezone** (X12). **Lane:** Gameplay (server) + web. The web hides Reopen from first tee on the card's own clock (`isoOf(new Date()) >= starts_on`, as `pastHalf` does); the server's join gate reads the league's timezone (`v_today < v_starts`, join_window.sql:69). A device west of the league can still show Reopen for a few hours on first-tee day, and a tap would post "The roster is open again" while the gate refuses joiners. **First question:** does `close_roster(p_open := true)` refuse after first tee (a migration and a decision entry), so the board can never say it?
+- **A 503 on the wire's read holds Home in its skeleton for 15 s or more.** **Lane:** web. The client library retries a GET on 503 with a backoff, so the failed root (W7-038) appears only after the retries. **First question:** cap the retry for the wire's reads, or show the skeleton's failure sooner?
+- **`#setupInviteSub` has a writer and no element.** **Lane:** web (setup). Dead code, harmless. **First question:** delete the writer, or was a sub line meant to exist there?
+- **CoursePrepReviewTests need a signed-in phone.** **Lane:** native. They have no synthetic seam, so no synthetic run covers them (they were listed under a wrong class name, and xcodebuild skips unknown ids silently). **First question:** give the course-prep review a synthetic route like the others?
+
 ### 2026-09-29 · `home_dispatch`'s sentences carry figures nobody can mark (N4-082's named exceptions)
 
 Verified 2026-09-29 at integration `3864e43a`. **Lane:** UX (both clients) + database. **Size:** one migration, two client halves. **After launch.**

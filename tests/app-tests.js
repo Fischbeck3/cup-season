@@ -850,7 +850,27 @@
     const epi = (o) => Object.assign({ gross: 84, pvi: 1.1, points: 9, month_rank: null, earned: [], rivals: [], played_with: [] }, o || {});
     t('P-3: the clash outranks everything',
       csNextAct(epi({ rank_before: 4, rank_after: 2, passed: ['Jade'] }), { clash: { id: 'x', weeks_running: 2 } }).sentence,
-      'That takes the clash. Second week running.');
+      'That takes the weekly clash. Second week running.');   /* X36 (1) · the facet is named */
+    /* X39 (2) · a first round is a baseline: the epilogue does not say "You broke 90 for the first time" (or its
+       siblings) of a golfer's first round, and still says it of a later one */
+    {
+      const epiText = (e, first) => {
+        showEpilogue(Object.assign({ gross: 85, pvi: null, points: null, rivals: [], played_with: [] }, e), 'Papago', first, null, {});
+        const host = document.getElementById('epiPanel'), sh = document.getElementById('shBody');
+        const said = ((host && host.style.display === 'block') ? host.textContent : (sh ? sh.textContent : '')).replace(/\s+/g, ' ');
+        if(host){ host.style.display = 'none'; host.innerHTML = ''; }
+        if(typeof closeSheet === 'function') closeSheet();
+        return said;
+      };
+      const first = epiText({ earned: [{ kind: 'first_round' }, { kind: 'sub_100' }, { kind: 'sub_90' }] }, true);
+      t('X39: a first round is a baseline in the epilogue',
+        [/broke (90|100) for the first time/.test(first), /Your first round is on the board/.test(first)], [false, true]);
+      t('X39: a later round still broke 90 for the first time',
+        /You broke 90 for the first time/.test(epiText({ earned: [{ kind: 'sub_90' }] }, false)), true);
+    }
+    t('X39: the feed says a first round before a personal best',
+      [homeRoundDetail({ gross: 84, is_first: true, is_pr: true, is_me: true }), homeRoundDetail({ gross: 84, is_pr: true, is_me: true })],
+      ['your first round posted.', 'a personal best.']);
     t('P-3: the movement is the second rung',
       csNextAct(epi({ rank_before: 3, rank_after: 2, passed: ['Jade'] }), {}).key, 'movement');
     t('D239: a partner with no shared season is offered one',
@@ -1005,10 +1025,12 @@
 
     /* the design's words, and the one conditional true fact */
     t('IA §6.1: Compete’s empty root, verbatim', empty.head, 'Nothing running.');
-    t('IA §6.1: the fact is real when it is real',
-      csEmptyRoot('compete', { buddies: 5 }).fact, '5 buddies, and none of you is playing for anything.');
-    t('IA §6.1: one buddy is one buddy',
-      csEmptyRoot('compete', { buddies: 1 }).fact, '1 buddy, and none of you is playing for anything.');
+    /* Q41 (a) · IA §6.1 amended to QB-21: with a count the counted sentence IS the head, said once */
+    t('Q41: the counted sentence leads when there is a count',
+      [csEmptyRoot('compete', { buddies: 5 }).head, csEmptyRoot('compete', { buddies: 5 }).fact],
+      ['5 buddies, and none of you is playing for anything.', null]);
+    t('Q41: one buddy is one buddy',
+      csEmptyRoot('compete', { buddies: 1 }).head, '1 buddy, and none of you is playing for anything.');
     t('L-44: with none, the fact is omitted rather than guessed', empty.fact, null);
     t('IA §6.1 + L-26: with no buddies the second door becomes Find golfers, and the code door is still there',
       empty.doors.map(d => d.k), ['startSomething', 'findGolfers', 'joinWithCode']);
@@ -1291,7 +1313,8 @@
         [csH2HHeadline(full),
          csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:6,ties:0,total:11}, lead:'down', facets:{} })),
          csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:5,ties:0,total:10}, lead:'even', facets:{} }))],
-        ['You lead 6–5.', 'Galen leads 6–5.', 'All square, 5–5.']);
+        /* X36 (1) · the sum says what it sums */
+        ['You lead 6–5 across every meeting.', 'Galen leads 6–5 across every meeting.', 'All square, 5–5, across every meeting.']);
       t('R4: nothing decided means no headline at all (L-44)',
         csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:0,losses:0,ties:0,total:2}, lead:'even',
           facets:{ played_together:{wins:0,losses:0,ties:0,meetings:2,unsettled:2} } })), null);
@@ -1304,11 +1327,11 @@
         csH2HParse({ visible:true, opponent:opp, record:{wins:1,losses:1,ties:0,total:2}, lead:'even',
           streak:{ who:'me', n:1 }, facets:{} }).streak, null);
       t('R4: the person clause is the one the card borrows',
-        csH2HPersonClause(full), 'Galen has beaten you five times out of eleven.');
+        csH2HPersonClause(full), 'Galen has beaten you five times out of eleven, across every meeting.');
       /* TEN (W3) · a 5–5 is level, never "has beaten you five times out of ten" */
       t('TEN: a level record is said as level',
         csH2HPersonClause(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:5,ties:0,total:10}, lead:'even', facets:{} })),
-        'All square between you, 5–5.');
+        'All square between you, 5–5, across every meeting.');
       /* a real screenshot caught the first cut naming the golfer twice in two
          consecutive clauses — "Galen has won one title. Galen has beaten you…" */
       t('the day said out loud never shouts mid-sentence (L-33)',

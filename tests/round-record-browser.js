@@ -60,7 +60,12 @@
   check(ref.querySelector('.hfr-gross .cs-fig-l').textContent.trim()==='89','the gross is not the figure');
   check(ref.querySelector('.hfr-gross .cs-agate-s').textContent==='GROSS','the figure is not labelled');
   check(ref.querySelectorAll('.hfr-story').length===1 && ref.querySelector('.hfr-story').textContent==='2.0 over your playing HCP.','the story is not the handicap context: '+JSON.stringify(ref.querySelector('.hfr-story')?.textContent));
-  check(ref.querySelector('.hfr-go') && ref.getAttribute('role')==='button','no route into the receipt');
+  /* W7-083 · the card is a plain block (no role="button" around four buttons); its one route into the receipt is a real
+     button, the title, named with the printed line and ", receipt" */
+  const rc=ref.querySelectorAll('[data-rcptbtn]');
+  check(ref.getAttribute('role')!=='button' && rc.length===1 && rc[0].tagName==='BUTTON' && /, receipt$/.test(rc[0].getAttribute('aria-label')||'') && rc[0].contains(ref.querySelector('.hfr-title .cs-social')),'no route into the receipt');
+  /* the title keeps its width, ink and wrap inside the button (the flex item is the button now) */
+  { const cs=getComputedStyle(rc[0]); check(cs.minWidth==='0px' && cs.overflowWrap==='anywhere' && parseFloat(cs.flexGrow)===1,'the receipt button does not carry the title\'s width and wrap: '+[cs.minWidth,cs.overflowWrap,cs.flexGrow].join(' ')); }
   check(ref.querySelector('.hfr-foot [data-hrx]') && !ref.querySelector('.hfr-foot [data-hreact]'),'no applause control in the foot (D365)');
   check(ref.querySelector('.hfr-topo'),'no contour behind the title');
   check(!ref.querySelector('img'),'the record grew a picture it does not have');

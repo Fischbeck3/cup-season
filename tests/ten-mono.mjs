@@ -274,7 +274,8 @@ export const bandContrast = (card, parts) => async (page) => {
       out.push({ name: part.name, large: !!part.large, color: getComputedStyle(t).color, box: [x0 - r.left, y0 - r.top, x1 - r.left, y1 - r.top] })
     }
     const st = document.createElement('style'); st.id = 'bc-hide'
-    st.textContent = '[data-bc-hide], [data-bc-hide] *{color:transparent !important; text-shadow:none !important; border-color:transparent !important}'
+    /* W7-084 · a squad's swatch (.sw) beside a name is a mark, not a ground: the copy is measured against the scrim it sits on, so the swatch is cleared with the type */
+    st.textContent = '[data-bc-hide], [data-bc-hide] *{color:transparent !important; text-shadow:none !important; border-color:transparent !important} [data-bc-hide] .sw{background:transparent !important}'
     document.head.appendChild(st)
     return { clip: { x: r.left, y: r.top, width: r.width, height: r.height }, parts: out }
   }, { card, parts })
@@ -521,3 +522,21 @@ export const btnNameRole = (need = []) => async (page) => page.evaluate((need) =
   }
   return bad.length ? `${bad.length} of ${shown.length} .btn not in the name role: ` + bad.slice(0, 4).join('; ') : true
 }, need)
+
+/* Q47 · owner ruling 2026-09-29, UI_SYSTEM §6.5 row 3: the gold-ringed medallion is PRESENT ONLY WHEN THE PLATE
+ * IS A PHOTOGRAPH ("the crest or the corner, never both"). `medallionOnPhotoOnly(needPhoto)` reads every drawn
+ * credential: a crest plate shows no medallion; a photographed plate shows it. `needPhoto` fails a state that
+ * draws no photographed card, so a photo state cannot pass without one. */
+export const medallionOnPhotoOnly = (needPhoto = false) => async (page) => page.evaluate((needPhoto) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden' }
+  const cards = [...document.querySelectorAll('.cred')].filter(shown)
+  if (!cards.length) return 'no credential is drawn'
+  let photos = 0
+  for (const c of cards) {
+    const plate = c.querySelector('.cplate'), photo = plate && [...plate.children].some((el) => el.tagName === 'IMG')
+    const med = [...c.querySelectorAll('.cmed')].find(shown)
+    if (photo) { photos++; if (!med) return 'a photographed plate lost its medallion' }
+    else if (med) return 'a crest card wears the gold-ringed medallion (§6.5 row 3: the crest or the corner, never both)'
+  }
+  return needPhoto && !photos ? 'the state draws no photographed card' : true
+}, needPhoto)

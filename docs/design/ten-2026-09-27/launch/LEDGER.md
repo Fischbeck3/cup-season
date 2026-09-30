@@ -640,6 +640,36 @@ Their web halves are on integration: W7-003 (the held round's setup is locked, P
 
 **The round-3 plan** (the account's 5-hour usage window is shared by every session, and extra usage is off): the lanes checkpoint at 19:15; root merges and verifies the candidate in full and pushes it (about 20:15); session D verifies root's gallery byte for byte and launches A3, B3 (one agent each, round 2's calibration), AW3 and DX3 at the start of the 19:40 window; root's three §29 judges follow A3 and B3 on the same gallery; the lanes run no fan-outs from 19:40 to about 23:00.
 
+## 4p · The round-3 candidate: B's, C's and E's checkpoints merged, web push 7 (2026-09-29, evening)
+
+**Merged into integration** (a trial merge in a scratch worktree first, at 17:00, with the conflicts resolved by a script that asserts each hunk's shape, so the real merge replayed it exactly):
+
+| Merge | What | The session's own proof |
+|---|---|---|
+| `0eef06d0` ← C `369202e6` | W8's kept-P3 pass and more in C's areas (36 items, W7-085 … W7-134), and W7-114's stamp removal only | 43/43 suites at `369202e6`; app-tests 536/0 at 390 and 1440, both themes; the whole-gallery sweep at `0ea3b0c9`, 802 captures, 0 failures; each item a before/after pair that fails on its parent (c/PROOF.md) |
+| `972f4c43` ← B `c2bb5a6a` | W6's W7 set since W7-006 (27 items), K077, W7-114 (the kept version), W7-024r, the OB2-02 sweep, X12, the squads below 380, the web spine, TP-11's picker sub, the streak tag | a full capture at the tip, 1,574 captures, 0 route failures, 0 errors, 0 overflowX; 43 suites; app-tests 532/0; preflight 0/0 |
+| `4b7e8f66` | root's follow-up: the course name's two shapes (C's glance, B's name) cross-referenced, Playing soon on the glance (the phone's `courseShort`); the record slot's two headlines in the lead role, sentence case, as the phone's CSEmpty (§1.3) | the You family at 402 and 1280, 20 captures, 0 failures |
+| `97dc9db1` ← E `f26ccda5` | N4 checkpoint 5, apps/ios only: W7-042's untouched card and clean reload, the inbox's settings door onto an edited card, W7-130, the share preview that opens at once, W7-039, W7-035, W7-040 | build 39: non-UI 1754/1754; UI 90/94 on each phone, 0 failed, 4 environment skips; captures 200/200; preflight 0/0 |
+| `e033161d` | ratchets at the merged head: LINT-05 83→82, LINT-06 1052→1051, LINT-10 222→221 | preflight 0/0 |
+
+**One item built twice.** W7-114 (the card gate's account line and its way out) was on B's list with root's ruled words, and C built it too in its identity pass. Both painted on the real path, and git merged the two without a conflict, so the trial merge's gate said whose account it was twice. Kept: B's `#pfWho` ("Signed in as <email> · Not you? Sign out", sign out with scope local) and its `gateWho` check, which already proves the words, the role, the email's wrap and the local logout request. From C: the SIGNED IN stamp's removal (the fact is said once, at the foot). C reverted its own line on its branch (`369202e6`) before the real merge.
+
+**Rulings this stretch** (none is a mechanic):
+- **W7-084, the board's squad stripe:** retired at all six sites (§0.3); a round post names the squad as swatch and name in its agate line (§16.4); a chat line carries nothing; a squadless golfer neither. C builds it on the merged integration; E's N4-094 the same.
+- **W7-077:** "Didn't play" is armed on both clients (§7.1; D345 makes the answer terminal on the server). The phone's comment that it needs no confirmation is superseded; E arms AfterGolfAnswers.
+- **W7-071 stands:** naming the clinch number's unit is Q50's option (A) and does not decide when the line prints.
+- **K077's kinds:** the phone's CSGlyph check and cross are the canon's own glyphs (§13.4 kind = rail plus a drawn glyph; §5.1 one family), not new drawing. B ports them after round 3.
+- **X12:** hide Reopen from first tee, the card's own clock against `starts_on` (the server's `v_today < v_starts`); the league-timezone gap on first-tee day is known debt behind close_roster's refusal after launch.
+- **The web halves E left to root:** the inbox's settings door needs no web change (W7-042's guard asks on every way out); the share preview already opens at once, and the 10 s bound on its photo is C's tomorrow.
+
+**Verified at `e033161d`** (from a `git archive` snapshot of the commit): `ci-local` 11 of 11; app-tests 541/0 in both themes; all 43 browser suites exit 0 (`root/suites-e033161d`); the full harness, 1,630 captures, 0 route failures, 0 errors, 0 fixture gaps, 0 page errors (`root/harness-e033161d`, 2,922 s), the gallery session D and the §29 judges score round 3 from.
+
+**Web push 7: `e033161d`, 19:08 MST.** 131 commits, a fast-forward from `250d2c09`. The gate is a script now and every check blocks (the lesson of push 6): no migrations, no generated Swift, no version lines, a privacy count of 0; `index.html` the only served file. Live: `sw.js` VERSION `e033161`, caption `v23 · e033161`.
+
+**The owner's interview (18:15–19:05).** The owner ruled Q31 (Fescue) and, in six rounds, X38, X37, Q9, X36, Q12, X39, Q44, Q50, Q38, Q39, Q40, Q41, Q46, Q47, Q48, X40, Q24, Q7, Q45, Q34 and the held migrations' single `db push`, and accepted the recommendations on the other 29 (OWNER-QUESTIONS §R, `6785c450`). Two went against the recommendation: Q12 (both halves before launch, so the code split is built too, with a fallback) and Q7 ("Any time. Anywhere." stays).
+
+**More agents (the owner's ask).** Four build agents joined the lanes at 18:50, each on its own branch: G (the rulings' web halves in identity, history, season and competition), H (B's play and share items and the X37 recast), F (the database: decision entries and the X38, Q44 and X39 migrations, on the held branch) and S (the code split's plan and tool). All stop at 19:35 so round 3 has the next usage window. B had already built all of Home, five of the composer's six and nine play and share items before the regroup; H's list was cut to what remained.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:
