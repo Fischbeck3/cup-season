@@ -15,9 +15,12 @@ import Foundation
     guard DispatchSnapshot.belongs(to: owner, defaults: defaults) else { return }
     let epoch = defaults?.string(forKey: BetweenRoundsSnapshot.epochKey)
     let token = UUID(); generation = token
-    let member = me.memberships.first { $0.league_id == preferredLeague && $0.season != nil }
-      ?? me.memberships.first { $0.season != nil }
-    async let race = attempt { try await self.loadRace(member) }
+    // D400 · every season is a candidate, the one last opened first. The
+    // Race used to read that one league alone, and a first-week squads league
+    // with no squad for the golfer drew "Start a season" over two live seasons.
+    let seasons = me.memberships.filter { $0.season != nil }
+    let candidates = seasons.filter { $0.league_id == preferredLeague } + seasons.filter { $0.league_id != preferredLeague }
+    async let race = attemptRace(candidates)
     async let tee = attempt { try await self.loadTee(owner: owner) }
     async let record = attempt { try await self.loadRecord(lastRound: me.profile?.last_round_id, owner: owner) }
     async let rival = attempt { try await self.loadRivalry() }
@@ -28,6 +31,7 @@ import Foundation
     // Each successful read owns its own clock. A failed read keeps its OLD clock.
     var snapshot = BetweenRoundsSnapshot.read(defaults) ?? .init(owner: owner)
     if let value = values.0 { snapshot.race = value }
+    snapshot.hasSeason = !seasons.isEmpty
     if let value = values.1 { snapshot.nextTee = value }
     if let value = values.2 { snapshot.record = value }
     if let value = values.3 { snapshot.rivalry = value }
@@ -38,12 +42,41 @@ import Foundation
     do { return WidgetSlice(try await load()) } catch { return nil }
   }
 
-  private func loadRace(_ member: Me.Membership?) async throws -> BetweenRoundsSnapshot.Race? {
-    guard let member, let season = member.season else { return nil }
-    let raw = try await svc.call(Rpc.season_book(p_league_id: member.league_id, p_season_id: season.id))
-    let book = try JSONDecoder().decode(SeasonBookSnapshot.self, from: JSONEncoder().encode(raw))
-    try book.validate(league: member.league_id, season: season.id)
-    return BetweenRoundsCopy.race(book)
+  /// D400 · reads every candidate's book and keeps the best race. A read
+  /// that fails is skipped, not fatal: only when EVERY read failed does the
+  /// slice keep its old value and old clock (nil here).
+  private func attemptRace(_ candidates: [Me.Membership]) async -> WidgetSlice<BetweenRoundsSnapshot.Race>? {
+    guard !candidates.isEmpty else { return WidgetSlice(nil) }
+    var races: [BetweenRoundsSnapshot.Race?] = []
+    var answered = false
+    for member in candidates {
+      guard let season = member.season else { continue }
+      do {
+        let raw = try await svc.call(Rpc.season_book(p_league_id: member.league_id, p_season_id: season.id))
+        let book = try JSONDecoder().decode(SeasonBookSnapshot.self, from: JSONEncoder().encode(raw))
+        try book.validate(league: member.league_id, season: season.id)
+        answered = true
+        races.append(BetweenRoundsCopy.race(book))
+      } catch { continue }
+    }
+    return answered ? WidgetSlice(BetweenRoundsCopy.pick(races)) : nil
+  }
+
+  /// D400 · Home's lead and deck, as the ranker SERVED them. The caller hands
+  /// nothing over when Home composed its own fallback (R-06): a guessed lead is
+  /// not a sentence for a home screen.
+  public func publishWhatsOn(lead: HomeDispatch.Item?, deck: [HomeDispatch.Item], owner: UUID?) {
+    guard let owner else { return }
+    let defaults = UserDefaults(suiteName: CSAppGroup.id)
+    guard DispatchSnapshot.belongs(to: owner, defaults: defaults) else { return }
+    let epoch = defaults?.string(forKey: BetweenRoundsSnapshot.epochKey)
+    var snapshot = BetweenRoundsSnapshot.read(defaults) ?? .init(owner: owner)
+    let next = BetweenRoundsCopy.whatsOn(lead: lead, deck: deck)
+    // An unchanged list keeps its clock and does not reload every timeline
+    if let old = snapshot.whatsOn, old.value == next, !old.isStale(at: Date()),
+       Date().timeIntervalSince(old.savedAt) < 15 * 60 { return }
+    snapshot.whatsOn = WidgetSlice(next)
+    snapshot.write(defaults, epoch: epoch)
   }
   private func loadTee(owner: UUID) async throws -> BetweenRoundsSnapshot.Tee? {
     let rows = try await ScheduleService(svc).watch()
@@ -103,10 +136,24 @@ public enum BetweenRoundsCopy {
       .sorted { ($0.earned_on ?? "") > ($1.earned_on ?? "") }.first
   }
 
+  /// D400 · the race worth showing: the first one whose table has points on
+  /// it, in candidate order (the league last opened leads the order), else the
+  /// first race at all. A week-1 table at zeros yields to a season in play.
+  public static func pick(_ races: [BetweenRoundsSnapshot.Race?]) -> BetweenRoundsSnapshot.Race? {
+    let found = races.compactMap { $0 }
+    return found.first { $0.rows.contains { $0.points > 0 } } ?? found.first
+  }
+
   public static func race(_ book: SeasonBookSnapshot) -> BetweenRoundsSnapshot.Race? {
     guard ["active", "cup_final", "complete"].contains(book.status) else { return nil }
-    let rows = book.rows.filter { $0.kind == (book.hasSquads ? "squad" : "golfer") }
-      .sorted { $0.points == $1.points ? $0.id < $1.id : $0.points > $1.points }
+    func table(_ kind: String) -> [SeasonBookSnapshot.Row] {
+      book.rows.filter { $0.kind == kind }
+        .sorted { $0.points == $1.points ? $0.id < $1.id : $0.points > $1.points }
+    }
+    // D400 · a squads league whose golfer is on no squad yet (a first week
+    // before the draw) has no squad row of theirs; the golfer rows are the race
+    var rows = table(book.hasSquads ? "squad" : "golfer")
+    if book.hasSquads, !rows.contains(where: \.mine) { rows = table("golfer") }
     guard let index = rows.firstIndex(where: \.mine), let leader = rows.first else { return nil }
     let mine = rows[index]
     let start = min(max(0, index - 1), max(0, rows.count - 3))
@@ -115,13 +162,53 @@ public enum BetweenRoundsCopy {
         rank: $0.points_rank.map { ($0 > 9 ? "" : "0") + String($0) } ?? "—", points: $0.points, mine: $0.mine)
     }
     let gap = leader.points - mine.points
-    let story = gap == 0 ? (mine.tied ? "Tied for the lead." : (book.hasSquads ? "Your squad leads." : "You lead.")) : "\(gap) back of \(leader.name)."
+    let story = gap == 0 ? (mine.tied ? "Tied for the lead." : (mine.kind == "squad" ? "Your squad leads." : "You lead.")) : "\(gap) back of \(leader.name)."
     let context = book.status == "complete" ? "Final points" : "Week \(book.current_week) · Cup points"
     var race = BetweenRoundsSnapshot.Race(league: book.league_id, name: book.name, context: context,
       standing: "\(mine.standing ?? "Unranked") of \(rows.count)", story: story, rows: Array(window))
     // N4-082 · the gap is a figure run in the widget's serif line
     race.storyMarked = gap == 0 ? story : "{\(gap)} back of \(leader.name)."
     return race
+  }
+
+  /// D400 · What's On: the lead, then the deck, up to five, each copied from
+  /// the card Home draws. L-10 is enforced here, not trusted to the ranker: a
+  /// pot door, or any line with a currency figure in it, never reaches a
+  /// home screen.
+  public static let whatsOnLimit = 5
+  public static func whatsOn(lead: HomeDispatch.Item?, deck: [HomeDispatch.Item]) -> BetweenRoundsSnapshot.WhatsOn? {
+    var seen = Set<String>()
+    let items = ([lead].compactMap { $0 } + deck)
+      .filter { seen.insert($0.key).inserted }
+      .filter { !carriesMoney($0) }
+      .prefix(whatsOnLimit)
+      .map { item -> BetweenRoundsSnapshot.WhatsOn.Item in
+        let door = door(item.route)
+        return .init(key: item.key, eyebrow: item.eyebrow, headline: item.headline, action: item.action,
+                     spine: item.spine.rawValue, route: door.route?.rawValue, routeId: door.id, pane: door.pane)
+      }
+    return items.isEmpty ? nil : .init(items: Array(items))
+  }
+
+  static func carriesMoney(_ item: HomeDispatch.Item) -> Bool {
+    if case .pot = item.route { return true }
+    let k = item.key.lowercased()
+    if k.hasPrefix("pot") || k.hasPrefix("owe") || k.hasPrefix("buyin") || k.hasPrefix("settle") { return true }
+    let text = [item.eyebrow, item.headline, item.standfirst ?? "", item.action ?? ""].joined(separator: " ")
+    return text.contains { "$€£".contains($0) }
+  }
+
+  /// The widget's door for a Home route. Doors that need state a URL cannot
+  /// carry (the composer's plan, an invitation's terms) open Home instead.
+  static func door(_ route: HomeDispatch.Route?) -> (route: WhatsOnRoute?, id: UUID?, pane: String?) {
+    switch route {
+    case .receipt(let id): (.receipt, id, nil)
+    case .plan(let id): (.plan, id, nil)
+    case .season(let id, let pane): (.season, id, pane.flatMap { p in p.count <= 24 && p.allSatisfy { $0.isLetter || $0 == "_" } ? p : nil })
+    case .live: (.live, nil, nil)
+    case .people: (.people, nil, nil)
+    default: (.home, nil, nil)
+    }
   }
 
   public static func closesAt(day: String, time: String?, calendar: Calendar = ScheduleDates.gregorian) -> Date? {

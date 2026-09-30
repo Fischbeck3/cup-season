@@ -29,6 +29,18 @@ import CupSeasonKit
       holes: state == "nine" ? 9 : 18, out: state == "nine" ? nil : 38, inn: state == "nine" ? nil : 41, earned: state != "nine"), at: now)
     s.rivalry = .init(.init(opponent: id, name: long ? "Alexandra Montgomery-Williams" : "Galen", scope: "Weekly clashes · All time",
       story: "Galen took the last one.", detail: "Week of Sep 14", wins: 6, losses: 5, ties: 1), at: now)
+    // D400 · What's On: Home's own sentences, in the ranker's order
+    s.hasSeason = true
+    s.whatsOn = .init(.init(items: [
+      .init(key: "clash:1", eyebrow: "Clash week", headline: long ? "You and Alexandra Montgomery-Williams, two days left in the week’s clash." : "You and Galen, two days left.",
+            action: "See the clash", spine: "ember", route: "season", routeId: id, pane: "table"),
+      .init(key: "circle:1", eyebrow: "Your circle", headline: "Jade posted 78 at Papago. Her best this year.",
+            action: "See the round", spine: "gold", route: "receipt", routeId: id, pane: nil),
+      .init(key: "plan:1", eyebrow: "Coming up", headline: "Saturday 7:10 at Papago with Galen and Jade.",
+            action: "Reply", spine: "mut", route: "plan", routeId: id, pane: nil),
+      .init(key: "floor:1", eyebrow: "The Fellas", headline: "One round to your October minimum.",
+            action: "Post a round", spine: "mut", route: "home", routeId: nil, pane: nil),
+    ]), at: now)
     return s
   }
 }
@@ -42,9 +54,10 @@ struct WidgetReviewFixtureView: View {
         Text(WidgetReviewFixture.kind.title).csType(.display)
         Text("Native widget review · sample records").csType(.agate).foregroundStyle(cs.mut)
         widget(.systemMedium).frame(height: 170)
+        if WidgetReviewFixture.kind == .whatsOn { widget(.systemLarge).frame(height: 364) }
         HStack(alignment: .top, spacing: CSTokens.Space.s3) {
           widget(.systemSmall).frame(width: 162, height: 170)
-          if WidgetReviewFixture.kind == .race || WidgetReviewFixture.kind == .nextTee {
+          if WidgetReviewFixture.kind == .race || WidgetReviewFixture.kind == .nextTee || WidgetReviewFixture.kind == .whatsOn {
             widget(.accessoryRectangular).frame(height: 84)
           }
         }
