@@ -208,7 +208,13 @@ struct LiveSetupView: View {
         LiveSeg(options: [(18, "18 holes"), (9, "9 holes")], selected: store.state.holes) { store.setHoles($0) }
           .frame(maxWidth: typeSize.isA11y ? .infinity : 220, alignment: .leading)
           .disabled(store.held)
-        CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
+        // W7-003r · while the round is held the card note stands down: it
+        // offered setup guidance ("pick your course above and the real pars
+        // load") beside a course the lock refuses to change. The held line
+        // says what was set at tee-off.
+        if !store.held {
+          CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
+        }
         CSMini("Enter the pars") { showCard = true }
           .disabled(store.held)
         Button("Save courses for offline") { showOfflineCourses = true }
