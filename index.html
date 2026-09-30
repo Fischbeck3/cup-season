@@ -15271,17 +15271,18 @@ function csCourseLabel(b){
 function csCoursePlace(b){ return [b.city,b.state].filter(Boolean).join(', '); }
 /* "Saved on your phone today" — the ONLY sanctioned rendering of provenance,
    and it is never omitted beside a figure it qualifies (L-32). */
-function csCourseSavedLine(b){
+function csCourseSavedWhen(b){
   const at = new Date(b.savedAt || Date.now());
   const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const now = new Date();
-  let when;
-  if(iso(at)===iso(now)) when = 'today';
-  else if(iso(at)===iso(new Date(now.getTime()-86400000))) when = 'yesterday';
-  else when = `${DOW[at.getDay()]} ${MOS[at.getMonth()]} ${at.getDate()}`;
+  if(iso(at)===iso(now)) return 'today';
+  if(iso(at)===iso(new Date(now.getTime()-86400000))) return 'yesterday';
+  return `${DOW[at.getDay()]} ${MOS[at.getMonth()]} ${at.getDate()}`;
+}
+function csCourseSavedLine(b){
   /* D364 (F2) · leads with what the copy is FOR; "saved", never "updated" or
      "live" — the device wrote a copy that day, and that is all it knows */
-  return `Available offline · saved ${when}`;
+  return `Available offline · saved ${csCourseSavedWhen(b)}`;
 }
 function csCourseSearch(q){
   const needle = String(q||'').trim().toLowerCase();
@@ -19551,6 +19552,12 @@ function renderCourseBooks(){
   const dmd = iso => { try{ const d=localDate(iso); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return iso; } };
   const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const mineOf = b => { const r = csRatingOf(b.id); return r && r.mine != null ? Number(r.mine) : null; };
+  /* Q15 (2) · owner ruling 2026-09-29, a one-line amendment to D364: a saved course LIST says "Available offline · saved today" ONCE, at its head, not under every course (the phrase
+     repeated down the page, category courses Sp 7). D364's reason holds either way (L-32: say what the copy is and when it is from): the list's one line is true because every course on it
+     was saved the same day; where the days differ, each course keeps its own line and the list says none, so no date is ever left off a course it qualifies. */
+  const savedWhens = new Set(books.map(csCourseSavedWhen));
+  const savedOnce = savedWhens.size === 1 ? `Available offline · saved ${[...savedWhens][0]}` : null;
+  const savedHere = b => savedOnce ? null : csCourseSavedLine(b);
 
   const row = (b, liked) => {
     const tee = csBookTee(b);
@@ -19572,7 +19579,7 @@ function renderCourseBooks(){
        qualifies rather than as the first paragraph a golfer reads. */
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
-                   csCourseSavedLine(b)].filter(Boolean).join(' · ');
+                   savedHere(b)].filter(Boolean).join(' · ');
     const best = csBestAt(b.id);
     const played = csRoundsAt(b.id);
     const history = [
@@ -19657,7 +19664,7 @@ function renderCourseBooks(){
     const hardest = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si)[0];
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
-                   csCourseSavedLine(b)].filter(Boolean).join(' · ');
+                   savedHere(b)].filter(Boolean).join(' · ');
     /* W7-098 · while no tee has been NAMED the longest rated 18 leads, and the record says so (the phone does): said only where it is true and useful, i.e. the tee on show is an 18 and the picker is drawn
        (two or more rated tees); a pick, or a nine-hole course, prints nothing extra */
     const ratedTees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
@@ -19704,7 +19711,8 @@ function renderCourseBooks(){
      place above the head and the count is already honest. */
   const leadLiked = !!lead && mineOf(lead) != null;
   const likedHead = head('Courses you like', (liked.length + (leadLiked?1:0)) + ' rated');
-  box.innerHTML = (leadLiked ? likedHead : '')
+  box.innerHTML = (savedOnce ? `<p class="cs-agate-s is-phrase" data-csprov style="color:var(--mut); padding:0 0 var(--s2)">${esc(savedOnce)}</p>` : '')
+    + (leadLiked ? likedHead : '')
     + (lead ? leadHtml(lead) : '')
     + (leadLiked ? liked.map(b=>row(b,true)).join('')
        : (liked.length ? likedHead + liked.map(b=>row(b,true)).join('') : ''))
@@ -35193,6 +35201,17 @@ function csCovenantClock(info, today){
   return { k:'joining', t };
 }
 window.csCovenantClock = csCovenantClock;
+/* Q15 (3) · owner ruling 2026-09-29 (craft claim-invite D 7: the covenant was nine stacked paragraphs): the terms sit under THREE HEADS, "Who", "How it scores", "The money", in that order.
+   The words do not change and csCovenantFacts keeps its pinned order (CS_COVENANT_FACTS); this only says which head each fact stands under and draws the facts of a head together, in the order
+   they arrive within it. An empty head is not drawn: at $0 there is no money to head (L-10). Who is the season, who is in and what competes; how it scores is the clock (the length and where
+   the season stands), the rule, the ending and the starter number; the money is the stake, where it is kept, the split and how to pay. The phone takes the same three heads (JoinLeague). */
+const CS_COVENANT_HEAD_OF = { season:'who', who:'who', structure:'who', length:'scores', joining:'scores', rules:'scores', ending:'scores', starter:'scores', stake:'money', ledger:'money', split:'money', pay:'money' };
+const CS_COVENANT_HEADS = [['who', 'Who'], ['scores', 'How it scores'], ['money', 'The money']];
+function csCovenantGroups(facts){
+  return CS_COVENANT_HEADS.map(([key, label]) => ({ key, label, facts: (facts || []).filter(f => (CS_COVENANT_HEAD_OF[f.k] || 'scores') === key) }))
+    .filter(g => g.facts.length);
+}
+window.csCovenantGroups = csCovenantGroups;
 
 async function covenantGate(code){
   let info=null, answered=false;
@@ -35341,7 +35360,8 @@ function showCovenant(info){
     /* the stake is money, and money is ink (UI_SYSTEM §2.5): gold is for the
        pot or a thing won, and a buy-in is neither (craft C, critique B) */
     openSheet(csCovenantTitle(info), csCovenantEyebrow(info),
-      facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--ink)':''}">${esc(f.t)}</p>`).join('') + `
+      csCovenantGroups(facts).map((g,gi)=>`<h3 class="eyebrow" data-covhead="${g.key}" style="margin:${gi?16:0}px 0 ${gi?0:4}px">${esc(g.label)}</h3>`
+        + g.facts.map((f,i)=>`<p class="${gi===0&&i===0?'lead':'fine'}" style="padding-top:${gi===0&&i===0?0:6}px${f.k==='stake'?';color:var(--ink)':''}">${esc(f.t)}</p>`).join('')).join('') + `
       <div class="cov-acts">
         <button class="btn" id="covJoin">${esc(csCovenantButton(info))}</button>
         <button class="btn dark" id="covNo" data-decline style="margin-top:8px">Not now</button>
