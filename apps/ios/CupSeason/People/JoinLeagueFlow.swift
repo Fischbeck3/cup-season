@@ -61,7 +61,10 @@ struct JoinLeagueFlow: View {
         // the golfer it was written for. A nil count still renders nothing
         // (L-44); a real zero renders the clause.
         CovenantSheet(covenant: c, postedRounds: store.me?.profile?.rounds_count,
-                      onJoin: { vm.covenant = nil; Task { await vm.join() } }, onNo: { vm.covenant = nil })
+                      onJoin: { vm.covenant = nil; Task { await vm.join() } }, onNo: { vm.covenant = nil }, error: vm.note,
+                      onOpen: {
+                        if let id = vm.openExisting(in: store.me?.memberships ?? []) { onJoined(id); dismiss() }
+                      })
       }
       .sheet(item: $vm.welcome, onDismiss: { if let id = vm.joinedId { PushAsk.shared.request(.leagueJoined); onJoined(id); dismiss() } }) { w in
         LeagueWelcomeSheet(welcome: w)
@@ -129,6 +132,17 @@ final class JoinModel {
     } catch { note = JoinService.joinError(error) }
   }
 
+  /// An already-recorded yes is navigation, never another join write.
+  func openExisting(in memberships: [Me.Membership], defaults: UserDefaults = .standard) -> UUID? {
+    note = nil
+    guard covenant?.agreed == true,
+          let member = memberships.first(where: { $0.code.map(JoinIntent.normalize) == JoinIntent.normalize(code) }) else {
+      note = "Could not open the season. Check your signal and try again."; return nil
+    }
+    JoinIntent.clear(ifMatching: code, defaults: defaults)
+    return member.league_id
+  }
+
   func welcome(from me: Me?) {
     let m = me?.memberships.first { $0.league_id == joinedId }
     welcome = LeagueWelcome(name: m?.name ?? leagueName ?? "the league", code: m?.code, buyinCents: m?.settings?.buyin_cents ?? 0,
@@ -147,21 +161,31 @@ struct CovenantSheet: View {
   var postedRounds: Int? = nil
   let onJoin: () -> Void
   let onNo: () -> Void
+  var error: String? = nil
+  var onOpen: (() -> Void)? = nil
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         // D375 · the frame says whether this is a first join or a re-up to
         // season N (`Covenant.head` / `.eyebrow`, twins of the desk's)
-        CSSheetHeader(title: covenant.head, sub: covenant.eyebrow)
+        CSSheetHeader(title: covenant.agreed == true ? covenant.name : covenant.head,
+                      sub: covenant.agreed == true ? nil : covenant.eyebrow)
         if covenant.agreed == true {
           // D375 · the yes is already on record: say so, and offer no join
           Text(covenant.alreadyInLine)
             .font(CSFont.sentenceBold).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
-          Button("Close") { onNo() }
-            .buttonStyle(.csSecondary()).padding(.top, 8)
+          if let error { CSNote(error, tone: .neg).accessibilityIdentifier("covenant.openError") }
+          if let onOpen {
+            Button("Open the season", action: onOpen)
+              .buttonStyle(.csPrimary()).padding(.top, 8)
+              .accessibilityLabel("Open the season")
+              .accessibilityIdentifier("covenant.openSeason")
+          } else {
+            Button("Close") { onNo() }.buttonStyle(.csSecondary()).padding(.top, 8)
+          }
         } else {
           // Q15(3): the producer owns order and omission, including the $0 covenant.
           ForEach(covenant.groups(postedRounds: postedRounds, today: CSDate.today()), id: \.kind) { group in

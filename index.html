@@ -6013,6 +6013,7 @@ html[data-theme="light"] .room-dusk .stat{
 .sv .sv-unsub { margin-top:var(--s5); } .sv .sv-unsub .cs-body-s { color:var(--mut); margin:var(--s3) 0 var(--s4); }
 .sv .sv-retry { margin-top:var(--s4); }
 .sv .sv-note { color:var(--mut); margin-top:var(--s3); }
+.sv .sv-install { display:inline-flex; align-items:center; min-height:44px; margin-top:var(--s2); color:var(--ink); text-underline-offset:3px; }
 @media (min-width:1024px){
   /* the signature stays at the head of the page and the object sits in the
      middle of what is left, not in its top third (critique B) */
@@ -35253,7 +35254,23 @@ async function covenantGate(code){
   if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
   /* D375 · a member whose yes to this season is already on record is told so
      instead of being walked through a covenant they have already signed */
-  if(info && info.agreed === true){ toast(csAlreadyInLine(info.season_number)); return false; }
+  if(info && info.agreed === true){
+    // D375: this yes is already recorded. Open it; never call join_league again.
+    const owner = CS.user?.id;
+    try {
+      await loadMemberships();
+      if(!owner || CS.user?.id !== owner) return false;
+      const m = CS.memberships.find(x => x.league?.code?.toUpperCase() === code.trim().toUpperCase());
+      if(!m || !(await window.csOpenSeason(m.league.id))) throw new Error('Could not open the season. Try again.');
+      if(CS.user?.id !== owner) return false;
+      closeSheet(); hideWelcome();
+      if(localStorage.getItem('cs_code')?.toUpperCase() === code.trim().toUpperCase()){
+        localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name');
+      }
+      toast(csAlreadyInLine(info.season_number));
+      return 'opened';
+    } catch(e){ toast(humanError(e, 'Could not open the season.'), 'neg'); return false; }
+  }
   return showCovenant(info);
 }
 
@@ -35438,7 +35455,7 @@ $('#joinGo').addEventListener('click', async () => {
     return;
   }
   try {
-    if(!(await covenantGate(code))) return;   /* stake shown, golfer said not now */
+    if((await covenantGate(code)) !== true) return;   /* stake shown, golfer said not now */
     const { error } = await sb.rpc('join_league', { p_code: code });
     if(error) throw error;
     await loadMemberships();
@@ -35617,9 +35634,10 @@ function openJoinSheet(prefill){
   const go = async () => {
     const code = ($('#jCode').value||'').trim().toUpperCase();
     if(!code){ toast('Enter the league code'); return; }
-    $('#jGo').disabled = true;
+    const button = $('#jGo');
+    button.disabled = true;
     try{
-      if(!(await covenantGate(code))) return;   /* covenant sheet replaced this one */
+      if((await covenantGate(code)) !== true) return;   /* covenant sheet replaced this one */
       const { error } = await sb.rpc('join_league', { p_code: code });
       if(error) throw error;
       await loadMemberships();
@@ -35632,8 +35650,7 @@ function openJoinSheet(prefill){
       openLeagueWelcome(m.league.name);
     }catch(err){
       toast(/invalid/i.test(err.message||'') ? CS_NO_LEAGUE : humanError(err, 'Could not join.'));
-      $('#jGo').disabled = false;
-    }
+    } finally { button.disabled = false; }
   };
   $('#jGo').addEventListener('click', go);
   $('#jCode').addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
@@ -38740,7 +38757,7 @@ $('#wCodeGo').addEventListener('click', async () => {
   /* Q-14 (D116) · consent on EVERY join path. Three of the five join_league
      calls passed the covenant and two did not, so whether a golfer saw the
      terms they were agreeing to depended on which door they came through. */
-  if(!(await covenantGate(code))) return;
+  if((await covenantGate(code)) !== true) return;
   try {
     const { error } = await sb.rpc('join_league', { p_code: code });
     if(error) throw error;
@@ -38870,7 +38887,9 @@ async function boot(){
          most. It also deleted the pending code BEFORE trying, so any failure
          (or a "not now") threw the invite away and left no way back to it.
          Show the covenant first; keep the code until the server accepts the join. */
-      if(!(await covenantGate(pend))){
+      const gate = await covenantGate(pend);
+      if(gate === 'opened') return;
+      if(gate !== true){
         window.qaEvent?.('covenant_declined', { via: 'link' });
         /* a decline is a state, not a loss — the code stays for Home to offer */
       } else {
@@ -38943,7 +38962,9 @@ async function resumeAfterProfile(){
       try{
         /* S3-01: the stake is shown BEFORE join_league on this path too — the
            invite-link signup is the path most recipients take. */
-        if(await covenantGate(pend)){
+        const gate = await covenantGate(pend);
+        if(gate === 'opened') return { inLeague:true, viaInvite };
+        if(gate === true){
           /* Q-14 (D116) · the code used to be deleted BEFORE the attempt, which
              made the decline message a lie: "use code X whenever you're ready"
              about a code we had just thrown away. The audit's joiner re-typed
@@ -39065,8 +39086,10 @@ for(const L of CS_SHARE_LINKS){
   const tok = v.trim();
   try{ localStorage.setItem(L.key, tok); }catch(_){}
   window.growthEvent?.('link_opened', L.kind, tok);
-  window._csShareView = true;
-  renderShareView(tok);
+  if(new URLSearchParams(window.location.search).get('signin') !== '1'){
+    window._csShareView = true;
+    renderShareView(tok);
+  }
   break;
 }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
@@ -39126,6 +39149,7 @@ async function renderShareView(tok, _testInfo){
       <p class="sv-why cs-body-s">${esc(WHY)}</p>
       <a class="sv-action cs-name${o.primary ? ' is-primary' : ''}" href="${o.href || '/'}">${esc(o.cta)}</a>
       ${o.note ? `<p class="sv-note cs-body-s">${esc(o.note)}</p>` : ''}
+      ${o.install ? '<a class="sv-install cs-body-s" href="/get">Get the app</a>' : ''}
     </footer>`;
   let info = _testInfo || null, failed = false;
   if(!info) try{
@@ -39311,10 +39335,9 @@ async function renderShareView(tok, _testInfo){
           <span class="fig">${r.gross != null ? esc(String(r.gross)) : ''}</span>
           <span class="nm cs-body-s">${esc(r.course ? String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}</div>
       </div>` : ''}` +
-      /* W5 · "Get the app" is a destination (/get: the iPhone beta or the store,
-         the web app, and install-then-reopen said once), not the root.
-         D359 · getting the app is an ordinary action: act. */
-      foot({ cta: 'Get the app', href: '/get', primary: true,
+      /* D241: sign in with the same token; installation remains an optional
+         /get door. The confirmation after auth still owns the request. */
+      foot({ cta: CS.user ? 'Continue' : 'Sign in', href: '/?p=' + encodeURIComponent(tok) + '&signin=1', primary: true, install: true,
              note: `Sign in and you’ll be asked first. Nothing goes to ${info.name} until you say yes.` });
 
   } else if(info.kind === 'plan'){
@@ -39339,7 +39362,7 @@ async function renderShareView(tok, _testInfo){
         <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
         <p class="sv-where cs-body-s">${whoLine ? esc(whoLine) : `Just ${esc(info.host)} so far.`}</p>
       </div>` +
-      foot({ cta: 'Take the seat', primary: true,
+      foot({ cta: CS.user ? 'Take the seat' : 'Sign in to take the seat', href: '/?plan=' + encodeURIComponent(tok) + '&signin=1', primary: true, install: true,
              note: `Sign in and you’ll be asked first. The seat, and a buddy request to ${info.host}, wait for your yes.` });
 
   } else if(info.kind === 'recap'){
@@ -39904,6 +39927,17 @@ async function safeBoot(force){
        next step says what the next screen does (Q-15): the terms, then the yes. */
     csJoinLanding(pendName);
     openEmailBox($('#obJoin'), CS_JOIN_NEXT);
+  }
+  // The public buddy/plan action keeps its token in the URL and storage,
+  // then opens email without spending the request or seat before consent.
+  if(!CS.user && !pend && new URLSearchParams(location.search).get('signin') === '1'){
+    const link = CS_SHARE_LINKS.find(l => new URLSearchParams(location.search).get(l.q)?.trim());
+    if(link){
+      csLinkLanding({ kind:link.kind, label:link.kind === 'person' ? 'A golfer’s card' : 'A round invite',
+        headHtml:esc(link.kind === 'person' ? 'Sign in to play together.' : 'Sign in to view the plan.'),
+        sub:'You’ll be asked before anything is sent.' });
+      openEmailBox($('#obEmail'));
+    }
   }
   /* guest claim: the round is waiting at the door (anon-readable by token) */
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}

@@ -1,5 +1,19 @@
 # Cup Season · active work and ownership
 
+## Launch sprint follow-up · recipient journeys · September 30, 2026 (Codex)
+
+The owner asked “Start on other items” after items 1, 2 and 4 at `e700abc8`.
+Codex owns item 3 in `codex/launch-sprint-2026-09-30`, managed workspace
+`/Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season`:
+public buddy/plan sign-in doors and already-agreed invitation navigation on both
+clients, plus the exact-candidate recovery/widget device checklist for item 5.
+No production writes, pushes, uploads, or distribution change. Current main is
+`5d70caeb`; the unified source already contains Build 2 and D400. The original
+dirty Match Programme checkout and Claude's workspaces stay untouched. Web QA
+uses port 8821 and native checks use task-created Pro/SE simulators. Physical
+phone evidence stays NOT RUN until the owner performs the checklist.
+
+
 ## Impeccable ten · the whole program before launch · 2026-09-28 (Claude, on the Mac)
 
 The owner's direction on September 28 was *"Prompt claude to address other findings. Be extremely specific to meet our 10/10 expectation. We ship all before launch."* Under it, every remaining finding is pre-launch scope, alongside the fresh residuals, missing families and states, detector candidates, per-cell barriers and inherited failures from the September 27–28 program. Findings F03–F18 are included, and so are the Door and Home residuals, fixtures (S2/C3), S8, S9 and the evidence gates.
