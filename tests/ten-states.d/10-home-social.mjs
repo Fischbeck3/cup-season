@@ -741,6 +741,38 @@ const GOLFERS = [
      which reads "Couldn't pull that card" for everyone (the builder .catch
      defect above). Kept as the real tap path so the capture records what a
      golfer gets; it turns green when root applies the one-line fix. */
+  /* TEN / W8 · W7-091 [A2-golfers-4] · the report sheet: before a reason is picked its Send is the DISABLED primary (bg1 fill, mut label, never the act fill); the reasons are a named group of
+     toggle chips; the picked one is the chip's selected state (ink fill, aria-pressed), and only one is; then Send is the live primary. The state reads the pre-pick paint in its drive and pins
+     the picked state on the capture */
+  { family: 'golfers', id: 'report-sheet', variant: 'member', fullPage: false, title: 'Golfers · a report sheet with a reason picked (Send goes live)',
+    drive: async (page) => {
+      await toDevon(page)
+      await page.waitForTimeout(300)
+      await click(page, '#view-person [data-safety]')
+      await until(page, () => document.getElementById('sheet').classList.contains('open') && !!document.getElementById('sfReasons'), null, 10000)
+      await page.waitForTimeout(300)
+      await page.evaluate(() => {
+        const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+        const b = document.getElementById('sfSend'), cs = getComputedStyle(b), g = document.getElementById('sfReasons')
+        window.__tenPre = (!b.disabled ? 'Send is live before a reason is picked' : cs.backgroundColor !== probe('--bg1') || cs.color !== probe('--mut')
+          ? `the disabled Send is ${cs.backgroundColor} on ${cs.color}, not bg1 with a mut label`
+          : g.getAttribute('role') !== 'group' || g.getAttribute('aria-label') !== 'Reason' ? 'the reasons are not a named group'
+          : [...g.querySelectorAll('button')].some((x) => x.getAttribute('aria-pressed') !== 'false' || x.classList.contains('sel')) ? 'a reason is marked before one is picked' : true)
+      })
+      await page.locator('#sfReasons [data-sfr]').nth(1).click({ timeout: 8000 })
+      await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-person', sheet: true, selectors: { '#sfSend': 'text:^Send this report$' } },
+    check: async (page) => page.evaluate(() => {
+      if (window.__tenPre !== true) return window.__tenPre
+      const probe = (v) => { const d = document.createElement('i'); d.style.color = `var(${v})`; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c }
+      const chips = [...document.querySelectorAll('#sfReasons [data-sfr]')], on = chips.filter((x) => x.getAttribute('aria-pressed') === 'true')
+      if (on.length !== 1 || on[0].dataset.sfr !== '1') return `${on.length} reason(s) pressed, expected the second alone`
+      if (!on[0].classList.contains('sel') || getComputedStyle(on[0]).backgroundColor !== probe('--ink')) return `the picked reason is ${getComputedStyle(on[0]).backgroundColor}, not the chip's ink selected fill`
+      if (chips.some((x) => x !== on[0] && (x.classList.contains('sel') || x.getAttribute('aria-pressed') !== 'false'))) return 'another reason is still marked'
+      const b = document.getElementById('sfSend')
+      return !b.disabled && getComputedStyle(b).backgroundColor === probe('--act') ? true : `Send is ${b.disabled ? 'disabled' : getComputedStyle(b).backgroundColor}, not the live action fill`
+    }) },
   { family: 'golfers', id: 'person', variant: 'member', title: 'Golfers · a person page (Devon), opened from the board',
     drive: async (page) => {
       await toDevon(page).catch(() => {})

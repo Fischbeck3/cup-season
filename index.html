@@ -2986,7 +2986,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   font-family:var(--sans); font-size:15px; font-weight:500; color:var(--ink);
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
 #view-wizard .wiznav .btn.dark:hover{filter:none; text-decoration-color:var(--ink);}
-#view-wizard #lockBtn:disabled{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}
+#view-wizard #lockBtn:disabled, #sfSend:disabled{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}   /* W7-091 · the report sheet's Send is the same disabled primary until a reason is picked (§7.1: bg1 fill, mut label, never the act fill) */
 /* Stage 3d-2: Start something as schema-art doors, competition-forward */
 .startgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--rule); border-radius:14px; cursor:pointer; color:var(--ink);}
@@ -31772,15 +31772,16 @@ function csOpenSafety(pid, name){
     <p class="fine" style="padding:4px 0 10px">${esc(muted ? CS_BLOCK.undoWhat : CS_BLOCK.what)}</p>
     <div class="eyebrow">Report</div>
     <p class="fine" style="padding-top:0">Pick a reason, then confirm. It goes to the founder desk. Nothing is sent until you confirm.</p>
-    <div id="sfReasons">${CS_SAFETY_REASONS.map((r,i)=>`<button class="mini" type="button" data-sfr="${i}" style="margin:0 6px 6px 0">${esc(r)}</button>`).join('')}</div>
+    <div id="sfReasons" role="group" aria-label="Reason">${CS_SAFETY_REASONS.map((r,i)=>`<button class="mini" type="button" data-sfr="${i}" aria-pressed="false" style="margin:0 6px 6px 0">${esc(r)}</button>`).join('')}</div>
     <button class="btn" id="sfSend" style="margin-top:10px" disabled>Pick a reason</button>
     <p class="fine" id="sfErr" style="padding-top:6px; display:none; color:var(--neg)"></p>`);
   let reason = null;
   const send = document.getElementById('sfSend');
   document.querySelectorAll('[data-sfr]').forEach(b => b.addEventListener('click', () => {
     reason = CS_SAFETY_REASONS[+b.dataset.sfr];
-    document.querySelectorAll('[data-sfr]').forEach(x => x.style.borderColor = '');
-    b.style.borderColor = 'var(--brand)';
+    /* W7-091 [A2-golfers-4] · the picked reason is the chip's selected state (.mini.sel, ink) with aria-pressed, as the wizard's and the composer's chosen pills are: it set a border colour
+       on a .mini that has no border (border:0), in --brand, which is the competition ember (D359), and said nothing to a screen reader */
+    document.querySelectorAll('[data-sfr]').forEach(x => { const on = x === b; x.classList.toggle('sel', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     send.disabled = false; send.textContent = 'Send this report';
   }));
   document.getElementById('sfMute')?.addEventListener('click', async () => {
