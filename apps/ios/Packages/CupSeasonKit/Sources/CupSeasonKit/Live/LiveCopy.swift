@@ -690,3 +690,15 @@ public extension LiveCopy {
   /// The way back to the held round, on the setup's first screen.
   static let backToRound = "Back to the round"
 }
+
+public extension LiveCopy {
+  static func stepperLabel(_ s: LiveRoundState, player pi: Int, by: Int) -> String {
+    guard s.players.indices.contains(pi), s.scores.indices.contains(pi),
+          s.scores[pi].indices.contains(s.hole), s.course.pars.indices.contains(s.hole) else { return "" }
+    let name = s.players[pi].n, hole = s.hole + 1
+    guard let score = s.scores[pi][s.hole] else {
+      return "Enter par (\(s.course.pars[s.hole])) for \(name), hole \(hole)"
+    }
+    return "\(by < 0 ? "One stroke fewer" : "One more stroke") for \(name), hole \(hole), now \(score)"
+  }
+}

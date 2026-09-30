@@ -407,7 +407,7 @@ struct LivePlayView: View {
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(by < 0 ? "Minus" : "Plus"), \(s.players[pi].n)")
+    .accessibilityLabel(LiveCopy.stepperLabel(s, player: pi, by: by))
   }
 
   // MARK: - the match state (§5.7)
