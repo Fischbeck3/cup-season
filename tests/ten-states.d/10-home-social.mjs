@@ -233,10 +233,28 @@ const eyebrowClauses = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W6 · W7-080 · a brand-new golfer's first-round door is the page's one primary and no promo stands beside it */
+const brandNewPrimary = async (page) => page.evaluate(() => {
+  const go = document.querySelector('#homeLead [data-dgo^="first_round"]')
+  if (!go) return 'the lead has no first-round door'
+  if (!go.classList.contains('btn')) return 'the first-round door is not the primary: ' + go.className
+  const occ = document.querySelector('#homeOccasion .hocc')
+  return occ && occ.getBoundingClientRect().height > 0 ? 'a promo stands beside a brand-new golfer’s first round' : true
+})
+/* TEN / W6 · W7-080 · a calendar promo's door is the in-content link, ink on a 2px mut rule, never the action colour */
+const promoQuiet = async (page) => page.evaluate(() => {
+  const a = document.querySelector('#homeOccasion .hocc .ho-act')
+  if (!a) return 'no promo drawn here, so its door cannot be read'
+  const probe = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const cs = getComputedStyle(a), sp = getComputedStyle(a.querySelector('span'))
+  if (cs.color === probe('--act')) return 'the promo’s door wears the action colour'
+  if (cs.color !== probe('--ink')) return 'the promo’s door is not ink: ' + cs.color
+  return /underline/.test(sp.textDecorationLine) && parseFloat(sp.textDecorationThickness) === 2 ? true : 'the promo’s door has no 2px rule'
+})
 const HOME_LEAGUELESS = [
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine) },
+    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine, brandNewPrimary) },
   { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
     expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown,
@@ -328,7 +346,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

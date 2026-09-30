@@ -552,7 +552,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    and they are quiet wire lines now, at the weight their kind earns. */
 .csedn{display:block; text-align:left; margin:0 0 22px;}
 .csedn .eb{display:flex; align-items:baseline; gap:8px; color:var(--mut); margin-bottom:11px;}
-.csedn .eb .cl{white-space:nowrap;}   /* W7-074 · a clause wraps whole: the break falls on a · separator */
+.csedn .eb .cl{white-space:nowrap;}
+.csedn .csedn-go{margin-top:var(--s3);}   /* W7-080 · the first-round door, the lead's one primary */   /* W7-074 · a clause wraps whole: the break falls on a · separator */
 .csedn.ember .eb{color:var(--brand);}
 /* the LIVE dot, 7px in ember. WAVE 11 adds the season head's eyebrow to the
    same rule rather than writing the mark a second time. */
@@ -3278,8 +3279,10 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .hocc .ho-k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:var(--s2);}
 .hocc h2{font-family:var(--sans); font-size:17px; font-weight:600; margin:0 0 var(--s1); color:var(--ink); line-height:1.3;}
 .hocc p{margin:0; font-size:15px; line-height:1.45; color:var(--mut);}
-.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:var(--s2); min-height:44px;
-  font-size:15px; font-weight:600; color:var(--act); cursor:pointer; width:100%; background:none; border:0; text-align:left; font-family:var(--sans); padding:0;}
+.hocc .ho-act{display:flex; align-items:center; justify-content:flex-start; margin-top:var(--s2); min-height:44px;
+  font-size:15px; font-weight:600; color:var(--ink); cursor:pointer; width:auto; background:none; border:0; text-align:left; font-family:var(--sans); padding:0;}
+/* TEN / W7-080 · a calendar promo's door is §7.1's in-content link, ink on a 2px mut rule, never the action colour: the action green is the page's one act */
+.hocc .ho-act span{text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
 .hocc .ho-mk{position:absolute; right:44px; top:var(--s3); width:28px; height:28px; opacity:.5; pointer-events:none;}
 .hocc .ho-mk svg{width:100%; height:100%; stroke:var(--mut); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
 .hocc .ho-x{position:absolute; right:0; top:0; width:44px; height:44px; display:grid; place-items:center; border:none; background:none; color:var(--mut); cursor:pointer;}
@@ -20661,6 +20664,10 @@ function occCard(o, k, h, p, act, mkKey){
 function renderOccasion(){
   const box=$('#homeOccasion'); if(!box) return;
   if(state.demo || !window.CS?.user){ box.innerHTML=''; return; }
+  /* TEN / W7-080 · a brand-new golfer (no season, no round of their own) sees
+     no promo: their one act is the first round (the phone's `!brandNew` gate,
+     HomePage.swift:360) */
+  if(!(window.CS.memberships||[]).length && Number(window.career?.rounds||0) === 0){ box.innerHTML=''; return; }
   const today=new Date(), yr=today.getFullYear();
 
   /* clustering first — the calendar yields to an actual weekend forming */
@@ -22407,7 +22414,12 @@ function csLeadBlock(it){
     ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${csEyebrowClauses(it.eyebrow)}</span>${stateWord?`<span class="cstate">${esc(stateWord)}</span>`:''}</div>`:''}
     <div class="hl cs-lead">${csFigRun(it.headline)}</div>
     ${it.standfirst?`<div class="sf cs-body">${esc(it.standfirst)}</div>`:''}
-    ${it.action?`<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`:''}
+    ${it.action?(String(it.key||'').split(':')[0] === 'first_round'
+      /* TEN / W7-080 · a brand-new golfer's first-round door is the page's ONE
+         primary, as the phone draws it (HomeView's CSDoor(.primary)); it was
+         the quietest control on a page whose only green was a promo */
+      ? `<button type="button" class="btn csedn-go" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`
+      : `<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`):''}
     ${csAnswerControls(it)}
   </div>`;
 }
