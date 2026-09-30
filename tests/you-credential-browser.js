@@ -24,7 +24,8 @@
        figure is YOUR NUMBER on every surface (D319, TERMINOLOGY row 90); another
        golfer's card keeps Handicap index. This card is the viewer's own. */
     check(fig('Your number')==='11.4','the index cell is missing');
-    check(fig('Rounds')==='—','WA3: an unread career printed a zero: '+fig('Rounds'));
+    /* W7-106 · a slot with no figure is ABSENT (the phone's YouScreen.figures): an unread count is neither a zero nor a dash on the card */
+    check(fig('Rounds')===null,'WA3: an unread career printed a figure (a zero or a dash): '+fig('Rounds'));
     out.beforeLoad=fig('Rounds');
 
     /* 2 · the count arrives — the credential must catch up even though the
@@ -42,7 +43,7 @@
     /* 4 · a FAILED read is not a zero either */
     window.career=null;
     window.refreshWhoChip();
-    check(fig('Rounds')==='—','WA3: a failed read printed a zero');
+    check(fig('Rounds')===null,'WA3: a failed read printed a figure (a zero or a dash): '+fig('Rounds'));   /* W7-106 · absent, not a dash */
 
     /* 5 · and a provisional profile behaves the same way */
     window.CS.profile={ display_name:'Audit', handle:'audit', index_current:null };
@@ -66,8 +67,8 @@
     replies = [failure, failure]; reads = 0;
     await window.loadCareer();
     check(reads === 2, 'career compatibility retry did not run');
-    check(window.career === null && fig('Rounds') === '—',
-      'WA3 loader: two refused reads became a zero');
+    check(window.career === null && fig('Rounds') === null,   /* W7-106 · absent, not a dash */
+      'WA3 loader: two refused reads became a figure (a zero or a dash)');
 
     window.career = { rounds: 12, rows: [], recent: [] };
     replies = [failure, failure];

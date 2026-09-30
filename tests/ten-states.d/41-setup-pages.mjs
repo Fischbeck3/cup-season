@@ -71,11 +71,31 @@ const planSheetPrimary = (owes) => async (page) => page.evaluate((owes) => {
   if (!teeBtn) return 'Tee it up is not the primary once the golfer is in'
   return fill === act ? "I'm in is filled act as well as Tee it up: two primaries" : true
 }, owes)
+/* TEN / W8 · W7-088 [X04] · the calendar marks the week's close on the league's OWN closing weekday (a season that starts on a Sunday closes its weeks on Saturday), not on every Sunday; and the archive's
+   'the first week closes <weekday> night' names that weekday when it is drawn */
+const weekCloseMarks = async (page) => page.evaluate(() => {
+  const s = window.CS && window.CS.season, cur = window.calCursor
+  if (!s || !cur) return 'no season or calendar'
+  const ymd = (iso) => String(iso).slice(0, 10).split('-').map(Number)
+  const [sy, sm, sd] = ymd(s.starts_on), [ey, em, ed] = ymd(s.ends_on), start = new Date(sy, sm - 1, sd), end = new Date(ey, em - 1, ed)
+  const closeDow = (start.getDay() + 6) % 7, name = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][closeDow]
+  let seen = 0; const bad = []
+  for (const c of document.querySelectorAll('#calGrid [data-cd]')) {
+    const d = new Date(cur.y, cur.m, Number(c.dataset.cd))
+    if (d.getDay() !== closeDow || !(d > start) || d > end) continue
+    seen++
+    if (!c.querySelector('.caldot.lg')) bad.push(c.dataset.cd)
+  }
+  if (!seen) return 'no day of the visible month closes a week of this season (the state is not the one the pin is for)'
+  if (bad.length) return `the league's weeks close on ${name} and the calendar leaves ${bad.length} of those days unmarked (${bad.join(', ')})`
+  const line = /the first week closes (\w+) night/.exec(document.getElementById('calWeeks').textContent)
+  return line && line[1] !== name ? `the archive says the first week closes ${line[1]} night, not ${name}` : true
+})
 const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
     /* TEN / W6 · AW2-06: the weekday heads and the back link are agate, never mono; the dates stay a column */
-    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'),
+    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'), weekCloseMarks,
       notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink']),
       noRetiredGlyph()) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
@@ -165,6 +185,23 @@ const SCHEDULE = [
       if (boxes.length !== 2 || boxes.some((x) => x.getBoundingClientRect().height < 43.5)) return `the manage bar has ${boxes.length} boxes, some under 44px`
       return b.getBoundingClientRect().top >= boxes[0].getBoundingClientRect().bottom - 1 ? true : 'Cancel round is not apart from (beneath) the two harmless acts'
     })) },
+  /* TEN / W8 · W7-079 [X03] · confirmed from the plan sheet, the toast says what the list's cancel says ('Round cancelled', not 'Round scratched'), and the sheet closes */
+  { family: 'schedule', id: 'plan-sheet-cancelled', variant: 'member', fullPage: false, title: 'A plan · Avery’s own Wednesday, Cancel round confirmed from the sheet (the toast)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.mine)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.getElementById('rrScratch') }, null, 10000)
+      await page.locator('#rrScratch').scrollIntoViewIfNeeded()
+      await click(page, '#rrScratch'); await page.waitForTimeout(300)
+      await click(page, '#rrScratch')
+      await until(page, () => document.getElementById('toast').classList.contains('show'), null, 6000)
+    },
+    expect: { view: 'view-schedule', selectors: { '#toast.show': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = document.getElementById('toast').textContent.trim()
+      if (t !== 'Round cancelled') return `the toast reads ${JSON.stringify(t)}, not the list's 'Round cancelled'`
+      return document.getElementById('sheet').classList.contains('open') ? 'the sheet stayed open after the round was cancelled' : true
+    }) },
   /* ...and in the schedule's own list: your plan's 'Cancel round' is the tertiary link apart from Invite, and its first tap only asks */
   { family: 'schedule', id: 'cancel-armed', variant: 'member', title: 'Schedule · Cancel round on my own plan tapped once (armed, not confirmed)',
     drive: async (page) => {
@@ -226,6 +263,49 @@ const reviewAlone = async (page) => page.evaluate(() => {
   const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
   return after(h2, nm) && after(nm, note) && after(note, rules) ? true : 'the review does not read head, name, line, rules'
 })
+/* TEN / W8 · W7-171 [B2-wizard-4] · a season's length is said in weeks everywhere (the stepper, the portrait's Season row, the calendar summary and the review): '13 weeks', never '3 mo', and months are only a gloss
+   under the stepper ('About 3 months · ends the same weekday') from eight weeks up */
+const lengthInWeeks = async (page) => page.evaluate(() => {
+  const w = Number(state.durWeeks), val = document.getElementById('lenVal'), gloss = document.getElementById('lenGloss')
+  if (val && val.getBoundingClientRect().width > 0) {
+    if (val.textContent.trim() !== `${w} weeks`) return `the stepper reads ${JSON.stringify(val.textContent.trim())}, not '${w} weeks'`
+    const months = Math.min(12, Math.max(1, Math.round(w / 4.345)))
+    const want = w >= 8 ? `About ${months} months \u00b7 ends the same weekday` : 'Ends the same weekday'
+    if (!gloss || gloss.textContent.trim() !== want) return `the stepper's gloss reads ${JSON.stringify(gloss && gloss.textContent.trim())}, not ${JSON.stringify(want)}`
+  }
+  const rows = [...document.querySelectorAll('.wizp-row')].filter((r) => r.getBoundingClientRect().width > 0)
+  for (const r of rows) if (/^Season/i.test((r.querySelector('.k') || {}).textContent || '') && !new RegExp(`^${w} weeks`).test((r.querySelector('.wizp-v') || {}).textContent || '')) return `the portrait's Season row does not lead with '${w} weeks'`
+  const shown = [...document.querySelectorAll('#view-wizard .wizstep.on, #view-wizard .wiz-aside')].map((e) => e.innerText).join(' ')
+  const m = shown.match(/\b\d+ mo\b/)
+  return m ? `the wizard still prints a length as '${m[0]}'` : true
+})
+/* TEN / W8 · W7-167 [A2-wizard-3] · the wizard has no minimum sentence of its own: the dial's foot and the review's ONE 'The minimum' row say the season page's sentence (floorSentence), with 'squad' where the
+   product says squad, and there is no second 'If you miss it' row */
+const minimumOnce = async (page) => page.evaluate(() => {
+  const want = floorSentence({ floor: state.floor, preset: state.preset, structure: state.structure })
+  const foot = document.getElementById('setupMinimumConsequence'), shown = (el) => el && el.getBoundingClientRect().width > 0
+  if (shown(foot) && foot.textContent.trim() !== want) return `the dial's foot reads ${JSON.stringify(foot.textContent.trim())}, not the season page's sentence`
+  const rows = [...document.querySelectorAll('#bylawsReview .byrow')].filter(shown)
+  if (rows.length) {
+    const mins = rows.filter((r) => /^The minimum$/i.test(r.firstElementChild.textContent.trim()))
+    if (mins.length !== 1 || mins[0].querySelector('b').textContent.trim() !== want) return `the review's minimum reads ${JSON.stringify(mins[0] && mins[0].querySelector('b').textContent.trim())}`
+    if (rows.some((r) => /If you miss it/i.test(r.firstElementChild.textContent))) return "the review still has an 'If you miss it' row"
+  }
+  const said = [foot, ...rows].filter(Boolean).map((e) => e.textContent).join(' ')
+  return /\bteam\b/i.test(said) ? "the wizard's minimum still says 'team' where the product says 'squad'" : (shown(foot) || rows.length ? true : 'no minimum is drawn on this step')
+})
+/* TEN / W8 · W7-104 [A2-wizard-5, A2-desk-19] · a missing pay note is said in ink, as the phone says it, before the Pro has tried to start: 'add how they pay you' in the Money group's summary,
+   the field's line and the review's 'Not set yet' are not the error red (neg is for a refusal, not a field not yet filled); the disabled Start and its reason stay */
+const payNoteInk = async (page) => page.evaluate(() => {
+  const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+  const neg = tok('--neg'), seen = []
+  for (const sel of ['.wizgrp-need', '#payNoteFine', '.byrow .byneed']) for (const el of document.querySelectorAll(sel)) {
+    const r = el.getBoundingClientRect(); if (!(r.width > 0)) continue
+    seen.push(sel)
+    if (getComputedStyle(el).color === neg) return `${sel} says the missing pay note in the error red`
+  }
+  return seen.length ? true : 'no missing pay note is drawn on this step (the state is not the one the pin is for)'
+})
 const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
@@ -275,7 +355,7 @@ const WIZARD = [
     expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
     /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
        narrowed column broke it ("Best / 4", "2 / / mo") */
-    check: all(async (page) => page.evaluate(() => {
+    check: all(payNoteInk, lengthInWeeks, minimumOnce, async (page) => page.evaluate(() => {
       const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
         .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
         .map((v) => JSON.stringify(v.textContent.trim()))
@@ -288,7 +368,7 @@ const WIZARD = [
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
       await click(page, '#wizFastPath'); await wizAt(page, 2); await page.waitForTimeout(600)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone) },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone, payNoteInk, lengthInWeeks, minimumOnce) },
 ]
 
 /* --------------------------------------------- COURSES & THE COURSE CARD */
@@ -338,7 +418,35 @@ const courseBookWide = async (page) => page.evaluate(() => {
   }
   return true
 })
-const courseCard = (id, courseId, title, want, circle = true) => ({
+/* TEN / W8 · W7-099 [A2-courses-7, B2-courses-5] · the label under the lead's rating rail names the object it is about: 'Your rating · 4.5', or 'Your rating · not yet' for a course you have not rated; never
+   'Not yours yet', which read as 'this course is not yours' */
+const mineLabel = async (page) => page.evaluate(() => {
+  const l = document.querySelector('#youCourses [data-csmine]')
+  if (!l) return 'the lead draws no rating label'
+  const t = l.textContent.trim()
+  return /^Your rating \u00b7 (\d\.\d|not yet)$/.test(t) ? true : `the rating label reads ${JSON.stringify(t)}`
+})
+/* TEN / W8 · W7-097 [A2-courses-4] · a course row's figure names its owner: 'Yours 4.5' beside the drawn rail (or 'Rate it'), never a bare 4.5 that reads as the lead's 4.0 for the same course; the plan block
+   prints the same words from the same producer */
+const rowYours = async (page) => page.evaluate(() => {
+  const rows = [...document.querySelectorAll('#youCourses .cs-krow-rate')]
+  if (!rows.length) return 'no course row draws a rating'
+  for (const r of rows) {
+    const t = r.textContent.trim()
+    if (!/^(Yours \d\.\d|Rate it)$/.test(t)) return `a course row's rating reads ${JSON.stringify(t)}, not 'Yours N.N' or 'Rate it'`
+  }
+  return true
+})
+/* TEN / W8 · W7-098 [A2-courses-5] · the course record says how its tee was chosen while the tee on show is the default ('The longest rated 18 — change tees for yours.', the phone's words), under the facts line
+   and above the tee picker; a picked tee, a nine-hole course or a course with one rated tee prints nothing extra */
+const teeSaid = (want) => async (page) => page.evaluate((want) => {
+  const sec = document.querySelector('#youCourses .cs-course'), said = sec && [...sec.querySelectorAll('p')].find((p) => p.textContent.trim() === 'The longest rated 18 \u2014 change tees for yours.')
+  if (!sec) return 'no course record is drawn'
+  if (!!said !== want) return want ? 'the default tee is showing and the record does not say how it was chosen' : 'the record still says the tee is the longest rated 18'
+  if (said) { const facts = sec.querySelector('.cs-facts'), sel = sec.querySelector('select[data-cstee]'); if (!(facts.compareDocumentPosition(said) & Node.DOCUMENT_POSITION_FOLLOWING) || (sel && !(said.compareDocumentPosition(sel) & Node.DOCUMENT_POSITION_FOLLOWING))) return 'the sentence is not between the facts and the tee picker' }
+  return true
+}, want)
+const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
     await toCourses(page)
@@ -350,7 +458,7 @@ const courseCard = (id, courseId, title, want, circle = true) => ({
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card'), courseCircle(circle)),
+    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee)),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -358,7 +466,7 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: all(courseBookWide, async (page) => page.evaluate(() => {
+    check: all(courseBookWide, rowYours, teeSaid(true), async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
@@ -369,6 +477,14 @@ const COURSES = [
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
   courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek', false),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),
+  /* W7-098 · a tee picked from the lead's list: the sentence about the default goes (the books state's lead, Saguaro Flats, has several rated tees) */
+  { family: 'courses', id: 'books-picked', variant: 'member', title: 'Courses · a tee picked from the lead\u2019s list (the default\u2019s sentence goes)',
+    drive: async (page) => {
+      await toCourses(page)
+      await page.evaluate(() => { const s = document.querySelector('#youCourses select[data-cstee]'); const o = [...s.options].find((x) => x.value !== s.value); s.value = o.value; s.dispatchEvent(new Event('change', { bubbles: true })) })
+      await page.waitForTimeout(600)
+    },
+    expect: { view: 'view-stats', selectors: { '#youCourses select[data-cstee]': 'visible' } }, check: teeSaid(false) },
 ]
 
 /* ------------------------------------------------ SETTINGS & THE SHEETS */
@@ -379,6 +495,15 @@ const openHub = async (page) => {
   await tapUntil(page, '#youProfile', () => document.getElementById('sheet').classList.contains('open') && /Card & settings/.test(document.getElementById('shTitle').textContent))
   await page.waitForTimeout(500)
 }
+/* TEN / W8 · W7-078 [A2-settings-10] · the 60-day handle rule is said once, from the gate's producer: the field is labelled 'Handle' and the rule ('3–20 letters, numbers or _. It changes once every 60 days.') is the
+   sentence that describes it, not a clause squeezed into the label ('Handle · moves once / 60 days', which wrapped and said it a third way) */
+const handleRule = async (page) => page.evaluate(() => {
+  const lab = document.querySelector('label[for="phHandle"]'), input = document.getElementById('phHandle'), rule = document.getElementById('phHandleRule')
+  if (!lab || lab.textContent.trim() !== 'Handle') return `the field is labelled ${JSON.stringify(lab && lab.textContent.trim())}, not Handle`
+  if (!rule || rule.textContent.trim() !== '3\u201320 letters, numbers or _. It changes once every 60 days.') return `the rule reads ${JSON.stringify(rule && rule.textContent.trim())}`
+  if (input.getAttribute('aria-describedby') !== 'phHandleRule') return 'the handle field is not described by the rule'
+  return /moves once/i.test(document.getElementById('sheet').innerText) ? 'the sheet still says "moves once"' : true
+})
 /* TEN / W8 · W7-042 [A2-settings-3] · what an armed card says when it is left: ONE sentence, in the status line that Save describes itself with, on the
    pane that holds the edits (a golfer on Settings is brought back to it), in view, with focus on Save */
 const CARD_UNSAVED = 'You have unsaved changes. Save them, or do that again to leave without saving.'
@@ -440,7 +565,7 @@ const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
     drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
     /* TEN / W6 · AW2-06: a row's label is agateS, never mono; a league's code stays mono */
-    check: all(notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph(),
+    check: all(handleRule, notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph(),
       /* TEN / W8 · W7-032 [A2-settings-7]: Your card / Settings is the system segment (§7.2), not a boxed pill */
       isSystemSegment('#phSeg', 'Your card')) },
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
@@ -595,6 +720,36 @@ const SETTINGS = [
       if (bad.length) return `${bad.length} guide row(s) are boxed: ${JSON.stringify(bad[0].innerText.slice(0, 30))}`
       return rows.some((r) => /[\u2192\u203a\u2197]/.test(r.textContent)) ? 'a guide row carries a typed arrow' : true
     })) },
+  /* TEN / W8 · W7-113 [A2-desk-22] · the desk teaches its keys: a desk-only 'Keyboard' row in How it works opens the five keys (each key in the agate role over one body sentence, no typed arrows), and '?' opens the same sheet
+     from any desk page (not from a field); below 960 there is no row (a phone has no keys) */
+  { family: 'settings', id: 'guide-keys', variant: 'member', desk: true, fullPage: false, title: 'Card & settings · How it works, the Keyboard row (the desk)',
+    drive: async (page) => {
+      await openHub(page); await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => document.getElementById('youGuide') && document.getElementById('youGuide').offsetParent !== null)
+      await page.evaluate(() => document.getElementById('youGuide').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(300)
+      await click(page, '#youGuide [data-guide="keys"]')
+      await until(page, () => document.getElementById('shTitle').textContent === 'Keyboard', null, 8000)
+      await page.waitForTimeout(400)
+    },
+    expect: { sheet: '^Keyboard$', selectors: { '#shBody': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const body = document.getElementById('shBody'), keys = [...body.querySelectorAll('.cs-agate')].map((e) => e.textContent.trim()), said = [...body.querySelectorAll('.cs-body-s')].map((e) => e.textContent.trim())
+      if (keys.join('|') !== 'Up and Down|Right|/|g, then t|Esc') return `the keys read ${JSON.stringify(keys)}`
+      if (said.join('|') !== 'Move between rows.|Open the row.|Find a golfer.|Jump to the table.|Close what is open.') return `the sentences read ${JSON.stringify(said)}`
+      if (/[\u2191\u2193\u2192\u203a]/.test(body.textContent)) return 'the legend types an arrow'
+      return getComputedStyle(body.querySelector('.cs-agate')).textTransform === 'uppercase' ? true : 'a key is not set in the agate role'
+    }) },
+  { family: 'settings', id: 'keys-question', variant: 'member', desk: true, fullPage: false, title: 'The desk · ? opens the keyboard sheet',
+    drive: async (page) => {
+      await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-home', null, 8000)
+      await page.evaluate(() => { const a = document.activeElement; if (a && a.blur) a.blur() })
+      await page.keyboard.press('?')
+      await until(page, () => document.getElementById('sheet').classList.contains('open') && document.getElementById('shTitle').textContent === 'Keyboard', null, 8000)
+      await page.waitForTimeout(400)
+    },
+    expect: { sheet: '^Keyboard$', selectors: { '#shBody': 'visible' } },
+    check: async (page) => page.evaluate(() => document.querySelectorAll('#shBody .cs-agate').length === 5 ? true : 'the ? sheet does not list the five keys') },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {

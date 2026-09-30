@@ -268,7 +268,7 @@ today.** Three RPCs are live, granted, and called by nothing.
   three figures from the server's own arithmetic — the RPC returns `course_rating()` for exactly this
   reason, so the client never adds one to a number it was holding. On error it reverts and toasts.
 - **Reversible in one tap**: tapping the value you already set calls `unrate_course`.
-- The label beneath says which state you are in — `YOUR RATING · 4.5` or `NOT YOURS YET`.
+- The label beneath says which state you are in — `YOUR RATING · 4.5` or `YOUR RATING · NOT YET` (W7-099: it names the object it is about; `NOT YOURS YET` read as “this course is not yours”).
   **Null, never zero, never a dash** (L-44; the RPC returns null by construction).
 - §22: the newly filled stars sweep left-to-right over 180ms. Nothing else on the page moves.
 

@@ -126,9 +126,10 @@ const CORE = [
         return gap <= 1 ? true : `the Save bar floats ${gap}px above the window's edge, and the form shows beneath it`
       })
       if (save !== true) return save
-      /* TEN / W6 · AW2-06: the gate's SIGNED IN stamp is a label, never mono */
-      const m = await notMono(['#obProfile .lockbadge'], ['#obProfile .lockbadge'])(page)
-      if (m !== true) return m
+      /* W7-114 · one version of the item: B's #pfWho (a4fb9be1, the ruled words); C's duplicate line was
+         reverted on its branch (369202e6). From C it keeps the SIGNED IN stamp's removal: whose account
+         this is is said once, at the gate's foot */
+      if (await page.evaluate(() => !!document.querySelector('#obProfile .lockbadge'))) return 'the gate still draws the SIGNED IN chip'
       const g = await noRetiredGlyph()(page)
       return g !== true ? g : gateWho(page)
     } },

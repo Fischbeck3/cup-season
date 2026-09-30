@@ -416,6 +416,23 @@
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
     /* W7-093 [A2-rules-2] · the floor sentence names WHICH months are waived (the edge months close_month waives), not 'Short months', which no page defines */
+    /* W7-087 · the wire's stamp is a clock while the row is ahead (HomeWireCopy.stamp): Tomorrow, then N days out to a week, then the marker; today and the past keep the marker */
+    (function(){
+      const iso = n => { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+      t('W7-087: today and the past keep the day marker', [csWireStamp(iso(0)), csWireStamp(iso(-1)), csWireStamp(iso(-3))], [csDayMarker(iso(0)), csDayMarker(iso(-1)), csDayMarker(iso(-3))]);
+      t('W7-087: tomorrow, then N days out to a week', [csWireStamp(iso(1)), csWireStamp(iso(2)), csWireStamp(iso(6))], ['Tomorrow', '2 days', '6 days']);
+      t('W7-087: past a week the marker again', csWireStamp(iso(7)), csDayMarker(iso(7)));
+      t('W7-087: no date, no stamp', [csWireStamp(null), csWireStamp('')], ['', '']);
+    })();
+    /* W7-088 · the week's close weekday is the league's own (a season that starts on a Sunday closes on Saturday), from csWeekEnds: never a hardcoded Sunday */
+    t('W7-088: csWeekCloseDow reads the league\'s own closing weekday',
+      [csWeekCloseDow({ week_ends_on:'2026-08-15' }), csWeekCloseDow({ week_ends_on:'2026-09-30' }), csWeekCloseDow({ week_ends_on:'2026-10-11' })], [6, 3, 0]);
+    /* W7-167 · the wizard's dial foot and review say the season page's sentence: one producer, 'squad' and never 'team' */
+    t('W7-167: the wizard\'s minimum sentence is floorSentence\'s, in every preset and structure',
+      [[0,1,2].map(pr => csSetupMinimum({ floor:2, preset:pr, structure:'squads4' })), csSetupMinimum({ floor:0, preset:1, structure:'squads2' }), csSetupMinimum({ floor:3, preset:1, structure:'solo' })],
+      [[0,1,2].map(pr => floorSentence({ floor:2, preset:pr, structure:'squads4' })), floorSentence({ floor:0, preset:1, structure:'squads2' }), floorSentence({ floor:3, preset:1, structure:'solo' })]);
+    t('W7-167: and it never says team where the product says squad',
+      [0,1,2].some(pr => /\bteam\b/i.test(csSetupMinimum({ floor:2, preset:pr, structure:'squads4' }))), false);
     t('W7-093: floorSentence ends on the edge months and never says "Short months"',
       [floorSentence({ floor:2, preset:1, structure:'squads2' }), /Short months/.test(floorSentence({ floor:2, preset:1, structure:'squads2' }))],
       ['Post 2 rounds a month. Miss once and your season bye covers it automatically; from the second miss your squad loses 5 points for every round you\'re short. A partial first or last month has no minimum.', false]);
@@ -896,8 +913,9 @@
     const nav = [...document.querySelectorAll('.side .navitem[data-v]')].map(b => b.dataset.v);
     const tabs = [...document.querySelectorAll('.tabbar .tab[data-v]')].map(b => b.dataset.v);
 
-    t('D222: the sidebar leads with the five destinations',
-      nav.slice(0, 4), ['home', 'compete', 'golfers', 'record']);
+    t('D222 + W7-105: the sidebar leads with the five destinations, in the tab bar\'s and the phone\'s order (Play before Golfers)',
+      nav.slice(0, 5), ['home', 'compete', 'record', 'golfers', 'stats']);
+    t('W7-105: the sidebar\'s five are the tab bar\'s five, in the same order', nav.slice(0, 5), tabs.slice(0, 5));
     /* WAVE 11 / D280 · the disclosure is gone: a 900px column has no reason to
        hide four destinations behind a caret, and the caret's label was the one
        word LV-12 ruled out. The section is a LIST below a rule now, and two of
@@ -1002,9 +1020,10 @@
     t('N4-063: the Golfers root’s sub and its one buddy definition',
       [csEmptyRoot('golfers', {}).sub, csEmptyRoot('golfers', {}).def],
       ['Add the people you actually play with.', 'Buddies see each other’s rounds, and either of you can pull the other into a season.']);
-    /* R-G's contacts door is D251, wave 8 — not sold before it opens */
-    t('L-32: Golfers does not sell the contacts door yet',
-      csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Find golfers', 'Text someone a link']);
+    /* R-G's contacts door is D251, wave 8 — not sold before it opens. W7-085 · and ONE act: the link. 'Find golfers' was a second door to the search field under the root,
+       so the field (headed Find golfers) is the find door */
+    t('L-32 + W7-085: Golfers does not sell the contacts door yet, and its one act is the link',
+      csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Text someone a link']);
 
     /* IA §8.4 rule 1 · no seat count, anywhere */
     t('a plan names who is on it', csPlanLine({ tagged_names: ['Galen'] }), 'You and Galen.');
@@ -1444,14 +1463,14 @@
      correct in a test and wrong on a phone. `MeStripCopy.shortCourse` is the
      twin and `LongCourseNameTests` asserts the same four answers. */
   t('DEF-1: prod’s longest label becomes the club',
-    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'GOLD CANYON');
+    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'Gold Canyon');   /* W7-117 · the club as stored, the phone's answer (MeStripCopy.shortCourse) */
   t('DEF-1: the layout and the tee variant are both dropped',
     [csShortCourse('Troon North Golf Course — Pinnacle Course · Gold'),
      csShortCourse('Raven Golf Club-Phoenix · Silver')],
-    ['TROON NORTH GOLF COURSE', 'RAVEN GOLF CLUB-PHOENIX']);
+    ['Troon North Golf Course', 'Raven Golf Club-Phoenix']);
   t('DEF-1: a plain name is left as it is, and nothing is invented from nothing',
     [csShortCourse('Papago Golf Course'), csShortCourse(null), csShortCourse('   ')],
-    ['PAPAGO GOLF COURSE', null, null]);
+    ['Papago Golf Course', null, null]);
 
   /* ============ WAVE 7 · intent, the callout, and the covenant ============
      D225 · the doors name what I want, not what the engine has. The whole

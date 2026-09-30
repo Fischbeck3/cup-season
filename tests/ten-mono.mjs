@@ -480,3 +480,22 @@ export const destMarked = (v) => async (page) => page.evaluate((v) => {
   }
   return true
 }, v)
+
+/* TEN / W8 · W7-069 [X13] · a page's heading outline never skips a level: every visible heading is at most one level deeper than the heading before it, whole document, in order
+ * (WCAG 1.3.1, 2.4.6), and it OPENS at an h1 or an h2 (a room whose own h1 is not drawn, like the draw room's dark ground, cannot start at an h4). The draw room's squad heads were h4 and
+ * the live court's zone labels h5. `scope` narrows the report to a subtree; the heading before its first is the document's last heading above it, so a room cannot hide a skip by
+ * being the first heading in its subtree. */
+export const noHeadingSkips = (scope = 'body') => async (page) => page.evaluate((scope) => {
+  const root = document.querySelector(scope); if (!root) return `${scope} is not on the page`
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const level = (h) => Number(h.getAttribute('aria-level')) || Number(h.tagName[1])
+  const all = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6,[role="heading"]')].filter(shown)
+  let prev = 0
+  for (const h of all) {
+    const l = level(h)
+    if (root.contains(h) && prev && l > prev + 1) return `"${(h.textContent || '').trim().slice(0, 30)}" is an h${l} under an h${prev}`
+    if (root.contains(h) && !prev && l > 2) return `the outline opens at "${(h.textContent || '').trim().slice(0, 30)}", an h${l}`
+    prev = l
+  }
+  return all.some((h) => root.contains(h)) ? true : `${scope} has no headings`
+}, scope)

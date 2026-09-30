@@ -70,7 +70,7 @@ final class CompeteExplorationSeason {
     if gap == 0 {
       return standings.filter { $0.pts == mine.pts }.count > 1 ? "\(mine.name) shares the lead." : "\(mine.name) leads."
     }
-    return "\(mine.name) is \(gap) back from \(leader.name)."
+    return "\(mine.name) is \(gap) back of \(leader.name)."   // W7-130 · the table's noun
   }
   func rank(_ team: Team) -> String {
     guard !upcoming, let i = standings.firstIndex(where: { $0.id == team.id }) else { return "Not started" }

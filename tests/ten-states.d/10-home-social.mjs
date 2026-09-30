@@ -177,6 +177,22 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
   }
 })
 
+/* TEN / W8 · W7-077 [A2-home-16] · 'Didn’t play' is a terminal answer (D345), so its first tap only ASKS ('Sure? Nothing posts for that day', neg) and sends nothing; 'Later' stays one tap and the row keeps its two answers */
+HOME_DISPATCH.push({
+  family: 'home', id: 'dispatch-after_golf-armed', variant: 'member',
+  title: 'Home · after golf: Didn’t play tapped once (armed, not answered)',
+  world: { flags: { homeState: 'after_golf' } },
+  drive: async (page) => { await homePainted(page); await page.locator('[data-ans="didnt_play"]').first().scrollIntoViewIfNeeded(); await click(page, '[data-ans="didnt_play"]'); await page.waitForTimeout(400) },
+  expect: { view: 'view-home', selectors: { '[data-ans="didnt_play"]': 'text:^Sure\\? Nothing posts for that day$' } },
+  check: all(async (page) => page.evaluate(() => {
+    const b = document.querySelector('[data-ans="didnt_play"]'), later = document.querySelector('[data-ans="later"]')
+    if (!b.classList.contains('is-armed')) return 'the first tap did not arm Didn\u2019t play'
+    if (!later || later.classList.contains('is-armed') || later.textContent.trim() !== 'Later') return 'Later is not the plain one-tap answer'
+    const neg = (() => { const i = document.createElement('i'); i.style.color = 'var(--neg)'; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c })()
+    if (getComputedStyle(b).color !== neg) return `the armed answer is ${getComputedStyle(b).color}, not neg`
+    return (window.__tenNet || []).some((e) => /answer_plan_followup/.test(e.url)) ? 'the first tap sent the answer' : true
+  })),
+})
 /* (b2) S1 / S2 signed in. Since c72d6a72 the desk asks home_dispatch for a
    league-less golfer too (D234: the phone's lead, one producer), so the LEAD
    owns the first move and the hero stands down behind it (L-34). WX's finding
@@ -213,6 +229,38 @@ const onScreen = (re, what) => async (page) => page.evaluate(({ re, what }) => {
   const t = ['homeLead', 'homeDeck'].map((i) => (document.getElementById(i) || {}).innerText || '').join(' ').replace(/\s+/g, ' ')
   return new RegExp(re).test(t) ? true : `${what} is not on Home`
 }, { re, what })
+/* TEN / W8 · W7-087 [A2-home-14, B2-home-13] · a wire row about something ahead wears a clock ('2 days', 'Tomorrow'), and never repeats its own weekday as its marker: 'Wed · You have a round on Wednesday.' */
+const wireStamps = async (page) => page.evaluate(() => {
+  const lines = [...document.querySelectorAll('.cswire')].filter((l) => l.getBoundingClientRect().width > 0)
+  if (!lines.length) return 'the wire draws no lines'
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  for (const l of lines) {
+    const mk = l.querySelector('.mk').textContent.trim(), ln = l.querySelector('.ln').textContent
+    if (!/^(Today|Tomorrow|\d+ days|[A-Z][a-z]{2}( \d{1,2})?)$/.test(mk)) return `a wire marker reads ${JSON.stringify(mk)}`
+    for (const d of days) if (new RegExp(`\\b${d}\\b`).test(ln) && mk.toLowerCase() === d.slice(0, 3).toLowerCase()) return `a wire line repeats its own weekday as its marker: ${JSON.stringify(mk + ' \u00b7 ' + ln.trim().slice(0, 60))}`
+  }
+  return true
+})
+/* TEN / W8 · W7-105 [B2-home-18] · the sidebar's five destinations run the tab bar's order (D222, the phone's NavSlot): Home, Compete, Play, Golfers, You; at the desk width, where it is drawn */
+const sidebarOrder = async (page) => page.evaluate(() => {
+  const side = [...document.querySelectorAll('aside.side .navitem[data-v]:not(.sub)')].filter((b) => b.getBoundingClientRect().width > 0).map((b) => b.dataset.v)
+  if (!side.length) return true
+  return side.slice(0, 5).join(',') === 'home,compete,record,golfers,stats' ? true : `the sidebar runs ${side.slice(0, 5).join(', ')}, not Home, Compete, Play, Golfers, You`
+})
+/* TEN / W8 · W7-075 [A2-home-13, B2-home-12] · one day, one format: every round on Home's wire prints its day as HomeWireCopy.dayMarker does (Today, a weekday inside six days, else 'Sep 25'), on the record's
+   line and on the photo plate alike; a stamped card said 'FRI' over an unstamped card that said 'SEP 25' for the same Friday */
+const dayMarkers = async (page) => page.evaluate(() => {
+  const rows = window.homeFeedRows || [], cards = [...document.querySelectorAll('[data-hfr]')]
+  let checked = 0
+  for (const c of cards) {
+    const r = rows[+c.dataset.hfr]; if (!r || !r.played_on) continue
+    const el = c.querySelector('.hfr-day, .hsday'); if (!el) continue
+    checked++
+    const want = window.csDayMarker(r.played_on)
+    if (el.textContent.trim().toLowerCase() !== want.toLowerCase()) return `a round of ${r.played_on} prints its day as ${JSON.stringify(el.textContent.trim())}, not the marker ${JSON.stringify(want)}`
+  }
+  return checked ? true : 'no round card on Home carries a day'
+})
 const feedHasRounds = async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'the circle feed drew no rounds')
 
 /* TEN / W7-050 [A2-home-11] · what is read and tabbed to is what is seen:
@@ -252,7 +300,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, nextOnce, readingOrder, circleOnce,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
@@ -276,7 +324,14 @@ const HOME_WORLD = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-home', sheet: '^Notifications$', selectors: { '#shBody .cs-inbox-n.is-unread': 'visible' } },
-    check: async (page) => page.evaluate(() => /Devon commented on your round\./.test(document.getElementById('shBody').innerText) ? true : 'the inbox does not name Devon’s comment') },
+    /* TEN / W8 · W7-117 [B2-home-17] · the inbox line names the CLUB as stored ('Mesquite Wash Golf Club (fixture)'), not the whole 'club — course' label with the layout repeating the club (the phone's glance rule) */
+    check: async (page) => page.evaluate(() => {
+      if (!/Devon commented on your round\./.test(document.getElementById('shBody').innerText)) return 'the inbox does not name Devon’s comment'
+      const metas = [...document.querySelectorAll('#shBody .cs-inbox-n .cs-agate-s')].map((e) => e.textContent.trim()).filter((t) => t)
+      const whole = metas.find((t) => / \u2014 /.test(t))
+      if (whole) return `an inbox line prints the whole course label: ${JSON.stringify(whole)}`
+      return metas.some((t) => /Mesquite Wash Golf Club \(fixture\)/.test(t)) ? true : `no inbox line names the club: ${JSON.stringify(metas)}`
+    }) },
   /* TEN / W7-036 [A2-home-10] · HOME_STATE_MATRIX S18 (UI_SYSTEM §13.3): a
      failed dispatch read keeps what is on the screen and says so. */
   /* (a) nothing was ever read: the lead slot says S18's sentence with Try
@@ -409,6 +464,19 @@ const toDevon = async (page) => {
   }
   await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-person' && !!document.getElementById('perOpenH2H'), null, 10000)
 }
+/* TEN / W8 · W7-100 [A2-golfers-8] · the meeting tape's end dates stand under their own end squares and the label column (YOURS / THEIRS) has nothing beneath it: 'SEP 21' stacked under 'THEIRS'
+   at the right edge, so the Sep 21 square (which is yours) read as theirs */
+const tapeDates = async (page) => page.evaluate(() => {
+  const tape = document.querySelector('.cstape'); if (!tape) return 'no meeting tape on the page'
+  const ticks = [...tape.querySelectorAll('.ticks i')], dates = [...tape.querySelectorAll('.tapedates span')], rows = tape.querySelector('.rows')
+  if (!dates.length) return 'the tape prints no end dates'
+  if (dates.length !== 2) return `the tape prints ${dates.length} end dates`
+  const first = ticks[0].getBoundingClientRect(), last = ticks[ticks.length - 1].getBoundingClientRect(), a = dates[0].getBoundingClientRect(), z = dates[1].getBoundingClientRect()
+  if (Math.abs(a.left - first.left) > 2) return `the first date starts ${Math.round(a.left - first.left)}px from the first square`
+  if (Math.abs(z.right - last.right) > 2) return `the last date ends ${Math.round(z.right - last.right)}px from the last square`
+  if (rows) { const r = rows.getBoundingClientRect(); if (z.right > r.left + 0.5) return 'the last date runs under the label column' }
+  return true
+})
 /* TEN / W7-044 [B2-golfers-3] · one golfer, one disc: the board and the
    buddies list draw the same (pigment, glyph) pair, face() for both. The state
    must show at least one golfer in both, or it proves nothing. */
@@ -523,6 +591,18 @@ const GOLFERS = [
         const f = getComputedStyle(def).fontFamily.split(',')[0]
         if (/mono|serif|new york|georgia/i.test(f) && !/sans/i.test(f)) return `the definition is set in ${f}`
         return (root.innerText.match(/see each other/gi) || []).length === 1 ? true : 'the definition is said more than once'
+      }),
+      /* TEN / W8 · W7-085 [A2-golfers-12]: the empty root has ONE act, the link, as the primary; 'Find golfers' was a second door to the search field under it, which is the find door;
+         and nothing on the page types an arrow */
+      async (page) => page.evaluate(() => {
+        const root = document.getElementById('glfRoot'), doors = [...root.querySelectorAll('.doors button')], field = document.getElementById('crFind')
+        if (doors.map((d) => d.textContent.trim()).join('|') !== 'Text someone a link') return `the root's doors read ${JSON.stringify(doors.map((d) => d.textContent.trim()))}, expected the link alone`
+        if (!doors[0].classList.contains('btn')) return 'the link is not the primary'
+        const r = field && field.getBoundingClientRect(), d = doors[0].getBoundingClientRect()
+        if (!r || !(r.width > 0)) return 'the search field is not drawn under the root'
+        if (r.top < d.bottom - 1) return 'the search field is not under the root\u2019s act'
+        const t = document.getElementById('view-golfers').innerText
+        return /[\u2192\u203a]/.test(t) ? 'the page types an arrow' : true
       })) },
   /* EXPECTED TO FAIL on current source: the tap lands on the person page,
      which reads "Couldn't pull that card" for everyone (the builder .catch
@@ -579,11 +659,11 @@ const GOLFERS = [
        page's head, and the pairing ("You and Devon Testwell") is its agate
        line — the page used to print the pairing twice around the name */
     expect: { view: 'view-h2h', selectors: { '#h2hName': 'text:^The Fixture Derby$', '#h2hMain .csleaf tbody tr': 'visible', '#h2hMain .cstape': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(tapeDates, async (page) => page.evaluate(() => {
       const t = document.getElementById('view-h2h').innerText
       if (!/You and Devon Testwell/i.test(t)) return 'the pairing is missing'
       return document.querySelectorAll('#view-h2h .cs-display').length ? 'a second display title is on the page' : true
-    }) },
+    })) },
   { family: 'golfers', id: 'board', variant: 'member', title: 'The league board · chat, round posts, kudos, a comment count', fullPage: false,
     drive: async (page) => {
       await page.evaluate(() => window.switchView('board'))

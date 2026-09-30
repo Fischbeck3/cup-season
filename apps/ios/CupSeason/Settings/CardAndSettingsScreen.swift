@@ -23,9 +23,6 @@ struct CardAndSettingsScreen: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
   @State private var vm = CardSettingsModel()
-  /// W7-042 · Back has asked about the pending edits (see `leave()`); a new
-  /// edit asks again
-  @State private var leaveAsked = false
   @State private var pane: Int
   /// Y-01 · both panes open the guide through this one door.
   @State private var guideSheet: GuideRoute?
@@ -69,7 +66,7 @@ struct CardAndSettingsScreen: View {
     }
     // W7-042 · the line the first Back says sits under Save, below the fold
     // of a golfer who edited the name: bring it into view
-    .onChange(of: leaveAsked) { _, asked in
+    .onChange(of: vm.leaveAsked) { _, asked in
       guard asked else { return }
       withAnimation { proxy.scrollTo(CardSettingsModel.statusID, anchor: .bottom) }
     }
@@ -118,12 +115,19 @@ struct CardAndSettingsScreen: View {
            + "@\(p.old) stays yours: it is held, so nobody else can take it, and you can move back to it.\n"
            + "Every league you are in is told.")
     }
-    .task { await vm.load(userId: store.session?.user.id) }
-    .onChange(of: vm.dirty) { _, dirty in if !dirty { leaveAsked = false } }
+    // The task runs again each time the page reappears: back from another
+    // tab, or from a page pushed over it. A reload over pending edits
+    // dropped them without a word (W7-042), so only a clean card reloads.
+    .task { if !vm.dirty { await vm.load(userId: store.session?.user.id) } }
+    // W7-042 · the card is the one on You's stack: a door elsewhere that
+    // would replace the stack asks it first (`CardEditGuard`)
+    .onAppear { CardEditGuard.shared.card = vm }
+    .onChange(of: vm.leaveRequest) { _, _ in leave() }
+    .onChange(of: vm.dirty) { _, dirty in if !dirty { vm.leaveAsked = false } }
     // a new edit is a new pending edit: the question's line goes with it, so
     // the page never says "do that again" of a way out that will ask
     .onChange(of: vm.editKey) { _, _ in
-      leaveAsked = false
+      vm.leaveAsked = false
       if vm.status?.0 == CardSettingsModel.unsaved { vm.status = nil }
     }
     .sheet(item: $guideSheet) { g in
@@ -137,16 +141,29 @@ struct CardAndSettingsScreen: View {
 
 extension CardAndSettingsScreen {
   /// W7-042 · the phone dropped a card's pending edits on Back, silently. The
-  /// first way out with edits pending, Back or the back gesture, keeps the
-  /// page, turns to the card and says why under Save; the next one leaves
-  /// without saving. It asks once per pending edit, with no stopwatch (root's
-  /// final rule).
+  /// first way out with edits pending, Back, the back gesture or the inbox's
+  /// settings door, keeps the page, turns to the card and says why under
+  /// Save; the next one leaves without saving. It asks once per pending edit,
+  /// with no stopwatch (root's final rule).
   func leave() {
-    if !vm.dirty || leaveAsked { dismiss(); return }
+    if !vm.dirty || vm.leaveAsked { dismiss(); return }
     pane = 0
     vm.status = (CardSettingsModel.unsaved, .mut)
-    leaveAsked = true
+    vm.leaveAsked = true
   }
+}
+
+/// W7-042 · the card on You's stack, as a door elsewhere sees it. The inbox's
+/// settings door reset You's stack, and a card left there with edits went
+/// with it, unasked. Now the door asks the card first, as Back does: the
+/// first time it lands on the card with the question under Save, and the
+/// next time it leaves (root's ruling). A weak hold, so a card that leaves
+/// the stack frees itself.
+@MainActor final class CardEditGuard {
+  static let shared = CardEditGuard()
+  weak var card: CardSettingsModel?
+  /// the card holds edits the question has not yet been asked about
+  var unasked: Bool { card.map { $0.dirty && !$0.leaveAsked } ?? false }
 }
 
 // MARK: - Model
@@ -166,11 +183,25 @@ final class CardSettingsModel {
   /// four consequences in front of the golfer before anything happens.
   var pendingHandle: HandleChange?
   var index = ""
-  var dirty = false
+  /// The card holds an edit the server does not have: its fields differ from
+  /// the card as last loaded or saved. This was a flag the fields' onChange
+  /// set, and the load filling the fields set it too, so a card nobody had
+  /// touched read "Save changes", hid the system's Back and was asked about
+  /// unsaved changes (W7-042).
+  var dirty: Bool { editKey != saved }
+  /// the card as last loaded or saved, in `editKey`'s form
+  private var saved = CardSettingsModel.blank
+  private static let blank = Array(repeating: "", count: 6).joined(separator: "\u{1F}")
   var saving = false
   var status: (String, CSTone)? = nil
   /// W7-042 · one sentence for every way out (root's final words)
   static let unsaved = "You have unsaved changes. Save them, or do that again to leave without saving."
+  /// W7-042 · a way out has asked about the pending edits (see
+  /// `CardAndSettingsScreen.leave()`); a new edit asks again
+  var leaveAsked = false
+  /// W7-042 · a way out from elsewhere (the inbox's settings door) asks the
+  /// page to do what Back does
+  var leaveRequest = 0
   /// Every card field in one value: a change is a new pending edit, which the
   /// guard asks about again.
   var editKey: String { [name, city, home, handle, ghin, marker ?? ""].joined(separator: "\u{1F}") }
@@ -201,7 +232,7 @@ final class CardSettingsModel {
       index = p.index_current.map { String(format: "%.1f", $0) } ?? ""
       notifyRounds = p.notify_rounds ?? true; notifyChat = p.notify_chat ?? true
     }
-    dirty = false
+    saved = editKey
   }
 
   func save() async {
@@ -361,13 +392,13 @@ private struct CardEditorPane: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       label("Name on the card")
-      CSField("", text: $vm.name, font: CSFont.body).textContentType(.name).onChange(of: vm.name) { vm.dirty = true }.accessibilityLabel("Name on the card")
+      CSField("", text: $vm.name, font: CSFont.body).textContentType(.name).accessibilityLabel("Name on the card")
       // N4-160 · the city and the home course each take the measure: a course
       // name is the longest free text on the card, and half of it was cut
-      VStack(alignment: .leading, spacing: 6) { label("City"); CSField("", text: $vm.city, font: CSFont.body).onChange(of: vm.city) { vm.dirty = true }.accessibilityLabel("City") }
+      VStack(alignment: .leading, spacing: 6) { label("City"); CSField("", text: $vm.city, font: CSFont.body).accessibilityLabel("City") }
       VStack(alignment: .leading, spacing: 6) { label("Home course"); homeCourse }
         // typing keeps the search open until a pick or a save closes it
-        .onChange(of: vm.home) { vm.dirty = true; if focused == .home, vm.home != homePicked { homeSearch = true } }
+        .onChange(of: vm.home) { if focused == .home, vm.home != homePicked { homeSearch = true } }
 
       label("Ball marker").padding(.top, 4)
       // D174 · the marker grid promised nothing and the audit found every member
@@ -377,7 +408,7 @@ private struct CardEditorPane: View {
       Fine("Your icon on the board and in the standings — add a photo and it rides in the corner of your card.")
       LazyVGrid(columns: columns, spacing: 8) {
         ForEach(CSMarkers.all) { m in
-          Button { vm.marker = m.key; vm.dirty = true; CSHaptic.selection() } label: {
+          Button { vm.marker = m.key; CSHaptic.selection() } label: {
             let on = vm.marker == m.key
             VStack(spacing: CSTokens.Space.s2) {
               CSMarkerView(m, size: 28).foregroundStyle(on ? cs.panelInk : cs.ink)
@@ -430,7 +461,7 @@ private struct CardEditorPane: View {
       A11yStack(rowAlignment: .top, spacing: 10) {
         VStack(alignment: .leading, spacing: 6) {
           label("Handle · 60-day lock")
-          CSField("@handle", text: $vm.handle).textInputAutocapitalization(.never).autocorrectionDisabled().onChange(of: vm.handle) { vm.dirty = true }
+          CSField("@handle", text: $vm.handle).textInputAutocapitalization(.never).autocorrectionDisabled()
             .accessibilityLabel("Handle")
         }
         VStack(alignment: .leading, spacing: 6) {
@@ -452,7 +483,7 @@ private struct CardEditorPane: View {
       .padding(.top, 4)
 
       label("GHIN # · optional").padding(.top, 4)
-      CSField("e.g. 1234567", text: $vm.ghin).keyboardType(.numberPad).frame(maxWidth: 200).onChange(of: vm.ghin) { vm.dirty = true }.accessibilityLabel("GHIN number, optional")
+      CSField("e.g. 1234567", text: $vm.ghin).keyboardType(.numberPad).frame(maxWidth: 200).accessibilityLabel("GHIN number, optional")
         .focused($focused, equals: .ghin)
       Text("A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.")
         .csType(.bodyS).foregroundStyle(cs.mut)
