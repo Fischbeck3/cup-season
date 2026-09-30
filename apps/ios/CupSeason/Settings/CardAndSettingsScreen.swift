@@ -495,6 +495,9 @@ private struct CardEditorPane: View {
       }
       .padding(.top, 6)
 
+      CSSectionHead("Your card link").padding(.top, CSTokens.Space.s4)
+      PersonInviteLink(store: store, always: true)
+
       Text("Handicap index").csEyebrow().padding(.top, 16)
       if vm.profile?.index_source == "app" {
         // Y-06 · once the engine owns the number, `set_index` refuses an edit by
