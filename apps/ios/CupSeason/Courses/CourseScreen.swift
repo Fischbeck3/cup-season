@@ -255,7 +255,7 @@ struct CourseScreen: View {
       ZStack {
         CSTokens.dark.ceremony
         CSContour(seed: book.id, tint: CSTokens.dark.ceremonyMut.opacity(CSTokens.Alpha.a56),
-                  mark: vm.hardestHole(book) != nil ? CSTokens.dark.ceremonyBrand : nil)
+                  mark: vm.hardestHole(book) != nil ? CSTokens.dark.ceremonyInk : nil)
       }
     }
   }

@@ -2,7 +2,7 @@
 //
 // The desk's `.rcpt-moment`: the course and the day in the metadata voice, the
 // gross at the tournament figure in the BOARD face, the verdict beneath it in
-// the serif, a neutral hairline, the tagline and the mark signing the corner —
+// the serif, a neutral hairline, the pennant signing the corner —
 // under the round's photograph, a 3:2 plate, when there is one (§10.3, N4-070),
 // and on the raised ground with a sparse contour when there is not. Every value is the
 // round's own; a missing fact leaves its line absent. No invented round facts,
@@ -100,7 +100,6 @@ struct ReceiptMoment: View {
         .frame(width: 64)
         .padding(.top, CSTokens.Space.s3)
       HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-        Text(CSBrandCopy.tagline.replacingOccurrences(of: "\n", with: " ")).csType(.agateS, caps: true).foregroundStyle(cs.ink.opacity(0.7))
         Spacer(minLength: 0)
         CSBrandMark().frame(width: 34, height: 20).foregroundStyle(cs.ink)
       }

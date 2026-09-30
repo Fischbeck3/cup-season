@@ -29,6 +29,7 @@ struct FeedbackSheet: View {
               Text(title).csType(.nameS).foregroundStyle(on ? cs.act : cs.ink)
                 .padding(.horizontal, 12).padding(.vertical, 8)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+                .csFieldEdge()
                 .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.act : cs.rule, lineWidth: 1))
                 .a11yHitSlop(vertical: 5, horizontal: 0)
             }
@@ -42,6 +43,7 @@ struct FeedbackSheet: View {
           .frame(minHeight: 120)
           .padding(10)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+          .csFieldEdge()
           .overlay(alignment: .topLeading) {
             if body_.isEmpty {
               Text("Where did the app get in your way? Even a half-formed thought helps.")
@@ -103,6 +105,7 @@ struct FounderNoteSheet: View {
           .csType(.body).foregroundStyle(cs.ink).scrollContentBackground(.hidden)
           .frame(minHeight: 120).padding(10)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+          .csFieldEdge()
           .overlay(alignment: .topLeading) {
             if body_.isEmpty { Text("What you noticed, before it slips").csType(.body).foregroundStyle(cs.mut).padding(16).allowsHitTesting(false) }
           }

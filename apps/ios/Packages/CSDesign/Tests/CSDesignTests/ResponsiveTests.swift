@@ -74,18 +74,13 @@ import SwiftUI
     #expect(CSSlatMetrics.trailingWidth(at: 375) >= 44, "the floor is what a two-digit total needs")
   }
 
-  /// **The abbreviation is a MEASURE, not a count.** Eight rows that set
-  /// perfectly on a Max truncated two surnames on an SE, because the rule was
-  /// `count >= 10` and the column is a width.
-  @Test func theBoardAbbreviatesWhenTheFieldDoesNotFit() {
-    let long = ["Priya Raghunathan", "Bartholomew Winterbourne", "Sam Ridley"]
-    let short = ["Jade Okafor", "Dev Rana", "Tash Bell"]
-    #expect(CSSlatMetrics.abbreviates(names: long, count: 3, measure: 375, size: .large),
-            "the SE cannot hold the longest of these")
-    #expect(!CSSlatMetrics.abbreviates(names: short, count: 3, measure: 440, size: .large),
-            "the Max can, so it prints them whole")
-    #expect(CSSlatMetrics.abbreviates(names: short, count: 12, measure: 440, size: .large),
-            "a field of ten or more keeps ONE grammar whatever the phone")
+  @Test func longNamesStayWholeOnNarrowAndLargeTypeBoards() {
+    for width: CGFloat in [375, 402, 440] {
+      for size in [DynamicTypeSize.large, .accessibility3] {
+        #expect(!CSSlatMetrics.abbreviates(names: ["Maximilian Placeholder-Worthington", "Avery Fixture"],
+                                          count: 12, measure: width, size: size))
+      }
+    }
   }
 
   /// The three measures the product is read at, named rather than hard-coded

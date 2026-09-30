@@ -15,6 +15,7 @@ struct DoorView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var vm = DoorModel()
   @State private var entering = false
+  @State private var showingBuild = false
   @State private var playForge: Bool? = nil
   @State private var risen = false
   @State private var flags = DoorFlags.closed
@@ -147,6 +148,11 @@ struct DoorView: View {
     // next launch to verify it. Code-only, DEBUG-only, never in a shipped build.
     .task { await vm.devHatch(ProcessInfo.processInfo.arguments) }
     #endif
+    .alert("Build", isPresented: $showingBuild) {
+      Button("Close", role: .cancel) {}
+    } message: {
+      Text("v1 · build \(SessionStore.bundleBuild())")
+    }
   }
 
   // MARK: crest — the Forge, or its rest frame
@@ -155,6 +161,12 @@ struct DoorView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: CSTokens.Space.s5) {
         CSBrandMark().frame(width: 112, height: 64).foregroundStyle(cs.ink)
+          .contentShape(Rectangle())
+          .onLongPressGesture { showingBuild = true }
+          .accessibilityHidden(false)
+          .accessibilityLabel("Cup Season")
+          .accessibilityIdentifier("door.buildReveal")
+          .accessibilityAction(named: Text("Show build")) { showingBuild = true }
         Text(CSBrandCopy.tagline).csType(.lead).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityAddTraits(.isHeader)
@@ -209,7 +221,15 @@ struct DoorView: View {
     focus = .email
   }
 
-  private var crest: some View { DoorCrest() }
+  private var crest: some View {
+    DoorCrest()
+      .contentShape(Rectangle())
+      .onLongPressGesture { showingBuild = true }
+      .accessibilityHidden(false)
+      .accessibilityLabel("Cup Season")
+      .accessibilityIdentifier("door.buildReveal")
+      .accessibilityAction(named: Text("Show build")) { showingBuild = true }
+  }
 
   /// The door's paragraph — the invited stranger's own sentence when there is
   /// one, the pitch when there is not. Drawn from one place because IOS-064
@@ -323,13 +343,7 @@ struct DoorView: View {
         .padding(.vertical, CSTokens.Space.s3)
         .frame(maxWidth: .infinity, minHeight: 64)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        // §7.2 · a field has NO border; focus is the one 2px brand ring
-        .overlay {
-          if focus == .code {
-            RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-              .stroke(cs.act, lineWidth: 2)   // D359 · a focus ring is an ordinary interactive state
-          }
-        }
+        .csFieldEdge(focused: focus == .code)
         .focused($focus, equals: .code)
         .onChange(of: vm.code) { _, new in
           let clean = AuthRules.normalizeCode(new)
@@ -365,6 +379,7 @@ struct DoorView: View {
         .accessibilityLabel("Review password")
         .padding(.horizontal, 14).frame(minHeight: 48)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .csFieldEdge(focused: focus == .password)
         .focused($focus, equals: .password)
         .onSubmit { reviewer() }
       Button("Sign in") { reviewer() }.buttonStyle(.csPrimary(busy: vm.busy)).id(DoorLayout.action)
@@ -389,7 +404,6 @@ struct DoorView: View {
         .foregroundStyle(cs.mut)
         .tint(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
-      Text("v1 · build \(SessionStore.bundleBuild())").csType(.columnS).foregroundStyle(cs.mut)
     }
   }
 

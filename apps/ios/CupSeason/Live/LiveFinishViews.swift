@@ -157,9 +157,10 @@ struct LiveRecapSheet: View {
               // of the same facts: the card itself, scaled to the measure.
               settlementCard(r)
               if let H = r.holes, !H.cells.isEmpty {
-                // W4 twin · the shape channel, keyed in words and said once
-                LiveHoleStrip(ledger: H, hot: H.hot?.key, hotName: H.legend, otherName: nil)
-                let hl = H.highlights
+                // Q1 · the card owns the strip; its one footer sits below it.
+                Text(H.footer).csType(.agateS, caps: true).foregroundStyle(d.ceremonyMut)
+                  .accessibilityHidden(true) // included in the card's spoken ledger
+                let hl = H.highlights.filter { !$0.hasPrefix("CLOSED OUT ON") }
                 if !hl.isEmpty {
                   LiveFlow(spacing: CSTokens.Space.s2) {
                     ForEach(hl, id: \.self) { t in CSChip(t, selected: false) }
@@ -290,7 +291,7 @@ struct LiveRecapSheet: View {
     // one element, the picture: a label on the container alone is copied onto
     // each of the card's nine words, and VoiceOver read it nine times
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel("The settlement card. \(r.share.isEmpty ? "Settled" : r.share)")
+    .accessibilityLabel("The settlement card. \(r.share.isEmpty ? "Settled" : r.share). \(r.holes.map { $0.summary(hot: $0.hot?.key, hotName: $0.legend, otherName: nil) } ?? "")")
     .accessibilityAddTraits(.isImage)
     .accessibilityIdentifier("live.recap.card")
   }
@@ -339,98 +340,6 @@ struct LiveRecapSheet: View {
   private func revoke() async {
     do { try await store.repo.revokeShare(kind: "settlement", ref: data.lr); toast.show("Link is off — the page stops working for everyone", kind: .confirmed) }
     catch { toast.show(HumanError.text(error, prefix: "Could not revoke."), kind: .failed) }
-  }
-}
-
-// MARK: - the D78 hole strip (8045–8071)
-
-/// "3&2" states a margin; the strip states the SHAPE. The subject's holes take
-/// `brand`, everyone else's `cool`, hollow halved or carried, faded unplayed —
-/// on the ceremony ramp, so the strip in the recap and the strip on the card
-/// are the same drawing.
-/// W4 twin · **SHAPE AS WELL AS COLOUR** (critique B P1; UI_SYSTEM §16.4,
-/// WCAG 1.4.1). Heat and slate measured 1.05:1 in luminance, so hue alone said
-/// who won each hole. The subject's holes are full-height fills; everyone
-/// else's are HALF-height fills on the same baseline; a halved or carried
-/// hole is a hollow outline; a hole never played is a dashed outline. The key
-/// says every kind in words, and the strip is one image with one sentence
-/// (`LiveLedger.summary`) — the web's `renderHoleStrip`, `holeStripKey` and
-/// `holeStripSummary`.
-struct LiveHoleStrip: View {
-  let ledger: LiveLedger
-  let hot: String?
-  var hotName: String? = nil
-  var otherName: String? = nil
-  var hotColor = CSTokens.dark.ceremonyBrand
-  var coolColor = CSTokens.dark.ceremonyCool
-  var mutColor = CSTokens.dark.ceremonyMut
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      VStack(spacing: CSTokens.Space.s2) {
-        HStack(alignment: .bottom, spacing: 3) {
-          ForEach(0..<max(1, ledger.n), id: \.self) { i in
-            let v = i < ledger.cells.count ? ledger.cells[i] : nil
-            cell(v, tall: ledger.closed == i + 1 ? 22 : 16)
-          }
-        }
-        .frame(height: 22, alignment: .bottom)
-        HStack {
-          Text("1")
-          Spacer()
-          Text(ledger.footer).foregroundStyle(ledger.closed != nil ? hotColor : mutColor)
-          Spacer()
-          Text(String(ledger.n))
-        }
-        .csType(.agateS, caps: true).foregroundStyle(mutColor)
-      }
-      // one element, one sentence: who won how many, halved, carried, where it ended
-      .accessibilityElement(children: .ignore)
-      .accessibilityLabel(ledger.summary(hot: hot, hotName: hotName, otherName: otherName))
-      .accessibilityIdentifier("live.recap.strip")
-      key.accessibilityHidden(true)
-    }
-    .padding(.top, CSTokens.Space.s2)
-  }
-
-  /// The key, all kinds in words, each beside the shape it keys. The shapes
-  /// are the cells' own: square-cornered bars, as the strip has always drawn
-  /// them (no radius outside the five, and no container shape, LINT-05/10).
-  private var key: some View {
-    LiveFlow(spacing: CSTokens.Space.s3) {
-      item(hotName.map { "\($0) won" } ?? "Won") { Rectangle().fill(hotColor).frame(width: 10, height: 14) }
-      item(otherName.map { "\($0) won" } ?? "Theirs") { Rectangle().fill(coolColor).frame(width: 10, height: 7) }
-      if ledger.drawsHalved { item("Halved") { hollow.frame(width: 10, height: 14) } }
-      if ledger.drawsCarried { item("Carried") { hollow.frame(width: 10, height: 14) } }
-    }
-  }
-
-  private func item<S: View>(_ word: String, @ViewBuilder _ swatch: () -> S) -> some View {
-    HStack(alignment: .bottom, spacing: CSTokens.Space.s1) {
-      swatch().frame(height: 14, alignment: .bottom)
-      Text(word).csType(.agateS, caps: true).foregroundStyle(mutColor)
-    }
-  }
-
-  private var hollow: some View {
-    Rectangle().strokeBorder(mutColor, lineWidth: 1.5)
-  }
-
-  @ViewBuilder private func cell(_ v: LiveCell?, tall: CGFloat) -> some View {
-    if let v {
-      if v == .h || v == .c {
-        hollow.frame(maxWidth: .infinity).frame(height: tall)                           // halved, or carried
-      } else if let hot, v.key == hot {
-        Rectangle().fill(hotColor)
-          .frame(maxWidth: .infinity).frame(height: tall)                               // the subject's: full height
-      } else {
-        Rectangle().fill(coolColor)
-          .frame(maxWidth: .infinity).frame(height: (tall / 2).rounded())               // anyone else's: half height
-      }
-    } else {
-      Rectangle().strokeBorder(mutColor, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
-        .frame(maxWidth: .infinity).frame(height: tall).opacity(CSTokens.Alpha.a56)     // never played
-    }
   }
 }
 
@@ -514,8 +423,10 @@ struct LiveSettlementCard: View {
               let mine = v != nil && HL.hot != nil && v!.key == HL.hot!.key
               Rectangle()
                 .fill(hollow ? Color.clear : (mine ? d.ceremonyBrand : d.ceremonyCool))
-                .overlay(Rectangle().stroke(hollow ? d.ceremonyInk.opacity(CSTokens.Alpha.a56) : .clear, lineWidth: 2))
-                .frame(maxWidth: .infinity).frame(height: isClose ? 56 : 46)
+                .overlay(Rectangle().stroke(hollow ? d.ceremonyInk.opacity(CSTokens.Alpha.a56) : .clear,
+                                           style: StrokeStyle(lineWidth: 2, dash: v == nil ? [6, 4] : [])))
+                // W4's shape channel survives in the one remaining strip.
+                .frame(maxWidth: .infinity).frame(height: !hollow && !mine ? 23 : (isClose ? 56 : 46))
                 .opacity(v == nil ? CSTokens.Alpha.a24 : 1)
             }
           }

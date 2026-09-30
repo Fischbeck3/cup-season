@@ -480,6 +480,13 @@ export default function install(W) {
       const live = T.shares.find((s) => s.kind === p_kind && s.ref_id === p_ref && s.created_by === me && !s.revoked)
       return (live || mint({ kind: p_kind, ref_id: p_ref, created_by: me, include_photo: null, completed_at: W.at(0, 9, 30) })).token
     },
+    /* 20260723210000_shared_photo_travel.sql: revoke only the signed-in owner's live token. */
+    revoke_share: ({ p_token }) => {
+      const row = T.shares.find(s => s.token === p_token && s.created_by === me && !s.revoked)
+      if (!row) return false
+      row.revoked = true
+      return true
+    },
     /* 20261117090000_shared_card_consent.sql -- the storage policy's pre-check: the golfer's own live round token */
     can_drop_share_copy: ({ p_name }) => { const t = String(p_name || '').replace(/\.(png|jpg)$/, ''); return T.shares.some((s) => s.token === t && s.created_by === me && !s.revoked) },
     /* 20261206090000_withdrawal_can_finish.sql */

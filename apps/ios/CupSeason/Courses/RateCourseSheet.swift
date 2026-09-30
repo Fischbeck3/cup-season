@@ -5,15 +5,8 @@
 // the control, the figure, the line, and the two numbers that give the figure
 // something to be compared against.
 //
-// THE GEOMETRY ARGUMENT, STATED IN THE FILE THAT LIVES WITH IT. The first
-// draft asserted "44pt minimum target per half", which the geometry cannot
-// deliver: five stars × two halves is ten discrete targets and 10 × 44 = 440pt
-// against a 362pt measure (335 on an SE). So the half-star hit region is
-// **28pt** — above WCAG 2.5.8's 24 × 24, below this system's own 44 — and the
-// **−½ / +½ stepper pair at 44pt** is what makes that legal (`UI_SYSTEM`
-// §16.2 carries the carve-out by name). The rail is also
-// `.accessibilityAdjustable` at 0.5 increments, so VoiceOver never has to hit
-// a 28pt target at all.
+// Q34: the rail has five44pt whole-star targets. The44pt half-step pair
+// sits below it; there is no narrow half-star hit region or target carve-out.
 //
 // NO GOLD, IN OR OUT OF THE CONTROL. Filled stars are `ink`; the unfilled
 // remainder is `mut`. An average of opinions is not earned (D275), and gold
@@ -28,9 +21,7 @@
 // to — the owner's *"what we thought of the course"*, and the whole reason
 // `course_ratings` grew a `note` column.
 //
-// The fine control stays because it is the ACCESSIBLE one: a 28pt half with
-// 44pt steppers beside it and an adjustable rail for VoiceOver. A golfer who
-// cannot hit a half star on the page can always come here.
+// Whole stars, half steps and VoiceOver adjustment use the same shared rail.
 
 import SwiftUI
 import CSDesign
@@ -129,30 +120,14 @@ struct RateCourseSheet: View {
 
   // MARK: the control
 
-  /// A continuous drag rail with a 44pt stepper on either side. The drag maps
-  /// *x* to the nearest half and fires `.selection` on every half step; the
-  /// steppers are the tap case, and the whole thing is one adjustable element
-  /// to VoiceOver.
+  /// Q34: the same44pt star targets as the course page, with half steps below.
   private var control: some View {
-    HStack(spacing: CSTokens.Space.s3) {
-      step("−", enabled: stars > 0.5) { set(stars - 0.5) }
-      GeometryReader { geo in
-        CSStarRail(stars, size: 40)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .contentShape(Rectangle())
-          .gesture(
-            DragGesture(minimumDistance: 0)
-              .onChanged { g in set(value(at: g.location.x, in: geo.size.width), haptic: true) }
-          )
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      CSStarRail(stars, size: 44, onSet: { set($0, haptic: true) })
+      HStack(spacing: CSTokens.Space.s3) {
+        step("−½", enabled: stars > 0.5) { set(stars - 0.5, haptic: true) }
+        step("+½", enabled: stars < 5) { set(stars + 0.5, haptic: true) }
       }
-      .frame(height: 56)
-      step("+", enabled: stars < 5) { set(stars + 0.5) }
-    }
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Your rating")
-    .accessibilityValue(CSStarRail.spoken(stars))
-    .accessibilityAdjustableAction { d in
-      set(d == .increment ? stars + 0.5 : stars - 0.5, haptic: true)
     }
   }
 
@@ -164,16 +139,7 @@ struct RateCourseSheet: View {
     }
     .buttonStyle(.plain)
     .disabled(!enabled)
-    .accessibilityHidden(true)
-  }
-
-  /// *x* → the nearest half star. Five stars over the measure, clamped to the
-  /// legal range, so the leading edge is half a star rather than zero: a rail
-  /// you cannot drag to zero is the constraint the column carries.
-  func value(at x: CGFloat, in width: CGFloat) -> Double {
-    guard width > 0 else { return stars }
-    let raw = Double(max(0, min(width, x)) / width) * 5
-    return min(5, max(0.5, (raw * 2).rounded(.up) / 2))
+    .accessibilityLabel(glyph == "−½" ? "Decrease rating by half a star" : "Increase rating by half a star")
   }
 
   private func set(_ v: Double, haptic: Bool = false) {

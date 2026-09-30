@@ -386,9 +386,26 @@ public struct CSSegment<T: Hashable>: View {
   }
 }
 
+/// Q46 / OWNER-QUESTIONS §R: one visible edge for every filled text field.
+private struct CSFieldEdge: ViewModifier {
+  @Environment(\.cs) private var cs
+  let focused: Bool
+  func body(content: Content) -> some View {
+    content.overlay {
+      RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
+        .strokeBorder(focused ? cs.act : cs.mut, lineWidth: focused ? 2 : 1)
+        .allowsHitTesting(false)
+    }
+  }
+}
+
+public extension View {
+  func csFieldEdge(focused: Bool = false) -> some View { modifier(CSFieldEdge(focused: focused)) }
+}
+
 // MARK: - The field
 
-/// 50pt, `rc` 10, `bg2` fill, **no border**. Focus is a 2px `brand` ring.
+/// Q46: 50pt, rc10, bg2 fill and an opaque mut edge. Focus uses act.
 ///
 /// **The full family, which is the audit's "inputs" item**: label in agate
 /// above · value · caption in `body` 15 at `mut` beneath, which doubles as the
@@ -470,14 +487,7 @@ public struct CSField: View {
         .frame(minHeight: 50)
         .background(enabled ? cs.bg2 : cs.bg1,
                     in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay {
-          // the ONE outline a field is allowed: the focus ring. It is an
-          // ordinary interactive state, so it takes `act` and not ember.
-          if focused {
-            RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-              .stroke(cs.act, lineWidth: 2)
-          }
-        }
+        .csFieldEdge(focused: focused)
         .overlay(alignment: .trailing) {
           if loading { CSTallyDots(tint: cs.mut).padding(.trailing, CSTokens.Space.s3) }
         }
