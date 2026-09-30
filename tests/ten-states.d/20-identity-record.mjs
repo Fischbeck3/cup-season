@@ -125,11 +125,48 @@ const receiptActions = async (page) => page.evaluate(() => {
   if (getComputedStyle(row).borderTopWidth !== '1px') return 'the delete row is not under a rule'
   return del.classList.contains('del') ? true : 'the delete button lost its destructive class'
 })
+/* TEN / W8 · W7-126 [B2-competition-8] · a live season's line on the record says where the golfer stands and no second state word: 'In play' is the finish column's word, so the line does not end 'in season' */
+const liveLine = async (page) => page.evaluate(() => {
+  const rec = document.getElementById('lgRec')
+  if (!rec) return 'no league record'
+  if (/in season/i.test(rec.textContent)) return `the record's live line still says 'in season': ${JSON.stringify(rec.textContent.replace(/\s+/g, ' ').trim().slice(0, 140))}`
+  return /In play/i.test(rec.textContent) ? true : 'the record has no live season to read'
+})
+/* TEN / W8 · W7-106 [B2-identity-12] · a failed (or pending) career read leaves the card's strip with the figures it knows: a slot with no figure is absent, so the card never prints '— ROUNDS'
+   above a page that says how many were posted */
+const failedYou = async (page) => page.evaluate(() => {
+  const dashed = [...document.querySelectorAll('#youFigs .cfig')].filter((c) => c.querySelector('b').textContent.trim() === '\u2014')
+  if (dashed.length) return `the card prints ${dashed.length} figure(s) as a dash: ${JSON.stringify(dashed.map((c) => c.textContent.replace(/\s+/g, ' ').trim()))}`
+  /* TEN / W8 · W7-101 [A2-identity-12] · the failed read's one act, Try again, is the primary (.btn) and at least half of it clears the tab band on the first screen */
+  const b = document.getElementById('youRecentRetry')
+  if (!b) return 'the failed read has no Try again'
+  if (!b.classList.contains('btn')) return 'Try again is not the primary'
+  if (innerWidth < 960) {
+    const band = document.querySelector('nav.tabbar'), top = band ? band.getBoundingClientRect().top : innerHeight, r = b.getBoundingClientRect()
+    const shown = Math.max(0, Math.min(r.bottom, top) - Math.max(r.top, 0))
+    if (shown < r.height / 2) return `Try again is ${Math.round(shown)} of ${Math.round(r.height)}px above the tab band on the first screen`
+  }
+  return true
+})
+/* TEN / W8 · W7-115 [A2-identity-17] · the empty record is a DRAWN object under an agate eyebrow and a headline, as the phone draws it: a blank scorecard (64px, mut), 'The first card', 'Your record fills as you play.',
+   and the page's one primary 'Add my round'; no headline about the golfer's omission ('No rounds yet') and no body line repeating it */
+const emptyObject = async (page) => page.evaluate(() => {
+  const box = document.querySelector('#youRecent .tempty'); if (!box) return 'no empty record is drawn'
+  const svg = box.querySelector('svg.youempty-obj'), eyebrow = box.querySelector('.cs-agate'), head = box.querySelector('h3'), door = box.querySelector('[data-empty-go="record"]')
+  if (!svg || Math.round(svg.getBoundingClientRect().width) !== 64 || Math.round(svg.getBoundingClientRect().height) !== 64) return 'the empty record draws no 64px object'
+  const probe = document.createElement('i'); probe.style.color = 'var(--mut)'; document.body.appendChild(probe); const mut = getComputedStyle(probe).color; probe.remove()
+  if (getComputedStyle(svg).color !== mut) return `the object is ${getComputedStyle(svg).color}, not mut`
+  if (!eyebrow || eyebrow.textContent.trim() !== 'The first card') return `the eyebrow reads ${JSON.stringify(eyebrow && eyebrow.textContent.trim())}`
+  if (!head || head.textContent.trim() !== 'Your record fills as you play.') return `the headline reads ${JSON.stringify(head && head.textContent.trim())}`
+  if (/No rounds yet/i.test(box.textContent) || box.querySelector('p')) return 'the empty record still carries a line about the omission or a body line'
+  if (!(svg.compareDocumentPosition(eyebrow) & Node.DOCUMENT_POSITION_FOLLOWING) || !(eyebrow.compareDocumentPosition(head) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the empty record does not read object, eyebrow, headline'
+  return door && door.classList.contains('btn') && door.textContent.trim() === 'Add my round' ? true : 'the empty record lost its one primary'
+})
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
     drive: youSettled('empty'), expect: { view: 'view-stats', selectors: { '#youCard': 'visible', '#youName': 'text:^Avery Fixture$' } },
-    check: all(recordState('empty'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 0 ? true : 'a round row rendered for a golfer with none'),
+    check: all(recordState('empty'), emptyObject, async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 0 ? true : 'a round row rendered for a golfer with none'),
       /* TEN / W8 · W7-009: an empty record says the first round is missing and holds the door, so the sidebar's sentence and door stand down */
       standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]']),
       /* TEN / W8 · W7-055: an empty record has one section, so no index */
@@ -139,7 +176,7 @@ const YOU = [
      The door and its row stand down; the season row stays. The harness's you/empty is league-less and could not draw this. */
   { family: 'you', id: 'empty-in-season', variant: 'member', world: { rounds: 'none' }, title: 'You · seated in a season with no rounds posted yet',
     drive: youSettled('empty'), expect: { view: 'view-stats', selectors: { '#youCard': 'visible', '#youName': 'text:^Avery Fixture$' } },
-    check: all(recordState('empty'),
+    check: all(recordState('empty'), emptyObject,
       async (page) => page.evaluate(() => innerWidth < 960 || document.querySelector('#sideMe [data-mego="season_row"]') ? true : 'the sidebar holds no season row: this is not the state the pin is for'),
       standsDown(['#sideMe [data-mego="add_round"]', '#sideMe .medoors']), footStays) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
@@ -148,7 +185,7 @@ const YOU = [
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
-    check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
+    check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), liveLine, notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
       readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */
@@ -163,7 +200,7 @@ const YOU = [
     /* W7-101 [A2-identity-12] · the page index stands down on a failed read, so
        "Try again" is not pushed under the tab band at 375x667 */
     drive: youSettled('failed'), expect: { view: 'view-stats', selectors: { '#youRecentRetry': 'visible', '#youJump': 'hidden' } },
-    check: all(recordState('failed'), text('#youRecent', 'didn.t load', 'the failure line')) },
+    check: all(recordState('failed'), text('#youRecent', 'didn.t load', 'the failure line'), failedYou) },
 ]
 
 /* ------------------------------------------------------ THE RECORD (photos) */
@@ -271,6 +308,8 @@ const RECEIPT = [
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
     check: all(heroState('photo'), receiptActions,
+      /* TEN / W8 · W7-086: while the photo opens, Share asks about it (the tick is there, checked) */
+      async (page) => page.evaluate(() => { const ok = document.getElementById('rcptPhotoOk'); return ok && ok.checked ? true : 'the receipt of a round whose photo opens does not offer Include round photo' }),
       /* S9 · a picture that is showing says nothing */
       async (page) => page.evaluate(() => { const g = document.getElementById('rcptPhotoGone'); return !g || g.hidden ? true : 'the photo-unavailable line shows over a photo that loaded' }),
       async (page) => page.evaluate(() => {
@@ -331,6 +370,9 @@ const RECEIPT = [
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptPhotoGone': 'text:^This round\u2019s photo couldn\u2019t be opened\.$', '#rcptPhotoBtn': 'visible', '#rcptPhotoClear': 'visible' } },
     check: async (page) => page.evaluate(() => {
+      /* TEN / W8 · W7-086 [A2-history-7, B2-history-7]: a photo the receipt says cannot be opened is not offered to Share: no 'Include round photo' tick beside the sentence that says so */
+      if (document.getElementById('rcptPhotoOk')) return "'Include round photo' is still offered over a photo that cannot be opened"
+      if (document.getElementById('shBody').innerText.includes('Include round photo')) return "the receipt still says 'Include round photo'"
       const g = document.getElementById('rcptPhotoGone').getBoundingClientRect()
       if (g.top < 0 || g.bottom > innerHeight) return 'the line is not on screen'
       const f = getComputedStyle(document.getElementById('rcptPhotoGone')).fontFamily
@@ -406,9 +448,21 @@ const courseBlocked = async (page) => page.evaluate((words) => {
   const w = e.getBoundingClientRect()
   return w.top >= 0 && w.bottom <= innerHeight ? true : 'the words are off screen from the field they name'
 }, NO_COURSE)
+/* TEN / W8 · W7-063 [A2-post-8, B2-post-8, B2-desk-24] · the hero's focus ring is the field family's own (input.f: a 2px ring 1px out, the control radius), not a square drawn 6px out that met the label
+   above it and stood outside the column; focused here, so the capture shows it */
+const heroRing = async (page) => page.evaluate(() => {
+  const g = document.getElementById('inGross'); g.focus()
+  const cs = getComputedStyle(g), lab = document.querySelector('label[for="inGross"]')
+  if (!g.matches(':focus-visible')) return 'the hero does not show its focus ring'
+  if (cs.outlineStyle !== 'solid' || parseFloat(cs.outlineWidth) !== 2) return `the ring is ${cs.outlineWidth} ${cs.outlineStyle}`
+  if (parseFloat(cs.outlineOffset) !== 1) return `the ring is drawn ${cs.outlineOffset} out, not 1px`
+  if (parseFloat(cs.borderTopLeftRadius) !== 10) return `the ring has radius ${cs.borderTopLeftRadius}, not the control radius (10px)`
+  if (lab) { const top = g.getBoundingClientRect().top - 3, bottom = lab.getBoundingClientRect().bottom; if (top < bottom - 0.5) return `the ring's top edge (${Math.round(top)}) runs into the label (${Math.round(bottom)})` }
+  return true
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } }, check: heroRing },
   /* TEN / W6 · critique A2 (P1), then root's noCourse ruling (2026-09-29): a
      first round's gross, then Add my round, with no course yet. The guidance
      never points at a folded field and never leaves on a toast: the fold

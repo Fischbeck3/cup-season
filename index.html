@@ -570,6 +570,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   color:var(--mut); border-bottom:1px solid var(--rule);
 }
 .csans-b:disabled{opacity:.5; cursor:default;}
+.csans-b.is-armed{color:var(--neg); border-bottom-color:var(--neg);}   /* W7-077 · the armed 'Didn’t play': it ends the plan for good, so it says so in neg until the second tap */
 .csans-b:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
 /* TEN · the quiet doors at Home's foot: text links on a 2px mut rule with a
    44px target (§2.5: a link that is not the screen's live action) */
@@ -848,6 +849,10 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .sb-dialog .sb-round:hover{text-decoration-color:var(--ink);}
 .sb-dialog [data-book-row][aria-current="true"]{box-shadow:inset 0 0 0 2px var(--ink);}   /* W7-129 · the open receipt's cell: a drawn shape in ink, never ember */
 .sb-dialog .sb-back{min-height:44px; display:block;}
+/* W7-135 · 'Skip to adjustments': out of the way until it is the focused stop, then the Book's link in content (ink, a 2px mut rule, 44 tall) */
+.sb-skip{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap;}
+.sb-skip:focus-visible{position:static; width:auto; height:auto; overflow:visible; clip-path:none; display:inline-flex; align-items:center; min-height:44px; color:var(--ink); font-family:var(--sans); font-size:15px;
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px; outline:2px solid var(--ink); outline-offset:2px;}
 /* the crown on a finished Book, and what the ladder says when the top is level */
 .sb-crown{font-family:var(--sans);}
 .sb-crown b{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-right:var(--s2);}
@@ -1199,7 +1204,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
 /* the clinch/scenario line — the endgame math, quieter than the story above */
-.scenLine{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); line-height:1.2; text-transform:uppercase; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--rule);}   /* TEN / W6 · AW2-06, OB-05, OB2-04: agateS in caps on the tracking token, as the phone's ScenarioLineView sets it — never mono */
+.scenLine{color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--rule);}   /* W7-071 · the clinch line is BODY text (cs-body-s: sans 15px) in mut, as sentences: the tracked mono-era caps (font-family, size, letter-spacing, line-height, uppercase, weight) are the role's now */
 .scenLine .clinch{color:var(--pos);}
 .scenLine .out{color:var(--mut);}
 .scenLine b{color:var(--ink); font-weight:600;}
@@ -1221,6 +1226,9 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
   padding:4px 8px 10px;
 }
 .tbl th.num, .tbl td.num{text-align:right;}
+/* W7-067 · the open clash's one ember dot (the shape and the fill on their own lines, as .csedn .dot does: a dot is not a container) */
+.tbl .clashdot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:var(--s2); vertical-align:1px;}
+.tbl .clashdot{background:var(--brand);}
 .tbl td{padding:11px 8px; border-top:1px solid var(--rule); vertical-align:middle;}
 /* THE RANK RAIL (Wave 5, UI_SYSTEM 9.1). 44px, radius 0, a two-digit tabular
    numeral with a leading zero, and a FIELD: `gold` when the position was
@@ -1262,6 +1270,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .tbl .chg .tri.up{border-bottom:7px solid var(--pos);}
 .tbl .chg .tri.dn{border-top:7px solid var(--cool);}
 .tbl .chg .held{display:inline-block; width:9px; height:2px; background:var(--mut); vertical-align:3px;}
+@media(min-width:960px){ .tbl[data-since] td.chg:not(.since) .mv, .tbl[data-since] td.chg:not(.since) .held{display:none;} }   /* W7-112 · the mark lives under its own head from 960 */
 /* the gap and the movement mark are two facts in one cell: a held bar set
    flush against "+34" read as "+34–" (the owner's panel) */
 .tbl .chg .gp + .held, .tbl .chg .gp + .mv{margin-left:8px;}
@@ -1419,10 +1428,10 @@ th.deskonly, td.deskonly{display:none;}
 /* TEN / W6 · the on-the-clock squad was marked ONLY by an inset 3px bar in its
    colour — a spine (§0.3) and a signal carried by colour alone (WCAG 1.4.1).
    It says so in words now, in the card's own head beside its swatch. */
-.squad h4 .onclockword{margin-left:auto; font-family:var(--board); font-weight:600; font-size:11px;
+.squad h2 .onclockword{margin-left:auto; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--ink);}
-.squad h4{font-size:13.5px; font-weight:700; display:flex; flex-wrap:wrap; align-items:center; gap:8px; overflow-wrap:anywhere;}
-.squad h4 .sw{width:9px; height:9px; border-radius:3px; flex:none;}
+.squad h2{font-size:13.5px; font-weight:700; display:flex; flex-wrap:wrap; align-items:center; gap:8px; overflow-wrap:anywhere;}
+.squad h2 .sw{width:9px; height:9px; border-radius:3px; flex:none;}
 .squad ul{list-style:none; margin-top:8px;}
 .squad li{
   display:flex; justify-content:space-between; gap:8px;
@@ -1558,7 +1567,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .grossbox::placeholder{color:var(--mut);}
 /* the box draws no border, so its focus is a ring of its own (WCAG 2.4.7):
    focused and unfocused screenshots were identical */
-.grossbox:focus-visible{outline:2px solid var(--act); outline-offset:6px;}
+.grossbox:focus-visible{outline:2px solid var(--act); outline-offset:1px; border-radius:var(--rc);}   /* W7-063 · the field family's own ring (input.f: 1px out, the control radius): a square ring 6px out ran into the label above and stood outside the column */
 /* IOS-066 - the composer's hero is the number AND the picture. The plate is
    the gross column's neighbour: 150x100 (3:2, the CSPlate inset ratio the
    phone and the round receipt both draw a round photograph at), one hairline,
@@ -2635,7 +2644,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .evroster{margin-top:var(--s5);}
 .evroster .evsesshd span:last-child{flex:none;}
 .evroster-rule{height:3px; width:44px; margin:0 0 var(--s2);}
-.evrrow{display:grid; grid-template-columns:30px minmax(0,1fr) 28px 28px 28px; gap:var(--s3); align-items:center;
+.evrrow{display:grid; grid-template-columns:30px minmax(0,1fr) 40px 40px 40px; gap:var(--s3); align-items:center;   /* W7-153 · 40px columns: the heads are words now (Won, Lost, Halved) */
   min-height:44px; padding:var(--s1) 0; border-top:1px solid var(--rule);}
 .evrrow .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;}
 .evrrow .nm{min-width:0; display:flex; flex-direction:column;}
@@ -2835,7 +2844,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 #view-wizard .wizgrp-h .ic{grid-area:ic; width:18px; height:18px; color:var(--mut); transition:transform .15s ease;}
 #view-wizard .wizgrp[data-open] .wizgrp-h .ic{transform:rotate(180deg);}
 #view-wizard .wizgrp-h:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
-#view-wizard .wizgrp-need{color:var(--neg);}
+#view-wizard .wizgrp-need{color:var(--ink);}   /* W7-104 · a required field the Pro has not reached reads as guidance, in ink as the phone says it: neg is for a refusal, not a field not yet filled */
 #view-wizard .wizgrp-b{padding:var(--s1) 0 var(--s4);}
 #view-wizard .wizgrp-b[hidden]{display:none;}
 /* the review: agate labels over left-aligned sans values (the table was all
@@ -2844,7 +2853,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 #view-wizard .byrow > :first-child{display:block; max-width:none; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 #view-wizard .byrow b{display:block; text-align:left; font-family:var(--sans); font-size:15px; font-weight:500; line-height:1.4; color:var(--ink); margin-top:2px;}
-#view-wizard .byrow .byneed{font-style:normal; color:var(--neg);}
+#view-wizard .byrow .byneed{font-style:normal; color:var(--ink);}   /* W7-104 · ink, not the error red, until the Pro has tried to start */
 /* W7-165 · below the desk the review opens on the league's own name and one reassurance line (the phone's WizardAgreementView), not on a portrait that
    restated the rules under it; from 1100 the sticky aside names the league beside the list */
 #view-wizard .wizrev-id{margin:0 0 var(--s3);}
@@ -3585,7 +3594,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   min-height:116px; display:flex; flex-direction:column; gap:8px;
   transition:border-color .15s, background .15s;}
 .crtzone.hot{border-color:var(--act); background:var(--bg2); border-style:solid;}   /* a drop target is an ordinary state (D359) */
-.crtzone h5{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);   /* TEN / W6 · AW2-06: the court's heads, "vs" and a chip's line are agateS, never mono */
+.crtzone h2{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);   /* TEN / W6 · AW2-06: the court's heads, "vs" and a chip's line are agateS, never mono */
   text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:600;}
 .crtvs{align-self:center; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); padding-top:52px; flex:none;}
 .crtchip{position:relative; display:flex; align-items:center; gap:8px; background:var(--bg2);
@@ -4950,6 +4959,8 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    the fescue page. The light printing was flattened by D266; the dark one now
    uses the same base rule — bg1, the one hairline, no shadow.) */
 .check{transition:border-color .15s ease, transform .15s ease;}
+#youGuide .keyrow{display:none;}   /* W7-113 · the keyboard row is drawn from 960px, where the key layer is live */
+@media(min-width:960px){ #youGuide .keyrow{display:flex;} }
 @media(hover:hover){
   .check:hover{border-color:var(--rule); transform:translateY(-1px);}
 }
@@ -5268,6 +5279,8 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .tempty{border-top:1px solid var(--rule); padding-top:var(--s4);}
 .tempty-marks{display:flex; align-items:center; gap:var(--s4); opacity:.12;}
 .tempty :is(h2,h3){margin:var(--s4) 0 0; color:var(--ink);}
+.tempty .youempty-obj{display:block; width:64px; height:64px; color:var(--mut); margin:0 0 var(--s3);}   /* W7-115 · the empty record's blank scorecard, the phone's object */
+.tempty .youempty-obj + .cs-agate + h3{margin-top:var(--s1);}
 .tempty p{margin:var(--s2) 0 0; color:var(--mut);}
 /* D291 · THE RECORD IS ONE FIGURE, NOT FOUR BOXES. `.recgrid` was four
    bordered `bg1` tiles carrying gold serif numerals — four cards in a row on
@@ -5322,7 +5335,8 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    viewer won it and below if the rival did, oldest first, the viewer's filled
    and the rival's outlined. NO LEGEND (§9.10): the two row names ride the
    graphic's own right margin and one line under it carries the key. */
-.cstape{display:flex; align-items:center; gap:var(--s3);}
+.cstape{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center;}   /* W7-100 · a grid: the rail and its dates in the first column, the label column beside the rail only */
+.cstape .tapedates{grid-column:1; display:flex; justify-content:space-between;}
 .cstape .rail{position:relative; flex:1; height:46px; display:flex; align-items:center;}
 .cstape .rail::before{content:''; position:absolute; left:0; right:0; top:50%;
   height:2px; margin-top:-1px; background:var(--ink);}
@@ -5331,7 +5345,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .cstape .ticks i.me{background:var(--ink); transform:translateY(-12px);}
 .cstape .ticks i.them{border:1.7px solid var(--mut); transform:translateY(12px);}
 .cstape .ticks i.half{height:2px; background:var(--mut);}
-.cstape .rows{display:flex; flex-direction:column; gap:14px; flex:none; color:var(--mut);}
+.cstape .rows{display:flex; flex-direction:column; gap:14px; flex:none; color:var(--mut); margin-left:var(--s3);}
 /* C6/C9 - the odometer: digit strips roll like gauges absorbing an entry;
    built by csOdo() (right-to-left stagger, always rolling upward). Tabular
    digits so nothing reflows. Reduced motion swaps instantly (csOdo checks). */
@@ -6052,9 +6066,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          the desk and the phone cannot word the same question two ways. -->
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
-        <!-- a signed-in state is a fact, not a performance: `mut` on no wash
-             (`pos` is performance-up only, D270), and no typed check mark -->
-        <div class="lockbadge" style="color:var(--mut); border-color:var(--rule); background:none">SIGNED IN</div>
+        <!-- W7-114 · the mono 'SIGNED IN' chip is gone: the signed-in fact is said once, at the gate's foot (the account line), not as a stamp over the title -->
         <h1 style="font-size:30px" id="pfTitle"></h1>
         <p style="margin-top:10px" id="pfSubtitle"></p>
       </div>
@@ -6165,18 +6177,19 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <button class="navitem" data-v="compete">
       Compete
     </button>
-    <button class="navitem" data-v="golfers">
-      Golfers
-    </button>
     <!-- LV-03 / R-09 · Play, not "Record". D222 ruled the label (the tab does
          not post, and it is not a noun), NavSlot.play.label ships it on the
          phone, and "the record" is a DIFFERENT object on this product — You's
          second head. `data-v="record"` is the router id and is not a surface.
          F-6 · the five destinations are the SAME five at every width. R-C
          licenses a shape per CLIENT, not per breakpoint, so the sidebar's own
-         extras (the season, the schedule) hang off a disclosure below them. -->
+         extras (the season, the schedule) hang off a disclosure below them.
+         W7-105 · and in the SAME ORDER as the tab bar and the phone's NavSlot (D222): Home, Compete, PLAY, Golfers, You. -->
     <button class="navitem" data-v="record">
       Play
+    </button>
+    <button class="navitem" data-v="golfers">
+      Golfers
     </button>
     <button class="navitem" data-v="stats">
       You
@@ -7105,8 +7118,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpCalendarB"><span class="wizgrp-k">Calendar</span><span class="wizgrp-sum" id="wizSumCalendar"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
             <div class="wizgrp-b" id="wizGrpCalendarB" hidden>
           <div class="setrow">
-            <div class="lab">Season length<small>Weeks or months · ends the same weekday</small></div>
-            <div class="val" id="lenVal">6 mo</div>
+            <div class="lab">Season length<small id="lenGloss">Ends the same weekday</small></div>
+            <div class="val" id="lenVal">26 weeks</div>
             <div class="ctl"><button id="lenDown" aria-label="Shorter season">−</button><button id="lenUp" aria-label="Longer season">+</button></div>
           </div>
           <p class="fine" id="wholeMonthNote" style="display:none;padding:0 0 6px"></p>
@@ -7341,7 +7354,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="tblwrap">
               <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
-              <div class="scenLine" id="scenarioLine" style="display:none"></div>
+              <div class="scenLine cs-body-s" id="scenarioLine" style="display:none"></div>
             </div>
             <!-- D235 · the endgame, whole, PERMANENTLY under the table. The ME
                  strip's clause is the same fact at the other grain. -->
@@ -7450,7 +7463,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div id="bylawsHub" style="margin-bottom:10px; text-align:left"></div>
         <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work</button>
 
-        <div class="eyebrow league-only">League</div>
+        <div class="eyebrow league-only">Who’s in</div>   <!-- W7-065 · the phone's head for these four rows (SeasonRulesPage); 'league' is the crew's standing name, never a container label (TERMINOLOGY §2.3) -->
         <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>The roster</b><small id="hubMembersSub">7 golfers</small></div><button class="mini" id="hubMembersBtn">View</button></div>
         <!-- D180: the roster door. Under Members & invites because it governs
              exactly that — who can still get in with the CODE. The Pro gets the
@@ -7965,7 +7978,7 @@ function csHalfNote(credits, rem){
    before it's cold") through full multi-month leagues. Flexible start (§14.0
    v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
 const DURS=[2,3,4,5,6,8,10,13,17,22,26,39,52];
-const durLabel = w => w<8 ? `${w} wk` : `${Math.round(w/4.345)} mo`;
+const durLabel = w => `${w} weeks`;   /* W7-171 · a season's length is said in WEEKS everywhere (the calendar summary and the review did; the stepper said '3 mo' for 13 weeks, and two lengths both read '2 mo'): months are only a gloss, under the stepper */
 /* D143 · season_months only DESCRIBES the window; the real length is week-based
    (durWeeks → seasons.starts_on/ends_on). It used to be clamped to 3 here
    because the DB CHECK was 3..12, which meant a 2-week season stored "3 months"
@@ -8523,6 +8536,7 @@ window.csComposerEyebrow = csComposerEyebrow;
 window.csRenderComposerEyebrow = csRenderComposerEyebrow;
 
 function switchView(v){
+  window.csBookReturn = null;   /* W7-134 · a door inside the round that changes the page never sends the golfer back to the Book */
   v = csViewFor(v);
   if(v==='post') csRenderComposerEyebrow();
   /* Q-10 · D40 restored at the choke point. D40 ruled "a member must never see
@@ -9610,7 +9624,7 @@ function renderCupRace(){
      that straddles two months lets one golfer count more than it says. The
      phone prints the count alone; the cap's own sentence is the server's
      cap_note, in the finalist's receipt. */
-  let html=`<tr><th colspan="3" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 IN THE FINAL BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th></tr>`;
+  let html=`<tr><th colspan="2" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 IN THE FINAL BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th><th class="num">Pts</th></tr>`;   /* W7-066 · the totals stand under a head */
   fins.forEach((f,i)=>{
     const id=f.squad_id||f.member_id, t=teams.find(x=>x.id===id);
     const ci=t?t.ci:(i%4), name=t?t.name:(f.name||'\u2014');
@@ -9684,18 +9698,19 @@ function renderClash(){
         : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 ALL SQUARE`)
     : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 THROUGH ${DOW[we.getDay()].toUpperCase()}`;
   const side=(id,b,key)=>{
-    const won=settled && wc.winner_member===id;
     const band=b ? (b.band || bandName(Number(b.pvi))) : null;
     const sub=b
       ? `${esc(String(id===meId?band:theirs(band)).toUpperCase())} \u00b7 ${DOW[localDate(String(b.played_on)).getDay()].toUpperCase()}`
       : (settled?'IDLE \u2014 NO ROUND':'NO ROUND YET');
     return `<tr class="${b&&b.round_id?'tap':''}" ${b&&b.round_id?`data-clash="${key}"`:''}>
-      <td class="rk mono">${won?'W':''}</td>
       <td><div class="tn">${esc(nm(id))}</div><div class="tc">${sub}</div></td>
       <td class="num pts">${b?Number(b.points):'\u2014'}</td>
     </tr>`;
   };
-  el.innerHTML=`<tr><th colspan="3" style="text-align:left">${head}</th></tr>`
+  /* W7-067 · the rank column is gone (it held a 'W' only once a week was settled, and the settled head already says who took it), so both rows start at the head's own left edge;
+     and while the week is OPEN the head carries the one restrained ember dot that says it is live (D359), none once it is settled */
+  /* W7-066 · and the figures stand under a head: 'Pts', as the standings table's own head reads (Pos, Squad, Gap, Pts) — a 9 and a 7 under one title cell named no unit */
+  el.innerHTML=`<tr><th style="text-align:left">${settled?'':'<span class="clashdot" role="img" aria-label="Live"></span>'}${head}</th><th class="num">Pts</th></tr>`
     + side(wc.a_member,aB,'a') + side(wc.b_member,bB,'b');
   wrap.style.display='';
   /* receipts: every figure taps to the round that produced it (§16). Open with
@@ -9927,7 +9942,12 @@ function renderStandings(){
     : '';
   /* the head names what the rows are: a squads season lists SQUADS ("GOLFER"
      headed a column of squads, the category panel) */
-  let html=`<tr><th class="rk">Pos</th><th>${solo ? 'Golfer' : 'Squad'}</th>${dhead}<th class="num">Gap</th><th class="num">Pts</th></tr>`;
+  /* W7-112 · at the desk the movement mark ('held since Sun', up or down) leaves the merged Gap cell for a column of its own, headed with the day it is measured from ('Since Sun'): '+34 —' and a lone '—'
+     under GAP named no thing. The phone keeps its merged cell (the extra column is desk-only, and the marks in the Gap cell stand down beside it from 960). No snapshot, no day, no column. */
+  const sinceRaw = (csMovement(0, priorSince)||{}).sinceShort || '';
+  const sinceDay = sinceRaw ? sinceRaw.charAt(0) + sinceRaw.slice(1).toLowerCase() : '';
+  if(el) el.toggleAttribute('data-since', !!sinceDay);
+  let html=`<tr><th class="rk">Pos</th><th>${solo ? 'Golfer' : 'Squad'}</th>${dhead}<th class="num">Gap</th>${sinceDay ? `<th class="num deskonly">Since ${sinceDay}</th>` : ''}<th class="num">Pts</th></tr>`;
   /* the five-dot form column, inside the row. `pos` filled = beat your playing
      HCP that round, `rule` = did not - the sign convention `CSBands` ships
      (D276 / Wave 7: a POSITIVE pvi is a round beaten). Oldest to newest, left
@@ -10010,6 +10030,7 @@ function renderStandings(){
       <td><div style="display:flex;align-items:center;gap:12px">${solo?face:bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
       ${deskCols ? `<td class="num rds deskonly">${t.sub||0}</td><td class="deskonly">${formOf(t.id)}</td>` : ''}
       <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap ? `<span class="gp">${gap}</span>` : ''}${mvH}</td>
+      ${sinceDay ? `<td class="num chg since deskonly">${mvH}</td>` : ''}
       <td class="num pts">${t.pts}</td>
     </tr>`;
     /* The cut is a Cup-Final concept — meaningless for a points table or a
@@ -10025,7 +10046,7 @@ function renderStandings(){
       /* a two-squad season has no cut: BOTH squads play the Final and the
          leader carries +10 in (enter_cup_final), so its line is the seed,
          word for word the phone's StandingsTableView — never "top one plays" */
-      html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>${esc(cutOf.seed ? 'Top seed · +10' : csCutLabel(cutK))}</span><i></i></td></tr>`;
+      html+=`<tr class="cutrow"><td colspan="${(deskCols?6:4)+(sinceDay?1:0)}"><span>${esc(cutOf.seed ? 'Top seed · +10' : csCutLabel(cutK))}</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   sfGo(el);   /* SF-6: arm any freshly wrapped ranks — no-op on a static render */
@@ -10862,6 +10883,13 @@ document.addEventListener('keydown', e=>{
     if(e.key === 't' && Date.now() - gArmed < 1000){ gArmed = 0; e.preventDefault(); jumpToTable(); return; }
     gArmed = 0;
 
+    /* W7-113 · ? — the desk's keys, taught (never from a field, and only where the key layer lives: 960px and wider) */
+    if(e.key === '?'){
+      const g = window.csGuide && window.csGuide.keys;
+      if(g && window.matchMedia('(min-width:960px)').matches){ e.preventDefault(); openSheet(g[0], g[1], g[2]); }
+      return;
+    }
+
     /* / — focus the nearest search field. `document.activeElement` decides
        "nearest": the field inside the open pane, or the first one visible. */
     if(e.key === '/'){
@@ -11445,7 +11473,8 @@ function renderDraft(){
       lis+= p ? `<li><span>${p.n}</span><em>${p.i.toFixed(1)}</em></li>`
               : `<li class="empty"><span>R${k+1} pick</span><em>—</em></li>`;
     }
-    s.innerHTML=`<h4><span class="sw" style="background:${SQHEX[ti]}"></span>${tn}${ti===onClock?'<span class="onclockword">On the clock</span>':''}</h4><ul>${lis}</ul>`;
+    /* W7-069 · the squad head is an h2: it sat as an h4 straight under the page's h1, a skipped outline (the look is the class's, unchanged) */
+    s.innerHTML=`<h2><span class="sw" style="background:${SQHEX[ti]}"></span>${tn}${ti===onClock?'<span class="onclockword">On the clock</span>':''}</h2><ul>${lis}</ul>`;
     sq.appendChild(s);
   });
 
@@ -14551,12 +14580,20 @@ function paintCourseHint(){
    MacBook is not reading it on a phone and L-32 is about telling the truth. */
 const CS_COURSE_KEY = 'cs.courses.v1';
 const CS_COURSE_CAP = 40;
+/* W7-099 · the label under the rating rail names the object it is about: 'Your rating · 4.5', and for an unrated course 'Your rating · not yet' (the empty rail's old label, 'Not yours yet', read as 'this
+   course is not yours'); one producer for the block and its live repaint */
+const csMineLabel = m => m != null ? `Your rating · ${Number(m).toFixed(1)}` : 'Your rating · not yet';
+/* W7-097 · a course's own figure beside a drawn rail names its OWNER: 'Yours 4.5' (the plan block's words), one producer for the record's rows and the plan block, so a row reads 'Yours 4.5' where the
+   lead's big figure reads the Cup Season average ('4.0 · Cup Season golfers') and the two never look like one course with two ratings */
+const csYours = m => `Yours ${Number(m).toFixed(1)}`;
 const CS_COURSE_COPY = {
   neverKept: 'This course is not on this device. Cup Season keeps the courses you have played or planned; open this one with a signal and it will be here next time.',
   readFailed: 'Could not reach the course list. What this device has kept is below.',
   searchOffline: 'No signal — searching the courses on this device. The full list needs a connection.',
   noCard: 'No hole card saved for this tee. Pars and stroke indexes come down the first time you play it with a signal.',
-  what: 'Courses you have played or planned are kept on this device, so the tees, ratings and cards are there with no signal.'
+  what: 'Courses you have played or planned are kept on this device, so the tees, ratings and cards are there with no signal.',
+  /* W7-098 · how the tee on show was chosen, said while it is the DEFAULT (no tee named): the phone's CourseBookCopy.teeIsTheLongest, one wording */
+  teeIsTheLongest: 'The longest rated 18 — change tees for yours.'
 };
 function csCourseAll(){
   try{
@@ -15167,14 +15204,10 @@ function syncWizSegs(){
 }
 // D346: an explicit suggestion changes only the two named rules.
 function csUseBusyFriends(settings){ settings.cap=0; settings.floor=0; }
+/* W7-167 · the wizard has no minimum sentence of its own any more: the dial's foot and the review say the season page's sentence (floorSentence, the one producer), so a Pro reads on the dial what a
+   golfer reads on the rules page: 'squad', not 'team', one cutthroat consequence, and the same closing clause about partial months */
 function csSetupMinimum(settings){
-  if(settings.structure==='solo') return 'No team penalty in an individual season.';
-  if(!settings.floor) return 'Play when you can. No points lost for playing less.';
-  if(settings.preset===0) return 'A target for the group. No points penalty under these rules.';
-  const penalty=settings.preset===2
-    ? 'After that, that golfer’s counting points for the month are removed from the team total.'
-    : 'After that, the team loses 5 points per round short.';
-  return 'One missed minimum is forgiven each season. '+penalty+' Partial months are exempt.';
+  return floorSentence({ floor:settings.floor, preset:settings.preset, structure:settings.structure });
 }
 function csRenderSetupMinimum(){
   const consequence=document.getElementById('setupMinimumConsequence');
@@ -15192,6 +15225,8 @@ document.getElementById('useBusyFriends')?.addEventListener('click', ()=>{
 function renderSetup(){
   $('#stakeVal').textContent=state.stake===0?'None':fmt$(state.stake);
   $('#lenVal').textContent=durLabel(state.durWeeks);
+  /* W7-171 · months as a gloss only, from eight weeks up ('About 3 months'); under eight the weeks are the whole story */
+  const lenGloss=$('#lenGloss'); if(lenGloss) lenGloss.textContent = state.durWeeks>=8 ? `About ${durMonths(state.durWeeks)} months · ends the same weekday` : 'Ends the same weekday';
   $('#capVal').textContent=capLabel();
   $('#floorVal').textContent=state.floor ? state.floor+' / mo' : 'None';
   csRenderSetupMinimum();
@@ -15538,7 +15573,7 @@ function renderCourt(slots){
   const zoneEl=(zi,label)=>{
     const z=document.createElement('div');
     z.className='crtzone'; z.dataset.zone=zi;
-    z.innerHTML=`<h5>${label}</h5>`;
+    z.innerHTML=`<h2>${label}</h2>`;   /* W7-069 · an h2, not an h5 with no h2-h4 above it: the court's outline runs h1, then h2 (the look is the class's) */
     T[zi].forEach(k=>{
       const idx=sel[k], p=ROSTER[idx];
       const c=document.createElement('div');
@@ -18694,7 +18729,7 @@ function csRatingBlock(id, opts){
     + ` aria-label="${dir < 0 ? 'Half a star less' : 'Half a star more'}" aria-disabled="${csStepOff(mine, dir)}">${dir < 0 ? '−' : '+'}</button>`;
   const rail = `<div class="cs-rate-ctl">${step(-1)}`
     + csStarsSvg(mine || 0, mine == null, { size: o.size || CS_RATE_STAR, rate: id }) + `${step(1)}</div>`;
-  const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
+  const mineLab = csMineLabel(mine);
   /* the phone's own words for the field (RateCourseSheet: label, placeholder,
      caption), so the label stays when the placeholder has gone and the golfer
      is told who reads it */
@@ -18855,7 +18890,7 @@ function renderCourseBooks(){
     const mine = r && r.mine != null ? Number(r.mine) : null;
     const trail = `<div class="cs-krow-rate">${csStarsSvg(mine || 0, mine == null, { size:24 })}`
       + (mine != null
-          ? `<span class="cs-fig-s">${mine.toFixed(1)}</span>`
+          ? `<span class="cs-agate-s" style="color:var(--mut)">${esc(csYours(mine))}</span>`
           : `<span class="cs-agate-s" style="color:var(--mut)">Rate it</span>`) + `</div>`;
     const said = (mine != null && r && r.note)
       ? `<p class="cs-story" style="padding-top:8px">“${esc(r.note)}”</p>` : '';
@@ -18911,6 +18946,11 @@ function renderCourseBooks(){
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
                    csCourseSavedLine(b)].filter(Boolean).join(' · ');
+    /* W7-098 · while no tee has been NAMED the longest rated 18 leads, and the record says so (the phone does): said only where it is true and useful, i.e. the tee on show is an 18 and the picker is drawn
+       (two or more rated tees); a pick, or a nine-hole course, prints nothing extra */
+    const ratedTees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+    const longestSaid = (!(window.CS_COURSE_TEE||{})[String(b.id)] && tee && (tee.number_of_holes||18)===18 && ratedTees.length >= 2)
+      ? `<p class="cs-body-s" style="color:var(--mut);padding-top:4px">${esc(CS_COURSE_COPY.teeIsTheLongest)}</p>` : '';
     const leaf = holes.length
       ? csCourseLeafHtml(holes, `The card · ${tee ? (tee.tee_name||'Tee') : ''}`)
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
@@ -18928,6 +18968,7 @@ function renderCourseBooks(){
         </div>
         <div class="cs-facts">${factLine}</div>
         <p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
+        ${longestSaid}
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
         ${csCourseDoorHtml(String(b.id), CS_COURSE_CIRCLE.by[String(b.id)])}
@@ -19113,7 +19154,7 @@ function csCourseRowRepaint(box, id){
   if(fr) fr.innerHTML = (r.friends != null && r.friends_count > 0)
     ? `Your buddies ${one(r.friends)} <span style="color:var(--mut)">(${r.friends_count})</span>` : '';
   const mine = box.querySelector(`[data-csmine="${CSS.escape(String(id))}"]`);
-  if(mine) mine.textContent = r.mine != null ? `Your rating · ${one(r.mine)}` : 'Not yours yet';
+  if(mine) mine.textContent = csMineLabel(r.mine);
   /* the pair's bounds follow the rating: − stops at ½, + at 5 */
   box.querySelectorAll(`button[data-csstep="${CSS.escape(String(id))}"]`).forEach(b=>{
     b.setAttribute('aria-disabled', String(csStepOff(r.mine != null ? Number(r.mine) : null, Number(b.dataset.csdir))));
@@ -19186,7 +19227,7 @@ function csPlanCourseHtml(courseId, want){
   const rate = (mine != null || all != null)
     ? `<div class="cs-krow-rate" style="padding-top:8px">${csStarsSvg(mine != null ? mine : all, false, { size:20 })}`
       + `<span class="cs-agate-s" style="color:var(--mut)">${
-          mine != null ? `Yours ${mine.toFixed(1)}` : `${all.toFixed(1)} · ${r.count} rating${r.count===1?'':'s'}`}</span></div>`
+          mine != null ? csYours(mine) : `${all.toFixed(1)} · ${r.count} rating${r.count===1?'':'s'}`}</span></div>`
     : '';
 
   return `<div class="cs-plan-course">
@@ -19724,7 +19765,7 @@ function renderLeagueRecord(){
     /* the diorama's season is being played: a line, not a finish */
     rows=[{name:'The Sunday Cup', number:1, year:new Date().getFullYear(),
            finish:null, of:rk.length, won:false, live:true,
-           line:`Week ${currentWeek()} of ${totalWeeks()}${i>=0?' · '+ordU(i+1).toLowerCase()+' of '+rk.length+' · '+rk[i].pts+' pts':''} · in season`}];
+           line:`Week ${currentWeek()} of ${totalWeeks()}${i>=0?' · '+ordU(i+1).toLowerCase()+' of '+rk.length+' · '+rk[i].pts+' pts':''}`}];   /* W7-126 · no trailing 'in season': the finish word beside it says 'In play' (two state words for one live season) */
   } else rows=window.leagueRecord||[];
   if(!rows.length){ hd.style.display='none'; el.style.display='none'; return; }
   hd.style.display=''; el.style.display='';
@@ -19787,7 +19828,7 @@ function upcomingFromSchedule(){
     const days = Math.round((dt - today) / 86400000);
     const withN = (r.tagged_names||[]).length ? 'with '+r.tagged_names.join(' & ') : '';
     out.push({ when: days===0?'TODAY':days===1?'TOMORROW':('IN '+days+' DAYS'),
-      what: (r.course_label || r.label || r.title || 'A round'),
+      what: (csShortCourse(r.course_label) || r.label || r.title || 'A round'),   /* W7-117 · the club, not 'club — course' whole (the whole label stays where it names the course itself) */
       who: withN || r.league_name || r.who || '', _d: dt });
   });
   out.sort((a,b)=>a._d - b._d);
@@ -20797,7 +20838,7 @@ function feedRow(r, idx, stamp, opts){
         <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
         <div class="hscopy">
           ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
-          <div class="hsid"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(dfmtShort(r.played_on))}</span>`:''}</small></div>
+          <div class="hsid"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(csDayMarker(r.played_on))}</span>`:''}</small></div>
           ${r.gross!=null?`<div class="hsg"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
         </div>
       </div>
@@ -20815,7 +20856,7 @@ function feedRow(r, idx, stamp, opts){
      treatment it replaces: one rule, not a heavy bar; the figure at `l`, not
      `xl`; the story in body, not the serif. No placeholder for the picture
      that is not there, and no decorative ember. */
-  const day = stamp ? csDayToken(stamp) : dfmtShort(r.played_on);
+  const day = csDayMarker(r.played_on);   /* W7-075 · ONE day format for every round (HomeWireCopy.dayMarker: Today, a weekday inside six days, else 'Sep 25'): a stamped card said 'FRI' over an unstamped one that said 'SEP 25' for the same Friday */
   /* TEN · THE COURSE IS THE TITLE, IN TITLE CASE. Condensed caps are the
      board's voice (§1.3: caps only on the board); on the wire they set the
      fixture's 100-character club at six lines and outweighed the golfer and
@@ -21729,7 +21770,7 @@ function csShortCourse(raw){
   if(!s0) return null;
   const club = s0.split(' — ')[0];
   const out = club.split(' · ')[0].trim();
-  return out ? out.toUpperCase() : null;
+  return out || null;   /* W7-117 · the club AS STORED, as MeStripCopy.shortCourse returns it (the role sets the caps where a slot wants them): the club alone is the glance, the layout and the tee are the plan card's facts */
 }
 window.csShortCourse = csShortCourse;
 
@@ -22087,6 +22128,19 @@ function csDayMarker(iso){
   if(Math.abs(n) <= 6) return DOW[d.getDay()];
   return MOS[d.getMonth()] + ' ' + d.getDate();
 }
+/* W7-087 · THE STAMP A WIRE ROW WEARS — the web twin of HomeWireCopy.stamp: a row about something that has not happened yet is answered by how long is left ('Sun' on a clash that closes Sunday is the
+   fact a golfer already has; '6 days' is the one they do not). Today and the past keep csDayMarker (a rundown read backwards is read by date); ahead it is 'Tomorrow', then 'N days' out to a
+   week, then the marker again (past a week, '9 days' is arithmetic where a weekday is a place on a calendar). */
+function csWireStamp(iso){
+  if(!iso) return '';
+  const d = localDate(String(iso).slice(0,10)); if(!d || isNaN(d)) return '';
+  const n = Math.round((d - new Date().setHours(0,0,0,0)) / 864e5);
+  if(n <= 0) return csDayMarker(iso);
+  if(n === 1) return 'Tomorrow';
+  if(n <= 6) return `${n} days`;
+  return csDayMarker(iso);
+}
+window.csWireStamp = csWireStamp;
 /* WEIGHT 5 -- a ranked item that is not the lead. One quiet line, a day
    marker, a chevron because it knows where it goes. Never a second card. */
 function csWireLine(it, ctx){
@@ -22097,7 +22151,7 @@ function csWireLine(it, ctx){
      viewport, under the real lead (critique-B P2, §15.1's one serif, §16A.5's
      one primary). Later · Didn't play keep their 44px targets. */
   if(csAfterplan(it) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}</div>`;
-  const mk = csDayMarker(it.at);
+  const mk = csWireStamp(it.at);   /* W7-087 · a future line wears a clock ('2 days'), never its own weekday as its marker */
   /* MW-02 · the league, when the sentence alone would not say which. Two
      `chapter:` items read "You are the one to catch." for two leagues and the
      wire printed the sentence twice with nothing between them. The context is
@@ -22195,6 +22249,9 @@ function renderHomeDispatch(){
   }));
   document.querySelectorAll('[data-ans]').forEach(b => b.addEventListener('click', () => {
     const plan = b.getAttribute('data-plan'), ans = b.getAttribute('data-ans');
+    /* W7-077 · 'Didn’t play' is TERMINAL on the server (D345) and sat level with 'Later', 20px from it: the first tap asks ('Sure? Nothing posts for that day'), a second within four seconds answers;
+       'Later' stays one tap (§7.1, the web's CSArmedButton) */
+    if(ans === 'didnt_play' && !csArmTap(b, 'Didn’t play', 'Sure? Nothing posts for that day')) return;
     const card = b.closest('.csedn, .cswire-ans');
     const btns = card ? Array.from(card.querySelectorAll('[data-ans]')) : [b];
     qaEvent('cta_tapped', { door: 'afterplan', tier: ans });   /* the family and the answer, nothing else */
@@ -22956,7 +23013,7 @@ function csSeasonBookRace(b,rows,follow,width){
   labs.sort((a,b)=>a.y-b.y).forEach((l,k,a)=>{l.ly=Math.max(l.y+4,k?a[k-1].ly+16:T+4);});
   const over=labs.length?labs[labs.length-1].ly-(H-B):0; if(over>0)labs.forEach(l=>{l.ly-=over;});
   labs.forEach(l=>{h+=`<path class="sb-race-tie" d="M${(l.x+3).toFixed(1)} ${l.y.toFixed(1)}L${X1+4} ${(l.ly-4).toFixed(1)}"/><text class="sb-race-lab${l.i===0?' is-lead':''}" x="${X1+8}" y="${l.ly.toFixed(1)}">${esc(l.t)}</text>`;});
-  h+=`<text class="sb-race-axis" x="${L}" y="${H-8}">Week 1</text><text class="sb-race-axis" x="${X1}" y="${H-8}" text-anchor="end">Week ${n}</text></svg>`;
+  h+=`<text class="sb-race-axis" x="${L}" y="${H-8}">Week 1</text><text class="sb-race-axis" x="${X1}" y="${H-8}">Week ${n}</text></svg>`;   /* W7-124 · anchored at its own point, as 'Week 1' is: 'end' centred it under the 'Now · W13' rule on a phone */
   return h+said;
 }
 /* W5 · the crown on a finished Book. The read carries no champion, so it is
@@ -23027,15 +23084,46 @@ function csSeasonBookBody(b,selection){
     /* W5 · the key is a legend strip: each mark beside its word, never split
        across a line end, and the one instruction on its own line under it */
     if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span>'+(b.weeks.some(w=>w.week>b.current_week)?'<span class="sb-key-i">• Future week</span>':'')+'<span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
-    h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
+    if(prominent) h+='<a href="#sb-adjust" class="sb-skip" data-sb-skip>Skip to adjustments</a>';   /* W7-135 · one Tab stop for the grid, and a way past it */
+    h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
     h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td${live&&c.week===b.current_week?' class="sb-now"':''}><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div></div>';
   }
   const adjustmentRows=group==='golfer'&&squad!=='all'?squads.filter(r=>r.squad_id===squad):rows;
-  if(prominent){h+='<h2>Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
+  if(prominent){h+='<h2 id="sb-adjust" tabindex="-1">Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
     let count=0;adjustmentRows.forEach(r=>r.entries.forEach((e,i)=>{if(e.round_id)return;count++;h+=`<button type="button" class="sb-adjustment" data-book-row="${b.rows.indexOf(r)}" data-book-entry="${i}">${esc(r.name)} · ${e.week==null?'Outside season weeks':'Week '+e.week} · ${csBookNum(e.contribution)} points<small>${esc(e.reason)}</small></button>`;}));
     if(!count)h+='<p>No adjustments recorded for this selection.</p>';
   }
   return h+'<p class="fine">Points counting today</p>';
+}
+/* W7-135 · THE GRID IS ONE TAB STOP. Up to 256 buttons (a name and a cell per week per row) were 256 Tab stops with no arrow keys, and the only way past them to 'Adjustments in the totals' was Tab, again and
+   again. The focused button holds tabindex 0 and every other -1 (a roving tabindex); Left and Right move along a row (its name is its first stop), Up and Down along a week, Home and End to a row's ends, Enter
+   and Space open the receipt (native to the button); a future week's disabled button is skipped. The region itself is no longer a stop, and 'Skip to adjustments' (first, and visible on focus) moves to that heading. */
+function csBookRoving(matrix, main){
+  const rows=[...matrix.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('button')]);
+  const all=rows.flat(); if(!all.length) return;
+  const ok=b=>!!b&&!b.disabled;
+  all.forEach(b=>{b.tabIndex=-1;});
+  const first=rows.map(r=>r.find(ok)).find(Boolean)||all[0]; first.tabIndex=0;
+  const stop=b=>{all.forEach(x=>{x.tabIndex=-1;}); b.tabIndex=0;};
+  matrix.addEventListener('focusin',e=>{const b=e.target.closest&&e.target.closest('button'); if(b&&all.includes(b)) stop(b);});
+  matrix.addEventListener('keydown',e=>{
+    if(e.metaKey||e.ctrlKey||e.altKey||e.shiftKey) return;
+    const b=e.target.closest&&e.target.closest('button'); if(!b) return;
+    const ri=rows.findIndex(r=>r.includes(b)); if(ri<0) return;
+    const row=rows[ri], ci=row.indexOf(b);
+    const near=(r,c)=>{ for(let i=Math.min(c,r.length-1);i>=0;i--) if(ok(r[i])) return r[i]; return null; };   /* the same week, or the nearest enabled one to its left */
+    let to=null;
+    if(e.key==='ArrowRight') to=row.slice(ci+1).find(ok);
+    else if(e.key==='ArrowLeft') to=row.slice(0,ci).reverse().find(ok);
+    else if(e.key==='ArrowDown') to=rows[ri+1]?near(rows[ri+1],ci):null;
+    else if(e.key==='ArrowUp') to=ri>0?near(rows[ri-1],ci):null;
+    else if(e.key==='Home') to=row.find(ok);
+    else if(e.key==='End') to=[...row].reverse().find(ok);
+    else return;
+    e.preventDefault();
+    if(to&&to!==b) to.focus();
+  });
+  main.querySelector('[data-sb-skip]')?.addEventListener('click',e=>{e.preventDefault(); main.querySelector('#sb-adjust')?.focus();});
 }
 function csCloseSeasonBook(){document.getElementById('seasonBookDialog')?.close();}
 window.csCloseSeasonBook=csCloseSeasonBook;
@@ -23082,8 +23170,9 @@ function csBookEdge(scroller,host,axis){
   try{ const ro=new ResizeObserver(again); ro.observe(el); [...el.children].forEach(c=>ro.observe(c)); new MutationObserver(again).observe(el, { childList:true, subtree:true }); }
   catch(_){ window.addEventListener('resize', again, {passive:true}); }
 }); })();
-async function csOpenSeasonBook(league,season){
+async function csOpenSeasonBook(league,season,resume){
   if(!window.CS?.user || !window.sb || state.demo)return;
+  if(!resume) window.csBookReturn=null;   /* W7-134 · a Book opened by its door is not a return */
   csCloseSeasonBook();
   const user=window.CS.user.id, dialog=document.createElement('dialog');dialog.id='seasonBookDialog';dialog.className='sb-dialog';
   dialog.setAttribute('aria-labelledby','sb-title');
@@ -23138,6 +23227,7 @@ async function csOpenSeasonBook(league,season){
       const need=at?at.offsetLeft+at.offsetWidth-(matrix.clientWidth-fade)+2:0, colW=at?at.offsetWidth:1;
       matrix.scrollLeft=need>0?Math.ceil(need/colW)*colW:0;
       csBookEdge(matrix,matrix.parentElement);
+      csBookRoving(matrix,main);
     }
     markChosen();
   }
@@ -23162,10 +23252,22 @@ async function csOpenSeasonBook(league,season){
       receipts.querySelector('.sb-back').onclick=()=>{const c=main.querySelector('[data-book-row][aria-current="true"]');if(c){c.scrollIntoView({block:'center',inline:'nearest'});c.focus();}};
     }
   });
-  receipts.addEventListener('click',e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){dialog.close();window.csOpenPostedRound?.(button.dataset.bookRound);}});
+  receipts.addEventListener('click',async e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){
+    /* W7-134 · 'Open the round’s receipt' CLOSED the Book with no way back to the cell being read (the phone pushes the Book on its stack and presents the round over it). The reader's place is kept: the
+       sheet's own dismissal (×, backdrop, Escape) reopens the Book on it, once; a door inside the round that leaves the page clears it (switchView) */
+    window.csBookReturn={league,season,selection:{group:selection.group,squad:selection.squad,mode:selection.mode,follow:selection.follow},chosen:chosen?Object.assign({},chosen):null};
+    dialog.close();
+    const opened=await window.csOpenPostedRound?.(button.dataset.bookRound);
+    if(opened===false) window.csBookReturn=null;   /* it did not open (gone, muted, offline): nothing to come back from */
+  }});
   async function load(){
     main.innerHTML=CS_BOOK_LOADING;settleReceipts(false);
-    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'The Book':'Rounds & points';render();}
+    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'The Book':'Rounds & points';
+      /* W7-134 · a RETURN restores the reader's place: the view, squad, display and follow they had, then the same receipt open with its cell marked, scrolled into view */
+      if(resume&&resume.selection)['group','squad','mode','follow'].forEach(k=>{if(resume.selection[k]!=null)selection[k]=resume.selection[k];});
+      render();
+      if(resume&&resume.chosen){const c=resume.chosen, cell=main.querySelector(`[data-book-row="${c.row}"]`+(c.week!=null?`[data-book-week="${c.week}"]`:'')+(c.entry!=null?`[data-book-entry="${c.entry}"]`:''));if(cell){cell.click();cell.scrollIntoView?.({block:'center',inline:'nearest'});}}
+      resume=null;}
     catch(error){if(!alive())return;settleReceipts(false);main.innerHTML=`<p role="alert">${esc(error.message||'The Book did not load. Try again.')}</p><button type="button" id="sb-retry" class="btn sb-retry">Try again</button>`;main.querySelector('#sb-retry').onclick=load;}
   }
   await load();
@@ -23351,7 +23453,9 @@ function csCompetitionBandHtml(row){
      and the story a sentence in sans: a rank and a gap are numbers, and a
      number is never set in the serif (§1.4); the season's name keeps the
      band's one serif object */
-  return `<button class="cband cband-scoreboard" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?`<span class="cband-standing">${esc(row.standing)}</span>`:''}<span class="cband-story">${esc(row.story||row.sub||'')}</span></span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
+  /* W7-123 · the band is Compete's only door to the season and its accessible name is its facts, so it says its ACTION to a screen reader too, as the phone's band does
+     (.accessibilityHint('Opens the season')): a hidden line the button is described by, and no verb or arrow on the visible band */
+  return `<span class="cs-sr" id="cbandHint">Opens the season</span><button class="cband cband-scoreboard" aria-describedby="cbandHint" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?`<span class="cband-standing">${esc(row.standing)}</span>`:''}<span class="cband-story">${esc(row.story||row.sub||'')}</span></span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
 }
 window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
@@ -23814,8 +23918,10 @@ function csEmptyRoot(which, opts){
     return { state:'empty', head:'No buddies yet.', fact:null,
       sub:'Add the people you actually play with.', def: CS_BUDDY_DEFINITION,
       /* R-G's contacts door is D251, wave 8. A door that does not open is the
-         one thing not permitted (L-32/L-44). */
-      doors:[{k:'findGolfers', t:'Find golfers'}, {k:'personLink', t:'Text someone a link'}] };
+         one thing not permitted (L-32/L-44).
+         W7-085 · ONE act: 'Find golfers' focused the search field a few lines below it, so the page offered two doors to one field. The empty root's act is the
+         link; the field under it (#crFind, headed 'Find golfers') is the find door. */
+      doors:[{k:'personLink', t:'Text someone a link'}] };
   }
   const n = o.buddies;
   const has = (n||0) > 0;
@@ -25050,7 +25156,8 @@ function renderCareer(){
         /* critique-B P3 · the trophies and the all-time figures wait on this
            read, and the page said nothing about their going */
         + `<p class="cs-body-s">Nothing is lost — the read failed, not the record. Your trophies and all-time figures come back with it.</p>`
-        + `<button type="button" class="mini" id="youRecentRetry" style="margin-top:10px">Try again</button></div>`
+        /* W7-101 · the failed read's ONE act is the primary, as the phone draws it (CSDoor .primary), not a secondary .mini cut by the tab band on the first screen */
+        + `<button type="button" class="btn" id="youRecentRetry" style="margin-top:10px">Try again</button></div>`
       : '';
     $('#youRecentRetry')?.addEventListener('click', () => { const b=$('#youRecentRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadCareer?.(); });
     return;
@@ -25118,8 +25225,10 @@ function renderCareer(){
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
             <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
         }).join('')
-      : `<div class="tempty"><h3 class="cs-name">No rounds yet</h3>`
-        + `<p class="cs-body-s">Your record fills as you play — every round, every course, forever.</p>`
+      /* W7-115 · the empty record is a DRAWN OBJECT, an eyebrow and a headline, as the phone draws it (YouScreen: CSEmpty(glyph .scorecard, 'The first card', 'Your record fills as you play.')): a blank
+         scorecard (the phone's own path) at 64px in mut, not a headline about the golfer's omission ('No rounds yet') over a sentence that repeats it */
+      : `<div class="tempty"><svg class="youempty-obj" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3h15v18h-15zM4.5 8.4h15M4.5 13.2h15M4.5 18h15M9.5 3v18M14.5 3v18"/></svg>`
+        + `<div class="cs-agate" style="color:var(--mut)">The first card</div><h3 class="cs-name">Your record fills as you play.</h3>`
         /* F10 · the one next step is a real control (LINT-21: every empty state
            has a door). A-5: one verb opens the composer — "Add my round" — and
            on an empty record it is the page's one primary, in the action colour,
@@ -26141,6 +26250,9 @@ function csRcptHeroSet(hero, url, stampHtml){
    else), and only a picture that failed turns it on */
 function csRcptPhotoGone(on){
   const el=document.getElementById('rcptPhotoGone'); if(el) el.hidden = !on;
+  /* W7-086 · the Include-photo row is drawn only while the photo can open (the phone's `consent = includePhoto && photo != nil`): a tick over a picture the receipt says it cannot open left the owner
+     unable to tell what Share would carry (the share handler already sends includePhoto:false when the row is absent) */
+  if(on) document.getElementById('rcptPhotoOk')?.closest('label')?.remove();
 }
 function csRcptHeroWire(hero){
   const plate = document.getElementById('rcptPlate');
@@ -26346,7 +26458,8 @@ async function csPaintReceiptCard(r, rid, mine){
   const canShare = mine && !!window.CS?.user;
   /* W2 (D380) · one share from the receipt too: the round card and the link
      together; the photo asked about only when the round has one */
-  const photoRow = (canShare && r.photo_path)
+  const photoGone = document.getElementById('rcptPhotoGone'), photoOpens = !(photoGone && !photoGone.hidden);   /* W7-086 · the photo already failed before the card painted: no row either */
+  const photoRow = (canShare && r.photo_path && photoOpens)
     ? `<label class="fine" style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;cursor:pointer">
          <input type="checkbox" id="rcptPhotoOk" checked style="margin-top:3px;flex:none;accent-color:var(--act);width:18px;height:18px">
          <span><b>${esc(CS_SHARE_PHOTO_INCLUDE)}</b><br>${esc(CS_SHARE_PHOTO_FINE)}</span></label>`
@@ -26732,7 +26845,7 @@ function csInboxRender(){
       <span class="cs-inbox-copy">
         <span class="cs-body-s cs-inbox-line">${esc(CS_INBOX.line(n))}${n.read ? '' : '<span class="cs-sr"> Unread.</span>'}</span>
         ${n.excerpt ? `<span class="cs-story cs-inbox-q">“${esc(n.excerpt)}”</span>` : ''}
-        <span class="cs-agate-s">${[n.course_name, csTalkWhen(n.created_at)].filter(Boolean).map(esc).join(' · ')}</span>
+        <span class="cs-agate-s">${[csShortCourse(n.course_name), csTalkWhen(n.created_at)].filter(Boolean).map(esc).join(' · ')}</span>
       </span>
       ${n.read ? '' : '<svg class="cs-inbox-dot" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>'}
     </button>`;
@@ -27160,6 +27273,10 @@ function openSheet(title, sub, bodyHtml){
 function dismissSheet(){
   if(window.csSheetGuard && window.csSheetGuard() === false) return;
   closeSheet();
+  /* W7-134 · the round was opened from a Book cell's receipt: dismissing it (the ×, the backdrop, Escape) puts the reader back on that cell, once */
+  const back = window.csBookReturn; window.csBookReturn = null;
+  /* a task later, not inline: Escape's own default action closes the topmost modal dialog, and a Book opened inside the keydown would be that dialog and close at once */
+  if(back && window.csOpenSeasonBook) setTimeout(() => window.csOpenSeasonBook(back.league, back.season, back), 0);
 }
 window.dismissSheet = dismissSheet;
 function closeSheet(){
@@ -27444,6 +27561,13 @@ function csWeekEnds(season, today){
   const wk = Math.max(0, Math.floor(csWeekDays(s, today) / 7));
   return new Date(s.getFullYear(), s.getMonth(), s.getDate() + wk*7 + 6);
 }
+/* W7-088 · the WEEKDAY this league's weeks close on, from the same producer (csWeekEnds: the league's own closing day, D213/M-17). Every week of a season closes on one weekday, so the calendar's
+   week-close marks and the archive's 'the first week closes … night' read it here and never hardcode Sunday. */
+function csWeekCloseDow(season){
+  const e = csWeekEnds(season || (window.CS && window.CS.season));
+  return e && !isNaN(e) ? e.getDay() : 0;
+}
+window.csWeekCloseDow = csWeekCloseDow;
 /* `standings_snapshots.week_no` is 0-BASED (`snapshot_week`). Every surface
    that shows one to a golfer RELABELS it; it is never recomputed, because the
    snapshot's own number is the record of which window it captured. */
@@ -27605,8 +27729,7 @@ function renderBylaws(){
     <div class="byrow"><span>How scores count</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
     <div class="byrow"><span>Scores</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>Each month</span><b>${esc(csCountingRule(capDB()))}</b></div>
-    <div class="byrow"><span>The minimum</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
-    ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>If you miss it</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
+    <div class="byrow"><span>The minimum</span><b>${esc(csSetupMinimum(state))}</b></div>   <!-- W7-167 · one row: floorSentence opens with the count and closes with what a miss costs, so 'If you miss it' is not a second row -->
     ${state.stake===0
       ? `<div class="byrow"><span>Buy-in</span><b>None · bragging rights</b></div>`
       : `<div class="byrow"><span>Buy-in</span><b>${fmt$(state.stake)} / golfer</b></div>
@@ -27983,10 +28106,11 @@ function renderCalendar(){
     add(e,  {kind:'lg', t:`${lgName} — season ends, cup decided`});
     const first=calFirst(cur.y, cur.m);
     if(first>s && first<=e) add(first, {kind:'lg', t:`${MOS[(cur.m+11)%12]} closes — minimums & bonuses assessed`});
+    const closeDow = csWeekCloseDow();   /* W7-088 · the league's own closing weekday, not every Sunday */
     for(let d=1; d<=31; d++){
       const dt=new Date(cur.y, cur.m, d);
       if(dt.getMonth()!==cur.m) break;
-      if(dt.getDay()===0 && dt>s && dt<=e && +dt!==+s) add(dt, {kind:'lg', t:'Week closes — the table is recorded'});
+      if(dt.getDay()===closeDow && dt>s && dt<=e && +dt!==+s) add(dt, {kind:'lg', t:'Week closes — the table is recorded'});
     }
   }
   (window.leagueSpans||[]).forEach(ls=>{
@@ -28065,9 +28189,10 @@ function renderCalendar(){
   if(wkEl && showWk){
     const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
     if(!hist.length){
+      const closeNight = DOW_LONG[csWeekCloseDow()];   /* W7-088 · the league's own closing weekday */
       wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
-        ? 'The demo skips the archive. Real seasons record every Sunday night.'
-        : 'Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season.')+'</p>';
+        ? `The demo skips the archive. Real seasons record every ${closeNight} night.`
+        : `Nothing recorded yet: the first week closes ${closeNight} night, and every week lands here for the season.`)+'</p>';
     } else {
       /* D234 · a SOLO season forms no squads, so `standings.squads` is []
          and every week of a solo archive rendered as a bare "WK 3" with no
@@ -28378,7 +28503,10 @@ function renderEvent(){
     const myDuel = openS ? duels.find(d=>d.session_id===openS.id && (d.a_player===meP.id || d.b_player===meP.id)) : null;
     const opp = myDuel ? pById(myDuel.a_player===meP.id ? myDuel.b_player : myDuel.a_player) : null;
     const oppFirst = opp && opp.name && opp.name!=='—' ? String(opp.name).trim().split(/\s+/)[0] : null;
-    const ask = oppFirst ? `Tell me when ${esc(oppFirst)} posts` : 'Tell me when my opponent posts';
+    /* W7-152 · once the opponent's side already holds a figure this week (the row above prints it), the ask is for the NEXT one: 'Tell me when Gray posts again' (E.targets is the read the figures use) */
+    const tgt = myDuel ? (E.targets||{})[myDuel.id] : null;
+    const oppPosted = !!tgt && (myDuel.a_player===meP.id ? tgt.b : tgt.a) != null;
+    const ask = (oppFirst ? `Tell me when ${esc(oppFirst)} posts` : 'Tell me when my opponent posts') + (oppPosted ? ' again' : '');
     tail+=`<div style="margin:10px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">${meP.notify_target?'Mute the taunts':ask}</button>
       <p class="fine" style="padding:4px 0 0">${meP.notify_target?'You hear it the moment your opponent posts.':'Nothing pings you until you ask for it.'}</p></div>`;
   }
@@ -28521,7 +28649,8 @@ function renderEvent(){
       <div class="evsesshd"><span>${esc(t.name)}</span><i></i><span>${roster.length}</span></div>
       <div class="evroster-rule" style="background:${SQ[(t.color??0)%4]}"></div>`;
     aside+= roster.length
-      ? `<div class="evrrow evrrow-hd cs-agate-s" aria-hidden="true"><span></span><span></span><span>W</span><span>L</span><span>H</span></div>`
+      /* W7-153 · the three record heads are spelled, in sentence case (the phone's RyderMath.recordLegend 'Won, lost, halved'): 'H' was never spelled anywhere; each row still speaks its own record */
+      ? `<div class="evrrow evrrow-hd cs-agate-s is-phrase" aria-hidden="true"><span></span><span></span><span>Won</span><span>Lost</span><span>Halved</span></div>`
         + roster.map(p=>{ const [w,l,h]=recOf(p.id);
           return `<div class="evrrow" aria-label="${esc(`${p.name}${p.role==='captain'?', captain':''}: ${w} won, ${l} lost, ${h} halved`)}">
             <span class="d" style="background:${csPigment(p.profile_id||p.id)}" aria-hidden="true">${window.mkr?.(p.marker||'saguaro')||''}</span>
@@ -29002,7 +29131,7 @@ function csRenderPayNote(){
     fine.textContent = csPayNoteMissing()
       ? "They'll need somewhere to send it."
       : "Everyone who owes will see this. It's the only place they can look.";
-    fine.style.color = csPayNoteMissing() ? 'var(--neg)' : '';   /* a missing field is a validation state (neg, as .ob-status.err), never the competition ember */
+    fine.style.color = csPayNoteMissing() ? 'var(--ink)' : '';   /* W7-104 · a missing field the Pro has not reached is guidance, said in ink as the phone does; the disabled Start and its reason (#lockWhy) still stop the lock */
   }
   const btn = document.getElementById('lockBtn');
   /* W5 · the disabled tier is bg1 with a mut label (§7.1), never the action
@@ -29690,7 +29819,16 @@ const GUIDE = {
     <p class="fine" style="padding:0 0 10px"><b>A buddy</b> is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a schedule. Nothing to do with leagues or points.</p>
     <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the round posts to their rounds. No league, no buddy — just the round.</p>`],
+  /* W7-113 · the desk's five keys (UI_SYSTEM §14.4), each key in the agate role over one body sentence: the key layer (a '/' anywhere, g then t, arrows, Right, Esc) is live on the whole desk and
+     nothing on screen taught it. Words for the arrows, never typed glyphs. Opened from the desk-only 'Keyboard' row in How it works, and by '?' at 960px and wider. */
+  keys: ['Keyboard','THE DESK\u2019S FIVE KEYS', `
+    <div class="cs-agate">Up and Down</div><p class="cs-body-s" style="margin:2px 0 12px">Move between rows.</p>
+    <div class="cs-agate">Right</div><p class="cs-body-s" style="margin:2px 0 12px">Open the row.</p>
+    <div class="cs-agate">/</div><p class="cs-body-s" style="margin:2px 0 12px">Find a golfer.</p>
+    <div class="cs-agate">g, then t</div><p class="cs-body-s" style="margin:2px 0 12px">Jump to the table.</p>
+    <div class="cs-agate">Esc</div><p class="cs-body-s" style="margin:2px 0 12px">Close what is open.</p>`],
 };
+window.csGuide = GUIDE;   /* W7-113 · the key layer is classic code: it reaches the guide through window, never bare */
 /* the guide's rows are buttons to a keyboard too (role="button", tabindex 0):
    Enter and Space open them through the same click path */
 document.addEventListener('keydown', (e) => {
@@ -29834,7 +29972,9 @@ function refreshWhoChip(){
        says Handicap index (`csCredentialHtml`). One print per viewport: the
        desk sidebar yields its copy while You is open. */
     if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Your number']);
-    cells.push([rounds == null ? '\u2014' : String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
+    /* W7-106 · a slot with no figure is ABSENT, as the phone's YouScreen.figures has it: a failed or pending career read printed '— ROUNDS' on the card above a page that says '8 ROUNDS POSTED';
+       the count returns with the read (Try again) */
+    if(rounds != null) cells.push([String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
     figs.innerHTML = cells.map(([v, l]) =>
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
       + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;
@@ -29980,14 +30120,10 @@ async function renderCrewPeople(){
     const bare = !buds.length && !reqs.length && !out.length;
     if(root){
       root.innerHTML = bare ? csEmptyRootHtml(csEmptyRoot('golfers', {})) : '';
-      /* TEN · each door does what it says: "Text someone a link" focused the
-         SEARCH field like "Find golfers" did. It opens the invite now, and the
-         separate "Bring someone in" section stands down while the root is up,
-         so the empty page offers its two acts once each, not twice. */
-      if(bare) root.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>{
-        if(b.dataset.erdoor==='personLink'){ document.getElementById('glfInviteBtn')?.click(); return; }
-        document.getElementById('crFind')?.focus();
-      }));
+      /* TEN · each door does what it says: "Text someone a link" opens the invite, and the
+         separate "Bring someone in" section stands down while the root is up. W7-085 · the root's ONE door
+         is that link; finding a golfer is the search field under it, not a second door to it. */
+      if(bare) root.querySelectorAll('[data-erdoor="personLink"]').forEach(b=>b.addEventListener('click',()=>{ document.getElementById('glfInviteBtn')?.click(); }));
       const pl=document.getElementById('glfPersonLink'); if(pl) pl.hidden = bare;
     }
     /* TEN · one request block: the head block (#peopleRequests) owns what it
@@ -30108,11 +30244,12 @@ function csTapeHtml(meetings, opts){
   }).join('');
   const rows = o.rows === false ? '' :
     `<span class="rows cs-agate-s"><span>YOURS</span><span>THEIRS</span></span>`;
+  /* W7-100 · the dates are the tape's second grid row, under the RAIL only: each end date sits under its own end square, and the label column (YOURS / THEIRS) has nothing beneath it,
+     so 'SEP 21' no longer stacks under 'THEIRS' as if it were theirs */
   const dates = (o.first && o.last)
-    ? `<div style="display:flex; justify-content:space-between" class="cs-agate-s"><span>${esc(o.first)}</span><span>${esc(o.last)}</span></div>` : '';
+    ? `<div class="tapedates cs-agate-s"><span>${esc(o.first)}</span><span>${esc(o.last)}</span></div>` : '';
   return `<div role="img" aria-label="${esc(o.spoken||'One square is one win.')}">
-    <div class="cstape"><span class="rail"><span class="ticks">${ticks}</span></span>${rows}</div>
-    ${dates}
+    <div class="cstape"><span class="rail"><span class="ticks">${ticks}</span></span>${rows}${dates}</div>
     <p class="cs-agate-s is-phrase" style="color:var(--mut); margin:6px 0 0">One square is one win.</p></div>`;
 }
 window.csTapeHtml = csTapeHtml;
@@ -31328,7 +31465,8 @@ function openProfileHub(){
       <input type="file" id="phPhotoFile" accept="image/*" style="display:none">
     </div>
     <div class="frow" style="margin-top:10px">
-      <div><label class="f" for="phHandle">Handle · moves once / 60 days</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
+      <!-- W7-078 · the 60-day rule is said ONCE, from the gate's producer (CS_ONBOARDING.handleRule, the phone's OnboardingCopy.handleRule): the label is the field's name, and the rule is the sentence that describes it -->
+      <div><label class="f" for="phHandle">Handle</label><input class="f" id="phHandle" style="font-family:var(--sans)" aria-describedby="phHandleRule"><p class="fine" id="phHandleRule" style="padding-left:0">${typeof CS_ONBOARDING !== 'undefined' ? esc(CS_ONBOARDING.handleRule) : ''}</p></div>
       <div><label class="f" id="phDiscL">Findable by</label><div id="phDisc" role="group" aria-labelledby="phDiscL" style="display:flex; gap:6px; margin-top:6px;">
         <button class="mini" data-disc="everyone" aria-pressed="false">All</button>
         <button class="mini" data-disc="friends" aria-pressed="false">Buddies</button>
@@ -31412,6 +31550,7 @@ function openProfileHub(){
       <div class="check tap" data-guide="posting" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div></div>
       <div class="check tap" data-guide="buddies" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div></div>
       <div class="check tap" data-guide="scoring" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div></div>
+      <div class="check tap keyrow" data-guide="keys" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Keyboard</b><small>The desk’s five keys</small></div></div>   <!-- W7-113 · desk-only: a phone has no keys to teach -->
       <!-- owner H · "Tell us how it's going" is the app's, not the golfer's
            card: it moved here from the You page -->
       ${(typeof PILOT !== 'undefined' && PILOT) ? `<button type="button" class="check tap" id="phFeedback" style="width:100%; text-align:left; cursor:pointer"><div class="tt"><b>Tell us how it’s going</b><small>A line to the people who make this</small></div></button>` : ''}
@@ -32869,9 +33008,10 @@ async function loadScenarios(){
 }
 window.loadScenarios = loadScenarios;
 function scenSeedWord(meta){
+  /* W7-071 · lower-case words for a sentence (the line is body text now, not tracked caps): the seat named, not the +10 head start (that is the Final card's fact) */
   if(meta.finish==='points_table') return 'the crown';
-  if(meta.level==='squad' && meta.structure==='squads2') return 'the top seed · +10';
-  return 'a Cup seed';
+  if(meta.level==='squad' && meta.structure==='squads2') return 'the top seed';
+  return 'a Cup Final place';
 }
 function renderScenarioLine(){
   const box = document.getElementById('scenarioLine'); if(!box) return;
@@ -32884,9 +33024,14 @@ function renderScenarioLine(){
      handed words, not capitals it may spell out */
   const nm = s => esc(String(s||''));
   /* Cup Final already running → seeds are settled facts */
+  /* W7-071 · every part is a SENTENCE in sentence case, said in body text (a tracked-caps line of numbers with no unit read as '351 MORE'): a squad's name is a plural noun ('Fixture Javelinas clinch',
+     'have clinched', 'are out'), a golfer's is singular */
+  const plural = meta.level==='squad';
+  const names = list => list.length<3 ? list.join(' and ') : list.slice(0,-1).join(', ')+' and '+list[list.length-1];
   if(meta.locked){
-    const seeds = rows.slice(0, meta.k).map(r=>nm(r.name));
-    box.innerHTML = `<span class="clinch">Seeds set</span> — ${seeds.join(' · ')} into the Cup Final`;   /* D126 */
+    const seeds = rows.slice(0, meta.k).map(r=>`<b>${nm(r.name)}</b>`);
+    /* W7-068 [X05] · 'The Final is set' is the state's word (TERMINOLOGY row 141: 'seed' is never a verb; the phone's ScenarioLine says it) */
+    box.innerHTML = `<span class="clinch">The Final is set:</span> ${names(seeds)} ${seeds.length>1||plural?'are':'is'} in.`;   /* D126 */
     box.style.display='block'; return;
   }
   /* seed race closed (window past) but not yet flipped, or nothing to project */
@@ -32897,16 +33042,16 @@ function renderScenarioLine(){
   const leadHeadroom = Number(lead.max_final) - Number(lead.points);   /* what the leader can still add */
   const parts = [];
   if(lead.clinched){
-    parts.push(`<b>${nm(lead.name)}</b> is in ${sw}`);   /* D126 */
+    parts.push(`<b>${nm(lead.name)}</b> ${plural?'have':'has'} clinched ${sw}.`);   /* D126 */
   } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
-    parts.push(`<b>${nm(lead.name)}</b> · ${lead.needs} more clinches ${sw}`);
+    parts.push(`<b>${nm(lead.name)}</b> ${plural?'clinch':'clinches'} ${sw} with ${lead.needs} more point${Number(lead.needs)===1?'':'s'}.`);   /* the unit is named: '351 MORE' had none */
   }
   const out = rows.filter(r=>r.eliminated).map(r=>nm(r.name));
   if(out.length){
-    parts.push(`<span class="out">${out.join(', ')} out of the ${meta.finish==='points_table'?'race':'seed race'}</span>`);
+    parts.push(`<span class="out">${names(out)} ${out.length>1||plural?'are':'is'} out of the ${meta.finish==='points_table'?'race':'seed race'}.</span>`);
   }
   if(!parts.length){ return hide(); }
-  box.innerHTML = parts.join(' · ');
+  box.innerHTML = parts.join(' ');
   box.style.display='block';
 }
 window.renderScenarioLine = renderScenarioLine;
@@ -36276,7 +36421,7 @@ async function loadLeagueRecord(){
              : !done && r.phase === 'draft'       ? STAGE_LABEL.drawing
              : before                             ? `First tee ${DOW[sd.getDay()]} ${MOS[sd.getMonth()]} ${sd.getDate()}`
              : done                               ? (where ? 'Finished ' + where : 'Finished')
-             : [r.status === 'cup_final' ? 'Cup Final' : null, where, 'in season'].filter(Boolean).join(' · ');
+             : [r.status === 'cup_final' ? 'Cup Final' : null, where].filter(Boolean).join(' · ');   /* W7-126 · a live season reads 'Season II · 1st of 4 · 36 pts' beside its 'In play', not 'in season' as a second state word */
         return { id: r.league_id, league_id: r.league_id, season_id: r.season_id,
                  name: r.league_name, number: r.number || 1, line,
                  year: r.starts_on ? Number(String(r.starts_on).slice(0, 4)) : null,
@@ -36832,8 +36977,9 @@ function renderRoundSheet(id, d){
   $('#rrScratch')?.addEventListener('click', async(e)=>{ const b=e.currentTarget;
     if(!csArmTap(b, 'Cancel round', 'Sure? Cancel for everyone')) return;   /* W7-049 · §7.1: the first tap asks, the second does it */
     b.disabled=true;
-    try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
-    catch(err){ toast(humanError(err, 'Scratch failed.')); b.disabled=false; }
+    /* W7-079 · the words are the list's own ('Round cancelled', 'That did not cancel.'): a host who cancels from the sheet and one who cancels from the row read the same toast */
+    try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round cancelled'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
+    catch(err){ toast(humanError(err, 'That did not cancel.')); b.disabled=false; }
   });
 }
 /* weather rides in async; if there's no location or it's out of range, the chip

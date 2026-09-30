@@ -154,6 +154,76 @@ const datelineOk = async (page) => page.evaluate(() => {
   if (innerWidth < 480) return b.top >= a.bottom - 1 && sep === 'none' ? true : `at ${innerWidth}px the dateline is not stacked without a separator (span bottom ${Math.round(a.bottom)}, Pro top ${Math.round(b.top)}, separator ${sep})`
   return sep === 'none' ? 'the separator between the span and the Pro is gone above 480px' : true
 })
+/* TEN / W8 · W7-071 [A2-season-7] · the clinch line is SENTENCES in sentence case, in the body role (sans 15px), with the unit named: 'Fixture Javelinas clinch the top seed with 351 more points.', never a tracked
+   mono-era caps run ('FIXTURE JAVELINAS · 351 MORE CLINCHES THE TOP SEED · +10'); joined by a space and not ' · ' */
+const clinchSentence = async (page) => page.evaluate(() => {
+  const b = document.getElementById('scenarioLine')
+  if (!b || !(b.getBoundingClientRect().width > 0)) return 'the season page draws no clinch line'
+  const t = b.textContent.replace(/\s+/g, ' ').trim(), cs = getComputedStyle(b)
+  const probe = document.createElement('p'); probe.className = 'cs-body-s'; document.body.appendChild(probe); const body = getComputedStyle(probe); const want = { family: body.fontFamily, size: body.fontSize }; probe.remove()
+  if (cs.textTransform !== 'none' || cs.fontFamily !== want.family || cs.fontSize !== want.size) return `the clinch line is ${cs.textTransform} ${cs.fontSize} ${cs.fontFamily.split(',')[0]}, not the body role (${want.size} ${want.family.split(',')[0]})`
+  if (/ \u00b7 /.test(t)) return `the clinch line still joins its parts with a middot: ${JSON.stringify(t)}`
+  if (/\b[A-Z]{3,}\b/.test(t)) return `capitals are typed into the clinch line: ${JSON.stringify(t)}`
+  return /^Fixture Javelinas clinch the top seed with \d+ more points\.( |$)/.test(t) ? true : `the clinch line reads ${JSON.stringify(t)}`
+})
+/* TEN / W8 · W7-112 [A2-desk-20] · the standings' movement mark has a head that names it: from 960 a column headed 'Since <day>' holds the mark (held bar, up or down count) and the Gap cell holds only the gap;
+   below 960 the merged cell keeps both, as before, and the extra column is not drawn */
+const sinceColumn = async (page) => page.evaluate(() => {
+  const t = document.getElementById('standings'), shown = (el) => el && el.getBoundingClientRect().width > 0 && getComputedStyle(el).display !== 'none'
+  if (!t || !shown(t)) return 'the standings table is not on the page'
+  const head = [...t.querySelectorAll('tr:first-child th')].find((h) => /^Since /i.test(h.textContent.trim()))
+  if (!head) return 'the head row has no Since column'
+  const rows = [...t.querySelectorAll('tr.tap')], marks = (r, sel) => [...r.querySelectorAll(sel)].filter(shown)
+  if (innerWidth >= 960) {
+    if (!shown(head)) return "the 'Since' head is not drawn at the desk"
+    for (const r of rows) {
+      if (marks(r, 'td.chg:not(.since) .mv, td.chg:not(.since) .held').length) return 'a movement mark still sits under Gap at the desk'
+    }
+    if (!rows.some((r) => marks(r, 'td.since .mv, td.since .held').length)) return 'no movement mark sits under the Since head'
+    if (!/^Since (Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/.test(head.textContent.trim())) return `the head reads ${JSON.stringify(head.textContent.trim())}, not sentence case`
+  } else {
+    if (shown(head)) return "the 'Since' head is drawn below the desk"
+    if (!rows.some((r) => marks(r, 'td.chg:not(.since) .mv, td.chg:not(.since) .held').length)) return 'the merged Gap cell lost its mark below the desk'
+  }
+  return true
+})
+/* TEN / W8 · W7-066 [B2-desk-17] · the figures under a table's title cell stand under a head: a right-aligned 'Pts' cell in the head row, on the same edge as the figures (the clash's 9 and 7, the Cup Final race's totals) */
+const ptsHead = (tableSel) => async (page) => page.evaluate((tableSel) => {
+  const t = document.querySelector(tableSel)
+  if (!t || !(t.getBoundingClientRect().width > 0)) return `${tableSel} is not on the page`
+  const head = t.querySelector('tr:first-child th.num')
+  if (!head || !/^pts$/i.test(head.textContent.trim())) return `${tableSel}'s head row has no Pts cell: ${JSON.stringify([...t.querySelectorAll('tr:first-child th')].map((h) => h.textContent.trim().slice(0, 24)))}`
+  const figs = [...t.querySelectorAll('td.num.pts')]
+  if (!figs.length) return `${tableSel} draws no figures`
+  for (const f of figs) if (Math.abs(f.getBoundingClientRect().right - head.getBoundingClientRect().right) > 1) return 'a figure is not under its Pts head'
+  return true
+}, tableSel)
+/* TEN / W8 · W7-067 [B2-season-20] · the open clash: its head carries ONE restrained ember dot that says it is live (none once the week is settled), and both rows start at the head's own left edge:
+   the empty rank column (a 'W' only after settling, which the settled head already says) is gone */
+/* TEN / W8 · W7-123 [A2-competition-13] · the Scoreboard band is Compete's only door to the season, and its accessible name is its facts: it says its action too, as the phone's band does
+   ('Opens the season'), through a hidden line the button is described by; the visible band gains no verb or arrow */
+const bandHint = async (page) => page.evaluate(() => {
+  const b = document.querySelector('#cmpList [data-cband]'); if (!b) return 'no Scoreboard band on Compete'
+  const id = b.getAttribute('aria-describedby'), hint = id && document.getElementById(id)
+  if (!hint) return 'the band is not described by anything: a screen reader hears its facts and no action'
+  if (hint.textContent.trim() !== 'Opens the season') return `the band's hint reads ${JSON.stringify(hint.textContent.trim())}`
+  if (hint.getBoundingClientRect().width > 2) return 'the hint is drawn on the band (it is for a screen reader)'
+  return /[\u2192\u203a]/.test(b.textContent) ? 'the visible band types an arrow' : true
+})
+const clashOpen = async (page) => page.evaluate(() => {
+  const t = document.getElementById('clashTbl'), wrap = document.getElementById('clashWrap')
+  if (!t || !wrap || !(wrap.getBoundingClientRect().width > 0)) return 'the clash is not on the page'
+  const th = t.querySelector('th'), dots = t.querySelectorAll('.clashdot'), settled = !!(window.weekClash && window.weekClash.settled_at)
+  if (settled) return dots.length ? 'a settled clash still carries the live dot' : true
+  if (dots.length !== 1) return `the open clash carries ${dots.length} dots, expected one`
+  const dot = dots[0], probe = document.createElement('i'); probe.style.background = 'var(--brand)'; document.body.appendChild(probe); const brand = getComputedStyle(probe).backgroundColor; probe.remove()
+  if (getComputedStyle(dot).backgroundColor !== brand) return `the dot is ${getComputedStyle(dot).backgroundColor}, not ember (${brand})`
+  if (dot.getAttribute('role') !== 'img' || dot.getAttribute('aria-label') !== 'Live') return 'the dot is not named Live'
+  if (t.querySelector('td.rk')) return 'the clash still draws its empty rank column'
+  const left = th.getBoundingClientRect().left + parseFloat(getComputedStyle(th).paddingLeft)
+  for (const tn of t.querySelectorAll('.tn')) if (Math.abs(tn.getBoundingClientRect().left - left) > 1.5) return `a side starts ${Math.round(tn.getBoundingClientRect().left - left)}px from the head's left edge`
+  return true
+})
 const SEASON = [
   { family: 'season', id: 'narrative', variant: 'member', title: 'The season page, its head: North Grove in week 8 and the story line', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -188,7 +258,7 @@ const SEASON = [
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
-      tertiaryDoor('#seasonBookDoor'),
+      tertiaryDoor('#seasonBookDoor'), clashOpen, ptsHead('#clashTbl'), sinceColumn,
       /* TEN / W8 · W7-060 [A2-season-5]: a tied Points King names who is level (never the word 'Level' in the name's slot), wraps rather than clipping, and the sub says 'level on N' */
       async (page) => page.evaluate(() => {
         const k = document.getElementById('awKing'), sub = document.getElementById('awKingS')
@@ -236,7 +306,7 @@ const SEASON = [
         ['the pot ($600)', '\\$600(?![\\d.,])']], 960),
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
-      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine']),
+      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence,
       /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
       headGap(['#climbEyebrow', '#standingsEyebrow']),
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
@@ -396,6 +466,12 @@ const SEASON = [
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
       /* TEN / W8 · W7-029 [A2-season-3] (3 of 4): the League rows are slats, not cards */
       noBoxes(['#view-hub .check']),
+      /* TEN / W8 · W7-065 [A2-season-8]: the roster, share and squads rows are headed 'Who’s in', the phone's head for them; 'League' is not a container label (TERMINOLOGY §2.3) */
+      async (page) => page.evaluate(() => {
+        const heads = [...document.querySelectorAll('#room-league > .eyebrow')].filter((e) => e.getBoundingClientRect().height > 0).map((e) => e.textContent.trim())
+        if (heads.includes('League')) return 'a section is still headed League'
+        return heads.includes('Who\u2019s in') ? true : `the room's heads read ${JSON.stringify(heads)}, expected Who\u2019s in`
+      }),
       /* TEN / W8 · W7-093 [A2-rules-2]: the minimum's sentence says WHICH months carry none (it read 'Post 2 rounds a month.' with no word on the partial first and last month) */
       has('#bylawsHub', 'A partial first or last month has no minimum\\.', 'the rules say which months carry no minimum'),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
@@ -668,7 +744,7 @@ const COMPETE = [
        the phone */
     check: all(has('#cmpList [data-cband]', '137[\\s\\S]*Fixture Wrens · 2nd[\\s\\S]*34 back of Fixture Javelinas\\.', 'the band (137 points, Fixture Wrens 2nd, 34 back of, W7-130: the table\'s own noun)'),
       /* TEN / W8 · W7-130 [A2-competition-3]: the sidebar's season row stands down on Compete: the band prints the standing (rank, points, gap) itself */
-      standsDown(['#sideMe [data-mego="season_row"]']),
+      standsDown(['#sideMe [data-mego="season_row"]']), bandHint,
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
       tertiaryDoor('#cmpBookDoor'),
       has('#cmpList', 'South Wash Weekday \\(fixture\\)', 'the second season'),
@@ -711,6 +787,34 @@ const bandSays = (re, what) => async (page) => page.evaluate(({ re, what }) => {
 const adopt = (name, opts) => async (W) => { adoptBook(W, readBook(name), opts) }
 const BOOK_LS = (name) => ({ cs_last_league: readBook(name).league_id })
 
+/* TEN / W8 · W7-135 [A2-competition-18] · the Book grid is ONE Tab stop with a roving tabindex (it was up to 256 buttons and no arrow keys): exactly one button holds tabindex 0, the region is not a stop of its own,
+   Left/Right move along a row (its name is the first stop), Up/Down along a week, Home/End to a row's ends (a future week's disabled button is skipped), and 'Skip to adjustments' moves to that heading */
+const bookGridKeys = async (page) => {
+  const info = await page.evaluate(() => {
+    const m = document.querySelector('#seasonBookDialog .sb-matrix'), btns = [...m.querySelectorAll('tbody button')]
+    return { total: btns.length, zero: btns.filter((b) => b.tabIndex === 0).length, region: m.getAttribute('tabindex') }
+  })
+  if (info.zero !== 1) return `${info.zero} of ${info.total} grid buttons are Tab stops, expected one`
+  if (info.region === '0') return 'the grid region is still a Tab stop of its own'
+  const at = (r, c) => page.evaluate(([r, c]) => { const b = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')][r].querySelectorAll('button')[c]; b.focus(); return true }, [r, c])
+  const where = () => page.evaluate(() => { const a = document.activeElement, rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')], ri = rows.findIndex((tr) => tr.contains(a)); return { ri, ci: ri < 0 ? -1 : [...rows[ri].querySelectorAll('button')].indexOf(a), week: a && a.dataset ? a.dataset.bookWeek : null } })
+  await at(0, 1); await page.keyboard.press('ArrowRight')
+  let w = await where(); if (w.ri !== 0 || w.ci !== 2) return `ArrowRight from week 1 lands on row ${w.ri} button ${w.ci}, expected row 0 button 2`
+  await page.keyboard.press('ArrowDown'); w = await where(); if (w.ri !== 1 || w.ci !== 2) return `ArrowDown lands on row ${w.ri} button ${w.ci}, expected row 1 button 2`
+  await page.keyboard.press('ArrowUp'); w = await where(); if (w.ri !== 0 || w.ci !== 2) return 'ArrowUp does not go back up'
+  await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft'); w = await where(); if (w.ri !== 0 || w.ci !== 0) return `two ArrowLefts land on button ${w.ci}, expected the row's name`
+  await page.keyboard.press('End'); w = await where();
+  const last = await page.evaluate(() => { const r = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')][0]; return [...r.querySelectorAll('button')].filter((b) => !b.disabled).length - 1 })
+  if (w.ri !== 0 || w.ci !== last) return `End lands on button ${w.ci}, expected the last enabled cell (${last})`
+  await page.keyboard.press('Home'); w = await where(); if (w.ci !== 0) return `Home lands on button ${w.ci}, expected the row's name`
+  const skipped = await page.evaluate(() => {
+    const link = document.querySelector('#seasonBookDialog [data-sb-skip]'); if (!link) return 'no Skip to adjustments link'
+    link.focus(); link.click(); const h = document.getElementById('sb-adjust')
+    return document.activeElement === h ? true : `Skip to adjustments leaves the focus on ${document.activeElement && (document.activeElement.id || document.activeElement.tagName)}`
+  })
+  await page.evaluate(() => { const a = document.activeElement; if (a && a.blur) a.blur() })
+  return skipped
+}
 /* TEN / W8 · W7-070 [A2-competition-1] · the Book's start edge: while earlier weeks sit behind the pinned name column (it opens on the live week) the mirror of the end fade says so
    (data-more-start, drawn from the name column's right edge), and from 1440 the dialog is wide enough for a 15-week season to show whole */
 const bookStartEdge = async (page) => page.evaluate(() => {
@@ -735,6 +839,15 @@ async function raceDrive(page) {
 }
 /* TEN / W8 · W7-131 [A2-competition-5] · the Race display reads heading, CHART, sentence (the four-line paragraph stood between the controls and the chart), and Follow (up to 17 names) is one
    closed disclosure, so the chart's first half is in the first screen at every width */
+/* TEN / W8 · W7-124 [A2-competition-17] · the Race's end label starts at week N's own point (as 'Week 1' does), so it lies right of the 'Now' rule and never sits under it: 'Week 15' centred under
+   'Now · W13' read as if week 13 were week 15 */
+const raceEndLabel = async (page) => page.evaluate(() => {
+  const svg = document.querySelector('#seasonBookDialog svg.sb-race'), now = svg && svg.querySelector('.sb-current-line')
+  const end = svg && [...svg.querySelectorAll('.sb-race-axis')].find((t) => /^Week \d+$/.test(t.textContent) && t.textContent !== 'Week 1')
+  if (!svg || !now || !end) return 'the race has no end label or no Now rule'
+  const l = end.getBoundingClientRect(), n = now.getBoundingClientRect()
+  return l.left >= n.right - 0.5 ? true : `the end label (${Math.round(l.left)}-${Math.round(l.right)}) runs under the Now rule at ${Math.round(n.left)}`
+})
 const raceOrder = async (page) => page.evaluate(() => {
   const main = document.querySelector('#seasonBookDialog .sb-main'), h2 = main.querySelector('h2'), svg = main.querySelector('svg.sb-race')
   const said = [...main.querySelectorAll('p')].find((p) => /^Each golfer’s points as they count today/.test(p.textContent))
@@ -772,7 +885,7 @@ const BOOK = [
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-matrix': 'visible', '#seasonBookDialog #sb-group': 'visible', '#seasonBookDialog .sb-matrix th.sb-current': 'text:W13' } },
     check: all(bookIs({ title: 'The Book', head: 'North Grove (fixture) · Season 1 · Jul 6 – Oct 18, 2026' }),
-      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'), bookStartEdge,
+      bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'), bookStartEdge, bookGridKeys,
       async (page) => page.evaluate(() => {
         const rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')]
         if (rows.length !== 4) return `${rows.length} squad rows, expected 4`
@@ -780,6 +893,47 @@ const BOOK = [
         if (names.join('|') !== 'Fixture Quail|Fixture Wrens|Fixture Javelinas|Fixture Gilas') return 'squad order ' + names.join('|')
         return document.querySelectorAll('#seasonBookDialog .sb-adjustment').length >= 3 ? true : 'the adjustments in the totals are missing'
       })) },
+  /* TEN / W8 · W7-134 [A2-competition-16] · 'Open the round's receipt' CLOSED the Book with no way back to the cell being read: the round's sheet, dismissed (Escape here; the × and the backdrop take the same path),
+     puts the reader back on the same cell: the Book reopened on the same view, squad, display and follow, that cell's receipt open and the cell marked. The Book's round ids are not the world's, so the state gives
+     the world a round for each entry of the cell (Avery's, cloned) and the sheet can open one. */
+  { family: 'book', id: 'receipt-return', variant: 'rounds_no_league', fullPage: false, title: 'The Book, after the round opened from a cell\u2019s receipt is dismissed: the reader is back on the cell (Fixture Javelinas, week 12)',
+    prepare: async (W) => {
+      adoptBook(W, readBook('squads'))
+      const b = readBook('squads'), row = b.rows.find((r) => r.id === 'squad:c50b0000-0000-4000-8000-000000000300'), base = W.tables.rounds.find((r) => r.profile_id === W.ids.uid(1))
+      for (const e of row.entries.filter((x) => x.week === 12 && x.round_id)) if (!W.tables.rounds.some((r) => r.id === e.round_id)) W.tables.rounds.push(Object.assign({}, base, { id: e.round_id }))
+    },
+    localStorage: BOOK_LS('squads'),
+    drive: async (page) => {
+      await bookFromCompete(page)
+      const row = await page.evaluate(() => {
+        const th = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody th button')].find((b) => /^Fixture Javelinas/.test(b.innerText.trim()))
+        return th ? th.dataset.bookRow : null
+      })
+      if (row == null) throw new Error('no Fixture Javelinas row in the Book')
+      await click(page, `#seasonBookDialog .sb-matrix td button[data-book-row="${row}"][data-book-week="12"]`)
+      await until(page, () => /Fixture Javelinas · Week 12/.test((document.querySelector('#seasonBookDialog .sb-receipts h2') || {}).textContent || ''))
+      await page.evaluate((row) => { window.__w8Cell = { row, week: '12' } }, row)
+      await click(page, '#seasonBookDialog .sb-receipts [data-book-round]')
+      await until(page, () => !document.getElementById('seasonBookDialog') && document.getElementById('sheet').classList.contains('open'), null, 12000)
+      await page.waitForTimeout(800)
+      await page.keyboard.press('Escape')
+      await until(page, () => { const d = document.getElementById('seasonBookDialog'); return !!d && d.open && !!d.querySelector('[data-book-row][aria-current="true"]') && /Fixture Javelinas · Week 12/.test((d.querySelector('.sb-receipts h2') || {}).textContent || '') }, null, 12000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-receipts h2': 'text:^Fixture Javelinas \u00b7 Week 12$' } },
+    check: async (page) => page.evaluate(() => {
+      const d = document.getElementById('seasonBookDialog'); if (!d || !d.open) return 'the Book is not open after the round was dismissed'
+      if (document.getElementById('sheet').classList.contains('open')) return 'the round\u2019s sheet is still open'
+      const marked = [...d.querySelectorAll('[data-book-row][aria-current="true"]')]
+      if (marked.length !== 1) return `${marked.length} cells are marked, expected the one that was open`
+      if (marked[0].dataset.bookRow !== window.__w8Cell.row || marked[0].dataset.bookWeek !== window.__w8Cell.week) return `the marked cell is row ${marked[0].dataset.bookRow} week ${marked[0].dataset.bookWeek}, not the one that was open`
+      const g = d.querySelector('#sb-group [aria-pressed="true"]'), m = d.querySelector('#sb-mode [aria-pressed="true"]')
+      if (!g || g.dataset.v !== 'squad' || !m || m.dataset.v !== 'Weeks') return 'the Book did not keep its view and display'
+      const sc = d.querySelector('.sb-matrix'), r = marked[0].getBoundingClientRect(), s = sc.getBoundingClientRect()
+      if (r.right < s.left || r.left > s.right) return 'the marked cell is scrolled out of the grid'
+      if (window.csBookReturn) return 'the return was not cleared once used'
+      return true
+    }) },
   /* EXPECTED TO FAIL on current source. The Scoreboard names a season's state
      in one of three words (F11: Upcoming · Live · Final). Seven days before
      this season's first tee its row facts already say "No standing yet. First
@@ -810,7 +964,7 @@ const BOOK = [
     prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
     drive: raceDrive,
     expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog .sb-follow > summary': 'text:^Follow · Leading three$' } },
-    check: all(bookIs({ title: 'The Book' }), raceOrder, tertiaryDoor('#seasonBookDialog .sb-follow > summary'),
+    check: all(bookIs({ title: 'The Book' }), raceOrder, raceEndLabel, tertiaryDoor('#seasonBookDialog .sb-follow > summary'),
       has('#cupRace', 'Fixture Quail[\\s\\S]*Fixture Wrens|Fixture Wrens[\\s\\S]*Fixture Quail', 'the Cup Final race behind the Book'),
       async (page) => page.evaluate(() => {
         const svg = document.querySelector('#seasonBookDialog svg.sb-race')
@@ -818,6 +972,17 @@ const BOOK = [
         if (!svg.querySelector('.sb-current-line')) return 'no current-week line in the Cup Final'
         return window.CS && window.CS.season && window.CS.season.status === 'cup_final' ? true : 'the season is not in its Cup Final'
       })) },
+  /* TEN / W8 · W7-068 [X05] · the season page in the Cup Final: the locked clinch line names the state 'The Final is set' (TERMINOLOGY row 141, the phone's ScenarioLine), never 'Seeds set' (seed is not a verb) */
+  { family: 'season', id: 'cup-final', variant: 'rounds_no_league', title: 'The season page in the Cup Final: the clinch line says the Final is set', fullPage: false,
+    prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => { const b = document.getElementById('scenarioLine'); return !!b && b.style.display !== 'none' && b.textContent.trim().length > 0 }, null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-hub', selectors: { '#scenarioLine': 'visible' } },
+    check: all(has('#scenarioLine', '^The Final is set: .+ (is|are) in\\.$', 'the locked clinch line (W7-071: a sentence)'), ptsHead('#cupRace'),
+      async (page) => page.evaluate(() => /seeds? set/i.test(document.getElementById('scenarioLine').textContent) ? 'the clinch line still says Seeds set' : true)) },
   /* W7-131 · the same race after a pick: Follow is opened, the second golfer chosen, and the disclosure closes on their name with the focus on its summary */
   { family: 'book', id: 'race-follow', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race following one golfer (Follow opened, a golfer picked)', fullPage: false,
     prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
@@ -930,6 +1095,36 @@ async function eventFromCompete(page, sel, id) {
 }
 /* TEN / W8 · W7-156 [A2-events-1] · the Ryder room: the golfer's own clash is FIRST in its week and reads 'You' (in the row and in its spoken sentence), and the rules paragraph,
    the taunt and the organiser's controls come AFTER the weeks (they stood a screen and a half above the clash on a phone) */
+/* TEN / W8 · W7-153 [A2-events-9, B2-events-7] · the roster's record columns are headed with words, 'Won', 'Lost', 'Halved' (the phone's recordLegend), in sentence case, each on its figures' edge and none clipped
+   ('W L H' was never spelled: 'H' least of all) */
+/* TEN / W8 · W7-152 [A2-events-5, B2-events-3] · 'Tell me when <opponent> posts' is offered while the opponent has NOT posted this week; once their figure is on the board the ask is for the next one, 'Tell me when
+   <opponent> posts again' (it read as a promise about a post already made, a few rows above the figure that said so) */
+const tauntAsk = async (page) => page.evaluate(() => {
+  const E = window.CS_EVENT || {}, meU = window.CS.user.id, me = (E.players || []).find((p) => p.profile_id === meU)
+  const btn = [...document.querySelectorAll('#eventBody button.mini')].find((b) => /^(Tell me when|Mute the taunts)/.test(b.textContent.trim()))
+  if (!me || !btn) return 'the room draws no taunt button for the viewer'
+  if (/^Mute/.test(btn.textContent.trim())) return true
+  const open = (E.sessions || []).find((s) => s.status === 'open'), duel = open && (E.duels || []).find((d) => d.session_id === open.id && (d.a_player === me.id || d.b_player === me.id))
+  const t = duel && (E.targets || {})[duel.id], posted = !!t && (duel.a_player === me.id ? t.b : t.a) != null
+  const again = / posts again$/.test(btn.textContent.trim())
+  return posted === again ? true : `the opponent ${posted ? 'has' : 'has not'} posted and the button reads ${JSON.stringify(btn.textContent.trim())}`
+})
+const rosterHeads = async (page) => page.evaluate(() => {
+  const heads = [...document.querySelectorAll('#eventBody .evrrow-hd')].filter((h) => h.getBoundingClientRect().width > 0)
+  if (!heads.length) return 'no roster head is drawn'
+  for (const h of heads) {
+    const cells = [...h.children].slice(2), words = cells.map((c) => c.textContent.trim())
+    if (words.join('|') !== 'Won|Lost|Halved') return `a roster head reads ${JSON.stringify(words)}, expected Won, Lost, Halved`
+    if (getComputedStyle(h).textTransform !== 'none') return 'the roster head is set in caps, not the sentence-case phrase'
+    const row = h.nextElementSibling; if (!row || !row.classList.contains('evrrow')) return 'no roster row follows the head'
+    const figs = [...row.querySelectorAll('.cs-col-m')]
+    for (let i = 0; i < 3; i++) {
+      if (cells[i].scrollWidth > cells[i].clientWidth + 1) return `${JSON.stringify(words[i])} is clipped in its column`
+      if (Math.abs(cells[i].getBoundingClientRect().right - figs[i].getBoundingClientRect().right) > 1) return `${JSON.stringify(words[i])} is not on its figure's edge`
+    }
+  }
+  return true
+})
 const ryderOrder = async (page) => page.evaluate(() => {
   const weeks = [...document.querySelectorAll('#eventBody .evsess')]
   if (!weeks.length) return 'the room draws no week'
@@ -964,7 +1159,7 @@ const EVENTS = [
       has('#eventBody', 'The 2nd Ryder · Fixture Hawks hold it, 1–0', 'the series line (event_lineage)'),
       has('#eventBody', 'Fixture Hawks lead 5½–2½ after week 2\\.', 'the board’s week-2 line'),
       /* TEN / W8 · W7-K040 [B2-events-10]: the Ryder page does not own the season standing, it competes with it: the sidebar's season row stands down beside its two sides */
-      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder,
+      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder, rosterHeads, tauntAsk,
       async (page) => page.evaluate(() => Object.keys((window.CS_EVENT || {}).targets || {}).length === 4 ? true : 'event_session_targets did not reach the four open duels')) },
   { family: 'events', id: 'finished', variant: 'member', title: 'The event room · a finished Ryder (Fixture Hawks 7–5), from Compete’s finished shelf',
     prepare: async (W) => { ryderWorld(W) },

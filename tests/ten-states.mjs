@@ -84,13 +84,16 @@ const CORE = [
         const bar = document.querySelector('#obProfile .pfsave'), sc = document.getElementById('onboard')
         if (!bar || !sc || getComputedStyle(bar).position !== 'sticky') return true
         if (sc.scrollHeight <= sc.clientHeight + 1) return true   /* the whole card fits: the bar is in its place */
+        /* W7-114 · a bar that sits directly above its own tail (the account line and the notes under it) is in its natural place, not stuck: nothing scrolls beneath it, so there is no strip to slice */
+        const tail = bar.nextElementSibling
+        if (tail && Math.abs(tail.getBoundingClientRect().top - (parseFloat(getComputedStyle(tail).marginTop) || 0) - bar.getBoundingClientRect().bottom) <= 1) return true
         const gap = Math.round(sc.getBoundingClientRect().bottom - bar.getBoundingClientRect().bottom)
         return gap <= 1 ? true : `the Save bar floats ${gap}px above the window's edge, and the form shows beneath it`
       })
       if (save !== true) return save
-      /* TEN / W6 · AW2-06: the gate's SIGNED IN stamp is a label, never mono */
-      const m = await notMono(['#obProfile .lockbadge'], ['#obProfile .lockbadge'])(page)
-      return m !== true ? m : noRetiredGlyph()(page)
+      /* TEN / W8 · W7-114 [A2-identity-13] · the gate's mono 'SIGNED IN' chip is gone (the signed-in fact is said once, at the gate's foot; the account line and the way out are B's #pfWho) */
+      const chip = await page.evaluate(() => document.querySelector('#obProfile .lockbadge') ? 'the gate still draws the SIGNED IN chip' : true)
+      return chip !== true ? chip : noRetiredGlyph()(page)
     } },
 
   /* ------------------------------------------------------------ home */

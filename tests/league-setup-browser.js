@@ -28,11 +28,13 @@
   check(state.cap===0 && state.floor===0, 'Second pace overwrote the accepted suggestion');
   document.getElementById('capUp').click(); document.getElementById('floorUp').click();
   check(state.cap===1 && state.floor===1, 'Suggested choices are not editable');
-  check(document.getElementById('setupMinimumConsequence').textContent.includes('removed from the team total'), 'Wrong Cutthroat consequence');
+  /* W7-167 · the dial's foot says the season page's sentence (floorSentence): 'squad', one cutthroat consequence, the same closing clause */
+  check(document.getElementById('setupMinimumConsequence').textContent.includes('the month\'s rounds are struck'), 'Wrong Cutthroat consequence');
   state.preset=1; renderSetup();
-  check(document.getElementById('setupMinimumConsequence').textContent.includes('5 points per round short'), 'Wrong Standard consequence');
+  check(document.getElementById('setupMinimumConsequence').textContent.includes('your squad loses 5 points for every round you\'re short'), 'Wrong Standard consequence');
+  check(!/\bteam\b/i.test(document.getElementById('setupMinimumConsequence').textContent), 'The minimum still says team where the product says squad');
   state.structure='solo'; renderSetup();
-  check(document.getElementById('setupMinimumConsequence').textContent.includes('No team penalty'), 'Solo claims team penalty');
+  check(document.getElementById('setupMinimumConsequence').textContent.includes('no squad to dock'), 'Solo claims a squad penalty');
   state.structure='squads4'; state.stake=20; state.payout=[70,20,10];
   document.getElementById('payNote').value='Pay Sam'; renderSetup();
   check(document.querySelectorAll('#payNote').length===1, 'Payment input ID is duplicated');
