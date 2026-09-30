@@ -197,6 +197,12 @@ export default [
         return /Saguaro Flats/.test(c) && t === 'Blue' && r === '70.1' && s === '121' ? true : `the fields read ${JSON.stringify([c, t, r, s])}`
       }),
       has('#fourSlots', 'Devon Testwell[\\s\\S]*Blake Sample|Blake Sample[\\s\\S]*Devon Testwell', 'the group'),
+      /* TEN / W7-127: the course's pars loaded, so the pars button checks them, never asks for them */
+      async (page) => page.evaluate(() => {
+        const n = (document.getElementById('cardNote') || {}).textContent || '', b = document.getElementById('editCard').textContent.trim()
+        if (!/^Card loaded/.test(n)) return 'the card did not load its pars here, so the button cannot be read: ' + JSON.stringify(n.slice(0, 60))
+        return b === 'Check the pars' ? true : 'the pars button still asks for work already done: ' + JSON.stringify(b)
+      }),
       /* TEN / W7-054 [A2-play-4]: the desk sets up on two columns; below 960 course, group, game read down */
       setupColumns) },
 

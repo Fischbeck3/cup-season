@@ -15268,6 +15268,8 @@ attachCourseSearch('#inCourse', '#inRating', '#inSlope', async ({ course, tee, c
    pick here: wait for the server-side cache, then lift the REAL per-hole par +
    stroke index into the course card (mirrors what cardSave does by hand). */
 attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cached }) => {
+  /* W7-127 · a new pick starts as a card with no pars in hand */
+  { const ec = $('#editCard'); if(ec) ec.textContent = 'Enter the pars'; }
   const te = $('#lrTee'); if(te && tee.tee_name) te.value = tee.tee_name;
   /* D73: a real 9-hole tee flips the live round to a nine — its course_rating
      IS a 9-hole rating (rating9). An 18-hole tee keeps the picker's choice, so
@@ -15317,6 +15319,9 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
     recomputeStrokes();
     const cn = $('#cardNote');
     if(cn) cn.textContent = `Card loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course's card.`;
+    /* TEN / W7-127 · the pars are in, so the button checks them rather than
+       asking for work already done (the phone's CSMini, LiveSetupView.swift:197) */
+    { const ec = $('#editCard'); if(ec) ec.textContent = 'Check the pars'; }
     if(typeof renderPlay === 'function') renderPlay();
   }catch(_){ /* cache miss = the typed card path — never block setup */ }
 });
