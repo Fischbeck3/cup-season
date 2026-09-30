@@ -8179,3 +8179,70 @@ Sources: docs/design/compete-2026-09-24/PROPOSAL.md, spec §16, D359, D376.
   - Your posted rounds stay in the leagues you played, under "Former member", so standings and receipts stay true (§16).
   - The privacy policy says exactly this.
 - **CONFLICT.** None.
+
+### D397 · A stranger holding a link reads the stranger shape: the person card, and the settlement without its money line (X38, amends D241)
+
+**RULED 2026-09-29** (owner ruling in chat, 2026-09-29: X38, P1 for the person link; for the settlement link, S2's narrowest cut plus S1's disclosure sentence) · IA/privacy level · amends D241 and applies D394 to `share_info` · built as `20261214090000_a_stranger_reads_the_card.sql`, HELD for the owner's `db push`
+
+- **Current mechanic.** The anon `share_info` (D57) answers two links with more than a stranger may read.
+  - The person branch (D241) sends the name, the marker, `index`, `rounds_n`, the `best` gross, and `rounds`: the last three rounds with their course and date. It makes no findability check, and a golfer with no rounds is shown a typed starter as an INDEX.
+  - The settlement branch sends the game, the course, the date, every player's name and gross, and a `result` that carries `transfers`: who pays whom, and how much. That includes players who never chose to share.
+- **Problem.** Two rulings disagreed. D241's card is "name, marker, number, recent rounds"; D394 says a stranger sees a name, a handle and a marker, with no public directory of where people play and how good they are. D241's "number" also broke D57's "no index in the public snapshot". On the settlement, any player could publish who owes whom for the whole four, and money is between friends (the brand's money sentence).
+- **Recommendation (ruled).**
+  - **The person link: D394 governs.** The person branch returns `kind`, `name`, `marker` and `rounds_n` (rounds played), and drops `index`, `best` and `rounds`. D241's own rule for the card still holds: no handle, no city, no email, no id.
+  - **The settlement link keeps the game public:** the sides, the status, the winner, the stake, the story, the hole strip, and the players with their grosses, as D57, D60a and D78 intend. It drops `result.transfers`. Both clients add one disclosure sentence at the share control, saying what the page will show.
+  - One migration patches the live body with asserted anchors (never retyped, so `[D385]` and `[X42]` survive). The grants are unchanged, and the anon surface stays at twelve (L-36, L-45).
+- **Principle served.** D394 (findable is not readable); D57 (the golfer publishes, curated and already shoutable, and there is no index in a public snapshot); D60a (a settlement is about the game); the brand's money sentence ("the money moves between friends"); L-44 (every line is a fact the server returned).
+- **Expected user benefit.** A card link tells a stranger who the golfer is and that they play, not where they played last Sunday or how good they are. A settlement link shows the game without publishing anybody's debts.
+- **Tradeoffs.**
+  - The person landing and the signed-in ask say less ("7 rounds posted.", with no best). The web already renders that shape. The phone's signed-in ask printed the index; it switches to rounds played, for parity.
+  - The settlement page's money line falls back to "$N a side", which both clients already print when there are no transfers.
+  - The published settlement PNG and its link-preview image are drawn by the client at share time, so this migration does not reach them. They carry the pays line until the clients stop drawing it on the public copy. Cards already published keep their PNG until revoked.
+  - P4 (honouring `discoverable` on the link) is out for Oct 1.
+- **Amended the same night (owner ruling in chat, 2026-09-29, relayed by root).**
+  - **"Turn off my card link" is IN, on both clients.** The owner's X38 row reads "the stranger shape with 'Turn off my card link' on both clients". The server half already exists, so no migration was written. `create_share('person', me)` returns the golfer's one live card token (`shares_one_live` allows one) and `revoke_share(token)` turns it off. The old link then answers null from `share_info` ("This link is dead. Whoever sent it can share a fresh one.") and `{kind: null}` from `redeem_share`, so no buddy request is minted. Sharing the card again mints a new link; the old one never answers again. `tests/db/a-card-link-turns-off.sql` pins it.
+  - **"Drops who pays whom" covers every public artifact:** the link, its preview and the published PNG. The in-app settlement keeps the pays line. The PNG and the preview image are client halves.
+  - **The disclosure sentences are ruled as written.** The card link: "Anyone with this link sees your name, your marker and how many rounds you've posted." The settlement: "Anyone with this link sees the game, the course and every gross. Who pays whom stays in the app."
+- **CONFLICT (named).** D241's "name, marker, number, recent rounds" is amended by this entry, in favour of D394, the owner's later privacy ruling; D57's gap is closed by it. D78's "the page lists the grosses" stands. None upward.
+
+### D398 · A Ryder week's result replaces its ask, the cup post says the score once, and the board keeps its write order (Q44 A, amends D296)
+
+**RULED 2026-09-29** (owner ruling in chat, 2026-09-29: Q44, option A) · UI level (the server's sentences), with one data cleanup · amends D296's Ryder sentences · built as the migration after `20261214090000` (Q44), HELD for the owner's `db push`
+
+- **Current mechanic.** The Ryder's board lists every server post.
+  - When a week opens, the server posts D296's ask: "Week N is up. K clashes — find yours."
+  - When the week resolves, its result posts beside the ask, and the ask stays. A finished Ryder still says "Week 3 is up." three times.
+  - The last week's result and the cup post both print the score (7–5), because the cup post repeats the result's lead clause.
+  - `event_post` stamps the transaction's `now()`, so posts written in one call share one timestamp, and a week's ask can sort below its own result.
+- **Problem.** An ask for a finished week is a door that is already shut (L-32). The score printed twice is one fact told twice (D22: a round is one story, not three). A board whose order within one call is a coin flip cannot be read as a sequence.
+- **Recommendation (ruled).**
+  - A week's result replaces that week's "is up" post: the post that resolves a week removes that week's ask.
+  - The cup post drops the lead clause that the final week's result already says.
+  - `event_post` stamps `clock_timestamp()`, so posts written in one call keep their write order.
+  - The migration removes the stored "is up" rows of finished weeks. The cleanup is idempotent and touches only event-board posts of that kind.
+- **Principle served.** D22 (one story); L-32 (never a door that does not open); D296's own "function comes first"; §16 (the board shows its work, in order).
+- **Expected user benefit.** A finished Ryder's board reads as its history: each week's result, then the cup, each once, in the order they happened.
+- **Tradeoffs.** Stored board rows are deleted: the owner chose A over B's "keep every word and every row", so a week's ask is no longer history on the board. The clients list what the server posts, so neither needs a change to stop showing a removed ask; a client that cached the board shows the old ask until its next read.
+- **CONFLICT (named).** D296's Ryder sentences are amended: the week's ask is now transient, and the cup post loses its lead clause. §16's "rounds are never mutated" is untouched, because these are board posts, not rounds. None upward.
+- **The reading, confirmed the same night (owner ruling in chat, 2026-09-29, relayed by root).** The repeated lead clause is the score: the cup post drops it in all three forms ("X take the Y.", "A and B share the Y.", "X take the Y on total PvI."), and the MVP tail stays. The cup push's title, the post's first sentence, loses the score too; the week-result push just before it carries the score. Built as `20261215090000_a_weeks_result_replaces_its_ask.sql`.
+
+### D399 · A first round is a baseline: its milestones fold into FIRST ROUND, the board's debut says first round, and a personal best needs an earlier round (X39)
+
+**RULED 2026-09-29** (owner ruling in chat, 2026-09-29: X39, option 2 now, with option 3's PB rule) · UI level (the fold, both clients) and mechanic level (the PB rule and the board's debut headline, server) · built as `20261216090000_a_first_round_is_a_baseline.sql`, HELD for the owner's `db push`
+
+- **Current mechanic.**
+  - `round_moments()` awards every Broke-N threshold that an 18-hole round newly crosses, with no prior-round requirement. A debut 85 mints Broke 100 and Broke 90 together, and the board posts "broke 90 for the first time — an 85".
+  - On that forward path, a personal best needs a prior round. `rederive_achievements()`, which runs after every round delete (`20260902173000`), awards a PB to a lone round, and so did the July backfill.
+- **Problem.** A first round is the first round, not the first time under 90. D166 requires every line to state something the data supports, and the data holds no earlier round to break. The producers also disagree: a lone round is not a PB when posted, but becomes one after a delete.
+- **Recommendation (ruled).**
+  - **The first round is a baseline.** Every threshold stays minted and earnable, since option 1 would lock a strong debut out of two trophies forever.
+  - **The clients fold** a first round's milestone rows into the FIRST ROUND slat of the trophy case. The epilogue drops "You broke 90 for the first time" on a first round, and the feed prefers `is_first`. On the web these are `renderTrophyCase`, the epilogue and the feed; on the phone, `TrophyMeta`, `PostEpilogue` and `HomeWireCopy`/`HomeDigest`.
+  - **The server guards the board's debut headline:** a golfer's first round posts the first-round story, not a barrier claim.
+  - **The PB rule:** a personal best needs an earlier round. `rederive_achievements` adopts the trigger's rule, so no producer awards a PB to a lone round.
+- **Principle served.** D166 (the line states what the data supports); memory-layer v1 (one headline per round); D22 (one story, not three); L-44 (every number that counts must count something); the product vision ("I finally broke 80.", which is said against an earlier self).
+- **Expected user benefit.** A debut reads as a debut, on the board, the epilogue and the trophy case alike. No lone round claims a personal best, before or after a delete. The thresholds a strong debut crossed stay on the shelf, folded into its FIRST ROUND.
+- **Tradeoffs.** A debut 85's board post no longer says "broke 90", although the trophy is still minted and shown inside FIRST ROUND. A lone round loses a PB it held only on the rederive path. Not ruled here: X41's 18-hole guard on `home_feed.is_sub80` and the other sub-80 producers.
+- **Extended the same night (owner ruling in chat, 2026-09-29, relayed by root).**
+  - **Home's circle item reads a buddy's debut as a debut.** `home_dispatch`'s BAND 4 checks `is_first` before `is_pr` and `is_sub80`. A buddy's first round says "Their first posted round." with the `mut` spine, never "Under 80 for the first time." in gold. A later round keeps its personal best or its first time under 80. Built as `20261217090000_a_buddys_debut_reads_as_a_debut.sql`.
+  - **Existing PB rows on lone or first rounds in prod are not healed.** The clients' FIRST ROUND fold hides them, and the golfer's next re-derive corrects each one.
+- **CONFLICT (named).** None upward. No entry said a milestone needs a prior round, and this entry does not say so either, because the thresholds still mint. PRODUCT.md's "this program authorises no mechanic or data change" yields for this item to the owner's ruling.

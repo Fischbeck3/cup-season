@@ -393,7 +393,7 @@ export default function install(W) {
         subject: e.inviter ? firstname(e.inviter) : 'A golfer', human_subject: !!e.inviter, eyebrow: 'AN INVITATION',
         headline: e.reup ? `Season ${e.season_number || ''} of ${e.container_name || 'your league'} is on. Same rules, fresh table.`
           : `${e.inviter ? firstname(e.inviter) : 'A golfer'} put you on ${e.container_name || 'a season'}.`,
-        standfirst: 'See the terms before you are in.', action: 'See the terms',
+        standfirst: 'See the terms before you’re in.', action: 'See the terms',   /* TEN / W6 · 20261211094500: the server says you’re */
         route: { kind: 'invite', id: e.container_id, pane: e.kind }, league_id: e.kind === 'league' ? e.container_id : null,
         suppress: [], spine: 'ember', at: e.created_at })
     }
@@ -412,7 +412,9 @@ export default function install(W) {
         const left = cl.days_left || 0, close = !!cl.closes_today, idle = !cl.mine && !cl.theirs
         const when = close ? 'today' : left === 1 ? 'tomorrow' : `in ${left} days`
         let band, head, stand, act, route
-        if (idle && left > 1 && !close) { band = 600; head = `Your clash with ${them} is open.`; stand = 'Best round of the week takes it.'; act = 'Add my round'; route = { kind: 'composer' } }
+        /* AW2-05 · 20261211100000 (root's ruling): the idle words hold on every day, the last included;
+           never "both in" when neither has posted. D216's yield is the band alone. */
+        if (idle) { band = left > 1 && !close ? 600 : 1000; head = `Your clash with ${them} is open.`; stand = `Best round of the week takes it. The week closes ${when}.`; act = 'Add my round'; route = { kind: 'composer' } }
         else if (cl.theirs && !cl.mine) { band = 1000; head = `${them} posted ${cl.theirs.gross != null ? cl.theirs.gross : 'a round'}${cl.theirs.played_on ? ' on ' + DOW3[dow(cl.theirs.played_on)] : ''}.`; stand = `That is the number, and the week closes ${when}.`; act = 'Add my round'; route = { kind: 'composer' } }
         else if (cl.mine && !cl.theirs) { band = 1000; head = `${them} has ${close ? 'today' : left === 1 ? 'one day' : left + ' days'} to answer your ${cl.mine.gross != null ? cl.mine.gross : 'round'}.`; stand = 'Your round is the number to beat.'; act = 'See the receipt'; route = cl.mine.round_id ? { kind: 'receipt', id: cl.mine.round_id } : { kind: 'season', id: m.league_id } }
         else { band = 1000; head = `You and ${them} are both in.`; stand = `The week closes ${when}. Best round takes it.`; act = 'See the receipt'; route = cl.mine && cl.mine.round_id ? { kind: 'receipt', id: cl.mine.round_id } : { kind: 'season', id: m.league_id } }
@@ -424,7 +426,7 @@ export default function install(W) {
         else if (dn && firstname(cl.them_name) === dn) { mods += 30; why += ' + M3 30 (she is the row below me)' }
         if (m.league_id === nearest) { mods += 5; why += ' + M11 5 (the nearest season)' }
         items.push({ key: `clash:${m.league_id}:${cl.week_no}`, tier: band === 1000 ? 'closing' : 'coming', band, mods: Math.min(99, mods), mod_reason: why,
-          subject: them, human_subject: true, eyebrow: `${(cl.rivalry || m.name).toUpperCase()} · THE CLASH · CLOSES ${when.toUpperCase()}`,
+          subject: them, human_subject: true, eyebrow: `${(cl.rivalry || m.name).toUpperCase()} · THE CLASH`,   /* AW2-05 · 20261211100000: the clock is said once, in a sentence */
           headline: head, standfirst: stand, action: act, route, league_id: m.league_id,
           suppress: cl.mine ? ['my_last_round'] : [], spine: 'ember', at: cl.ends_on })
       }
@@ -543,10 +545,12 @@ export default function install(W) {
       const g = firstname(s.golfer)
       items.push({ key: 'story:' + s.round_id, tier: 'circle', band: 400, mods: 12, mod_reason: 'M6 12 (a buddy)', subject: g, human_subject: true,
         eyebrow: 'AROUND YOUR BUDDIES', headline: `${g} posted ${s.gross}${s.course ? ' at ' + s.course : ''}.`,
-        standfirst: s.is_pr ? 'A personal best.' : s.is_sub80 ? 'Under 80 for the first time.' : s.is_first ? 'Their first posted round.'
+        /* X39 · D399 · HELD with 20261217090000: a buddy's debut reads as a first round, in the quiet
+           spine, never as a barrier; a later round keeps its personal best or its first time under 80 */
+        standfirst: s.is_first ? 'Their first posted round.' : s.is_pr ? 'A personal best.' : s.is_sub80 ? 'Under 80 for the first time.'
           : !s.has_rating ? 'No rating on that one, so it builds a number and nothing else.' : null,
         action: 'See the round', route: { kind: 'receipt', id: s.round_id }, league_id: null, suppress: [],
-        spine: s.is_pr || s.is_sub80 ? 'gold' : 'mut', at: s.created_at })
+        spine: s.is_first ? 'mut' : s.is_pr || s.is_sub80 ? 'gold' : 'mut', at: s.created_at })
     }
     /* BAND 6 · the door worth walking through, on a real shape only */
     if (nRounds === 0) {
@@ -724,9 +728,12 @@ export default function install(W) {
     const leagueNames = myMemberships().filter((lm) => membersOf(lm.league_id).some((m) => m.profile_id === opp)).map((lm) => leagueOf(lm.league_id).name).sort()
     const ss = sharedSeasons(opp)
     const meetings = []
-    /* facet 1 · season weeks */
-    const wm = weekly(ME, ss), wo = weekly(opp, ss)
-    for (const [k, mp] of wm) if (wo.has(k)) { const o = wo.get(k); meetings.push({ on: k.split('|')[1], settled: true, won: mp > o ? true : mp < o ? false : null, facet: 'season_weeks', heuristic: false, confirmed: true }) }
+    /* facet 1 · season weeks — W7-002 (20261212090000): a week both posted is
+       ONE meeting, however many seasons the two share; each golfer's figure is
+       their best across those seasons, as myRivalries collapses them above */
+    const perWeek = (m) => { const out = new Map(); for (const [k, v] of m) { const wk = k.split('|')[1]; out.set(wk, Math.max(out.has(wk) ? out.get(wk) : -1e9, v)) } return out }
+    const wm = perWeek(weekly(ME, ss)), wo = perWeek(weekly(opp, ss))
+    for (const [wk, mp] of wm) if (wo.has(wk)) { const o = wo.get(wk); meetings.push({ on: wk, settled: true, won: mp > o ? true : mp < o ? false : null, facet: 'season_weeks', heuristic: false, confirmed: true }) }
     /* facet 2 · settled clashes */
     const memIds = new Map(T.league_members.filter((m) => m.profile_id === ME || m.profile_id === opp).map((m) => [m.id, m.profile_id]))
     for (const c of (T.week_clashes || []).filter((x) => x.settled_at && memIds.has(x.a_member) && memIds.has(x.b_member) && memIds.get(x.a_member) !== memIds.get(x.b_member))) {

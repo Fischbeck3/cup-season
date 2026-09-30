@@ -137,9 +137,22 @@ select pg_temp.want('no context → month_rank is null',
 select pg_temp.want('no context → league_id is null',
   (public.round_card('00000000-0000-4000-8000-00000000e003')->'league_id')::text,
   ('null'::jsonb)::text);
-select pg_temp.want('no context → pvi falls back to the 100% figure',
+-- D387 (OWNER-RULED 2026-09-24, 20261127090000_the_receipt_uses_the_leagues_number)
+-- AMENDS D362 here. With no league in context, a round that scored in leagues
+-- reads the lenses' own number (the lower when leagues differ: D324's rule),
+-- never `index_at_post − differential`, a 100% figure no league scored (launch
+-- audit L-12). This check used to read "no context → pvi falls back to the 100%
+-- figure", which is the behaviour D387 retired, so it has failed on every chain
+-- since 20261127090000 (got -9.2, the leagues' 95% number; expected -8.6). The
+-- function is right and the check was stale. The 100% figure still stands for a
+-- round in no league at all, checked at the foot of this file.
+select pg_temp.want('no context → pvi is the lower lens''s own number (D387, D324)',
   (round((public.round_card('00000000-0000-4000-8000-00000000e003')->>'pvi')::numeric, 1))::text,
-  (round((select r.index_at_post - r.differential from rounds r where r.id='00000000-0000-4000-8000-00000000e003'), 1))::text);
+  (round((select min(rr.pvi) from v_rounds_ranked rr where rr.round_id='00000000-0000-4000-8000-00000000e003'), 1))::text);
+select pg_temp.want('the fixture''s leagues play under 100%, so that check tells D387''s number from the retired one',
+  ((public.round_card('00000000-0000-4000-8000-00000000e003')->>'pvi')::numeric
+     <> (select r.index_at_post - r.differential from rounds r where r.id='00000000-0000-4000-8000-00000000e003'))::text,
+  'true');
 select pg_temp.want('the lenses are ordered by league name',
   (select string_agg(c->>'league_name', ',' ) from jsonb_array_elements(public.round_card('00000000-0000-4000-8000-00000000e003')->'contributions') with ordinality t(c, i)),
   'Fellas,Sunday Cup');
@@ -297,6 +310,15 @@ select pg_temp.want_refused('a stranger cannot read the round at all',
 select pg_temp.want_refused('a stranger cannot read the rounds that count',
   $$ select public.counting_rounds('00000000-0000-4000-8000-00000000d001','00000000-0000-4000-8000-00000000c001') $$,
   'Those rounds are not yours to read');
+
+-- D387 keeps the 100% figure for a round in no league at all: the stranger's own
+insert into rounds (id, profile_id, gross, rating, slope, played_on, index_at_post, holes_played, course_label) values
+  ('00000000-0000-4000-8000-00000000e005', '00000000-0000-4000-8000-00000000a004', 88, 70.1, 120, '2026-09-10', 14.0, 18, 'Papago');
+select pg_temp.want('a round in no league has no lens',
+  jsonb_array_length(public.round_card('00000000-0000-4000-8000-00000000e005')->'contributions'), 0);
+select pg_temp.want('a round in no league: pvi is the golfer''s own index − differential, the 100% figure (D387)',
+  (round((public.round_card('00000000-0000-4000-8000-00000000e005')->>'pvi')::numeric, 1))::text,
+  (round((select r.index_at_post - r.differential from rounds r where r.id='00000000-0000-4000-8000-00000000e005'), 1))::text);
 
 \echo ALL ASSERTIONS PASSED
 rollback;

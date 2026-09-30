@@ -261,7 +261,20 @@ const LINKS = [
   /* the buddy link: the landing card, then the signed-in ask (R5) */
   { family: 'links', id: 'person-landing', variant: 'signed_out', url: `/?p=${SHARE.person}`, settle: shareSettle,
     /* W4 · "wants you in their golf" read as a translation error (critique B) */
-    expect: { overlay: true }, check: shareCheck({ text: 'Blake Sample wants to play golf with you[\\s\\S]*7 rounds posted, best 81', cta: 'Get the app' }) },
+    /* X38 · D397 (the world mirrors 20261214090000, held for the owner's db push): a
+       stranger reads the stranger shape of D394 -- a name, a marker, rounds played.
+       No index, no best, no dated course rounds. */
+    expect: { overlay: true }, check: async (page) => {
+      const base = await shareCheck({ text: 'Blake Sample wants to play golf with you[\\s\\S]*7 rounds posted\\.', cta: 'Get the app' })(page)
+      if (base !== true) return base
+      return page.evaluate(() => {
+        const t = (document.getElementById('svCard') || {}).innerText || ''
+        if (/\bbest\b/i.test(t)) return 'a stranger reads the best: ' + JSON.stringify(t.slice(0, 160))
+        if (/\b(Index|Starter number)\b/.test(t)) return 'a stranger reads the index: ' + JSON.stringify(t.slice(0, 160))
+        if (/Recent rounds/i.test(t) || document.querySelector('#svCard .sv-row')) return 'a stranger reads dated course rounds'
+        return true
+      })
+    } },
   { family: 'links', id: 'person-landing-new', variant: 'signed_out', url: `/?p=${SHARE.personNew}`, settle: shareSettle,
     expect: { overlay: true }, check: shareCheck({ text: 'Kit Specimen wants to play golf with you', cta: 'Get the app' }) },
   /* the landing keeps its token (cs_person); opening the app again spends it

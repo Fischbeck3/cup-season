@@ -1238,7 +1238,18 @@ const EVENTS = [
     drive: (page) => eventFromCompete(page, `#cmpFinished [data-peer="event:${E_DONE}"]`, E_DONE),
     expect: { view: 'view-event', selectors: { '#eventBody h1': 'text:^The North Grove Ryder \\(fixture\\)$', '#eventBody .evbrow': 'text:^Final · ' } },
     check: all(has('#eventBody .evclinch', '^Final\\. Fixture Hawks took it 7–5\\.$', 'the result line'),
-      has('#eventBody', 'Fixture Hawks take The North Grove Ryder \\(fixture\\) 7–5\\. Devon is MVP at 3-0-0\\.', 'the settlement post'),
+      /* D398 (Q44 A; the world mirrors 20261215090000, held for the owner's db push): the cup post
+         says the cup, and the final week's result, just below it, says the score once */
+      has('#eventBody', 'Fixture Hawks take The North Grove Ryder \\(fixture\\)\\. Devon is MVP at 3-0-0\\.', 'the settlement post'),
+      /* and a finished Ryder's board keeps no week's ask: each week's result replaced it */
+      async (page) => page.evaluate(() => {
+        const lines = [...document.querySelectorAll('#eventBody .evpost')].map((e) => e.innerText.replace(/\s+/g, ' ').trim())
+        if (!lines.length) return 'the board printed no line'
+        const ask = lines.find((t) => /\bis up\b/i.test(t))
+        if (ask) return 'a finished week’s ask is still on the board: ' + JSON.stringify(ask)
+        const twice = lines.filter((t) => /7–5/.test(t)).length
+        return twice === 1 ? true : `the board prints 7–5 ${twice} times: ${JSON.stringify(lines.slice(0, 3))}`
+      }),
       async (page) => page.evaluate(() => [...document.querySelectorAll('#eventBody button')].some((b) => /Run it back/.test(b.textContent)) ? true : 'no Run it back')) },
   /* an id nobody holds -- the stale link, the event scrapped while the list
      was open -- through the page's own router */

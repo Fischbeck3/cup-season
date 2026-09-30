@@ -84,7 +84,7 @@ export default function install(W) {
   addCard(mine.find((r) => r.id === rid(1)), 15, 1)   /* 84 at Mesquite Wash · Black: a birdie on 16, a double on 2 */
   addCard(mine.find((r) => r.id === rid(3)), 2, 10)   /* 83 at Whispering Fixture Pines · the long tee */
 
-  /* achievements: rederive_achievements() (20260902173000) over the viewer's rounds */
+  /* achievements: rederive_achievements() (20261216090000, X39) over the viewer's rounds */
   T.achievements = T.achievements || []
   function rederive(pid) {
     const rs = T.rounds.filter((r) => r.profile_id === pid).sort((a, b) => a.played_on.localeCompare(b.played_on) || a.id.localeCompare(b.id))
@@ -95,7 +95,11 @@ export default function install(W) {
       const r = rs.find((x) => x.holes_played === 18 && x.gross != null && x.gross < t)
       if (r) add('sub_' + t, 'Broke ' + t, r, { gross: r.gross })
     }
-    const best = rs.filter((r) => r.differential != null).sort((a, b) => a.differential - b.differential || b.played_on.localeCompare(a.played_on) || a.id.localeCompare(b.id))[0]
+    /* X39 · D399: a personal best needs an earlier round and beats every one of them
+     * (round_moments' rule, which rederive now adopts), so a lone round carries none */
+    const scored = rs.filter((r) => r.differential != null)
+    const best = scored.filter((r, i) => i > 0 && scored.slice(0, i).every((e) => e.differential > r.differential))
+      .sort((a, b) => a.differential - b.differential || b.played_on.localeCompare(a.played_on) || a.id.localeCompare(b.id))[0]
     if (best) add('personal_best', 'Personal best', best, { diff: best.differential })
   }
   rederive(me)
