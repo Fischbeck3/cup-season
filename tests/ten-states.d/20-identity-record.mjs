@@ -604,6 +604,17 @@ const COMPOSER = [
       if (d.getAttribute('aria-invalid') !== 'true') return 'the date field is not marked'
       return document.activeElement === d ? true : 'focus is not on the date field'
     }) },
+  /* TEN / W7-151 · a member opens the composer on a card with no course: the fold is open on first open (the phone's cardIsOpen), so the
+     recent-course chips stand under the course search, not an 'edit' away */
+  { family: 'composer', id: 'member-open', variant: 'member', title: 'Composer · a member opens it with no course set (the fold open, the recent courses on show)',
+    drive: async (page) => { await toComposer(page); await page.waitForTimeout(300) },
+    expect: { view: 'view-post', selectors: { '#inGross': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const f = document.getElementById('postCardFold')
+      if (!f || f.offsetParent === null || getComputedStyle(f).display === 'none') return 'the course fold is shut on first open'
+      const chips = [...document.querySelectorAll('#courseChips button, #courseChips [data-ci], #courseChips .chip')].filter((c) => c.getBoundingClientRect().height > 0)
+      return chips.length ? true : 'the recent courses are not on show under the course search'
+    }) },
   /* a tee picked from the course search: the course, the rating and the slope
      arrive together, so nothing blocks and the preview scores the card */
   { family: 'composer', id: 'tee-picked', variant: 'member', title: 'Composer · a gross and a tee picked from the course search (no block)',

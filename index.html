@@ -8764,9 +8764,16 @@ function switchView(v){
     if(typeof refreshPostPhotoUI==='function') refreshPostPhotoUI();
     /* IOS-030 - the composer opens ON the number; D239's WHO row loads behind it */
     if(typeof renderInheritLine==='function') renderInheritLine();
+    /* TEN / W7-151 · the card opens when it names no course or no rating (the
+       phone's cardIsOpen, PostRoundScreen.swift:413), so the recent-course
+       chips stand under the course search on first open and a member's post
+       is chip, gross, Add my round. A card that names both stays folded, and
+       a golfer who shut the fold by hand this visit keeps it shut. */
+    if(typeof togglePostFold==='function' && !window._postFoldShutByHand
+       && (!($('#inCourse')?.value||'').trim() || !($('#inRating')?.value||'').trim())) togglePostFold(true);
     if(typeof loadPostPartners==='function') loadPostPartners();
     setTimeout(()=>{ const g=document.getElementById('inGross'); if(g && !g.value) g.focus(); }, 120);
-  }
+  } else window._postFoldShutByHand = false;   /* W7-151 · a new visit starts unshut */
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
   if(v==='wizard' && !state.demo) window.renderProChip?.();
@@ -13753,7 +13760,11 @@ $('#inCourse')?.addEventListener('input', renderInheritLine);
    it (or clearing it) re-reads the card the way a rating does */
 $('#inCourse')?.addEventListener('input', recalc);
 $('#inDate')?.addEventListener('input', renderInheritLine);
-$('#postInherit')?.addEventListener('click', ()=>togglePostFold());
+$('#postInherit')?.addEventListener('click', ()=>{
+  togglePostFold();
+  /* W7-151 · a fold the golfer shut by hand stays shut for this visit */
+  const f=$('#postCardFold'); window._postFoldShutByHand = !!f && f.style.display==='none';
+});
 /* D72: a hand-typed rating is assumed to be an 18-hole rating (recalc halves it
    for a 9-hole post). A 9-hole tee's onTee re-sets rating9 afterward, so an
    auto-loaded 9-hole rating is respected; only manual entry clears the flag. */
