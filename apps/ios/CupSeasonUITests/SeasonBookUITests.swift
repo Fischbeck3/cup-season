@@ -1,7 +1,7 @@
 import XCTest
 final class SeasonBookUITests: XCTestCase {
   @MainActor private func launch(_ fixture: String="squads",screen:String="book",extra:[String]=[]) -> XCUIApplication {
-    let app=XCUIApplication();app.launchArguments=["-cs_dev_compete_selected","-cs_selected_fixture",fixture,"-cs_selected_screen",screen,"-cs_dev_appearance","dark","-cs_dev_look","none"]+extra;app.launch();return app
+    let app=XCUIApplication();app.launchArguments=["-cs_dev_compete_selected","-cs_selected_fixture",fixture,"-cs_selected_screen",screen,"-cs_dev_appearance","dark","-cs_dev_look","none"]+extra;app.terminate();app.launch();return app
   }
   @MainActor func testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts() {
     let app=launch(), id="squad:c50b0000-0000-4000-8000-000000000300"

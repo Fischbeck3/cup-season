@@ -69,7 +69,7 @@ struct SeasonBookPage: View {
     await store.load(league:leagueID,season:seasonID)
     if let book=store.snapshot { selection.receive(book) }
     #if DEBUG
-    if CompeteSelectedFixture.arg("-cs_selected_refresh_read", "") == "yes" { fixtureReadCount += 1 }
+    if CompeteSelectedFixture.arg("-cs_selected_refresh_read", "") == "yes", !Task.isCancelled, store.error == nil, store.snapshot != nil { fixtureReadCount += 1 }
     #endif
   }
   var body: some View {

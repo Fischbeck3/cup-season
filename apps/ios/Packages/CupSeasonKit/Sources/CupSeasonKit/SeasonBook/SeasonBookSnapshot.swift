@@ -279,7 +279,11 @@ public enum SeasonBookReadError: Error, LocalizedError {
   }
   public func load(league: UUID, season: UUID) async {
     let token=UUID(); request=token
-    loading = true; error = nil; snapshot = nil
+    loading = true; error = nil
+    // Keep the same season on screen while its refresh is in flight. Clearing
+    // it shrinks the scroll content and SwiftUI can cancel its refresh task,
+    // leaving neither a record nor an error. Never show a different season.
+    if snapshot?.league_id != league || snapshot?.season_id != season { snapshot = nil }
     defer { if request == token { loading = false } }
     do {
       let value = try await read(league,season)
@@ -288,7 +292,7 @@ public enum SeasonBookReadError: Error, LocalizedError {
       try value.validate(league: league, season: season)
       snapshot = value
     } catch is CancellationError { return }
-    catch { if request == token { self.error = (error as? SeasonBookReadError)?.localizedDescription ?? "The Book did not load. Try again." } }
+    catch { if request == token { snapshot = nil; self.error = (error as? SeasonBookReadError)?.localizedDescription ?? "The Book did not load. Try again." } }
   }
   #if DEBUG
   public func seed(_ value: SeasonBookSnapshot) {
