@@ -457,9 +457,9 @@ struct HomeView: View {
       let rows = page.rows.filter { $0.period == period }
       if !rows.isEmpty {
         if headed.contains(period) {
-          CSSectionHead(period.head, weight: .programme)
+          CSSectionHead(period.head, weight: .label)
             .padding(.horizontal, CSTokens.Space.gutter)
-            .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s3 : CSTokens.Space.s5)
+            .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s2 : CSTokens.Space.s4)
             .padding(.bottom, CSTokens.Space.s2)
         }
         ForEach(Array(rows.enumerated()), id: \.element.id) { i, row in
@@ -478,6 +478,44 @@ struct HomeView: View {
       HomeWireLine(marker: nil, text: notes.line,
                    act: notes.leagueId.map { id in { openCompetition(id, .board) } })
         .padding(.horizontal, CSTokens.Space.gutter)
+    }
+  }
+
+  /// One supporting line at reading sizes, separate 44pt controls at every
+  /// size. The course belongs to this round, not to a second face-bearing row.
+  @ViewBuilder private func roundSupport(_ r: HomeFeedRow) -> some View {
+    if let rid = r.round_id {
+      A11yStack(alignment: .leading, rowAlignment: .center,
+                spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
+        if let state = vm.social.state(for: rid) {
+          HomeWireReactions(state: state, day: nil,
+                            commentCount: vm.roundSocial[rid]?["comment_count"]?.int,
+                            openComments: vm.roundSocial[rid] == nil ? nil : { discussion = RoundDiscussionDoor(roundId: rid) }) { emoji in
+            react(r, emoji)
+          }
+        } else if vm.roundSocial[rid] != nil {
+          Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
+            Label("Comments", systemImage: "bubble.left").csType(.bodyS)
+              .foregroundStyle(cs.ink).frame(minHeight: CSTokens.Space.rail).contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+        }
+        if let course = vm.roundSocial[rid]?["course"],
+           let courseId = course["api_course_id"]?.string, !courseId.isEmpty {
+          NavigationLink { CourseScreen(courseId: courseId, label: r.course) } label: {
+            HStack(spacing: CSTokens.Space.s1) {
+              Text("Course").csType(.bodyS)
+              CSGlyph(.chevron, size: .inline)
+            }
+            .foregroundStyle(cs.mut)
+            .frame(minWidth: CSTokens.Space.rail, minHeight: CSTokens.Space.rail)
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("View course: \(course["name"]?.string ?? r.course ?? "this course")")
+          .accessibilityIdentifier("home.round.course.\(rid.uuidString)")
+        }
+      }
     }
   }
 
@@ -507,42 +545,9 @@ struct HomeView: View {
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
             .padding(.horizontal, CSTokens.Space.gutter)
         }
-        if let rid = r.round_id, let state = vm.social.state(for: rid) {
-          // one fact, one place: a record's identity row already carries the day
-          HomeWireReactions(state: state, day: nil,
-                            commentCount: vm.roundSocial[rid]?["comment_count"]?.int,
-                            openComments: vm.roundSocial[rid] == nil ? nil : { discussion = RoundDiscussionDoor(roundId: rid) }) { emoji in
-            react(r, emoji)
-          }
+        roundSupport(r)
           .padding(.horizontal, CSTokens.Space.gutter)
-        } else if let rid = r.round_id, vm.roundSocial[rid] != nil {
-          Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
-            Label("Comments", systemImage: "bubble.left").csType(.bodyS)
-              .foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
-          }
-          .buttonStyle(.plain).padding(.horizontal, CSTokens.Space.gutter)
-        }
-        if let rid = r.round_id, let course = vm.roundSocial[rid]?["course"],
-           let courseId = course["api_course_id"]?.string, !courseId.isEmpty {
-          NavigationLink { CourseScreen(courseId: courseId, label: r.course) } label: {
-            HStack(spacing: CSTokens.Space.s2) {
-              let people = (course["faces"]?.array ?? []).compactMap(SocialPerson.init)
-              if !people.isEmpty {
-                CSFaceRow(people.map { .init(id: $0.id, marker: $0.marker) }, style: .overlapped)
-              }
-              Text("View course").csType(.bodyS)
-              Spacer()
-              CSGlyph(.chevron, size: .inline)
-            }
-            .foregroundStyle(cs.mut)
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .padding(.horizontal, CSTokens.Space.gutter)
-          .accessibilityLabel("View course: \(course["name"]?.string ?? r.course ?? "this course")")
-          .accessibilityIdentifier("home.round.course.\(rid.uuidString)")
-        }
+
       }
       .contextMenu {
         // D365 · one act on a long press, the same write path as the control.
@@ -611,6 +616,9 @@ struct HomeView: View {
   }
 
   private func react(_ r: HomeFeedRow, _ emoji: String) {
+    #if DEBUG
+    if MatchProgrammeFixture.on { return }
+    #endif
     Task {
       guard let me = store.me else { return }
       if let error = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") {
@@ -876,6 +884,8 @@ final class HomeModel {
     if MatchProgrammeFixture.on {
       runFixture(MatchProgrammeFixture.mode == "empty" ? "brand_new" : "event_live")
       items = MatchProgrammeFixture.items
+      social = MatchProgrammeFixture.social
+      roundSocial = MatchProgrammeFixture.roundSocial
       return
     }
     if let want = CSDevHatch.homeState { runFixture(want); return }

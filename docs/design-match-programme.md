@@ -2,7 +2,9 @@
 
 Approved by the owner on September 30, 2026: “Build Match Programme.”
 
-## Direction contract
+The original direction and Build 2019 release record are preserved below. The [owner phone feedback amendment](#owner-phone-feedback--september-30) supersedes the original Home round/photo and period-heading composition; Compete retains its shipped composition. The Almanac pivot remains paused and Profile remains outside the correction.
+
+## Direction contract — original approval
 
 - **Mode:** Operate. Preserve Home's dispatch ranking and social wire, and Compete's peer list and nearest-clock ordering.
 - **First viewport:** the Home masthead and number; a full-measure narrative lead and its existing action; strong rule-and-type section boundaries; a round's score and person beside an optional upright photograph. Compete opens with its title and season names, then supporting stage, context, and placing.
@@ -16,7 +18,7 @@ Approved by the owner on September 30, 2026: “Build Match Programme.”
 
 Product vision and the shared mechanics remain unchanged. D318/D319 keep the number at the masthead and debt with its season; D321 keeps a lone wire item from acquiring a redundant bucket title. The approved local section-band treatment supersedes the earlier no-rule display-head composition only on these two surfaces. D305/D313 still govern accent substitution.
 
-## Current-main release integration
+## Current-main release integration — original Build 2019 source
 
 This subsection describes the narrow port onto `origin/main` at `e2b62f00`, in the isolated `codex/match-programme-testflight-2026-09-30` release workspace. The release verification below concerns this integrated source; the earlier local implementation and its captures remain in the original workspace as historical evidence.
 
@@ -41,19 +43,29 @@ Evidence checked: current `HomeLead.swift`, `HomeView.swift`, `HomeWire.swift`, 
 
 ## Verification
 
+### Owner phone feedback — September 30
+
+The owner rejected the shipped Home round composition as “big clunky not engaging,” supplying an actual phone screenshot with a long Kaanapali course/tee name, handicap story, narrow photograph and separate supporting action rows. That real-content evidence supersedes this document's upright-photo and strong-Home-period signature. The subsequent Almanac pivot was explicitly scratched/paused. Profile is excluded from this correction.
+
+The scoped correction uses the existing smaller `CSFigure.l` gross beside the full-width identity, `HomeWireCopy.courseTitle` for full-measure club/tee lines, and the existing `roundStory` producer for a separate supported story. A photograph occupies a 16:9 insert below the record. D361 retains a last-good image through transient failure; when no image is available, the complete record reserves no photo space. Applause, comments and Course share one supporting line at reading sizes and reflow at accessibility sizes, retaining separate 44pt controls. Home periods use the incumbent label-heading treatment. Compete retains its shipped composition. Existing copy producers, cache, routes, reaction semantics, counts, colors and the live Home cue remain authoritative. Verification and the fresh independent verdict for this correction are recorded in [the scoped handoff](home-phone-feedback-2026-09-30.md).
+
+### Original Build 2019 verification — historical
+
+The results below apply to the original Match Programme source distributed as TestFlight 2019. They do not validate the later Home correction.
+
 Current-main domain and design verification passed 1,590 tests: 1,433 CupSeasonKit Swift Testing cases across 243 suites, 141 CSDesign cases across 36 suites, and 16 classic round-scorecard XCTest cases. This includes the three programme copy contracts. Release preflight passes with zero failures and warnings; `git diff --check` is clean. The spacing-literal baseline decreases from 1,048 to 1,047.
 
 All five focused UI checks pass on both iPhone 17 Pro and iPhone SE (3rd generation). After the review's live-signal correction, the SE complete suite passed in `cup-season-match-programme-release-se-live.xcresult`, plus the added AX3 lead capture in `cup-season-match-programme-release-se-live-ax.xcresult`. The Pro passed four checks in `cup-season-match-programme-release-pro-live.xcresult`; its stale installed test-only predicate was cleared, and receipt navigation plus AX3 passed with freshly installed QA apps in `cup-season-match-programme-release-pro-live-final.xcresult`. These are local `/private/tmp/` bundles. Earlier failing bundles are diagnostic evidence only.
 
 The fresh independent full review of all 32 native captures requested one material correction: preserve Home's current live competition signal/state. The existing brand dot and state eyebrow are restored in the full-measure lead while ordinary-action paint remains unchanged. Both themes and both phones were recaptured, with an additional AX3 first viewport on each phone. The same reviewer supplies the scoped final verdict in `design-match-programme-release-review.md`; the source documenter has rechecked the final integration.
 
-### Evidence and limits
+### Original Build 2019 evidence and limits
 
 The native XCTest/Simulator matrix is local and unaltered under `/private/tmp/cup-season-match-programme-release-review/phone-pro/` and `phone-se/`. It covers both printings, optional imagery and failed-image fallback, unavailable score, first-run Home, long names, AX3 records/inserts, Compete creation and Finished. The DEBUG programme hatch supplies named QA records, with a local illustrative golf photo; that image and hatch are absent from Release. These checks prove fixture layout and navigation, not live-account scoring or two-phone operation.
 
 The approved three-phone decision board remains in the original workspace at `.impeccable/mocks/match-programme.png`; its fictional content is illustrative. Native acceptance follows the direction contract and current token/producer truth, with no whole-board pixel-match claim. No web detector ran on SwiftUI.
 
-## Release handoff
+## Original Build 2019 release handoff — historical
 
 Branch: `codex/match-programme-testflight-2026-09-30`, based on current main `e2b62f00`. The original dirty branch and unrelated work remain intact.
 

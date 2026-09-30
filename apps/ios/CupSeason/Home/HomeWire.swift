@@ -1,5 +1,5 @@
-// Cup Season — Match Programme wire. Strong section bands and open records
-// share one score/context presentation; an optional photograph is an insert.
+// Cup Season — Home round records. Identity, course and result share the
+// full measure; an optional photograph sits below rather than squeezing facts.
 // The remaining story weights, reactions, and earned ceremonies keep their jobs.
 
 import SwiftUI
@@ -11,11 +11,11 @@ import CupSeasonKit
 
 // MARK: - The section head
 
-/// The approved programme band is opt-in; other surfaces keep their headings.
+/// Home landmarks stay quiet beside the people and photographs they file.
 struct HomeSectionRule: View {
   let title: String
   init(_ title: String) { self.title = title }
-  var body: some View { CSSectionHead(title, weight: .programme) }
+  var body: some View { CSSectionHead(title, weight: .label) }
 }
 
 // MARK: - Weight 2 · the programme round, with an optional photograph
@@ -74,7 +74,8 @@ struct HomeWireSlat: View {
   }
 }
 
-/// One record, two compositions. Round and golfer remain independent targets.
+/// Full-measure facts, with optional imagery below. Golfer and round remain
+/// independent targets; large text reflows identity before the result.
 private struct HomeProgrammeRound: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
@@ -90,58 +91,94 @@ private struct HomeProgrammeRound: View {
 
   private var name: String { HomeCopy.who(row) }
   private var day: String? { HomeWireCopy.dayMarker(row.played_on) }
-  private var recordContext: String {
-    if let points, let monthRank,
-       let story = HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes) {
-      let course = row.course?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-      return "\(course.isEmpty ? "Course not recorded" : course) — \(story)"
-    }
-    return HomeWireCopy.roundContext(row, holes: holes)
+  private var course: (club: String, tee: String?) {
+    HomeWireCopy.courseTitle(row.course ?? "")
+  }
+  private var story: String? {
+    HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes)
   }
   private var spoken: String {
     let line: String
-    if points != nil, monthRank != nil, let gross = row.gross {
-      line = "\(gross) at \(recordContext)"
+    if let points, let monthRank,
+       let story = HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap, holes: holes),
+       let gross = row.gross {
+      line = "\(gross) at \(course.club.isEmpty ? "Course not recorded" : row.course ?? course.club). \(story)"
     } else { line = HomeWireCopy.roundLine(row, holes: holes) }
     return [name, line, day].compactMap { $0 }.joined(separator: ". ")
   }
 
   var body: some View {
-    A11yStack(alignment: .leading, rowAlignment: .top,
-              spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
-      if photo != nil && !typeSize.isA11y {
-        HStack(alignment: .top, spacing: CSTokens.Space.s3) {
-          person
-          round(vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-      } else {
-        // At reading sizes the photo has its own upright column. At AX sizes
-        // reuse the complete numeric record above the wide insert, rather
-        // than compressing a second nested identity/score column.
-        HStack(alignment: .top, spacing: CSTokens.Space.s3) {
-          round(vertical: false)
-          person
-        }
-        .fixedSize(horizontal: false, vertical: true)
-      }
-      if let photo {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      HStack(alignment: .top, spacing: CSTokens.Space.s2) {
+        person
         Button(action: open) {
-          if typeSize.isA11y {
-            GeometryReader { proxy in
-              photo.resizable().scaledToFill()
-                .frame(width: proxy.size.width, height: 168)
-                .clipped()
+          A11yStack(alignment: .leading, rowAlignment: .top,
+                    spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+              Text(name).csType(.social).foregroundStyle(cs.ink)
+                .fixedSize(horizontal: false, vertical: true)
+              if showDay, let day {
+                Text(day).csType(.agateS).foregroundStyle(cs.mut)
+              }
             }
-            .frame(height: 168)
-          } else {
-            photo.resizable().scaledToFill()
-              .frame(width: 104, height: 168)
-              .clipped()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if let gross = row.gross {
+              VStack(alignment: .trailing, spacing: CSTokens.Space.s1) {
+                CSFigure("\(gross)", size: .l, label: nil)
+                Text(HomeWireCopy.grossUnit(holes: holes)).csType(.agateS, caps: true)
+                  .foregroundStyle(cs.mut)
+              }
+              .fixedSize(horizontal: !typeSize.isA11y, vertical: true)
+            }
           }
+          .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        // The adjacent round target supplies this action to VoiceOver once.
+        .multilineTextAlignment(.leading)
+        .accessibilityLabel(spoken)
+        .accessibilityHint("Opens the round")
+        .accessibilityIdentifier("home.round.\(row.round_id?.uuidString ?? "unknown")")
+      }
+      Button(action: open) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(course.club.isEmpty ? "Course not recorded" : course.club)
+            .csType(.bodyS).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+          if let tee = course.tee {
+            Text(tee).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          if let story {
+            Text(story).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+        .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .multilineTextAlignment(.leading)
+      // The adjacent round control speaks the complete course, tee and story.
+      .accessibilityHidden(true)
+      if let photo {
+        Button(action: open) {
+          Color.clear
+            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .overlay {
+              GeometryReader { proxy in
+                photo.resizable().scaledToFill()
+                  .frame(width: proxy.size.width, height: proxy.size.height)
+                  .clipped()
+              }
+              // A fill image can extend beyond its drawn crop. Only the
+              // bounded photo control owns touches, never that image overlay.
+              .allowsHitTesting(false)
+            }
+            .clipped()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
         .accessibilityHidden(true)
       }
     }
@@ -158,55 +195,6 @@ private struct HomeProgrammeRound: View {
     .buttonStyle(.plain)
     .accessibilityLabel("View \(name)'s golfer card")
     .accessibilityIdentifier("home.round.person.\(row.profile_id?.uuidString ?? "unknown")")
-  }
-
-  private func round(vertical: Bool) -> some View {
-    Button(action: open) {
-      Group {
-      if vertical {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          Text(name).csType(.social).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-          figure
-          context
-        }
-      } else {
-        A11yStack(alignment: .leading, rowAlignment: .top,
-                  spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
-          figure.fixedSize(horizontal: true, vertical: false)
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            Text(name).csType(.social).foregroundStyle(cs.ink)
-              .fixedSize(horizontal: false, vertical: true)
-            context
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-        }
-      }
-      }
-      .fixedSize(horizontal: false, vertical: true)
-      .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .topLeading)
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .multilineTextAlignment(.leading)
-    .accessibilityLabel(spoken)
-    .accessibilityHint("Opens the round")
-    .accessibilityIdentifier("home.round.\(row.round_id?.uuidString ?? "unknown")")
-  }
-
-  @ViewBuilder private var figure: some View {
-    if let gross = row.gross { CSFigure("\(gross)", size: .xl, label: HomeWireCopy.grossUnit(holes: holes)) }
-  }
-
-  private var context: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-      Text(recordContext).csType(.bodyS).foregroundStyle(cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
-      if showDay, let day {
-        Text(day).csType(.agateS).foregroundStyle(cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-    }
   }
 }
 
