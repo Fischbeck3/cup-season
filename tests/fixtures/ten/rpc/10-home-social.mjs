@@ -545,10 +545,12 @@ export default function install(W) {
       const g = firstname(s.golfer)
       items.push({ key: 'story:' + s.round_id, tier: 'circle', band: 400, mods: 12, mod_reason: 'M6 12 (a buddy)', subject: g, human_subject: true,
         eyebrow: 'AROUND YOUR BUDDIES', headline: `${g} posted ${s.gross}${s.course ? ' at ' + s.course : ''}.`,
-        standfirst: s.is_pr ? 'A personal best.' : s.is_sub80 ? 'Under 80 for the first time.' : s.is_first ? 'Their first posted round.'
+        /* X39 · D399 · HELD with 20261217090000: a buddy's debut reads as a first round, in the quiet
+           spine, never as a barrier; a later round keeps its personal best or its first time under 80 */
+        standfirst: s.is_first ? 'Their first posted round.' : s.is_pr ? 'A personal best.' : s.is_sub80 ? 'Under 80 for the first time.'
           : !s.has_rating ? 'No rating on that one, so it builds a number and nothing else.' : null,
         action: 'See the round', route: { kind: 'receipt', id: s.round_id }, league_id: null, suppress: [],
-        spine: s.is_pr || s.is_sub80 ? 'gold' : 'mut', at: s.created_at })
+        spine: s.is_first ? 'mut' : s.is_pr || s.is_sub80 ? 'gold' : 'mut', at: s.created_at })
     }
     /* BAND 6 · the door worth walking through, on a real shape only */
     if (nRounds === 0) {
