@@ -718,6 +718,22 @@ const eyebrowNoDangle = async (page) => page.evaluate(() => {
   if (/·\s*$/.test(crs.textContent) || /^\s*·/.test((tee || {}).textContent || '')) return 'a line of the eyebrow ends or begins on the separator'
   return tee ? true : 'the tee did not take its own block'
 })
+/* TEN / W6 · W7-144 · the exported card's address clears the frame's inner edge (y 1313) by more than the frame's own 36px inset:
+   the recap card is drawn off-screen and its lowest painted row under the signature is found against the card's own ground */
+const recapAddressClears = async (page) => page.evaluate(async () => {
+  if (typeof drawRecapCard !== 'function') return 'no recap painter'
+  await document.fonts.ready
+  const cv = drawRecapCard({ gross: 83, course: 'Saguaro Flats Municipal (fixture) · Blue', marker: 'saguaro', date: new Date(2026, 8, 27) })
+  const x = cv.getContext('2d'), W = cv.width
+  const bg = x.getImageData(W / 2, 1300, 1, 1).data
+  for (let y = 1310; y > 1150; y--) {
+    const row = x.getImageData(W / 2 - 170, y, 340, 1).data
+    for (let i = 0; i < row.length; i += 4) {
+      if (Math.abs(row[i] - bg[0]) + Math.abs(row[i + 1] - bg[1]) + Math.abs(row[i + 2] - bg[2]) > 60) return y + 36 <= 1313 ? true : `the address's last row is y ${y}, within 36 of the frame's inner edge (1313)`
+    }
+  }
+  return 'no address painted under the signature'
+})
 function shareState(id, title, card, extra = {}) {
   return {
     family: 'share', id, variant: 'member', fullPage: false, title,
@@ -785,7 +801,10 @@ function shareState(id, title, card, extra = {}) {
         await page.waitForTimeout(300)
         const open = await page.evaluate(() => document.getElementById('finish').classList.contains('open') ? true : 'a tap on the empty field ended the ceremony')
         /* TEN / W7-059 [A2-share-6] · the eyebrow never starts or ends a line on its separator */
-        return open !== true ? open : eyebrowNoDangle(page)
+        if (open !== true) return open
+        const eb = await eyebrowNoDangle(page); if (eb !== true) return eb
+        /* TEN / W7-144 · the exported card's address clears its frame */
+        return recapAddressClears(page)
       })
     },
     ...extra,

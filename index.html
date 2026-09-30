@@ -12223,24 +12223,25 @@ function drawRecapCard(d){
        the caption that travels with the card (recapText), exactly as on the
        phone. */
   }
-  if(d.badge) ctr(d.badge, 972, `600 31px ${BOARD}`, GOLD, 5);
+  /* TEN / W7-144 · the lower block rides 40 higher, so the signature's address clears the frame's inner edge (y 1313) by more than the frame's own 36 inset */
+  if(d.badge) ctr(d.badge, 932, `600 31px ${BOARD}`, GOLD, 5);
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
-  x.beginPath(); x.moveTo(280,1020); x.lineTo(W-280,1020); x.stroke();
+  x.beginPath(); x.moveTo(280,980); x.lineTo(W-280,980); x.stroke();
   /* one line on the date's own rule, or two that start 14px under the hairline
      and push the date down (the signature still clears it) */
   const cl=csFitCourseLines(x, (d.course||'A ROUND').toUpperCase(), { px:40, weight:700, face:BOARD, ls:2, maxW:W-192 });
-  let whenY=1134;
-  if(cl.lines.length===1) ctr(cl.lines[0], 1084, `700 ${cl.px}px ${BOARD}`, INK, 2);
+  let whenY=1094;
+  if(cl.lines.length===1) ctr(cl.lines[0], 1044, `700 ${cl.px}px ${BOARD}`, INK, 2);
   else {
-    const y1=1034+Math.round(cl.px*.72), y2=y1+Math.round(cl.px*1.12);
+    const y1=994+Math.round(cl.px*.72), y2=y1+Math.round(cl.px*1.12);
     ctr(cl.lines[0], y1, `700 ${cl.px}px ${BOARD}`, INK, 2); ctr(cl.lines[1], y2, `700 ${cl.px}px ${BOARD}`, INK, 2);
-    whenY=Math.max(1134, y2+40);
+    whenY=Math.max(1094, y2+40);
   }
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
   const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
   ctr(when, whenY, `600 29px ${BOARD}`, MUT, 4);
-  csArtifactSignature(x, W, 1180, { ink:INK, mut:MUT });
+  csArtifactSignature(x, W, 1140, { ink:INK, mut:MUT });
   return cv;
 }
 /* D294 · THE CARD, AS THE THING THAT LEAVES THE APP. Same canvas and the same
