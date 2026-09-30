@@ -287,6 +287,17 @@ const monthNoMinimum = async (page) => page.evaluate(() => {
   if (/minimum/.test(t)) return 'a minimum is printed before the pulse confirmed its waivers: ' + JSON.stringify(t)
   return /^(Best \d+ a month count|Every round counts) · (\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
 })
+/* TEN / W6 · Q20 (owner, 2026-09-29 §R: 1) · one way to count days: excluding today, in calendar days, on the league's clock.
+   At 23:30 on Sep 28 in Phoenix it is already Sep 29 in New York, so Sep 30 is 2 days away on a Phoenix league's clock and 1
+   on a New York one; the month's last day counts 0 */
+const daysOneWay = async (page) => page.evaluate(() => {
+  if (typeof csDaysLeft !== 'function' || typeof csMonthDaysLeft !== 'function') return 'no one producer counts the days'
+  const late = new Date('2026-09-29T06:30:00Z')
+  const a = csDaysLeft('2026-09-30', 'America/Phoenix', late), b = csDaysLeft('2026-09-30', 'America/New_York', late)
+  if (a !== 2 || b !== 1) return `the count does not follow the league's clock: Phoenix ${a}, New York ${b}`
+  const last = csMonthDaysLeft('America/Phoenix', new Date('2026-09-30T20:00:00-07:00'))
+  return last === 0 ? true : 'the month\u2019s last day counts ' + last + ', not 0'
+})
 /* TEN / W6 · Q19 (owner, 2026-09-29 §R) · the feed's head names what the list holds */
 const feedHeadIs = (want) => async (page) => page.evaluate((want) => {
   const t = ((document.getElementById('homeFeedHead') || {}).textContent || '').trim()
@@ -434,7 +445,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce, installNotForMembers, feedHeadIs('Around your buddies'),
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers, sidebarOrder, wireStamps, nextOnce, readingOrder, circleOnce, eyebrowClauses, promoQuiet, monthFact, cardsNotButtons, homeShownOnce, installNotForMembers, feedHeadIs('Around your buddies'), daysOneWay,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

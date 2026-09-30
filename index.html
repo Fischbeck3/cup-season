@@ -8195,6 +8195,31 @@ const capNum   = () => { const n = capDB(); return n == null ? Infinity : n; }; 
    posted 2". The phone's `LeagueCopy.countingRule` is the same rule said the
    same way; the two may not drift. `n` is the league's stored cap, not the
    picker's rung, so an off-ladder rule states itself (D347). */
+/* TEN / W6 · Q20 (owner, 2026-09-29 §R: 1) · ONE WAY TO COUNT DAYS. A count
+   of days EXCLUDES today (0 is the last day: "closes tonight", "last day"),
+   in calendar days, on the league's timezone (`seasons.timezone`) or the
+   event's (`events.tz`), never the device's: D246, and every server field
+   (`native_home.season.days_left`) already counts this way. The month clocks
+   included today, three month counts rounded an instant (so they changed with
+   the time of day), and every count read the device's clock. */
+const CS_TZ_DEFAULT = 'America/Phoenix';   /* CLAUDE.md: the league default, no DST */
+function csTz(tz){ return tz || window.CS?.season?.timezone || CS_TZ_DEFAULT; }
+function csTodayIn(tz, now){
+  try{ return new Intl.DateTimeFormat('en-CA', { timeZone: csTz(tz), year:'numeric', month:'2-digit', day:'2-digit' }).format(now || new Date()); }
+  catch(_){ return isoOf(now || new Date()); }   /* an unknown zone name: the device's day */
+}
+function csDaysLeft(endIso, tz, now){
+  if(!endIso) return null;
+  const [y1,m1,d1] = csTodayIn(tz, now).split('-').map(Number);
+  const [y2,m2,d2] = String(endIso).slice(0,10).split('-').map(Number);
+  return Math.round((Date.UTC(y2, m2-1, d2) - Date.UTC(y1, m1-1, d1)) / 864e5);
+}
+function csMonthDaysLeft(tz, now){
+  const [y,m] = csTodayIn(tz, now).split('-').map(Number);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return csDaysLeft(`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`, tz, now);
+}
+window.csDaysLeft = csDaysLeft; window.csMonthDaysLeft = csMonthDaysLeft; window.csTodayIn = csTodayIn;
 /* TEN / W7-081 · THE MONTH'S FACT, the twin of SeasonFacts.monthRow: the
    counting label, the credits toward the minimum only where a minimum exists
    (a solo season, a short edge month and a mid-month joiner owe none), and
@@ -8204,8 +8229,8 @@ function csMonthRow(){
   if(state.demo || !(window.CS?.memberships||[]).length || typeof seasonState !== 'function' || seasonState() !== 'live') return null;
   const cap = (typeof capDB === 'function') ? capDB() : null;
   const head = cap ? `Best ${cap} a month count` : 'Every round counts';
-  const now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), left = last - now.getDate();
-  const month = now.toLocaleString('en-US', { month:'long' });
+  const left = csMonthDaysLeft();   /* Q20 · excluding today, on the league's clock */
+  const month = new Date(Date.UTC(2000, Number(csTodayIn().slice(5,7)) - 1, 15)).toLocaleString('en-US', { month:'long', timeZone:'UTC' });
   const clock = left <= 0 ? `last day of ${month}` : left === 1 ? `1 day left in ${month}` : `${left} days left in ${month}`;
   const floor = Number(state.floor) || 0;
   const pulse = window.leaguePulse || [], me = pulse.find(r => r && r.is_me) || null;
@@ -10047,9 +10072,8 @@ function renderMonthClock(hide){
   const weeks = Number(totalWeeks()) || 0;
   if(hide || !start || !weeks){ el.style.display='none'; return; }
   el.style.display='';
-  const t0=new Date(); t0.setHours(0,0,0,0);
-  const liveKey = t0.getFullYear()+'-'+String(t0.getMonth()+1).padStart(2,'0');
-  const left = Math.round((new Date(t0.getFullYear(), t0.getMonth()+1, 1) - t0)/864e5);
+  const liveKey = csTodayIn().slice(0,7);   /* Q20 · the league's month */
+  const left = csMonthDaysLeft();           /* Q20 · it counted today; 0 is the last day */
   const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const nowWk = Math.max(0, (Number(currentWeek()) || 1) - 1);
   const played = nowWk;
@@ -10067,7 +10091,7 @@ function renderMonthClock(hide){
       const i = g.first + k;
       ticks += `<i class="t ${i===nowWk?'now':(i<played?'played':'')}"></i>`;
     }
-    const note = live && left>0 ? ' \u00b7 '+left+' day'+(left===1?'':'s') : '';
+    const note = live ? (left>0 ? ' \u00b7 '+left+' day'+(left===1?'':'s') : ' \u00b7 last day') : '';
     return `<div class="mg"><div class="ticks">${ticks}</div><div class="ml${live?' live':''}">${g.label}${note}</div></div>`;
   }).join('');
   el.setAttribute('aria-label', 'Week '+(nowWk+1)+' of '+weeks+', the live week');
@@ -20502,8 +20526,8 @@ function heroFloorFoot(){
   if(!rows.length || rows[0].partial) return '';
   const isPro = window.CS?.member?.role==='commissioner';
   const floor = rows[0].floor ?? 2;
-  const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
-  const days=Math.max(0, Math.round((eom-now)/864e5));
+  const days=Math.max(0, csMonthDaysLeft());   /* Q20 · it rounded an instant */
+  const now=new Date(csTodayIn()+'T12:00:00');   /* Q20 · the league's month names the bar */
   const closes = days===0?'today':days+'d';
   if(isPro){
     const short=rows.filter(r=>!r.at_floor);
@@ -22167,8 +22191,7 @@ function homeLead(){
      waives the floor for them, so the alarm must not fire. */
   if(row && !row.partial && row.joined_this_month !== true && state.phase==='season'){
     const floor=Number(row.floor||0), credits=Number(row.credits||0);
-    const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
-    const days=Math.max(0, Math.round((eom-now)/86400000));
+    const days=Math.max(0, csMonthDaysLeft());   /* Q20 · it rounded an instant */
     if(floor>0 && credits<floor && days<=3){
       const short=Math.round((floor-credits)*10)/10;
       return { eb: days===0?'The month closes today':days===1?'The month closes tomorrow':`The month closes in ${days} days`,
@@ -22380,9 +22403,8 @@ function csFallbackItems(){
   const pr = (!state.demo && (window.leaguePulse||[]).find(x=>x.is_me)) || null;
   if(pr && !pr.partial && state.structure !== 'solo' && state.phase === 'season'){
     const fl = Number(pr.floor||0), cr = Number(pr.credits||0);
-    const t0 = new Date(); t0.setHours(0,0,0,0);
-    const eom = new Date(t0.getFullYear(), t0.getMonth()+1, 0);
-    const left = Math.max(0, Math.round((eom - t0)/864e5));
+    const left = Math.max(0, csMonthDaysLeft());   /* Q20 · the league's clock */
+    const eom = (() => { const [y, m] = csTodayIn().split('-').map(Number); return new Date(y, m, 0); })();   /* Q20 · the league's month's last day */
     if(fl > 0 && cr < fl && left <= 3){
       const short = Math.round((fl - cr) * 10) / 10;
       const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -25172,8 +25194,7 @@ function renderPulse(){
   const isPro=CS.member?.role==='commissioner';
   const floor=rows[0].floor ?? 2;
   const mName=MOS[new Date().getMonth()];
-  const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
-  const days=Math.max(0, Math.round((eom-now)/86400000));
+  const days=Math.max(0, csMonthDaysLeft());   /* Q20 · it rounded an instant */
   const closes=`closes ${days===0?'today':'in '+days+'d'}`;
   const fmt=n=>{ n=Number(n); return n%1 ? n.toFixed(1) : String(n); };
 
@@ -29135,7 +29156,7 @@ function renderEvent(){
   const live = ev.status!=='complete' && ev.status!=='setup';
   let brow = statusChip;
   if(live && openS){
-    const dd=Math.round((new Date(openS.closes_on+'T00:00:00') - new Date().setHours(0,0,0,0))/864e5);
+    const dd=csDaysLeft(openS.closes_on, ev.tz);   /* Q20 · the event's clock */
     if(dd>=0) brow += dd===0 ? ' · closes tonight' : ` · ${dd} day${dd===1?'':'s'} left`;
   }
   if(ev.status==='complete'){
@@ -29364,8 +29385,7 @@ function renderEvent(){
       </div>`;
     });
     if(s.status==='open' && waiting.length){
-      const d1b=new Date(s.closes_on+'T00:00:00');
-      const days=Math.max(0, Math.round((d1b-new Date().setHours(0,0,0,0))/864e5));
+      const days=Math.max(0, csDaysLeft(s.closes_on, ev.tz));   /* Q20 · the event's clock */
       body+=`<div class="fine" style="padding:4px 0 0">Still to post: <b>${waiting.map(esc).join(', ')}</b> · ${days===0?'closes tonight':days+(days===1?' day':' days')+' left'}.</div>`;
     }
     if(iAmOrg && ds.length && s.status!=='closed'){
@@ -29465,7 +29485,7 @@ function renderMajorRoom(el, E){
   const d0=s?new Date(s.opens_on+'T00:00:00'):null, d1=s?new Date(s.closes_on+'T00:00:00'):null;
   const when=s?`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`:'';
   const todayMid=new Date(); todayMid.setHours(0,0,0,0);
-  const daysLeft=d1?Math.round((d1-todayMid)/864e5):null;   /* 0 = the final day */
+  const daysLeft=d1?csDaysLeft(s.closes_on, ev.tz):null;   /* 0 = the final day · Q20: the event's clock */
   const days=s?Math.round((d1-d0)/864e5)+1:0;
   const complete=ev.status==='complete';
   const champCard=cards.find(c=>c.rank===1)||null;
@@ -33322,7 +33342,7 @@ async function enterLeague(m, nav=true, opts={}){
        missing column on a sealed table doesn't name itself). */
     const SEASON_COLS = 'id, number, starts_on, ends_on, status, champion_squad_id, '
       + 'champion_member_id, runnerup_squad_id, runnerup_member_id, points_king_member_id, '
-      + 'champion_score, runnerup_score, tiebreak_rung, pot_cents, collected_cents';
+      + 'champion_score, runnerup_score, tiebreak_rung, pot_cents, collected_cents, timezone';   /* Q20 · the league's clock; baseline column, and the legacy retry below drops it */
     let { data: season, error: sErr } = await sb.from('seasons')
       .select(SEASON_COLS).eq('league_id', m.league.id)
       .order('number', { ascending:false }).limit(1).maybeSingle();
