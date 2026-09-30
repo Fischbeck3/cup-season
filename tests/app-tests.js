@@ -32,6 +32,21 @@
   t('W2: the fine print promises nothing a re-mint cannot do', /already saved stays with them/.test(CS_SHARE_PHOTO_FINE), true);
   t('W2: one share label', [csShareRoundLabel(true), csShareRoundLabel(false)], ['Share your first round', 'Share your round']);
 
+  /* TEN / X37 (owner ruling, 2026-09-29) · the demo diorama is the synthetic cast
+     (tests/fixtures/ten/cast.mjs): every golfer it names is a cast first name, its
+     squads are the cast's, and the feedback line names the founder, not a person.
+     D83's plumbing is unchanged: every path still gates on state.demo. */
+  (function(){
+    const CAST = ['Avery','Blake','Casey','Devon','Emery','Finley','Gray','Harper','Indigo','Jules','Kit'];
+    const names = [DEMO_ME, ...captains, ...poolSeed.map(p=>p.n), ...payersSeed.map(p=>p[0]), ...teams.map(x=>x.cap),
+      ...feed.filter(f=>f.who).map(f=>f.who), ...feed.flatMap(f=>(f.cm||[]).map(c=>c.w)), ...ROSTER.map(p=>p.n),
+      ...PLAYERS.map(p=>p.n), ...ADJ.filter(a=>a.who).map(a=>a.who), ...DEMO_FEED.map(r=>r.golfer).filter(n=>n!=='You'),
+      ...DEMO_FEED.flatMap(r=>Object.values(r.rx||{}).flatMap(x=>x.who||[])), ...DEMO_REQUESTS.map(r=>r.display_name)];
+    t('X37: the diorama names only the synthetic cast', [...new Set(names.filter(n=>!CAST.includes(n)))].length, 0);
+    t('X37: the diorama\u2019s squads are the cast\u2019s', [...squadNames, ...teams.map(x=>x.name)].every(n=>['Wrens','Javelinas'].includes(n)), true);
+    t('X37: the feedback line names the founder', [...document.scripts].some(x=>x.textContent.includes('Goes straight to the founder.')), true);
+  })();
+
   /* localDate — the Phoenix off-by-one landmine */
   t('localDate: local not UTC', localDate('2026-07-21').getDate(), 21);
   t('localDate: month index', localDate('2026-01-02').getMonth(), 0);
