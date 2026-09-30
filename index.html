@@ -13441,13 +13441,22 @@ function finishCeremony(o){
    the photo switch flips; the newest request wins. */
 const csPaintRecap = drawRecapCard;
 let _finishPreviewSeq = 0;
+const CS_PREVIEW_PHOTO_MS = 10000;
+/* a promise's value, or null once `ms` passes; the timer never outlives the answer */
+function csWithin(ms, p){
+  let t;
+  return Promise.race([p, new Promise(res => { t = setTimeout(() => res(null), ms); })]).finally(() => clearTimeout(t));
+}
 async function finishPreview(){
   const box=document.getElementById('finPreview'); if(!box || !_finishShare) return;
   const seq=++_finishPreviewSeq;
   const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
   const d=Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null });
   try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(_){}
-  if(d.photo && typeof photoDrawable==='function'){ try{ d._img = await photoDrawable(d.photo, 1200); }catch(_){ d._img=null; } }
+  /* TEN / W8 · the preview never waits on the photograph past CS_PREVIEW_PHOTO_MS: a decode that does not land (a slow read, a huge HEIC) leaves the card painted
+     without it, as a decode that fails does, and says nothing new (the aria-label below already names the photo only when it is drawn). The phone's preview
+     bounds its photo fetch at the same 10s (E's 6081015c). */
+  if(d.photo && typeof photoDrawable==='function'){ try{ d._img = await csWithin(CS_PREVIEW_PHOTO_MS, photoDrawable(d.photo, 1200)); }catch(_){ d._img=null; } }
   if(seq!==_finishPreviewSeq) return;
   let cv=null; try{ cv=csPaintRecap(d); }catch(_){ cv=null; }
   if(!cv){ box.hidden=true; return; }

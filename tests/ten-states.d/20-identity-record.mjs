@@ -951,7 +951,47 @@ const flipState = (() => {
   })
   return st
 })()
+/* TEN / W8 · the share preview's photo bound (root's list, E's twin of 6081015c): the preview waits on the round's photograph for at most 10 seconds. A decode
+   that never lands (here, the preview's own 1200px call never settles) leaves the card painted WITHOUT the photograph, as a decode that fails does, and says
+   nothing new: no line in the status, the preview's label names no photograph, and the preview appears after the bound, not never. */
+const slowPhotoState = {
+  family: 'share', id: 'preview-slow-photo', variant: 'member', fullPage: false, title: 'Share · the photograph never decodes: the preview paints the card without it after 10s',
+  drive: async (page) => {
+    await toComposer(page)
+    await page.setInputFiles('#postPhotoFile', { name: 'fixture-photo.png', mimeType: 'image/png', buffer: await page.evaluate(() => new Promise((res) => {
+      const c = document.createElement('canvas'); c.width = 1200; c.height = 800; const g = c.getContext('2d')
+      g.fillStyle = '#4f6b3a'; g.fillRect(0, 0, 1200, 800)
+      c.toBlob((b) => b.arrayBuffer().then((ab) => res(Array.from(new Uint8Array(ab)))), 'image/png')
+    })).then((a) => Buffer.from(a)) })
+    await until(page, () => { const i = document.getElementById('postPhotoImg'); return !!i && i.offsetParent !== null && (i.src || i.style.backgroundImage) }, null, 8000).catch(() => {})
+    /* only the preview's own decode (maxDim 1200) hangs; the upload's and the export's decodes are untouched */
+    await page.evaluate(() => { const orig = window.photoDrawable; window.__tenSlow = { hung: 0 }; window.photoDrawable = (f, m) => { if (m === 1200) { window.__tenSlow.hung++; return new Promise(() => {}) } return orig(f, m) } })
+    await fillCard(page)
+    await click(page, '#postBtn')
+    await until(page, () => document.getElementById('finish').classList.contains('open'), null, 12000)
+    await page.evaluate(() => {
+      const b = document.getElementById('finPreview'); window.__tenT0 = performance.now(); window.__tenT1 = null
+      new MutationObserver((_, o) => { if (b.querySelector('canvas')) { window.__tenT1 = performance.now(); o.disconnect() } }).observe(b, { childList: true })
+    })
+    await until(page, () => window.__tenT1 != null, null, 16000).catch(() => {})
+    await page.waitForTimeout(400)
+  },
+  expect: { view: 'view-home', selectors: { '#finish.open': 'visible', '#finPreview canvas': 'visible' } },
+  check: async (page) => page.evaluate(() => {
+    if (window.__tenT1 == null) return 'the preview never drew the card: a photo that does not decode held it for good'
+    const took = window.__tenT1 - window.__tenT0
+    if (window.__tenSlow.hung < 1) return 'the preview never asked for the photograph, so the bound was not exercised'
+    if (took < 9000) return `the preview gave up after ${Math.round(took)}ms, before the 10s bound`
+    if (took > 13500) return `the preview took ${Math.round(took)}ms, past the 10s bound`
+    const box = document.getElementById('finPreview')
+    if (box.hidden) return 'the preview is hidden'
+    if (/round photo/i.test(box.getAttribute('aria-label') || '')) return `the preview names a photograph it did not draw: ${box.getAttribute('aria-label')}`
+    const said = (document.getElementById('finStatus').textContent || '').trim()
+    return said === '' ? true : `the ceremony says something new: ${JSON.stringify(said)}`
+  }),
+}
 const SHARE = [
+  slowPhotoState,
   shareState('recap-no-photo', 'Share · the recap card for a posted 83 (no photo)', {}),
   flipState,
   shareState('recap-photo', 'Share · the recap card carrying the round photograph', {}, { photo: true }),
