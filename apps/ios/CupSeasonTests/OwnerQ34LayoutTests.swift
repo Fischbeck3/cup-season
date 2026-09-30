@@ -12,7 +12,8 @@ import CSDesign
         let stars = host.elements(prefix: "rating.star.")
         #expect(stars.count == 5)
         for star in stars {
-          #expect(star.frame.width >= 44 && star.frame.height >= 44)
+          // layout lands on fractional points (43.99999999999997 at 375)
+          #expect(star.frame.width >= 43.99 && star.frame.height >= 43.99)
           #expect(star.frame.minX >= 19 && star.frame.maxX <= width - 19)
         }
       }
