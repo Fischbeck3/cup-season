@@ -720,6 +720,36 @@ const SETTINGS = [
       if (bad.length) return `${bad.length} guide row(s) are boxed: ${JSON.stringify(bad[0].innerText.slice(0, 30))}`
       return rows.some((r) => /[\u2192\u203a\u2197]/.test(r.textContent)) ? 'a guide row carries a typed arrow' : true
     })) },
+  /* TEN / W8 · W7-113 [A2-desk-22] · the desk teaches its keys: a desk-only 'Keyboard' row in How it works opens the five keys (each key in the agate role over one body sentence, no typed arrows), and '?' opens the same sheet
+     from any desk page (not from a field); below 960 there is no row (a phone has no keys) */
+  { family: 'settings', id: 'guide-keys', variant: 'member', desk: true, fullPage: false, title: 'Card & settings · How it works, the Keyboard row (the desk)',
+    drive: async (page) => {
+      await openHub(page); await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => document.getElementById('youGuide') && document.getElementById('youGuide').offsetParent !== null)
+      await page.evaluate(() => document.getElementById('youGuide').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(300)
+      await click(page, '#youGuide [data-guide="keys"]')
+      await until(page, () => document.getElementById('shTitle').textContent === 'Keyboard', null, 8000)
+      await page.waitForTimeout(400)
+    },
+    expect: { sheet: '^Keyboard$', selectors: { '#shBody': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const body = document.getElementById('shBody'), keys = [...body.querySelectorAll('.cs-agate')].map((e) => e.textContent.trim()), said = [...body.querySelectorAll('.cs-body-s')].map((e) => e.textContent.trim())
+      if (keys.join('|') !== 'Up and Down|Right|/|g, then t|Esc') return `the keys read ${JSON.stringify(keys)}`
+      if (said.join('|') !== 'Move between rows.|Open the row.|Find a golfer.|Jump to the table.|Close what is open.') return `the sentences read ${JSON.stringify(said)}`
+      if (/[\u2191\u2193\u2192\u203a]/.test(body.textContent)) return 'the legend types an arrow'
+      return getComputedStyle(body.querySelector('.cs-agate')).textTransform === 'uppercase' ? true : 'a key is not set in the agate role'
+    }) },
+  { family: 'settings', id: 'keys-question', variant: 'member', desk: true, fullPage: false, title: 'The desk · ? opens the keyboard sheet',
+    drive: async (page) => {
+      await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-home', null, 8000)
+      await page.evaluate(() => { const a = document.activeElement; if (a && a.blur) a.blur() })
+      await page.keyboard.press('?')
+      await until(page, () => document.getElementById('sheet').classList.contains('open') && document.getElementById('shTitle').textContent === 'Keyboard', null, 8000)
+      await page.waitForTimeout(400)
+    },
+    expect: { sheet: '^Keyboard$', selectors: { '#shBody': 'visible' } },
+    check: async (page) => page.evaluate(() => document.querySelectorAll('#shBody .cs-agate').length === 5 ? true : 'the ? sheet does not list the five keys') },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {

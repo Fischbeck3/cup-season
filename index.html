@@ -4955,6 +4955,8 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    the fescue page. The light printing was flattened by D266; the dark one now
    uses the same base rule — bg1, the one hairline, no shadow.) */
 .check{transition:border-color .15s ease, transform .15s ease;}
+#youGuide .keyrow{display:none;}   /* W7-113 · the keyboard row is drawn from 960px, where the key layer is live */
+@media(min-width:960px){ #youGuide .keyrow{display:flex;} }
 @media(hover:hover){
   .check:hover{border-color:var(--rule); transform:translateY(-1px);}
 }
@@ -10877,6 +10879,13 @@ document.addEventListener('keydown', e=>{
     if(e.key === 'g'){ gArmed = Date.now(); return; }
     if(e.key === 't' && Date.now() - gArmed < 1000){ gArmed = 0; e.preventDefault(); jumpToTable(); return; }
     gArmed = 0;
+
+    /* W7-113 · ? — the desk's keys, taught (never from a field, and only where the key layer lives: 960px and wider) */
+    if(e.key === '?'){
+      const g = window.csGuide && window.csGuide.keys;
+      if(g && window.matchMedia('(min-width:960px)').matches){ e.preventDefault(); openSheet(g[0], g[1], g[2]); }
+      return;
+    }
 
     /* / — focus the nearest search field. `document.activeElement` decides
        "nearest": the field inside the open pane, or the first one visible. */
@@ -29768,7 +29777,16 @@ const GUIDE = {
     <p class="fine" style="padding:0 0 10px"><b>A buddy</b> is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a schedule. Nothing to do with leagues or points.</p>
     <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the round posts to their rounds. No league, no buddy — just the round.</p>`],
+  /* W7-113 · the desk's five keys (UI_SYSTEM §14.4), each key in the agate role over one body sentence: the key layer (a '/' anywhere, g then t, arrows, Right, Esc) is live on the whole desk and
+     nothing on screen taught it. Words for the arrows, never typed glyphs. Opened from the desk-only 'Keyboard' row in How it works, and by '?' at 960px and wider. */
+  keys: ['Keyboard','THE DESK\u2019S FIVE KEYS', `
+    <div class="cs-agate">Up and Down</div><p class="cs-body-s" style="margin:2px 0 12px">Move between rows.</p>
+    <div class="cs-agate">Right</div><p class="cs-body-s" style="margin:2px 0 12px">Open the row.</p>
+    <div class="cs-agate">/</div><p class="cs-body-s" style="margin:2px 0 12px">Find a golfer.</p>
+    <div class="cs-agate">g, then t</div><p class="cs-body-s" style="margin:2px 0 12px">Jump to the table.</p>
+    <div class="cs-agate">Esc</div><p class="cs-body-s" style="margin:2px 0 12px">Close what is open.</p>`],
 };
+window.csGuide = GUIDE;   /* W7-113 · the key layer is classic code: it reaches the guide through window, never bare */
 /* the guide's rows are buttons to a keyboard too (role="button", tabindex 0):
    Enter and Space open them through the same click path */
 document.addEventListener('keydown', (e) => {
@@ -31490,6 +31508,7 @@ function openProfileHub(){
       <div class="check tap" data-guide="posting" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div></div>
       <div class="check tap" data-guide="buddies" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div></div>
       <div class="check tap" data-guide="scoring" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div></div>
+      <div class="check tap keyrow" data-guide="keys" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Keyboard</b><small>The desk’s five keys</small></div></div>   <!-- W7-113 · desk-only: a phone has no keys to teach -->
       <!-- owner H · "Tell us how it's going" is the app's, not the golfer's
            card: it moved here from the You page -->
       ${(typeof PILOT !== 'undefined' && PILOT) ? `<button type="button" class="check tap" id="phFeedback" style="width:100%; text-align:left; cursor:pointer"><div class="tt"><b>Tell us how it’s going</b><small>A line to the people who make this</small></div></button>` : ''}
