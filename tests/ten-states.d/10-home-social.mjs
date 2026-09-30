@@ -278,6 +278,15 @@ const monthFact = async (page) => page.evaluate(() => {
   const t = lines[0].textContent.trim()
   return /^(Best \d+ a month count|Every round counts) · (.+ · )?(\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
 })
+/* TEN / W6 · Codex on 113b7209 (P2) · with the pulse unread (a failed read), the month line says the cap and the clock and
+   no minimum: the waiver facts (a partial month, a joined month) are unknown, so the minimum stays absent (L-44, D354) */
+const monthNoMinimum = async (page) => page.evaluate(() => {
+  const lines = [...document.querySelectorAll('#sideMe .memonth, #homeMe .memonth')].filter((p) => p.getBoundingClientRect().height > 0)
+  if (lines.length !== 1) return `${lines.length} month line(s) on screen, expected one`
+  const t = lines[0].textContent.trim()
+  if (/minimum/.test(t)) return 'a minimum is printed before the pulse confirmed its waivers: ' + JSON.stringify(t)
+  return /^(Best \d+ a month count|Every round counts) · (\d+ days? left in|last day of) [A-Z][a-z]+$/.test(t) ? true : 'the month line reads ' + JSON.stringify(t)
+})
 /* TEN / W6 · Q19 (owner, 2026-09-29 §R) · the feed's head names what the list holds */
 const feedHeadIs = (want) => async (page) => page.evaluate((want) => {
   const t = ((document.getElementById('homeFeedHead') || {}).textContent || '').trim()
@@ -326,6 +335,11 @@ const cardsNotButtons = async (page) => page.evaluate(() => {
   return true
 })
 const HOME_LEAGUELESS = [
+  /* TEN / W6 · Codex on 113b7209 (P2) · the pulse read fails: the month line waits for its waiver facts */
+  { family: 'home', id: 'pulse-failed', variant: 'member', title: 'Home signed in, the league pulse unreachable: the month line says the cap and the clock, no minimum',
+    world: { errors: { rpc: { league_pulse: { __error: 'fixture: the pulse is unreachable', status: 500 } } } },
+    expectConsole: [/status of 500/],
+    expect: { view: 'view-home' }, check: monthNoMinimum },
   { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
     expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew, wireEmptyOneLine, brandNewPrimary, installInPage) },   /* Q14 */

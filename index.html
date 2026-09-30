@@ -8211,8 +8211,20 @@ function csMonthRow(){
   const pulse = window.leaguePulse || [], me = pulse.find(r => r && r.is_me) || null;
   const partial = !!(pulse[0] && pulse[0].partial);
   const credits = window.myMonth ? Number(window.myMonth.credits) : null;
-  if(!(floor > 0) || partial || credits == null || isNaN(credits)) return `${head} \u00b7 ${clock}`;
-  if(me && me.joined_this_month === true) return `${head} \u00b7 no minimum this month, you joined this month \u00b7 ${clock}`;
+  /* TEN / W6 · Codex on 113b7209 (P2) · THE MINIMUM WAITS FOR ITS WAIVERS.
+     An absent pulse read as "not partial" and "not a joiner", and beside the
+     loaded credits it printed a minimum that D354 waives (the joined month)
+     or the partial month waives: a failed pulse did it, and so could Home
+     shown by AW2-01's watchdog before the pulse landed. L-44: an unknown fact
+     stays absent. So the minimum is said only once the viewer's own pulse row
+     has CONFIRMED the waiver facts (the month is not partial, and whether
+     they joined this month is known), and never in a solo season, which
+     carries no minimum (the pulse card's own rule). Until then: the cap and
+     the clock. */
+  const solo = ((window.CS && CS.settings && CS.settings.structure != null) ? CS.settings.structure : state.structure) === 'solo';
+  const confirmed = !!me && typeof me.joined_this_month === 'boolean';
+  if(!(floor > 0) || solo || !confirmed || partial || credits == null || isNaN(credits)) return `${head} \u00b7 ${clock}`;
+  if(me.joined_this_month === true) return `${head} \u00b7 no minimum this month, you joined this month \u00b7 ${clock}`;
   const fmt = n => n % 1 ? n.toFixed(1) : String(n);   /* a nine is a half credit */
   return `${head} \u00b7 ${fmt(credits)}/${floor} toward the minimum \u00b7 ${clock}`;
 }
