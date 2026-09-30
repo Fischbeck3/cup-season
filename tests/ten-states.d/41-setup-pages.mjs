@@ -743,7 +743,7 @@ const SETTINGS = [
     check: async (page) => page.evaluate(() => {
       const body = document.getElementById('shBody'), keys = [...body.querySelectorAll('.cs-agate')].map((e) => e.textContent.trim()), said = [...body.querySelectorAll('.cs-body-s')].map((e) => e.textContent.trim())
       if (keys.join('|') !== 'Up and Down|Right|/|g, then t|Esc') return `the keys read ${JSON.stringify(keys)}`
-      if (said.join('|') !== 'Move between rows.|Open the row.|Find a golfer.|Jump to the table.|Close what is open.') return `the sentences read ${JSON.stringify(said)}`
+      if (said.join('|') !== 'Move between rows.|Open the row.|Find a golfer or a course.|Jump to the table.|Close what is open.') return `the sentences read ${JSON.stringify(said)}`
       if (/[\u2191\u2193\u2192\u203a]/.test(body.textContent)) return 'the legend types an arrow'
       return getComputedStyle(body.querySelector('.cs-agate')).textTransform === 'uppercase' ? true : 'a key is not set in the agate role'
     }) },
