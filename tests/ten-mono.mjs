@@ -274,7 +274,8 @@ export const bandContrast = (card, parts) => async (page) => {
       out.push({ name: part.name, large: !!part.large, color: getComputedStyle(t).color, box: [x0 - r.left, y0 - r.top, x1 - r.left, y1 - r.top] })
     }
     const st = document.createElement('style'); st.id = 'bc-hide'
-    st.textContent = '[data-bc-hide], [data-bc-hide] *{color:transparent !important; text-shadow:none !important; border-color:transparent !important}'
+    /* W7-084 · a squad's swatch (.sw) beside a name is a mark, not a ground: the copy is measured against the scrim it sits on, so the swatch is cleared with the type */
+    st.textContent = '[data-bc-hide], [data-bc-hide] *{color:transparent !important; text-shadow:none !important; border-color:transparent !important} [data-bc-hide] .sw{background:transparent !important}'
     document.head.appendChild(st)
     return { clip: { x: r.left, y: r.top, width: r.width, height: r.height }, parts: out }
   }, { card, parts })

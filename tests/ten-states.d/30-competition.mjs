@@ -678,6 +678,8 @@ const SEASON = [
     check: all(onNorthGrove, inViewport('#boardCard', 'the board'),
       /* the wrapper is the page's ground, and a post, a settled game and a moment are slats: no fill, no radius, no four-sided edge */
       noBoxes(['#boardCard', '#feedList .msgrow', '#feedList .sysrow', '#feedList .momrow', '#feedList .fcard']),
+      /* TEN / W8 · W7-084 [A2-golfers-10, B2-golfers-8]: the compact feed draws no squad-colour stripe down a round or chat post either (the full board says the squad in words on its round card) */
+      async (page) => page.evaluate(() => { const n = document.querySelectorAll('#feedList .round .bar, #feedList .msgrow .bar').length; return n ? `${n} post(s) on the season page's board still draw the squad stripe` : true }),
       async (page) => page.evaluate(() => {
         const list = document.getElementById('feedList'), box = list.getBoundingClientRect(), bad = []
         const rows = [...list.querySelectorAll('.msgrow, .sysrow, .momrow, .fcard')]

@@ -545,6 +545,39 @@ const oneCourseName = async (page) => page.evaluate(() => {
   }
   return true
 })
+/* TEN / W8 · W7-084 [A2-golfers-10, B2-golfers-8]: the board says a squad in WORDS. The 3.5px squad-colour stripe down a post's edge (a spine, §0.3, and colour
+   alone, §16.4) is gone from every post, round or chat; a round names its golfer's squad in its agate line beside the season table's swatch; a chat line
+   names nothing; a golfer with no squad (a solo season) gets no swatch and no name, and the fallback colour that painted a squad who did not exist is gone.
+   `solo` is the control: the same board in a league that has no squads. */
+const SWATCH = { 'Fixture Wrens': 'var(--sq0)', 'Fixture Javelinas': 'var(--sq1)' }
+const squadInWords = (solo) => async (page) => page.evaluate(({ solo, SWATCH }) => {
+  const list = document.getElementById('feedListFull')
+  if (!list) return 'the board has no list'
+  const bars = list.querySelectorAll('.round .bar, .msgrow .bar')
+  if (bars.length) return `${bars.length} post(s) still draw the squad stripe down their edge`
+  const rounds = [...list.querySelectorAll('.fcard .round')]
+  if (!rounds.length) return 'no round card on the board to read'
+  if (list.querySelectorAll('.msgrow .sw').length) return 'a chat line carries a squad swatch (a chat line names nothing)'
+  for (const r of rounds) {
+    const l2 = r.querySelector('.l2'), sw = l2 && l2.querySelector('.sw')
+    if (solo) {
+      if (sw) return 'a solo season\'s round draws a swatch for a squad that does not exist'
+      if (/[·\s]$/.test(l2.textContent.trim())) return `a solo round's agate line ends on a separator: ${JSON.stringify(l2.textContent.trim().slice(-20))}`
+      continue
+    }
+    const said = /Fixture (Wrens|Javelinas)/.exec(l2 ? l2.textContent : '')
+    if (!said) return `a round names no squad in its agate line: ${JSON.stringify(l2 && l2.textContent.trim())}`
+    if (!sw) return `${said[0]} is named with no swatch beside it`
+    if (sw.getBoundingClientRect().width < 3 || sw.getBoundingClientRect().height < 10) return `the swatch beside ${said[0]} has no box (${sw.getBoundingClientRect().width}x${sw.getBoundingClientRect().height})`
+    if (sw.style.background.replace(/\s+/g, '') !== SWATCH[said[0]].replace(/\s+/g, '')) return `${said[0]} wears ${sw.style.background}, not ${SWATCH[said[0]]}`
+    if (!sw.nextSibling || sw.nextSibling.textContent.trim() !== said[0]) return 'the squad\'s name is not beside its swatch'
+    const rg = document.createRange(); rg.selectNodeContents(sw.nextSibling)
+    const nr = rg.getClientRects()[0], sr = sw.getBoundingClientRect()
+    if (nr && Math.abs((sr.top + sr.height / 2) - (nr.top + nr.height / 2)) > 8) return `${said[0]}\'s swatch is a line away from its name`
+  }
+  return true
+}, { solo, SWATCH })
+const SOLO_LEAGUE = 'f3000000-0000-4000-8000-000000000002'   /* South Wash Weekday (fixture): a solo season, no squads */
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -702,6 +735,7 @@ const GOLFERS = [
       const ph = document.querySelector('#feedListFull .fcard .round.has-photo'), pr = ph && ph.getBoundingClientRect()
       return !pr || (pr.width / pr.height > 2.0 && pr.width / pr.height < 2.25) ? true : `a photo card is ${Math.round(pr.width)}x${Math.round(pr.height)}, not the 2.1:1 band`
     }),
+    squadInWords(false),
     /* TEN / W6 · AW2-06 + OB-05: a round card's course line and its margin's
        unit are agateS; only the margin's figure keeps mono (the column role) */
     notMono(['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'], ['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep']),
@@ -730,6 +764,18 @@ const GOLFERS = [
       { name: 'counting', sel: '.rline .ok, .rline .dim' }, { name: 'margin', sel: '.pvi-line b, .pvi', own: true },
       { name: 'margin unit', sel: '.pvi-line small, .pvi small' }, { name: 'points', sel: '.pts', own: true, large: true },
       { name: 'points unit', sel: '.pts small' }])) },
+  /* TEN / W8 · W7-084's control: the board of a league that has no squads (a solo season) draws round posts with no stripe, no swatch and no name */
+  { family: 'golfers', id: 'board-solo', variant: 'member', title: 'The league board of a solo season (South Wash Weekday): round posts, no squad', fullPage: false,
+    drive: async (page) => {
+      await page.evaluate((id) => window.enterLeagueById(id, false), SOLO_LEAGUE)
+      await until(page, () => /South Wash/.test((window.CS && window.CS.league && window.CS.league.name) || ''), null, 15000)
+      await page.evaluate(() => window.switchView('board'))
+      await until(page, () => document.getElementById('boardFull').classList.contains('open') && document.querySelectorAll('#feedListFull .fcard .round').length > 0, null, 15000)
+      await page.waitForTimeout(600)
+    },
+    expect: { selectors: { '#boardFull.open': 'visible' } },
+    check: all(async (page) => page.evaluate(() => /SOUTH WASH/i.test(document.getElementById('bfSub').textContent) ? true : `the board is not the second league's: ${document.getElementById('bfSub').textContent}`),
+      squadInWords(true)) },
 ]
 
 export default [...HOME_HATCH, ...HOME_DISPATCH, ...HOME_LEAGUELESS, ...HOME_WORLD, ...GOLFERS]
