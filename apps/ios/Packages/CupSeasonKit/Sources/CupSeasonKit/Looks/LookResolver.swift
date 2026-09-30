@@ -3,7 +3,7 @@
 // Pure. Three dials, one precedence, top wins:
 //   1. a league's PHASE look   — cup_final → `cupfinal`, wrapped → `wrap`
 //   2. a league's curated look — the Pro's `leagues.look`
-//   3. the person's own dial   — the calendar (default) · one look · none
+//   3. the person's own dial   — none (the default, Q31) · the calendar · one look
 //   4. nothing                 — homebase (Fescue)
 // A league dial only counts when a league is in scope (its room, its hero).
 // An unknown key is treated as absent — the phone fails closed to homebase,
@@ -23,7 +23,9 @@ public enum PersonalLook: Equatable, Sendable {
   case none
 
   public static let storageKey = "cs_look"
-  public static let `default`: PersonalLook = .calendar
+  /// Q31 (the owner, 2026-09-29) · the app launches on Fescue: a golfer who
+  /// never touched the dial wears homebase, and the calendar is a choice.
+  public static let `default`: PersonalLook = .none
 
   public var rawValue: String {
     switch self {
@@ -35,8 +37,10 @@ public enum PersonalLook: Equatable, Sendable {
 
   public init(rawValue: String?) {
     switch rawValue {
-    case nil, "", "calendar": self = .calendar
-    case "none": self = .none
+    // Q31 · nothing stored is the default, and the default is Fescue; only a
+    // golfer who picked the calendar wears it
+    case nil, "", "none": self = .none
+    case "calendar": self = .calendar
     case let k?: self = .fixed(k)
     }
   }
