@@ -98,6 +98,17 @@ const gamesOnScreen = async (page) => page.evaluate(() => {
   const off = bs.find((b) => { const r = b.getBoundingClientRect(); return r.left < 0 || r.right > innerWidth + 0.5 || r.height < 43.5 })
   return off ? `"${off.textContent.trim()}" is not whole on screen at 44` : true
 })
+/* TEN / W6 · W7-102 · a golfer's row total is that gross against par, labelled: 'E' at level (never '+0'), and '20 gross · thru 5' under it */
+const rowTotals = async (page) => page.evaluate(() => {
+  const tots = [...document.querySelectorAll('#playerRows .tot')].filter((t) => t.getBoundingClientRect().height > 0 && t.querySelector('b'))
+  if (!tots.length) return 'no scored row total is drawn'
+  for (const t of tots) {
+    const b = t.querySelector('b').textContent.trim(), rest = t.textContent.replace(t.querySelector('b').textContent, '').trim()
+    if (b === '+0' || !/^(E|[+\u2212]\d+)$/.test(b)) return 'a row total reads ' + JSON.stringify(b)
+    if (!/^\d+ gross · thru \d+$/.test(rest)) return 'a row total’s small line reads ' + JSON.stringify(rest)
+  }
+  return true
+})
 /* the real door: the Play tab (router id `record`), then Score it live */
 async function toSetup(page) {
   await page.locator('.tab[data-v="record"]:visible, .navitem[data-v="record"]:visible').first().click({ timeout: 8000 })
@@ -238,7 +249,7 @@ export default [
       await page.waitForTimeout(400)
     },
     expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#holeNum': 'text:^HOLE 6$' } },
-    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
+    check: all(scoredCheck(5), playIsWhereYouAre, noLiveGold, rowTotals, async (page) => { const f = await liveFacts(page); return f.queued === 0 ? true : `${f.queued} score(s) still queued with the server answering` },
       /* the board sticks only where the page scrolls: on the desk the whole
          round fits the first screen, so there is nothing to stick over */
       async (page) => page.evaluate(() => {

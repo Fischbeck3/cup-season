@@ -17517,7 +17517,7 @@ function renderPlay(){
     row.innerHTML=`
       <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" aria-hidden="true"></span>'.repeat(dots)}</b>
       <small>${esc(sub)}</small></div>
-      <div class="tot">${done.length ? `<b>${vp>=0?'+':'\u2212'}${Math.abs(vp)}</b>${gross} thru ${done.length}` : '—'}</div>
+      <div class="tot">${done.length ? `<b>${vp===0?'E':`${vp>0?'+':'\u2212'}${Math.abs(vp)}`}</b>${gross} gross \u00b7 thru ${done.length}` : '—'}</div>
       <div class="step">
         <button aria-label="One stroke fewer for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="-1">−</button>
         <span class="sv">${s===null?'–':s}</span>
