@@ -1,0 +1,14 @@
+Test Case '-[CupSeasonUITests.SeasonBookUITests testAccessibilityUsesWeekPickerAndRaceCanBeSelected]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testAccessibilityUsesWeekPickerAndRaceCanBeSelected]' passed (11.990 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testDelayedRefreshKeepsTheGolfersViewAndTotals]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testDelayedRefreshKeepsTheGolfersViewAndTotals]' passed (18.431 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts]' passed (12.276 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor]' passed (6.679 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' passed (4.777 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 54.152 (54.156) seconds
+	 Executed 5 tests, with 0 failures (0 unexpected) in 54.152 (54.157) seconds
+	 Executed 5 tests, with 0 failures (0 unexpected) in 54.152 (54.158) seconds
+** TEST EXECUTE SUCCEEDED **

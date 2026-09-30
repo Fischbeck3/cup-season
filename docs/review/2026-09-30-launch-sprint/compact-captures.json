@@ -1,0 +1,482 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "5195CFEA-F00F-4479-BA7F-7262FCC7B30F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "WhatsOn-families-light_0_646068D6-B26C-4969-983A-B7EF6AB96A2C.png",
+        "timestamp" : 1790800127.758
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "207EC91A-C016-4C65-99FD-DE5EABB4153C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "WhatsOn-light_0_69799357-765A-4DE3-9D46-E0A75EA8C0D8.png",
+        "timestamp" : 1790800118.069
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "BCF5F57F-D554-4F33-BD34-023C43798DF0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "WhatsOn-families-dark_0_DF17D1B3-BF9C-4FF0-8D79-D3DAB4C2269E.png",
+        "timestamp" : 1790800112.438
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "B0EB40FA-A0EC-44C0-9BB5-8A4C9E9C38A7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "WhatsOn-dark_0_45FDBA9D-0C39-486C-AD03-2AF788E2ED8B.png",
+        "timestamp" : 1790800111.099
+      }
+    ],
+    "testIdentifier" : "BetweenRoundsWidgetUITests/testWhatsOnSurvivesIntegrationInBothPrintings()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/BetweenRoundsWidgetUITests/testWhatsOnSurvivesIntegrationInBothPrintings"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "CBB71326-897A-40F0-8695-B2A422A34DD5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-done-light-accessibility3_0_F3027033-35FE-4799-AFF1-53ED57E8B9E1.png",
+        "timestamp" : 1790800209.908
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "9A04B1F5-2D13-46DF-B65A-4E0892171F42.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-armed-light-accessibility3_0_C0C2F1E9-8594-48F6-BD0A-90485F20DB1A.png",
+        "timestamp" : 1790800206.878
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "6AE9A6AC-45B6-4E7B-831C-E60C94B21427.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-before-tap-light-accessibility3_0_0D1A507C-C72C-4CF7-A16D-581862B45304.png",
+        "timestamp" : 1790800205.617
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "B434E266-0288-4999-8EB6-8369FEA1F427.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-done-light-large_0_07CB736D-AC61-41F0-B672-15C493ED6A94.png",
+        "timestamp" : 1790800185.493
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "4808BE3A-7BEB-4AB3-903D-20F6506EB17E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-armed-light-large_0_17931247-8672-4154-82B1-4C0559DD9F11.png",
+        "timestamp" : 1790800182.437
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "698C6FB4-CEE8-4382-ADFF-74989B54B701.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-before-tap-light-large_0_433B2038-2B4D-480A-952A-B5814A1B27C1.png",
+        "timestamp" : 1790800182.014
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "4EA02158-AE6C-4FAC-84D4-A22E7FF41397.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-done-dark-accessibility3_0_C55AB049-B16E-45D3-BBF8-CB461E77B575.png",
+        "timestamp" : 1790800169.991
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "07A71744-355C-445B-BB02-224D2E13FDDD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-armed-dark-accessibility3_0_D6996B5D-2F93-4162-A003-CC24CC76E707.png",
+        "timestamp" : 1790800166.91
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "53EE92D3-6E07-4E05-828C-244C06AD7411.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-before-tap-dark-accessibility3_0_FF8234F8-AB79-4CB7-8FA4-87401573B5CC.png",
+        "timestamp" : 1790800165.884
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "C96369C9-6BA5-4D13-BED1-DDDCA885EFF6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-done-dark-large_0_107A1A49-03BD-4ECA-9610-DEE80B875D1D.png",
+        "timestamp" : 1790800144.473
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "4FD2A272-4F0A-406D-9B74-4D0DDE64C55C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-armed-dark-large_0_D512FF1F-1421-4A96-821F-23E5BAD063A4.png",
+        "timestamp" : 1790800141.412
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "55E020F1-6766-4701-AC5D-3FAC80267B67.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "X38-before-tap-dark-large_0_3CF2B6CE-9133-480E-AAF2-8D9895426FB6.png",
+        "timestamp" : 1790800140.952
+      }
+    ],
+    "testIdentifier" : "Build2OwnerUITests/testCardLinkAsksThenReportsOnlyTheConfirmedRevoke()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/Build2OwnerUITests/testCardLinkAsksThenReportsOnlyTheConfirmedRevoke"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "71CD5CAA-31CF-43E2-8EAE-BA4A7DF99639.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Q50-receipt-light_0_0D3EEBF5-A1B4-4783-AF94-C97A10716859.png",
+        "timestamp" : 1790800238.492
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "32A734FE-B1B5-4DF7-9145-1776F39462EA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Q50-sentence-light_0_9EA41492-339D-4D3F-B3C6-AB697D86B9D3.png",
+        "timestamp" : 1790800236.115
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "A0849595-7863-4923-BF56-A3A98C7EC55C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Q50-receipt-dark_0_CABDA6B6-B1FC-4D05-9D66-07089062E432.png",
+        "timestamp" : 1790800224.331
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "792CFD8B-3CE9-462E-A376-0057FF7201A6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Q50-sentence-dark_0_6BE05D8A-1FEA-4CA1-9D15-6E5629AC5FEA.png",
+        "timestamp" : 1790800221.837
+      }
+    ],
+    "testIdentifier" : "Build2OwnerUITests/testTheClinchSentenceOpensItsOwnArithmetic()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/Build2OwnerUITests/testTheClinchSentenceOpensItsOwnArithmetic"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "5D852D2D-D43D-4715-9BB1-1F0325072B82.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "compete-finished-expanded_0_914A3844-0492-492F-A408-0EC7883C78C8.png",
+        "timestamp" : 1790800256.829
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "97689604-5120-4367-8339-D25F8AFBC5B0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "compete-first-viewport_0_3810AEB1-F181-4605-83A6-E71FD0BB1190.png",
+        "timestamp" : 1790800244.501
+      }
+    ],
+    "testIdentifier" : "MatchProgrammeTests/testCompeteCreationAndFinishedDisclosure()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/MatchProgrammeTests/testCompeteCreationAndFinishedDisclosure"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "24A363E8-3F02-4519-A4E9-8F015BCE7CBC.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-missing-records_0_E895FDA2-5FBE-430A-B68D-5F03D957B85C.png",
+        "timestamp" : 1790800283.97
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "0940CADC-DCE2-4EBE-A044-23456A278EFE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-failed-records_0_00745EC2-FC9F-40C3-B840-2EE926CA26CE.png",
+        "timestamp" : 1790800276.814
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "FDC26317-4B13-4F4D-A579-18A2D2B1BE8B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-no_photo-records_0_654CE8DE-E3CC-417F-BF74-B55FDCF8DDEA.png",
+        "timestamp" : 1790800269.56
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "D8D9B340-8AA0-4938-820D-EE8B7BE89C94.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-photo-records_0_243B067E-8C05-4502-9624-9D1B137188EA.png",
+        "timestamp" : 1790800262.32
+      }
+    ],
+    "testIdentifier" : "MatchProgrammeTests/testHomeRecordsAndPhotoFallback()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/MatchProgrammeTests/testHomeRecordsAndPhotoFallback"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "1A0394A9-2A04-4A74-8D82-471993094187.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "compete-AX3-creation_0_C09A6E66-8BB9-4763-99A4-26974D04C879.png",
+        "timestamp" : 1790800301.417
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "0860AD18-4FB3-48FF-B052-79DD9F6BA7AD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "compete-AX3-first-viewport_0_E6B079A1-9421-4F05-99B3-EF32A65588BF.png",
+        "timestamp" : 1790800295.983
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "DA025D0F-1AED-40AA-92F5-7B604CCDE8E9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-long-AX3-record_0_24043603-843F-46CD-9F12-C669D6423195.png",
+        "timestamp" : 1790800293.675
+      }
+    ],
+    "testIdentifier" : "MatchProgrammeTests/testLongRecordsAtAccessibilitySize()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/MatchProgrammeTests/testLongRecordsAtAccessibilitySize"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "05D0F308-8707-46CF-89ED-0038D961CFD7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-AX3-support_0_C75E2902-B381-4C08-8619-CE76817E3033.png",
+        "timestamp" : 1790800312.216
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "725C7C18-49CB-498E-BDE4-133895527E62.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-AX3-record_0_E37EC78D-652C-486B-B992-EC14DFE93781.png",
+        "timestamp" : 1790800309.315
+      }
+    ],
+    "testIdentifier" : "MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "600A4967-1F1F-45B3-AF62-A9F4D3615BCD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-phone_failed-light_0_ADACAB76-E7E6-4EBA-B024-402824C0C694.png",
+        "timestamp" : 1790800359.276
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "FB6A4E46-D6A8-4F9F-94EA-5986353D5808.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-phone_failed-dark_0_1C7C933A-5CBF-45E2-BF01-F4F203FDE311.png",
+        "timestamp" : 1790800351.535
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "62661212-9117-4B49-88E3-4730BCE9B296.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-phone_no_photo-light_0_87EB7857-E107-4892-87E9-A03CFBCE524E.png",
+        "timestamp" : 1790800343.733
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "09DDEC69-8FEE-4454-ABDC-9373837832C9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-phone_no_photo-dark_0_486E9587-1A82-4587-87CE-689C50F9C92A.png",
+        "timestamp" : 1790800336.073
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "D3EBAD6E-B407-4C70-9B73-1656EAFA38D5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-phone-light_0_14BA314A-D037-4840-AA0C-94D5FD54A16D.png",
+        "timestamp" : 1790800328.386
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "724084BE-51D2-4489-BF10-EE33A87F99E6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-feedback-phone-dark_0_603093C8-E18C-478B-9091-32BE3BDEE6FB.png",
+        "timestamp" : 1790800320.471
+      }
+    ],
+    "testIdentifier" : "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "90FFAC72-C005-4665-AE09-738003A9ADCD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-photo-AX3-insert_0_51D37361-6A2A-4068-832A-7FCC3788A94B.png",
+        "timestamp" : 1790800369.301
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "DDBA0B13-EDA1-416C-AE81-523E9508182C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-photo-AX3-record_0_69098F1F-4E49-4452-AF5B-AB292FB891FA.png",
+        "timestamp" : 1790800367.033
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "9D6DDF52-0666-403C-BDA9-B2125D01063F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-live-AX3-first-viewport_0_073EF33A-3FDE-4BF3-A9A8-E36845A35E24.png",
+        "timestamp" : 1790800364.186
+      }
+    ],
+    "testIdentifier" : "MatchProgrammeTests/testPhotoAtAccessibilitySize()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/MatchProgrammeTests/testPhotoAtAccessibilitySize"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "022DDEC6-E1EB-4F03-AADA-3429F1D20449.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-brand-new_0_4A942AE7-074A-47CB-8CFD-555247ABA3FE.png",
+        "timestamp" : 1790800387.034
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "AFFB8691-6015-460A-8CE1-938DBB92D7E0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "compete-light-first-viewport_0_8A0875AC-9DE5-4EE0-89C2-5AE88FBB0935.png",
+        "timestamp" : 1790800383.473
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "3AEFA6F5-7AC7-4B6E-B0C7-7BF9EADC1E54.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-light-first-viewport_0_CC85D33E-C328-4BAA-B05B-2347182BB9C6.png",
+        "timestamp" : 1790800381.184
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "AE24EC1F-2E0E-4BE6-96D8-86A872013ED4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "compete-dark-first-viewport_0_4190DC27-086B-4CC2-BC99-3A8AFCA9DB83.png",
+        "timestamp" : 1790800376.552
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "007FC04E-CDC3-4F9B-8D65-93B0F756B7BE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "home-dark-first-viewport_0_336B6A04-E982-4096-B105-BDAADFCF88FF.png",
+        "timestamp" : 1790800374.236
+      }
+    ],
+    "testIdentifier" : "MatchProgrammeTests/testThemeAndEmptyCaptures()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/MatchProgrammeTests/testThemeAndEmptyCaptures"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "exportedFileName" : "86A1EF4E-2944-4643-BD67-11B3FD11F877.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Book refreshed · Golfers and Totals_0_4620B9DE-2599-4DE7-A0D4-BBFE13CAFBE0.png",
+        "timestamp" : 1790800413.744
+      }
+    ],
+    "testIdentifier" : "SeasonBookUITests/testDelayedRefreshKeepsTheGolfersViewAndTotals()",
+    "testIdentifierURL" : "test://com.apple.xcode/CupSeason/CupSeasonUITests/SeasonBookUITests/testDelayedRefreshKeepsTheGolfersViewAndTotals"
+  }
+]

@@ -1,0 +1,49 @@
+Test Suite 'Selected tests' started at 2026-09-30 13:28:20.753.
+Test Suite 'CupSeasonUITests.xctest' started at 2026-09-30 13:28:20.754.
+Test Suite 'BetweenRoundsWidgetUITests' started at 2026-09-30 13:28:20.754.
+Test Case '-[CupSeasonUITests.BetweenRoundsWidgetUITests testWhatsOnSurvivesIntegrationInBothPrintings]' started.
+Test Case '-[CupSeasonUITests.BetweenRoundsWidgetUITests testWhatsOnSurvivesIntegrationInBothPrintings]' passed (28.370 seconds).
+Test Suite 'BetweenRoundsWidgetUITests' passed at 2026-09-30 13:28:49.126.
+	 Executed 1 test, with 0 failures (0 unexpected) in 28.370 (28.372) seconds
+Test Suite 'Build2OwnerUITests' started at 2026-09-30 13:28:49.127.
+Test Case '-[CupSeasonUITests.Build2OwnerUITests testCardLinkAsksThenReportsOnlyTheConfirmedRevoke]' started.
+Test Case '-[CupSeasonUITests.Build2OwnerUITests testCardLinkAsksThenReportsOnlyTheConfirmedRevoke]' passed (82.011 seconds).
+Test Case '-[CupSeasonUITests.Build2OwnerUITests testTheClinchSentenceOpensItsOwnArithmetic]' started.
+Test Case '-[CupSeasonUITests.Build2OwnerUITests testTheClinchSentenceOpensItsOwnArithmetic]' passed (28.451 seconds).
+Test Suite 'Build2OwnerUITests' passed at 2026-09-30 13:30:39.590.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 110.463 (110.464) seconds
+Test Suite 'MatchProgrammeTests' started at 2026-09-30 13:30:39.591.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testCompeteCreationAndFinishedDisclosure]' started.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testCompeteCreationAndFinishedDisclosure]' passed (17.470 seconds).
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testHomeRecordsAndPhotoFallback]' started.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testHomeRecordsAndPhotoFallback]' passed (30.246 seconds).
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testLongRecordsAtAccessibilitySize]' started.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testLongRecordsAtAccessibilitySize]' passed (14.331 seconds).
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackAtAccessibilitySize]' started.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackAtAccessibilitySize]' passed (10.802 seconds).
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackRoundAndSupportingActions]' started.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackRoundAndSupportingActions]' passed (47.999 seconds).
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhotoAtAccessibilitySize]' started.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhotoAtAccessibilitySize]' passed (9.089 seconds).
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testThemeAndEmptyCaptures]' started.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testThemeAndEmptyCaptures]' passed (17.723 seconds).
+Test Suite 'MatchProgrammeTests' passed at 2026-09-30 13:33:07.256.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 147.659 (147.665) seconds
+Test Suite 'SeasonBookUITests' started at 2026-09-30 13:33:07.257.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testAccessibilityUsesWeekPickerAndRaceCanBeSelected]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testAccessibilityUsesWeekPickerAndRaceCanBeSelected]' passed (9.147 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testDelayedRefreshKeepsTheGolfersViewAndTotals]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testDelayedRefreshKeepsTheGolfersViewAndTotals]' passed (17.559 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts]' passed (11.941 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor]' passed (6.440 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' passed (4.683 seconds).
+Test Suite 'SeasonBookUITests' passed at 2026-09-30 13:33:57.030.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 49.770 (49.773) seconds
+Test Suite 'CupSeasonUITests.xctest' passed at 2026-09-30 13:33:57.031.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 336.262 (336.277) seconds
+Test Suite 'Selected tests' passed at 2026-09-30 13:33:57.031.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 336.262 (336.278) seconds
+** TEST EXECUTE SUCCEEDED **

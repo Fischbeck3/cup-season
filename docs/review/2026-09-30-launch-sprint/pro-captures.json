@@ -1,0 +1,32 @@
+[
+  {
+    "file": "pro-whats-on-families-light.png",
+    "test": "BetweenRoundsWidgetUITests/testWhatsOnSurvivesIntegrationInBothPrintings()",
+    "source": "/private/tmp/codex-sprint-ui-pro-confirm-shots/9C37F08C-F5CE-45FD-8C7F-03C0ECFCD1FA.png",
+    "description": "WhatsOn-families-light"
+  },
+  {
+    "file": "pro-whats-on-dark.png",
+    "test": "BetweenRoundsWidgetUITests/testWhatsOnSurvivesIntegrationInBothPrintings()",
+    "source": "/private/tmp/codex-sprint-ui-pro-confirm-shots/9C2175FC-0DC3-4BC7-A5C9-1F937ED3A1CB.png",
+    "description": "WhatsOn-dark"
+  },
+  {
+    "file": "pro-home-AX3.png",
+    "test": "MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize()",
+    "source": "/private/tmp/codex-sprint-ui-pro-confirm-shots/3EEF4BAB-F84A-4A27-A32F-9ACA7192570F.png",
+    "description": "home-feedback-AX3-record"
+  },
+  {
+    "file": "pro-home-photo-light.png",
+    "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+    "source": "/private/tmp/codex-sprint-ui-pro-confirm-shots/6DFC6201-A201-466D-841F-794B042FA15A.png",
+    "description": "home-feedback-phone-light"
+  },
+  {
+    "file": "pro-home-photo-dark.png",
+    "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+    "source": "/private/tmp/codex-sprint-ui-pro-confirm-shots/1838CAC9-EEAE-456F-9258-E318C5FDCCE0.png",
+    "description": "home-feedback-phone-dark"
+  }
+]

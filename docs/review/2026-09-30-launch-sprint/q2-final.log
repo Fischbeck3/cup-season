@@ -1,0 +1,90 @@
+              set_config
+--------------------------------------
+ c5200000-0000-4000-8000-000000000001
+(1 row)
+
+WARNING:  there is already a transaction in progress
+NOTICE:  PASS parent control reproduces the false cut on two squads
+WARNING:  there is no transaction in progress
+
+PASS 288 whole-chain migrations, zero skipped; Q2 reapplied idempotently
+              set_config
+--------------------------------------
+ c5200000-0000-4000-8000-000000000001
+(1 row)
+
+WARNING:  there is already a transaction in progress
+NOTICE:  PASS Q2 squads2: exact announcement, saved finish, one post, historical post preserved, table finish unchanged
+NOTICE:  PASS Q2 squads3: exact announcement, saved finish, one post, historical post preserved, table finish unchanged
+NOTICE:  PASS Q2 squads4: exact announcement, saved finish, one post, historical post preserved, table finish unchanged
+NOTICE:  PASS Q2 solo: exact announcement, saved finish, one post, historical post preserved, table finish unchanged
+NOTICE:  PASS invalid finish and non-Pro reject without posts
+NOTICE:  PASS open-window, short-season D384, and entered-Final guards preserved
+NOTICE:  PASS authenticated-only RPC execution
+WARNING:  there is no transaction in progress
+
+                                        check_name                                        |                                           status                                           |                                                                                                                                        detail
+------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 1 · pg_cron jobs                                                                         | FAIL — expected >=3 active jobs with the tick and without cs-week-snapshot, got 2          | cs-daily-tick · cs-month-close
+ 10 · anon table seal                                                                     | PASS                                                                                       | relations + columns + default acls all clean of anon/PUBLIC
+ 11 · views run as reader                                                                 | PASS                                                                                       | security_invoker required on any public view granted to anon/authenticated
+ 12 · engine functions unreachable                                                        | PASS                                                                                       | close_month · award_event_trophies · award_season_trophies — no execute for anon/authenticated
+ 13 · profiles server-owned                                                               | PASS                                                                                       | no insert/update/delete grant (table or column) to anon/authenticated · no write policy on profiles
+ 14 · live tables read-only                                                               | PASS                                                                                       | no write grant/policy for authenticated on the four live tables · claim_token unreadable
+ 15 · lock health                                                                         | PASS                                                                                       | lock_ok 0 · lock_fail 0 · 7 days
+ 16 · formation invariant                                                                 | PASS                                                                                       | leagues in phase=season whose squads do not cover the roster
+ 17 · band boundaries                                                                     | PASS                                                                                       | cup_points half-open bands, §2.2
+ 18 · one relationship per embed                                                          | PASS                                                                                       | a client-embedded table with two paths to one target = PGRST201 on every unqualified embed
+ 19 · rounds INSERT is column-scoped                                                      | PASS — 11 payload columns, engine columns sealed                                           | gross rating nine_rating slope holes_played source played_on course_label api_course_id season_id photo_path
+ 2 · anon function surface                                                                | PASS                                                                                       | expected claim_round_info, scan_claim_info, league_by_code, founder_id, share_info, join_covenant_info, email_unsubscribe, guest_live_state, guest_live_set_score, guest_live_set_wolf, door_flags, log_growth_event
+ 20 · a deleted round leaves the ledger true                                              | PASS                                                                                       | the number follows the ledger both ways ONCE THE ENGINE HAS ONE (round_refresh_index returns early while handicap_index() is null — under three live rounds the index the deleted round earned stands until the next post) · the board keeps the sentence · every medal has its round
+ 21 · posts INSERT is column-scoped                                                       | PASS — 5 chat columns, server columns sealed                                               | league_id season_id kind member_id body
+ 22 · founder/owner guards fail closed                                                    | PASS — no `auth.uid() <>` anywhere in public                                               | is distinct from, never <>
+ 23 · TRUNCATE is not a client verb                                                       | PASS — no TRUNCATE/REFERENCES/TRIGGER/MAINTAIN for authenticated or anon                   | RLS does not cover TRUNCATE
+ 24 · round_players is read-only to clients                                               | PASS — authenticated may SELECT and nothing else; anon holds nothing; RLS on               | writes go through post_round only
+ 25 · a leaver stops scoring forward-only                                                 | PASS — the forward-only cut is in the lens, beside the suspension's                        | r.created_at < lm.left_at
+ 26 · a post can be homed on a person                                                     | PASS — homed, readable, and reactable without a league                                     | posts.profile_id + posts_profile_read + post_kudos(post_id, profile_id, emoji)
+ 27 · the person link keeps the anon surface at twelve                                    | PASS — the card is anon, the buddy request is not                                          | shares.kind = person · share_info branch · redeem_share to authenticated only
+ 28 · the plan link keeps the anon surface at twelve                                      | PASS — one plan, one seat, and D69 untouched                                               | shares.kind = plan · share_info branch · the seat is taken inside redeem_share
+ 29 · a forfeit has no money column, and exactly one home                                 | PASS — four homes, one at a time, and no amount anywhere                                   | forfeits.league_id nullable · event_id · scheduled_round_id · party_b
+ 3 · authenticated RPC grants                                                             | PASS — all 105 granted                                                                     | 99 names extracted from the web client + handle_available, round_holes_of, native_home (IOS-009) + founding_ids, door_flags + my_actionable_count (D104)
+ 30 · callout_mutes is sealed, and a callout scores nothing                               | PASS — sealed, authenticated-only, and league_id null                                      | callout_mutes revoked from all · call_out / respond_callout to authenticated
+ 31 · what a round is worth, and it is a ceiling                                          | PASS — 12 / 6 / 0 / null / 12, and no anon execute                                         | round_worth(cap,used,worst) · the table in 20261001090000's header
+ 32 · a storage policy reads nothing the golfer cannot                                    | PASS — every storage policy reads only what the caller may                                 | pg_policies(storage.objects) × public relations authenticated cannot select
+ 33 · a plan seats the host who declared it                                               | PASS — every future plan has its host on the sheet                                         | scheduled_rounds(play_on >= today) × round_rsvp
+ 34 · the after-golf band waits for a client that can answer it                           | PASS — the band requires a declared capability, and an answer says what it did             | pg_get_functiondef(home_dispatch) × answer_plan_followup result type
+ 35 · the standings views sum the ledger (D376)                                           | PASS — 0 ruled total(s), every one equal to rounds + ledger                                | v_individual_standings vs. a recomputation from v_rounds_ranked and season_adjustments
+ 36 · D378 bundle and D371 door counter                                                   | PASS — leavers gated on writes, snake refused, league-local Final, private door counter    | prosrc of create_major / enter_major / create_event / lock_league / daily_season_tick / enter_cup_final / cup_final_race / snapshot_week; door_attempts privileges
+ 37 · season two is a re-up (D375)                                                        | PASS — every member on record; the lens, the doors, the hat, the start and the pot read it | league_members.agreed_seasons × v_rounds_ranked / v_individual_standings × prosrc of respond_invite, join_league, run_it_back, randomize_squads, start_season, recompute_season_payouts, invite_golfer, my_invites × helper grants
+ 38 · the record book has one door (D382)                                                 | PASS — the Pro writes through the pen, and a Final's squads hold                           | relacl × pg_policies on seasons, season_adjustments, squads, squad_members, buy_ins, commissioner_log, leagues × prosrc of assign_player
+ 39 · a finished season keeps its book (D383)                                             | PASS — every finished season reads from its book, and the close writes it                  | seasons(complete) × season_books × pg_get_viewdef(v_rounds_ranked) × pg_trigger × prosrc of post_round, run_it_back
+ 4 · dead policies stay dead                                                              | PASS                                                                                       | members_self on league_members · rounds_owner_update on rounds
+ 40 · a short season is a table season (D384)                                             | PASS — under six weeks, the points table decides everywhere                                | prosrc of enter_cup_final, daily_season_tick, lock_league, set_league_finish × live seasons under 42 days
+ 41 · a withdrawn photo is withdrawn (D385)                                               | PASS — remove, replace and delete revoke; the client can find every copy                   | prosrc of clear_round_photo, set_round_photo, delete_round, share_info × withdraw_round_shares grants
+ 42 · one card, one claim; a finished link shows its status only (S6)                     | PASS — claims lock their seat, and a spent link tells nothing                              | prosrc of claim_round, claim_scan_round, guest_live_state
+ 43 · the record names the champion (S3)                                                  | PASS — one place producer, crown-aware and tie-aware, on both clients                      | to_regprocedure(_final_place, my_league_record) × prosrc of native_home × grants
+ 44 · a trophy per season (D390)                                                          | PASS — two seasons in one year are two trophies                                            | pg_indexes(trophies) × prosrc of award_season_trophies
+ 45 · the ladder is head to head (D388)                                                   | PASS — h2h months won on the §3.3 month, one coin per tie                                  | prosrc of close_season, enter_cup_final
+ 46 · a late joiner gets a seat (D386)                                                    | PASS — seated on the thinnest squad, counted from the seat                                 | prosrc of join_league, _late_squad, assign_player × pg_get_viewdef(v_squad_standings)
+ 47 · the receipt uses the league's number (D387)                                         | PASS — one number per lens, the champion named, the money exact                            | prosrc of round_card, native_home, close_season
+ 48 · season two is only for yeses (D389)                                                 | PASS — invitations lapse at the first tee; nobody outside the season is paired or owes     | member_invites status check × prosrc of daily_season_tick, open_week_clash, close_season, native_home
+ 49 · the first screens say what they mean (S12)                                          | PASS — no nine-hole "Under 80", no solo minimum                                            | prosrc of home_stories, lock_league
+ 5 · check constraints current                                                            | PASS                                                                                       | season_adjustments kinds · rounds sources · feedback categories
+ 50 · the Book counts what the squad counts (I4)                                          | PASS — one seat rule for the table, the Book, the Race and a tie-break                     | pg_get_viewdef(v_squad_standings) × prosrc of season_book, close_season, enter_cup_final × season_book_rows
+ 51 · a withdrawn photo is gone, not just unlinked (I5)                                   | PASS — every revocation is an obligation until storage says it is gone                     | pg_trigger(shares) × share_cleanup grants × cleanup RPC grants
+ 52 · one share, one attempt (I5b)                                                        | PASS — prepare / finish / status, owner-only, never reactivating                           | grants of prepare_round_share, finish_round_share, round_share_status, _expire_share_attempts × share_attempts, shares
+ 53 · the phone reads the season it is in, and the Final its own seeds (contract, I6)     | PASS — renewal_status, in_season, final_place; seeds from cup_finalists                    | prosrc of native_home, season_scenarios, season_story, join_covenant_info
+ 54 · a visitor's card posts only with their say-so (D392)                                | PASS — finish asks for the say-so; no card on a stranger who never joined                  | finish_live_round prosrc; rounds × live_round_players
+ 55 · a stranger reaches you through one guarded door (D393)                              | PASS — guard enabled; friend_request, invite_golfer, start_live_round, create_* gated      | pg_trigger push_nudges_guard; prosrc markers; grants on the helpers
+ 56 · findable is not readable (D394)                                                     | PASS — search, contacts and the tour card show strangers the card face                     | prosrc of search_golfers, match_contacts, tour_card
+ 57 · the card leaves a scored number alone; deletion takes words and photos (D395, D396) | PASS — set_profile guarded; delete_account queues media; the queue drains                  | prosrc of set_profile, delete_account; account_media_cleanup
+ 58 · closed doors: plans, push endpoints, league codes, service-only helpers             | PASS                                                                                       | grants on scheduled_rounds; push_subscriptions constraint; leagues index; helper grants; scan consent
+ 59 · the public plan counts only an explicit yes as in                                   | PASS — who_in is an explicit yes                                                           | share_info plan branch · who_in · round_rsvp.status = 'in'
+ 6 · RLS enabled                                                                          | PASS                                                                                       | profiles, rounds, league_members, posts, post_comments, trophies, events, pilot_feedback, content_reports, scheduled_rounds, live_scores
+ 7 · media bucket limits                                                                  | PASS                                                                                       | limit 8388608 · mimes 3
+ 8 · data sanity                                                                          | PASS                                                                                       | rounds without profiles · month_closed uniqueness
+ 9 · profiles column grants                                                               | PASS                                                                                       | email (20260718172300) + contact_hash (C-11) sealed · every other column needs its own grant
+(59 rows)
+
+
+PASS 58/59 database checks; 1 runtime pg_cron check unavailable in the local stand-in
