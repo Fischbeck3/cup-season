@@ -66,7 +66,7 @@ private func row(id: UUID = UUID(), name: String = "Blake", playOn: String, mine
     #expect(byDay[26]?.contains(.league(text: "North Grove (fixture) — season ends, cup decided", gold: true)) == true)
     #expect(byDay[1]?.contains(.league(text: "Aug closes — minimums & bonuses assessed", gold: false)) == true)
     #expect(byDay[5]?.contains(.league(text: "Week closes — the table is recorded", gold: false)) == true)   // a Saturday close for the Sunday first tee
-    #expect(byDay[6]?.contains(where: { if case .round = $0 { return true }; return false }) == false)
+    #expect((byDay[6] ?? []).contains(where: { if case .round = $0 { return true }; return false }) == false)
     #expect(byDay[13]?.contains(.league(text: "The Sunday Cup — first tee", gold: false)) == true)
     #expect(byDay[5]?.filter { if case .round = $0 { return true }; return false }.count == 2)
     // Cup Final begins = ends_on − 27 → Aug 30, outside September
