@@ -62,7 +62,7 @@ lr = next(x for x in lead_rec if x['season_id'] == bid(203))
 check('S3 Final: the leader\'s record reads 2nd, runner-up, not WON', lr['place'] == 2 and lr['runner_up'] and not lr['won'], lr)
 
 # ── I4 · the Book counts what the squad counts ───────────────────────────────────────────
-# League 100 (squads4, season 200); golfer 2 = member 11002, squad 300 (Mudsharks).
+# League 100 (squads4, season 200); golfer 2 = member 11002, squad 300 (Fixture Wrens).
 BOOK = f"public.season_book('{bid(100)}','{bid(200)}')"
 SEAT = f"update squad_members set seated_at = '2026-08-15 12:00-07' where member_id = '{bid(11002)}'"
 def rows(b): return {r['id']: r for r in b['rows']}

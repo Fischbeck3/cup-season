@@ -92,10 +92,10 @@ r = sql(f"select claim_round_info('{uuid.uuid4()}');", role="anon")
 ok(J(r) is None or r.stdout.strip() in ("", "null"), "an INVALID token shows nothing")
 
 # the unfinished-round case — 55 of production's 70 guest seats are here
-PLAYERS2 = json.dumps([{"guest_name": "Host", "guest_profile": HOST}, {"guest_name": "Sam", "guest_index": None}])
-r = sql(f"select start_live_round(null,null,null,'Papago','{SNAP}'::jsonb,'none','{PLAYERS2}'::jsonb,'{{}}'::jsonb,'100');", uid=HOST)
+PLAYERS2 = json.dumps([{"guest_name": "Host", "guest_profile": HOST}, {"guest_name": "Casey", "guest_index": None}])
+r = sql(f"select start_live_round(null,null,null,'Saguaro Flats','{SNAP}'::jsonb,'none','{PLAYERS2}'::jsonb,'{{}}'::jsonb,'100');", uid=HOST)
 LR2 = (J(r) or {}).get("live_round_id")
-TOK2 = sql(f"select claim_token from live_round_players where live_round_id='{LR2}' and guest_name='Sam';", role=None).stdout.strip()
+TOK2 = sql(f"select claim_token from live_round_players where live_round_id='{LR2}' and guest_name='Casey';", role=None).stdout.strip()
 r = sql(f"select claim_round_info('{TOK2}');", role="anon")
 unfinished_shows = J(r)
 ok(unfinished_shows is None or r.stdout.strip() in ("", "null"),

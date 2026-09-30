@@ -79,7 +79,7 @@ with tempfile.TemporaryDirectory(prefix="cs-events-consent-") as temp:
         # three real rounds give OLD an established number; NEW posts none.
         run(chain, input=f"""
           insert into rounds(profile_id, played_on, gross, rating, slope, holes_played, course_label)
-          select '{OLD}', current_date - g, 84, 71.2, 128, 18, 'Papago' from generate_series(1,3) g;
+          select '{OLD}', current_date - g, 84, 71.2, 128, 18, 'Saguaro Flats' from generate_series(1,3) g;
         """)
         require(sql(f"select handicap_index('{OLD}') is not null;", role=None) == "t",
                 "three rounds establish a number")
@@ -104,7 +104,7 @@ with tempfile.TemporaryDirectory(prefix="cs-events-consent-") as temp:
                 "the organizer and both invitees hold seats")
 
         # A Ryder has no established-number rule, so its seat keeps the default.
-        rid = sql(f"select create_event('The Clash', (date_trunc('week', current_date)::date + 6), 4, 1, 'team_pvi', 'Saguaros', 'Coyotes', '{lid}'::uuid)::text;")
+        rid = sql(f"select create_event('The Clash', (date_trunc('week', current_date)::date + 6), 4, 1, 'team_pvi', 'Fixture Owls', 'Fixture Foxes', '{lid}'::uuid)::text;")
         iv = sql(f"select invite_golfer(null,'{rid}'::uuid,'{NEW}'::uuid);")
         sql(f"select respond_invite('{iv}'::uuid, true);", user=NEW)
         require(sql(f"select exhibition from event_players where event_id='{rid}' and profile_id='{NEW}';", role=None) == "f",
