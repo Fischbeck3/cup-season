@@ -745,6 +745,22 @@ const recapAddressClears = async (page) => page.evaluate(async () => {
   }
   return 'no address painted under the signature'
 })
+/* TEN / W6 · W7-143 · the ceremony's share row is hidden, not merely transparent, while it waits to fade in: its animation's first
+   frame carries visibility:hidden, so nothing taps or tabs onto a row nobody can see */
+const shareRowHiddenFirst = async (page) => page.evaluate(() => {
+  /* the capture runs with reduced motion, so the rule is read from the sheet, not the computed style */
+  let anim = null, kf = {}
+  const walk = (rules) => { for (const r of rules) {
+    if (r.type === CSSRule.KEYFRAMES_RULE) kf[r.name] = r
+    else if (r.cssRules && r.type !== CSSRule.STYLE_RULE) walk(r.cssRules)
+    else if (r.selectorText === '#finish.open .finish-share-row' && r.style.animationName) anim = r.style.animationName } }
+  for (const sh of document.styleSheets) { try { walk(sh.cssRules) } catch { /* cross-origin */ } }
+  if (!anim) return 'the share row has no entrance rule'
+  const k = kf[anim.split(',')[0].trim()]
+  if (!k) return 'the share row’s keyframes are missing: ' + anim
+  const from = [...k.cssRules].find((x) => x.keyText === '0%' || x.keyText === 'from')
+  return from && from.style.visibility === 'hidden' ? true : `the share row is hittable while invisible (${anim} never hides it)`
+})
 function shareState(id, title, card, extra = {}) {
   return {
     family: 'share', id, variant: 'member', fullPage: false, title,
@@ -815,7 +831,8 @@ function shareState(id, title, card, extra = {}) {
         if (open !== true) return open
         const eb = await eyebrowNoDangle(page); if (eb !== true) return eb
         /* TEN / W7-144 · the exported card's address clears its frame */
-        return recapAddressClears(page)
+        const addr = await recapAddressClears(page); if (addr !== true) return addr
+        return shareRowHiddenFirst(page)
       })
     },
     ...extra,

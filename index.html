@@ -4251,6 +4251,8 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 @keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @keyframes csRing{0%{transform:scale(.6); opacity:.8;} 100%{transform:scale(2.6); opacity:0;}}
 @keyframes csFade{from{opacity:0;} to{opacity:1;}}
+/* TEN / W7-143 · csFade plus visibility: while the share row waits out its delay it is hidden, so no tap or Tab stop lands on a row nobody can see */
+@keyframes finishShare{from{opacity:0; visibility:hidden;} to{opacity:1; visibility:visible;}}
 @media(prefers-reduced-motion:reduce){
   .onboard *{animation:none !important; transition:none !important;}
 }
@@ -5328,7 +5330,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 #finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.85s both;}
 #finish.open .finish-band{animation:finishRoll .64s var(--roll) 2.03s both;}
 #finish.open .finish-pts{animation:finishRoll .64s var(--roll) 2.21s both;}
-#finish.open .finish-share-row{animation:csFade .5s ease 2.55s both;}
+#finish.open .finish-share-row{animation:finishShare .5s ease 2.55s both;}
 @keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @media(prefers-reduced-motion:reduce){
   #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts,
