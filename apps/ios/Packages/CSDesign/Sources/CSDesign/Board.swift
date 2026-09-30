@@ -153,19 +153,9 @@ public enum CSSlatMetrics {
   public static func abbreviates(names: [String], count: Int,
                                  measure: CGFloat, size: DynamicTypeSize) -> Bool { false }
 
-  /// **A HANDLE IS NOT A NAME, AND IT MAY NOT ABBREVIATE THE FIELD.**
-  ///
-  /// Abbreviation is decided per BOARD, so one outlier decides for everybody —
-  /// and a golfer who never set a display name shows as a handle
-  /// (`fedor.garcia-mendoza`), a single unbroken token with no given name in
-  /// it to shorten. On a photographed board one 13-character handle collapsed
-  /// `GALEN MARR`, `JADE OKONKWO` and `BLAKE RIDLEY` to first names while
-  /// itself staying full, so one column carried three naming conventions and
-  /// the abbreviation bought nothing: `fedor.garcia-mendoza` has no space, so
-  /// `name(_:abbreviate:)` returns it unchanged either way.
-  ///
-  /// A token with no space and more than eleven characters therefore truncates
-  /// itself rather than shortening everyone else's name.
+  /// Legacy input-shape predicate retained for source compatibility. It
+  /// does not permit abbreviation or truncation: Q34 makes `abbreviates`
+  /// return false for every board, and the name wraps whole in the slat.
   public static func isAbbreviable(_ name: String) -> Bool {
     name.contains(" ") || name.count <= 11
   }
