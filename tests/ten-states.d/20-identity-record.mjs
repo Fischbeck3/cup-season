@@ -130,6 +130,21 @@ const firstIsBaseline = (wantBests) => async (page) => page.evaluate((wantBests)
   return /^\d+( at .+)? · [A-Z][a-z]+ \d{1,2}$/.test(sub) ? true : 'the FIRST ROUND slat does not name its round: ' + JSON.stringify(sub)
 }, wantBests)
 
+/* X40 (1) · owner ruling 2026-09-29: a personal best prints the round the golfer remembers ('83 at ‹course› · ‹date›'),
+   and the differential ('7.9 vs course') stays on the receipt: nothing outside a receipt says 'vs course' */
+const noVsCourse = (sel) => async (page) => page.evaluate((sel) => {
+  const el = document.querySelector(sel)
+  if (!el) return `${sel} is missing`
+  const t = el.innerText.replace(/\s+/g, ' ')
+  return /vs course/i.test(t) ? `${sel} still prints the differential: ${JSON.stringify(t.match(/.{0,40}vs course.{0,20}/i)[0])}` : true
+}, sel)
+const pbNamesItsRound = async (page) => page.evaluate(() => {
+  const pb = [...document.querySelectorAll('#trophyCase .tslat.is-bests')].find((el) => /personal best/i.test(el.querySelector('b').textContent))
+  if (!pb) return 'the case draws no PERSONAL BEST'
+  const sub = ((pb.querySelector('small') || {}).textContent || '').trim()
+  return /^\d+ at .+ · [A-Z][a-z]{2} \d{1,2}$/.test(sub) ? true : 'the personal best does not name its round: ' + JSON.stringify(sub)
+})
+
 /* the sidebar's foot stays pinned to the column's bottom when its block stands down: display:none took #sideMe's margin-top:auto with it
    (B's find on 51211947; W7-030's check, col.bottom − foot.bottom ≤ 48). The yields below collapse #sideMe or hide its children, never #sideMe. */
 const footStays = async (page) => page.evaluate(() => {
@@ -297,7 +312,7 @@ const recordInWords = async (page) => page.evaluate(() => {
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly()) },
+    check: all(recordState('some'), recordInWords, firstIsBaseline(2), medallionOnPhotoOnly(), pbNamesItsRound, noVsCourse('#trophyCase')) },
   { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
     title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
     drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
@@ -336,7 +351,7 @@ const RECORD = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'hidden' } },
-    check: all(medallionOnPhotoOnly(true),
+    check: all(medallionOnPhotoOnly(true), noVsCourse('#shBody'),
       /* X36 (1) · the tour card's head-to-head chip names its facet: tour_card.vs_you counts season weeks */
       async (page) => page.evaluate(() => {
         const c = document.getElementById('tcVs')

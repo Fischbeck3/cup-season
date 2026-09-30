@@ -25165,7 +25165,8 @@ function achSubtitle(a){
   const m=a.meta||{};
   /* D210 · the banned word leaves the tile. "vs course" is the house name for
      the figure — the same words the receipt's arithmetic row now carries. */
-  if(a.kind==='personal_best' && m.diff!=null) return Number(m.diff).toFixed(1)+' vs course';
+  /* X40 (1) · never the differential off the receipt: a personal best names its gross, or nothing */
+  if(a.kind==='personal_best') return m.gross!=null ? m.gross+' gross' : '';
   if(a.kind && a.kind.indexOf('sub_')===0 && m.gross!=null) return m.gross+' gross';
   if(a.kind && a.kind.indexOf('streak_')===0 && m.weeks!=null) return m.weeks+' weeks';
   if(a.kind==='first_round') return 'Posted';
@@ -25215,21 +25216,15 @@ function csMilestoneSub(a, round){
   const m = a.meta || {};
   const c = round && round.course_label ? csCourse(round.course_label) : null;
   let lead = '';
-  /* A MILESTONE PRINTS THE FIGURE IT IS ABOUT. A threshold is about a gross,
-     so it reads `79 at Papago`; a personal best is about the DIFFERENTIAL
-     (D210's "vs course"), so it reads `4.1 vs course · Papago`. Taking the
-     gross for both put the same sentence under BROKE 80 and PERSONAL BEST
-     when one round earned them together — which is the owner's own
-     complaint, arriving inside the fix for it. */
-  if(a.kind === 'personal_best' && m.diff != null){
-    lead = Number(m.diff).toFixed(1) + ' vs course';
-    if(c) lead += ' \u00b7 ' + c;
-  } else {
-    const g = (round && round.gross != null) ? round.gross : (m.gross != null ? m.gross : null);
-    if(g != null){
-      lead = String(g);
-      if(c) lead += ' at ' + c;
-    }
+  /* X40 (1) · owner ruling 2026-09-29: A MILESTONE PRINTS THE ROUND THE GOLFER REMEMBERS — `83 at Papago ·
+     Aug 24` — a personal best as much as a threshold. D291 printed the PB's DIFFERENTIAL ("4.1 vs course"),
+     and the differential lives on the receipt beside its arithmetic and nowhere else (TERMINOLOGY row 92,
+     P-16, L-14). D291's own worry, one sentence under BROKE 80 and PERSONAL BEST, is answered in the case:
+     when two slats share a round, the line prints once (renderTrophyCase). */
+  const g = (round && round.gross != null) ? round.gross : (m.gross != null ? m.gross : null);
+  if(g != null){
+    lead = String(g);
+    if(c) lead += ' at ' + c;
   }
   /* NEVER `achSubtitle`'s label fallback here: the slat's own title already
      says BROKE 80, and "Broke 80 · Aug 24" beneath it is the name twice
@@ -25278,6 +25273,9 @@ function renderTrophyCase(){
   const firstRid = firstAch ? String(firstAch.round_id) : null;
   const foldsIntoFirst = a => !!firstRid && a.kind !== 'first_round' && csTrophyShelf(a.kind, false) === 'bests' && String(a.round_id || '') === firstRid;
   const folded = ach.some(foldsIntoFirst);
+  /* X40 (1) · one round, one line: when two BESTS slats share a round (a 79 that is BROKE 80 and a PERSONAL
+     BEST), the round's line prints on the first and the second keeps its door and its title only */
+  const saidRound = new Set();
   hw.forEach(t=>{
     const id='t'+keyOf(t); ids.push(id);
     tiles.push({ shelf:'hardware', glyph:trophyGlyph(t.kind, t.placement), numeral:null,
@@ -25303,7 +25301,7 @@ function renderTrophyCase(){
     tiles.push({ shelf, glyph:m.glyph, numeral, title:m.title, mint:fresh(id), rid, trail:null,
       /* a BESTS slat names the round it was won on; the quiet shelf keeps the
          dated line it has always had — "Posted · '26" is the whole of it. */
-      sub: shelf==='bests' ? csMilestoneSub(a, csMilestoneRound(rid))
+      sub: shelf==='bests' ? ((rid && saidRound.has(String(rid))) ? '' : (rid && saidRound.add(String(rid)), csMilestoneSub(a, csMilestoneRound(rid))))
          : (folded && a === firstAch) ? csMilestoneSub(a, csMilestoneRound(firstRid))   /* X39 · the slat names its round */
          : achSubtitle(a)+yr });
   });
@@ -31023,8 +31021,12 @@ async function openTourCard(profileId){
   const lens     = avgPvi!=null || bestPvi!=null;
   const sgn1     = v => (v>=0?'+':'')+v.toFixed(1);
   const whose    = p.is_me?'your':'their';
+  /* X40 (1) · off the lens the best is THE ROUND the golfer remembers (career.best_round: the lowest 18-hole
+     gross, where and when), never the differential (it lives on the receipt); with no round the row is absent */
+  const br = c.best_round && c.best_round.gross != null ? c.best_round : null;
+  const brSaid = br ? `${br.gross}${br.course_label ? ' at ' + esc(csCourse(br.course_label)) : ''}${br.played_on ? ' \u00b7 ' + esc(csMonthDay(br.played_on)) : ''}` : null;
   const best = lens ? (bestPvi!=null ? sgn1(bestPvi) : '—')
-                    : (c.best!=null ? Number(c.best).toFixed(1) : '—');
+                    : (brSaid || '—');
   const avg  = lens ? (avgPvi!=null ? sgn1(avgPvi) : '—')
                     : (avgIdx!=null ? sgn1(avgIdx) : '—');
   /* R-M · the comparison noun is the PLAYING HCP. Wave D renamed both
@@ -31034,17 +31036,18 @@ async function openTourCard(profileId){
      `avgLabel` and `careerSignsLine`; these now say the same words. Check 42
      part C pins this block so the miss cannot come back. */
   const eyebrow  = lens ? `Career · vs ${whose} playing HCP` : 'Career';
-  const bestK    = lens ? 'Best round' : 'Best round vs course';
+  const bestK    = 'Best round';   /* X40 · 'vs course' named the differential, which stays on the receipt */
   const avgK     = lens ? 'Avg' : `Avg vs ${whose} playing HCP`;
   /* 8c · the two OLD figures run opposite ways — a course score where lower
      wins beside a delta where + wins — and one table cannot sign both the same
      way, so the table says which is which. Under the lens they are one
      measurement signed one way and this line has nothing left to explain. */
+  /* X40 · the course score is gone from the card, so only one signed figure is left to explain */
   const signsLine = lens ? ''
-    : `<div class="fine" style="padding-top:6px">Lower is better against the course; against ${whose} playing HCP, + is better.</div>`;
+    : `<div class="fine" style="padding-top:6px">Against ${whose} playing HCP, + is better.</div>`;
   const stats = `<div class="eyebrow" style="margin-top:16px">${eyebrow}</div>
       <div class="mathrow"><span>Rounds</span><b>${c.rounds||0}</b></div>
-      <div class="mathrow"><span>${bestK}</span><b>${best}</b></div>
+      ${best !== '—' || lens ? `<div class="mathrow"><span>${bestK}</span><b>${best}</b></div>` : ''}
       <div class="mathrow"><span>${avgK}</span><b>${avg}</b></div>
       ${p.home_course?`<div class="mathrow"><span>Home course</span><b>${esc(csCourse(p.home_course))}</b></div>`:''}
       ${p.ghin?`<div class="mathrow"><span>GHIN</span><b>${esc(p.ghin)}</b></div>`:''}${signsLine}`;
@@ -31098,9 +31101,9 @@ async function openTourCard(profileId){
   if(rec.length){
     recHtml = `<div class="eyebrow" style="margin-top:16px">Recent rounds</div>`
       + rec.map(r=>{ const d=new Date(r.played_on+'T00:00:00');
-          const diff=r.differential!=null?Number(r.differential).toFixed(1):'—';
+          /* X40 (1) · a recent round is its gross and its course; the differential ("VS COURSE 9.1") is the receipt's */
           return `<div class="check"><span class="num mono" style="font-size:11px">${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
-            <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b><small>${r.course_label?esc(r.course_label.toUpperCase())+' · ':''}VS COURSE ${diff}</small></div></div>`;
+            <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b>${r.course_label?`<small>${esc(r.course_label.toUpperCase())}</small>`:''}</div></div>`;
         }).join('');
   }
   /* W4 (iOS arc, Guideline 1.2): mute lives on the card — the one place you

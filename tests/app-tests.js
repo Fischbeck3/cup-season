@@ -369,8 +369,23 @@
 
   /* ══ D210 · the banned word leaves the user surfaces ══════════════════════ */
   (function(){
-    t('D210: the personal-best tile names what the figure is measured against',
-      achSubtitle({ kind: 'personal_best', meta: { diff: 7.8 } }), '7.8 vs course');
+    /* X40 (1) · the differential never leaves the receipt: a personal best names its gross, or nothing */
+    t('X40: the personal-best tile never prints the differential',
+      [achSubtitle({ kind: 'personal_best', meta: { diff: 7.8 } }), achSubtitle({ kind: 'personal_best', meta: { diff: 7.8, gross: 83 } })], ['', '83 gross']);
+    /* X40 (1) · one round, one line: a round that is BROKE 80 and a PERSONAL BEST prints its line once */
+    (function(){
+      const keep = { a: window.achievements, t: window.trophies, c: window.career, d: state.demo };
+      state.demo = false;   /* the case reads the diorama's trophies in demo mode */
+      window.trophies = [];
+      window.career = { rows: [{ id: 'x40r', gross: 79, course_label: 'Papago', played_on: '2026-08-24', holes_played: 18 }] };
+      window.achievements = [
+        { kind: 'personal_best', label: 'Personal best', earned_on: '2026-08-24', round_id: 'x40r', meta: { diff: 4.1 } },
+        { kind: 'sub_80', label: 'Broke 80', earned_on: '2026-08-24', round_id: 'x40r', meta: { gross: 79 } }];
+      renderTrophyCase();
+      const subs = [...document.querySelectorAll('#trophyCase .tslat.is-bests')].map(el => (el.querySelector('small') || {}).textContent || '');
+      window.achievements = keep.a; window.trophies = keep.t; window.career = keep.c; state.demo = keep.d; renderTrophyCase();
+      t('X40: one round that earns two bests prints its line once', subs, ['79 at Papago · Aug 24', '']);
+    })();
     t('Y-24: every marker is a "The"', window.MARKERS?.no2?.n, 'The No. 2');
   })();
 
