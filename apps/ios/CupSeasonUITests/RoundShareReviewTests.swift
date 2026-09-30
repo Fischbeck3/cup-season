@@ -77,8 +77,11 @@ final class RoundShareReviewTests: XCTestCase {
     let activity = app.otherElements["ActivityListView"]
     XCTAssertTrue(activity.waitForExistence(timeout: 10), "Native share sheet should open")
     // Dismiss the native sheet without selecting a destination or changing the round.
+    // The sheet is the system's, drawn by another process, and on a loaded
+    // machine it took more than five seconds to go (E's runs at builds 33
+    // and 37, both phones between them): the wait is the system's, not ours.
     app.buttons["header.closeButton"].tap()
-    XCTAssertTrue(activity.waitForNonExistence(timeout: 5))
+    XCTAssertTrue(activity.waitForNonExistence(timeout: 15), "the system's share sheet closes")
     XCTAssertTrue(send.waitForExistence(timeout: 10))
   }
 }

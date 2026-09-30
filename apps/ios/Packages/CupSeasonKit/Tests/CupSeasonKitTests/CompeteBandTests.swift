@@ -61,7 +61,7 @@ struct CompeteBandTests {
                    standing: standing(place: 2, of: 4, points: 137, gap: 34, leader: "Fixture Javelinas"))
     let row = band(m, today: "2026-09-29")
     #expect(row?.pointsStanding == "Fixture Wrens · 2nd")
-    #expect(row?.competitionLine == "34 back from Fixture Javelinas.")
+    #expect(row?.competitionLine == "34 back of Fixture Javelinas.")
     #expect(row?.points == 137)
   }
 
@@ -81,7 +81,7 @@ struct CompeteBandTests {
                    standing: standing(place: 3, of: 8, points: 41, gap: 6, leader: "Fixture Quail"))
     let row = band(m, today: "2026-09-29")
     #expect(row?.pointsStanding == "3rd")
-    #expect(row?.competitionLine == "You are 6 back from Fixture Quail.")
+    #expect(row?.competitionLine == "You are 6 back of Fixture Quail.")
     let leading = band(member(season: season(starts: "2026-07-06", ends: "2026-10-18", week: 13, of: 15),
                               standing: standing(place: 1, of: 8, points: 47, gap: 0, leader: "Fixture Quail")),
                        today: "2026-09-29")

@@ -585,6 +585,13 @@ struct MainTabView: View {
     .environment(\.openPerson, { openPerson($0) })
     .environment(\.openSettings, {
       tab = .you
+      // W7-042 · never reset a stack that holds a card with pending edits:
+      // the door is a way out like any other, so it lands on the card, which
+      // asks under Save; asked already, it leaves without saving (root)
+      if let card = CardEditGuard.shared.card, CardEditGuard.shared.unasked {
+        card.leaveRequest += 1
+        return
+      }
       youPath = NavigationPath()
       youPath.append(YouRoute.notifications)
     })
@@ -1364,7 +1371,8 @@ struct MainTabView: View {
     case "receipt-broken": presenter.receipt = fid(4_003)
     case "receipt-withdrawn": presenter.receipt = fid(4_005)
     case "receipt-other": presenter.receipt = fid(4_101)
-    case "plan": presenter.scheduledRound = fid(7_001)
+    // `plan asked` · a buddy's plan the viewer owes an answer on (W7-039)
+    case "plan": presenter.scheduledRound = fid(detail == "asked" ? 7_003 : 7_001)
     // `declare join` · a buddy's plan, got in on — the sheet's "You're in" line
     case "declare": presenter.declare = DeclarePrefill(hostName: detail == "join" ? "Blake" : nil)
     case "tourcard": presenter.tourCard = detail == "other" ? blake : store.me?.profile?.id
