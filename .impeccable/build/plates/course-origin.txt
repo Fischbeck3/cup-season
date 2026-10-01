@@ -1,0 +1,2 @@
+DEBUG-only synthetic course image; source: /Users/fischbeck3/.codex/generated_images/01a0f280-5686-7373-b38e-2dace9a34292/exec-2ccea1c9-daf3-4b1a-b279-0f355f82615f.png
+Exact prompt embedded in course.png. Never bundled in Release.

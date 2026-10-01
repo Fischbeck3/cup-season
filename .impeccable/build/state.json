@@ -1,0 +1,109 @@
+{
+  "tool": "build-phase",
+  "version": 2,
+  "startedAt": "2026-09-30T22:46:38.719Z",
+  "comp": ".impeccable/mocks/decision/club-spread.png",
+  "direction": null,
+  "breakpoint": "853x1844",
+  "artifact": null,
+  "phase": "plates",
+  "phases": {
+    "comps": {
+      "status": "skipped",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [
+        {
+          "at": "2026-09-30T22:46:38.719Z",
+          "text": "started with an approved comp; the comp round happened before this state (surface round or manual)"
+        }
+      ],
+      "gate": null,
+      "forced": null
+    },
+    "spec": {
+      "status": "closed",
+      "openedAt": "2026-09-30T22:46:38.719Z",
+      "closedAt": "2026-09-30T22:49:37.436Z",
+      "attempts": 3,
+      "notes": [],
+      "gate": {
+        "ok": true,
+        "reasons": [],
+        "summary": "36 regions, 1 plates, 20 text regions measured",
+        "at": "2026-09-30T22:49:37.436Z"
+      },
+      "forced": null
+    },
+    "plates": {
+      "status": "open",
+      "openedAt": "2026-09-30T22:49:37.436Z",
+      "closedAt": null,
+      "attempts": 6,
+      "notes": [],
+      "gate": {
+        "ok": false,
+        "reasons": [
+          "plate .impeccable/build/plates/course.png: scores 31% against the comp region league-photo (structure 58%, color 57%, detail 4%); regenerate with the crop as --ref and the comp-spec plate prompt"
+        ],
+        "summary": "1/1 plates",
+        "at": "2026-09-30T23:10:01.882Z"
+      },
+      "forced": null
+    },
+    "hero": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "sections": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "motion": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "responsive": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "review": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    }
+  },
+  "finish": null,
+  "plates": {
+    "league-photo": {
+      "status": "ok",
+      "score": 0.3068,
+      "size": "1254x1254"
+    }
+  }
+}

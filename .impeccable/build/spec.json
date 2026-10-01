@@ -1,0 +1,1986 @@
+{
+  "tool": "comp-spec",
+  "version": 1,
+  "createdAt": "2026-09-30T22:52:40.710Z",
+  "comp": ".impeccable/mocks/decision/club-spread.png",
+  "warnings": [
+    "region league-photo: \"bleed\": true set in the regions file (the clipped-artwork refusal is overridden: the page crops it there)"
+  ],
+  "uncoveredInkCells": [],
+  "compSize": {
+    "width": 853,
+    "height": 1844
+  },
+  "aspect": 0.4626,
+  "orientation": "portrait",
+  "palette": [
+    {
+      "hex": "#0e1818",
+      "coverage": 0.8735
+    },
+    {
+      "hex": "#eef2ee",
+      "coverage": 0.0496
+    },
+    {
+      "hex": "#b44047",
+      "coverage": 0.04
+    },
+    {
+      "hex": "#388858",
+      "coverage": 0.0191
+    },
+    {
+      "hex": "#3b78c8",
+      "coverage": 0.0178
+    }
+  ],
+  "bands": [
+    {
+      "y": 0.0433,
+      "strength": 0.2384
+    },
+    {
+      "y": 0.0903,
+      "strength": 0.4754
+    },
+    {
+      "y": 0.1155,
+      "strength": 0.4888
+    },
+    {
+      "y": 0.1444,
+      "strength": 1
+    },
+    {
+      "y": 0.1661,
+      "strength": 0.2742
+    },
+    {
+      "y": 0.1949,
+      "strength": 0.2628
+    },
+    {
+      "y": 0.2202,
+      "strength": 0.461
+    },
+    {
+      "y": 0.2599,
+      "strength": 0.5818
+    },
+    {
+      "y": 0.2852,
+      "strength": 0.553
+    },
+    {
+      "y": 0.3069,
+      "strength": 0.2658
+    },
+    {
+      "y": 0.4079,
+      "strength": 0.2259
+    },
+    {
+      "y": 0.4657,
+      "strength": 0.5154
+    },
+    {
+      "y": 0.4982,
+      "strength": 0.5702
+    },
+    {
+      "y": 0.5235,
+      "strength": 0.2728
+    },
+    {
+      "y": 0.5451,
+      "strength": 0.2326
+    },
+    {
+      "y": 0.5704,
+      "strength": 0.2634
+    },
+    {
+      "y": 0.6029,
+      "strength": 0.3019
+    },
+    {
+      "y": 0.6318,
+      "strength": 0.2828
+    },
+    {
+      "y": 0.7004,
+      "strength": 0.441
+    },
+    {
+      "y": 0.7256,
+      "strength": 0.3552
+    },
+    {
+      "y": 0.8014,
+      "strength": 0.2616
+    },
+    {
+      "y": 0.8267,
+      "strength": 0.3336
+    },
+    {
+      "y": 0.852,
+      "strength": 0.3478
+    },
+    {
+      "y": 0.8845,
+      "strength": 0.2773
+    },
+    {
+      "y": 0.9314,
+      "strength": 0.3155
+    }
+  ],
+  "regions": [
+    {
+      "id": "status",
+      "kind": "chrome",
+      "note": "Native status bar with clock and system indicators",
+      "grid": "B0:J0",
+      "box": {
+        "x": 0.1,
+        "y": 0,
+        "w": 0.9,
+        "h": 0.1
+      },
+      "px": {
+        "x": 85,
+        "y": 0,
+        "w": 768,
+        "h": 184
+      },
+      "aspect": 4.1739,
+      "palette": [
+        {
+          "hex": "#0e1818",
+          "coverage": 0.959
+        },
+        {
+          "hex": "#f0f2f0",
+          "coverage": 0.0316
+        },
+        {
+          "hex": "#3d4442",
+          "coverage": 0.0081
+        },
+        {
+          "hex": "#b6b6b6",
+          "coverage": 0.0013
+        }
+      ],
+      "detail": {
+        "energy": 13.0807
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "masthead",
+      "kind": "text",
+      "note": "Compete title in established condensed board face",
+      "grid": "A0:E1",
+      "coverBox": {
+        "x": 0,
+        "y": 0,
+        "w": 0.5,
+        "h": 0.2
+      },
+      "box": {
+        "x": 0.0457,
+        "y": 0.0846,
+        "w": 0.3623,
+        "h": 0.0358
+      },
+      "px": {
+        "x": 39,
+        "y": 156,
+        "w": 309,
+        "h": 66
+      },
+      "aspect": 4.6818,
+      "palette": [
+        {
+          "hex": "#101717",
+          "coverage": 0.4649
+        },
+        {
+          "hex": "#ecf0eb",
+          "coverage": 0.3813
+        },
+        {
+          "hex": "#132313",
+          "coverage": 0.0836
+        },
+        {
+          "hex": "#909491",
+          "coverage": 0.0416
+        },
+        {
+          "hex": "#333a37",
+          "coverage": 0.0286
+        }
+      ],
+      "detail": {
+        "energy": 52.0433
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "masthead-rule",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule",
+      "grid": "A1:J1",
+      "box": {
+        "x": 0,
+        "y": 0.1,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 184,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0d1818",
+          "coverage": 0.9068
+        },
+        {
+          "hex": "#99a29b",
+          "coverage": 0.0491
+        },
+        {
+          "hex": "#ebf0ea",
+          "coverage": 0.0265
+        },
+        {
+          "hex": "#394839",
+          "coverage": 0.0169
+        },
+        {
+          "hex": "#787878",
+          "coverage": 0.0007
+        }
+      ],
+      "detail": {
+        "energy": 24.1706
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "seasons-head",
+      "kind": "text",
+      "note": "Your seasons section heading",
+      "grid": "A1:E1",
+      "coverBox": {
+        "x": 0,
+        "y": 0.1,
+        "w": 0.5,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.0422,
+        "y": 0.0998,
+        "w": 0.3658,
+        "h": 0.0228
+      },
+      "px": {
+        "x": 36,
+        "y": 184,
+        "w": 312,
+        "h": 42
+      },
+      "aspect": 7.4286,
+      "palette": [
+        {
+          "hex": "#101818",
+          "coverage": 0.524
+        },
+        {
+          "hex": "#ebf0ea",
+          "coverage": 0.3289
+        },
+        {
+          "hex": "#122212",
+          "coverage": 0.0697
+        },
+        {
+          "hex": "#7f8983",
+          "coverage": 0.0516
+        },
+        {
+          "hex": "#a5aca6",
+          "coverage": 0.0258
+        }
+      ],
+      "detail": {
+        "energy": 43.8897
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "seasons-rule",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule",
+      "grid": "A1:J1",
+      "box": {
+        "x": 0,
+        "y": 0.1,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 184,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0d1818",
+          "coverage": 0.9068
+        },
+        {
+          "hex": "#99a29b",
+          "coverage": 0.0491
+        },
+        {
+          "hex": "#ebf0ea",
+          "coverage": 0.0265
+        },
+        {
+          "hex": "#394839",
+          "coverage": 0.0169
+        },
+        {
+          "hex": "#787878",
+          "coverage": 0.0007
+        }
+      ],
+      "detail": {
+        "energy": 24.1706
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "league-photo",
+      "kind": "image",
+      "note": "Supplied existing QA course photograph; a square group or course image",
+      "grid": "A2:D3",
+      "bleed": true,
+      "box": {
+        "x": 0.0516,
+        "y": 0.2191,
+        "w": 0.3505,
+        "h": 0.1621
+      },
+      "px": {
+        "x": 44,
+        "y": 404,
+        "w": 299,
+        "h": 299
+      },
+      "aspect": 1,
+      "palette": [
+        {
+          "hex": "#3e4d1e",
+          "coverage": 0.4115
+        },
+        {
+          "hex": "#666923",
+          "coverage": 0.2064
+        },
+        {
+          "hex": "#6da2e9",
+          "coverage": 0.1512
+        },
+        {
+          "hex": "#8bb2dc",
+          "coverage": 0.1236
+        },
+        {
+          "hex": "#3e371f",
+          "coverage": 0.1074
+        }
+      ],
+      "detail": {
+        "energy": 18.9114
+      },
+      "medium": "raster",
+      "plate": ".impeccable/build/plates/course.png",
+      "text": null
+    },
+    {
+      "id": "league-title-1",
+      "kind": "text",
+      "note": "League name, THE DEW SWEEPERS",
+      "grid": "E2:J2",
+      "coverBox": {
+        "x": 0.4,
+        "y": 0.2,
+        "w": 0.6,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.442,
+        "y": 0.2196,
+        "w": 0.3165,
+        "h": 0.0716
+      },
+      "px": {
+        "x": 377,
+        "y": 405,
+        "w": 270,
+        "h": 132
+      },
+      "aspect": 2.0455,
+      "palette": [
+        {
+          "hex": "#0f1917",
+          "coverage": 0.6408
+        },
+        {
+          "hex": "#eef1ed",
+          "coverage": 0.2993
+        },
+        {
+          "hex": "#99a09d",
+          "coverage": 0.028
+        },
+        {
+          "hex": "#626767",
+          "coverage": 0.0185
+        },
+        {
+          "hex": "#343f38",
+          "coverage": 0.0134
+        }
+      ],
+      "detail": {
+        "energy": 45.3974
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "description-1",
+      "kind": "text",
+      "note": "Short league description: Early tee times. Long friendships.",
+      "grid": "E3:J3",
+      "coverBox": {
+        "x": 0.4,
+        "y": 0.3,
+        "w": 0.6,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.442,
+        "y": 0.3357,
+        "w": 0.1758,
+        "h": 0.0325
+      },
+      "px": {
+        "x": 377,
+        "y": 619,
+        "w": 150,
+        "h": 60
+      },
+      "aspect": 2.5,
+      "palette": [
+        {
+          "hex": "#0f1817",
+          "coverage": 0.5863
+        },
+        {
+          "hex": "#a7b1b9",
+          "coverage": 0.2674
+        },
+        {
+          "hex": "#8899b8",
+          "coverage": 0.1231
+        },
+        {
+          "hex": "#626e75",
+          "coverage": 0.0141
+        },
+        {
+          "hex": "#2d3c38",
+          "coverage": 0.0091
+        }
+      ],
+      "detail": {
+        "energy": 11.1618
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "people-markers-1",
+      "kind": "chrome",
+      "note": "Personal marker previews; production must preserve each real marker identity",
+      "grid": "E3:G3",
+      "box": {
+        "x": 0.4,
+        "y": 0.3,
+        "w": 0.3,
+        "h": 0.1
+      },
+      "px": {
+        "x": 341,
+        "y": 553,
+        "w": 256,
+        "h": 184
+      },
+      "aspect": 1.3913,
+      "palette": [
+        {
+          "hex": "#0d1817",
+          "coverage": 0.8691
+        },
+        {
+          "hex": "#a5afb5",
+          "coverage": 0.0624
+        },
+        {
+          "hex": "#36463a",
+          "coverage": 0.0283
+        },
+        {
+          "hex": "#8999b9",
+          "coverage": 0.0226
+        },
+        {
+          "hex": "#63706c",
+          "coverage": 0.0176
+        }
+      ],
+      "detail": {
+        "energy": 16.3006
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "people-names-1",
+      "kind": "text",
+      "note": "Member names and remaining count: Tash, Dan +10",
+      "grid": "G3:J3",
+      "coverBox": {
+        "x": 0.6,
+        "y": 0.3,
+        "w": 0.4,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.6284,
+        "y": 0.3389,
+        "w": 0.2321,
+        "h": 0.026
+      },
+      "px": {
+        "x": 536,
+        "y": 625,
+        "w": 198,
+        "h": 48
+      },
+      "aspect": 4.125,
+      "palette": [
+        {
+          "hex": "#0e1917",
+          "coverage": 0.8504
+        },
+        {
+          "hex": "#a6b0ac",
+          "coverage": 0.0691
+        },
+        {
+          "hex": "#525d5b",
+          "coverage": 0.0398
+        },
+        {
+          "hex": "#758479",
+          "coverage": 0.0246
+        },
+        {
+          "hex": "#303c31",
+          "coverage": 0.0161
+        }
+      ],
+      "detail": {
+        "energy": 24.3382
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "footer-rule-1",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule above compact season facts",
+      "grid": "A3:J3",
+      "box": {
+        "x": 0,
+        "y": 0.3,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 553,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0d1817",
+          "coverage": 0.6943
+        },
+        {
+          "hex": "#3e4d1f",
+          "coverage": 0.1675
+        },
+        {
+          "hex": "#676b24",
+          "coverage": 0.0792
+        },
+        {
+          "hex": "#a5aeb1",
+          "coverage": 0.0299
+        },
+        {
+          "hex": "#94892c",
+          "coverage": 0.029
+        }
+      ],
+      "detail": {
+        "energy": 18.9262
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "phase-1",
+      "kind": "text",
+      "note": "Current season phase: BEFORE FIRST TEE",
+      "grid": "A4:E4",
+      "coverBox": {
+        "x": 0,
+        "y": 0.4,
+        "w": 0.5,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.0422,
+        "y": 0.4555,
+        "w": 0.3587,
+        "h": 0.0445
+      },
+      "px": {
+        "x": 36,
+        "y": 840,
+        "w": 306,
+        "h": 82
+      },
+      "aspect": 3.7317,
+      "palette": [
+        {
+          "hex": "#3878c8",
+          "coverage": 0.6455
+        },
+        {
+          "hex": "#0a1814",
+          "coverage": 0.1695
+        },
+        {
+          "hex": "#b9484a",
+          "coverage": 0.1466
+        },
+        {
+          "hex": "#eff2e9",
+          "coverage": 0.0377
+        },
+        {
+          "hex": "#6898c8",
+          "coverage": 0.0007
+        }
+      ],
+      "detail": {
+        "energy": 8.2181
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "standing-1",
+      "kind": "text",
+      "note": "Compact factual season summary: OCT 11",
+      "grid": "I4:J4",
+      "coverBox": {
+        "x": 0.8,
+        "y": 0.4,
+        "w": 0.2,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.8417,
+        "y": 0.4035,
+        "w": 0.1196,
+        "h": 0.0195
+      },
+      "px": {
+        "x": 718,
+        "y": 744,
+        "w": 102,
+        "h": 36
+      },
+      "aspect": 2.8333,
+      "palette": [
+        {
+          "hex": "#101917",
+          "coverage": 0.8333
+        },
+        {
+          "hex": "#919c98",
+          "coverage": 0.0809
+        },
+        {
+          "hex": "#35413c",
+          "coverage": 0.0515
+        },
+        {
+          "hex": "#6e7a71",
+          "coverage": 0.0343
+        }
+      ],
+      "detail": {
+        "energy": 13.5234
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "row-rule-1",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule between leagues",
+      "grid": "A4:J4",
+      "box": {
+        "x": 0,
+        "y": 0.4,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 738,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0e1817",
+          "coverage": 0.8098
+        },
+        {
+          "hex": "#3878c8",
+          "coverage": 0.106
+        },
+        {
+          "hex": "#f6f6f4",
+          "coverage": 0.0425
+        },
+        {
+          "hex": "#b84849",
+          "coverage": 0.0235
+        },
+        {
+          "hex": "#3a5448",
+          "coverage": 0.0182
+        }
+      ],
+      "detail": {
+        "energy": 24.0598
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "emblem-field-2",
+      "kind": "chrome",
+      "note": "Flat two-color initial mark field using existing league palette",
+      "grid": "A4:D6",
+      "box": {
+        "x": 0,
+        "y": 0.4,
+        "w": 0.4,
+        "h": 0.3
+      },
+      "px": {
+        "x": 0,
+        "y": 738,
+        "w": 341,
+        "h": 553
+      },
+      "aspect": 0.6166,
+      "palette": [
+        {
+          "hex": "#0e1818",
+          "coverage": 0.5853
+        },
+        {
+          "hex": "#b84548",
+          "coverage": 0.151
+        },
+        {
+          "hex": "#3b78c8",
+          "coverage": 0.141
+        },
+        {
+          "hex": "#eaeee9",
+          "coverage": 0.1102
+        },
+        {
+          "hex": "#378858",
+          "coverage": 0.0126
+        }
+      ],
+      "detail": {
+        "energy": 11.8325
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "emblem-letter-2",
+      "kind": "text",
+      "note": "Designed initial letterforms, WTB",
+      "grid": "A4:D5",
+      "coverBox": {
+        "x": 0,
+        "y": 0.4,
+        "w": 0.4,
+        "h": 0.2
+      },
+      "box": {
+        "x": 0.0457,
+        "y": 0.4555,
+        "w": 0.3517,
+        "h": 0.1448
+      },
+      "px": {
+        "x": 39,
+        "y": 840,
+        "w": 300,
+        "h": 267
+      },
+      "aspect": 1.1236,
+      "palette": [
+        {
+          "hex": "#b84548",
+          "coverage": 0.3273
+        },
+        {
+          "hex": "#3b78c8",
+          "coverage": 0.327
+        },
+        {
+          "hex": "#eaeee9",
+          "coverage": 0.2564
+        },
+        {
+          "hex": "#091815",
+          "coverage": 0.0837
+        },
+        {
+          "hex": "#bd7777",
+          "coverage": 0.0056
+        }
+      ],
+      "detail": {
+        "energy": 11.3509
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "league-title-2",
+      "kind": "text",
+      "note": "League name, WHO’S THE BITCH?",
+      "grid": "E4:J5",
+      "coverBox": {
+        "x": 0.4,
+        "y": 0.4,
+        "w": 0.6,
+        "h": 0.2
+      },
+      "box": {
+        "x": 0.4349,
+        "y": 0.4604,
+        "w": 0.3306,
+        "h": 0.07
+      },
+      "px": {
+        "x": 371,
+        "y": 849,
+        "w": 282,
+        "h": 129
+      },
+      "aspect": 2.186,
+      "palette": [
+        {
+          "hex": "#101917",
+          "coverage": 0.6839
+        },
+        {
+          "hex": "#f6f6f5",
+          "coverage": 0.253
+        },
+        {
+          "hex": "#6b726f",
+          "coverage": 0.0254
+        },
+        {
+          "hex": "#b8bbba",
+          "coverage": 0.0242
+        },
+        {
+          "hex": "#333c39",
+          "coverage": 0.0135
+        }
+      ],
+      "detail": {
+        "energy": 41.1551
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "description-2",
+      "kind": "text",
+      "note": "Short league description: Two golfers. A season to settle it.",
+      "grid": "E5:J5",
+      "coverBox": {
+        "x": 0.4,
+        "y": 0.5,
+        "w": 0.6,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.4349,
+        "y": 0.5,
+        "w": 0.211,
+        "h": 0.0293
+      },
+      "px": {
+        "x": 371,
+        "y": 922,
+        "w": 180,
+        "h": 54
+      },
+      "aspect": 3.3333,
+      "palette": [
+        {
+          "hex": "#101916",
+          "coverage": 0.5328
+        },
+        {
+          "hex": "#f5f5f5",
+          "coverage": 0.378
+        },
+        {
+          "hex": "#505752",
+          "coverage": 0.0535
+        },
+        {
+          "hex": "#c3cac7",
+          "coverage": 0.0281
+        },
+        {
+          "hex": "#9ea09e",
+          "coverage": 0.0075
+        }
+      ],
+      "detail": {
+        "energy": 34.3116
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "people-markers-2",
+      "kind": "chrome",
+      "note": "Personal marker previews; production must preserve each real marker identity",
+      "grid": "E5:G5",
+      "box": {
+        "x": 0.4,
+        "y": 0.5,
+        "w": 0.3,
+        "h": 0.1
+      },
+      "px": {
+        "x": 341,
+        "y": 922,
+        "w": 256,
+        "h": 184
+      },
+      "aspect": 1.3913,
+      "palette": [
+        {
+          "hex": "#101917",
+          "coverage": 0.837
+        },
+        {
+          "hex": "#f5f5f5",
+          "coverage": 0.0801
+        },
+        {
+          "hex": "#59625e",
+          "coverage": 0.0282
+        },
+        {
+          "hex": "#4779c7",
+          "coverage": 0.0276
+        },
+        {
+          "hex": "#c94958",
+          "coverage": 0.0272
+        }
+      ],
+      "detail": {
+        "energy": 24.4985
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "people-names-2",
+      "kind": "text",
+      "note": "Member names and remaining count: You and Galen",
+      "grid": "F5:J5",
+      "coverBox": {
+        "x": 0.5,
+        "y": 0.5,
+        "w": 0.5,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.5709,
+        "y": 0.5748,
+        "w": 0.2321,
+        "h": 0.0228
+      },
+      "px": {
+        "x": 487,
+        "y": 1060,
+        "w": 198,
+        "h": 42
+      },
+      "aspect": 4.7143,
+      "palette": [
+        {
+          "hex": "#111818",
+          "coverage": 0.7359
+        },
+        {
+          "hex": "#142414",
+          "coverage": 0.1006
+        },
+        {
+          "hex": "#a2aaa5",
+          "coverage": 0.0866
+        },
+        {
+          "hex": "#606e66",
+          "coverage": 0.0628
+        },
+        {
+          "hex": "#363f3d",
+          "coverage": 0.0141
+        }
+      ],
+      "detail": {
+        "energy": 30.6749
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "footer-rule-2",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule above compact season facts",
+      "grid": "A6:J6",
+      "box": {
+        "x": 0,
+        "y": 0.6,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 1106,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0e1918",
+          "coverage": 0.9437
+        },
+        {
+          "hex": "#516659",
+          "coverage": 0.0217
+        },
+        {
+          "hex": "#bd4849",
+          "coverage": 0.0162
+        },
+        {
+          "hex": "#368858",
+          "coverage": 0.01
+        },
+        {
+          "hex": "#a2aba6",
+          "coverage": 0.0083
+        }
+      ],
+      "detail": {
+        "energy": 14.5223
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "phase-2",
+      "kind": "text",
+      "note": "Current season phase: WEEK 8 OF 15",
+      "grid": "A6:E6",
+      "coverBox": {
+        "x": 0,
+        "y": 0.6,
+        "w": 0.5,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.0422,
+        "y": 0.5998,
+        "w": 0.3587,
+        "h": 0.0098
+      },
+      "px": {
+        "x": 36,
+        "y": 1106,
+        "w": 306,
+        "h": 18
+      },
+      "aspect": 17,
+      "palette": [
+        {
+          "hex": "#0b1818",
+          "coverage": 0.5343
+        },
+        {
+          "hex": "#bd4849",
+          "coverage": 0.4559
+        },
+        {
+          "hex": "#3d7dc8",
+          "coverage": 0.0098
+        }
+      ],
+      "detail": {
+        "energy": 10.4148
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "standing-2",
+      "kind": "text",
+      "note": "Compact factual season summary: 2nd · 15 PTS",
+      "grid": "H6:J6",
+      "coverBox": {
+        "x": 0.7,
+        "y": 0.6,
+        "w": 0.3,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.7351,
+        "y": 0.6258,
+        "w": 0.2251,
+        "h": 0.0423
+      },
+      "px": {
+        "x": 627,
+        "y": 1154,
+        "w": 192,
+        "h": 78
+      },
+      "aspect": 2.4615,
+      "palette": [
+        {
+          "hex": "#0f1917",
+          "coverage": 0.8002
+        },
+        {
+          "hex": "#a4aca8",
+          "coverage": 0.065
+        },
+        {
+          "hex": "#f5f6f5",
+          "coverage": 0.0602
+        },
+        {
+          "hex": "#3b4840",
+          "coverage": 0.0475
+        },
+        {
+          "hex": "#6d7773",
+          "coverage": 0.0271
+        }
+      ],
+      "detail": {
+        "energy": 34.5965
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "season-support",
+      "kind": "text",
+      "note": "Supported comparison: 4 back of Galen.",
+      "grid": "H6:J6",
+      "coverBox": {
+        "x": 0.7,
+        "y": 0.6,
+        "w": 0.3,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.7351,
+        "y": 0.6258,
+        "w": 0.2251,
+        "h": 0.0423
+      },
+      "px": {
+        "x": 627,
+        "y": 1154,
+        "w": 192,
+        "h": 78
+      },
+      "aspect": 2.4615,
+      "palette": [
+        {
+          "hex": "#0f1917",
+          "coverage": 0.8002
+        },
+        {
+          "hex": "#a4aca8",
+          "coverage": 0.065
+        },
+        {
+          "hex": "#f5f6f5",
+          "coverage": 0.0602
+        },
+        {
+          "hex": "#3b4840",
+          "coverage": 0.0475
+        },
+        {
+          "hex": "#6d7773",
+          "coverage": 0.0271
+        }
+      ],
+      "detail": {
+        "energy": 34.5965
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "row-rule-2",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule between leagues",
+      "grid": "A6:J6",
+      "box": {
+        "x": 0,
+        "y": 0.6,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 1106,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0e1918",
+          "coverage": 0.9437
+        },
+        {
+          "hex": "#516659",
+          "coverage": 0.0217
+        },
+        {
+          "hex": "#bd4849",
+          "coverage": 0.0162
+        },
+        {
+          "hex": "#368858",
+          "coverage": 0.01
+        },
+        {
+          "hex": "#a2aba6",
+          "coverage": 0.0083
+        }
+      ],
+      "detail": {
+        "energy": 14.5223
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "emblem-field-3",
+      "kind": "chrome",
+      "note": "Flat two-color initial mark field using existing league palette",
+      "grid": "A6:D8",
+      "box": {
+        "x": 0,
+        "y": 0.6,
+        "w": 0.4,
+        "h": 0.3
+      },
+      "px": {
+        "x": 0,
+        "y": 1106,
+        "w": 341,
+        "h": 553
+      },
+      "aspect": 0.6166,
+      "palette": [
+        {
+          "hex": "#0e1818",
+          "coverage": 0.6144
+        },
+        {
+          "hex": "#b03b45",
+          "coverage": 0.1672
+        },
+        {
+          "hex": "#378858",
+          "coverage": 0.1412
+        },
+        {
+          "hex": "#e8efe8",
+          "coverage": 0.0658
+        },
+        {
+          "hex": "#51695b",
+          "coverage": 0.0115
+        }
+      ],
+      "detail": {
+        "energy": 9.5723
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "emblem-letter-3",
+      "kind": "text",
+      "note": "Designed initial letterforms, TF",
+      "grid": "A7:D8",
+      "coverBox": {
+        "x": 0,
+        "y": 0.7,
+        "w": 0.4,
+        "h": 0.2
+      },
+      "box": {
+        "x": 0.0457,
+        "y": 0.7001,
+        "w": 0.354,
+        "h": 0.1692
+      },
+      "px": {
+        "x": 39,
+        "y": 1291,
+        "w": 302,
+        "h": 312
+      },
+      "aspect": 0.9679,
+      "palette": [
+        {
+          "hex": "#af3a45",
+          "coverage": 0.3053
+        },
+        {
+          "hex": "#0e1818",
+          "coverage": 0.286
+        },
+        {
+          "hex": "#378858",
+          "coverage": 0.2674
+        },
+        {
+          "hex": "#e9efe8",
+          "coverage": 0.1309
+        },
+        {
+          "hex": "#3a5149",
+          "coverage": 0.0103
+        }
+      ],
+      "detail": {
+        "energy": 10.0512
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "league-title-3",
+      "kind": "text",
+      "note": "League name, THE FELLAS",
+      "grid": "E6:J7",
+      "coverBox": {
+        "x": 0.4,
+        "y": 0.6,
+        "w": 0.6,
+        "h": 0.2
+      },
+      "box": {
+        "x": 0.4349,
+        "y": 0.6941,
+        "w": 0.3411,
+        "h": 0.0358
+      },
+      "px": {
+        "x": 371,
+        "y": 1280,
+        "w": 291,
+        "h": 66
+      },
+      "aspect": 4.4091,
+      "palette": [
+        {
+          "hex": "#101917",
+          "coverage": 0.637
+        },
+        {
+          "hex": "#f5f5f5",
+          "coverage": 0.2869
+        },
+        {
+          "hex": "#505955",
+          "coverage": 0.0297
+        },
+        {
+          "hex": "#c0c5c1",
+          "coverage": 0.0239
+        },
+        {
+          "hex": "#2f3b35",
+          "coverage": 0.0225
+        }
+      ],
+      "detail": {
+        "energy": 48.5844
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "description-3",
+      "kind": "text",
+      "note": "Short league description: Saturday golf, all season.",
+      "grid": "E7:J7",
+      "coverBox": {
+        "x": 0.4,
+        "y": 0.7,
+        "w": 0.6,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.5686,
+        "y": 0.7001,
+        "w": 0.211,
+        "h": 0.0325
+      },
+      "px": {
+        "x": 485,
+        "y": 1291,
+        "w": 180,
+        "h": 60
+      },
+      "aspect": 3,
+      "palette": [
+        {
+          "hex": "#101a17",
+          "coverage": 0.5661
+        },
+        {
+          "hex": "#f7f7f6",
+          "coverage": 0.3244
+        },
+        {
+          "hex": "#3a453f",
+          "coverage": 0.056
+        },
+        {
+          "hex": "#bbbdbc",
+          "coverage": 0.0326
+        },
+        {
+          "hex": "#8c9791",
+          "coverage": 0.0209
+        }
+      ],
+      "detail": {
+        "energy": 34.3025
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "people-markers-3",
+      "kind": "chrome",
+      "note": "Personal marker previews; production must preserve each real marker identity",
+      "grid": "E7:G8",
+      "box": {
+        "x": 0.4,
+        "y": 0.7,
+        "w": 0.3,
+        "h": 0.2
+      },
+      "px": {
+        "x": 341,
+        "y": 1291,
+        "w": 256,
+        "h": 369
+      },
+      "aspect": 0.6938,
+      "palette": [
+        {
+          "hex": "#0f1818",
+          "coverage": 0.8996
+        },
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.0437
+        },
+        {
+          "hex": "#4d6255",
+          "coverage": 0.0197
+        },
+        {
+          "hex": "#7b9388",
+          "coverage": 0.0189
+        },
+        {
+          "hex": "#3b4643",
+          "coverage": 0.0182
+        }
+      ],
+      "detail": {
+        "energy": 14.8019
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "people-names-3",
+      "kind": "text",
+      "note": "Member names and remaining count: You, Jade +6",
+      "grid": "F7:J8",
+      "coverBox": {
+        "x": 0.5,
+        "y": 0.7,
+        "w": 0.5,
+        "h": 0.2
+      },
+      "box": {
+        "x": 0.5006,
+        "y": 0.7001,
+        "w": 0.2814,
+        "h": 0.0325
+      },
+      "px": {
+        "x": 427,
+        "y": 1291,
+        "w": 240,
+        "h": 60
+      },
+      "aspect": 4,
+      "palette": [
+        {
+          "hex": "#0e1717",
+          "coverage": 0.5248
+        },
+        {
+          "hex": "#f7f7f7",
+          "coverage": 0.3253
+        },
+        {
+          "hex": "#112111",
+          "coverage": 0.0845
+        },
+        {
+          "hex": "#39433d",
+          "coverage": 0.0464
+        },
+        {
+          "hex": "#c3c4c3",
+          "coverage": 0.0191
+        }
+      ],
+      "detail": {
+        "energy": 43.3673
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "footer-rule-3",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule above compact season facts",
+      "grid": "A8:J8",
+      "box": {
+        "x": 0,
+        "y": 0.8,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 1475,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0e1818",
+          "coverage": 0.876
+        },
+        {
+          "hex": "#ad3844",
+          "coverage": 0.0769
+        },
+        {
+          "hex": "#394746",
+          "coverage": 0.0223
+        },
+        {
+          "hex": "#496757",
+          "coverage": 0.0159
+        },
+        {
+          "hex": "#338858",
+          "coverage": 0.0089
+        }
+      ],
+      "detail": {
+        "energy": 11.6721
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "phase-3",
+      "kind": "text",
+      "note": "Current season phase: WEEK 3 OF 26",
+      "grid": "A8:E8",
+      "coverBox": {
+        "x": 0,
+        "y": 0.8,
+        "w": 0.5,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.0422,
+        "y": 0.7999,
+        "w": 0.3587,
+        "h": 0.0293
+      },
+      "px": {
+        "x": 36,
+        "y": 1475,
+        "w": 306,
+        "h": 54
+      },
+      "aspect": 5.6667,
+      "palette": [
+        {
+          "hex": "#ad3844",
+          "coverage": 0.7325
+        },
+        {
+          "hex": "#0e1818",
+          "coverage": 0.1729
+        },
+        {
+          "hex": "#338858",
+          "coverage": 0.0821
+        },
+        {
+          "hex": "#eff4e9",
+          "coverage": 0.0109
+        },
+        {
+          "hex": "#63684d",
+          "coverage": 0.0016
+        }
+      ],
+      "detail": {
+        "energy": 7.0369
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "standing-3",
+      "kind": "text",
+      "note": "Compact factual season summary: 1st · 25 PTS",
+      "grid": "H8:J8",
+      "coverBox": {
+        "x": 0.7,
+        "y": 0.8,
+        "w": 0.3,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.6999,
+        "y": 0.8357,
+        "w": 0.2603,
+        "h": 0.0325
+      },
+      "px": {
+        "x": 597,
+        "y": 1541,
+        "w": 222,
+        "h": 60
+      },
+      "aspect": 3.7,
+      "palette": [
+        {
+          "hex": "#0d1918",
+          "coverage": 0.8336
+        },
+        {
+          "hex": "#f3f3f3",
+          "coverage": 0.0674
+        },
+        {
+          "hex": "#4a6758",
+          "coverage": 0.0557
+        },
+        {
+          "hex": "#aeb2af",
+          "coverage": 0.022
+        },
+        {
+          "hex": "#303936",
+          "coverage": 0.0213
+        }
+      ],
+      "detail": {
+        "energy": 29.9308
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "row-rule-3",
+      "kind": "chrome",
+      "note": "Neutral horizontal rule between leagues",
+      "grid": "A8:J8",
+      "box": {
+        "x": 0,
+        "y": 0.8,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 1475,
+        "w": 853,
+        "h": 184
+      },
+      "aspect": 4.6359,
+      "palette": [
+        {
+          "hex": "#0e1818",
+          "coverage": 0.876
+        },
+        {
+          "hex": "#ad3844",
+          "coverage": 0.0769
+        },
+        {
+          "hex": "#394746",
+          "coverage": 0.0223
+        },
+        {
+          "hex": "#496757",
+          "coverage": 0.0159
+        },
+        {
+          "hex": "#338858",
+          "coverage": 0.0089
+        }
+      ],
+      "detail": {
+        "energy": 11.6721
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "tabbar",
+      "kind": "chrome",
+      "note": "Existing five-target native tab bar, Compete selected, Play action tint; profile unchanged",
+      "grid": "A8:J9",
+      "box": {
+        "x": 0,
+        "y": 0.8,
+        "w": 1,
+        "h": 0.2
+      },
+      "px": {
+        "x": 0,
+        "y": 1475,
+        "w": 853,
+        "h": 369
+      },
+      "aspect": 2.3117,
+      "palette": [
+        {
+          "hex": "#0e1818",
+          "coverage": 0.9273
+        },
+        {
+          "hex": "#ad3844",
+          "coverage": 0.0389
+        },
+        {
+          "hex": "#384643",
+          "coverage": 0.0141
+        },
+        {
+          "hex": "#4b6656",
+          "coverage": 0.0105
+        },
+        {
+          "hex": "#959e97",
+          "coverage": 0.0093
+        }
+      ],
+      "detail": {
+        "energy": 11.6768
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    },
+    {
+      "id": "insert-spacing",
+      "kind": "chrome",
+      "note": "Page ground around the left identity insert",
+      "grid": "A2:D3",
+      "box": {
+        "x": 0,
+        "y": 0.2,
+        "w": 0.4,
+        "h": 0.2
+      },
+      "px": {
+        "x": 0,
+        "y": 369,
+        "w": 341,
+        "h": 369
+      },
+      "aspect": 0.9241,
+      "palette": [
+        {
+          "hex": "#0c1817",
+          "coverage": 0.4097
+        },
+        {
+          "hex": "#3f4d1e",
+          "coverage": 0.2749
+        },
+        {
+          "hex": "#666b23",
+          "coverage": 0.1316
+        },
+        {
+          "hex": "#6da1e7",
+          "coverage": 0.1012
+        },
+        {
+          "hex": "#8bb1dc",
+          "coverage": 0.0826
+        }
+      ],
+      "detail": {
+        "energy": 16.0945
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null
+    }
+  ]
+}

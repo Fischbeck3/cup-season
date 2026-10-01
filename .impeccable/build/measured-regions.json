@@ -1,0 +1,438 @@
+{
+  "regions": [
+    {
+      "id": "status",
+      "kind": "chrome",
+      "box": {
+        "x": 0.11723329425556858,
+        "y": 0.028199566160520606,
+        "w": 0.7971864009378663,
+        "h": 0.021691973969631236
+      },
+      "note": "Native status bar with clock and system indicators",
+      "grid": "B0:J0"
+    },
+    {
+      "id": "masthead",
+      "kind": "text",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.08568329718004339,
+        "w": 0.3516998827667057,
+        "h": 0.033622559652928416
+      },
+      "note": "Compete title in established condensed board face",
+      "grid": "A0:E1"
+    },
+    {
+      "id": "masthead-rule",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.1442516268980477,
+        "w": 0.9003516998827668,
+        "h": 0.0016268980477223427
+      },
+      "note": "Neutral horizontal rule",
+      "grid": "A1:J1"
+    },
+    {
+      "id": "seasons-head",
+      "kind": "text",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.16268980477223427,
+        "w": 0.41031652989449,
+        "h": 0.019522776572668113
+      },
+      "note": "Your seasons section heading",
+      "grid": "A1:E1"
+    },
+    {
+      "id": "seasons-rule",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.19685466377440347,
+        "w": 0.9003516998827668,
+        "h": 0.0010845986984815619
+      },
+      "note": "Neutral horizontal rule",
+      "grid": "A1:J1"
+    },
+    {
+      "id": "league-photo",
+      "kind": "image",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.21908893709327548,
+        "w": 0.3505275498241501,
+        "h": 0.1621475054229935
+      },
+      "note": "Supplied existing QA course photograph; a square group or course image",
+      "bleed": true,
+      "plate": ".impeccable/build/plates/course.png",
+      "grid": "A2:E3"
+    },
+    {
+      "id": "league-title-1",
+      "kind": "text",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.22017353579175705,
+        "w": 0.49824150058616645,
+        "h": 0.0650759219088937
+      },
+      "note": "League name, THE DEW SWEEPERS",
+      "grid": "E2:J2"
+    },
+    {
+      "id": "description-1",
+      "kind": "text",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.3047722342733189,
+        "w": 0.49824150058616645,
+        "h": 0.020607375271149676
+      },
+      "note": "Short league description: Early tee times. Long friendships.",
+      "grid": "E3:J3"
+    },
+    {
+      "id": "people-markers-1",
+      "kind": "chrome",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.3411062906724512,
+        "w": 0.16412661195779601,
+        "h": 0.021691973969631236
+      },
+      "note": "Personal marker previews; production must preserve each real marker identity",
+      "grid": "E3:G3"
+    },
+    {
+      "id": "people-names-1",
+      "kind": "text",
+      "box": {
+        "x": 0.6307151230949589,
+        "y": 0.3405639913232104,
+        "w": 0.3634232121922626,
+        "h": 0.021691973969631236
+      },
+      "note": "Member names and remaining count: Tash, Dan +10",
+      "grid": "G3:J3"
+    },
+    {
+      "id": "footer-rule-1",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.39370932754880694,
+        "w": 0.9003516998827668,
+        "h": 0.0010845986984815619
+      },
+      "note": "Neutral horizontal rule above compact season facts",
+      "grid": "A3:J3"
+    },
+    {
+      "id": "phase-1",
+      "kind": "text",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.4061822125813449,
+        "w": 0.41031652989449,
+        "h": 0.015184381778741865
+      },
+      "note": "Current season phase: BEFORE FIRST TEE",
+      "grid": "A4:E4"
+    },
+    {
+      "id": "standing-1",
+      "kind": "text",
+      "box": {
+        "x": 0.8581477139507621,
+        "y": 0.40509761388286336,
+        "w": 0.09378663540445487,
+        "h": 0.01898047722342733
+      },
+      "note": "Compact factual season summary: OCT 11",
+      "grid": "I4:J4"
+    },
+    {
+      "id": "row-rule-1",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.43817787418655096,
+        "w": 0.9003516998827668,
+        "h": 0.0010845986984815619
+      },
+      "note": "Neutral horizontal rule between leagues",
+      "grid": "A4:J4"
+    },
+    {
+      "id": "emblem-field-2",
+      "kind": "chrome",
+      "box": {
+        "x": 0.053927315357561546,
+        "y": 0.45932754880694143,
+        "w": 0.3364595545134818,
+        "h": 0.1447939262472885
+      },
+      "note": "Flat two-color initial mark field using existing league palette",
+      "grid": "A4:D6"
+    },
+    {
+      "id": "emblem-letter-2",
+      "kind": "text",
+      "box": {
+        "x": 0.09026963657678781,
+        "y": 0.4945770065075922,
+        "w": 0.2485345838218054,
+        "h": 0.0770065075921909
+      },
+      "note": "Designed initial letterforms, WTB",
+      "grid": "A4:D5"
+    },
+    {
+      "id": "league-title-2",
+      "kind": "text",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.460412147505423,
+        "w": 0.49824150058616645,
+        "h": 0.0650759219088937
+      },
+      "note": "League name, WHO\u2019S THE BITCH?",
+      "grid": "E4:J5"
+    },
+    {
+      "id": "description-2",
+      "kind": "text",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.5406724511930586,
+        "w": 0.49824150058616645,
+        "h": 0.020607375271149676
+      },
+      "note": "Short league description: Two golfers. A season to settle it.",
+      "grid": "E5:J5"
+    },
+    {
+      "id": "people-markers-2",
+      "kind": "chrome",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.5748373101952278,
+        "w": 0.16412661195779601,
+        "h": 0.021691973969631236
+      },
+      "note": "Personal marker previews; production must preserve each real marker identity",
+      "grid": "E5:G5"
+    },
+    {
+      "id": "people-names-2",
+      "kind": "text",
+      "box": {
+        "x": 0.5826494724501758,
+        "y": 0.5753796095444685,
+        "w": 0.3634232121922626,
+        "h": 0.021691973969631236
+      },
+      "note": "Member names and remaining count: You and Galen",
+      "grid": "F5:J5"
+    },
+    {
+      "id": "footer-rule-2",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.618763557483731,
+        "w": 0.9003516998827668,
+        "h": 0.0010845986984815619
+      },
+      "note": "Neutral horizontal rule above compact season facts",
+      "grid": "A6:J6"
+    },
+    {
+      "id": "phase-2",
+      "kind": "text",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.631236442516269,
+        "w": 0.41031652989449,
+        "h": 0.015184381778741865
+      },
+      "note": "Current season phase: WEEK 8 OF 15",
+      "grid": "A6:E6"
+    },
+    {
+      "id": "standing-2",
+      "kind": "text",
+      "box": {
+        "x": 0.7303634232121923,
+        "y": 0.6301518438177874,
+        "w": 0.22039859320046892,
+        "h": 0.01898047722342733
+      },
+      "note": "Compact factual season summary: 2nd \u00b7 15 PTS",
+      "grid": "H6:J6"
+    },
+    {
+      "id": "season-support",
+      "kind": "text",
+      "box": {
+        "x": 0.7338804220398594,
+        "y": 0.6540130151843818,
+        "w": 0.21805392731535755,
+        "h": 0.016811279826464208
+      },
+      "note": "Supported comparison: 4 back of Galen.",
+      "grid": "H6:J6"
+    },
+    {
+      "id": "row-rule-2",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.6767895878524945,
+        "w": 0.9003516998827668,
+        "h": 0.0010845986984815619
+      },
+      "note": "Neutral horizontal rule between leagues",
+      "grid": "A6:J6"
+    },
+    {
+      "id": "emblem-field-3",
+      "kind": "chrome",
+      "box": {
+        "x": 0.053927315357561546,
+        "y": 0.6963123644251626,
+        "w": 0.3364595545134818,
+        "h": 0.12960954446854664
+      },
+      "note": "Flat two-color initial mark field using existing league palette",
+      "grid": "A6:D8"
+    },
+    {
+      "id": "emblem-letter-3",
+      "kind": "text",
+      "box": {
+        "x": 0.09026963657678781,
+        "y": 0.7315618221258134,
+        "w": 0.2485345838218054,
+        "h": 0.0770065075921909
+      },
+      "note": "Designed initial letterforms, TF",
+      "grid": "A7:D8"
+    },
+    {
+      "id": "league-title-3",
+      "kind": "text",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.6973969631236443,
+        "w": 0.49824150058616645,
+        "h": 0.03253796095444685
+      },
+      "note": "League name, THE FELLAS",
+      "grid": "E6:J7"
+    },
+    {
+      "id": "description-3",
+      "kind": "text",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.7424078091106291,
+        "w": 0.49824150058616645,
+        "h": 0.020607375271149676
+      },
+      "note": "Short league description: Saturday golf, all season.",
+      "grid": "E7:J7"
+    },
+    {
+      "id": "people-markers-3",
+      "kind": "chrome",
+      "box": {
+        "x": 0.4490035169988277,
+        "y": 0.7814533622559653,
+        "w": 0.16412661195779601,
+        "h": 0.021691973969631236
+      },
+      "note": "Personal marker previews; production must preserve each real marker identity",
+      "grid": "E7:G8"
+    },
+    {
+      "id": "people-names-3",
+      "kind": "text",
+      "box": {
+        "x": 0.5920281359906213,
+        "y": 0.7819956616052061,
+        "w": 0.3634232121922626,
+        "h": 0.021691973969631236
+      },
+      "note": "Member names and remaining count: You, Jade +6",
+      "grid": "F7:J8"
+    },
+    {
+      "id": "footer-rule-3",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.838937093275488,
+        "w": 0.9003516998827668,
+        "h": 0.0010845986984815619
+      },
+      "note": "Neutral horizontal rule above compact season facts",
+      "grid": "A8:J8"
+    },
+    {
+      "id": "phase-3",
+      "kind": "text",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.851409978308026,
+        "w": 0.41031652989449,
+        "h": 0.015184381778741865
+      },
+      "note": "Current season phase: WEEK 3 OF 26",
+      "grid": "A8:E8"
+    },
+    {
+      "id": "standing-3",
+      "kind": "text",
+      "box": {
+        "x": 0.7303634232121923,
+        "y": 0.8503253796095445,
+        "w": 0.22039859320046892,
+        "h": 0.01898047722342733
+      },
+      "note": "Compact factual season summary: 1st \u00b7 25 PTS",
+      "grid": "H8:J8"
+    },
+    {
+      "id": "row-rule-3",
+      "kind": "chrome",
+      "box": {
+        "x": 0.05158264947245018,
+        "y": 0.881236442516269,
+        "w": 0.9003516998827668,
+        "h": 0.0010845986984815619
+      },
+      "note": "Neutral horizontal rule between leagues",
+      "grid": "A8:J8"
+    },
+    {
+      "id": "tabbar",
+      "kind": "chrome",
+      "box": {
+        "x": 0.0,
+        "y": 0.8823210412147505,
+        "w": 1.0,
+        "h": 0.09219088937093275
+      },
+      "note": "Existing five-target native tab bar, Compete selected, Play action tint; profile unchanged",
+      "grid": "A8:J9"
+    }
+  ]
+}

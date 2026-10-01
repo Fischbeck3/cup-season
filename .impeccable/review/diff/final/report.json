@@ -1,0 +1,1372 @@
+{
+  "tool": "comp-diff",
+  "version": 1,
+  "createdAt": "2026-10-01T00:00:12.139Z",
+  "label": "hero-repro",
+  "comp": ".impeccable/mocks/decision/club-spread.png",
+  "build": ".impeccable/review/hero-repro.png",
+  "spec": ".impeccable/build/spec.json",
+  "compSize": "853x1844",
+  "buildSize": "853x1844",
+  "align": "top",
+  "overall": 0.7298,
+  "verdict": "drift",
+  "scores": {
+    "overall": 0.7298,
+    "structure": 0.5455,
+    "color": 0.7929,
+    "colorIntersection": 0.6053,
+    "paletteMatch": 0.8939,
+    "detail": 0.7627,
+    "detailRaw": 0.7939,
+    "detailAdded": 0.0625,
+    "bands": 1
+  },
+  "palette": {
+    "comp": [
+      {
+        "hex": "#0e1818",
+        "coverage": 0.859
+      },
+      {
+        "hex": "#eef2ee",
+        "coverage": 0.0488
+      },
+      {
+        "hex": "#b44047",
+        "coverage": 0.0393
+      },
+      {
+        "hex": "#388858",
+        "coverage": 0.0188
+      },
+      {
+        "hex": "#3b78c8",
+        "coverage": 0.0175
+      },
+      {
+        "hex": "#3f4e1f",
+        "coverage": 0.0166
+      }
+    ],
+    "build": [
+      {
+        "hex": "#081818",
+        "coverage": 0.8585
+      },
+      {
+        "hex": "#f2f3e7",
+        "coverage": 0.0552
+      },
+      {
+        "hex": "#588cdd",
+        "coverage": 0.0303
+      },
+      {
+        "hex": "#c83848",
+        "coverage": 0.0259
+      },
+      {
+        "hex": "#3a4c20",
+        "coverage": 0.0171
+      },
+      {
+        "hex": "#97a098",
+        "coverage": 0.0129
+      }
+    ]
+  },
+  "regions": [
+    {
+      "id": "status",
+      "x": 0.1,
+      "y": 0,
+      "w": 0.9,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.9238,
+        "structure": 0.9794,
+        "color": 0.8141,
+        "colorIntersection": 0.6064,
+        "paletteMatch": 0.9259,
+        "detail": 0.91,
+        "detailRaw": 0.9152,
+        "detailAdded": 0.0104,
+        "bands": 1
+      },
+      "verdict": "match",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 54,
+          "w": 692,
+          "h": 130
+        },
+        "build": {
+          "x": 2,
+          "y": 55,
+          "w": 691,
+          "h": 129
+        }
+      }
+    },
+    {
+      "id": "masthead",
+      "x": 0.0457,
+      "y": 0.0846,
+      "w": 0.3623,
+      "h": 0.0358,
+      "kind": "text",
+      "score": {
+        "overall": 0.6783,
+        "structure": 0.581,
+        "color": 0.7206,
+        "colorIntersection": 0.523,
+        "paletteMatch": 0.827,
+        "detail": 0.7665,
+        "detailRaw": 0.7665,
+        "detailAdded": 0,
+        "bands": 0.9273
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 7,
+          "y": 6,
+          "w": 294,
+          "h": 54
+        },
+        "build": {
+          "x": 6,
+          "y": 6,
+          "w": 298,
+          "h": 52
+        }
+      }
+    },
+    {
+      "id": "masthead-rule",
+      "x": 0,
+      "y": 0.1,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.757,
+        "structure": 0.7595,
+        "color": 0.8328,
+        "colorIntersection": 0.6637,
+        "paletteMatch": 0.9239,
+        "detail": 0.626,
+        "detailRaw": 0.6937,
+        "detailAdded": 0.1354,
+        "bands": 0.8429
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 43,
+          "y": 0,
+          "w": 768,
+          "h": 180
+        },
+        "build": {
+          "x": 42,
+          "y": 0,
+          "w": 769,
+          "h": 181
+        }
+      }
+    },
+    {
+      "id": "seasons-head",
+      "x": 0.0422,
+      "y": 0.0998,
+      "w": 0.3658,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.6532,
+        "structure": 0.5574,
+        "color": 0.7608,
+        "colorIntersection": 0.5337,
+        "paletteMatch": 0.8832,
+        "detail": 0.775,
+        "detailRaw": 0.7854,
+        "detailAdded": 0.0208,
+        "bands": 0.68
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 10,
+          "y": 0,
+          "w": 294,
+          "h": 35
+        },
+        "build": {
+          "x": 9,
+          "y": 0,
+          "w": 298,
+          "h": 33
+        }
+      }
+    },
+    {
+      "id": "seasons-rule",
+      "x": 0,
+      "y": 0.1,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.757,
+        "structure": 0.7595,
+        "color": 0.8328,
+        "colorIntersection": 0.6637,
+        "paletteMatch": 0.9239,
+        "detail": 0.626,
+        "detailRaw": 0.6937,
+        "detailAdded": 0.1354,
+        "bands": 0.8429
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 43,
+          "y": 0,
+          "w": 768,
+          "h": 180
+        },
+        "build": {
+          "x": 42,
+          "y": 0,
+          "w": 769,
+          "h": 181
+        }
+      }
+    },
+    {
+      "id": "league-photo",
+      "x": 0.0516,
+      "y": 0.2191,
+      "w": 0.3505,
+      "h": 0.1621,
+      "kind": "image",
+      "score": {
+        "overall": 0.7523,
+        "structure": 0.7339,
+        "color": 0.7625,
+        "colorIntersection": 0.6676,
+        "paletteMatch": 0.8136,
+        "detail": 0.7826,
+        "detailRaw": 0.8243,
+        "detailAdded": 0.0833,
+        "bands": 0.5
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 299,
+          "h": 299
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 299,
+          "h": 299
+        }
+      }
+    },
+    {
+      "id": "league-title-1",
+      "x": 0.442,
+      "y": 0.2196,
+      "w": 0.3165,
+      "h": 0.0716,
+      "kind": "text",
+      "score": {
+        "overall": 0.4422,
+        "structure": 0.1868,
+        "color": 0.7922,
+        "colorIntersection": 0.6019,
+        "paletteMatch": 0.8947,
+        "detail": 0.4307,
+        "detailRaw": 0.5036,
+        "detailAdded": 0.1458,
+        "bands": 0.8615
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 7,
+          "y": 9,
+          "w": 256,
+          "h": 112
+        },
+        "build": {
+          "x": 8,
+          "y": 9,
+          "w": 262,
+          "h": 123
+        }
+      }
+    },
+    {
+      "id": "description-1",
+      "x": 0.442,
+      "y": 0.3357,
+      "w": 0.1758,
+      "h": 0.0325,
+      "kind": "text",
+      "score": {
+        "overall": 0.3601,
+        "structure": 0.3161,
+        "color": 0.6423,
+        "colorIntersection": 0.4489,
+        "paletteMatch": 0.7465,
+        "detail": 0.105,
+        "detailRaw": 0.3186,
+        "detailAdded": 0.4271,
+        "bands": 0.2571
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 7,
+          "y": 10,
+          "w": 133,
+          "h": 39
+        },
+        "build": {
+          "x": 7,
+          "y": 0,
+          "w": 143,
+          "h": 60
+        }
+      }
+    },
+    {
+      "id": "people-markers-1",
+      "x": 0.4,
+      "y": 0.3,
+      "w": 0.3,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4587,
+        "structure": 0.4822,
+        "color": 0.8193,
+        "colorIntersection": 0.6783,
+        "paletteMatch": 0.8953,
+        "detail": 0.1296,
+        "detailRaw": 0.3171,
+        "detailAdded": 0.375,
+        "bands": 0.3514
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 173
+        },
+        "build": {
+          "x": 43,
+          "y": 0,
+          "w": 213,
+          "h": 185
+        }
+      }
+    },
+    {
+      "id": "people-names-1",
+      "x": 0.6284,
+      "y": 0.3389,
+      "w": 0.2321,
+      "h": 0.026,
+      "kind": "text",
+      "score": {
+        "overall": 0.5073,
+        "structure": 0.5551,
+        "color": 0.7591,
+        "colorIntersection": 0.5076,
+        "paletteMatch": 0.8945,
+        "detail": 0,
+        "detailRaw": 0.0059,
+        "detailAdded": 0.0417,
+        "bands": 0.4
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 7,
+          "y": 11,
+          "w": 183,
+          "h": 28
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 149,
+          "h": 48
+        }
+      }
+    },
+    {
+      "id": "footer-rule-1",
+      "x": 0,
+      "y": 0.3,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.641,
+        "structure": 0.73,
+        "color": 0.851,
+        "colorIntersection": 0.7069,
+        "paletteMatch": 0.9287,
+        "detail": 0.3309,
+        "detailRaw": 0.4299,
+        "detailAdded": 0.1979,
+        "bands": 0.6
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 43,
+          "y": 0,
+          "w": 768,
+          "h": 173
+        },
+        "build": {
+          "x": 42,
+          "y": 0,
+          "w": 727,
+          "h": 185
+        }
+      }
+    },
+    {
+      "id": "phase-1",
+      "x": 0.0422,
+      "y": 0.4555,
+      "w": 0.3587,
+      "h": 0.0445,
+      "kind": "text",
+      "score": {
+        "overall": 0.3297,
+        "structure": 0.3173,
+        "color": 0.4557,
+        "colorIntersection": 0.1565,
+        "paletteMatch": 0.6169,
+        "detail": 0,
+        "detailRaw": 0.1906,
+        "detailAdded": 0.4583,
+        "bands": 0.5714
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 306,
+          "h": 82
+        },
+        "build": {
+          "x": 6,
+          "y": 0,
+          "w": 300,
+          "h": 82
+        }
+      }
+    },
+    {
+      "id": "standing-1",
+      "x": 0.8417,
+      "y": 0.4035,
+      "w": 0.1196,
+      "h": 0.0195,
+      "kind": "text",
+      "score": {
+        "overall": 0.6568,
+        "structure": 0.7414,
+        "color": 0.727,
+        "colorIntersection": 0.5335,
+        "paletteMatch": 0.8311,
+        "detail": 0.1624,
+        "detailRaw": 0.178,
+        "detailAdded": 0.0313,
+        "bands": 0.8
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 11,
+          "y": 15,
+          "w": 82,
+          "h": 18
+        },
+        "build": {
+          "x": 0,
+          "y": 31,
+          "w": 92,
+          "h": 2
+        }
+      }
+    },
+    {
+      "id": "row-rule-1",
+      "x": 0,
+      "y": 0.4,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4756,
+        "structure": 0.6185,
+        "color": 0.7508,
+        "colorIntersection": 0.5726,
+        "paletteMatch": 0.8467,
+        "detail": 0,
+        "detailRaw": 0.1474,
+        "detailAdded": 0.3229,
+        "bands": 0.4762
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 43,
+          "y": 15,
+          "w": 768,
+          "h": 169
+        },
+        "build": {
+          "x": 42,
+          "y": 0,
+          "w": 768,
+          "h": 184
+        }
+      }
+    },
+    {
+      "id": "emblem-field-2",
+      "x": 0,
+      "y": 0.4,
+      "w": 0.4,
+      "h": 0.3,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.5497,
+        "structure": 0.471,
+        "color": 0.6662,
+        "colorIntersection": 0.4009,
+        "paletteMatch": 0.809,
+        "detail": 0.4034,
+        "detailRaw": 0.4919,
+        "detailAdded": 0.1771,
+        "bands": 0.7833
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 43,
+          "y": 16,
+          "w": 298,
+          "h": 537
+        },
+        "build": {
+          "x": 41,
+          "y": 31,
+          "w": 300,
+          "h": 520
+        }
+      }
+    },
+    {
+      "id": "emblem-letter-2",
+      "x": 0.0457,
+      "y": 0.4555,
+      "w": 0.3517,
+      "h": 0.1448,
+      "kind": "text",
+      "score": {
+        "overall": 0.3922,
+        "structure": 0.39,
+        "color": 0.4823,
+        "colorIntersection": 0.0961,
+        "paletteMatch": 0.6903,
+        "detail": 0.1967,
+        "detailRaw": 0.3894,
+        "detailAdded": 0.3854,
+        "bands": 0.4714
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 300,
+          "h": 267
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 300,
+          "h": 267
+        }
+      }
+    },
+    {
+      "id": "league-title-2",
+      "x": 0.4349,
+      "y": 0.4604,
+      "w": 0.3306,
+      "h": 0.07,
+      "kind": "text",
+      "score": {
+        "overall": 0.4093,
+        "structure": 0.2751,
+        "color": 0.7239,
+        "colorIntersection": 0.4561,
+        "paletteMatch": 0.8681,
+        "detail": 0.2236,
+        "detailRaw": 0.2809,
+        "detailAdded": 0.1146,
+        "bands": 0.5727
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 7,
+          "w": 263,
+          "h": 111
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 282,
+          "h": 129
+        }
+      }
+    },
+    {
+      "id": "description-2",
+      "x": 0.4349,
+      "y": 0.5,
+      "w": 0.211,
+      "h": 0.0293,
+      "kind": "text",
+      "score": {
+        "overall": 0.4078,
+        "structure": 0.2401,
+        "color": 0.7154,
+        "colorIntersection": 0.4716,
+        "paletteMatch": 0.8466,
+        "detail": 0.4908,
+        "detailRaw": 0.5741,
+        "detailAdded": 0.1667,
+        "bands": 0.3524
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 8,
+          "y": 0,
+          "w": 164,
+          "h": 45
+        },
+        "build": {
+          "x": 14,
+          "y": 8,
+          "w": 166,
+          "h": 46
+        }
+      }
+    },
+    {
+      "id": "people-markers-2",
+      "x": 0.4,
+      "y": 0.5,
+      "w": 0.3,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.482,
+        "structure": 0.3725,
+        "color": 0.751,
+        "colorIntersection": 0.5412,
+        "paletteMatch": 0.8639,
+        "detail": 0.3193,
+        "detailRaw": 0.4756,
+        "detailAdded": 0.3125,
+        "bands": 0.5606
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 36,
+          "y": 0,
+          "w": 219,
+          "h": 180
+        },
+        "build": {
+          "x": 44,
+          "y": 8,
+          "w": 211,
+          "h": 147
+        }
+      }
+    },
+    {
+      "id": "people-names-2",
+      "x": 0.5709,
+      "y": 0.5748,
+      "w": 0.2321,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.3891,
+        "structure": 0.3501,
+        "color": 0.7178,
+        "colorIntersection": 0.4524,
+        "paletteMatch": 0.8607,
+        "detail": 0.0302,
+        "detailRaw": 0.1865,
+        "detailAdded": 0.3125,
+        "bands": 0.3
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 10,
+          "y": 12,
+          "w": 179,
+          "h": 24
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 198,
+          "h": 21
+        }
+      }
+    },
+    {
+      "id": "footer-rule-2",
+      "x": 0,
+      "y": 0.6,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4556,
+        "structure": 0.493,
+        "color": 0.8082,
+        "colorIntersection": 0.6104,
+        "paletteMatch": 0.9147,
+        "detail": 0,
+        "detailRaw": 0.1172,
+        "detailAdded": 0.3958,
+        "bands": 0.54
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 43,
+          "y": 0,
+          "w": 768,
+          "h": 185
+        },
+        "build": {
+          "x": 42,
+          "y": 0,
+          "w": 768,
+          "h": 184
+        }
+      }
+    },
+    {
+      "id": "phase-2",
+      "x": 0.0422,
+      "y": 0.5998,
+      "w": 0.3587,
+      "h": 0.0098,
+      "kind": "text",
+      "score": {
+        "overall": 0.4237,
+        "structure": 0.5765,
+        "color": 0.5132,
+        "colorIntersection": 0.0264,
+        "paletteMatch": 0.7753,
+        "detail": 0.0475,
+        "detailRaw": 0.1673,
+        "detailAdded": 0.2396,
+        "bands": 0
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 11,
+          "y": 0,
+          "w": 285,
+          "h": 23
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 306,
+          "h": 48
+        }
+      }
+    },
+    {
+      "id": "standing-2",
+      "x": 0.7351,
+      "y": 0.6258,
+      "w": 0.2251,
+      "h": 0.0423,
+      "kind": "text",
+      "score": {
+        "overall": 0.4438,
+        "structure": 0.5037,
+        "color": 0.608,
+        "colorIntersection": 0.386,
+        "paletteMatch": 0.7276,
+        "detail": 0,
+        "detailRaw": 0,
+        "detailAdded": 0,
+        "bands": 0.4
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 9,
+          "w": 175,
+          "h": 61
+        },
+        "build": null
+      }
+    },
+    {
+      "id": "season-support",
+      "x": 0.7351,
+      "y": 0.6258,
+      "w": 0.2251,
+      "h": 0.0423,
+      "kind": "text",
+      "score": {
+        "overall": 0.4438,
+        "structure": 0.5037,
+        "color": 0.608,
+        "colorIntersection": 0.386,
+        "paletteMatch": 0.7276,
+        "detail": 0,
+        "detailRaw": 0,
+        "detailAdded": 0,
+        "bands": 0.4
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 9,
+          "w": 175,
+          "h": 61
+        },
+        "build": null
+      }
+    },
+    {
+      "id": "row-rule-2",
+      "x": 0,
+      "y": 0.6,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4556,
+        "structure": 0.493,
+        "color": 0.8082,
+        "colorIntersection": 0.6104,
+        "paletteMatch": 0.9147,
+        "detail": 0,
+        "detailRaw": 0.1172,
+        "detailAdded": 0.3958,
+        "bands": 0.54
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 43,
+          "y": 0,
+          "w": 768,
+          "h": 185
+        },
+        "build": {
+          "x": 42,
+          "y": 0,
+          "w": 768,
+          "h": 184
+        }
+      }
+    },
+    {
+      "id": "emblem-field-3",
+      "x": 0,
+      "y": 0.6,
+      "w": 0.4,
+      "h": 0.3,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4403,
+        "structure": 0.4075,
+        "color": 0.623,
+        "colorIntersection": 0.4203,
+        "paletteMatch": 0.7322,
+        "detail": 0.2019,
+        "detailRaw": 0.3634,
+        "detailAdded": 0.3229,
+        "bands": 0.6095
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 341,
+          "h": 554
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 341,
+          "h": 554
+        }
+      }
+    },
+    {
+      "id": "emblem-letter-3",
+      "x": 0.0457,
+      "y": 0.7001,
+      "w": 0.354,
+      "h": 0.1692,
+      "kind": "text",
+      "score": {
+        "overall": 0.2751,
+        "structure": 0.238,
+        "color": 0.3392,
+        "colorIntersection": 0.2532,
+        "paletteMatch": 0.3855,
+        "detail": 0.1051,
+        "detailRaw": 0.3238,
+        "detailAdded": 0.4375,
+        "bands": 0.5556
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 302,
+          "h": 312
+        },
+        "build": {
+          "x": 3,
+          "y": 26,
+          "w": 299,
+          "h": 286
+        }
+      }
+    },
+    {
+      "id": "league-title-3",
+      "x": 0.4349,
+      "y": 0.6941,
+      "w": 0.3411,
+      "h": 0.0358,
+      "kind": "text",
+      "score": {
+        "overall": 0.3956,
+        "structure": 0.2798,
+        "color": 0.6959,
+        "colorIntersection": 0.3564,
+        "paletteMatch": 0.8788,
+        "detail": 0.1223,
+        "detailRaw": 0.1953,
+        "detailAdded": 0.1458,
+        "bands": 0.6333
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 11,
+          "y": 12,
+          "w": 273,
+          "h": 48
+        },
+        "build": {
+          "x": 0,
+          "y": 8,
+          "w": 291,
+          "h": 47
+        }
+      }
+    },
+    {
+      "id": "description-3",
+      "x": 0.5686,
+      "y": 0.7001,
+      "w": 0.211,
+      "h": 0.0325,
+      "kind": "text",
+      "score": {
+        "overall": 0.3852,
+        "structure": 0.3033,
+        "color": 0.7257,
+        "colorIntersection": 0.4237,
+        "paletteMatch": 0.8884,
+        "detail": 0.1521,
+        "detailRaw": 0.1886,
+        "detailAdded": 0.0729,
+        "bands": 0.2933
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 1,
+          "w": 164,
+          "h": 48
+        },
+        "build": {
+          "x": 113,
+          "y": 18,
+          "w": 65,
+          "h": 26
+        }
+      }
+    },
+    {
+      "id": "people-markers-3",
+      "x": 0.4,
+      "y": 0.7,
+      "w": 0.3,
+      "h": 0.2,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4628,
+        "structure": 0.6223,
+        "color": 0.779,
+        "colorIntersection": 0.5474,
+        "paletteMatch": 0.9037,
+        "detail": 0,
+        "detailRaw": 0.1128,
+        "detailAdded": 0.2708,
+        "bands": 0.3346
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 2,
+          "w": 256,
+          "h": 367
+        },
+        "build": {
+          "x": 0,
+          "y": 70,
+          "w": 256,
+          "h": 299
+        }
+      }
+    },
+    {
+      "id": "people-names-3",
+      "x": 0.5006,
+      "y": 0.7001,
+      "w": 0.2814,
+      "h": 0.0325,
+      "kind": "text",
+      "score": {
+        "overall": 0.379,
+        "structure": 0.2725,
+        "color": 0.7135,
+        "colorIntersection": 0.4139,
+        "paletteMatch": 0.8748,
+        "detail": 0.1203,
+        "detailRaw": 0.1411,
+        "detailAdded": 0.0417,
+        "bands": 0.4636
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 1,
+          "w": 228,
+          "h": 48
+        },
+        "build": {
+          "x": 171,
+          "y": 18,
+          "w": 65,
+          "h": 26
+        }
+      }
+    },
+    {
+      "id": "footer-rule-3",
+      "x": 0,
+      "y": 0.8,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4737,
+        "structure": 0.4072,
+        "color": 0.7542,
+        "colorIntersection": 0.6026,
+        "paletteMatch": 0.8359,
+        "detail": 0.1516,
+        "detailRaw": 0.3443,
+        "detailAdded": 0.3854,
+        "bands": 0.6982
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 853,
+          "h": 185
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 853,
+          "h": 185
+        }
+      }
+    },
+    {
+      "id": "phase-3",
+      "x": 0.0422,
+      "y": 0.7999,
+      "w": 0.3587,
+      "h": 0.0293,
+      "kind": "text",
+      "score": {
+        "overall": 0.36,
+        "structure": 0.4855,
+        "color": 0.1473,
+        "colorIntersection": 0.1036,
+        "paletteMatch": 0.1709,
+        "detail": 0.1365,
+        "detailRaw": 0.1885,
+        "detailAdded": 0.1042,
+        "bands": 0.6
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 306,
+          "h": 54
+        },
+        "build": {
+          "x": 9,
+          "y": 0,
+          "w": 297,
+          "h": 3
+        }
+      }
+    },
+    {
+      "id": "standing-3",
+      "x": 0.6999,
+      "y": 0.8357,
+      "w": 0.2603,
+      "h": 0.0325,
+      "kind": "text",
+      "score": {
+        "overall": 0.462,
+        "structure": 0.4479,
+        "color": 0.8221,
+        "colorIntersection": 0.6538,
+        "paletteMatch": 0.9128,
+        "detail": 0.0917,
+        "detailRaw": 0.2479,
+        "detailAdded": 0.3125,
+        "bands": 0.1879
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 5,
+          "w": 213,
+          "h": 47
+        },
+        "build": {
+          "x": 0,
+          "y": 17,
+          "w": 159,
+          "h": 43
+        }
+      }
+    },
+    {
+      "id": "row-rule-3",
+      "x": 0,
+      "y": 0.8,
+      "w": 1,
+      "h": 0.1,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.4737,
+        "structure": 0.4072,
+        "color": 0.7542,
+        "colorIntersection": 0.6026,
+        "paletteMatch": 0.8359,
+        "detail": 0.1516,
+        "detailRaw": 0.3443,
+        "detailAdded": 0.3854,
+        "bands": 0.6982
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 853,
+          "h": 185
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 853,
+          "h": 185
+        }
+      }
+    },
+    {
+      "id": "tabbar",
+      "x": 0,
+      "y": 0.8,
+      "w": 1,
+      "h": 0.2,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7203,
+        "structure": 0.6661,
+        "color": 0.7821,
+        "colorIntersection": 0.6026,
+        "paletteMatch": 0.8788,
+        "detail": 0.601,
+        "detailRaw": 0.6843,
+        "detailAdded": 0.1667,
+        "bands": 0.9429
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 853,
+          "h": 279
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 853,
+          "h": 269
+        }
+      }
+    },
+    {
+      "id": "insert-spacing",
+      "x": 0,
+      "y": 0.2,
+      "w": 0.4,
+      "h": 0.2,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.8057,
+        "structure": 0.8952,
+        "color": 0.8339,
+        "colorIntersection": 0.7095,
+        "paletteMatch": 0.9009,
+        "detail": 0.7505,
+        "detailRaw": 0.7817,
+        "detailAdded": 0.0625,
+        "bands": 0.6417
+      },
+      "verdict": "match",
+      "inkBox": {
+        "comp": {
+          "x": 42,
+          "y": 32,
+          "w": 299,
+          "h": 334
+        },
+        "build": {
+          "x": 41,
+          "y": 20,
+          "w": 300,
+          "h": 298
+        }
+      }
+    }
+  ],
+  "files": {
+    "sideBySide": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/side-by-side.png",
+    "heatmap": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/heatmap.png",
+    "regionFiles": [
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/status.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/masthead.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/masthead-rule.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/seasons-head.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/seasons-rule.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/league-photo.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/league-title-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/description-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/people-markers-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/people-names-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/footer-rule-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/phase-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/standing-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/row-rule-1.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/emblem-field-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/emblem-letter-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/league-title-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/description-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/people-markers-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/people-names-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/footer-rule-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/phase-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/standing-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/season-support.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/row-rule-2.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/emblem-field-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/emblem-letter-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/league-title-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/description-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/people-markers-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/people-names-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/footer-rule-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/phase-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/standing-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/row-rule-3.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/tabbar.png",
+      "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/diff/hero/regions/insert-spacing.png"
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "title": "Give each league an identity",
+  "question": "Compare the three Compete layouts. These are illustrative design studies; choose what should carry forward.",
+  "options": [
+    {
+      "id": "league-banner",
+      "label": "League banner",
+      "kicker": "THE ROLL",
+      "thesis": "A league’s photo or two-color emblem opens its own compact season panel.",
+      "palette": [
+        "#0F1A15",
+        "#F1F4EF",
+        "#8FA0BA",
+        "#B8C2CC",
+        "#D06275",
+        "#B9A96B"
+      ],
+      "materials": [
+        "League photograph",
+        "League emblem",
+        "Open records"
+      ],
+      "viewport": "A compact masthead, an image-bearing league, a league without a photo, and the beginning of the next.",
+      "risk": "The largest identity treatment; compare its height carefully against the other two.",
+      "comp": ".impeccable/mocks/decision/league-banner.png"
+    },
+    {
+      "id": "club-spread",
+      "label": "Club spread",
+      "thesis": "A photo or emblem sits alongside the name, with friends and the season underneath.",
+      "palette": [
+        "#0F1A15",
+        "#F1F4EF",
+        "#8FA0BA",
+        "#B8C2CC",
+        "#D06275",
+        "#B9A96B"
+      ],
+      "materials": [
+        "Photo inset",
+        "Condensed names",
+        "Full-width description"
+      ],
+      "viewport": "Two complete leagues and part of a third, with a consistent text measure beneath the identity.",
+      "risk": "A long name must reflow beside the inset without making the row feel crowded.",
+      "comp": ".impeccable/mocks/decision/club-spread.png"
+    },
+    {
+      "id": "club-index",
+      "label": "Club index",
+      "thesis": "A small identifying image anchors each league, leaving more room for people and a readable standing.",
+      "palette": [
+        "#0F1A15",
+        "#F1F4EF",
+        "#8FA0BA",
+        "#B8C2CC",
+        "#D06275",
+        "#B9A96B"
+      ],
+      "materials": [
+        "Small emblem",
+        "Colored identity rule",
+        "People strip"
+      ],
+      "viewport": "Three recognizable league entries with photos and photo-free marks sharing the same layout.",
+      "risk": "The most compact option; its identity mark has to carry enough character.",
+      "comp": ".impeccable/mocks/decision/club-index.png"
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "followup": true
+}
