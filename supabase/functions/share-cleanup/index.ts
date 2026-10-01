@@ -27,7 +27,13 @@
 // minted before the takedown (a signed URL is honoured on its signature, not through
 // RLS, so hiding the row is not enough), or removed outright when the move fails —
 // removal beats retention. _takedown_cleanup_report re-reads storage.objects before it
-// records `removed`, and backs off on failure. Kept evidence is deleted after 90 days.
+// records `removed`, and backs off on failure. Kept evidence is deleted after 90 days, or
+// at once when its golfer deletes their account (D396).
+// Only the taken-down object is ever moved or deleted: each row is CLAIMED for this run
+// (an overlapping run never gets it), the claim says whether the original is still
+// stored (nothing stored, nothing touched), and the path cannot be written by anyone
+// while the takedown is unresolved (storage policy), so the object at the path is the
+// taken-down one whenever this function acts on it.
 //
 // Auth: shared secret header (x-cleanup-secret); deploy with --no-verify-jwt (the push
 // function's pattern; pinned in supabase/config.toml since C-05). Secrets:
@@ -70,6 +76,7 @@ async function cleanOne(token: string): Promise<Outcome> {
 // stays in storage, so the report says `error` and the backoff brings it round again —
 // a partial run makes progress and never claims completion.
 const MEDIA = 'media';
+const HOLD = 'moderation-hold';   // D403 · the private bucket takedown evidence is moved into
 const MEDIA_PAGE = 100, MEDIA_DEPTH = 4, MEDIA_MAX = 5000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -140,6 +147,25 @@ async function cleanMedia(profile: string): Promise<MediaOutcome> {
   } catch (e) {
     error ??= 'League media unreachable: ' + (e instanceof Error ? e.message : String(e));
   }
+  // D403/D396: their copies held as takedown evidence go too. A missing function is an
+  // older database (nothing held yet); any other read error is reported, never ignored.
+  try {
+    const { data: held, error: heldError } = await sb.rpc('_held_media_cleanup_paths', { p_profile: profile });
+    if (heldError && !/could not find the function|pgrst202|schema cache/i.test(`${heldError.code ?? ''} ${heldError.message ?? ''}`)) {
+      error ??= 'Held media read: ' + heldError.message;
+    } else if (!heldError) {
+      const heldPaths = (held ?? []) as string[];
+      found += heldPaths.length;
+      for (let i = 0; i < heldPaths.length; i += MEDIA_PAGE) {
+        const batch = heldPaths.slice(i, i + MEDIA_PAGE);
+        const { data, error: e } = await sb.storage.from(HOLD).remove(batch);
+        if (e) { error ??= 'Held media Storage API: ' + e.message; continue; }
+        removed += Array.isArray(data) ? data.length : batch.length;
+      }
+    }
+  } catch (e) {
+    error ??= 'Held media unreachable: ' + (e instanceof Error ? e.message : String(e));
+  }
   // the server decides, from storage.objects, whether all owned photos are gone
   const { data, error: re } = await sb.rpc('_media_cleanup_report', { p_profile: profile, p_error: error });
   if (re) return { profile, status: 'report_failed', found, removed, error: re.message };
@@ -147,8 +173,8 @@ async function cleanMedia(profile: string): Promise<MediaOutcome> {
 }
 
 // ---- D403 · a taken-down photo's file ---------------------------------------------------
-const HOLD = 'moderation-hold';
-type TakedownRow = { id: string; phase: 'remove' | 'purge'; bucket: string; path: string; hold_path: string | null };
+type TakedownRow = { id: string; claim: string; phase: 'remove' | 'purge'; bucket: string; path: string;
+                     hold_path: string | null; present: boolean; keep: boolean };
 type TakedownOutcome = { id: string; phase: string; status: string; error?: string };
 
 async function takeDown(row: TakedownRow): Promise<TakedownOutcome> {
@@ -157,16 +183,21 @@ async function takeDown(row: TakedownRow): Promise<TakedownOutcome> {
     if (row.phase === 'remove') {
       // only the bucket this queue was built for; the path comes from the definer's queue
       if (row.bucket !== 'media' || !row.path || row.path.includes('..')) throw new Error('not a media path');
-      let moved = false;
-      if (row.hold_path) {
-        const { error: me } = await sb.storage.from(row.bucket).move(row.path, row.hold_path, { destinationBucket: HOLD });
-        if (me) error = `move to ${HOLD}: ${me.message}`;
-        else moved = true;
-      }
-      if (!moved) {
-        // removal beats retention: the published file goes even if the evidence cannot be kept
-        const { error: re } = await sb.storage.from(row.bucket).remove([row.path]);
-        if (re) error = `${error ? error + '; ' : ''}remove: ${re.message}`;
+      // nothing of the taken-down version is stored (moved by an earlier run whose report
+      // did not land, or removed with the account): touch nothing at that path
+      if (row.present) {
+        let moved = false;
+        if (row.keep && row.hold_path) {
+          const { error: me } = await sb.storage.from(row.bucket).move(row.path, row.hold_path, { destinationBucket: HOLD });
+          if (me) error = `move to ${HOLD}: ${me.message}`;
+          else moved = true;
+        }
+        if (!moved) {
+          // removal beats retention: the published file goes even if the evidence cannot be
+          // kept (or may not be, once its golfer deleted their account)
+          const { error: re } = await sb.storage.from(row.bucket).remove([row.path]);
+          if (re) error = `${error ? error + '; ' : ''}remove: ${re.message}`;
+        }
       }
     } else {
       if (!row.hold_path) throw new Error('nothing kept to purge');
@@ -176,8 +207,8 @@ async function takeDown(row: TakedownRow): Promise<TakedownOutcome> {
   } catch (e) {
     error = `Storage API unreachable: ${e instanceof Error ? e.message : String(e)}`;
   }
-  // the server decides, from storage.objects, whether the file is gone
-  const { data, error: re } = await sb.rpc('_takedown_cleanup_report', { p_id: row.id, p_phase: row.phase, p_error: error });
+  // the server decides, from storage.objects, whether the file is gone — and only for this claim
+  const { data, error: re } = await sb.rpc('_takedown_cleanup_report', { p_id: row.id, p_claim: row.claim, p_phase: row.phase, p_error: error });
   if (re) return { id: row.id, phase: row.phase, status: 'report_failed', error: re.message };
   return { id: row.id, phase: row.phase, status: String(data), ...(error ? { error } : {}) };
 }
@@ -232,7 +263,8 @@ Deno.serve(async (req) => {
     processed: takedowns.length,
     removed: takedowns.filter((t) => t.status === 'removed').length,
     purged: takedowns.filter((t) => t.status === 'purged').length,
-    failed: takedowns.filter((t) => t.status !== 'removed' && t.status !== 'purged').length,
+    stale: takedowns.filter((t) => t.status === 'stale').length,
+    failed: takedowns.filter((t) => !['removed', 'purged', 'stale'].includes(t.status)).length,
     ...(te ? { error: 'queue_unreadable', detail: te.message } : {}),
     ...(notYet ? { skipped: 'takedown queue not deployed' } : {}),
   };

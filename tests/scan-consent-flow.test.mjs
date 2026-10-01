@@ -20,67 +20,89 @@ const between = (a, b) => {
   return source.slice(i, j);
 };
 const consentCode = between('const CS_SCAN_CONSENT = {', '/* D376 ');
-const runCode = between('async function csRunScan(f){', 'function scanPickRow(scan){');
+const runCode = between('async function csRunScan(f){', 'function scanPickRow(scan');
 
 const settle = async () => { for (let i = 0; i < 30; i++) await new Promise(r => setImmediate(r)); };
 
 /* One server, shared by every tab and device. consent: uid → bool. */
 function makeServer({consent = {}, readFails = false} = {}) {
-  return {consent: {...consent}, readFails, writes: [], scanCalls: 0, providerCalls: 0};
+  return {consent: {...consent}, readFails, writes: [], scanCalls: 0, providerCalls: 0, sentAs: []};
 }
 
-/* One signed-in tab. Its profile is whatever the server held when it loaded. */
-function tab(server, uid, {deviceFlag = false, writeGate = null} = {}) {
-  const store = deviceFlag ? {cs_scan_consent: '1'} : {};
+/* a token for a golfer: an unsigned JWT whose `sub` is theirs (the page reads only `sub`) */
+const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+const tokenFor = (uid) => uid ? `${b64u({ alg: 'none' })}.${b64u({ sub: uid })}.x` : null;
+const subOf = (h) => { try { return JSON.parse(Buffer.from(String(h).replace(/^Bearer /, '').split('.')[1], 'base64url')).sub; } catch { return null; } };
+const deferred = () => { let resolve; const promise = new Promise((r) => { resolve = r; }); return { promise, resolve }; };
+
+/* One signed-in tab. Its profile is whatever the server held when it loaded. `gates`
+   hold a step open (compress, encode, invoke, json) so the account can change mid-way. */
+function tab(server, uid, { deviceFlag = false, writeGate = null, gates = {} } = {}) {
+  const store = deviceFlag ? { cs_scan_consent: '1' } : {};
   const toasts = [], sheets = [], picked = [];
   let buttons = {};
-  const CS = {user: {id: uid}, profile: {id: uid, scan_consent_at: server.consent[uid] ? '2026-09-30T12:00:00Z' : null}};
+  const CS = { user: { id: uid }, profile: { id: uid, scan_consent_at: server.consent[uid] ? '2026-09-30T12:00:00Z' : null } };
+  const win = { CS, csAuthGen: 1 };
+  let sessionUid = uid;                                // the client's token: can change before CS.user does
   const sb = {
+    auth: { getSession: async () => ({ data: { session: sessionUid ? { access_token: tokenFor(sessionUid) } : null } }) },
     rpc: async (name, args) => {
       assert.equal(name, 'set_scan_consent');
-      const who = CS.user?.id;                       // the JWT at the moment of the call
+      const who = sessionUid;                          // the JWT at the moment of the call
       if (writeGate) await writeGate.promise;
-      server.writes.push({uid: who, on: args.p_on});
-      if (writeGate?.fail) return {error: {message: 'network'}};
+      server.writes.push({ uid: who, on: args.p_on });
+      if (writeGate?.fail) return { error: { message: 'network' } };
       server.consent[who] = args.p_on;
-      return {data: args.p_on};
+      return { data: args.p_on };
     },
-    functions: {invoke: async name => {
+    functions: { invoke: async (name, opts) => {
       assert.equal(name, 'scan');
+      const who = opts?.headers?.Authorization ? subOf(opts.headers.Authorization) : sessionUid;
       server.scanCalls++;
-      const who = CS.user?.id;
+      server.sentAs.push(who);
+      if (gates.invoke) await gates.invoke.promise;
       if (server.readFails || !server.consent[who]) {
-        return {error: {context: {json: async () => ({unavailable: true, reason: 'no_consent'})}}};
+        return { error: { context: { json: async () => { if (gates.json) await gates.json.promise; return { unavailable: true, reason: 'no_consent' }; } } } };
       }
       server.providerCalls++;
-      return {data: {ok: true, scan: {players: [{name: 'Me', holes: Array(18).fill(4)}], par_row: Array(18).fill(4)}}};
-    }},
+      return { data: { ok: true, scan: { players: [{ name: 'Me', holes: Array(18).fill(4) }], par_row: Array(18).fill(4) } } };
+    } },
   };
-  const btn = {innerHTML: 'Scan', disabled: false, textContent: ''};
+  win.sb = sb;
+  const btn = { innerHTML: 'Scan', disabled: false, textContent: '' };
   const context = vm.createContext({
-    window: {CS, sb}, state: {demo: false}, console,
-    localStorage: {getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; }},
-    toast: t => toasts.push(t), esc: s => String(s),
-    openSheet: title => { sheets.push(title); buttons = {}; },
+    window: win, state: { demo: false }, console, atob: (x) => Buffer.from(x, 'base64').toString('binary'),
+    localStorage: { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } },
+    toast: (t) => toasts.push(t), esc: (x) => String(x),
+    openSheet: (title) => { sheets.push(title); buttons = {}; },
     closeSheet: () => {},
-    document: {getElementById: id => {
+    document: { getElementById: (id) => {
       if (id !== 'scnYes' && id !== 'scnNo') return null;
-      return {addEventListener: (_, fn) => { buttons[id] = fn; }};
-    }},
-    $: sel => sel === '#postScanBtn' ? btn : null,
-    compressPhoto: async b => b, b64ofBlob: async () => 'AAAA',
-    refreshPostPhotoUI: () => {}, scanPickRow: scan => picked.push(scan),
+      return { addEventListener: (_, fn) => { buttons[id] = fn; } };
+    } },
+    $: (sel) => sel === '#postScanBtn' ? btn : null,
+    compressPhoto: async (b) => { if (gates.compress) await gates.compress.promise; return b; },
+    b64ofBlob: async () => { if (gates.encode) await gates.encode.promise; return 'AAAA'; },
+    refreshPostPhotoUI: () => {}, scanPickRow: (scan, stale) => picked.push({ scan, stale }),
   });
   vm.runInContext(consentCode + runCode, context);
   return {
-    CS, store, toasts, sheets, picked,
+    CS, store, toasts, sheets, picked, win,
     consented: () => context.csScanConsented(),
-    setConsent: on => context.csSetScanConsent(on),
-    scan: () => context.csRunScan({name: 'card.jpg'}),
+    setConsent: (on) => context.csSetScanConsent(on),
+    scan: () => context.csRunScan({ name: 'card.jpg' }),
     /* the composer's scan button: ask first unless the page believes it holds a yes */
-    tapScan: async () => { if (context.csScanConsented()) await context.csRunScan({name: 'card.jpg'}); else context.csAskScanConsent(() => context.csRunScan({name: 'card.jpg'})); },
+    tapScan: async () => { if (context.csScanConsented()) await context.csRunScan({ name: 'card.jpg' }); else context.csAskScanConsent(() => context.csRunScan({ name: 'card.jpg' })); },
     tapYes: async () => { assert.ok(buttons.scnYes, 'the consent sheet is open'); buttons.scnYes(); await settle(); },
     tapNo: async () => { assert.ok(buttons.scnNo, 'the consent sheet is open'); buttons.scnNo(); await settle(); },
+    /* what the auth handler does when another tab signs in as someone else: the token
+       changes at once and the generation moves; CS.user follows at the next boot */
+    otherTabSignsIn: (next, { bumpGen = true, boot = true } = {}) => {
+      sessionUid = next;
+      if (bumpGen) win.csAuthGen++;
+      if (boot) { CS.user = { id: next }; CS.profile = { id: next, scan_consent_at: server.consent[next] ? 'x' : null }; }
+    },
+    signOut: () => { sessionUid = null; win.csAuthGen++; CS.user = null; CS.profile = null; },
   };
 }
 
@@ -173,7 +195,7 @@ test('account switch: a yes tapped for one golfer is never used for the next', a
   const t = tab(server, A, {writeGate: gate});
   await t.tapScan();
   t.tapYes();                                        // A taps yes; the write is still in flight
-  t.CS.user = {id: B}; t.CS.profile = {id: B, scan_consent_at: null};   // signed out, B signs in
+  t.otherTabSignsIn(B);                              // signed out, B signs in
   assert.equal(t.consented(), false, "A's yes does not count for B");
   release(); await settle();                         // A's own scan stops: the account changed
   assert.equal(server.providerCalls, 0);
@@ -191,4 +213,107 @@ test('Settings off clears a fresh yes and a stale profile yes alike', async () =
   assert.equal(b.consented(), false);
   await b.tapScan();
   assert.equal(server.scanCalls, 0);
+});
+
+// ---- D403 (review of 0e463792) · an attempt is bound to its golfer end to end ----------
+const B_CONSENTS = () => makeServer({ consent: { [A]: true, [B]: true } });
+for (const [step, gateName] of [['compression', 'compress'], ['encoding', 'encode']]) {
+  test(`an account switch during ${step} sends nothing under the new account and applies nothing`, async () => {
+    const server = B_CONSENTS();
+    const g = deferred();
+    const t = tab(server, A, { gates: { [gateName]: g } });
+    const run = t.scan();
+    await settle();
+    t.otherTabSignsIn(B);
+    g.resolve(); await run; await settle();
+    assert.equal(server.scanCalls, 0, "A's photo was sent after the switch");
+    assert.equal(t.picked.length, 0);
+    assert.equal(t.sheets.length, 0);
+  });
+}
+
+test('sign-out during compression: nothing is sent', async () => {
+  const server = B_CONSENTS();
+  const g = deferred();
+  const t = tab(server, A, { gates: { compress: g } });
+  const run = t.scan(); await settle();
+  t.signOut();
+  g.resolve(); await run;
+  assert.equal(server.scanCalls, 0);
+});
+
+test("another tab's sign-in that has not reached this page yet: the photo never rides the new token", async () => {
+  const server = B_CONSENTS();
+  const g = deferred();
+  const t = tab(server, A, { gates: { encode: g } });
+  const run = t.scan(); await settle();
+  t.otherTabSignsIn(B, { bumpGen: false, boot: false });   // the token is B's; nothing else moved yet
+  g.resolve(); await run; await settle();
+  assert.deepEqual(server.sentAs, [], "A's photo went out on B's token");
+});
+
+test('an account switch during the Edge request: the result is discarded, no photo attached', async () => {
+  const server = B_CONSENTS();
+  const g = deferred();
+  const t = tab(server, A, { gates: { invoke: g } });
+  const run = t.scan(); await settle();
+  assert.deepEqual(server.sentAs, [A], 'sent under the golfer who started it');
+  t.otherTabSignsIn(B);
+  g.resolve(); await run; await settle();
+  assert.equal(t.picked.length, 0, "A's card was applied for B");
+  assert.equal(t.win._scanShot, undefined, "A's photo was attached for B");
+});
+
+test('sign-out during the Edge request: nothing applied, no toast', async () => {
+  const server = B_CONSENTS();
+  const g = deferred();
+  const t = tab(server, A, { gates: { invoke: g } });
+  const run = t.scan(); await settle();
+  t.signOut();
+  g.resolve(); await run; await settle();
+  assert.equal(t.picked.length, 0);
+  assert.equal(t.toasts.length, 0);
+});
+
+test("a stale consent refusal never changes the new account's consent or opens a sheet for it", async () => {
+  const server = makeServer({ consent: { [B]: true } });   // A has no yes; B does
+  const g = deferred();
+  const t = tab(server, A, { gates: { json: g } });
+  const run = t.scan(); await settle();
+  t.otherTabSignsIn(B);
+  g.resolve(); await run; await settle();
+  assert.equal(t.sheets.length, 0, 'a consent sheet opened for B on A\'s refusal');
+  assert.equal(t.CS.profile.scan_consent_at, 'x', "B's believed yes was cleared by A's refusal");
+  assert.equal(server.writes.length, 0);
+  assert.equal(server.consent[B], true);
+});
+
+test('a consent sheet asked for A writes nothing if B is signed in when it is tapped', async () => {
+  const server = makeServer({ consent: { [B]: false } });
+  const t = tab(server, A);
+  await t.scan();                                      // refused for A → asked for A
+  assert.deepEqual(t.sheets, ['Scan with Claude?']);
+  t.otherTabSignsIn(B);
+  await t.tapYes();
+  assert.equal(server.writes.length, 0, 'a yes was written for B from A\'s sheet');
+  assert.equal(server.scanCalls, 1);
+});
+
+test("the row picker: a pick after the account changed is recognised as stale", async () => {
+  const server = B_CONSENTS();
+  const t = tab(server, A);
+  await t.scan();
+  assert.equal(t.picked.length, 1);
+  assert.equal(t.picked[0].stale(), false);
+  t.otherTabSignsIn(B);
+  assert.equal(t.picked[0].stale(), true);
+});
+
+test('normal scanning still works, sent on the golfer\'s own token', async () => {
+  const server = makeServer({ consent: { [A]: true } });
+  const t = tab(server, A);
+  await t.scan();
+  assert.deepEqual(server.sentAs, [A]);
+  assert.equal(t.picked.length, 1);
+  assert.equal(server.providerCalls, 1);
 });

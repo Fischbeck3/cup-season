@@ -274,30 +274,73 @@ begin
   end if;
 end $$;
 
--- 4b · the FILE: queued for removal, confirmed only from storage.objects, retried with
--- backoff, and a new photo at the same path is a new photo (never blocked forever)
-do $$
-declare t media_takedowns; v text;
+create temp table qa_due (id uuid primary key, claim uuid, phase text, present boolean, keep boolean);
+-- a worker's view of one row: every due row is claimed by a call (as a worker would claim
+-- its batch), so each call's answers are kept and the row's live claim is looked up
+create function pg_temp.due_row(p uuid) returns qa_due language plpgsql as $f$
+declare r qa_due;
 begin
-  if (select count(*) from media_takedowns where status = 'pending') <> 2 then
-    raise exception 'takedown: both files were not queued for removal';
+  insert into qa_due select x.id, x.claim, x.phase, x.present, x.keep from _takedown_cleanup_due(100) x
+  on conflict (id) do update set claim = excluded.claim, phase = excluded.phase,
+                                 present = excluded.present, keep = excluded.keep;
+  select q.* into r from qa_due q join media_takedowns t on t.id = q.id and t.claim = q.claim where q.id = p;
+  return r;
+end $f$;
+-- a lease that ran out (the worker died): the next call may claim the row again
+create function pg_temp.expire(p uuid) returns void language sql as $f$
+  update media_takedowns set claimed_until = now() - interval '1 second' where id = p
+$f$;
+
+-- 4b · the FILE: queued for removal, CLAIMED by one worker at a time, confirmed only from
+-- storage.objects, retried with backoff — and only the taken-down object is ever in reach
+-- (the path is locked to writes until it is confirmed gone and the grace has run)
+-- the path is locked while the takedown is unresolved: the owner cannot put a replacement
+-- where a worker is about to act (insert, or an upsert's update)
+set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f002');
+select pg_temp.refused($q$insert into storage.objects (bucket_id, name) values ('media','00000000-0000-4000-8000-00000000f002/avatar.jpg')$q$, 'row-level security');
+do $$ declare n int; begin
+  -- an update (an upsert's second half) reaches no row at a locked path
+  with u as (update storage.objects set metadata = '{"x":1}' where bucket_id = 'media'
+               and name = '00000000-0000-4000-8000-00000000f002/round1.jpg' returning 1)
+  select count(*) into n from u;
+  if n <> 0 then raise exception 'takedown: a locked path was updated'; end if;
+end $$;
+-- (an untouched path is not locked)
+insert into storage.objects (bucket_id, name) values ('media', '00000000-0000-4000-8000-00000000f002/other.jpg');
+reset role;
+do $$
+declare t media_takedowns; d qa_due; v text;
+begin
+  if (select count(*) from media_takedowns where status = 'pending'
+        and owner_profile = '00000000-0000-4000-8000-00000000f002' and keep_evidence) <> 2 then
+    raise exception 'takedown: both files were not queued for removal under their owner';
   end if;
   select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f002/round1.jpg';
   if t.hold_path <> t.id::text || '/' || t.path then raise exception 'takedown: hold path %', t.hold_path; end if;
-  -- the worker's due list carries it
-  if not exists (select 1 from _takedown_cleanup_due(20) d where d.id = t.id and d.phase = 'remove') then
-    raise exception 'takedown: the file is not due for removal';
-  end if;
+  -- a worker claims it, and is told the taken-down original is still stored
+  d := pg_temp.due_row(t.id);
+  if d.claim is null or d.phase <> 'remove' or not d.present or not d.keep then raise exception 'takedown: claim %', row_to_json(d); end if;
+  -- an overlapping run gets nothing for a claimed row
+  if exists (select 1 from _takedown_cleanup_due(20) x where x.id = t.id) then raise exception 'takedown: a claimed row was handed to a second worker'; end if;
+  -- a report without the claim changes nothing
+  if _takedown_cleanup_report(t.id, gen_random_uuid(), 'remove', null) <> 'stale' then raise exception 'takedown: a stale report was accepted'; end if;
   -- a report while the file is still stored is an error with backoff, never "removed"
-  v := _takedown_cleanup_report(t.id, 'remove', null);
+  v := _takedown_cleanup_report(t.id, d.claim, 'remove', null);
   if v <> 'error' then raise exception 'takedown: reported % while the file was still stored', v; end if;
   select * into t from media_takedowns where id = t.id;
-  if t.status <> 'error' or t.next_try <= now() or t.last_error is null then raise exception 'takedown: no backoff %', row_to_json(t); end if;
-  if exists (select 1 from _takedown_cleanup_due(20) d where d.id = t.id) then raise exception 'takedown: retried before its backoff'; end if;
+  if t.status <> 'error' or t.next_try <= now() or t.last_error is null or t.claim is not null then raise exception 'takedown: no backoff %', row_to_json(t); end if;
+  if exists (select 1 from _takedown_cleanup_due(20) x where x.id = t.id) then raise exception 'takedown: retried before its backoff'; end if;
+  -- an abandoned claim (a worker that died) is reclaimable once its lease runs out, not before
+  update media_takedowns set next_try = now(), claim = gen_random_uuid(), claimed_until = now() + interval '1 minute' where id = t.id;
+  if exists (select 1 from _takedown_cleanup_due(20) x where x.id = t.id) then raise exception 'takedown: a live lease was taken over'; end if;
+  perform pg_temp.expire(t.id);
+  d := pg_temp.due_row(t.id);
+  if d.claim is null then raise exception 'takedown: an expired lease was never reclaimed'; end if;
   -- the Storage API moves it into the hold (simulated here as the API's own effect)
-  update storage.objects set bucket_id = 'moderation-hold', name = t.hold_path
-   where bucket_id = 'media' and name = t.path;
-  v := _takedown_cleanup_report(t.id, 'remove', null);
+  update storage.objects set bucket_id = 'moderation-hold', name = t.hold_path where bucket_id = 'media' and name = t.path;
+  -- the retry after a report that never landed: nothing stored, so a worker touches nothing
+  v := _takedown_cleanup_report(t.id, d.claim, 'remove', null);
   if v <> 'removed' then raise exception 'takedown: reported % after the move', v; end if;
   select * into t from media_takedowns where id = t.id;
   if t.removed_at is null or t.hold_path is null or t.purge_after < now() + interval '89 days' then
@@ -305,8 +348,9 @@ begin
   end if;
   -- a removal that could not keep the evidence says so
   select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f002/avatar.jpg';
+  d := pg_temp.due_row(t.id);
   delete from storage.objects where bucket_id = 'media' and name = t.path;
-  v := _takedown_cleanup_report(t.id, 'remove', 'move to moderation-hold: not supported');
+  v := _takedown_cleanup_report(t.id, d.claim, 'remove', 'move to moderation-hold: not supported');
   select * into t from media_takedowns where id = t.id;
   if v <> 'removed' or t.hold_path is not null or t.last_error not like 'evidence not kept%' then
     raise exception 'takedown: an unkept removal was not recorded honestly %', row_to_json(t);
@@ -314,18 +358,25 @@ begin
   -- purge: due once purge_after passes, and confirmed from the hold
   update media_takedowns set purge_after = now() - interval '1 minute' where path = '00000000-0000-4000-8000-00000000f002/round1.jpg';
   select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f002/round1.jpg';
-  if not exists (select 1 from _takedown_cleanup_due(20) d where d.id = t.id and d.phase = 'purge') then
-    raise exception 'takedown: kept evidence never comes due for purge';
-  end if;
-  if _takedown_cleanup_report(t.id, 'purge', null) <> 'error' then raise exception 'takedown: purge claimed while kept'; end if;
+  d := pg_temp.due_row(t.id);
+  if d.claim is null or d.phase <> 'purge' then raise exception 'takedown: kept evidence never comes due for purge'; end if;
+  if _takedown_cleanup_report(t.id, d.claim, 'purge', null) <> 'error' then raise exception 'takedown: purge claimed while kept'; end if;
   delete from storage.objects where bucket_id = 'moderation-hold' and name = t.hold_path;
   update media_takedowns set next_try = now() where id = t.id;
-  if _takedown_cleanup_report(t.id, 'purge', null) <> 'purged' then raise exception 'takedown: purge not confirmed'; end if;
-  -- a NEW avatar written at the same path after the takedown is readable again
-  insert into storage.objects (bucket_id, name, created_at, updated_at)
-  values ('media', '00000000-0000-4000-8000-00000000f002/avatar.jpg', now() + interval '1 second', now() + interval '1 second');
+  d := pg_temp.due_row(t.id);
+  if _takedown_cleanup_report(t.id, d.claim, 'purge', null) <> 'purged' then raise exception 'takedown: purge not confirmed'; end if;
 end $$;
+-- inside the grace after a confirmed removal the path stays locked (a stalled worker
+-- could still wake); once the grace has run, a new avatar is the golfer's again
 set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f002');
+select pg_temp.refused($q$insert into storage.objects (bucket_id, name) values ('media','00000000-0000-4000-8000-00000000f002/avatar.jpg')$q$, 'row-level security');
+reset role;
+update media_takedowns set removed_at = now() - interval '11 minutes' where path = '00000000-0000-4000-8000-00000000f002/avatar.jpg';
+set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f002');
+insert into storage.objects (bucket_id, name, created_at, updated_at)
+values ('media', '00000000-0000-4000-8000-00000000f002/avatar.jpg', now() + interval '1 second', now() + interval '1 second');
 select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f003');
 do $$ begin
   if not exists (select 1 from storage.objects where bucket_id = 'media' and name = '00000000-0000-4000-8000-00000000f002/avatar.jpg') then
@@ -338,9 +389,141 @@ do $$ begin
 end $$;
 select pg_temp.refused($q$insert into storage.objects (bucket_id, name) values ('moderation-hold', 'x/y.jpg')$q$, 'row-level security');
 reset role;
-do $$ begin
+do $$
+declare d record;
+begin
   if not exists (select 1 from storage.buckets where id = 'moderation-hold' and not public) then
     raise exception 'takedown: the evidence bucket is missing or public';
+  end if;
+  -- the new avatar is not the taken-down one: no worker is ever handed it
+  if exists (select 1 from _takedown_cleanup_due(20) x where x.path = '00000000-0000-4000-8000-00000000f002/avatar.jpg' and x.present) then
+    raise exception 'takedown: a replacement was offered to a worker as the taken-down object';
+  end if;
+end $$;
+
+-- 4c · account deletion reaches the held copies (D396) — after quarantine, while a takedown
+-- is pending, and while one is in a worker's hands — and leaves other golfers' evidence alone
+insert into auth.users (id, email) values ('00000000-0000-4000-8000-00000000f005', 'delta.asr@example.invalid');
+update profiles set display_name = 'QA Delta', handle = 'qa_delta', marker = 'dunes',
+       photo_path = '00000000-0000-4000-8000-00000000f005/avatar.jpg'
+ where id = '00000000-0000-4000-8000-00000000f005';
+insert into league_members (id, league_id, profile_id, role) values
+ ('00000000-0000-4000-8000-00000000d005', '00000000-0000-4000-8000-00000000e001', '00000000-0000-4000-8000-00000000f005', 'player');
+insert into rounds (id, profile_id, course_label, gross, rating, slope, index_at_post, played_on, photo_path) values
+ ('00000000-0000-4000-8000-00000000c005', '00000000-0000-4000-8000-00000000f005', 'QA Links', 88, 70.2, 119, 15.0,
+  current_date - 1, '00000000-0000-4000-8000-00000000f005/round5.jpg'),
+ ('00000000-0000-4000-8000-00000000c006', '00000000-0000-4000-8000-00000000f005', 'QA Links', 90, 70.2, 119, 15.0,
+  current_date - 2, '00000000-0000-4000-8000-00000000f005/round6.jpg');
+insert into storage.objects (bucket_id, name) values
+ ('media', '00000000-0000-4000-8000-00000000f005/avatar.jpg'),
+ ('media', '00000000-0000-4000-8000-00000000f005/round5.jpg'),
+ ('media', '00000000-0000-4000-8000-00000000f005/round6.jpg');
+set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f001');
+select takedown_photo('profile_photo', '00000000-0000-4000-8000-00000000f005', 'QA: deletion after quarantine');
+select takedown_photo('round_photo', '00000000-0000-4000-8000-00000000c005', 'QA: deletion while pending');
+select takedown_photo('round_photo', '00000000-0000-4000-8000-00000000c006', 'QA: deletion while in flight');
+reset role;
+create temp table qa_inflight (claim uuid);
+do $$
+declare t media_takedowns; d qa_due;
+begin
+  -- (1) the avatar is quarantined before the deletion
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f005/avatar.jpg';
+  d := pg_temp.due_row(t.id);
+  update storage.objects set bucket_id = 'moderation-hold', name = t.hold_path where bucket_id = 'media' and name = t.path;
+  if _takedown_cleanup_report(t.id, d.claim, 'remove', null) <> 'removed' then raise exception 'deletion: setup move'; end if;
+  -- (3) round6 is in a worker's hands when the deletion lands
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f005/round6.jpg';
+  d := pg_temp.due_row(t.id);
+  if d.claim is null or not d.keep then raise exception 'deletion: setup claim'; end if;
+  insert into qa_inflight values (d.claim);
+end $$;
+-- the golfer deletes their account (the real RPC, as the golfer)
+set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f005');
+select delete_account();
+reset role;
+-- production refuses delete_account's direct `delete from storage.objects` (D303: the
+-- platform allows Storage API deletion only, and the function swallows the refusal), so
+-- the objects are still stored after the call; this bare cluster let it through
+insert into storage.objects (bucket_id, name, created_at, updated_at)
+select 'media', n, now() - interval '1 hour', now() - interval '1 hour'
+  from unnest(array['00000000-0000-4000-8000-00000000f005/round5.jpg',
+                    '00000000-0000-4000-8000-00000000f005/round6.jpg']) n
+ where not exists (select 1 from storage.objects o where o.bucket_id = 'media' and o.name = n);
+do $$
+declare t media_takedowns; d qa_due; v_claim uuid := (select claim from qa_inflight);
+begin
+  if exists (select 1 from media_takedowns where owner_profile = '00000000-0000-4000-8000-00000000f005' and keep_evidence) then
+    raise exception 'deletion: evidence is still marked keepable for a deleted account';
+  end if;
+  if not exists (select 1 from media_takedowns where owner_profile = '00000000-0000-4000-8000-00000000f002' and keep_evidence) then
+    raise exception 'deletion: another golfer''s evidence lost its keep';
+  end if;
+  -- the account worker is told to remove the held avatar
+  if not exists (select 1 from _held_media_cleanup_paths('00000000-0000-4000-8000-00000000f005')) then
+    raise exception 'deletion: the held avatar is not in the account worker''s list';
+  end if;
+  if exists (select 1 from _held_media_cleanup_paths('00000000-0000-4000-8000-00000000f005') p
+              where p like '%00000000-0000-4000-8000-00000000f002%') then
+    raise exception 'deletion: another golfer''s held copy is in the deleted account''s list';
+  end if;
+  -- the account worker removes their media and the held copy (simulated Storage API effect)
+  delete from storage.objects where bucket_id = 'media' and name like '00000000-0000-4000-8000-00000000f005/%'
+     and name <> '00000000-0000-4000-8000-00000000f005/round6.jpg';   -- (round6 is mid-move in another worker)
+  delete from storage.objects where bucket_id = 'moderation-hold'
+     and name in (select hold_path from media_takedowns where owner_profile = '00000000-0000-4000-8000-00000000f005');
+  -- not complete while a takedown of theirs is in a worker's hands
+  if _media_cleanup_report('00000000-0000-4000-8000-00000000f005', null) <> 'error' then
+    raise exception 'deletion: completed while a move was in flight';
+  end if;
+  -- the in-flight worker's move lands in the hold after all, and its report goes in
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f005/round6.jpg';
+  update storage.objects set bucket_id = 'moderation-hold', name = t.hold_path where bucket_id = 'media' and name = t.path;
+  if _takedown_cleanup_report(t.id, v_claim, 'remove', null) <> 'removed' then raise exception 'deletion: in-flight report'; end if;
+  select * into t from media_takedowns where id = t.id;
+  if t.hold_path is null or t.purge_after > now() then raise exception 'deletion: the late copy is not due for purge at once %', row_to_json(t); end if;
+  -- still not complete: the late copy is held
+  update account_media_cleanup set next_attempt_at = now() where profile_id = '00000000-0000-4000-8000-00000000f005';
+  if _media_cleanup_report('00000000-0000-4000-8000-00000000f005', null) <> 'error' then
+    raise exception 'deletion: completed with a held copy left';
+  end if;
+  -- (2) the pending round5 takedown: its original went with the account media — the worker
+  -- is told nothing is stored and keeps nothing
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f005/round5.jpg';
+  perform pg_temp.expire(t.id);       -- its first claim (before the deletion) ran out
+  d := pg_temp.due_row(t.id);
+  if d.claim is null or d.present or d.keep then raise exception 'deletion: a pending takedown would still move or keep %', row_to_json(d); end if;
+  if _takedown_cleanup_report(t.id, d.claim, 'remove', null) <> 'removed' then raise exception 'deletion: pending report'; end if;
+  if (select hold_path from media_takedowns where id = t.id) is not null then raise exception 'deletion: evidence recorded for a deleted account'; end if;
+  -- the late held copy goes on the account worker's next pass; then, and only then, complete
+  if not exists (select 1 from _held_media_cleanup_paths('00000000-0000-4000-8000-00000000f005')) then
+    raise exception 'deletion: the late held copy is not in the account worker''s list';
+  end if;
+  delete from storage.objects where bucket_id = 'moderation-hold'
+     and name in (select hold_path from media_takedowns where owner_profile = '00000000-0000-4000-8000-00000000f005');
+  -- the takedown worker that claimed the late copy's purge finds it gone and says so
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f005/round6.jpg';
+  d := pg_temp.due_row(t.id);
+  if d.claim is null or d.phase <> 'purge' then raise exception 'deletion: the late copy was never due for purge %', row_to_json(d); end if;
+  if _media_cleanup_report('00000000-0000-4000-8000-00000000f005', null) <> 'error' then
+    raise exception 'deletion: completed while its purge was in a worker''s hands';
+  end if;
+  if _takedown_cleanup_report(t.id, d.claim, 'purge', null) <> 'purged' then raise exception 'deletion: purge report'; end if;
+  -- (and so does every other purge of theirs that a worker claimed: the avatar's)
+  for t in select * from media_takedowns where owner_profile = '00000000-0000-4000-8000-00000000f005'
+                                           and claimed_until > now() loop
+    if _takedown_cleanup_report(t.id, t.claim, 'purge', null) <> 'purged' then raise exception 'deletion: purge of %', t.path; end if;
+  end loop;
+  if _media_cleanup_report('00000000-0000-4000-8000-00000000f005', null) <> 'completed' then
+    raise exception 'deletion: not completed once nothing of theirs is stored';
+  end if;
+  -- the other golfer's kept evidence is untouched (round1 was purged on its own clock above;
+  -- a fresh one proves the rule)
+  if exists (select 1 from media_takedowns where owner_profile = '00000000-0000-4000-8000-00000000f002'
+              and not keep_evidence) then
+    raise exception 'deletion: another golfer''s evidence was marked for removal';
   end if;
 end $$;
 
@@ -507,7 +690,8 @@ begin
   end loop;
   foreach f in array array['public.cs_text_refused(text,boolean)', 'public._cs_text_guard()', 'public._cs_fold(text)',
                            'public._live_stake_ceiling()', 'public.cs_text_refusal()',
-                           'public._takedown_cleanup_due(integer)', 'public._takedown_cleanup_report(uuid,text,text)'] loop
+                           'public._takedown_cleanup_due(integer)', 'public._takedown_cleanup_report(uuid,uuid,text,text)',
+                           'public._held_media_cleanup_paths(uuid)', 'public._account_cleanup_drops_evidence()'] loop
     if has_function_privilege('authenticated', f, 'execute') or has_function_privilege('anon', f, 'execute') then
       raise exception 'grant: % is executable by a client role', f;
     end if;

@@ -45,8 +45,10 @@ const shell = () => { const r = join(homedir(), 'Library', 'Caches', 'ms-playwri
    kept on a closed account's internal number; and the terms' filter, takedown
    and removal sentence. Re-pinned again the same day (D403 as amended) for one
    sentence: a taken-down photo is kept privately for 90 days as the record, then
-   deleted. NOT reviewed by counsel (D402). */
-const TEXT_SHA = '0236be646c29dd5b48650d5a694bbb45526fe1d0d423518d9c9e398001fb84c5'
+   deleted. Re-pinned a third time (review of 0e463792) for that sentence's correction:
+   "for up to 90 days" (the owner confirms the duration), and deleted with the account
+   (D396). NOT reviewed by counsel (D402). */
+const TEXT_SHA = '11c61a2ab9cce5e8f432b128cd646391393510f665bb46537952ca56880ae2ac'
 
 const results = []
 const check = (name, ok, got) => { results.push({ name, ok: !!ok }); console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : '  got: ' + JSON.stringify(got))) }

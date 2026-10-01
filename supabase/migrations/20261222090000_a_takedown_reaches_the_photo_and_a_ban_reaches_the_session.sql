@@ -23,7 +23,21 @@
 --       previously issued URL — original and transformed — at the origin; if the move
 --       fails it removes the object outright (removal beats retention), and either way
 --       _takedown_cleanup_report re-reads storage.objects before it records `removed`,
---       retrying with backoff until it can. The kept evidence is purged after 90 days.
+--       retrying with backoff until it can. The kept evidence is purged after 90 days
+--       (the duration is the owner's to confirm), and sooner when the golfer deletes their
+--       account: D396's "deletion removes your photos" covers the held copy too.
+--       ONLY THE TAKEN-DOWN OBJECT CAN BE DESTROYED. Storage moves and deletes by path,
+--       and an avatar always lives at <uid>/avatar.jpg, so a replacement uploaded at the
+--       same path must never be what a worker moves or deletes (review of 0e463792). Three
+--       guards, together: (a) while a takedown is unresolved, and for 10 minutes after it
+--       is confirmed removed, nobody can write that path (restrictive storage policies;
+--       the golfer is told to try again in a few minutes), so the object at the path IS
+--       the taken-down one whenever a worker can act on it; (b) a worker CLAIMS a row for a
+--       5-minute lease (FOR UPDATE SKIP LOCKED), so two overlapping runs never act on one
+--       row, and a stale run's report is refused; (c) the claim says whether the original
+--       is still in storage, and a worker with nothing to move touches nothing. The grace
+--       outlasts the lease plus an Edge function's longest possible run, so a stalled
+--       worker cannot wake after the unlock and act on a new upload.
 --       Bounds that remain, and are stated rather than hidden: a CDN may keep serving an
 --       already-cached response until it is invalidated or expires, and a copy a viewer
 --       already downloaded or screenshotted cannot be recalled.
@@ -98,9 +112,17 @@ create table if not exists public.media_takedowns (
   -- the evidence, if the move kept it: moderation-hold/<hold_path>, never client-readable
   hold_path   text,
   purge_after timestamptz,
-  purged_at   timestamptz
+  purged_at   timestamptz,
+  -- whose photo it is (the account-deletion queue removes their held copies too), and
+  -- whether the evidence may be kept at all (false once that golfer deletes their account)
+  owner_profile uuid,
+  keep_evidence boolean not null default true,
+  -- the worker holding this row, and until when (overlapping runs never share a row)
+  claim         uuid,
+  claimed_until timestamptz
 );
 create index if not exists media_takedowns_path on public.media_takedowns (bucket, path);
+create index if not exists media_takedowns_owner on public.media_takedowns (owner_profile);
 create index if not exists media_takedowns_due on public.media_takedowns (status, next_try);
 alter table public.media_takedowns enable row level security;
 revoke all on table public.media_takedowns from public, anon, authenticated;
@@ -157,6 +179,30 @@ create policy banned_no_update on storage.objects as restrictive for update to a
 drop policy if exists banned_no_delete on storage.objects;
 create policy banned_no_delete on storage.objects as restrictive for delete to authenticated
   using (not public.is_banned());
+
+-- a taken-down path is nobody's to write until its object is confirmed gone and the
+-- grace has run (see the header: this is what keeps a replacement out of a worker's reach)
+create or replace function public.media_path_locked(p_name text)
+returns boolean
+language sql stable security definer
+set search_path = public
+as $$
+  select exists (select 1 from media_takedowns t
+                  where t.bucket = 'media' and t.path = p_name
+                    and (t.status in ('pending', 'error')
+                         or t.removed_at > now() - interval '10 minutes'))
+$$;
+revoke all on function public.media_path_locked(text) from public, anon, authenticated;
+grant execute on function public.media_path_locked(text) to authenticated;
+
+drop policy if exists media_takedown_locked_insert on storage.objects;
+create policy media_takedown_locked_insert on storage.objects as restrictive for insert to authenticated
+  with check (bucket_id <> 'media' or not public.media_path_locked(name));
+
+drop policy if exists media_takedown_locked_update on storage.objects;
+create policy media_takedown_locked_update on storage.objects as restrictive for update to authenticated
+  using (bucket_id <> 'media' or not public.media_path_locked(name))
+  with check (bucket_id <> 'media' or not public.media_path_locked(name));
 
 -- ---- the session gate -------------------------------------------------------------
 create schema if not exists cs_internal;
@@ -314,8 +360,9 @@ begin
   -- the file itself: queued for share-cleanup to move into moderation-hold and
   -- confirmed gone from `media` by _takedown_cleanup_report (never assumed)
   v_take := gen_random_uuid();
-  insert into media_takedowns (id, bucket, path, taken_by, hold_path)
-  values (v_take, 'media', v_path, auth.uid(), v_take::text || '/' || v_path);
+  insert into media_takedowns (id, bucket, path, taken_by, hold_path, owner_profile, keep_evidence)
+  values (v_take, 'media', v_path, auth.uid(), v_take::text || '/' || v_path, v_owner,
+          not exists (select 1 from account_media_cleanup c where c.profile_id = v_owner));
 
   if p_report is not null then
     update content_reports
@@ -337,30 +384,48 @@ revoke all on function public.takedown_photo(text, uuid, text, uuid) from public
 grant execute on function public.takedown_photo(text, uuid, text, uuid) to authenticated;
 
 -- ---- the file's removal: share-cleanup's queue -----------------------------------------
--- remove: move media/<path> into moderation-hold/<hold_path> (or delete it outright).
--- purge:  delete the kept evidence once purge_after has passed.
+-- remove: move media/<path> into moderation-hold/<hold_path> (or delete it outright when
+--         the evidence may not be kept, or when the move fails).
+-- purge:  delete the kept evidence once purge_after has passed, or at once when the
+--         golfer has deleted their account.
+-- Each returned row is CLAIMED for 5 minutes; `present` says whether the taken-down
+-- original is still in storage (a worker with nothing to move touches nothing).
 create or replace function public._takedown_cleanup_due(p_limit integer default 20)
-returns table (id uuid, phase text, bucket text, path text, hold_path text)
-language sql
+returns table (id uuid, claim uuid, phase text, bucket text, path text, hold_path text,
+               present boolean, keep boolean)
+language plpgsql
 security definer
 set search_path = public
 as $$
-  (select t.id, 'remove'::text, t.bucket, t.path, t.hold_path
-     from media_takedowns t
-    where t.status in ('pending', 'error') and t.next_try <= now()
-    order by t.next_try
-    limit greatest(coalesce(p_limit, 20), 0))
-  union all
-  (select t.id, 'purge'::text, t.bucket, t.path, t.hold_path
-     from media_takedowns t
-    where t.status = 'removed' and t.hold_path is not null
-      and t.purge_after <= now() and t.next_try <= now()
-    order by t.purge_after
-    limit greatest(coalesce(p_limit, 20), 0))
-$$;
+declare t media_takedowns%rowtype; v_claim uuid;
+begin
+  for t in
+    select * from media_takedowns m
+     where m.next_try <= now()
+       and (m.claimed_until is null or m.claimed_until < now())
+       and (m.status in ('pending', 'error')
+            or (m.status = 'removed' and m.hold_path is not null
+                and (m.purge_after <= now() or not m.keep_evidence)))
+     order by m.next_try
+     limit greatest(coalesce(p_limit, 20), 0)
+     for update skip locked
+  loop
+    v_claim := gen_random_uuid();
+    update media_takedowns set claim = v_claim, claimed_until = now() + interval '5 minutes'
+     where media_takedowns.id = t.id;
+    id := t.id; claim := v_claim; bucket := t.bucket; path := t.path; hold_path := t.hold_path;
+    keep := t.keep_evidence;
+    phase := case when t.status in ('pending', 'error') then 'remove' else 'purge' end;
+    present := exists (select 1 from storage.objects o
+                        where o.bucket_id = t.bucket and o.name = t.path
+                          and coalesce(o.updated_at, o.created_at) <= t.taken_at);
+    return next;
+  end loop;
+end $$;
 
--- The server decides from storage.objects itself, never from the caller's word.
-create or replace function public._takedown_cleanup_report(p_id uuid, p_phase text, p_error text default null)
+-- The server decides from storage.objects itself, never from the caller's word, and only
+-- for the worker holding the claim (a stale or overlapping run's report changes nothing).
+create or replace function public._takedown_cleanup_report(p_id uuid, p_claim uuid, p_phase text, p_error text default null)
 returns text
 language plpgsql
 security definer
@@ -370,8 +435,12 @@ declare t media_takedowns%rowtype; v_up boolean; v_kept boolean;
 begin
   select * into t from media_takedowns where id = p_id for update;
   if not found then return 'unknown'; end if;
+  if p_claim is null or t.claim is distinct from p_claim then return 'stale'; end if;
   if p_phase = 'remove' then
-    if t.status in ('removed', 'purged') then return t.status; end if;
+    if t.status in ('removed', 'purged') then
+      update media_takedowns set claim = null, claimed_until = null where id = p_id;
+      return t.status;
+    end if;
     -- the version that was taken down (a newer upload at the same path is not it)
     select exists (select 1 from storage.objects o
                     where o.bucket_id = t.bucket and o.name = t.path
@@ -381,9 +450,12 @@ begin
                       where o.bucket_id = 'moderation-hold' and o.name = t.hold_path) into v_kept;
       update media_takedowns
          set status = 'removed', removed_at = now(), attempts = attempts + 1, next_try = now(),
+             claim = null, claimed_until = null,
              hold_path = case when v_kept then hold_path end,
-             purge_after = case when v_kept then now() + interval '90 days' end,
-             last_error = case when v_kept then null
+             -- a held copy of a deleting golfer's photo is due for purge at once
+             purge_after = case when v_kept and keep_evidence then now() + interval '90 days'
+                                when v_kept then now() end,
+             last_error = case when v_kept or not keep_evidence then null
                                else left('evidence not kept: ' || coalesce(nullif(p_error, ''), 'the move did not land'), 500) end
        where id = p_id;
       return 'removed';
@@ -393,7 +465,7 @@ begin
                     where o.bucket_id = 'moderation-hold' and o.name = t.hold_path) into v_kept;
     if not v_kept then
       update media_takedowns set status = 'purged', purged_at = now(), last_error = null,
-             attempts = attempts + 1, next_try = now()
+             attempts = attempts + 1, next_try = now(), claim = null, claimed_until = null
        where id = p_id;
       return 'purged';
     end if;
@@ -402,7 +474,7 @@ begin
   end if;
   update media_takedowns
      set status = case when p_phase = 'remove' then 'error' else status end,
-         attempts = attempts + 1,
+         attempts = attempts + 1, claim = null, claimed_until = null,
          last_error = left(coalesce(nullif(p_error, ''), 'Storage reported success but the file is still stored'), 500),
          -- back off: 2, 4, 8 … minutes, never more than a day between tries
          next_try = now() + least(interval '1 day', make_interval(mins => power(2, least(attempts + 1, 11))::int))
@@ -410,9 +482,79 @@ begin
   return 'error';
 end $$;
 revoke all on function public._takedown_cleanup_due(integer) from public, anon, authenticated;
-revoke all on function public._takedown_cleanup_report(uuid, text, text) from public, anon, authenticated;
+revoke all on function public._takedown_cleanup_report(uuid, uuid, text, text) from public, anon, authenticated;
 grant execute on function public._takedown_cleanup_due(integer) to service_role;
-grant execute on function public._takedown_cleanup_report(uuid, text, text) to service_role;
+grant execute on function public._takedown_cleanup_report(uuid, uuid, text, text) to service_role;
+
+-- ---- account deletion reaches the held copies (D396) -------------------------------------
+-- When a golfer's account enters the deletion queue, none of their evidence may be kept:
+-- pending takedowns delete instead of moving, and anything already held is due for purge.
+create or replace function public._account_cleanup_drops_evidence()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status <> 'completed' then
+    update media_takedowns
+       set keep_evidence = false, next_try = least(next_try, now())
+     where owner_profile = new.profile_id and keep_evidence;
+  end if;
+  return new;
+end $$;
+revoke all on function public._account_cleanup_drops_evidence() from public, anon, authenticated;
+drop trigger if exists account_cleanup_drops_evidence on public.account_media_cleanup;
+create trigger account_cleanup_drops_evidence after insert or update of status on public.account_media_cleanup
+  for each row execute function public._account_cleanup_drops_evidence();
+
+-- the account worker removes a deleting golfer's held copies itself, through the Storage API
+create or replace function public._held_media_cleanup_paths(p_profile uuid)
+returns setof text
+language sql stable
+security definer
+set search_path = public
+as $$
+  select o.name from storage.objects o
+   where o.bucket_id = 'moderation-hold'
+     and o.name in (select t.hold_path from media_takedowns t
+                     where t.owner_profile = p_profile and t.hold_path is not null)
+   order by o.name limit 5000
+$$;
+revoke all on function public._held_media_cleanup_paths(uuid) from public, anon, authenticated;
+grant execute on function public._held_media_cleanup_paths(uuid) to service_role;
+
+-- The account's cleanup is complete only when nothing of theirs is stored: their media,
+-- their league uploads (20261219090000), their HELD copies, and no takedown of theirs is
+-- in a worker's hands (a move in flight could still land a copy in the hold).
+create or replace function public._media_cleanup_report(p_profile uuid, p_error text default null)
+returns text language plpgsql security definer set search_path = public as $$
+declare n integer; v_inflight integer;
+begin
+  select count(*) into n from storage.objects where
+    (bucket_id = 'media' and name like p_profile::text || '/%')
+    or (bucket_id = 'league-media' and coalesce(nullif(owner_id, ''), owner::text) = p_profile::text)
+    or (bucket_id = 'moderation-hold' and name in (select t.hold_path from media_takedowns t
+                                                    where t.owner_profile = p_profile and t.hold_path is not null));
+  select count(*) into v_inflight from media_takedowns t
+   where t.owner_profile = p_profile and t.claimed_until > now();
+  if n = 0 and v_inflight = 0 then
+    update account_media_cleanup set status = 'completed', completed_at = coalesce(completed_at, now()),
+           last_error = null, attempts = attempts + 1, updated_at = now()
+     where profile_id = p_profile;
+    return 'completed';
+  end if;
+  update account_media_cleanup set status = 'error', attempts = attempts + 1, updated_at = now(),
+         last_error = left(coalesce(nullif(p_error, ''),
+                           case when n > 0 then 'Storage reported success but '
+                                || n || ' object' || case when n = 1 then ' is' else 's are' end || ' still stored'
+                                else 'a takedown of this golfer''s photo is still being moved' end), 500),
+         next_attempt_at = now() + least(interval '1 day', make_interval(mins => power(2, least(attempts + 1, 11))::int))
+   where profile_id = p_profile and status <> 'completed';
+  return 'error';
+end $$;
+revoke all on function public._media_cleanup_report(uuid, text) from public, anon, authenticated;
+grant execute on function public._media_cleanup_report(uuid, text) to service_role;
 
 -- ---- ban_account / unban_account ------------------------------------------------------
 create or replace function public.ban_account(p_profile uuid, p_confirm text, p_reason text, p_report uuid default null)

@@ -384,9 +384,19 @@ final class PostRoundModel {
   /// `freshYes` is true only when the golfer tapped yes on the consent sheet
   /// for this very scan (and the server reported taking it).
   func scanPicked(_ image: UIImage?, freshYes: Bool = false) async {
+    // D403 · the attempt is the golfer's who started it, checked before the photo is
+    // sent (inside `svc.scan`, on their own token) and again on the answer
+    guard let starter = store.session?.user.id else { return }
+    let attempt = ScanAttempt(owner: starter)
     guard let image, let shot = PostPhoto.compress(image, maxDim: 2200, quality: 0.9) else { toast.show(PostScan.restingToast); return }
     scanning = true; defer { scanning = false }
-    switch await svc.scan(jpeg: shot) {
+    let outcome = await svc.scan(jpeg: shot, attempt: attempt)
+    // a scan that outlived its golfer applies nothing: no card, no photo, no consent
+    // change, no sheet for whoever is signed in now
+    guard attempt.isCurrent(store.session?.user.id) else { return }
+    switch outcome {
+    case .stale:
+      return
     case .unavailable(let reason):
       // D403 (corrected 2026-10-01) · the function refused for CONSENT: the
       // server holds no yes, whatever this phone believed, and its answer is
@@ -394,7 +404,7 @@ final class PostRoundModel {
       // that could undo a "no" given in Settings on another device. The golfer
       // meets the sheet again, and only their tap rescans this same shot, once.
       // A yes tapped for this very scan that is still refused stops here.
-      let owner = store.session?.user.id
+      let owner: UUID? = starter
       if let gate = ScanConsentGate.after(refusal: reason, freshYes: freshYes) {
         if reason == "no_consent", let owner { ScanConsentStore.shared.serverRefused(owner: owner) }
         switch gate {
@@ -414,9 +424,13 @@ final class PostRoundModel {
       toast.show(PostScan.unreadableToast)
     case .read(let scan):
       pendingScanShot = image
+      pendingScanOwner = starter
       if scan.players.count == 1 { apply(scan, row: 0) } else { scanToPick = scan }
     }
   }
+  /// whose scan `scanToPick` / `pendingScanShot` came from: a row picked after the golfer
+  /// changed applies nothing
+  private var pendingScanOwner: UUID?
   private var pendingScanShot: UIImage?
   /// D403 · set when a scan came back `no_consent`; the screen shows the
   /// "Scan with Claude?" sheet again.
@@ -436,6 +450,9 @@ final class PostRoundModel {
 
   func apply(_ scan: PostScan, row: Int) {
     scanToPick = nil
+    if let who = pendingScanOwner, store.session?.user.id != who {
+      pendingScanShot = nil; pendingScanOwner = nil; return
+    }
     let misses = scan.apply(row: row, to: &card)
     if let d = card.date, let date = CSDate.local(d, calendar: ScheduleDates.gregorian), CSDate.iso(day, calendar: ScheduleDates.gregorian) != d { day = date }
     if let shot = pendingScanShot { setPhoto(shot) }   // the scan doubles as the round photo

@@ -159,6 +159,16 @@ import Testing
     #expect(server.provider == 1)
   }
 
+  /// D403 (review of 0e463792) · a scan is the starting golfer's, end to end: once the
+  /// signed-in golfer changes or signs out, nothing is sent and no answer is applied.
+  @Test func aScanBelongsToTheGolferWhoStartedIt() {
+    let a = UUID(), b = UUID()
+    let attempt = ScanAttempt(owner: a)
+    #expect(attempt.isCurrent(a))
+    #expect(!attempt.isCurrent(b))      // another golfer signed in mid-scan
+    #expect(!attempt.isCurrent(nil))    // signed out mid-scan
+  }
+
   /// A refusal orphans a write or read in flight: it cannot land a yes afterwards.
   @Test func aRefusalOrphansAnInFlightRead() async {
     var answer: CheckedContinuation<Bool, Never>?

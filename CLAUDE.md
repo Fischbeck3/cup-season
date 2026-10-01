@@ -233,6 +233,16 @@ edge months** (blanket rule, decided). League timezone default
   official club, course or town name in `api_courses`. A new user-text column is
   unguarded until it is added to the trigger list in a NEW migration, and check
   60 counts 19 guarded tables.
+- **A takedown's file is removed by PATH, so only a claimed row whose `present` is true
+  may be touched (D403, `20261222090000`).** Storage moves and deletes whatever is at a
+  path, and an avatar always lives at `<uid>/avatar.jpg`. What keeps a replacement out of
+  reach is three things together: the restrictive `media_takedown_locked_*` policies (no
+  writes to the path until removal is confirmed + 10 minutes), the 5-minute claim from
+  `_takedown_cleanup_due` (no overlapping runs; stale reports refused), and its `present`
+  flag (nothing of the taken-down version stored → touch nothing). Never add a code path
+  that moves or deletes a `media` object for a takedown outside that claim. Account
+  deletion reaches the held copies too (`_held_media_cleanup_paths`; `_media_cleanup_report`
+  waits for in-flight claims).
 - **A new Database Webhook silently defaults to the WRONG Edge Function.**
   The `season_email` hook (D68) was created on the right table with the right
   header but pointing at `push`, and it took several round trips to see it.

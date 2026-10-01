@@ -349,14 +349,23 @@ public struct PostService: Sendable {
     case unavailable(reason: String?)
     /// no players, or the function could not be reached
     case unreadable
+    /// D403 · the golfer who started the scan is no longer the one signed in: nothing
+    /// was sent (or the answer is not theirs to apply)
+    case stale
   }
 
   private struct ScanBody: Encodable { let image: String; let media_type: String }
 
   /// The `scan` Edge Function reads the card (2200px JPEG, base64 in the body).
-  public func scan(jpeg: Data) async -> ScanOutcome {
+  /// D403 · bound to `attempt`: the request carries the starting golfer's OWN token, read
+  /// and checked here, so a sign-out or a new sign-in mid-scan can never send one golfer's
+  /// photo under another's account.
+  public func scan(jpeg: Data, attempt: ScanAttempt) async -> ScanOutcome {
+    guard let session = await svc.currentSession(), attempt.isCurrent(session.user.id) else { return .stale }
     do {
-      let reply: JSONValue = try await db.functions.invoke("scan", options: .init(body: ScanBody(image: jpeg.base64EncodedString(), media_type: "image/jpeg")))
+      let reply: JSONValue = try await db.functions.invoke("scan", options: .init(
+        headers: ["Authorization": "Bearer \(session.accessToken)"],
+        body: ScanBody(image: jpeg.base64EncodedString(), media_type: "image/jpeg")))
       if reply["unavailable"]?.bool == true { return .unavailable(reason: reply["reason"]?.string) }
       guard reply["ok"]?.bool == true, let scan = PostScan(json: reply) else { return .unreadable }
       return .read(scan)

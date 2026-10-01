@@ -14993,23 +14993,40 @@ $('#postScanFile')?.addEventListener('change',e=>{
 });
 async function csRunScan(f){
   const btn=$('#postScanBtn'); const was=btn.innerHTML;
+  /* D403 · ONE golfer's attempt, end to end: the account and the auth generation are
+     captured here and checked before the photo is sent and after every await. A stale
+     attempt sends nothing, applies nothing, writes no consent and opens no sheet — the
+     next golfer never inherits the last one's scan. The request carries THIS golfer's
+     own token (checked against the attempt), so even a switch mid-request cannot send
+     the photo under someone else's account. */
+  const uid = csScanUid();
+  const gen = window.csAuthGen || 0;
+  const stale = () => csScanUid() !== uid || (window.csAuthGen || 0) !== gen;
   /* the sheet's yes, if the golfer gave one for THIS account — consumed here,
      so it backs exactly one attempt */
-  const uid = csScanUid();
   const fresh = (uid && csScanFreshYes && csScanFreshYes.uid === uid) ? csScanFreshYes : null;
   if(fresh) csScanFreshYes = null;
+  if(!uid) return;
   btn.disabled=true; btn.textContent='Reading the card…';
   try{
     if(fresh){
       /* nothing leaves until the tapped yes is on the profile */
       let took = false;
       try{ took = await fresh.write; }catch(_){ took = false; }
-      if(!took || csScanUid() !== uid){ toast(CS_SCAN_CONSENT.notSaved); return; }
+      if(stale()) return;
+      if(!took){ toast(CS_SCAN_CONSENT.notSaved); return; }
     }
     /* 2200px keeps handwritten digits legible for the model; ~½MB upload */
     const shot=await compressPhoto(f,2200,.9);
+    if(stale()) return;
     const image = await b64ofBlob(shot);
-    let { data, error } = await window.sb.functions.invoke('scan', { body:{ image, media_type:'image/jpeg' } });
+    if(stale()) return;
+    let token = null;
+    try{ token = (await window.sb.auth.getSession())?.data?.session?.access_token || null; }catch(_){ token = null; }
+    if(stale() || !token || csJwtSub(token) !== uid) return;
+    let { data, error } = await window.sb.functions.invoke('scan', {
+      body:{ image, media_type:'image/jpeg' }, headers:{ Authorization: 'Bearer ' + token } });
+    if(stale()) return;
     /* D403 · the server reads the PROFILE's yes before Anthropic sees anything,
        and its no is final: whatever this page believed is dropped. A scan sent
        on a yes tapped in this attempt that is STILL refused stops here (no
@@ -15017,10 +15034,11 @@ async function csRunScan(f){
     if(error){
       let reason = null;
       try{ reason = (await error.context?.json?.())?.reason || null; }catch(_){}
+      if(stale()) return;
       if(reason === 'no_consent'){
         csScanForgetYes();
         if(fresh){ toast(CS_SCAN_CONSENT.notSaved); return; }
-        csAskScanConsent(() => csRunScan(f));
+        csAskScanConsent(() => csRunScan(f), uid, gen);
         return;
       }
     }
@@ -15035,11 +15053,19 @@ async function csRunScan(f){
       toast('Couldn’t read the card — type your nines in'); return;
     }
     window._scanShot = shot;   /* the scan doubles as the round photo */
-    scanPickRow(data.scan);
-  }catch(_){ toast('Scan didn’t come back — type your nines in'); }
+    scanPickRow(data.scan, stale);
+  }catch(_){ if(!stale()) toast('Scan didn’t come back — type your nines in'); }
   finally{ btn.disabled=false; btn.innerHTML=was; }
 }
-function scanPickRow(scan){
+/* the account a token speaks for (its `sub`), read locally — never trusted for access,
+   only to refuse sending one golfer's photo on another's token */
+function csJwtSub(token){
+  try{
+    const b = String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(b + '==='.slice((b.length + 3) % 4))).sub || null;
+  }catch(_){ return null; }
+}
+function scanPickRow(scan, stale){
   if(scan.players.length===1){ scanApply(scan,0); return; }
   openSheet('Whose card is this?','TAP YOUR ROW',
     scan.players.map((p,i)=>
@@ -15048,7 +15074,10 @@ function scanPickRow(scan){
         <small>${p.total?p.total+' GROSS · ':''}${p.holes_read}/18 HOLES READ</small></div></div>`).join('')
     + `<p class="fine" style="padding-top:8px">After you post, your partners’ rows can be sent to them as scorecard links.</p>`);
   $('#shBody').querySelectorAll('[data-scanrow]').forEach(b=>b.addEventListener('click',()=>{
-    closeSheet(); scanApply(scan,+b.dataset.scanrow);
+    closeSheet();
+    /* a pick after the account changed applies nothing (the card was the last golfer's) */
+    if(typeof stale === 'function' && stale()){ window._scanShot = null; return; }
+    scanApply(scan,+b.dataset.scanrow);
   }));
 }
 function scanApply(scan, idx){
@@ -24909,14 +24938,17 @@ async function csSetScanConsent(on){
    yes is written while the golfer frames the card; the scan waits for that
    write and sends nothing unless it landed. "Type it in" sends nothing and
    hands the golfer back to the gross box. */
-function csAskScanConsent(proceed){
+function csAskScanConsent(proceed, forUid, forGen){
+  /* asked FOR one golfer: a tap after the account changed writes nothing and runs nothing */
+  const askUid = forUid === undefined ? csScanUid() : forUid;
+  const askGen = forGen === undefined ? (window.csAuthGen || 0) : forGen;
   openSheet(CS_SCAN_CONSENT.title, CS_SCAN_CONSENT.eyebrow, `
     <p class="lead" style="padding-top:0">${esc(CS_SCAN_CONSENT.what)}</p>
     <button class="btn" id="scnYes" style="margin-top:12px">${esc(CS_SCAN_CONSENT.yes)}</button>
     <button class="btn dark" id="scnNo" style="margin-top:8px">${esc(CS_SCAN_CONSENT.no)}</button>`);
   document.getElementById('scnYes')?.addEventListener('click', () => {
     const uid = csScanUid();
-    if(!uid){ closeSheet(); return; }
+    if(!uid || uid !== askUid || (window.csAuthGen || 0) !== askGen){ closeSheet(); return; }
     csScanFreshYes = { uid, write: csSetScanConsent(true) };
     closeSheet();
     if(typeof proceed === 'function') proceed();
@@ -40201,6 +40233,12 @@ async function safeBoot(force){
    twice). Now the initial boot is idempotent via bootResolved, so the event and
    the fallback below can't double up. A genuine later sign-in forces a boot. */
 sb.auth.onAuthStateChange((event, session) => {
+  /* D403 · an identity generation, bumped HERE and synchronously: another tab can sign
+     in as someone else, and this client's token changes at once while CS.user waits for
+     the next boot. Work started for one golfer (a scan) checks it before it sends and
+     after every await, and is dropped when it moved. */
+  const nextUid = session?.user?.id || null;
+  if(event === 'SIGNED_OUT' || nextUid !== window.csAuthUid){ window.csAuthUid = nextUid; window.csAuthGen = (window.csAuthGen || 0) + 1; }
   if(event==='SIGNED_OUT' || (CS.user && session?.user?.id && CS.user.id!==session.user.id)) window.csCloseSeasonBook?.();
   /* never call supabase methods synchronously in this callback — the client
      holds an internal auth lock here and getSession() would deadlock */

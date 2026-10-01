@@ -1537,7 +1537,7 @@ select '59 · the public plan counts only an explicit yes as in',
 --     file removal against a real local Storage.
 union all
 select '60 · a filter at the door, a takedown for photos, a ban that reaches the session (D403)',
-  case when t.problems = '' then 'PASS — 19 guarded tables, the gate configured, desk actions founder-only, takedown files queued'
+  case when t.problems = '' then 'PASS — 19 guarded tables, the gate configured, desk actions founder-only, takedown files queued per object, deletion reaches the hold'
        else 'FAIL — ' || t.problems end,
   'cs_text_guard · cs_internal.request_gate · takedown_photo · ban_account'
 from (
@@ -1551,10 +1551,22 @@ from (
           and not exists (select 1 from pg_trigger where tgname = 'cs_text_guard' and tgrelid = 'public.scan_claims'::regclass)
          then 'a scan claim''s guest name is not read by the word list' end,
     case when to_regprocedure('public._takedown_cleanup_due(integer)') is null
+           or to_regprocedure('public._takedown_cleanup_report(uuid,uuid,text,text)') is null
            or has_function_privilege('authenticated', 'public._takedown_cleanup_due(integer)', 'EXECUTE')
-           or has_function_privilege('authenticated', 'public._takedown_cleanup_report(uuid,text,text)', 'EXECUTE')
-           or not has_function_privilege('service_role', 'public._takedown_cleanup_report(uuid,text,text)', 'EXECUTE')
-         then 'the takedown file queue is missing or callable by clients' end,
+           or has_function_privilege('authenticated', 'public._takedown_cleanup_report(uuid,uuid,text,text)', 'EXECUTE')
+           or not has_function_privilege('service_role', 'public._takedown_cleanup_report(uuid,uuid,text,text)', 'EXECUTE')
+         then 'the takedown file queue (claimed, per-object) is missing or callable by clients' end,
+    -- only the taken-down object is in a worker's reach: the path is locked to writes
+    case when not exists (select 1 from pg_policy where polrelid = 'storage.objects'::regclass
+                            and polname = 'media_takedown_locked_insert' and not polpermissive)
+           or not exists (select 1 from pg_policy where polrelid = 'storage.objects'::regclass
+                            and polname = 'media_takedown_locked_update' and not polpermissive)
+         then 'a taken-down path is not locked to writes — a replacement could be moved or deleted' end,
+    -- account deletion reaches the held copies (D396)
+    case when not exists (select 1 from pg_trigger where tgname = 'account_cleanup_drops_evidence' and not tgisinternal)
+           or to_regprocedure('public._held_media_cleanup_paths(uuid)') is null
+           or has_function_privilege('authenticated', 'public._held_media_cleanup_paths(uuid)', 'EXECUTE')
+         then 'account deletion does not reach the takedown evidence (D396)' end,
     case when not exists (select 1 from storage.buckets where id = 'moderation-hold' and not public)
          then 'the private moderation-hold bucket is missing or public' end,
     case when to_regprocedure('cs_internal.request_gate()') is null

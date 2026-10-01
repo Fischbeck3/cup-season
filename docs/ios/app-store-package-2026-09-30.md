@@ -35,8 +35,8 @@ undeployed**; the deploy order is at the foot of this section.
 |---|---|---|
 | Text filter (1.2 filtering, text) | Built: `20261221090000`, triggers on 19 tables. Corrected 2026-10-01: adds home course, a scan claim's partner name and course, every typed course name, and the Pro's ruling reason. Official catalogue course names pass. Both clients pass the one refusal through and keep the draft (the web's course note included) | Database deploy |
 | Golfer reports | **Fixed defect**: both clients send `p_kind 'profile'`, which `report_content` refused ("nothing to report"). The branch is added and the founder is pushed. | Database deploy |
-| Photo takedown, account removal | Built on the existing desk (web): `takedown_photo`, `ban_account`, `unban_account`, audit rows, a PostgREST pre-request gate for open sessions, restrictive storage policies. Corrected 2026-10-01: the taken-down **file** is moved into the private `moderation-hold` bucket by `share-cleanup`, so links sent before the takedown stop at the origin (proven on a real local stack). The gate now runs for `service_role` as well; without that grant every Edge function would have failed. | Database deploy, **then** the `share-cleanup` and `scan` deploys; owner rehearses once on test accounts |
-| Scan consent on the server | Built: `scan` refuses (403, zero provider calls) without a stored yes. Corrected 2026-10-01: the server's no is final. Neither client writes a yes back on a refusal; they clear what they held and ask, and retry only on a yes tapped for that attempt | **Database deploy first**, then the Edge redeploy |
+| Photo takedown, account removal | Built on the existing desk (web): `takedown_photo`, `ban_account`, `unban_account`, audit rows, a PostgREST pre-request gate for open sessions, restrictive storage policies. Corrected 2026-10-01: the taken-down **file** is moved into the private `moderation-hold` bucket by `share-cleanup`, so links sent before the takedown stop at the origin (proven on a real local stack). The gate now runs for `service_role` as well; without that grant every Edge function would have failed. Corrected again (review of 0e463792): only the taken-down object can be moved or deleted (the path is locked to writes until removal is confirmed plus 10 minutes, and worker claims never overlap), and account deletion removes held copies too (D396). Retention is up to 90 days, a duration that is **your decision to confirm**. | Database deploy, **then** the `share-cleanup` and `scan` deploys; owner rehearses once on test accounts |
+| Scan consent on the server | Built: `scan` refuses (403, zero provider calls) without a stored yes. Corrected 2026-10-01: the server's no is final. Neither client writes a yes back on a refusal; they clear what they held and ask, and retry only on a yes tapped for that attempt. Corrected again: each scan is bound to the golfer who started it, sent on that golfer's own token, and dropped whole if the account changes mid-scan | **Database deploy first**, then the Edge redeploy |
 | Live-stake ceiling | Built: the phone clamps at $200, and a server trigger refuses new or changed stakes above $200. Corrected 2026-10-01: `stake` and `unit` are validated each on its own, and malformed shapes are refused, never read as zero. History is untouched | Database deploy + native build |
 | Money door labels | "Buy-in" before the first tee, "Pride bet" after, on both clients | Client deploys |
 | Photo audience line | Both composers say who sees an attached photo, a scanned card included, beside the remove control | Client deploys |
@@ -109,6 +109,22 @@ again.
 - **Recommendation:** B now, because it is a dashboard setting and changes no code. Consider A only if bans become frequent.
 - Either way, no copy may say a removal is enforced "instantly and unconditionally": a removed golfer's open sessions stop at their next API request, within the limits above.
 
+## iPhone UI tests · disposition of the 26 failures (2026-10-01)
+
+**Method.**
+- I ran the nine failing classes on two clean, signed-out iPhone 17 Pro clones of root's simulator, with the documented test-runner input `CS_PROGRAMME_QA_PHOTO` set.
+- One clone ran this branch; the other ran **e034915a**, main before any readiness change.
+- The per-test outcomes are **identical**: 11 pass and 25 fail in both. None of the 26 is caused by the readiness work.
+
+| Class | Count | Cause | Disposition |
+|---|---|---|---|
+| `AcceptedRoundReviewTests`, `CompeteBoldReviewTests`, `CompeteGameplayReviewTests` (5), `ComposerWorthUITests` (3), `CoursePrepReviewTests` (3) | 15 | They launch with `-cs_dev_open`, which needs a **signed-in review simulator**. The failure screenshots show the signed-out door. | **BLOCKED.** No signed-in simulator exists here. Signing one in means entering an emailed code for a production account, which this session may not do. Run them on the owner's signed-in review simulator. |
+| `MatchProgrammeTests.testHomeRecordsAndPhotoFallback` | 1 | It needs `CS_PROGRAMME_QA_PHOTO` set in the test runner. | **PASS** once the input is supplied. |
+| `HomeNoPhotoTests` (4), `HomePhotoStabilityTests` (5) | 9 | **Stale against main.** They wait for `home.round.no-photo`, `home.round.photo` and `home.round.photo-loading`; `e8e9f84b` ("Build native Match Programme Home and Compete") removed all three. Home's photo behaviour is now covered by `MatchProgrammeTests`, which passes. | **Not changed here.** Rewriting them means re-deciding the Home design's expectations, which belongs to the native lane. Filed as a follow-up. |
+| `AfterGolfWirePlacementTests.testDisplacedCardWithAnEmptyFeedKeepsAllThreeActions` | 1 | The lead renders ("You are two points off the lead.", screenshot), but no longer as one combined accessibility element, which the test's comment calls a §7 rule. | **Pre-existing on main** (fails identically on e034915a). Either an accessibility regression from the Match Programme Home or a stale assertion; the native lane decides which. Filed as a follow-up. |
+
+**What this does and does not prove.** No UI test exercises scan consent, the takedown desk or account deletion. Those are covered by the Kit, app-unit, web, SQL and live-Storage suites. The composer UI tests are among the 15 BLOCKED by sign-in.
+
 ## Live local proof · how it was run (2026-10-01)
 
 The SQL suite (`tests/db/app-store-readiness.sql`) runs on a bare Postgres sandbox with stubbed Storage, and the worker tests mock Storage. Neither proves HTTP behaviour.
@@ -132,6 +148,16 @@ To reproduce:
 - The evidence sits in `moderation-hold`, readable by the service role and signable by no golfer.
 - The ban gate behaves as described in Part E.
 - `scan` refuses a revoked consent with no reservation written. As a positive control, a fresh yes passes the consent check.
+- Only the taken-down object (review of 0e463792):
+  - A replacement upload at a taken-down path is refused, as an insert or an upsert, until removal is confirmed and the 10-minute grace has run.
+  - After that the replacement is accepted, readable by a league-mate, and untouched by later sweeps.
+  - A move that landed without its report: the retry touches nothing and the evidence is kept.
+  - Two concurrent sweeps move each file exactly once.
+  - A failed move, because the destination already exists, still removes the published original.
+- Account deletion after quarantine, while pending and while a move is in flight:
+  - The held copy is gone, and the account's cleanup completes only after the in-flight move reports.
+  - No evidence is kept for an account deleted while its takedown was pending.
+  - Another golfer's evidence is untouched.
 
 **Not provable locally:** CDN behaviour.
 - The local stack has no CDN.

@@ -196,3 +196,148 @@ test('scan: a consent revoked elsewhere is refused before any reservation or pro
   assert.equal(okBody.reason, 'disabled', 'a consenting golfer did not get past the consent check: ' + JSON.stringify(okBody));
   assert.equal(await usage(), 0);
 });
+
+// ---- D403 (review of 0e463792) · only the taken-down object; deletion reaches the hold ----
+async function founderAndLeague(...golfers) {
+  const founder = await golfer('founder');
+  sql(`update profiles set is_founder = false where is_founder; update profiles set is_founder = true where id = '${founder.id}'`);
+  const league = randomUUID();
+  sql(`insert into leagues (id, name, code, commissioner_id, phase) values ('${league}', 'Live QA', 'LQ${league.slice(0, 4).toUpperCase()}', '${golfers[0].id}', 'season')`);
+  for (const [i, g] of golfers.entries()) {
+    sql(`insert into league_members (league_id, profile_id, role) values ('${league}', '${g.id}', '${i === 0 ? 'commissioner' : 'player'}')`);
+  }
+  return founder;
+}
+async function withAvatar(g) {
+  const path = `${g.id}/avatar.jpg`;
+  assert.equal((await upload(g, 'media', path)).status, 200);
+  sql(`update profiles set photo_path = '${path}' where id = '${g.id}'`);
+  return path;
+}
+async function takeDown(founder, kind, target) {
+  const r = await call('/rest/v1/rpc/takedown_photo', { method: 'POST', token: founder.token, body: { p_kind: kind, p_target: target, p_reason: 'QA live takedown' } });
+  assert.equal(r.status, 200, r.text);
+  return r.json.takedown;
+}
+const row = (id) => JSON.parse(sql(`select row_to_json(t) from media_takedowns t where id = '${id}'`));
+const stored = (bucket, name) => sql(`select count(*) from storage.objects where bucket_id = '${bucket}' and name = '${name}'`) === '1';
+const replace = (g, path) => call(`/storage/v1/object/media/${path}`, {
+  method: 'POST', token: g.token, body: new Uint8Array(JPEG), headers: { 'content-type': 'image/jpeg', 'x-upsert': 'true' } });
+
+test('a replacement at a taken-down path is refused until the original is confirmed gone, and is never touched after', { skip }, async () => {
+  const owner = await golfer('owner3'), mate = await golfer('mate3');
+  const founder = await founderAndLeague(owner, mate);
+  const path = await withAvatar(owner);
+  const id = await takeDown(founder, 'profile_photo', owner.id);
+  // before the first cleanup: the path is locked (insert and upsert alike)
+  assert.ok((await upload(owner, 'media', path)).status >= 400, 'a replacement was accepted before the first cleanup');
+  assert.ok((await replace(owner, path)).status >= 400, 'an upsert replaced the taken-down object');
+  const run = await sweep();
+  assert.equal(run.status, 200);
+  assert.equal(row(id).status, 'removed');
+  assert.ok(stored('moderation-hold', row(id).hold_path) && !stored('media', path));
+  // inside the grace the path stays locked; once it has run, the golfer's new photo is theirs
+  assert.ok((await upload(owner, 'media', path)).status >= 400, 'the path unlocked inside the grace');
+  sql(`update media_takedowns set removed_at = now() - interval '11 minutes' where id = '${id}'`);
+  assert.equal((await replace(owner, path)).status, 200, 'the replacement was refused after the grace');
+  await sweep(); await sweep();
+  assert.ok(stored('media', path), 'a later sweep moved or deleted the replacement');
+  const link = await sign(mate, path);
+  assert.equal(link.status, 200, 'the replacement is hidden: ' + link.text);
+  assert.equal(await status(link.url), 200);
+});
+
+test("a move that landed but whose report did not: the retry touches nothing at the path", { skip }, async () => {
+  const owner = await golfer('owner4');
+  const founder = await founderAndLeague(owner);
+  const path = await withAvatar(owner);
+  const id = await takeDown(founder, 'profile_photo', owner.id);
+  // the first worker claimed the row and moved the file; its report never landed
+  const claimed = await svc('/rest/v1/rpc/_takedown_cleanup_due', { method: 'POST', body: { p_limit: 50 } });
+  assert.equal(claimed.status, 200, claimed.text);
+  const mine = claimed.json.find((r) => r.id === id);
+  assert.ok(mine?.present, 'the claim did not see the original');
+  const moved = await svc(`/storage/v1/object/move`, { method: 'POST', body: { bucketId: 'media', sourceKey: path, destinationKey: row(id).hold_path, destinationBucket: 'moderation-hold' } });
+  assert.equal(moved.status, 200, moved.text);
+  // the golfer tries to put a new photo there in the meantime: locked
+  assert.ok((await upload(owner, 'media', path)).status >= 400, 'a replacement landed while the report was outstanding');
+  // the lease runs out; the next run reclaims the row and finds nothing stored
+  sql(`update media_takedowns set claimed_until = now() - interval '1 second' where id = '${id}'`);
+  const run = await sweep();
+  assert.equal(run.status, 200);
+  assert.equal(row(id).status, 'removed');
+  assert.ok(stored('moderation-hold', row(id).hold_path), 'the evidence was lost');
+});
+
+test('overlapping sweeps: each file is moved once, nothing errors', { skip }, async () => {
+  const golfers = await Promise.all([golfer('ov1'), golfer('ov2'), golfer('ov3')]);
+  const founder = await founderAndLeague(...golfers);
+  const ids = [];
+  for (const g of golfers) { await withAvatar(g); ids.push(await takeDown(founder, 'profile_photo', g.id)); }
+  const [a, b] = await Promise.all([sweep(), sweep()]);
+  assert.equal(a.status, 200); assert.equal(b.status, 200);
+  for (const id of ids) {
+    const r = row(id);
+    assert.equal(r.status, 'removed', JSON.stringify(r));
+    assert.ok(r.hold_path && stored('moderation-hold', r.hold_path));
+    assert.equal(r.attempts, 1, 'a row was worked twice');
+  }
+});
+
+test('a failed move still removes the published original (the evidence destination already exists)', { skip }, async () => {
+  const owner = await golfer('owner5');
+  const founder = await founderAndLeague(owner);
+  const path = await withAvatar(owner);
+  const id = await takeDown(founder, 'profile_photo', owner.id);
+  const hold = row(id).hold_path;
+  assert.equal((await svc(`/storage/v1/object/moderation-hold/${hold}`, { method: 'POST', body: new Uint8Array(JPEG), headers: { 'content-type': 'image/jpeg' } })).status, 200);
+  const run = await sweep();
+  const mine = run.json.takedowns.results.find((r) => r.id === id);
+  assert.match(mine?.error ?? '', /move to moderation-hold/, JSON.stringify(mine));
+  assert.equal(row(id).status, 'removed');
+  assert.ok(!stored('media', path), 'the published original survived a failed move');
+});
+
+test('account deletion removes the held copy — after quarantine, while pending, and while a move is in flight', { skip }, async () => {
+  const after = await golfer('del-after'), pending = await golfer('del-pending'), flight = await golfer('del-flight'), other = await golfer('keeps');
+  const founder = await founderAndLeague(other, after, pending, flight);   // the golfer who stays runs the league
+  for (const g of [after, pending, flight, other]) await withAvatar(g);
+  const idAfter = await takeDown(founder, 'profile_photo', after.id);
+  const idOther = await takeDown(founder, 'profile_photo', other.id);
+  await sweep();                                                   // both quarantined
+  assert.ok(stored('moderation-hold', row(idAfter).hold_path) && stored('moderation-hold', row(idOther).hold_path));
+  const idPending = await takeDown(founder, 'profile_photo', pending.id);
+  const idFlight = await takeDown(founder, 'profile_photo', flight.id);
+  // a worker claims the in-flight row (and everything else due) before the deletions
+  const claimed = await svc('/rest/v1/rpc/_takedown_cleanup_due', { method: 'POST', body: { p_limit: 50 } });
+  const flightClaim = claimed.json.find((r) => r.id === idFlight);
+  assert.ok(flightClaim?.keep, 'setup: the in-flight claim should predate the deletion');
+  // the pending row's claim is released (that worker died); the in-flight one is live
+  sql(`update media_takedowns set claim = null, claimed_until = null where id = '${idPending}'`);
+  for (const g of [after, pending, flight]) {
+    const d = await call('/rest/v1/rpc/delete_account', { method: 'POST', token: g.token, body: {} });
+    assert.ok(d.status < 300, 'delete_account: ' + d.text);
+  }
+  let run = await sweep();
+  assert.equal(run.status, 200, JSON.stringify(run.json));
+  const job = (g) => sql(`select status from account_media_cleanup where profile_id = '${g.id}'`);
+  assert.equal(job(after), 'completed', 'the account with a held copy did not complete');
+  assert.ok(!stored('moderation-hold', row(idAfter).hold_path ?? '-'), "a deleted golfer's evidence is still held");
+  assert.equal(job(pending), 'completed');
+  assert.equal(row(idPending).status, 'removed');
+  assert.equal(row(idPending).hold_path, null, 'evidence was kept for an account deleted while its takedown was pending');
+  assert.notEqual(job(flight), 'completed', 'deletion completed while a move of their photo was in flight');
+  // the in-flight worker's move lands after all, and it reports
+  const hold = row(idFlight).hold_path;
+  const moved = await svc(`/storage/v1/object/move`, { method: 'POST', body: { bucketId: 'media', sourceKey: `${flight.id}/avatar.jpg`, destinationKey: hold, destinationBucket: 'moderation-hold' } });
+  // (the account worker may already have removed the original; either way the report decides)
+  const rep = await svc('/rest/v1/rpc/_takedown_cleanup_report', { method: 'POST', body: { p_id: idFlight, p_claim: flightClaim.claim, p_phase: 'remove', p_error: moved.status === 200 ? null : 'gone' } });
+  assert.equal(rep.json, 'removed', rep.text);
+  sql(`update account_media_cleanup set next_attempt_at = now() where profile_id = '${flight.id}'`);
+  run = await sweep(); run = await sweep();
+  assert.equal(job(flight), 'completed', JSON.stringify(run.json.media));
+  assert.ok(!stored('moderation-hold', hold), 'the late copy was left behind after deletion');
+  // another golfer's evidence is untouched
+  assert.ok(stored('moderation-hold', row(idOther).hold_path), "another golfer's evidence was removed");
+  assert.equal(row(idOther).keep_evidence, true);
+});

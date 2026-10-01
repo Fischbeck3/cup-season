@@ -56,6 +56,15 @@ public enum ScanConsentGate: Sendable, Equatable {
   }
 }
 
+/// D403 · a scan belongs to the golfer who started it (review of 0e463792). The photo is
+/// sent, and an answer applied — a card, a refusal, a consent change, a sheet — only
+/// while that golfer is still the one signed in; otherwise the attempt is dropped whole.
+public struct ScanAttempt: Sendable, Equatable {
+  public let owner: UUID
+  public init(owner: UUID) { self.owner = owner }
+  public func isCurrent(_ signedIn: UUID?) -> Bool { signedIn == owner }
+}
+
 /// Consent is scoped to the golfer, and the server's answer wins.
 /// - A yes is consent only once the server took it (`permits`). A yes the
 ///   server did not take is a failure to report, never kept on the phone.
