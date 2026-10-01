@@ -43,6 +43,16 @@ import XCTest
                   withVelocity: .slow, thenHoldForDuration: 0.3)
     }
   }
+  private func revealFooter(_ row: XCUIElement, in app: XCUIApplication) {
+    for _ in 0..<16 {
+      let bottom = row.frame.maxY
+      if bottom > app.frame.height * 0.55 && bottom < app.frame.height * 0.85 { return }
+      let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: bottom < app.frame.height * 0.55 ? 0.35 : 0.65))
+      let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: bottom < app.frame.height * 0.55 ? 0.65 : 0.35))
+      start.press(forDuration: 0.05, thenDragTo: end,
+                  withVelocity: .slow, thenHoldForDuration: 0.3)
+    }
+  }
   func testLayoutMatrix() {
     for appearance in ["dark", "light"] {
       for size in ["large", "AX3"] {
@@ -61,12 +71,26 @@ import XCTest
         XCTAssertTrue(app.buttons[duel].label.contains("You and Galen"))
         XCTAssertTrue(app.buttons[duel].label.contains("15 points"))
         XCTAssertTrue(app.buttons[duel].label.contains("Out of 2"))
+        revealFooter(app.buttons[duel], in: app)
         capture("club-spread-\(appearance)-\(size)-standing", in: app)
         reveal(app.buttons[fellas], in: app)
         XCTAssertTrue(app.buttons[fellas].isHittable)
         capture("club-spread-\(appearance)-\(size)-logo", in: app)
         app.terminate()
       }
+    }
+  }
+  func testAccessibilityStandingCapture() {
+    for appearance in ["dark", "light"] {
+      let app = launch(appearance: appearance, size: "AX3")
+      let row = app.buttons[duel]
+      XCTAssertTrue(row.waitForExistence(timeout: 15))
+      revealFooter(row, in: app)
+      XCTAssertTrue(row.isHittable)
+      XCTAssertLessThan(row.frame.maxY, app.frame.height * 0.85)
+      XCTAssertTrue(row.label.contains("15 points"))
+      capture("club-spread-\(appearance)-AX3-standing", in: app)
+      app.terminate()
     }
   }
   func testFailedAndAbsentImagesKeepTheirLeagueDoor() {
