@@ -20,6 +20,7 @@ struct CupSeasonApp: App {
   @State private var toasts = CSToastCenter()
   /// The looks (IOS-025): the personal dial + every league's curated look, one read per session.
   @State private var looks = CSDevHatch.lookStore()
+  @State private var identities = LeagueIdentityStore()
 
   #if DEBUG
   /// `-cs_dev_synthetic <scenario>` · the fixture seam's app half. The
@@ -46,6 +47,7 @@ struct CupSeasonApp: App {
       launchRoot
         .environment(store)
         .environment(looks)
+        .environment(identities)
         // D302 · **THE DIAL REACHES THE APP, NOT THREE SCREENS.** `\.csLook`
         // was set on Home, Compete and the season page and nowhere else, so a
         // palette a golfer picked in settings could not be seen on the page he
@@ -54,9 +56,11 @@ struct CupSeasonApp: App {
         // D103a) because an environment written lower down wins.
         .task(id: store.session?.user.id) {
           #if DEBUG
+          if ClubSpreadFixture.on { ClubSpreadFixture.seed(identities); return }
           if SecurityReviewFixture.on || LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           await looks.load(userId: store.session?.user.id)
+          await identities.load(userID: store.session?.user.id)
         }
         .environment(\.csAppearance, $appearance)
         .preferredColorScheme(appearance.colorScheme)

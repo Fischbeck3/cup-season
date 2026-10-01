@@ -397,7 +397,7 @@ struct MainTabView: View {
       // single result. Ignoring the keyboard's safe area on the stack instead
       // would take keyboard avoidance away from every screen inside it.
       if !keyboardUp {
-        CSTabBand(bandItems, selection: $tab, onPlay: { openPlay() }, onPlayHold: {
+        CSTabBand(Self.bandItems, selection: $tab, onPlay: { openPlay() }, onPlayHold: {
           // D227 · a LONG PRESS opens the composer with the score focused — the
           // 90% case in one gesture, without spending L-40's clause.
           presenter.postOnComposer = true
@@ -1105,7 +1105,7 @@ struct MainTabView: View {
   /// The band's five slots. The glyphs are the product's own drawn family at
   /// the markers' stroke weight — put one beside a marker and they are one
   /// hand, which is the test the filled SF symbols failed by 40pt.
-  private var bandItems: [CSTabBand<Tab>.Item] {
+  static var bandItems: [CSTabBand<Tab>.Item] {
     [.init(id: .home, glyph: .home, label: NavSlot.home.label),
      .init(id: .compete, glyph: .pennant, label: NavSlot.compete.label),
      .init(id: .play, glyph: .play, label: NavSlot.play.label, isPlay: true),

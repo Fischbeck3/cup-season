@@ -62,6 +62,7 @@ struct SeasonPage: View {
   /// R-10 · IOS-025: "the room wears its league's look — phase ≻ the Pro's
   /// choice ≻ the person's dial".
   @Environment(LookStore.self) private var looks
+  @Environment(LeagueIdentityStore.self) private var identities
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
   @State private var model: LeagueRoomModel
@@ -183,12 +184,14 @@ struct SeasonPage: View {
       if CompeteSelectedFixture.on { return }
       #endif
       await model.refresh()
+      await identities.load(userID: store.me?.profile?.id, force: true)
     }
     .task(id: store.me?.generated_at) {
       #if DEBUG
       // `-cs_dev_season_fixture [squads]` — the cut, the pot and the squad
       // table need a field, a stake and a structure the signed-in account does
       // not have. DEBUG only, never written, and the shot is a fixture.
+      if ClubSpreadFixture.on { ClubSpreadFixture.seed(model); return }
       if CompeteSelectedFixture.on { CompeteSelectedFixture.seed(model); return }
       if let kind = SeasonFixture.kind, !model.loaded {
         SeasonFixture.apply(model, squads: kind == "squads")
@@ -196,6 +199,7 @@ struct SeasonPage: View {
       }
       #endif
       guard let me = store.me, let v = RoomViewer(me) else { return }
+      await identities.load(userID: me.profile?.id)
       if model.loaded { await model.refresh() } else { await model.load(viewer: v) }
       // D66: a finished season announces itself ONCE per member, after the data is in
       if model.ceremonyDue {
@@ -373,6 +377,7 @@ struct SeasonPage: View {
 /// to the heading only; the story and the table retain a clear page ground.
 struct SeasonHead: View {
   @Environment(LeagueRoomModel.self) private var model
+  @Environment(LeagueIdentityStore.self) private var identities
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
 
@@ -393,12 +398,22 @@ struct SeasonHead: View {
     let stage = LeagueCopy.stage(model.clock)
     let complete = model.isComplete
     VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
-      CompeteScoreboard(title:model.league?.name ?? "The season",
-        eyebrow:SeasonBoardCopy.eyebrow(stage:stage,week:model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
-                                      weeks:model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks),
-        story:model.storyLine?.text ?? "", points:nil, standing:nil,
-        live:!complete && (model.clock.currentWeek > 0))
-        .id(SeasonPane.story.anchor).accessibilityIdentifier("season.title")
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        LeagueIdentityHeading(leagueID: model.leagueId, name: model.league?.name ?? "The season")
+          .accessibilityIdentifier("season.title")
+        if let description = identities.identities[model.leagueId]?.description {
+          Text(description).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        Text(SeasonBoardCopy.eyebrow(stage:stage,week:model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
+                                     weeks:model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks))
+          .csType(.agate, caps: true).foregroundStyle(!complete && model.clock.currentWeek > 0 ? cs.brand : cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+        if let story = model.storyLine?.text, !story.isEmpty {
+          Text(story).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }.csGutter().id(SeasonPane.story.anchor)
       Text(SeasonBoardCopy.dateline(number:model.season?.number,
         span:SeasonBoardCopy.span(startsOn:model.clock.startsOn,endsOn:model.clock.endsOn) ?? model.clock.spanText,
         pro:model.proName,squads:model.bylaws.solo ? nil : model.squads.count))

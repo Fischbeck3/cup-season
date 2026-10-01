@@ -38,7 +38,7 @@ import CupSeasonKit
 
 @MainActor
 enum CompeteFixture {
-  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_compete_fixture") || MatchProgrammeFixture.on }
+  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_compete_fixture") || MatchProgrammeFixture.on || ClubSpreadFixture.on }
 
   /// The decoded payload, or nil if the hatch is off. Built once per launch.
   static let me: Me? = on ? decode() : nil
@@ -123,7 +123,10 @@ enum CompeteFixture {
       ]
     }
     """
-    do { return try JSONDecoder().decode(Me.self, from: Data(json.utf8)) }
+    let captureJSON = ClubSpreadFixture.on && ClubSpreadFixture.mode == "long" ?
+      json.replacingOccurrences(of: "\"name\": \"The Dew Sweepers\"",
+        with: "\"name\": \"The Dawn Patrol and Long Weekend Golf Society\"") : json
+    do { return try JSONDecoder().decode(Me.self, from: Data(captureJSON.utf8)) }
     catch {
       // A fixture that silently decodes to nil is a screen that silently
       // renders its skeleton forever — which is exactly what the first shot

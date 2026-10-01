@@ -16,6 +16,7 @@ import CupSeasonKit
 struct CompeteScreen: View {
   @Environment(SessionStore.self) private var store
   @Environment(LookStore.self) private var looks
+  @Environment(LeagueIdentityStore.self) private var identities
   @Environment(\.presenter) private var presenter
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
@@ -56,7 +57,12 @@ struct CompeteScreen: View {
     CSTokens.dark.wearing(looks.personalLook(), theme: .dark)
   }
 
-  private var masthead: some View { CSPageHeader("Compete") { EmptyView() } }
+  private var masthead: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      CSPageHeader("Compete") { EmptyView() }
+      CSRule(.heavy)
+    }
+  }
 
   var body: some View {
     ScrollView {
@@ -110,10 +116,15 @@ struct CompeteScreen: View {
       if CompeteSelectedFixture.on { return }
       #endif
       await store.reload(); await countBuddies()
+      await identities.load(userID: store.me?.profile?.id, force: true)
     }
     .task(id: store.me?.generated_at) {
       loaded = me != nil
       await countBuddies()
+      #if DEBUG
+      if CompeteFixture.on || CompeteSelectedFixture.on { return }
+      #endif
+      await identities.load(userID: store.me?.profile?.id)
     }
   }
 
@@ -154,11 +165,19 @@ struct CompeteScreen: View {
   /// remain the same quiet navigation landmarks. No change to peer ordering.
   @ViewBuilder private func section(_ head: String, _ rows: [CompeteRoot.Row], first: Bool = false) -> some View {
     if !rows.isEmpty {
-      CSSectionHead(head, weight: .programme)
-        .padding(.top, first ? CSTokens.Space.s4 : CSTokens.Space.s5)
-        .padding(.bottom, CSTokens.Space.s2)
+      if head == CompeteRoot.Head.seasons {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          Text(head).csType(.agate, caps: true).foregroundStyle(cs.mut)
+            .accessibilityAddTraits(.isHeader)
+          CSRule()
+        }.padding(.top, first ? CSTokens.Space.s3 : CSTokens.Space.s5)
+      } else {
+        CSSectionHead(head, weight: .label)
+          .padding(.top, first ? CSTokens.Space.s4 : CSTokens.Space.s5)
+          .padding(.bottom, CSTokens.Space.s2)
+      }
       ForEach(rows) { row in
-        CompeteRowView(row: row) { open(row) }
+        peer(row)
           .environment(\.csLook, look(row))
         seasonBookDoor(row)
       }
@@ -169,7 +188,7 @@ struct CompeteScreen: View {
     if !list.finished.isEmpty {
       DisclosureGroup(isExpanded: $showsFinished) {
         ForEach(list.finished) { row in
-          CompeteRowView(row: row) { open(row) }
+          peer(row)
             .environment(\.csLook, look(row))
         }
       } label: {
@@ -207,6 +226,14 @@ struct CompeteScreen: View {
   private func look(_ row: CompeteRoot.Row) -> CSLookSpec? {
     guard let id = row.leagueId, let m = me?.memberships.first(where: { $0.league_id == id }) else { return nil }
     return looks.look(for: m)
+  }
+
+  @ViewBuilder private func peer(_ row: CompeteRoot.Row) -> some View {
+    if row.kind == .season {
+      LeagueIdentitySpread(row: row, viewer: me?.profile?.id) { open(row) }
+    } else {
+      CompeteRowView(row: row) { open(row) }
+    }
   }
 
   /// Every row is a door, and the object decides which one.

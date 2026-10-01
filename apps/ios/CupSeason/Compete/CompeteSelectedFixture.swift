@@ -6,17 +6,18 @@ import CupSeasonKit
 /// Actual production renderers on synthetic local RPC payloads. Never starts
 /// auth, telemetry, push, or a network read. Every launch is explicitly opted in.
 @MainActor enum CompeteSelectedFixture {
-  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_compete_selected") }
+  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_compete_selected") || ClubSpreadFixture.on }
   static func arg(_ key: String,_ fallback: String) -> String {
     let a=ProcessInfo.processInfo.arguments
     return a.firstIndex(of:key).flatMap { $0+1<a.count ? a[$0+1] : nil } ?? fallback
   }
   static var kind: String { arg("-cs_selected_fixture","squads") }
-  static var screen: String { arg("-cs_selected_screen","book") }
+  static var screen: String { ClubSpreadFixture.on ? ClubSpreadFixture.screen : arg("-cs_selected_screen","book") }
   static let books: [SeasonBookSnapshot] = [SeasonBookFixtureJSON.squads,SeasonBookFixtureJSON.tie,SeasonBookFixtureJSON.upcoming,SeasonBookFixtureJSON.finished].map { try! JSONDecoder().decode(SeasonBookSnapshot.self,from:Data($0.utf8)) }
   static var book: SeasonBookSnapshot { books[["squads","tie","upcoming","finished"].firstIndex(of:kind) ?? 0] }
   static func book(_ league: UUID) -> SeasonBookSnapshot { books.first { $0.league_id == league } ?? book }
   static var me: Me {
+    if ClubSpreadFixture.on { return CompeteFixture.me! }
     var json=try! JSONSerialization.jsonObject(with:Data(SeasonBookFixtureJSON.home.utf8)) as! [String:Any]
     // The shared decoder accepts Postgres's fractional ISO timestamps.
     if kind != "multi" { json["memberships"]=(json["memberships"] as! [[String:Any]]).filter { ($0["league_id"] as? String)==book.league_id.uuidString.lowercased() } }
@@ -57,12 +58,20 @@ struct CompeteSelectedFixtureView: View {
         case "receipt":
           let b=CompeteSelectedFixture.book, r=b.rows.first { $0.kind == "golfer" && $0.mine }!
           SeasonBookReceipts(title:r.name + " · Week 12",entries:r.entries.filter { $0.week == 12 },names:Dictionary(uniqueKeysWithValues:b.rows.filter { $0.kind == "golfer" }.map { ($0.member_id!,$0.name) }),openRound:{ receipt=$0 })
-        case "season": SeasonPage(leagueId:CompeteSelectedFixture.book.league_id,links:links)
+        case "season": SeasonPage(leagueId:ClubSpreadFixture.on ? ClubSpreadFixture.id("000000000020") : CompeteSelectedFixture.book.league_id,links:links)
+        case "editor":
+          LeagueIdentityEditor(leagueID: ClubSpreadFixture.id("000000000020"), name: "The Fellas",
+                               identity: ClubSpreadFixture.rows[2])
         default: SeasonBookPage(fixture:CompeteSelectedFixture.book,openRound:{ receipt=$0 })
         }
       }.navigationDestination(for:UUID.self) { id in SeasonPage(leagueId:id,links:links) }
     }.environment(\.presenter,presenter)
       .tint(livery.accent) // Match the normal MainTabView shell.
+      .safeAreaInset(edge: .bottom, spacing: 0) {
+        if ClubSpreadFixture.on && CompeteSelectedFixture.screen == "root" {
+          CSTabBand(MainTabView.bandItems, selection: .constant(.compete))
+        }
+      }
       .sheet(item:$receipt) { id in Text("Round receipt fixture · \(id.uuidString)").padding() }
   }
 }

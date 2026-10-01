@@ -19,12 +19,15 @@ import CupSeasonKit
 struct SeasonRulesPage: View {
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
+  @Environment(LeagueIdentityStore.self) private var identities
+  @Environment(SessionStore.self) private var session
   let model: LeagueRoomModel
   let router: RoomRouter
   let links: LeagueRoomLinks
   @State private var busy = false
   @State private var shareURL: URL?
   @State private var sharing = false
+  @State private var editsIdentity = false
 
   var body: some View {
     ScrollView {
@@ -49,13 +52,21 @@ struct SeasonRulesPage: View {
       ActivityView(items: [url, "\(model.league?.name ?? "Our season") on Cup Season — the season so far"])
         .presentationDetents([.medium, .large])
     }
+    .sheet(isPresented: $editsIdentity) {
+      LeagueIdentityEditor(leagueID: model.leagueId, name: model.league?.name ?? "The league",
+                           identity: identities.identities[model.leagueId])
+    }
   }
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(SeasonRules.title(league: model.league?.name, number: model.season?.number))
-        .font(CSFont.heroSmall).foregroundStyle(cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      A11yStack(alignment: .leading, rowAlignment: .center, spacing: CSTokens.Space.s3) {
+        LeagueIdentityMark(leagueID: model.leagueId, name: model.league?.name ?? "The league",
+                           size: CSFace.Size.block.rawValue)
+        Text(SeasonRules.title(league: model.league?.name, number: model.season?.number))
+          .csType(.displayS).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+      }
       // N4-082 · the dates' days are runs in the board face
       if let span = SeasonRules.span(startsOn: model.clock.startsOn, endsOn: model.clock.endsOn, marked: true) {
         CSFigureRun(span, role: .story).foregroundStyle(cs.mut)
@@ -152,6 +163,16 @@ struct SeasonRulesPage: View {
         }
       }
       // IOS-025 / D103a: the Pro dresses the season; members read the choice
+      if model.isPro {
+        if identities.available {
+          CSDoorRow(verb: "League identity", gloss: "Your group's image and description") { editsIdentity = true }
+            .accessibilityIdentifier("rules.leagueIdentity")
+        } else {
+          CSDoorRow(verb: "Try league identity again", gloss: "It couldn't load") {
+            Task { await identities.load(userID: session.me?.profile?.id, force: true) }
+          }
+        }
+      }
       LookRoomSection(leagueId: model.leagueId, isPro: model.isPro)
       NoticesRoomSection()
     }
