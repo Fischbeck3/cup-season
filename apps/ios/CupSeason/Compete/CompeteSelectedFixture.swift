@@ -54,6 +54,7 @@ struct CompeteSelectedFixtureView: View {
     NavigationStack(path:$path) {
       Group {
         switch CompeteSelectedFixture.screen {
+        case "faces": ProfileFaceFixtureView()
         case "root": CompeteScreen(links:CSLinks(),push: { route in if case .season(let id,_) = route { path.append(id) } })
         case "receipt":
           let b=CompeteSelectedFixture.book, r=b.rows.first { $0.kind == "golfer" && $0.mine }!

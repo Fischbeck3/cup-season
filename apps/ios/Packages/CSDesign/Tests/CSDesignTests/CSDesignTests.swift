@@ -45,6 +45,12 @@ import SwiftUI
     #expect(CSFace(m, size: .list).name == nil)
     #expect(CSFace(m, size: .list, name: "Maya").name == "Maya")
   }
+
+  @Test func aGuestDoesNotPretendToHaveAProfileToLookUp() {
+    #expect(CSFace.Model(id: UUID(), marker: "saguaro").isProfile)
+    #expect(!CSFace.Model.seeded(key: "QA guest", marker: "saguaro").isProfile)
+    #expect(!CSFace.Model.unkeyed(marker: "azalea").isProfile)
+  }
 }
 
 @Suite struct TokenTests {

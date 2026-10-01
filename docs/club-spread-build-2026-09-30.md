@@ -6,7 +6,7 @@ Goal: build the confirmed native league identity composition and optional Pro cu
 
 What changed: Compete now pairs each league's image or designed initial mark with its name, description and actual member preview. Its compact season footer uses the existing phase, ordering, rank, points and supporting-copy producers. Long content and accessibility sizes reflow. The same identity appears in league headings; The Pro can optionally edit its image/description in Rules and use the existing curated color picker. Photo fills; logo fits with a readable backing. Missing, loading and failed images retain the initial mark. Native Photos and Files inputs downsample images and preserve logo transparency. Failed saves retain edits and show a visible error with retry.
 
-Governing truth: vision's low-friction, real-golf and memory principles; D222 peer ordering; D234 shared backend; D305/D313 curated looks; D358 mark and D359 action roles; D381 season facts; D396 author privacy; D400 approved identity. No scoring, historical round, generated token, font, brand mark, Profile, Home or web UI change.
+Governing truth: vision's low-friction, real-golf and memory principles; D222 peer ordering; D234 shared backend; D305/D313 curated looks; D358 mark and D359 action roles; D381 season facts; D396 author privacy; D400 approved identity. No scoring, historical round, generated token, font, brand mark, Profile-layout or Home-layout change. The later owner photo-priority request extends the shared avatar lookup and removes the web avatar's photo-overlaid icon; its scope and checks are recorded in `docs/profile-photos-first-2026-09-30.md`.
 
 Files changed: native Compete/league/season views, app environment, isolated DEBUG fixture and UI tests; `LeagueIdentity.swift` and model tests; one new identity migration, its SQL assertions, existing share-cleanup worker and cleanup tests. Planning, comp evidence, native surface briefs and this handoff record live alongside the implementation. Synthetic photographs/logos remain external capture inputs and are never bundled in Release.
 
@@ -20,7 +20,7 @@ Database deploy owed: `20261219090000_a_league_has_its_own_identity.sql`. The re
 
 Edge deploy owed: `supabase functions deploy share-cleanup --no-verify-jwt`. Existing cleanup secret/schedule remain in place. The worker also reclaims account-owned league images, and the database verifies physical absence before completing the existing queue entry.
 
-Client deploy owed: merge and an internal Owner TestFlight release after the explicit release-gate decision. Friends/external beta review and App Store submission are outside this request.
+Client deploy owed: merge/web publish and an internal Owner TestFlight release after the explicit release-gate decision. Friends/external beta review and App Store submission are outside this request. The preceding signed build 2027 predates the photo-priority follow-up and is not the current release candidate.
 
 Open questions / risks: owner native-release-gate decision; separate production deployment confirmation. The final reviewer requests no additional UI/asset polish or rebuild while the authority question is pending. A missing optional identity RPC leaves existing season loading and initial marks usable. Successful production upload has not been exercised by synthetic fixture tests. Screenshots do not certify hardware haptics, full VoiceOver use, unassisted task completion or a real Photos permission flow. Incumbent AX tab chrome and Rules spacing drift are documented outside the extension's repair scope.
 

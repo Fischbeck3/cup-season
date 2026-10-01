@@ -21376,17 +21376,15 @@ function wireHomeSocial(box){
    signed URL is in the map, ALWAYS the marker otherwise. No silhouette state.
    memberMarker resolves the per-league override for league surfaces. */
 function face(pid, markerKey, size){
-  /* one avatar unit (pilot: faces looked pasted over the old chips): a photo
-     fills the circle and the MARKER rides it as a badge — the marker is the
-     brand thread on every face, not a casualty of the photo. No photo: the
-     marker fills the circle. Unknown key falls to saguaro; never empty. */
+  /* UI_SYSTEM §6 / owner photo preference: a profile photograph fills the
+     circle. The golfer's icon is the fallback, never a badge over a photo.
+     Unknown marker key falls to saguaro; never empty. */
   const u = pid && window.avatarUrl ? window.avatarUrl[pid] : null;
   const s = size||36;
   const cls = 'fc s' + (s>=56?56 : s>=44?44 : s>=36?36 : s>=32?32 : s>=28?28 : 22);
   const mkSvg = window.mkr ? (window.mkr(markerKey||'saguaro') || window.mkr('saguaro')) : '';
   if(u){
-    const badge = s>=32 ? `<i class="fmk" aria-hidden="true">${mkSvg}</i>` : '';
-    return `<span class="${cls}"><img class="face" src="${esc(u)}" alt="" loading="lazy">${badge}</span>`;
+    return `<span class="${cls}"><img class="face" src="${esc(u)}" alt="" loading="lazy"></span>`;
   }
   /* TEN / W7-044 [B2-golfers-3] · one golfer, one disc: the marker on the
      golfer's own FROZEN pigment (csPigment, the phone's FNV-1a), as the board
