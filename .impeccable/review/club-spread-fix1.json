@@ -1,0 +1,22 @@
+{
+  "round": 1,
+  "scope": "Verdict on the existing reviewer material fixes; no new broad design hunt.",
+  "fixes": {
+    "persistence": "Added hero-repro.png and diff/hero using the comp-sized native top capture. Overall 72.98% still reports drift; coarse crops remain unreliable, plates remain failed at30.68%, and no forced closure is claimed. Owner release-gate amendment is pending.",
+    "fidelity": "Full-measure heavy masthead rule and separate muted seasons rule; square media now35% of native viewport width; league title uses existing display role; footer gap8 and internal gap4 with12 vertical padding. Complete producers and Book route retained. Long names and AX reflow into a full-width column.",
+    "editor": "Quiet trailing Close uses shared toolbar tertiary; sole Save uses shared primary style at the body foot. Description uses CSField with its opaque mut edge and focus state. Save dismisses keyboard; failure retains text and visible error/retry foot. Bounds/loading/discard retained.",
+    "finish": "Same40 named originals are being refreshed from passing Pro/SE flows. Scoped documenter follows the correction verdict; no whole-surface approval is claimed."
+  },
+  "tests": {
+    "pro_layout": "club-spread-pro-fix1.xcresult: three layout/route tests pass; obsolete editor scroll test failed and is superseded below.",
+    "pro_confirmation": "club-spread-pro-fix1-confirm.xcresult: editor bounds/failed save and failed/absent/long-name checks pass; this bundle supplies final editor and long-name evidence.",
+    "se_confirmation": "club-spread-se-fix1.xcresult: all 4 final UI tests pass; supplies 20 final originals; optional diagnostics collectors stopped after tests, xcodebuild exit 0.",
+    "preflight": "club-spread-final-preflight.log: zero failures/warnings.",
+    "standing_recapture": "Pro and SE focused AX3 footer recapture tests pass; four required originals replaced. UI source unchanged."
+  },
+  "limitations": [
+    "Successful production media upload, physical haptics, full VoiceOver and actual Photos permission flow remain unverified.",
+    "No HTML/CSS detector ran; native review supplies the visual floor.",
+    "Production DB/Edge and release-gate confirmations are pending; no deployment or upload is claimed."
+  ]
+}

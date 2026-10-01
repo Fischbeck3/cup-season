@@ -1,0 +1,44 @@
+WROTE .impeccable/build/spec.json
+SPEC comp .impeccable/mocks/decision/club-spread.png 853x1844 portrait
+PALETTE #0e1818(87%) #eef2ee(5%) #b44047(4%) #388858(2%) #3b78c8(2%)
+BANDS 4% 9% 12% 14% 17% 19% 22% 26% 29% 31% 41% 47% 50% 52% 55% 57% 60% 63% 70% 73% 80% 83% 85% 88% 93%
+REGION status             chrome   semantic box x10% y0% w90% h10% (768x184px, 4.1739:1) palette #0e1818 #f0f2f0 #3d4442  # Native status bar with clock and system indicators
+REGION masthead           text     semantic box x5% y8% w36% h4% (309x66px, 4.6818:1) palette #101717 #ecf0eb #132313  # Compete title in established condensed board face
+REGION masthead-rule      chrome   semantic box x0% y10% w100% h10% (853x184px, 4.6359:1) palette #0d1818 #99a29b #ebf0ea  # Neutral horizontal rule
+REGION seasons-head       text     semantic box x4% y10% w37% h2% (312x42px, 7.4286:1) palette #101818 #ebf0ea #122212  # Your seasons section heading
+REGION seasons-rule       chrome   semantic box x0% y10% w100% h10% (853x184px, 4.6359:1) palette #0d1818 #99a29b #ebf0ea  # Neutral horizontal rule
+REGION league-photo       image    raster   box x5% y22% w35% h16% (299x299px, 1:1) palette #3e4d1e #666923 #6da2e9 plate .impeccable/build/plates/course.png  # Supplied existing QA course photograph; a square group or course image
+REGION league-title-1     text     semantic box x44% y22% w32% h7% (270x132px, 2.0455:1) palette #0f1917 #eef1ed #99a09d  # League name, THE DEW SWEEPERS
+REGION description-1      text     semantic box x44% y34% w18% h3% (150x60px, 2.5:1) palette #0f1817 #a7b1b9 #8899b8  # Short league description: Early tee times. Long friendships.
+REGION people-markers-1   chrome   semantic box x40% y30% w30% h10% (256x184px, 1.3913:1) palette #0d1817 #a5afb5 #36463a  # Personal marker previews; production must preserve each real marker identity
+REGION people-names-1     text     semantic box x63% y34% w23% h3% (198x48px, 4.125:1) palette #0e1917 #a6b0ac #525d5b  # Member names and remaining count: Tash, Dan +10
+REGION footer-rule-1      chrome   semantic box x0% y30% w100% h10% (853x184px, 4.6359:1) palette #0d1817 #3e4d1f #676b24  # Neutral horizontal rule above compact season facts
+REGION phase-1            text     semantic box x4% y46% w36% h4% (306x82px, 3.7317:1) palette #3878c8 #0a1814 #b9484a  # Current season phase: BEFORE FIRST TEE
+REGION standing-1         text     semantic box x84% y40% w12% h2% (102x36px, 2.8333:1) palette #101917 #919c98 #35413c  # Compact factual season summary: OCT 11
+REGION row-rule-1         chrome   semantic box x0% y40% w100% h10% (853x184px, 4.6359:1) palette #0e1817 #3878c8 #f6f6f4  # Neutral horizontal rule between leagues
+REGION emblem-field-2     chrome   semantic box x0% y40% w40% h30% (341x553px, 0.6166:1) palette #0e1818 #b84548 #3b78c8  # Flat two-color initial mark field using existing league palette
+REGION emblem-letter-2    text     semantic box x5% y46% w35% h14% (300x267px, 1.1236:1) palette #b84548 #3b78c8 #eaeee9  # Designed initial letterforms, WTB
+REGION league-title-2     text     semantic box x43% y46% w33% h7% (282x129px, 2.186:1) palette #101917 #f6f6f5 #6b726f  # League name, WHO’S THE BITCH?
+REGION description-2      text     semantic box x43% y50% w21% h3% (180x54px, 3.3333:1) palette #101916 #f5f5f5 #505752  # Short league description: Two golfers. A season to settle it.
+REGION people-markers-2   chrome   semantic box x40% y50% w30% h10% (256x184px, 1.3913:1) palette #101917 #f5f5f5 #59625e  # Personal marker previews; production must preserve each real marker identity
+REGION people-names-2     text     semantic box x57% y57% w23% h2% (198x42px, 4.7143:1) palette #111818 #142414 #a2aaa5  # Member names and remaining count: You and Galen
+REGION footer-rule-2      chrome   semantic box x0% y60% w100% h10% (853x184px, 4.6359:1) palette #0e1918 #516659 #bd4849  # Neutral horizontal rule above compact season facts
+REGION phase-2            text     semantic box x4% y60% w36% h1% (306x18px, 17:1) palette #0b1818 #bd4849 #3d7dc8  # Current season phase: WEEK 8 OF 15
+REGION standing-2         text     semantic box x74% y63% w23% h4% (192x78px, 2.4615:1) palette #0f1917 #a4aca8 #f5f6f5  # Compact factual season summary: 2nd · 15 PTS
+REGION season-support     text     semantic box x74% y63% w23% h4% (192x78px, 2.4615:1) palette #0f1917 #a4aca8 #f5f6f5  # Supported comparison: 4 back of Galen.
+REGION row-rule-2         chrome   semantic box x0% y60% w100% h10% (853x184px, 4.6359:1) palette #0e1918 #516659 #bd4849  # Neutral horizontal rule between leagues
+REGION emblem-field-3     chrome   semantic box x0% y60% w40% h30% (341x553px, 0.6166:1) palette #0e1818 #b03b45 #378858  # Flat two-color initial mark field using existing league palette
+REGION emblem-letter-3    text     semantic box x5% y70% w35% h17% (302x312px, 0.9679:1) palette #af3a45 #0e1818 #378858  # Designed initial letterforms, TF
+REGION league-title-3     text     semantic box x43% y69% w34% h4% (291x66px, 4.4091:1) palette #101917 #f5f5f5 #505955  # League name, THE FELLAS
+REGION description-3      text     semantic box x57% y70% w21% h3% (180x60px, 3:1) palette #101a17 #f7f7f6 #3a453f  # Short league description: Saturday golf, all season.
+REGION people-markers-3   chrome   semantic box x40% y70% w30% h20% (256x369px, 0.6938:1) palette #0f1818 #f7f7f7 #4d6255  # Personal marker previews; production must preserve each real marker identity
+REGION people-names-3     text     semantic box x50% y70% w28% h3% (240x60px, 4:1) palette #0e1717 #f7f7f7 #112111  # Member names and remaining count: You, Jade +6
+REGION footer-rule-3      chrome   semantic box x0% y80% w100% h10% (853x184px, 4.6359:1) palette #0e1818 #ad3844 #394746  # Neutral horizontal rule above compact season facts
+REGION phase-3            text     semantic box x4% y80% w36% h3% (306x54px, 5.6667:1) palette #ad3844 #0e1818 #338858  # Current season phase: WEEK 3 OF 26
+REGION standing-3         text     semantic box x70% y84% w26% h3% (222x60px, 3.7:1) palette #0d1918 #f3f3f3 #4a6758  # Compact factual season summary: 1st · 25 PTS
+REGION row-rule-3         chrome   semantic box x0% y80% w100% h10% (853x184px, 4.6359:1) palette #0e1818 #ad3844 #394746  # Neutral horizontal rule between leagues
+REGION tabbar             chrome   semantic box x0% y80% w100% h20% (853x369px, 2.3117:1) palette #0e1818 #ad3844 #384643  # Existing five-target native tab bar, Compete selected, Play action tint; profile unchanged
+REGION insert-spacing     chrome   semantic box x0% y20% w40% h20% (341x369px, 0.9241:1) palette #0c1817 #3f4d1e #666b23  # Page ground around the left identity insert
+PLATES 1 to produce: league-photo
+WARN region league-photo: "bleed": true set in the regions file (the clipped-artwork refusal is overridden: the page crops it there)
+RULE anything not in this list does not exist on the page: no borders, rules, chrome, or containers the comp does not show. Every raster region ships as its plate, never as CSS.

@@ -18,6 +18,28 @@
 
 import SwiftUI
 
+/// The app supplies authenticated profile lookup; CSDesign owns no backend.
+public struct CSFacePhotoSource: Sendable {
+  public enum Result: Sendable, Equatable { case photo(URL), noPhoto, unavailable }
+  public let scope: UUID?
+  public let revision: Int
+  public let refreshProfile: UUID?
+  public let load: @Sendable (UUID) async -> Result
+  public init(scope: UUID? = nil, revision: Int = 0, refreshProfile: UUID? = nil,
+              load: @escaping @Sendable (UUID) async -> Result = { _ in .unavailable }) {
+    self.scope = scope; self.revision = revision; self.refreshProfile = refreshProfile; self.load = load
+  }
+}
+private struct CSFacePhotoKey: EnvironmentKey {
+  static let defaultValue = CSFacePhotoSource()
+}
+public extension EnvironmentValues {
+  var csFacePhotos: CSFacePhotoSource {
+    get { self[CSFacePhotoKey.self] }
+    set { self[CSFacePhotoKey.self] = newValue }
+  }
+}
+
 public struct CSFace: View {
   /// Resolved once, from the profile row.
   public struct Model: Hashable, Sendable {
@@ -29,11 +51,13 @@ public struct CSFace: View {
     public let initials: String
     /// The viewer's own mark takes `ink` rather than `mut`.
     public let isViewer: Bool
+    /// Name-keyed guests have no profile to look up.
+    public let isProfile: Bool
 
     public init(id: UUID, marker: String?, photoURL: URL? = nil,
-                initials: String = "", isViewer: Bool = false) {
+                initials: String = "", isViewer: Bool = false, isProfile: Bool = true) {
       self.id = id; self.marker = marker; self.photoURL = photoURL
-      self.initials = initials; self.isViewer = isViewer
+      self.initials = initials; self.isViewer = isViewer; self.isProfile = isProfile
     }
 
     /// **The pigment index, and it must not move between launches.**
@@ -87,7 +111,7 @@ public struct CSFace: View {
       let bytes = withUnsafeBytes(of: (h, hi)) { Array($0) }
       let u = UUID(uuid: (bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
                           bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]))
-      return Model(id: u, marker: marker, photoURL: photoURL, initials: initials, isViewer: isViewer)
+      return Model(id: u, marker: marker, photoURL: photoURL, initials: initials, isViewer: isViewer, isProfile: false)
     }
 
     public func pigment(_ p: CSPalette) -> Color {
@@ -109,6 +133,8 @@ public struct CSFace: View {
 
   @Environment(\.cs) private var cs
   @Environment(\.colorScheme) private var scheme
+  @Environment(\.csFacePhotos) private var photos
+  @State private var loaded: (Request, CSFacePhotoSource.Result)?
   public let model: Model
   public let size: Size
   /// 2.5pt, **team events only** — the side a golfer is playing for. It is the
@@ -146,6 +172,25 @@ public struct CSFace: View {
 
   private var d: CGFloat { size.rawValue }
 
+  private struct Request: Equatable {
+    let model: Model
+    let scope: UUID?
+    let revision: Int
+    let refreshProfile: UUID?
+  }
+  private var request: Request {
+    Request(model: model, scope: photos.scope, revision: photos.revision, refreshProfile: photos.refreshProfile)
+  }
+  private var photoURL: URL? {
+    if photos.refreshProfile != model.id, let url = model.photoURL { return url }
+    guard let (key, result) = loaded, key == request else { return model.photoURL }
+    switch result {
+    case .photo(let url): return url
+    case .noPhoto: return nil
+    case .unavailable: return model.photoURL
+    }
+  }
+
   /// On cream stock the glyph takes `ink`, never `mut`: the pale tints are
   /// ~0.90 relative luminance and a `mut` stroke on them measured
   /// near-invisible in the light renders. The viewer's own mark takes `ink` in
@@ -157,7 +202,7 @@ public struct CSFace: View {
 
   public var body: some View {
     ZStack {
-      if let url = model.photoURL {
+      if let url = photoURL {
         AsyncImage(url: url) { phase in
           switch phase {
           case .success(let img): img.resizable().scaledToFill()
@@ -180,6 +225,13 @@ public struct CSFace: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(name ?? "")
     .accessibilityHidden(name == nil)
+    .task(id: request) {
+      guard (model.photoURL == nil || photos.refreshProfile == model.id), model.isProfile, photos.scope != nil else { return }
+      let key = request
+      let result = await photos.load(model.id)
+      guard !Task.isCancelled else { return }
+      loaded = (key, result)
+    }
   }
 
   private var disc: some View {

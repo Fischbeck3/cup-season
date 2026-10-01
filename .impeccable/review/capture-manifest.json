@@ -1,0 +1,413 @@
+{
+  "synthetic": true,
+  "required": [
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-dark-AX3-first.png",
+      "scenario": "club-spread-dark-AX3-first",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "24444e5aac16b7b4faeba9b077b999cc285c5a5b220e9b7c5c1f35a9a92252b1"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-dark-AX3-logo.png",
+      "scenario": "club-spread-dark-AX3-logo",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "c4991aa473e9359fa7be0233240d5e62f292eb1489497f0c8f1047ea098f7eae"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-dark-AX3-standing.png",
+      "scenario": "club-spread-dark-AX3-standing",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "a3ca92b8d1f392dc70dccacecbdcfac5175625cc377b18741f86a0526ae0944d"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-dark-large-first.png",
+      "scenario": "club-spread-dark-large-first",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "ad527c985f21945a281a9647f495f4a0c0e56dcd44e4a82d46dc553d8657c56d"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-dark-large-logo.png",
+      "scenario": "club-spread-dark-large-logo",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "df8c1e82d5ffe4226e7e81f5c694c12a89058eceef33ff0925386dafcf597f9d"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-dark-large-standing.png",
+      "scenario": "club-spread-dark-large-standing",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "6e7ad04b0e46b217c03891f6f67b43cb4809bf25fed8fed4e0abec21a002adf8"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-editor-dark-failed-save.png",
+      "scenario": "club-spread-editor-dark-failed-save",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "b2476c74ed11a561eaff01ec3a08735bb8579111e67b939e3822936c0afea59b"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-editor-dark.png",
+      "scenario": "club-spread-editor-dark",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "ed3509d532af93905a1962735d5765ff4df1efec269caa3c09ac0081cc7fd230"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-editor-light-failed-save.png",
+      "scenario": "club-spread-editor-light-failed-save",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "60b9fccff59dfe4ebea80ebdafeeb439819b48d87e217dd6262daa77b7d563ad"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-editor-light.png",
+      "scenario": "club-spread-editor-light",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "5031e63b0e0d348e8d17abd8d57af79a929bfed45f07084d8eb4da9393455e11"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-failed-first.png",
+      "scenario": "club-spread-failed-first",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "9d18b0831d28735968209316a2e44f211927f7284b7e2f7fa1ea4501a4055681"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-light-AX3-first.png",
+      "scenario": "club-spread-light-AX3-first",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "5a6cf05a1ac44492cfd18d49c467dd9035e0a3a6b451ed0334770ff862709a23"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-light-AX3-logo.png",
+      "scenario": "club-spread-light-AX3-logo",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "586390f03105d62ea031bbe0841aef71684e940b3835b70a3a8f12c5b92eb180"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-light-AX3-standing.png",
+      "scenario": "club-spread-light-AX3-standing",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "f204eb6e6aac5f4d556af6b7af513ef038afb1b8098794adc64caff9dba591c9"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-light-large-first.png",
+      "scenario": "club-spread-light-large-first",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "794218d491e08819e7fd4cde76e0a2bb2ccf11781ed395ddca03bdf0059faf15"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-light-large-logo.png",
+      "scenario": "club-spread-light-large-logo",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "93c0a57af15d9526837fc23c6e0562d6a8361fbcd64fb5ad9038d29a01968b3f"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-light-large-standing.png",
+      "scenario": "club-spread-light-large-standing",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "b1b18ed59a9e5b7d8db68fd7698eeaf4b38074a162b26e25df124ef941440fe4"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-long-first.png",
+      "scenario": "club-spread-long-first",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "c0c821ef64d9d3c6b9a0809e8c34555cf9cccbf89cee81791ebbe7d70621d345"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-none-first.png",
+      "scenario": "club-spread-none-first",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "4bfb45500195cff0a7c6f0e99cfba783615ae1eb177becc1b999be222854b2cf"
+    },
+    {
+      "device": "phone-pro",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-pro/club-spread-season-header.png",
+      "scenario": "club-spread-season-header",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "794c500defe5dc8755c583efe5236fa5fd3d80a7da7bb82bf6ed03988fb6870f"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-dark-AX3-first.png",
+      "scenario": "club-spread-dark-AX3-first",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "f8fbca8357a2d266f4a7b908f9e5ce1464ea4cfed544d69f39a1b312fba1fb59"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-dark-AX3-logo.png",
+      "scenario": "club-spread-dark-AX3-logo",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "a6333ef5e3c3fb35fb3e457464ccd3852c21cea981cd5d270c1f5f1e75faef54"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-dark-AX3-standing.png",
+      "scenario": "club-spread-dark-AX3-standing",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "1defcd52702e16285ad655a1cd55a667584c80b44accabfeb527c12201b95ee2"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-dark-large-first.png",
+      "scenario": "club-spread-dark-large-first",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "86580f390316423974449625477667a845e6fe79d6df18606fcdc5a83586f16e"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-dark-large-logo.png",
+      "scenario": "club-spread-dark-large-logo",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "714f8a188284d6c305355ec14415817b8e67c08fcb00f0828eb3eb8ee17b240b"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-dark-large-standing.png",
+      "scenario": "club-spread-dark-large-standing",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "81171512f010d172f2d489b5c4652173dc0154e203fe9eae10a2632cf0321f56"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-editor-dark-failed-save.png",
+      "scenario": "club-spread-editor-dark-failed-save",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "9cfbeb2a594e4ac4628f79fa4d152f464c75461767eef4052813c4b0c75eb5e2"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-editor-dark.png",
+      "scenario": "club-spread-editor-dark",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "5dbdaf1cd79a40df77654403e3e332276dd75090ef1b5b7d86f58e908028c7ea"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-editor-light-failed-save.png",
+      "scenario": "club-spread-editor-light-failed-save",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "6ab1a2427da360995a455342a7ad809f08a8dc025d5fb75a74318d17ffeb7e55"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-editor-light.png",
+      "scenario": "club-spread-editor-light",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "938b206d0213b55d1e7cab99b3d8056fd0087054a316143c5c9d93aebf0d97bf"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-failed-first.png",
+      "scenario": "club-spread-failed-first",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "39affdc7b6a51cb1ac775130df9f672ad1ca52c32f965f195eb01834699d1319"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-light-AX3-first.png",
+      "scenario": "club-spread-light-AX3-first",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "33cb4af005f9938a427bb586c1dd78706aaaadd86f4743913b594797cf5d4f2f"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-light-AX3-logo.png",
+      "scenario": "club-spread-light-AX3-logo",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "ccabc1d692ed75159369ec67265a477bfea12848039f6427a2d997fb3f818ec1"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-light-AX3-standing.png",
+      "scenario": "club-spread-light-AX3-standing",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "b24b4e6403a1530a8a9e6fc7f7c58469cf9b935c5aeb6509ffaf4dc5a41bbf32"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-light-large-first.png",
+      "scenario": "club-spread-light-large-first",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "b2d558258f01820a84611e62f979c22f64f520d9cb6ac192395d28966ba99fbc"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-light-large-logo.png",
+      "scenario": "club-spread-light-large-logo",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "ebe5b90f5d115333c316798bdae60898e1bed06b01bb56c54f970b362a7a6182"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-light-large-standing.png",
+      "scenario": "club-spread-light-large-standing",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "e16661f3926a91543613a0f08c9ab89b96f30e182b6a4dd6d63fafccd2dd2e7f"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-long-first.png",
+      "scenario": "club-spread-long-first",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "856a7efdec5341c85f3f36eb12d40d7ec31e6c300f59016d1e4c534af115942b"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-none-first.png",
+      "scenario": "club-spread-none-first",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "39affdc7b6a51cb1ac775130df9f672ad1ca52c32f965f195eb01834699d1319"
+    },
+    {
+      "device": "phone-se",
+      "path": "/private/tmp/cup-season-compete-identity-plan/.impeccable/review/phone-se/club-spread-season-header.png",
+      "scenario": "club-spread-season-header",
+      "pixels": [
+        750,
+        1334
+      ],
+      "sha256": "a58acd28c6e2590bb2a43744f82518ae8d259d6d909152c16c8081165535ef47"
+    }
+  ],
+  "notes": [
+    "All 40 originals refreshed for reviewer fix 1; Pro editor/long cases from passing confirmation bundle, other Pro cases from passing layout/route checks.",
+    "SE all 4 UI tests pass on final compiled app; originals unaltered at 1206x2622 (Pro) and 750x1334 (SE).",
+    "First captures are document-top viewports. Standing captures frame the season footer; logo captures frame the third identity. The four AX3 standing files come from focused passing recapture tests with unchanged app source.",
+    "No HTML/CSS detector, customer data or fabricated faces. Numeric state remains unforced and release-gate approval is pending."
+  ],
+  "validation": "Reviewer accepted36originals; the four AX3 standing files are now recaptured with week,rank,points and complete gap above the tabs; root opened all four and reviewer recheck is pending.",
+  "pendingRecapture": []
+}

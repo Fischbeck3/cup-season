@@ -115,7 +115,25 @@ async function cleanMedia(profile: string): Promise<MediaOutcome> {
   } catch (e) {
     error = `Storage API unreachable: ${e instanceof Error ? e.message : String(e)}`;
   }
-  // the server decides, from storage.objects, whether the prefix is empty
+  // D400/D396: the same account queue also owns their league uploads.
+  // Names come only from the definer's owner-scoped read, never a webhook body.
+  try {
+    const { data: paths, error: readError } = await sb.rpc('_league_media_cleanup_paths', { p_profile: profile });
+    if (readError) error ??= 'League media read: ' + readError.message;
+    else {
+      const leaguePaths = (paths ?? []) as string[];
+      found += leaguePaths.length;
+      for (let i = 0; i < leaguePaths.length; i += MEDIA_PAGE) {
+        const batch = leaguePaths.slice(i, i + MEDIA_PAGE);
+        const { data, error: e } = await sb.storage.from('league-media').remove(batch);
+        if (e) { error ??= 'League media Storage API: ' + e.message; continue; }
+        removed += Array.isArray(data) ? data.length : batch.length;
+      }
+    }
+  } catch (e) {
+    error ??= 'League media unreachable: ' + (e instanceof Error ? e.message : String(e));
+  }
+  // the server decides, from storage.objects, whether all owned photos are gone
   const { data, error: re } = await sb.rpc('_media_cleanup_report', { p_profile: profile, p_error: error });
   if (re) return { profile, status: 'report_failed', found, removed, error: re.message };
   return { profile, status: String(data), found, removed, ...(error ? { error } : {}) };

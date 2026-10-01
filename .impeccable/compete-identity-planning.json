@@ -1,0 +1,160 @@
+{
+  "branch": "codex/compete-identity-plan-2026-09-30",
+  "base": "5d70caeb8199e4143d72c22e7f1842886b255fbd",
+  "goal": "Plan shared league identity on native Compete and inside league pages before implementation.",
+  "ownerDecisions": {
+    "priority": "Each league’s identity and the friends behind it",
+    "personalization": "A richer setup with a league image, colors, and a short description",
+    "scope": "Compete and inside that league’s pages",
+    "imageTypes": "A group/course photo or an uploaded logo, with a designed fallback",
+    "composition": "Club Spread (option B), selected by the owner in chat."
+  },
+  "observations": [
+    "Current Compete Row holds title, eyebrow, points, rank and a supported sentence; optional league look is injected but rows visibly use ordinary ink and neutral rules.",
+    "LookRoomSection already gives The Pro a Dress the room control. LookResolver resolves phase, Pro choice, personal choice in that order; identity persistence must be distinguished from transient phase styling.",
+    "Me.Membership and LeagueRoom.League in the reviewed source do not expose a league cover/logo or short description.",
+    "Member profiles and existing photo/marker fallbacks are available in the LeagueRoom member read; bootstrap memberships contain counts and The Pro name, not a full avatar preview. Avoid one extra member-list fetch per league.",
+    "Me.Standing carries current rank, points and prev_rank; Movement requires the source snapshot date. Bare prev_rank does not establish a latest-round or complete season trend.",
+    "D381 Book race is points counting today by contribution week, with restatement after best-N displacement; it is not historical standings.",
+    "Existing CompeteRoot owns deadline ordering, invitations, phase semantics, points ties and finished history. Identity must join that producer without changing game rules."
+  ],
+  "candidateOrder": [
+    {
+      "n": 1,
+      "name": "Club portrait",
+      "structure": "Wide real league photo followed by a compact full-width identity record."
+    },
+    {
+      "n": 2,
+      "name": "Club index",
+      "structure": "Small identifying image beside the name; full-width description, people and compact season footer."
+    },
+    {
+      "n": 3,
+      "name": "Crew board",
+      "structure": "League identity leads a small member grid with a compact season summary."
+    },
+    {
+      "n": 4,
+      "name": "Season leaf",
+      "structure": "The league identity sits above a compact paper-like season register with counted people and current standing."
+    },
+    {
+      "n": 5,
+      "name": "Chapter rail",
+      "structure": "A vertical season spine connects the identifying mark, league description, members and current phase."
+    },
+    {
+      "n": 6,
+      "name": "Club spread",
+      "structure": "Photo or emblem alongside the title; full-width prose, people and season below."
+    },
+    {
+      "n": 7,
+      "name": "League banner",
+      "structure": "Shallow photo banner or designed two-color initial artwork, followed by league name, description, members and a compact season summary."
+    }
+  ],
+  "displayedCandidates": [
+    7,
+    6,
+    2
+  ],
+  "selectionStatus": "Club Spread composition and brief explicitly confirmed; implementation and internal Owner shipping requested September 30.",
+  "selectedDirection": {
+    "name": "Club Spread",
+    "candidate": 6,
+    "comp": ".impeccable/mocks/decision/club-spread.png",
+    "buildPath": "comp-led",
+    "choiceRecorded": true,
+    "brief": [
+      "Make leagues recognizable by their identity and friends. Lead each Compete entry with a square group/course photo, uploaded logo, or designed initial mark beside the league name.",
+      "Show a short description, actual member photos/markers with names and a correct remaining count, then one compact phase-correct season summary. Reflow descriptions and season facts full width whenever they need room; never squeeze long names or prose into a narrow column.",
+      "Let The Pro optionally manage image, an existing curated color pair, and description. Carry the same identity into that league's pages and Run it back, preserving phase semantics and each person's marker identity.",
+      "Use the existing native design system and personal light/dark choice. Cover photo, logo, fallback, long text, solo/squad and season states. Profile stays unchanged; broad trend charts are deferred. Metadata, uploads and member-preview reads need backend work before this can ship."
+    ],
+    "briefStatus": "Explicitly confirmed by the owner in chat; implementation authorized September 30."
+  },
+  "visualReview": {
+    "conceptsInspected": 3,
+    "correction": "One targeted image edit reduced Club Index's identity tiles and added quieter secondary doors so it differs materially from Club Spread.",
+    "comparisonPage": "http://127.0.0.1:53597/",
+    "confirmedVisible": "All three images loaded in the local comparison page.",
+    "provenanceScan": "3 concept rasters, 0 missing embedded prompts.",
+    "implementationLimits": "The native build must use actual fonts, tokens, person marker identities, phase-aware facts, image loading states and routes. Illustrative people discs and geometric emblems do not authorize recoloring actual avatars. Preserve complete prose measures and avoid literalizing incidental image-generator texture or gradients. No native implementation or simulator verification is claimed."
+  },
+  "proposedPlan": [
+    "Retain shared league identity across Run it back. Recommend optional image/logo, curated existing color pair, and a short owner-authored description; no required customization at league creation.",
+    "Carry the same identifying mark/colors into the season header without taking over the standings, Book or navigation. Keep each person's dark/light setting and protected action/live/earned roles.",
+    "Show a few actual member photos or existing marker fallbacks and a correct remaining count. Use a batched authorized preview read if necessary; do not fabricate people.",
+    "Use one compact, phase-correct season summary with existing rank/points/gap producers. Add a dated movement sentence only if its source snapshot is available; defer broad trend charts.",
+    "Design complete photo, logo and initial-mark variants, long names and descriptions, one/two/many leagues, solo and squads, every season phase, loading/failed reads and failed imagery.",
+    "Club Spread and the final brief are confirmed. Planning is complete; schema/RPC/storage work and any deployment remain separately reviewable during implementation."
+  ],
+  "governingDocs": [
+    "spec/product-vision-v1.0.md",
+    "packages/tokens/tokens.json",
+    "docs/ui-overhaul-2026-09-06/UI_SYSTEM.md",
+    "spec/brand-canon.md §4 current application",
+    "spec/decision-log.md D222, D305, D313, D359, D381",
+    "DESIGN_SYSTEM.md"
+  ],
+  "referenceComparisons": [
+    {
+      "name": "Sleeper",
+      "url": "https://sleeper.com/blog/new-left-panel-design/",
+      "lesson": "Small distinct symbols make leagues easy to recognize; dated April 2020 reference, not a current screenshot."
+    },
+    {
+      "name": "Strava clubs",
+      "url": "https://support.strava.com/en-us/articles/15402172-clubs-on-strava",
+      "lesson": "Owner-managed cover/profile images and a group identity sit alongside members and leaderboards."
+    },
+    {
+      "name": "Strava mobile clubs",
+      "url": "https://support.strava.com/en-us/articles/15401837-clubs-on-the-mobile-app",
+      "lesson": "Club creation combines logo, name and description; member overview sits alongside activity and statistics."
+    },
+    {
+      "name": "Formula 1 teams",
+      "url": "https://www.formula1.com/en/teams",
+      "lesson": "Distinct team imagery/color cues alongside named people provide recognition within a consistent roster layout."
+    },
+    {
+      "name": "18Birdies leagues",
+      "url": "https://help.18birdies.com/article/773-18birdies-leagues",
+      "lesson": "A golf league can bring members, recurring events and a season leaderboard together; Cup Season's differentiator should center the friend group and accumulating record."
+    }
+  ],
+  "constraints": [
+    "No Profile changes.",
+    "No production app code, tokens, generated files, brand asset, competition mechanic or deployment changes in this planning task.",
+    "Comp images are illustrative concepts anchored on the shipped screenshot, not simulator verification. Sample descriptions, member names, image associations and logo artwork are not asserted as live data.",
+    "Current repo canonical D358/D359 supersede older AGENTS/adaptor descriptions of the mark as unresolved and ember as the ordinary action; no mark replacement or adapter repair is part of this task.",
+    "Latest attachment UUID path is absent; reviewed current source and shipped synthetic QA captures instead."
+  ],
+  "handoff": {
+    "Branch": "codex/compete-identity-plan-2026-09-30",
+    "Goal": "Review three native league-identity concepts and confirm a build brief. Complete.",
+    "What changed": "Planning artifacts and illustrative concept previews only. Owner selected Club Spread and explicitly confirmed the final brief; selected comp sidecar records composition and brief approval.",
+    "Files changed": ".impeccable/compete-identity-question.json; .impeccable/compete-identity-prompts.json; .impeccable/compete-identity-planning.json; concept images/sidecars under .impeccable/mocks/decision. Main's committed PRODUCT.md and DESIGN.md remain unchanged.",
+    "Verification run": "Read current source/canon and reference products; inspect generated images and local comparison page. No app tests owed for planning-only artifacts.",
+    "Database deploy owed": "None for this task. Future identity metadata/preview read/upload contract needs review.",
+    "Edge deploy owed": "None.",
+    "Client deploy owed": "None; not implemented or shipped.",
+    "Open questions / risks": "No open composition or brief decisions. Exact image/description/member-preview contracts remain implementation work. Historical movement needs dated authoritative snapshots. Brief approval does not authorize production database or Edge deployment.",
+    "Recommended next step": "Implement the confirmed Club Spread brief when requested."
+  },
+  "implementationAuthorization": {
+    "date": "2026-09-30",
+    "ownerWords": "build and ship it",
+    "branch": "codex/club-spread-2026-09-30",
+    "scope": "Confirmed Club Spread brief; native Compete and league pages; internal Owner TestFlight; Profile unchanged."
+  },
+  "buildStatus": {
+    "dataLayer": "Identity/preview RPCs, private storage, author deletion and existing cleanup integration pass the full isolated migration chain and access/lifecycle assertions.",
+    "pageUI": "Implemented Compete spreads, league headings and optional Pro editor. Pro and SE dark/light/AX3 layout and flow tests pass; final editor/header confirmations pass. Independent finish review is in progress.",
+    "compEvidence": "Numeric asset gate remains open after 31% photo similarity; sample media is replaceable under the confirmed owner-photo/logo brief. No forced gate or numeric fidelity pass is claimed. Tight measured bounds are supplied alongside tool grid evidence, whose text snapping mislabels several regions.",
+    "release": "Not committed, pushed, deployed or uploaded yet."
+  }
+}

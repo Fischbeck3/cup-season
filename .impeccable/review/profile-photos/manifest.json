@@ -1,0 +1,101 @@
+{
+  "scope": "Shared CSFace: labelled test raster, no photo, failed load, guest; all five sizes, dark/light, Pro/SE. No customer data.",
+  "captures": [
+    {
+      "file": ".impeccable/review/profile-photos/pro/profile-photos-light-fallbacks.png",
+      "width": 1206,
+      "height": 2622,
+      "sha256": "5c1acd098eed97e7a9ee8d1adb4ba5c2aa3689c7bd0c895df4ead35beb3960e3",
+      "device": "Cup Season Match Programme Pro",
+      "timestamp": 1790815869.308
+    },
+    {
+      "file": ".impeccable/review/profile-photos/pro/profile-photos-light-first.png",
+      "width": 1206,
+      "height": 2622,
+      "sha256": "5c1acd098eed97e7a9ee8d1adb4ba5c2aa3689c7bd0c895df4ead35beb3960e3",
+      "device": "Cup Season Match Programme Pro",
+      "timestamp": 1790815868.276
+    },
+    {
+      "file": ".impeccable/review/profile-photos/pro/profile-photos-dark-fallbacks.png",
+      "width": 1206,
+      "height": 2622,
+      "sha256": "631894ffe736485040d73da59df4b02240d0250938163a0a021e026584118fc6",
+      "device": "Cup Season Match Programme Pro",
+      "timestamp": 1790815862.826
+    },
+    {
+      "file": ".impeccable/review/profile-photos/pro/profile-photos-dark-first.png",
+      "width": 1206,
+      "height": 2622,
+      "sha256": "631894ffe736485040d73da59df4b02240d0250938163a0a021e026584118fc6",
+      "device": "Cup Season Match Programme Pro",
+      "timestamp": 1790815861.795
+    },
+    {
+      "file": ".impeccable/review/profile-photos/se/profile-photos-light-fallbacks.png",
+      "width": 750,
+      "height": 1334,
+      "sha256": "747eb8367404f5e4d1205172e35efadda896f20d9834fcc4c6fde4d7e87af4f7",
+      "device": "Cup Season Programme Recapture",
+      "timestamp": 1790815917.574
+    },
+    {
+      "file": ".impeccable/review/profile-photos/se/profile-photos-light-first.png",
+      "width": 750,
+      "height": 1334,
+      "sha256": "1964fb787f39d531aa9369450c8b37edbc51568bf89286df415d85db4402c4cd",
+      "device": "Cup Season Programme Recapture",
+      "timestamp": 1790815916.61
+    },
+    {
+      "file": ".impeccable/review/profile-photos/se/profile-photos-dark-fallbacks.png",
+      "width": 750,
+      "height": 1334,
+      "sha256": "a042e6e836194b63665c55a2408d23621b3337ec95ead70357e0caf4f3affe1e",
+      "device": "Cup Season Programme Recapture",
+      "timestamp": 1790815911.187
+    },
+    {
+      "file": ".impeccable/review/profile-photos/se/profile-photos-dark-first.png",
+      "width": 750,
+      "height": 1334,
+      "sha256": "78664c1578b458a417391bf619799a3425dc6bf76af14614c8b5a9192691d640",
+      "device": "Cup Season Programme Recapture",
+      "timestamp": 1790815910.224
+    },
+    {
+      "file": ".impeccable/review/profile-photos/pro/profile-photos-light-removed.png",
+      "width": 1206,
+      "height": 2622,
+      "sha256": "0c02d26feed49909dfcc62481e7a20be025a9eb0a0233984df3cf9ade282ecf8",
+      "device": "Cup Season Match Programme Pro",
+      "timestamp": 1790816117.931
+    },
+    {
+      "file": ".impeccable/review/profile-photos/pro/profile-photos-dark-removed.png",
+      "width": 1206,
+      "height": 2622,
+      "sha256": "71c4a7b935ab7161713d697abb86650fe1434c5080c2b9bcd511d336c5708df6",
+      "device": "Cup Season Match Programme Pro",
+      "timestamp": 1790816112.402
+    },
+    {
+      "file": ".impeccable/review/profile-photos/se/profile-photos-light-removed.png",
+      "width": 750,
+      "height": 1334,
+      "sha256": "821699b787ab35bce34bdb007b04b3f6b3355f9b28dff90e4b45fc7dd6af3a00",
+      "device": "Cup Season Programme Recapture",
+      "timestamp": 1790816206.15
+    },
+    {
+      "file": ".impeccable/review/profile-photos/se/profile-photos-dark-removed.png",
+      "width": 750,
+      "height": 1334,
+      "sha256": "bc7c3567962bd8b1b9330a52cd5869dfb56a5d8e4a847828737afa25293473dc",
+      "device": "Cup Season Programme Recapture",
+      "timestamp": 1790816200.575
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Reference only: cropped from the owner-approved .impeccable/mocks/decision/club-spread.png by comp-spec/manual measured bounds for photographic comparison. Never used as a production or DEBUG shipping plate. The original comp retains its exact generation prompt in embedded metadata and its sidecar.

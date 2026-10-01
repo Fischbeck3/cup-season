@@ -91,6 +91,8 @@ public struct ProfileRepository: Sendable {
     let path = "\(userId.uuidString.lowercased())/avatar.jpg"
     try await svc.client.storage.from("media").upload(path, data: jpeg, options: FileOptions(contentType: "image/jpeg", upsert: true))
     try await svc.call(Rpc.set_profile(p_name: currentName, p_photo_path: path))
+    await ProfilePhotos.shared.invalidate(userId)
+    NotificationCenter.default.post(name: .csProfilePhotoChanged, object: userId)
     return try? await svc.client.storage.from("media").createSignedURL(path: path, expiresIn: 3600)
   }
 
@@ -98,6 +100,8 @@ public struct ProfileRepository: Sendable {
     let path = "\(userId.uuidString.lowercased())/avatar.jpg"
     try await svc.call(Rpc.set_profile(p_name: currentName, p_photo_path: ""))
     _ = try? await svc.client.storage.from("media").remove(paths: [path])
+    await ProfilePhotos.shared.invalidate(userId)
+    NotificationCenter.default.post(name: .csProfilePhotoChanged, object: userId)
   }
 
   public func deleteAccount() async throws {
