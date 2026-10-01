@@ -1043,7 +1043,7 @@ struct MainTabView: View {
     // D225 · the intent sheet. Every "Start something" lands here first, and
     // nothing is minted by opening it.
     .csSheet(isPresented: $presenter.showIntent) {
-      IntentSheet(take: takeIntent, joinWithCode: { presenter.join(code: nil) })
+      IntentSheet(take: takeIntent, money: moneyDoor, takeMoney: takeMoney, joinWithCode: { presenter.join(code: nil) })
         #if DEBUG
         .csScreenMark("intent")
         #endif
@@ -1535,7 +1535,35 @@ struct MainTabView: View {
     case .season:       presenter.wizard = .init(existingLeagueId: nil)
     case .weekend:      presenter.declare = DeclarePrefill()
     case .pickAGolfer:  presenter.showPickAGolfer = true
-    case .whatsItOn:    presenter.forfeit = .init(home: ForfeitHome(leagueId: store.preferredLeague))
+    case .whatsItOn:    takeMoney(moneyDoor)
+    }
+  }
+
+  /// D402 · the start sheet's modifier, by the phase of the league in context
+  /// — the same league the rest of the shell treats as "mine right now".
+  private var moneyDoor: StartIntent.MoneyDoor {
+    let league = store.preferredLeague
+    let phase = store.me?.memberships.first { $0.league_id == league }?.phase
+    return .resolve(league: league, phase: phase)
+  }
+
+  /// D402 · where each label goes, and nowhere else. Before the first tee the
+  /// Pro lands on the wizard's money step (the buy-in dial) and a member on
+  /// the season's pot, where the Pro's buy-in is shown; with no league the shared
+  /// empty line says why (the web's toast, verbatim). After it, the rules froze
+  /// and the act left is a pride bet on that season.
+  private func takeMoney(_ door: StartIntent.MoneyDoor) {
+    switch door {
+    case .buyIn(let id?):
+      if store.me?.memberships.first(where: { $0.league_id == id })?.isPro == true {
+        presenter.wizard = .init(existingLeagueId: id, initialStep: 2)
+      } else {
+        openCompetition(id, pane: .pot)
+      }
+    case .buyIn(nil):
+      shellToast.show(StartIntent.Money.emptyLine)
+    case .prideBet(let id):
+      presenter.forfeit = .init(home: ForfeitHome(leagueId: id))
     }
   }
 

@@ -374,7 +374,7 @@ struct WizardStakeStep: View {
             model.dials.stake = n
           }
           .accessibilityLabel("Buy-in in dollars")
-        CSFine("Up to $\(WizardDials.maxStake) a golfer.")
+        CSFine(MoneyLimits.upTo)
       }
 
       // L-10 · at $0 the whole block below is ABSENT, not greyed.

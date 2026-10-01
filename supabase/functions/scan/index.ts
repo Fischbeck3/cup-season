@@ -113,6 +113,24 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SB_URL, SB_SERVICE);
 
+  // -- D403 · the golfer's stored yes, read by the server, before anything costs
+  //    money or leaves for Anthropic. The consent sheet ("Scan with Claude?")
+  //    writes profiles.scan_consent_at through set_scan_consent; Settings clears
+  //    it. Absent, revoked, or unreadable is a no — fail closed, zero provider
+  //    calls, and no reservation row. A removed account (account_bans) is a no too.
+  const { data: consentRow, error: consentErr } = await admin
+    .from("profiles").select("scan_consent_at").eq("id", uid).maybeSingle();
+  if (consentErr || !consentRow?.scan_consent_at) {
+    if (consentErr) console.error("[scan] consent read failed", consentErr.message);
+    return json({ unavailable: true, reason: "no_consent" }, 403);
+  }
+  const { data: banRow, error: banErr } = await admin
+    .from("account_bans").select("profile_id").eq("profile_id", uid).is("lifted_at", null).maybeSingle();
+  if (banErr || banRow) {
+    if (banErr) console.error("[scan] ban read failed", banErr.message);
+    return json({ unavailable: true, reason: "account_closed" }, 403);
+  }
+
   // -- caps: RESERVE before spending (closes the TOCTOU race). Insert the
   //    usage row FIRST, then count INCLUDING it. Concurrent calls all see each
   //    other's committed rows, so the caps can only ever over-refuse (safe),

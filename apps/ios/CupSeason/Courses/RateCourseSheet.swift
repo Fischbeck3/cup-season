@@ -41,6 +41,9 @@ struct RateCourseSheet: View {
   @State private var note: String = ""
   @State private var busy = false
   @State private var failed = false
+  /// D403 · the server's own sentence when it wrote one — the word filter's
+  /// refusal of the note above all, which the golfer has to read to rephrase.
+  @State private var refusal: String?
   /// The star landed and the sentence did not, because this database predates
   /// the column. Said out loud; never dismissed over.
   @State private var noteWaiting = false
@@ -181,7 +184,7 @@ struct RateCourseSheet: View {
   /// golfer's number still in the control — never a raw code, and never a
   /// promise that it was queued, because it was not.
   private var unavailable: some View {
-    Text("That did not save. Your rating is still here — try it again in a moment.")
+    Text(refusal ?? "That did not save. Your rating is still here — try it again in a moment.")
       .csType(.bodyS).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
   }
@@ -199,7 +202,8 @@ struct RateCourseSheet: View {
       let r = try await CourseRatingService().rate(courseId, stars: stars, note: wanted)
       onChange(r)
       // A DATABASE OLDER THAN THE COLUMN TAKES THE STAR AND NOT THE SENTENCE:
-      // `p_note` is droppable, so `svc.call` retries without it and succeeds.
+      // `rate` retries without `p_note` on a missing function (and on that
+      // alone — D403: a refusal is thrown, never shed) and succeeds.
       // The aggregate comes back with no note on it, and that is the tell — so
       // the sheet SAYS SO rather than dismissing on a half-saved act.
       if !wanted.isEmpty && (r.mineNote ?? "") != wanted {
@@ -211,7 +215,9 @@ struct RateCourseSheet: View {
       dismiss()
     } catch {
       // Never a raw code. The sentence above says what is true, and the sheet
-      // stays up with the golfer's number still in it.
+      // stays up with the golfer's number — and words — still in it. D403 ·
+      // a sentence the server wrote for the golfer is shown instead.
+      refusal = BoardText.ourSentence((error as? LocalizedError)?.errorDescription ?? String(describing: error))
       failed = true
     }
   }

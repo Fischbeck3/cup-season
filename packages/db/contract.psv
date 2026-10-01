@@ -127,6 +127,7 @@ bag_count_word|p_n integer|text|invoker|none
 bag_follows_the_card||trigger|definer|none
 bag_of|p_profile uuid DEFAULT NULL::uuid|jsonb|definer|auth
 bag_word|p_slot text|text|invoker|none
+ban_account|p_profile uuid, p_confirm text, p_reason text, p_report uuid DEFAULT NULL::uuid|jsonb|definer|auth
 band_name|p_pvi numeric|text|invoker|auth
 call_out|p_opponent uuid, p_closes_on date DEFAULT NULL::date, p_forfeit_terms text DEFAULT NULL::text|uuid|definer|auth
 can_drop_share_copy|p_name text|boolean|definer|auth
@@ -205,6 +206,7 @@ home_feed|p_days integer DEFAULT 21|TABLE(round_id uuid, profile_id uuid, golfer
 home_stories|p_days integer DEFAULT 21, p_league uuid DEFAULT NULL::uuid|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text, has_rating boolean)|definer|auth
 invite_golfer|p_league uuid, p_event uuid, p_profile uuid|uuid|definer|auth
 is_active_member|p_league uuid|boolean|definer|auth
+is_banned|p_profile uuid DEFAULT auth.uid()|boolean|definer|auth
 is_commissioner|p_league uuid|boolean|definer|auth
 is_event_league_member|p_event uuid|boolean|definer|auth
 is_event_member|p_event uuid|boolean|definer|auth
@@ -240,6 +242,7 @@ mark_buy_in|p_season uuid, p_member uuid, p_paid boolean|void|definer|auth
 mark_cancellation_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none
 mark_email_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none
 match_contacts|p_hashes text[]|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text)|definer|auth
+media_taken_down|p_name text|boolean|definer|auth
 mj_money|n numeric|text|invoker|none
 mj_vs|n numeric|text|invoker|none
 moderation_queue||jsonb|definer|auth
@@ -364,9 +367,11 @@ start_season|p_season uuid|void|definer|auth
 submit_feedback|p_category text, p_body text, p_context jsonb DEFAULT '{}'::jsonb|uuid|definer|auth
 suspend_member|p_member uuid, p_reason text DEFAULT NULL::text|void|definer|auth
 tag_founder||trigger|definer|none
+takedown_photo|p_kind text, p_target uuid, p_reason text, p_report uuid DEFAULT NULL::uuid|jsonb|definer|auth
 tour_card|p_profile uuid|jsonb|definer|auth
 transfer_pro|p_member uuid|void|definer|auth
 trg_event_complete||trigger|definer|auth
+unban_account|p_profile uuid, p_reason text|jsonb|definer|auth
 undo_pick|p_draft uuid|void|definer|auth
 unfriend|p_profile uuid|void|definer|auth
 unhide_content|p_kind text, p_id uuid|void|definer|auth

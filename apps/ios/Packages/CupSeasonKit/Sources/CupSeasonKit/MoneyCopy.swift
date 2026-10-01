@@ -27,3 +27,30 @@ public enum MoneyCopy {
   /// The canon line. Verbatim, D39 / brand-canon §3.
   public static let ledger = "Cup Season keeps the ledger; the money moves between friends."
 }
+
+/// D192 / D402 · **ONE CEILING FOR EVERY DOLLAR FIELD A GOLFER TYPES INTO.**
+/// The season buy-in was capped at $200 at every layer (the `league_settings`
+/// CHECK, 0–20,000 cents; `WizardDials.maxStake`; the web wizard), and the web
+/// capped the live-round stake to the same number (`CS_STAKE_MAX`). The phone's
+/// live stake was a free decimal with a floor and no ceiling — the one field in
+/// the product that scaled from "a friendly five" to a figure that reads as
+/// wagering. The server now refuses a new or changed live stake above it too
+/// ("Stakes top out at $200 a golfer."); the field and the store clamp first so
+/// a golfer never meets that refusal.
+///
+/// It bounds what a golfer can ENTER. It never rewrites an amount already on
+/// the record: a rehydrated round, a settlement and the ledger read what was
+/// stored.
+public enum MoneyLimits {
+  /// Dollars a golfer, for a season buy-in or a live-round stake.
+  public static let maxStake = 200
+  /// The fine line under every capped field, in the wizard's words.
+  public static let upTo = "Up to $\(maxStake) a golfer."
+
+  /// A typed live stake, bounded to 0…`maxStake`. Anything that is not a
+  /// finite number is no stake at all.
+  public static func clampStake(_ v: Double) -> Double {
+    guard v.isFinite else { return 0 }
+    return min(Double(maxStake), max(0, v))
+  }
+}

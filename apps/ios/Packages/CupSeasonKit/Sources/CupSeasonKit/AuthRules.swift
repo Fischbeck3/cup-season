@@ -67,6 +67,9 @@ public enum AuthRules {
   /// (RPC business errors are already written for humans).
   public static func human(_ error: Error, fallback: String = "That did not take.") -> String {
     let m = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
+    // D403 · the word filter's refusal passes verbatim, before any of the
+    // keyword sniffs below can mistake a word inside it for an auth failure.
+    if m.contains(ModerationCopy.refusal) { return ModerationCopy.refusal }
     let s = m.lowercased()
     if s.contains("banned") || s.contains("deleted") || s.contains("403") {
       return "This account was closed and can't sign in again. Start fresh with a different email."

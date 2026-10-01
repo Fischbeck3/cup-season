@@ -70,6 +70,16 @@ struct PostCameraColumn: View {
   var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       plate
+      // D403 · WHO SEES IT, beside it, before anything is posted. A scan lands
+      // in this plate as the round photo (`apply(_:row:)`), so a golfer who only
+      // meant to fill the scores is told the picture travels with the round —
+      // and the ✕ on the plate is the way to keep it on this phone. Only when
+      // something is attached: an empty frame shares nothing.
+      if model.photo != nil {
+        CSFine(RoundCopy.photoAudience)
+          .frame(maxWidth: typeSize.isA11y ? .infinity : Self.plateWidth, alignment: .leading)
+          .accessibilityIdentifier("post.photo.audience")
+      }
       // ONE offer under the plate, and it is the other thing a camera does.
       if model.scanEnabled {
         CSMini(model.scanning ? PostScan.readingLabel : "Scan the scorecard",
@@ -113,7 +123,8 @@ struct PostCameraColumn: View {
   }
 
   /// One tap, no arming: nothing has been posted yet, so this is "wrong
-  /// picture", not a deletion. (The RECEIPT's remove is two taps — D293 —
+  /// picture", not a deletion. `setPhoto(nil)` clears the JPEG the post would
+  /// upload as well as the preview, so a removed photo is never sent. (The RECEIPT's remove is two taps — D293 —
   /// because there the object and the round both already exist.)
   private var clear: some View {
     Button { model.setPhoto(nil) } label: {

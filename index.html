@@ -7109,6 +7109,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                   </div>
                   <button class="mini" id="postScanBtn" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg> Scan the scorecard</button>
                 </div>
+                <!-- D403 · who sees an attached photo — a scanned card included — said beside it, before posting -->
+                <p class="fine" id="postPhotoWho" hidden style="padding:4px 0 0"></p>
               </div>
               <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
               <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
@@ -8637,6 +8639,11 @@ function paintLedgerLines(root){
 }
 window.paintLedgerLines = paintLedgerLines;
 const CS_STAKE_MAX = 200;
+/* D403 · the word list's one sentence. The database's text filter (migration
+   20261221090000) raises exactly this — a plain P0001 naming no word — and
+   humanError passes it through verbatim, so every write surface reads the same
+   refusal. The phone's ModerationCopy.refusal is its twin; never retype it. */
+const CS_MODERATION_REFUSAL = "Cup Season can't take that wording \u2014 no slurs, sexual content or threats. Edit it and try again.";
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 /* TEN / W6 · AW2-07 · THE FIGURE RUN (UI_SYSTEM §1.6; CSFigureRun's twin). The
    PRODUCER marks a figure inside a sentence with braces — "Casey posted {74}
@@ -8675,6 +8682,8 @@ function humanError(e, prefix){
   const m = raw.toLowerCase();
   let msg;
   if(/failed to fetch|networkerror|network request|load failed|timeout/.test(m)) msg = 'Connection hiccup — check your signal and try again.';
+  /* D403 · the word list's refusal, verbatim, ahead of every pattern below */
+  else if(raw.includes(CS_MODERATION_REFUSAL)) msg = CS_MODERATION_REFUSAL;
   /* a code that a newer email superseded is not an expired session — the door
      told a golfer who was signing in to sign in again (D297). Before the auth
      branch, which would otherwise claim "invalid token". */
@@ -10841,7 +10850,14 @@ async function sendComment(f, text){
   if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
   const { error } = await window.sb.from('post_comments').insert({
     post_id:f.post_id, member_id:window.CS.member.id, body:v });
-  if(error){ cm.pop(); rerenderFeeds(); toast(humanError(error, 'Comment did not send.'), 'neg'); }
+  if(error){
+    cm.pop(); rerenderFeeds();
+    /* D403 · the input was cleared before the send (socialUiCapture would echo it
+       back otherwise); a refused comment puts the golfer's words back to edit */
+    const fi = feed.indexOf(f);
+    if(fi >= 0) document.querySelectorAll(`input[data-i="${fi}"]`).forEach(i => { if(!i.value) i.value = text || v; });
+    toast(humanError(error, 'Comment did not send.'), 'neg');
+  }
 }
 /* re-render the feed. renderFeed() already cascades to the full board when
    it's open, so one call refreshes both views. */
@@ -14926,12 +14942,14 @@ function setPostPhoto(blob){
     img.style.display='block'; if(ph) ph.style.display='none';
     clr.style.display=''; add.setAttribute('aria-label', CS_PHOTO.replace);
     $('#postPhotoRow')?.classList.add('has-photo');      /* MW-05 · a real photograph earns the frame back */
+    const who=$('#postPhotoWho'); if(who){ who.textContent = CS_PHOTO.audience; who.hidden = false; }
   } else {
     if(img.src){ try{ URL.revokeObjectURL(img.src); }catch(_){} }
     img.removeAttribute('src');
     img.style.display='none'; if(ph) ph.style.display='';
     clr.style.display='none'; add.setAttribute('aria-label', CS_PHOTO.add);
     $('#postPhotoRow')?.classList.remove('has-photo');
+    const who=$('#postPhotoWho'); if(who){ who.textContent = ''; who.hidden = true; }
     const lbl=$('#postPhotoBtnLabel'); if(lbl) lbl.textContent = CS_PHOTO.add;
   }
 }
@@ -14981,8 +14999,25 @@ async function csRunScan(f){
     try{ await csScanConsentWrite; }catch(_){}
     /* 2200px keeps handwritten digits legible for the model; ~½MB upload */
     const shot=await compressPhoto(f,2200,.9);
-    const { data, error } = await window.sb.functions.invoke('scan',
-      { body:{ image: await b64ofBlob(shot), media_type:'image/jpeg' } });
+    const image = await b64ofBlob(shot);
+    const ask = () => window.sb.functions.invoke('scan', { body:{ image, media_type:'image/jpeg' } });
+    let { data, error } = await ask();
+    /* D403 · the server reads the PROFILE's yes before Anthropic sees anything. A
+       yes held only on this device (the write failed) is refused as no_consent:
+       write it to the profile once and ask again; if it still will not take, the
+       device flag is dropped so the next scan asks first — never a scan on a yes
+       the server cannot see. */
+    if(error){
+      let reason = null;
+      try{ reason = (await error.context?.json?.())?.reason || null; }catch(_){}
+      if(reason === 'no_consent'){
+        try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
+        csScanYesThisVisit = false;
+        const saved = await csSetScanConsent(true) && !!window.CS?.profile?.scan_consent_at;
+        if(!saved){ try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){} toast(CS_SCAN_CONSENT.notSaved); return; }
+        ({ data, error } = await ask());
+      }
+    }
     if(error) throw error;
     if(data?.unavailable){
       if(data.reason==='daily_cap') toast('Scan limit for today — type your nines in');
@@ -19361,14 +19396,18 @@ async function csRateCourse(id, stars, note){
   if(note !== undefined) args.p_note = note === null ? '' : String(note).slice(0, 140);
   try{
     let res = await window.sb.rpc('rate_course', args);
-    if(res.error && args.p_note !== undefined){
+    if(res.error && args.p_note !== undefined && /schema cache|could not find the|does not exist|no function matches|p_note/i.test(String(res.error.message||''))){
       const bare = { p_course_id: args.p_course_id, p_stars: args.p_stars };
       res = await window.sb.rpc('rate_course', bare);
       if(!res.error) toast('Rated — the line needs the latest update.');
     }
     if(res.error) throw res.error;
     return csRatingPut(id, res.data || {});
-  }catch(e){ return null; }
+  }catch(e){
+    /* D403 · a refused note is said, not swallowed */
+    if(String(e?.message||'').includes(CS_MODERATION_REFUSAL)) toast(CS_MODERATION_REFUSAL, 'neg');
+    return null;
+  }
 }
 async function csUnrateCourse(id){
   if(!id || !window.sb || !window.CS?.user) return null;
@@ -24803,6 +24842,8 @@ const CS_SCAN_CONSENT = {
   setting: 'Scorecard scanning with Claude',
   settingNote: 'A scan sends the scorecard photo to Anthropic’s Claude to read the scores. It isn’t used to train their models. Off means the next scan asks first.',
   settingFailed: 'Couldn’t change that — try again.',
+  /* D403 · the server refused a yes it could not see on the profile, and saving it again failed */
+  notSaved: 'Your yes to scanning didn’t save — type your nines in, or try the scan again.',
 };
 /* The yes is the PROFILE's. A device flag stands in only where the profile
    cannot take it — the column not deployed yet, or set_scan_consent failing —
@@ -25639,8 +25680,11 @@ function openStakeSettle(id){
     <input class="f" id="stNote" placeholder="Settled on the 18th green" style="font-family:var(--sans)">
   `);
   document.querySelectorAll('[data-stw]').forEach(b=>b.addEventListener('click', async ()=>{
-    await window.stakeSettle?.(id, b.dataset.stw, document.getElementById('stNote')?.value||null);
-    closeSheet();
+    /* D403 · a refused note keeps the sheet and the note open to edit */
+    if(b.disabled) return; b.disabled = true;
+    const ok = await window.stakeSettle?.(id, b.dataset.stw, document.getElementById('stNote')?.value||null);
+    b.disabled = false;
+    if(ok) closeSheet();
   }));
 }
 
@@ -26781,6 +26825,12 @@ const CS_PHOTO = {
      that carries a photograph, and a picture that could not be fetched or
      shown. Said once, beside Replace and Remove; never on anyone else's. */
   unavailable: 'This round\u2019s photo couldn\u2019t be opened.',
+  /* D403 · RoundCopy.photoAudience: a photo attached to a round — a scanned
+     scorecard included, which doubles as the round photo — is seen by the
+     golfers in their seasons and their buddies. Said beside the photo before posting,
+     where the remove control is. Scan consent (Anthropic reading the card) and
+     the share's "Include round photo" are separate yeses. */
+  audience: 'Golfers in your seasons and your buddies see this photo with your round.',
 };
 /* PostgREST's tell for a function prod does not have yet (PGRST202 / 42883).
    Only this earns the push sentence; everything else is a real failure. */
@@ -35823,22 +35873,41 @@ async function renderModerationQueue(){
     box.innerHTML = `<p class="fine" style="padding:4px 0">${esc(humanError(err, 'The queue is not deployed yet — push the takedown migration.'))}</p>`;
     return;
   }
-  if(!q.length){ box.innerHTML = '<p class="fine" style="padding:4px 0">Nothing open \u2014 the queue is clear.</p>'; return; }
+  if(!q.length){ box.innerHTML = '<p class="fine" style="padding:4px 0">Nothing open — the queue is clear.</p>'; return; }
 
-  const modRow = (r) => `
+  /* D403 · the desk acts on what was reported: the post, the comment, the photo
+     (round or profile), or the golfer. Every action names its reason; removing a
+     golfer also needs their handle typed back. The server checks the founder and
+     writes the audit row — these buttons are the door, not the guard. */
+  const what = (r) => r.kind === 'profile' ? 'golfer' : String(r.kind||'post').replace('_',' ');
+  const text = (r) => r.body || r.comment_body || r.round_comment_body || '';
+  const down = (r) => r.already_hidden || r.comment_hidden || r.round_comment_hidden;
+  const modRow = (r) => {
+    const acts = [];
+    if(r.kind === 'post' && r.post_id && !r.already_hidden) acts.push(`<button class="mini" data-modhide="${esc(r.id)}" data-modpost="${esc(r.post_id)}">Take it down</button>`);
+    if(r.kind === 'comment' && r.comment_id && !r.comment_hidden) acts.push(`<button class="mini" data-modcomment="${esc(r.id)}" data-modkind="comment" data-modref="${esc(r.comment_id)}">Take the comment down</button>`);
+    if(r.kind === 'round_comment' && r.comment_id && !r.round_comment_hidden) acts.push(`<button class="mini" data-modcomment="${esc(r.id)}" data-modkind="round_comment" data-modref="${esc(r.comment_id)}">Take the comment down</button>`);
+    if(r.round_id && r.round_has_photo) acts.push(`<button class="mini" data-modphoto="${esc(r.id)}" data-modkind="round_photo" data-modref="${esc(r.round_id)}">Take the round photo down</button>`);
+    if((r.kind === 'profile' || r.kind === 'profile_photo') && r.subject_profile_id && r.profile_has_photo)
+      acts.push(`<button class="mini" data-modphoto="${esc(r.id)}" data-modkind="profile_photo" data-modref="${esc(r.subject_profile_id)}">Take the profile photo down</button>`);
+    if(r.subject_profile_id && !r.subject_is_founder && !r.subject_banned)
+      acts.push(`<button class="mini" data-modban="${esc(r.id)}" data-modref="${esc(r.subject_profile_id)}" data-modhandle="${esc(r.subject_handle||'')}" data-modname="${esc(r.subject_name||'')}">Remove golfer…</button>`);
+    if(r.subject_profile_id && r.subject_banned)
+      acts.push(`<button class="mini" data-modunban="${esc(r.id)}" data-modref="${esc(r.subject_profile_id)}" data-modname="${esc(r.subject_name||'')}">Restore golfer…</button>`);
+    acts.push(`<button class="mini" data-modkeep="${esc(r.id)}">Leave it up</button>`);
+    return `
     <div class="check" style="align-items:flex-start">
-      <span class="num">${r.already_hidden ? 'Hidden' : 'Open'}</span>
+      <span class="num">${down(r) ? 'Hidden' : 'Open'}</span>
       <div class="tt">
-        <b>${esc(r.author || r.reporter || 'Someone')}${r.league ? ' · ' + esc(r.league) : ''}</b>
-        <small>${esc(String(r.kind||'post').replace('_',' '))} · ${esc(String(r.reason||'no reason given').slice(0,140))} · reported by ${esc(r.reporter||'?')} · ${fdWhen(r.created_at)}</small>
-        ${r.body ? `<div class="fine" style="padding:6px 0 0; white-space:pre-wrap">${esc(String(r.body).slice(0,300))}</div>` : ''}
-        ${r.already_hidden ? '<div class="fine" style="padding:4px 0 0; color:var(--pos)">Already down</div>' : ''}
+        <b>${esc(r.subject_name || r.author || r.comment_author || r.reporter || 'Someone')}${r.league ? ' · ' + esc(r.league) : ''}</b>
+        <small>${esc(what(r))} · ${esc(String(r.reason||'no reason given').slice(0,140))} · reported by ${esc(r.reporter||'?')} · ${fdWhen(r.created_at)}</small>
+        ${text(r) ? `<div class="fine" style="padding:6px 0 0; white-space:pre-wrap">${esc(String(text(r)).slice(0,300))}</div>` : ''}
+        ${down(r) ? '<div class="fine" style="padding:4px 0 0; color:var(--pos)">Already down</div>' : ''}
+        ${r.subject_banned ? '<div class="fine" style="padding:4px 0 0">This golfer is removed.</div>' : ''}
       </div>
-      <span style="display:flex; gap:6px; flex:none; flex-direction:column">
-        ${r.post_id && !r.already_hidden ? `<button class="mini" data-modhide="${esc(r.id)}" data-modpost="${esc(r.post_id)}">Take it down</button>` : ''}
-        <button class="mini" data-modkeep="${esc(r.id)}">Leave it up</button>
-      </span>
+      <span style="display:flex; gap:6px; flex:none; flex-direction:column">${acts.join('')}</span>
     </div>`;
+  };
   box.innerHTML = q.map(modRow).join('');
 
   const settle = async (btn, fn, done) => {
@@ -35846,12 +35915,66 @@ async function renderModerationQueue(){
     try{ await fn(); await renderModerationQueue(); toast?.(done); }
     catch(err){ btn.disabled = false; btn.textContent = was; toast?.(humanError(err, 'That did not go through.')); }
   };
+  /* one deliberate step for the heavy actions: a sheet with the reason (and, for a
+     removal, the handle typed back); confirming returns to the desk */
+  const confirmSheet = (title, sub, { needHandle, handle, cta }, run) => {
+    openSheet(title, sub, `
+      <label class="f" for="modWhy">Why — recorded with the action</label>
+      <textarea class="f" id="modWhy" rows="3" maxlength="500" style="font-family:var(--sans)"></textarea>
+      ${needHandle ? `<label class="f" for="modHandle" style="margin-top:8px; display:block">Type ${handle ? '@' + esc(handle) : 'their name'} to confirm</label>
+      <input class="f" id="modHandle" autocomplete="off" autocapitalize="off" spellcheck="false">` : ''}
+      <p class="fine" id="modErr" role="alert" style="min-height:1.2em"></p>
+      <button class="btn" id="modGo" type="button" style="margin-top:6px">${esc(cta)}</button>`);
+    document.getElementById('modGo')?.addEventListener('click', async (e) => {
+      const why = (document.getElementById('modWhy')?.value || '').trim();
+      const typed = (document.getElementById('modHandle')?.value || '').trim();
+      const err = document.getElementById('modErr');
+      if(why.length < 3){ err.textContent = 'Say why, in a few words.'; return; }
+      e.currentTarget.disabled = true;
+      try{ await run(why, typed); closeSheet(); toast?.('Done, and recorded.'); window.openFounderDesk?.(); }
+      catch(x){ e.currentTarget.disabled = false; err.textContent = humanError(x, 'That did not go through.'); }
+    });
+  };
+
   box.querySelectorAll('[data-modhide]').forEach(b => b.addEventListener('click', () => settle(b, async () => {
     const { error: e1 } = await sb.rpc('hide_content', { p_kind: 'post', p_id: b.dataset.modpost, p_reason: 'Taken down from the founder desk' });
     if(e1) throw e1;
     const { error: e2 } = await sb.rpc('resolve_report', { p_report: b.dataset.modhide, p_resolution: 'content hidden' });
     if(e2) throw e2;
   }, 'Down, and the report is closed.')));
+  box.querySelectorAll('[data-modcomment]').forEach(b => b.addEventListener('click', () => settle(b, async () => {
+    const { error: e1 } = await sb.rpc('hide_content', { p_kind: b.dataset.modkind, p_id: b.dataset.modref, p_reason: 'Taken down from the founder desk' });
+    if(e1) throw e1;
+    const { error: e2 } = await sb.rpc('resolve_report', { p_report: b.dataset.modcomment, p_resolution: 'comment hidden' });
+    if(e2) throw e2;
+  }, 'Down, and the report is closed.')));
+  box.querySelectorAll('[data-modphoto]').forEach(b => b.addEventListener('click', () => {
+    const round = b.dataset.modkind === 'round_photo';
+    confirmSheet(round ? 'Take the round photo down' : 'Take the profile photo down',
+      round ? 'THE ROUND AND ITS SCORES STAY' : 'THE GOLFER KEEPS THEIR MARKER',
+      { cta: 'Take the photo down' },
+      async (why) => {
+        const { error } = await sb.rpc('takedown_photo', { p_kind: b.dataset.modkind, p_target: b.dataset.modref, p_reason: why, p_report: b.dataset.modphoto });
+        if(error) throw error;
+      });
+  }));
+  box.querySelectorAll('[data-modban]').forEach(b => b.addEventListener('click', () => {
+    const name = b.dataset.modname || 'this golfer';
+    confirmSheet('Remove ' + name, 'THEY CANNOT SIGN IN, POST OR MESSAGE ANYONE',
+      { needHandle: true, handle: b.dataset.modhandle, cta: 'Remove ' + name },
+      async (why, typed) => {
+        const { error } = await sb.rpc('ban_account', { p_profile: b.dataset.modref, p_confirm: typed, p_reason: why, p_report: b.dataset.modban });
+        if(error) throw error;
+      });
+  }));
+  box.querySelectorAll('[data-modunban]').forEach(b => b.addEventListener('click', () => {
+    const name = b.dataset.modname || 'this golfer';
+    confirmSheet('Restore ' + name, 'THEY CAN SIGN IN AGAIN', { cta: 'Restore ' + name },
+      async (why) => {
+        const { error } = await sb.rpc('unban_account', { p_profile: b.dataset.modref, p_reason: why });
+        if(error) throw error;
+      });
+  }));
   box.querySelectorAll('[data-modkeep]').forEach(b => b.addEventListener('click', () => settle(b, async () => {
     const { error } = await sb.rpc('resolve_report', { p_report: b.dataset.modkeep, p_resolution: 'reviewed — left up' });
     if(error) throw error;
@@ -35997,7 +36120,19 @@ const CS_INTENTS = [
   { k:'headToHead',     line:'Go head to head',           gloss:'the two of you, at whatever length you like', go:'pickAGolfer' },
 ];
 const CS_INTENT_TITLE = 'What do you want to do?';
-const CS_INTENT_MODIFIER = { line:'Put money on it', gloss:'add a pot to any of the above', go:'whatsItOn' };
+/* D402 (amended 2026-10-01) · the money door says what it opens, by phase:
+   before the first tee (or with no league) it is the buy-in dial; after it the
+   rules froze and the honest door is a pride bet, words not money. Label and
+   destination read the same condition (csIntentModifier), as on the phone's
+   StartIntent. */
+const CS_INTENT_MODIFIER = {
+  before: { line:'Buy-in',    gloss:'what it costs to play, set before the first tee' },
+  after:  { line:'Pride bet', gloss:'a bet in words \u2014 the rules froze at the first tee' },
+  go:'whatsItOn' };
+function csIntentModifier(){
+  const L = window.CS?.league;
+  return (L && !['setup','draft'].includes(L.phase)) ? CS_INTENT_MODIFIER.after : CS_INTENT_MODIFIER.before;
+}
 const CS_INTENT_CODE_DOOR = 'I have a code';
 /* TEN / W6 · PAR-33 · the code door is a ROW at option weight, and a row needs
    its gloss — StartIntent.codeDoorGloss, verbatim. The blind review found the
@@ -36018,7 +36153,8 @@ function csObjectNouns(str){
 }
 function csIntentStrings(){
   return CS_INTENTS.flatMap(i => [i.line, i.gloss])
-    .concat([CS_INTENT_TITLE, CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, CS_INTENT_CODE_DOOR, CS_INTENT_CODE_DOOR_GLOSS]);
+    .concat([CS_INTENT_TITLE, CS_INTENT_MODIFIER.before.line, CS_INTENT_MODIFIER.before.gloss,
+            CS_INTENT_MODIFIER.after.line, CS_INTENT_MODIFIER.after.gloss, CS_INTENT_CODE_DOOR, CS_INTENT_CODE_DOOR_GLOSS]);
 }
 /* R-F · the three lengths, always all three. The person's state may ORDER
    them; it may never withhold one. D363 (owner, 2026-09-15) reworded them so
@@ -36091,7 +36227,7 @@ function openIntentSheet(){
   openSheet(CS_INTENT_TITLE, 'PICK THE ONE THAT SOUNDS LIKE YOU',
     CS_INTENTS.map((i, n) => row(i.line, i.gloss, 'csi-' + i.k, n === 0)).join('')
     + '<div style="height:1px; background:var(--rule); margin:10px 0"></div>'
-    + row(CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, 'csi-money', false)
+    + row(csIntentModifier().line, csIntentModifier().gloss, 'csi-money', false)
     /* PAR-33 · the fifth row, below its own hairline, as the phone sets it */
     + '<div style="height:1px; background:var(--rule); margin:var(--s3) 0"></div>'
     + row(CS_INTENT_CODE_DOOR, CS_INTENT_CODE_DOOR_GLOSS, 'csi-code', false));
@@ -36110,12 +36246,12 @@ function csTakeIntent(go){
   if(go === 'season')   return document.getElementById('wCreate')?.click();
   if(go === 'weekend')  return window.openDeclareSheet?.();
   if(go === 'pickAGolfer') return openLengthStep();
-  /* "Put money on it" never creates a competition. Before the first tee it is
-     the buy-in dial; after it, the rules froze and the honest answer is a
-     forfeit — said out loud rather than hidden (L-12). */
+  /* The money door never creates a competition. Before the first tee it is
+     the buy-in dial ("Buy-in"); after it the rules froze and the door is the
+     pride bet sheet ("Pride bet") — words, never money (D402, L-12). */
   if(CS.league && ['setup','draft'].includes(CS.league.phase)){ state.wiz = 1; renderWizard(); switchView('wizard'); return; }
-  if(CS.league) return toast(esc(CS.league.name) + ' has started and the rules froze at the first tee. You can put a pride bet on it.');
-  toast('Nothing to put money on yet. Start something first.');
+  if(CS.league) return openStakeCreate();
+  toast('Nothing to set a buy-in on yet. Start something first.');
 }
 function openWhenFork(){
   openSheet('When are you playing?', 'TWO WAYS, AND BOTH WORK', `
@@ -37172,7 +37308,8 @@ window.stakeSettle = async (id, winner, note)=>{
     const { error } = await sb.rpc('settle_forfeit', { p_id:id, p_winner:winner||null, p_note:note||null });
     if(error) throw error;
     toast('Settled — into the archive', 'pos'); await loadStakes();
-  }catch(e){ toast(humanError(e), 'neg'); }
+    return true;
+  }catch(e){ toast(humanError(e, 'Could not settle it.'), 'neg'); return false; }
 };
 window.stakeScrap = async (id)=>{
   try{
@@ -38823,7 +38960,8 @@ $('#wCreate').addEventListener('click', () => {
     } catch(e){
       window._runItBack=null;
       if(b) b.disabled = false;
-      authStatus(humanError(e, 'Could not start the season.'), 'err');
+      /* D403 · #obStatus lives in the hidden onboarding overlay; a signed-in Pro reads a toast */
+      toast(humanError(e, 'Could not start the season.'), 'neg');
     }
   };
   document.getElementById('nlGo')?.addEventListener('click', go);

@@ -143,12 +143,15 @@ import Foundation
     #expect(r.mineNote == nil && r.notes.isEmpty)
   }
 
-  /// **`p_note` is DROPPABLE, and that is what makes the default safe.** A
-  /// client newer than its database still sets the star: `svc.call` retries
-  /// without the argument, and the server's `null` contract leaves any
-  /// sentence already stored exactly where it was.
-  @Test func theNoteArgumentIsTheDroppableOne() {
-    #expect(RateCourseCall.optionalArgs == ["p_note"])
+  /// D403 · **nothing is droppable now.** A blind shed on ANY error turned
+  /// the word filter's refusal of the note into a silent star-only save.
+  /// `CourseRatingService.rate` keeps the skew case as a DECLARED fallback on
+  /// PGRST202 alone, and an omitted `p_note` (nil) still means "leave the
+  /// stored sentence alone" by the server's `null` contract.
+  @Test func theNoteIsNeverShedOnARefusal() throws {
+    #expect(RateCourseCall.optionalArgs.isEmpty)
+    let bare = try JSONSerialization.jsonObject(with: JSONEncoder().encode(RateCourseCall(p_course_id: "c", p_stars: 4))) as? [String: Any]
+    #expect(bare?["p_note"] == nil)                     // the fallback sends no key at all
     #expect(CourseRatingCall.optionalArgs.isEmpty)
     #expect(UnrateCourseCall.optionalArgs.isEmpty)
     #expect(MyCourseRatingsCall.name == "my_course_ratings")

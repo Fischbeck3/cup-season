@@ -256,7 +256,11 @@ final class CardSettingsModel {
         }
         do { try await repo.setHandle(h) }
         catch {
+          // D403 · a refused handle (the word filter's sentence included)
+          // stays in the field to edit; the reload refreshes everything else.
+          let typed = handle
           await load(userId: userId)
+          handle = typed
           status = ("Card saved · " + AuthRules.human(error, fallback: "Handle not changed."), .mut)
           return
         }
@@ -287,8 +291,10 @@ final class CardSettingsModel {
     }
     do { try await repo.setHandle(p.new); await load(userId: userId); status = ("Now @\(p.new)", .pos) }
     catch {
+      // D403 · the server refused the new handle: the golfer's attempt stays
+      // in the field to edit — "Keep" is the only path that restores the old.
       await load(userId: userId)
-      handle = "@" + p.old
+      handle = "@" + p.new
       status = (AuthRules.human(error, fallback: "Handle not changed."), .neg)
     }
   }

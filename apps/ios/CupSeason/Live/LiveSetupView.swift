@@ -427,7 +427,15 @@ struct LiveSetupView: View {
           CSRule()
           fieldLabel(store.state.game.stakeLabel)
           CSField("0", text: $stakeText).keyboardType(.decimalPad).frame(width: 110).accessibilityLabel(store.state.game.stakeLabel)
-            .onChange(of: stakeText) { _, v in store.setStake(Double(v.replacingOccurrences(of: ",", with: ".")) ?? 0) }
+            .onChange(of: stakeText) { _, v in
+              let typed = Double(v.replacingOccurrences(of: ",", with: ".")) ?? 0
+              store.setStake(typed)
+              // D402 · the FIELD clamps too, as the wizard's does: a stake the
+              // field still shows as 250 while the round is built at 200 is a
+              // second way to be lied to.
+              if typed > Double(MoneyLimits.maxStake) { stakeText = String(MoneyLimits.maxStake) }
+            }
+          CSFine(MoneyLimits.upTo)
           if let prev = LiveCopy.preview(game: store.state.game, picked: store.picked, pairing: store.state.pairing, course: store.state.course, holes: store.state.liveHoles) {
             Text(LiveMarkdown.bold(prev)).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
           }

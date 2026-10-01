@@ -70,10 +70,52 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
   /// What the sheet says at its head.
   public static let title = "What do you want to do?"
 
-  /// The MODIFIER, below the hairline. It attaches money to a competition that
-  /// already exists, or to the one being created; it never creates one.
-  public static let modifierLine = "Put money on it"
-  public static let modifierGloss = "add a pot to any of the above"
+  /// The MODIFIER, below the hairline. It never creates a competition.
+  ///
+  /// D402 (owner ruling, 2026-10-01) · **THE DOOR NAMES WHAT IT OPENS, BY
+  /// PHASE.** "Put money on it · add a pot to any of the above" read as an
+  /// invitation to wager, and it was not even true: one door opened two
+  /// different things. It is labelled by the phase of the league in context
+  /// now, from the same `MoneyDoor` the tap resolves, so the label and the
+  /// destination cannot disagree. Pride bets stay prose, never an amount.
+  public static func modifierLine(_ door: MoneyDoor) -> String {
+    switch door {
+    case .buyIn:    return buyInLine
+    case .prideBet: return prideBetLine
+    }
+  }
+  public static func modifierGloss(_ door: MoneyDoor) -> String {
+    switch door {
+    case .buyIn:    return buyInGloss
+    case .prideBet: return prideBetGloss
+    }
+  }
+  /// Before the first tee, or with no league in context.
+  public static let buyInLine = "Buy-in"
+  public static let buyInGloss = "what it costs to play, set before the first tee"
+  /// After the first tee: the rules froze, and the act left is a bet in words.
+  public static let prideBetLine = "Pride bet"
+  public static let prideBetGloss = "a bet in words — the rules froze at the first tee"
+
+  /// Which of the two the modifier is, decided ONCE per tap, from the league
+  /// the golfer is looking at. The shell renders the label from this value and
+  /// routes the tap on the SAME value.
+  public enum MoneyDoor: Sendable, Equatable {
+    /// Before the first tee (`setup` / `draft`), or no league at all (nil):
+    /// the buy-in, which is set before anyone tees off.
+    case buyIn(UUID?)
+    /// The league has started: a pride bet on it.
+    case prideBet(UUID)
+
+    /// `leagues.phase` of the league in context — the web's own test
+    /// (`['setup','draft'].includes(CS.league.phase)`), so both clients agree
+    /// on when the first tee has passed. A league whose phase this phone has
+    /// not read is no league in context: the door never guesses "started".
+    public static func resolve(league: UUID?, phase: String?) -> MoneyDoor {
+      guard let league, let phase else { return .buyIn(nil) }
+      return ["setup", "draft"].contains(phase) ? .buyIn(league) : .prideBet(league)
+    }
+  }
 
   /// The footer door. T-13 owns the noun: a code, not "8 digits" (L-06 owns
   /// that phrase for the email OTP, met four minutes earlier in the same flow).
@@ -103,7 +145,7 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
 
   /// Every string the sheet renders, in draw order — the surface a lint walks.
   public static var everyString: [String] {
-    peers.flatMap { [$0.line, $0.gloss] } + [title, modifierLine, modifierGloss, codeDoor, codeDoorGloss]
+    peers.flatMap { [$0.line, $0.gloss] } + [title, buyInLine, buyInGloss, prideBetLine, prideBetGloss, codeDoor, codeDoorGloss]
   }
 
   /// The banned nouns a string actually contains, matched on word boundaries so
@@ -127,7 +169,8 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
     case weekend
     /// A golfer, then the length, and all three lengths are always offered (R-F).
     case pickAGolfer
-    /// What money is already on. Never creates a competition.
+    /// The buy-in before the first tee, a pride bet after (`MoneyDoor`).
+    /// Never creates a competition.
     case whatsItOn
   }
 
@@ -157,7 +200,7 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
   public enum Money {
     public static let title = "What's the money on?"
     public static let somethingNew = "Something new"
-    public static let emptyLine = "Nothing to put money on yet. Start something first."
+    public static let emptyLine = "Nothing to set a buy-in on yet. Start something first."
     /// A season already under way. The rules froze at the first tee (L-12), and
     /// saying so is more honest than hiding the door.
     public static func frozen(_ name: String, firstTee: String) -> String {

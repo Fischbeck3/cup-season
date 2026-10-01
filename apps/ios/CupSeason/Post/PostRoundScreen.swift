@@ -95,8 +95,16 @@ struct PostRoundScreen: View {
       ScanConsentSheet(busy: scanConsent.busy, agree: {
         Task {
           guard let owner = store.session?.user.id else { return }
-          await scanConsent.set(true, owner: owner)
-          guard store.session?.user.id == owner, scanConsent.permits(owner) else { return }
+          let saved = await scanConsent.set(true, owner: owner)
+          guard store.session?.user.id == owner else { return }
+          // D403 · only a yes the SERVER took opens the camera: the `scan`
+          // function reads the stored consent and refuses without it. A yes
+          // saved only on this phone is retried on the next scan door.
+          guard saved, scanConsent.permits(owner) else {
+            askScanConsent = false
+            toast.show(ScanConsentCopy.notSaved, kind: .failed)
+            return
+          }
           askScanConsent = false
           // The consent sheet must leave before the camera/picker rises.
           try? await Task.sleep(for: .milliseconds(350))
@@ -127,9 +135,15 @@ struct PostRoundScreen: View {
     if p == .scan {
       Task {
         guard let owner = store.session?.user.id else { return }
+        // `load` writes a yes saved only on this phone once more — the one
+        // retry D403 allows — before the gate reads the server's answer.
         await scanConsent.load(owner: owner)
         guard store.session?.user.id == owner else { return }
-        if scanConsent.permits(owner) { presentPicker(p) } else { askScanConsent = true }
+        switch ScanConsentGate.before(serverYes: scanConsent.permits(owner),
+                                      localYesPending: scanConsent.localYesPending(owner), retried: true) {
+        case .scan: presentPicker(p)
+        case .retryYes, .ask, .closed: askScanConsent = true
+        }
       }
     } else { presentPicker(p) }
   }
@@ -337,6 +351,12 @@ private struct PostRoundBody: View {
     .sheet(isPresented: $model.showPars) { PostParsSheet(model: model) }
     .sheet(isPresented: $model.showEvenPar) { PostEvenParSheet(model: model) }
     .sheet(item: $model.scanToPick) { scan in PostScanPickSheet(scan: scan) { model.apply(scan, row: $0) } }
+    // D403 · a scan refused for consent comes back to the consent door.
+    .onChange(of: model.scanConsentAgain) { _, again in
+      guard again else { return }
+      model.scanConsentAgain = false
+      pickScan()
+    }
     // the curtain closes fully before the next sheet rises — a sheet presented mid-dismissal is dropped
     .fullScreenCover(item: $model.ceremony, onDismiss: { if !model.afterCeremony() { onDone() } }) { c in
       FinishCeremonyView(ceremony: c, photo: model.recapPhoto, onBack: { model.ceremony = nil }, roundId: model.acceptedRoundId)

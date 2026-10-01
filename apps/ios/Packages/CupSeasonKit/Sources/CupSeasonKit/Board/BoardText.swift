@@ -109,7 +109,11 @@ public enum BoardText {
   public static func humanError(_ error: Error?, _ prefix: String? = nil) -> String {
     let m = describe(error).lowercased()
     let msg: String
-    if matches(m, #"failed to fetch|networkerror|network request|load failed|timeout|offline|not connected"#) {
+    // D403 · the word filter's sentence is ours and tells the golfer what to
+    // do; nothing above the allowlist may re-word it.
+    if describe(error).contains(ModerationCopy.refusal) {
+      msg = ModerationCopy.refusal
+    } else if matches(m, #"failed to fetch|networkerror|network request|load failed|timeout|offline|not connected"#) {
       msg = "Connection hiccup — check your signal and try again."
     } else if matches(m, #"jwt|not authenticated|auth session|invalid.*token|permission denied|row-level|not logged in"#) {
       msg = "Please sign in again."
@@ -133,7 +137,13 @@ public enum BoardText {
   /// that the shape gate below cannot pass on its own — they open with a
   /// count ("2 not on a squad yet — …"), or a lowercase word. `already in` is
   /// D296's owed twin (`They're already in.`), `not on a squad yet` S-11's.
+  ///
+  /// D403 · the word filter's refusal rides here too, escaped, so it never
+  /// depends on the shape gate below: it would pass today, but one future edit
+  /// to the gate's jargon list must not turn the one sentence a golfer needs
+  /// to rephrase into the shrug.
   static let ourRaises = #"not enough golfers|minimum four|not on a squad yet|is empty — draw again|isn't open yet|is still being set up|has wrapped|season is finished|season's underway|past the halfway turn|not golf buddies yet|already in"#
+    + "|" + NSRegularExpression.escapedPattern(for: ModerationCopy.refusal)
 
   /// `looksLikeOurSentence` (index.html 6007), verbatim: a sentence one of our
   /// own `raise exception` lines wrote, rather than a database's internals

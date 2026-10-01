@@ -242,6 +242,11 @@ struct SeasonPage: View {
       .environment(model)
       .environment(router)
       .environment(\.roomLinks, links)
+      // D403 · these sheets post to the app's toast center, whose one host is
+      // at the root — UNDER a large sheet. A refused pride bet (the word
+      // filter's sentence) kept its words in the sheet and showed nothing.
+      // The cover's own fix (N4-020), applied to the room's sheets.
+      .csCoverToasts()
       .presentationDetents([.large])
       .presentationDragIndicator(.visible)
     }

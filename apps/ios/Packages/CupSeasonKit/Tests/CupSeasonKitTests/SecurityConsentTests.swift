@@ -56,7 +56,11 @@ import Testing
     #expect(!consent.pendingSync)
     let serverSaved = await consent.set(true, owner: owner)
     #expect(!serverSaved)
-    #expect(consent.permits(owner))
+    // D403 · the golfer's yes is kept on this phone for a retry, but a yes
+    // the server never took is not consent the scan function can see
+    #expect(consent.allowed)
+    #expect(!consent.permits(owner))
+    #expect(consent.localYesPending(owner))
     #expect(consent.pendingSync)
     #expect(!consent.permits(UUID()))
   }
@@ -70,7 +74,7 @@ import Testing
     await consent.load(owner: other)
     #expect(!consent.permits(other))
     await consent.load(owner: owner)
-    #expect(consent.permits(owner))
+    #expect(consent.localYesPending(owner) && !consent.permits(owner))   // D403 · kept, never permitting
     await consent.set(false, owner: owner)
     #expect(!consent.permits(owner))
     consent.reset()
@@ -88,6 +92,61 @@ import Testing
     #expect(writes == [true]); #expect(online.permits(owner)); #expect(!online.pendingSync)
     await online.load(owner: owner)
     #expect(!online.permits(owner)) // A server-side revocation takes effect.
+  }
+
+  /// D403 · the scan door, as a decision. The `scan` function reads the
+  /// stored consent itself, so the phone never scans without the server's yes:
+  /// a yes only this phone holds is written once more, and otherwise the
+  /// golfer meets the existing sheet again.
+  @Test func theScanDoorNeverScansWithoutTheServersYes() {
+    #expect(ScanConsentGate.before(serverYes: true, localYesPending: false, retried: false) == .scan)
+    #expect(ScanConsentGate.before(serverYes: false, localYesPending: true, retried: false) == .retryYes)
+    #expect(ScanConsentGate.before(serverYes: false, localYesPending: true, retried: true) == .ask)
+    #expect(ScanConsentGate.before(serverYes: false, localYesPending: false, retried: false) == .ask)
+    // a refusal for consent overrides what this phone believed: a yes given
+    // here is written once more, and after that one retry it is "not saved"
+    #expect(ScanConsentGate.after(refusal: "no_consent", saidYesHere: true, retried: false) == .retryYes)
+    #expect(ScanConsentGate.after(refusal: "no_consent", saidYesHere: true, retried: true) == .ask)
+    #expect(ScanConsentGate.after(refusal: "no_consent", saidYesHere: false, retried: false) == .ask)
+    #expect(ScanConsentGate.after(refusal: "account_closed", saidYesHere: true, retried: false) == .closed)
+    // every other refusal is the composer's ordinary toast
+    #expect(ScanConsentGate.after(refusal: "daily_cap", saidYesHere: false, retried: false) == nil)
+    #expect(ScanConsentGate.after(refusal: nil, saidYesHere: false, retried: false) == nil)
+    #expect(ScanConsentCopy.notSaved == "Your yes to scanning didn’t save — type your nines in, or try the scan again.")
+  }
+
+  /// D403 · the refusal's reason is read off the 403's body — the SDK throws
+  /// on a non-2xx, so without this a missing consent read as a dropped line.
+  @Test func aRefusedScanNamesItsReason() {
+    #expect(PostService.scanRefusalReason(Data(#"{"unavailable":true,"reason":"no_consent"}"#.utf8)) == "no_consent")
+    #expect(PostService.scanRefusalReason(Data(#"{"unavailable":true,"reason":"account_closed"}"#.utf8)) == "account_closed")
+    #expect(PostService.scanRefusalReason(Data(#"{"error":"boom"}"#.utf8)) == nil)
+    #expect(PostService.scanRefusalReason(Data("not json".utf8)) == nil)
+  }
+
+  /// D403 · on a consent refusal the device-only yes is dropped and the yes is
+  /// written ONCE: it permits only if the server took it, and a failed re-save
+  /// leaves no yes anywhere — not a phone-only one refused on every scan.
+  @Test func aConsentRefusalHandsTheTruthToTheServer() async {
+    let owner = UUID()
+    var writes: [Bool] = []
+    let online = ScanConsentStore(defaults: defaults(), read: { _ in true }, write: { writes.append($0); return $0 })
+    await online.load(owner: owner)
+    #expect(await online.reconfirm(owner: owner))
+    #expect(writes == [true]); #expect(online.permits(owner))
+
+    let d = defaults()
+    let offline = ScanConsentStore(defaults: d, read: { _ in false }, write: { _ in throw Failure.offline })
+    await offline.load(owner: owner); await offline.set(true, owner: owner)
+    #expect(offline.localYesPending(owner))
+    #expect(await offline.reconfirm(owner: owner) == false)
+    #expect(!offline.permits(owner) && !offline.allowed && !offline.pendingSync)
+    // nothing is left on the phone to pass for consent on the next load
+    let next = ScanConsentStore(defaults: d, read: { _ in false }, write: { _ in throw Failure.offline })
+    await next.load(owner: owner)
+    #expect(!next.allowed && !next.permits(owner))
+    // and a different golfer's store is never reconfirmed
+    #expect(await offline.reconfirm(owner: UUID()) == false)
   }
 
   @Test func scanReadCannotResurrectAnAccountAfterSignOut() async {

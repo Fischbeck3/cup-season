@@ -262,17 +262,30 @@ public final class BoardStore {
 
   // MARK: - Comments (sendComment 4785)
 
-  public func sendComment(_ itemId: String, _ text: String) async {
+  /// Returns the text to restore in the field on failure, else nil — the
+  /// chat composer's contract. D403 · a refused comment (the word filter's
+  /// sentence included) hands the golfer's words back rather than losing them
+  /// with the echo; and an echo with nothing to write to (a post not yet
+  /// swapped in, no member row) is withdrawn and says so, never left standing
+  /// as though it had sent.
+  @discardableResult
+  public func sendComment(_ itemId: String, _ text: String) async -> String? {
     let v = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !v.isEmpty, let i = items.firstIndex(where: { $0.id == itemId }) else { return }
+    guard !v.isEmpty, let i = items.firstIndex(where: { $0.id == itemId }) else { return nil }
     let echo = BoardComment(who: myName, text: v)
     items[i].comments.append(echo)
-    guard let post = items[i].postId, let member = memberId else { return }
+    guard let post = items[i].postId, let member = memberId else {
+      items[i].comments.removeAll { $0.id == echo.id }
+      toast = BoardText.humanError(nil, "Comment did not send.")
+      return v
+    }
     do {
       try await repo.insertComment(post: post, member: member, body: v)
+      return nil
     } catch {
       if let j = items.firstIndex(where: { $0.id == itemId }) { items[j].comments.removeAll { $0.id == echo.id } }
       toast = BoardText.humanError(error, "Comment did not send.")
+      return v
     }
   }
 
@@ -288,7 +301,13 @@ public final class BoardStore {
                          who: "You", profileId: me?.profileId, memberId: memberId, ci: 1, text: v, isEcho: true)
     items.removeAll { $0.id == "synthetic-empty" }
     items.append(echo)
-    guard let member = memberId else { return nil }
+    // D403 · no member row means nothing can be written: the echo is
+    // withdrawn and the words go back to the composer, never left standing.
+    guard let member = memberId else {
+      items.removeAll { $0.id == echo.id }
+      toast = BoardText.humanError(nil, "Message did not send.")
+      return v
+    }
     do {
       // optimistic echo above; the realtime INSERT swaps in the real row
       try await repo.insertChat(league: leagueId, season: seasonId, member: member, body: v)

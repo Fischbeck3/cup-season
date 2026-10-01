@@ -1525,5 +1525,44 @@ select '59 · the public plan counts only an explicit yes as in',
        else 'PASS — who_in is an explicit yes' end,
   'share_info plan branch · who_in · round_rsvp.status = ''in'''
 
+
+-- 60 · D403 · the word list is at every door, a ban reaches the session, and the
+--     moderation actions are the founder's. Structural: the triggers exist on every
+--     listed table, PostgREST's pre-request gate is configured on the authenticator,
+--     the gate refuses nothing for a golfer who is not banned, and the three desk
+--     actions are authenticated-only. tests/db/app-store-readiness.sql proves the
+--     behaviour (refusals, takedown, ban, session gate) on a disposable cluster.
+union all
+select '60 · a filter at the door, a takedown for photos, a ban that reaches the session (D403)',
+  case when t.problems = '' then 'PASS — 15 guarded tables, the gate configured, desk actions founder-only'
+       else 'FAIL — ' || t.problems end,
+  'cs_text_guard · cs_internal.request_gate · takedown_photo · ban_account'
+from (
+  select concat_ws('; ',
+    case when (select count(*) from pg_trigger where tgname = 'cs_text_guard' and not tgisinternal) < 15
+         then 'cs_text_guard is missing from a listed table (20261221090000 not pushed?)' end,
+    case when to_regprocedure('cs_internal.request_gate()') is null
+         then 'the pre-request gate does not exist (20261222090000 not pushed?)' end,
+    case when not exists (select 1 from pg_roles r, unnest(r.rolconfig) c
+                           where r.rolname = 'authenticator' and c = 'pgrst.db_pre_request=cs_internal.request_gate')
+         then 'pgrst.db_pre_request is not cs_internal.request_gate on authenticator' end,
+    case when to_regprocedure('public.takedown_photo(text,uuid,text,uuid)') is null
+           or has_function_privilege('anon', 'public.takedown_photo(text,uuid,text,uuid)', 'EXECUTE')
+           or has_function_privilege('anon', 'public.ban_account(uuid,text,text,uuid)', 'EXECUTE')
+           or has_function_privilege('anon', 'public.unban_account(uuid,text)', 'EXECUTE')
+         then 'a desk action is missing or anon-callable' end,
+    case when to_regprocedure('public.cs_text_refused(text,boolean)') is not null
+          and (has_function_privilege('authenticated', 'public.cs_text_refused(text,boolean)', 'EXECUTE')
+            or has_function_privilege('anon', 'public.cs_text_refused(text,boolean)', 'EXECUTE'))
+         then 'the word list is callable by clients' end,
+    case when to_regclass('public.account_bans') is not null
+          and (has_table_privilege('authenticated', 'public.account_bans', 'SELECT')
+            or has_table_privilege('authenticated', 'public.moderation_actions', 'SELECT'))
+         then 'an audit table is readable by clients' end,
+    case when to_regprocedure('public._live_stake_ceiling()') is null
+           or not exists (select 1 from pg_trigger where tgname = 'live_stake_ceiling' and not tgisinternal)
+         then 'the live stake ceiling is missing (20261223090000 not pushed?)' end
+  ) as problems
+) t
 )
 select * from checks order by check_name;

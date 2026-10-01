@@ -1,201 +1,82 @@
-# App Review notes — paste into App Store Connect (IOS-027)
+# App Review notes — paste into App Store Connect (IOS-027, rewritten 2026-10-01)
 
-Written before submission, not after a rejection (runbook: "Rejection playbook").
-Replace the two placeholders. Everything else is final copy.
+**Status: DRAFT for the owner. Not pasted.** This replaces the 2026-09-04 notes. Those
+pointed at Sunset Match, which finished on 2026-09-05. They called Block "Mute",
+quoted a pot sentence the app no longer prints, and named a "Danger zone" that does
+not exist.
 
-> **Two things to settle before this is pasted (checked 2026-09-04):**
->
-> 1. **Sunset Match's season ends 2026-09-05.** It is the league the 5.3.4
->    paragraph below points at, and the one the walkthrough calls "a season in
->    progress". From 2026-09-06 a reviewer lands on a finished season. Either
->    extend its `seasons.ends_on` past the review window, or re-point 5.3.4 at a
->    league whose season runs long — Ridgeline Cup (ends 2026-12-19) or Winter
->    Circuit (ends 2027-02-13) — and restate the pot figure, because the $450 is
->    Sunset Match's arithmetic (6 members x $75), not theirs.
-> 2. **The walkthrough's figures are seed data and they drift.** Step 1's hero
->    line was wrong when checked (it read "2nd · 10 points back"; the reviewer
->    was tied 2nd and 25 back). Re-read every figure after the pre-submission
->    `test-seed` run.
+The block between the rules below is the paste for the **Notes** field. Apple's
+limit is 4,000 bytes; check the count before pasting. The reviewer password goes
+**only** into App Store Connect's sign-in fields. It never goes in this file, a
+handoff or chat.
+
+**Before pasting, all of these must be true. Each is a separate check:**
+
+1. **The database deploy is live.**
+   - Required: migrations `20261221090000`, `20261222090000` and `20261223090000`, plus the `scan` function redeployed.
+   - Without them, the filter, the golfer report, photo takedown, removal and the server-side scan-consent check described below do not exist in production.
+2. **The figures are re-read on the final build.**
+   - Ridgeline Cup's figures come from seed data and move as it ages.
+   - Read every number in the app on the final build. Never quote seed arithmetic.
+3. **The reviewer sign-in works.** Confirm `reviewer@cupseason.app` signs in with its password on the Release build.
+4. **Counsel's position is recorded.** No counsel opinion is claimed (D402). Nothing below says the pot is exempt from anything.
 
 ---
 
-## Sign-in for review
-
-Email: `reviewer@cupseason.app`
-Password: `<<REVIEWER PASSWORD>>` — the sign-in screen shows a password field
-as soon as this address is typed (every other user signs in with an emailed
-8-digit code. Sign in with Apple is built but is behind a flag that is off
-in this build — see the 4.8 note below; there is no third-party login to pair
-it against.)
-
-**Before every submission (founder, from the terminal — the seed lasts until the next `reset`):**
 ```
-# founder token via the emailed code, then:
-curl -s -X POST https://zddbfcokmvneltrgukzf.supabase.co/functions/v1/test-seed \
-  -H "apikey: <publishable key>" -H "Authorization: Bearer <founder token>" -H "Content-Type: application/json" \
-  -d '{"action":"seed","target_email":"reviewer@cupseason.app"}'
+SIGN-IN
+Use the sign-in details in the App Review Information section. After typing reviewer@cupseason.app, a Password field appears ("Review access"). Every other golfer signs in with an 8-digit code we email. There is no third-party or social login, so 4.8 does not apply.
+
+WHAT THE ACCOUNT HOLDS
+Four leagues of fictional golfers; the reviewer is a player, not the organiser ("the Pro"), in each. Please use Ridgeline Cup, which runs to December 19, 2026.
+
+FIVE-MINUTE WALKTHROUGH
+1. Home: the current story of the reviewer's season.
+2. Compete > Ridgeline Cup: the table. Tap a golfer to see the rounds behind their points; tap a round for its receipt. "Open the Book" shows the season week by week.
+3. In Ridgeline Cup, scroll to "The pot" > "Who has paid": the ledger described below.
+4. Play (the centre button) > "Add a round you played": course, tees and score; posting is fine.
+5. Play > "Score it live": Match play, Wolf, Skins, Sunningdale or just the score, hole by hole; "Finish the round" shows the card.
+6. Golfers > any golfer > the ••• menu: Report and Block.
+7. You > Settings > "Your account" > "Delete my account" (see below; please don't confirm on this account).
+
+THE POT
+Some groups keep a season pot. Cup Season keeps the ledger; the money moves between friends. The organiser records each golfer's buy-in (up to $200) and who has paid. A live game can record an optional amount per skin or point (up to $200), and its card shows the totals. Cup Season and Fischbeck3 LLC do not collect, hold, transfer or pay out money, take no fee, and offer no purchases. A pride bet is a forfeit in words, with no money. A league can play for bragging rights only ($0). The legal page's "The pot" section says the same and that Apple is not a sponsor.
+
+USER CONTENT AND SAFETY (1.2)
+- Filter: names, posts, comments, plans, league names and pride-bet wording are checked by our database against slurs, explicit sexual terms and threats before they are saved; refused text stays in the golfer's draft with a clear sentence. No AI service is used for this.
+- Report: board posts, comments and golfers (with a reason).
+- Block: blocked golfers' posts and comments disappear for you, and their requests, invites and notifications to you are refused by the server.
+- Act: every report sends a push notification to the operator, who reviews within 24 hours and can take down posts, comments and photos (round and profile, including shared copies) and remove an account. A removed account cannot sign in, post or contact anyone, including from a session that was already open.
+- Contact: the support page and email, linked in the app.
+
+ACCOUNT DELETION (5.1.1(v))
+You > Settings > "Your account" > "Delete my account" > "Delete permanently". The confirm screen says exactly what happens: name, email, profile, posts, comments and shared links are removed; photos are queued for removal; notifications stop; the login is closed for good. Posted rounds stay as "Former member" so other golfers' standings don't change. Organisers of a league with other golfers are asked to hand it off first; the review account is not an organiser. Please don't confirm on this account; we will provide a throwaway account on request.
+
+AI PROCESSING (5.1.2)
+The only AI use is the optional scorecard scan. When a golfer taps "Scan the scorecard", the app asks "Scan with Claude?" first; only after a yes saved to their account does our server send that photo to Anthropic's Claude to read the scores (not used for training). Scanning can be turned off in Settings. A scanned card is attached to the round as its photo, which the golfer can remove before posting; the composer says golfers in their seasons and their buddies will see it.
+
+PRIVACY
+Find-friends sends one-way hashes only when the golfer taps "Check my contacts"; unmatched hashes are not kept. No ads, tracking or in-app purchases.
 ```
-The reviewer profile's card must be set or the account lands on the card gate (done 2026-08-28: `Sam Reviewer · @reviewer · The Saguaro · Phoenix, AZ`; re-apply with `update profiles set display_name='Sam Reviewer', handle='reviewer', marker='saguaro' where email='reviewer@cupseason.app'` if it is ever cleared).
-
-The reviewer account is pre-loaded with a season in progress: a league of
-eight golfers, standings, a board with posts, a settled live game with its
-scorecard, and a Ryder-style event. Nothing in it is a real person.
-
-## Walkthrough (5 minutes)
-
-1. **Home** — the standing hero (it names the leader and the gap: *"Priya leads
-   you by 25 · 139 – 114"*), the buddies' feed. The reviewer belongs to four
-   leagues, so the hero opens on whichever is in front; the compact rows under
-   it switch leagues. Figures move as the seed data ages — re-read them right
-   before submitting rather than trusting this line.
-   Tap a round card → the round receipt: every point traces to the rounds that
-   produced it.
-2. **Compete** — every season and moment, as peers; a row opens the season: standings, the climb, the board (chat +
-   posts), the schedule, the album. Tap "Standings" rows for receipts.
-3. **⊕ Play** — the centre button is a verb, not a place: it presents a cover
-   with three rows. "Add a round you played" is the composer: one box for the
-   gross over an editable course line, with the nines, the scan and hole-by-hole
-   behind "edit". Post → the finish ceremony. (Posting from the review account
-   is fine; it's a sandbox.) A long press on the ⊕ opens the composer directly.
-4. **⊕ Score it live** — the cover's first row: the live tee sheet, match play
-   / Wolf / skins, scored hole by hole; finish → the settlement card and the
-   share sheet.
-5. **Golfers** — the people: anybody waiting on you at the head, then your
-   buddies, with search by name or @handle and "Findable by" (the privacy
-   control). Every golfer's card carries mute and the two-step report.
-6. **You** — the golfer's card, trophies, the record. Settings → Appearance,
-   Palette, Notifications, and **Delete account** (in-app, Guideline 5.1.1(v)).
-   **Please do not complete the deletion on this account** — it is the review
-   account and the flow is real, not a demo. This account has posted rounds, so
-   it takes the tombstone branch: the profile is anonymised and the login is
-   banned permanently, which would end your session and cannot be undone from
-   our side inside a review window. The confirm screen states exactly what the
-   flow does; that screen is the thing to inspect. If you need to see it
-   complete, tell us and we will provide a second throwaway account.
-6. **Push** — Settings → Notifications → Enable on this device. A board post
-   from another member arrives as a routed notification (tap → the board).
-
-## About "the pot" (Guideline 5.3.4 — please read)
-
-Cup Season is a season-long points game between friends who already play
-golf together. Some groups keep a friendly pot for the season; **the app
-never handles money.** There is no wagering, no deposit, no payout, no
-contest run by Cup Season, and no money moves through the app or any payment
-rail. The app keeps a *ledger* — who has paid the group's organiser and who
-is owed — exactly like a shared spreadsheet, and the group settles among
-themselves outside the app. The screen is **Compete → the season → Pot** ("Cup Season
-keeps the books. Buy-ins and payouts move friend-to-friend."). The review
-account's league, Sunset Match, keeps a $450 pot so you can see the ledger
-itself; a league can also run with no pot at all ("bragging rights").
-
-## No in-app purchases
-
-There are no purchases, subscriptions, or links to purchase anything in the
-app. Every golfer's profile, index and record are free, and so is every league
-— everything is free (decision D183: free until the product has 1,000 golfers,
-then reconsidered). Nothing is sold in the binary or on the web, and no screen
-describes a price.
-
-## User content and safety (1.2)
-
-Three things, all in the app:
-
-1. **Report** — every board post has a Report action; a golfer's photo can be
-   reported from their Tour Card; comments on posts and on rounds are
-   reportable. All of it goes through the `report_content` RPC.
-2. **Block** — **Mute** on any golfer's Tour Card. A muted golfer's posts,
-   comments and round comments all disappear from the muter's surfaces; the
-   filter is enforced in the database's row-level security, not in the client.
-3. **Act** — reports land on the founder's desk with two actions on each:
-   **Take it down** (`hide_content`, which removes the post from every reader's
-   view and records who hid it and why) and **Leave it up**, which closes the
-   report. A new report also pushes a notification to the founder, so it is
-   seen rather than queued. Reports are actioned within a day.
-
-Terms and privacy are linked from the sign-in screen and Settings.
-
-## Account deletion (5.1.1(v))
-
-Settings → Danger zone → **Delete account** — in-app, immediate, one tap and a
-confirm. Exactly what it does, because a golfer with a season's history cannot
-be erased the same way a brand-new signup can:
-
-- **A golfer with no posted rounds** is deleted outright: profile, posts,
-  comments, photos, device tokens and the auth record all go.
-- **A golfer who has posted rounds** keeps those rounds, because other people's
-  standings, settled matches and pot ledgers are computed from them and would
-  silently change if they vanished. Everything that identifies the person is
-  removed in the same transaction: name, handle, city, home course, marker,
-  GHIN, **profile photo and every image they uploaded**, and the email address,
-  which is replaced with an unroutable `@cupseason.invalid` tombstone that every
-  send path already excludes. Push tokens — APNs and web — are deleted, so the
-  phone stops. Discovery is set to nobody and the auth record is banned, so the
-  account cannot be signed into again. What remains is an anonymous "Former
-  member" attached to scores, with nothing that points back to a person.
-
-The app says this in the confirm, rather than promising an erasure it cannot
-perform without corrupting other people's seasons.
-
-## Sign in with Apple (4.8)
-
-**4.8 does not apply to this app.** It governs apps that offer a third-party or
-social login service. Cup Season offers exactly one way in — an 8-digit code
-emailed by us — and no Google, Facebook, Twitter or other third-party sign-in
-anywhere. There is no login service to pair Sign in with Apple against.
-
-Sign in with Apple is nonetheless implemented and ships in this binary behind
-the `ios.apple_sign_in` flag, which is currently off. If it is switched on it
-appears on the sign-in screen beside the emailed code.
-
-## Age rating
-
-No gambling and no real-money gaming: the app has no payment rail of any
-kind and never touches the money (see the pot note above).
-
-**Contests: yes — expected 13+.** Cup Season is a season-long competition with
-a standings table, a Cup Final and a champion, and Apple's current
-questionnaire (the July 2025 revision) asks about that directly. Answering
-"none" would be answering the retired form. The reasoning is written out in
-`docs/ios/app-store-listing.md` §6.
 
 ---
 
-## Contacts (D251 · privacy)
+## Notes for whoever pastes this (not for Apple)
 
-**When it is asked.** In exactly two places, and nowhere else: onboarding's
-crew step ("Who do you play with?") and the wizard's first step. Never on
-launch, never as a condition of anything. **Declining finishes the screen** —
-the same screen offers a search box and a share link, and a golfer who says no
-can still complete onboarding and use the whole app.
-
-**What the sentence on the screen says, verbatim:** *"We'll check your contacts
-against the golfers already here. We send hashes, never your contacts, and we
-keep nothing that doesn't match."*
-
-**What actually leaves the device.** SHA-256 digests of normalised email
-addresses and phone numbers, and nothing else — no names, no raw addresses, no
-phone numbers, no contact records. The digests are used for one comparison and
-are not stored. The server holds only a **salted** digest of each Cup Season
-golfer's OWN sign-in email (`profiles.contact_hash`), computed server-side with
-a salt no client can read, so nothing on a device can produce or reverse it.
-
-**What comes back.** Only golfers who match AND who have not hidden themselves
-(the same discoverability setting that governs search). No browsable list, no
-count of near-misses, no "somebody matched" without a name. A contact who is
-not a Cup Season golfer produces nothing at all.
-
-**The permission string** (`NSContactsUsageDescription`) says the same thing the
-screen says.
-
----
-
-## If review comes back (the playbook, native edition)
+**Rejection playbook:**
 
 | If review says | Answer with |
 |---|---|
-| 5.3.4 real-money gaming | The paragraph above, verbatim; point at Compete → the season → Pot. Offer a screen recording of the ledger. |
-| 2.1 incomplete / cannot evaluate | The reviewer landed in an empty state: the account is re-seeded (`test-seed` with `target_email`) and the walkthrough re-sent. |
-| 1.2 UGC safety | Report + Mute paths above; `report_content` and `set_mute` are server RPCs, reachable from every post and member sheet. |
-| 5.1.1(v) account deletion | In-app path above; `delete_account` RPC. |
-| 4.8 Sign in with Apple | Does not apply: 4.8 governs apps offering a third-party or social login, and the only way in is a code we email. Point at the 4.8 note above. |
-| 4.2 minimum functionality | Not a web wrapper: native SwiftUI, APNs push with lock-screen actions, camera scan, share sheet, MetricKit, universal links, live-round sync with an offline queue. |
+| 5.3 / 5.3.4 real-money gaming | The THE POT paragraph above, verbatim; offer a screen recording of the ledger. No exemption claim, and no counsel claim (D402). |
+| 1.2 UGC | The safety paragraph. The filter is `cs_text_guard` (migration `20261221090000`). Takedown and removal are `takedown_photo` / `ban_account` (`20261222090000`). |
+| 2.1 cannot evaluate | Re-read Ridgeline Cup on the build. **Do not reseed:** `test-seed`'s reset removes every seed-domain league, not only the reviewer's. |
+| 5.1.1(v) deletion | The deletion paragraph; the `delete_account` RPC. |
+| 5.1.2 AI sharing | The AI paragraph. The server-side check is in `supabase/functions/scan/index.ts`, and `tests/edge-security-courses-scan.test.mjs` proves zero provider calls without consent. |
+| 4.8 | The only way in is a code we email (our own account system). Sign in with Apple ships behind `ios.apple_sign_in`, which is off. |
+
+**What these notes deliberately do not claim:**
+- photo screening before publication (unresolved; see the package)
+- counsel approval
+- instant photo erasure
+
+**Contacts detail (D251).** The phone hashes normalised emails and phone numbers with plain SHA-256 (`ContactHash.swift`), and the server applies a pepper. The hashes are compared once and never stored. The stored buddy list is linked to the golfer. The iOS permission string and the onboarding screen ("a scrambled version") describe the same flow.

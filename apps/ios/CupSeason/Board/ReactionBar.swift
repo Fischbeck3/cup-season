@@ -119,10 +119,11 @@ struct ReactionBar: View {
   }
 
   private func send() {
-    // clear BEFORE sending: the echo re-renders synchronously
+    // clear BEFORE sending: the echo re-renders synchronously. D403 · and a
+    // refusal hands the words back, as the chat composer's does.
     let v = draft
     draft = ""
-    Task { await store.sendComment(item.id, v) }
+    Task { if let back = await store.sendComment(item.id, v) { draft = back } }
   }
 }
 

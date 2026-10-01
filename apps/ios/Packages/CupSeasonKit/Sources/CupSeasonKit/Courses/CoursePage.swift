@@ -426,13 +426,20 @@ public struct CourseRatingCall: RpcCall {
   public init(p_course_id: String) { self.p_course_id = p_course_id }
 }
 
-/// D289 · `p_note` is DEFAULTED server-side and droppable here, so a client
-/// newer than its database still sets the star. **Null leaves the note alone;
-/// `""` takes it off** — which is what makes the default safe for a client
-/// that predates notes and never sends the argument at all.
+/// D289 · `p_note` is DEFAULTED server-side, so a client newer than its
+/// database still sets the star. **Null leaves the note alone; `""` takes it
+/// off** — which is what makes the default safe for a client that predates
+/// notes and never sends the argument at all.
+///
+/// D403 · **NOT droppable any more.** `svc.call` sheds droppable keys on ANY
+/// first error, so when the word filter refused the NOTE the retry posted the
+/// star alone and succeeded — the refusal never reached the golfer, and the
+/// sheet read the missing note as an old database. The one skew this shed
+/// existed for (a `rate_course` without `p_note`) is PGRST202, and
+/// `CourseRatingService.rate` retries on exactly that.
 public struct RateCourseCall: RpcCall {
   public static let name = "rate_course"
-  public static let optionalArgs: [String] = ["p_note"]
+  public static let optionalArgs: [String] = []
   public typealias Returns = JSONValue
   public var p_course_id: String
   public var p_stars: Double
@@ -495,9 +502,14 @@ public struct CourseRatingService: Sendable {
   /// nil and cannot erase what a golfer wrote in the sheet.
   public func rate(_ courseId: String, stars: Double, note: String? = nil) async throws -> CourseRating {
     let half = (stars * 2).rounded() / 2
-    let v = try await svc.call(RateCourseCall(p_course_id: courseId, p_stars: half,
-                                              p_note: note.map { String($0.prefix(140)) }))
-    return CourseRatingService.decode(v)
+    let call = RateCourseCall(p_course_id: courseId, p_stars: half, p_note: note.map { String($0.prefix(140)) })
+    do {
+      return CourseRatingService.decode(try await svc.call(call))
+    } catch let e as RpcError where e.isMissingFunction && call.p_note != nil {
+      // D403 · the declared fallback: only a database that has no `p_note`
+      // takes the star without the sentence. A refusal is thrown, not shed.
+      return CourseRatingService.decode(try await svc.call(RateCourseCall(p_course_id: courseId, p_stars: half)))
+    }
   }
 
   /// The record, in one read. Empty when the read did not happen — the caller

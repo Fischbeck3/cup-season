@@ -67,6 +67,30 @@ import CupSeasonKit
   /// D234 · the word in the frame is the same word the receipt's control uses,
   /// and both read it from `RoundCopy`. A second literal here would be the
   /// beginning of two products saying the same thing two ways.
+  /// D403 · who sees an attached photo is said beside it, from the one
+  /// producer, before the round posts.
+  @Test("the attached photo names its audience from the one producer")
+  func thePhotoNamesItsAudience() {
+    #expect(RoundCopy.photoAudience == "Golfers in your seasons and your buddies see this photo with your round.")
+  }
+
+  /// D403 · the ✕ really detaches: the preview AND the bytes the post would
+  /// upload are both gone, so a removed photo — a scan's shot included, which
+  /// lands through the same `setPhoto` — is never sent.
+  @MainActor
+  @Test("removing the photo clears what the post would upload")
+  func removingThePhotoClearsTheUpload() {
+    let model = PostRoundModel(store: SessionStore(), toast: CSToastCenter())
+    let image = UIGraphicsImageRenderer(size: CGSize(width: 40, height: 30)).image { ctx in
+      UIColor.gray.setFill(); ctx.fill(CGRect(x: 0, y: 0, width: 40, height: 30))
+    }
+    model.setPhoto(image)
+    #expect(model.photo != nil && model.photoJPEG != nil)
+    model.setPhoto(nil)
+    #expect(model.photo == nil)
+    #expect(model.photoJPEG == nil)
+  }
+
   @Test("the plate's invitation is the one producer's word")
   func theInvitationHasOneProducer() {
     #expect(RoundCopy.photoAdd == "Add a photo")

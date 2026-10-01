@@ -360,7 +360,21 @@ public struct PostService: Sendable {
       if reply["unavailable"]?.bool == true { return .unavailable(reason: reply["reason"]?.string) }
       guard reply["ok"]?.bool == true, let scan = PostScan(json: reply) else { return .unreadable }
       return .read(scan)
+    } catch let FunctionsError.httpError(_, data) {
+      // D403 · the function refuses BEFORE any provider call with a non-2xx
+      // and the same `{unavailable, reason}` body — 403 `no_consent` when the
+      // golfer's stored yes is absent, revoked or unreadable, `account_closed`
+      // for a closed account. The SDK throws on a non-2xx, so the reason is
+      // read off the body here or the phone could never tell a missing
+      // consent from a dropped connection.
+      return .unavailable(reason: Self.scanRefusalReason(data))
     } catch { return .unavailable(reason: nil) }
+  }
+
+  /// The `reason` of a refused scan's body, or nil when it carries none.
+  static func scanRefusalReason(_ data: Data) -> String? {
+    guard let body = try? JSONDecoder().decode(JSONValue.self, from: data), body["unavailable"]?.bool == true else { return nil }
+    return body["reason"]?.string
   }
 
   // MARK: - partner claims (`scanPartnersSheet`, 6658–6692)

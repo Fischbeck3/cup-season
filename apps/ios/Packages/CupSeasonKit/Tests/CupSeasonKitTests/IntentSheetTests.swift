@@ -17,7 +17,7 @@ import Foundation
     // choice ON a competition and never a competition (L-11, D46).
     #expect(StartIntent.peers.count == 4)
     #expect(StartIntent.peers == StartIntent.allCases)
-    #expect(!StartIntent.modifierLine.isEmpty)
+    #expect(!StartIntent.modifierLine(.buyIn(nil)).isEmpty)
   }
 
   @Test func theWordsAreTheDesignsOwn() {
@@ -29,7 +29,10 @@ import Foundation
     // R-J · the retired phrasing may not come back on any of the four.
     #expect(StartIntent.peers.allSatisfy { !$0.line.lowercased().contains("beat one guy") })
     #expect(StartIntent.everyString.allSatisfy { !$0.lowercased().contains("i want to") })
-    #expect(StartIntent.modifierLine == "Put money on it")
+    // D402 · the money door names what it opens, by phase (owner ruling).
+    #expect(StartIntent.modifierLine(.buyIn(nil)) == "Buy-in")
+    #expect(StartIntent.modifierLine(.prideBet(UUID())) == "Pride bet")
+    #expect(StartIntent.everyString.allSatisfy { $0 != "Put money on it" })
     #expect(StartIntent.codeDoor == "I have a code")
   }
 
@@ -43,7 +46,9 @@ import Foundation
       !s.split(whereSeparator: { !$0.isLetter }).map(String.init)
         .contains(where: { ["him", "his", "her", "hers", "guy", "guys"].contains($0.lowercased()) })
     })
-    #expect(StartIntent.modifierGloss == "add a pot to any of the above")
+    #expect(StartIntent.modifierGloss(.buyIn(UUID())) == "what it costs to play, set before the first tee")
+    #expect(StartIntent.modifierGloss(.prideBet(UUID())) == "a bet in words — the rules froze at the first tee")
+    #expect(StartIntent.everyString.allSatisfy { !$0.contains("add a pot") })
   }
 
   /// L-32 · a door may not sell what the object does not open. A weekend mints
@@ -111,6 +116,28 @@ import Foundation
     #expect(StartIntent.WhenFork.title == "When are you playing?")
     for f in StartIntent.WhenFork.allCases {
       #expect(StartIntent.objectNouns(in: f.line + " " + f.gloss).isEmpty)
+    }
+  }
+
+  /// D402 · the label and the destination are ONE value. Before the first tee
+  /// (`setup` / `draft`) or with no league in context, it is the buy-in; once
+  /// the league has started, a pride bet on it — the web's own phase test.
+  @Test func theMoneyDoorFollowsTheFirstTee() {
+    let lid = UUID()
+    #expect(StartIntent.MoneyDoor.resolve(league: nil, phase: nil) == .buyIn(nil))
+    #expect(StartIntent.MoneyDoor.resolve(league: nil, phase: "season") == .buyIn(nil))
+    #expect(StartIntent.MoneyDoor.resolve(league: lid, phase: "setup") == .buyIn(lid))
+    #expect(StartIntent.MoneyDoor.resolve(league: lid, phase: "draft") == .buyIn(lid))
+    #expect(StartIntent.MoneyDoor.resolve(league: lid, phase: "season") == .prideBet(lid))
+    #expect(StartIntent.MoneyDoor.resolve(league: lid, phase: "complete") == .prideBet(lid))
+    // a league whose phase this phone has not read never guesses "started"
+    #expect(StartIntent.MoneyDoor.resolve(league: lid, phase: nil) == .buyIn(nil))
+    // the label is read off the same value the tap routes on
+    #expect(StartIntent.modifierLine(.resolve(league: lid, phase: "setup")) == StartIntent.buyInLine)
+    #expect(StartIntent.modifierLine(.resolve(league: lid, phase: "season")) == StartIntent.prideBetLine)
+    // a pride bet is words, never an amount: no money word on its door
+    for s in [StartIntent.prideBetLine, StartIntent.prideBetGloss] {
+      #expect(ForfeitCopy.moneyWords.allSatisfy { !s.lowercased().contains($0) })
     }
   }
 

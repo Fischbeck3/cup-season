@@ -8301,3 +8301,104 @@ Sources: docs/design/compete-2026-09-24/PROPOSAL.md, spec §16, D359, D376.
   - Rotation cycles items that are already cached, so it changes what is shown, not how fresh it is.
   - A fifth widget is one more choice in the gallery.
 - **CONFLICT (named).** None upward. D155/IOS-034 said the extension holds no network client, and it still holds none. The background read runs in the app process, which already holds the session.
+
+### D402 · Submit without a counsel opinion on the money ledger: the phone's live stake takes the web's $200 cap, the money door names what it opens, and the age rating answers Gambling No
+
+**Numbering.** D402 was the next free ID on `origin/main` (`e034915a`) when this was written. If another branch takes D402 first, renumber at merge, as D401 was.
+
+**OWNER-RULED 2026-10-01.** The owner chose option B in chat ("b") from the three counsel options laid out that day:
+- **(A)** a short fixed-fee counsel read
+- **(B)** shrink the money surface, then answer Gambling = No without counsel
+- **(C)** turn money off for launch
+
+Levels: legal/ops (amends D379) and UI copy. No mechanic changes. **Not built yet:** code waits for the owner's "build it".
+
+- **Current mechanic.**
+  - D379 engaged counsel "now, asynchronously" on the v2 legal set. The 2026-09-30 App Store build list recorded the pot's classification and counsel approval as unresolved, and said not to decide them silently.
+  - D192 capped the per-round stake at $200 **on the web only** (`index.html:6974`, `CS_STAKE_MAX`).
+  - On the iPhone, the live-round stake is a free decimal with a floor of 0 and no ceiling (`LiveSetupView.swift:428-430`, `LiveRoundStore.swift:567`). No server clamp exists: `live_sync` reads `p_result->>'stake'` as an unbounded numeric.
+  - The start sheet's modifier row reads **"Put money on it · add a pot to any of the above"** on both clients (`StartIntent.swift:75-76`, `index.html:36000`). Before the first tee it opens the buy-in dial; after it, a pride bet. Its web fallback toast says "Nothing to put money on yet."
+- **Problem.**
+  - Apple's age-rating Gambling question and guideline 5.3.4 turn on what the app does. Cup Season collects, holds and transfers no money and takes no cut, and the owner's position is that this settles it.
+  - No counsel opinion exists before the October 1 submission (D371).
+  - Two surfaces make "a ledger, not a book" less self-evident than it should be: an uncapped dollar field on the phone, and a door whose label is "money".
+- **Recommendation (ruled).**
+  1. **Counsel is not a submission gate.**
+     - The age-rating questionnaire answers **Gambling: No**.
+     - Simulated Gambling and Alcohol follow `docs/ios/app-store-package-2026-09-30.md` §C-2. Infrequent changes nothing there, because Contests: Frequent already sets 13+.
+     - Store and review copy states facts only. It never offers the absence of a payment rail as an exemption.
+     - The owner may still consult counsel at any time. D379's other clauses stand.
+  2. **The phone takes D192's ceiling.**
+     - The live-round stake clamps to $200 at the field and in the store, matching the web.
+     - Recommended at build time: a server clamp in a new migration, so no client can record more. D192's own words are "the attribute is the affordance and the clamp is the guarantee." It would cost a database deploy, and the owner chooses.
+  3. **The money door names what it opens, on both clients.**
+     - "Put money on it" becomes a label for a buy-in or a pride bet. Proposed: **"Play for something"**, with the gloss "a buy-in before the first tee, a pride bet after". The final words are the owner's.
+     - The web toast "Nothing to put money on yet" changes with it.
+     - The string is pinned in `IntentSheetTests.swift:32`, so the pin moves in the same commit.
+- **Principle served.**
+  - D39's ledger posture.
+  - D192: "A cap is not a rule about what friends may bet. It is a statement about what this product is for."
+  - D234: one product with two clients, so the phone carries the cap the web already has.
+  - L-32: a door says what it opens.
+- **Expected user benefit.** Apple and golfers meet the same bounded ledger on every client, the money door no longer reads as an invitation to wager, and submission is not held for an opinion.
+- **Tradeoffs.**
+  - No legal opinion stands behind `legal.html`'s "based on skill… not a game of chance" sentence, or behind any per-state question about recording stakes. The owner carries that risk.
+  - A reviewer may still classify the ledger as real-money gaming. The answer then is the review-notes paragraph, and option C (money off) remains the fallback.
+  - The rename retires a tested string.
+- **CONFLICT (named).** This collides with D379's "Counsel. Engaged now…", read as a gate before submission. The owner resolved it at the legal/ops level: counsel informs, it does not gate. It also collides with the build list's "do not silently decide the money ledger's legal classification". This entry is that decision, made by the owner and recorded, not silent.
+
+**D402 · Amendment, 2026-10-01 (the owner's build instruction).**
+- **Labels.** The money door is labelled by phase on both clients, so the label and the destination always agree. It reads **"Buy-in"** before the first tee, or when no league is in context, and **"Pride bet"** after it. This supersedes the proposed "Play for something".
+- **The season buy-in.** It was already enforced at every layer: the `league_settings` CHECK (0–20,000 cents, D113), the native wizard (`WizardDials.maxStake`) and the web wizard.
+- **The gap was the live-round stake** (D192). It is now capped on the phone, and the server refuses a new or changed stake above $200. The refusal is written by a trigger that fires only when the value changes, so historical rounds and agreements are never clamped or rewritten.
+- **Classification.** Neither the cap nor the rename settles any legal classification, and no copy may present it as doing so.
+
+### D403 · A filter at the door, a takedown for photos, a ban that reaches the session, and scan consent the server checks
+
+**OWNER-RULED 2026-10-01.** The rulings came in chat, in order:
+- "do we need to use AI? cant we just have a report function"
+- the owner's build instruction: "No AI for text moderation…", photo takedown and account banning, and server-side scan consent
+- Photo filtering before publication stays **explicitly unresolved**. See the comparison in `docs/ios/app-store-package-2026-09-30.md`.
+
+Levels: trust and safety (vision: "the board is earned, the door is open"), IA (the founder desk) and implementation. No competition mechanic changes.
+
+- **Current mechanic.**
+  - Nothing is screened before publication. `_clean_text` strips control characters only.
+  - Reports reach the founder by push (`notify_founder_of_report`). `hide_content` takes down posts and comments; nothing takes down a photo.
+  - There is no ban. The Terms promise to "remove the accounts that posted it".
+  - The `scan` Edge Function checks the sign-in token, the flag and the quotas, but not the golfer's stored consent (`profiles.scan_consent_at`). The consent sheet is the only gate before a photo reaches Anthropic.
+- **Problem.**
+  - Guideline 1.2 lists "a method for filtering objectionable material from being posted" separately from reporting and blocking.
+  - The Terms promise removal that the tooling cannot do.
+  - A consent the server never reads is a promise only the client keeps, and guideline 5.1.2(i) requires explicit permission before personal data goes to a third-party AI.
+- **Recommendation (ruled).**
+  1. **A word filter in the database, and no AI for text.**
+     - Before-insert/update triggers cover every user-text column: posts of kind chat, announce and bag; post and round comments; plan names and notes; league names and identity descriptions; display names and handles; pride-bet fields; rivalry, squad, event and team names; bag labels; course-rating notes; the buy-in note; and guest names.
+     - The text is normalised before matching: case, compatibility forms, accents, common character swaps, repeated letters, and letters spelled out with separators.
+     - Matching is on whole words and phrases, so "Scunthorpe", "Hancock", "Dick", "Van Dyke", "spic and span" and "a chink in the armor" pass. Ordinary swearing and golf banter ("kill it", "shoot 72", "beat you Saturday") pass.
+     - Updates are checked only when the text changed, so old rows never block an unrelated edit. Server-written posts (round, system, moment) are never filtered, so a round can never be lost to its story.
+     - One sentence, from one producer per client, without naming the matched word: *"Cup Season can't take that wording — no slurs, sexual content or threats. Edit it and try again."*
+  2. **Photo takedown on the existing desk.** `takedown_photo` is founder-only and covers a profile photo or a round photo:
+     - It clears the photo reference and leaves the round and its scores untouched.
+     - A restrictive storage policy makes the object unreadable to every client at once. The object is kept privately for the record.
+     - It revokes the shares that could carry the photo, so the existing `share-cleanup` queue removes their public copies and previews.
+     - It resolves the report and writes an audit row.
+  3. **A ban that reaches the session.** `ban_account` is founder-only:
+     - It requires typing the golfer's handle to confirm and records a reason. It cannot target the founder or a deleted account.
+     - It sets `auth.users.banned_until`, so the golfer cannot sign in or refresh, and removes their sessions and push tokens.
+     - A PostgREST **pre-request gate** refuses every API request from a banned golfer, including one carrying a still-valid token. Restrictive storage policies refuse their uploads.
+     - `unban_account` exists for mistakes, and both actions write audit rows.
+  4. **Scan consent checked by the server.** Before any provider call, `scan` reads the authenticated golfer's `scan_consent_at` with the service client and refuses (403) when consent is absent, revoked, unreadable or the account is banned. The consent sheet, the Settings toggle and the quotas are unchanged.
+- **Principle served.**
+  - The vision's open door with an earned board.
+  - §16 (every action shows its work): the audit rows.
+  - D39 posture: no third party reads golfers' words.
+  - D251's own rule: say only what is true.
+- **Expected user benefit.** Slurs, explicit content and stated threats never reach a league board. Reported photos come down everywhere they were shared. A removed golfer stays removed. A scorecard photo goes to Anthropic only with a yes the server can see.
+- **Tradeoffs.**
+  - A word list does not inspect images or understand context. A threat in plain words without a listed phrase still depends on a report and the 24-hour response.
+  - False positives cost a rephrase.
+  - The pre-request gate adds one indexed lookup to every API request.
+  - A taken-down photo's private object is retained until account deletion or manual removal.
+  - Signed URLs already minted stay valid until they expire.
+- **CONFLICT (named).** None upward. The 2026-09-30 build list approved Anthropic screening conditionally ("if existing tools are insufficient"). The owner chose no AI for text, which this entry records rather than overrides silently.

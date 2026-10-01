@@ -33,6 +33,11 @@ struct IntentSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
   let take: (StartIntent.Resolution) -> Void
+  /// D402 · the modifier's phase, resolved once by the shell. The row is
+  /// labelled from it and the tap hands the SAME value back, so the words and
+  /// the destination cannot drift apart.
+  var money: StartIntent.MoneyDoor = .buyIn(nil)
+  var takeMoney: (StartIntent.MoneyDoor) -> Void = { _ in }
   let joinWithCode: () -> Void
 
   var body: some View {
@@ -61,10 +66,10 @@ struct IntentSheet: View {
           // sheet used a second hairline a few points from the first, which its
           // own comment records as having read as a mistake.
           CSRule(.heavy).padding(.vertical, CSTokens.Space.s3)
-          row(StartIntent.modifierLine, StartIntent.modifierGloss, rule: false) {
+          row(StartIntent.modifierLine(money), StartIntent.modifierGloss(money), rule: false) {
             CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string("intent:money")])
             dismiss()
-            take(.whatsItOn)
+            takeMoney(money)
           }
           CSRule()
           row(StartIntent.codeDoor, StartIntent.codeDoorGloss, rule: false) {

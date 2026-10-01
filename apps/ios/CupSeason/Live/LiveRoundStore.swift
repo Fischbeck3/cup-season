@@ -564,7 +564,9 @@ final class LiveRoundStore {
 
   func setGame(_ g: LiveGame) { state.game = g; crtPicked = nil }
   func setMode(_ m: LiveMode) { state.mode = m; crtPicked = nil }
-  func setStake(_ v: Double) { state.stake = max(0, v) }
+  /// D192 / D402 · the web's ceiling, on the phone: the store clamps what the
+  /// field hands it, so no path from a keystroke records more than $200.
+  func setStake(_ v: Double) { state.stake = MoneyLimits.clampStake(v) }
 
   /// The 9/18 picker (6962).
   func setHoles(_ n: Int) {
@@ -810,7 +812,7 @@ final class LiveRoundStore {
     let mode: LiveMode = (g.teamable && players.count == 4) ? state.mode : .teams
     if g.teamable, players.count == 4, mode != .solo { s.teams = LivePairings.teams(pairing: state.pairing) }
     s.mode = mode
-    s.stake = g.money ? max(0, state.stake) : 0
+    s.stake = g.money ? MoneyLimits.clampStake(state.stake) : 0   // D402 · the config the server stores, bounded too
     s.wolfOrder = g == .wolf ? [0, 1, 2, 3].shuffled() : nil
     s.stage = .live; s.active = true; s.hole = 0
     s.scores = players.map { _ in Array(repeating: nil, count: 18) }

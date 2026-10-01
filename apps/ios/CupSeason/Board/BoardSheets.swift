@@ -53,6 +53,10 @@ struct AnnounceSheet: View {
       .navigationTitle("Announce to the league")
       .navigationBarTitleDisplayMode(.inline)
       .csCloseButton { dismiss() }
+      // D403 · the sheet shows the store's line itself: the board's host sits
+      // UNDER this sheet, so a refused announcement (the word filter's
+      // sentence) was never seen while the words waited here to be edited.
+      .boardToasts(store)
     }
     .presentationDetents([.medium, .large])
     .presentationDragIndicator(.visible)
@@ -110,6 +114,7 @@ struct ReportSheet: View {
       .background(cs.bg0)
       .navigationTitle("Report this post")
       .navigationBarTitleDisplayMode(.inline)
+      .boardToasts(store)   // D403 · as the announce sheet: a failure is seen here
     }
     .presentationDetents([.medium, .large])
     .presentationDragIndicator(.visible)

@@ -36,8 +36,15 @@ const shell = () => { const r = join(homedir(), 'Library', 'Caches', 'ms-playwri
      this rename; the owner panel's C) — the same rename in legal/*.md;
    - the footer says "Need a hand? Support · Get the app" and names the
      operator, as /get and /support do.
-   Every clause of the three documents is otherwise the text counsel has. */
-const TEXT_SHA = '292cb3285e29990a7c77d95e617718f44db46a8f96c86193a7adac8ab6da755f'
+   Every clause of the three documents is otherwise the text counsel has.
+   Re-pinned 2026-10-01 (D402/D403, the App Store readiness build) for these
+   reconciliations with the build's behaviour, and no others: both "Last
+   updated" lines; the round photo's audience; the pot ledger as collected
+   data; diagnostics naming the phone model, system and build; the word list,
+   which sends text to no one; the server's check of scan consent; the records
+   kept on a closed account's internal number; and the terms' filter, takedown
+   and removal sentence. NOT reviewed by counsel (D402). */
+const TEXT_SHA = '0e225aaa9e72c23722be94098abee1827b5676c7162d867f7172724442a15d32'
 
 const results = []
 const check = (name, ok, got) => { results.push({ name, ok: !!ok }); console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : '  got: ' + JSON.stringify(got))) }

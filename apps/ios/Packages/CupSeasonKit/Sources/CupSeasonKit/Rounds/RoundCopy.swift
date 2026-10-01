@@ -37,6 +37,13 @@ public enum RoundCopy {
   public static let photoAdd = "Add a photo"
   public static let photoReplace = "Replace photo"
   public static let photoRemove = "Remove photo"
+  /// D403 / App Review 5.1.2 · who sees an attached round photo, said beside
+  /// it BEFORE the round posts — a scorecard scan lands in the same plate, and
+  /// a golfer who scanned to fill the scores may not have meant to share the
+  /// picture. Removal before posting means nothing is uploaded. Preflight
+  /// §4.22 retires "league mate" in every inflection; the people it meant are
+  /// "in your seasons" (TERMINOLOGY A-7).
+  public static let photoAudience = "Golfers in your seasons and your buddies see this photo with your round."
   /// The armed half of the two-tap. Never an alert (IOS-003 §4).
   public static let photoRemoveArmed = "Sure?"
   /// W7-157 · under "Turn off this link", while the link is live: what turning

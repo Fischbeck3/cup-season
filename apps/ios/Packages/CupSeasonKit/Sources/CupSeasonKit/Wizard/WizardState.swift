@@ -29,8 +29,9 @@ public struct WizardDials: Sendable, Equatable, Codable {
   /// a raw check-constraint message out of `lock_league` — AFTER `create_league`
   /// had already run, leaving exactly the unlocked founder-alone husk D225
   /// exists to remove. The ladder's own top rung is this number; nothing else
-  /// may offer more than the database will take.
-  public static let maxStake = 200
+  /// may offer more than the database will take. D402 · the number itself is
+  /// `MoneyLimits.maxStake` now, which the live-round stake shares.
+  public static let maxStake = MoneyLimits.maxStake
   /// The four the wizard OFFERS as chips, in D225's order. Everything else on
   /// the ladder is still reachable through the stepper in More settings.
   public static let stakeChips = [0, 25, 50, 100]

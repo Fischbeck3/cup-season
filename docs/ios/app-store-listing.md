@@ -1,5 +1,11 @@
 # App Store listing — paste-ready (IOS-027, rewritten IOS-035 2026-09-05)
 
+> **2026-09-30: superseded pending owner review.** The 1.0 copy, privacy and
+> age-rating audit and the open items now live in
+> [`app-store-package-2026-09-30.md`](app-store-package-2026-09-30.md). This
+> file is corrected below where a fact had gone stale. It is not yet replaced,
+> because the new copy waits on the owner's review.
+
 Companion to `docs/ios/app-review-notes.md` (the Review Notes field — already
 written, not repeated here) and `spec/appstore-launch-kit.md` (the source of
 every paragraph reused below). Character limits: name 30 · subtitle 30 ·
@@ -132,8 +138,8 @@ competitor field says. Nothing in the banned list.
 | Support URL | `https://cupseason.app/support` | W5 (launch plan §3, 2026-09-22): a real support page — how to get help, install-then-reopen, a link that did not open, deletion in one sentence, the legal links — served as a 200 rewrite of `support.html` (`netlify.toml`), in the dist allowlist. `https://cupseason.app/get` is the installation destination. |
 | Marketing URL | `https://cupseason.app` | optional field |
 | Privacy Policy URL | `https://cupseason.app/legal.html#privacy` | the anchor `legal.html` §Privacy Policy; the same link the sign-in screen and Settings use |
-| Copyright | `2026 Jerecho Fischbeck` | **Flag:** no legal entity is named anywhere in the repo (`legal.html` says "CupSeason", the contact is a personal address). If an LLC exists, its name goes here instead. Apple's format is year then owner, no © needed. |
-| Support contact (App Review "Contact Information") | Jerecho Fischbeck · jerecho@fischbeck3.com | the launch kit's press contact; `legal.html` lists `jerecho@fischbeck3.com` — pick one and make the two agree |
+| Copyright | `2026 Fischbeck3 LLC` | **Corrected 2026-09-30.** The old flag said no legal entity was named anywhere, which was stale. `legal.html` and `support.html` name **Fischbeck3 LLC** as operator, confirmed by the owner on 2026-09-22 (D379). Apple's format is the year, then the owner, with no ©. **The owner confirmed on 2026-10-01** that the LLC holds the app's rights and is the App Store Connect seller. |
+| Support contact (App Review "Contact Information") | Jerecho Fischbeck · jerecho@fischbeck3.com | **Corrected 2026-09-30.** The listing, `legal.html` and `support.html` already use the same address, so there was no mismatch to settle. App Store Connect also needs a phone number in `+1` format. |
 
 ## 6. Age rating — REWRITTEN 2026-09-01, because the questionnaire below was retired
 
@@ -181,6 +187,11 @@ true as of 2026-09-01:
   the input, matching the season buy-in ladder's own ceiling (D192). It was
   unbounded, which was the one surface where "this is a ledger, not a book"
   stopped being obvious.
+  **Corrected 2026-09-30: this holds on the web only.** The cap is
+  `index.html:6974` with `CS_STAKE_MAX`. The iPhone live-round stake is a
+  free decimal with no ceiling (`LiveSetupView.swift:428-430`,
+  `LiveRoundStore.swift:567`), and no server clamp exists. Do not cite this
+  bullet to Apple until the phone matches (package B-2).
 - The words **"paid from the pot"** are out of the binary (D187). They were
   behind a flag that is off, one row-update from rendering, and they were the
   sentence that would have made Cup Season a beneficiary of the stakes.
@@ -192,6 +203,12 @@ profanity, no mature or suggestive themes, no horror, no medical content, no
 alcohol/tobacco/drugs, no sexual content, no loot boxes or randomised
 purchases, no advertising, and no unrestricted web access — the app opens no
 browser, and the only outbound links are Terms and Privacy.
+**Corrected 2026-09-30:** the app also links out to the pot section of the
+legal page, "Trouble signing in?" (the support page) and the forced-update
+`/get`. All of them open in Safari; there is still no in-app browser. Two
+"None" answers above are not true of the binary. The ball marker "The
+Beverage" (a beer glass) and the call-out placeholder "Loser buys the beers"
+are alcohol references. See package Part C-2 before answering the form.
 
 **User-generated content / messaging** is **Yes**: the board is chat between
 members of a private league. This does not raise the rating on its own, and
@@ -199,38 +216,49 @@ the app now satisfies all three things Apple looks for alongside that answer —
 report, block, and the developer able to act (D188). The Review Notes' 1.2
 section lists each one and where to find it.
 
-## 7. App Privacy (nutrition label) — matches `apps/ios/CupSeason/PrivacyInfo.xcprivacy` exactly
+## 7. App Privacy (nutrition label) — final answers, matching `PrivacyInfo.xcprivacy` (rewritten 2026-10-01)
+
+Rewritten 2026-10-01 from the D403 build audit. The table below, the manifest
+and `legal.html` §Privacy agree. The previous table listed eight types and
+"salted" hashes; the manifest had eleven types and the hashes are plain. When
+one of the three changes, all three change in the same commit.
+
+Apple does not read the manifest's collected-data section as your answers. It
+feeds Xcode's privacy report, which you refer to when you fill in App Store
+Connect. You can change the App Store Connect answers at any time without a
+build, and **they must be entered by the owner**: nothing in this repository
+writes them.
 
 **Do you or your third-party partners collect data from this app?** Yes.
-**Tracking:** **No** — `NSPrivacyTracking = false`, no tracking domains. No ad
-SDK, no broker, no cross-app identifier; answering yes would demand an ATT
-prompt for nothing (runbook D9).
+**Tracking:** No. There are no ad SDKs, no data broker, no cross-app
+identifiers and no ATT prompt (`NSPrivacyTracking = false`).
 
-Seven data types, one row per manifest entry. Every one is **Linked to the
-user's identity** and **not used for tracking**.
+Every row below is **linked to the user**, **not used for tracking**, and used
+for **App Functionality**, except Product Interaction, which is **Analytics**.
 
-| ASC category → data type | Manifest key | Purpose(s) | Linked | Tracking | What it is |
-|---|---|---|---|---|---|
-| Contact Info → Email Address | `EmailAddress` | App Functionality | Yes | No | the sign-in address (email one-time code); `profiles.email` |
-| Contact Info → Name | `Name` | App Functionality | Yes | No | the golfer's display name on the card, the board and the standings |
-| User Content → Photos or Videos | `PhotosorVideos` | App Functionality | Yes | No | round photos, the card photo, the scorecard scan (private `media` bucket) |
-| User Content → Other User Content | `OtherUserContent` | App Functionality | Yes | No | rounds, board posts and chat, league settings |
-| Identifiers → Device ID | `DeviceID` | App Functionality | Yes | No | the APNs push token (`device_tokens`) — push only |
-| Diagnostics → Crash Data | `CrashData` | App Functionality | Yes | No | MetricKit crash and hang reports into `client_events` (IOS-024) |
-| Usage Data → Product Interaction | `ProductInteraction` | **Analytics** | Yes | No | screens opened and taps (`client_events`, `pilot_instrumentation`) |
-| Contacts | `Contacts` | App Functionality | No | No | only when the golfer taps to find friends: salted SHA-256 hashes of emails and phone numbers are sent for matching and nothing that does not match is kept (D251). Declared 2026-09-21; **the owner files this label change at submission** (D251 clause 4). |
+| ASC category → data type | What it is, in this build |
+|---|---|
+| Contact Info → Name | the golfer's display name; the names of live-round guests and of players read off a scanned card |
+| Contact Info → Email Address | the sign-in address (emailed 8-digit code); Brevo delivers codes and season emails |
+| Identifiers → User ID | the @handle (searchable), the account id, and the optional GHIN number |
+| Identifiers → Device ID | the APNs push token, only when notifications are on |
+| User Content → Photos or Videos | round photos (a scanned scorecard becomes the round photo), the profile photo, league images, public share copies made on a Share tap. Photos sent to Anthropic only after a consent the server checks. |
+| User Content → Emails or Text Messages | league board chat and comments between golfers |
+| User Content → Customer Support | the in-app "Tell us how it's going" note, with the device and build it came from |
+| User Content → Other User Content | rounds and hole scores, plans, pride-bet wording, card fields, league names and descriptions, reports filed |
+| Financial Info → Other Financial Info | the pot ledger: buy-ins, who has paid, payouts, live-game amounts and settlement totals. Typed by the league's Pro; no payment instrument exists. |
+| Contacts → Contacts | the stored buddy list (a linked social graph); find-friends sends plain SHA-256 hashes of contacts' emails and phone numbers, peppered on the server, compared once and not stored |
+| Diagnostics → Crash Data | MetricKit crash reports in `client_events` |
+| Diagnostics → Performance Data | MetricKit hang reports with duration; composer timing |
+| Diagnostics → Other Diagnostic Data | device model, OS version, build and error text on diagnostic rows |
+| Usage Data → Product Interaction (**Analytics**) | `client_events` and `growth_events`: opens, taps, posting steps; silent in DEBUG builds (D338) |
 
-Not collected, and do not tick: Location (course search is by name, never by
-GPS), Health & Fitness, Financial Info (the pot is a ledger of dollars typed
-by the Pro; no payment instrument exists), Browsing/Search History,
-Purchases, Sensitive Info. (Contacts moved into the table on 2026-09-21: the
-find-friends step sends hashes, which is a disclosure even though no contact
-is stored.) Course lookups go through our own Edge Function
-with the key held server-side — the third party never sees a user, so it is
-not a disclosure.
+**Not collected** (leave unticked):
+- **Location.** There is no CoreLocation; photos are re-drawn before upload, which drops EXIF; the typed city is user content; weather uses the course's coordinates on the server.
+- Health & Fitness, payment details, purchases, browsing or search history, sensitive info, audio, and advertising data.
 
-Keep this table, `PrivacyInfo.xcprivacy` and `legal.html` §Privacy in
-agreement; when one changes, the other two change in the same commit.
+**Moderation sends nothing anywhere.** The text filter runs in our own
+database (D403), so it adds no third party.
 
 ## 8. What's New — 1.0 (community voice, never changelog-speak)
 

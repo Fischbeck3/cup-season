@@ -125,17 +125,22 @@ test('C-04 · a cache pull books one unit; a short query books none and calls no
 
 /* ---- the scan handler ----------------------------------------------------- */
 
-function scan({ flag, insertFails = false, countFails = false } = {}) {
+function scan({ flag, insertFails = false, countFails = false,
+                consent = '2026-09-01T12:00:00Z', consentFails = false, banned = false, banFails = false } = {}) {
   const log = { paid: 0, inserted: 0, deleted: 0 };
   const table = (t) => {
     let op = 'select', count = false;
     const q = {
       select: (_c, o) => { if (o?.count) count = true; return q; },
       insert: () => { op = 'insert'; return q; }, update: () => { op = 'update'; return q; }, delete: () => { op = 'delete'; return q; },
-      eq: () => q, gte: () => q, maybeSingle: () => q, single: () => q,
+      eq: () => q, gte: () => q, is: () => q, maybeSingle: () => q, single: () => q,
       then: (res, rej) => {
         let out = { data: null, error: null };
         if (t === 'app_flags') out = { data: flag === undefined ? null : { value: flag }, error: null };
+        else if (t === 'profiles') out = consentFails ? { data: null, error: { message: 'read failed' } }
+                                                      : { data: consent === 'no-row' ? null : { scan_consent_at: consent }, error: null };
+        else if (t === 'account_bans') out = banFails ? { data: null, error: { message: 'read failed' } }
+                                                      : { data: banned ? { profile_id: 'u1' } : null, error: null };
         else if (op === 'insert') { if (insertFails) out = { data: null, error: { message: 'insert failed' } }; else { log.inserted++; out = { data: { id: 'resv-1' }, error: null }; } }
         else if (op === 'delete') log.deleted++;
         else if (count) out = countFails ? { count: null, data: null, error: { message: 'count failed' } } : { count: 1, data: null, error: null };
@@ -155,7 +160,7 @@ function scan({ flag, insertFails = false, countFails = false } = {}) {
   };
   const handler = load('../supabase/functions/scan/index.ts', /esm\.sh\/@supabase\/supabase-js/,
     { createClient: client, fetch, JSON, Date, env: { ANTHROPIC_API_KEY: 'k', SUPABASE_URL: 'http://mock', SUPABASE_SERVICE_ROLE_KEY: 'svc', SUPABASE_ANON_KEY: 'anon' } });
-  const call = () => handler(new Request('http://fn/scan', { method: 'POST', headers: { Authorization: 'Bearer user:u1' }, body: JSON.stringify({ image: 'A'.repeat(2000) }) }));
+  const call = (auth = 'Bearer user:u1') => handler(new Request('http://fn/scan', { method: 'POST', headers: { Authorization: auth }, body: JSON.stringify({ image: 'A'.repeat(2000) }) }));
   return { call, log };
 }
 
@@ -182,5 +187,43 @@ test('C-07 · an enabled flag with room under both caps still scans (one paid ca
   const s = scan({ flag: { enabled: true, daily_per_user: 5, monthly_global: 400 } });
   const j = await (await s.call()).json();
   assert.equal(j.ok, true);
+  assert.equal(s.log.paid, 1);
+});
+
+/* ---- D403 · the server reads the golfer's stored yes before any paid call ---- */
+
+test('D403 · no consent, revoked consent, or an unreadable consent: 403, zero provider calls, no reservation', async () => {
+  for (const opt of [{ consent: 'no-row' }, { consent: null }, { consentFails: true }]) {
+    const s = scan({ flag: { enabled: true }, ...opt });
+    const r = await s.call();
+    assert.equal(r.status, 403, JSON.stringify(opt));
+    assert.deepEqual(await r.json(), { unavailable: true, reason: 'no_consent' });
+    assert.equal(s.log.paid, 0, 'no provider call ' + JSON.stringify(opt));
+    assert.equal(s.log.inserted, 0, 'no reservation ' + JSON.stringify(opt));
+  }
+});
+
+test('D403 · a removed account, or a ban table that cannot be read, scans nothing', async () => {
+  for (const opt of [{ banned: true }, { banFails: true }]) {
+    const s = scan({ flag: { enabled: true }, ...opt });
+    const r = await s.call();
+    assert.equal(r.status, 403);
+    assert.deepEqual(await r.json(), { unavailable: true, reason: 'account_closed' });
+    assert.equal(s.log.paid, 0);
+    assert.equal(s.log.inserted, 0);
+  }
+});
+
+test('D403 · an unauthenticated request makes zero provider calls', async () => {
+  const s = scan({ flag: { enabled: true } });
+  const r = await s.call('Bearer nobody');
+  assert.equal(r.status, 401);
+  assert.equal(s.log.paid, 0);
+  assert.equal(s.log.inserted, 0);
+});
+
+test('D403 · consent present and the kill switch on: exactly one paid call', async () => {
+  const s = scan({ flag: { enabled: true, daily_per_user: 5, monthly_global: 400 } });
+  assert.equal((await (await s.call()).json()).ok, true);
   assert.equal(s.log.paid, 1);
 });

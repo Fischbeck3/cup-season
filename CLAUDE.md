@@ -208,6 +208,22 @@ edge months** (blanket rule, decided). League timezone default
   on message sniffing (photo_path took boot down to the card gate,
   2026-07-23; check 9 now asserts every non-email column is granted).
 
+- **Every API request now runs `cs_internal.request_gate()` first (D403,
+  migration `20261222090000`).** It is PostgREST's `pgrst.db_pre_request`, set on
+  the `authenticator` role, and it refuses a banned golfer's requests (HTTP 403,
+  "This account has been closed."), including requests on a token minted before
+  the ban. A bug in it takes the whole API down, so it fails OPEN on anything
+  unexpected and refuses only a confirmed, unlifted row in `account_bans`. Never
+  make it fail closed, never add a slow query to it, and keep it in
+  `cs_internal`, which PostgREST does not expose, so it is not an endpoint.
+  Check it from the database:
+  `select rolconfig from pg_roles where rolname='authenticator'`.
+  `tests/db-checks.sql` check 60 asserts it.
+- **The text filter (`cs_text_guard`, migration `20261221090000`) refuses on INSERT,
+  and on UPDATE only when the column changed.** Server-written posts (round,
+  system, moment) are exempt by the trigger's `WHEN`. A new user-text column is
+  unguarded until it is added to the trigger list in a NEW migration, and check
+  60 counts 15 guarded tables.
 - **A new Database Webhook silently defaults to the WRONG Edge Function.**
   The `season_email` hook (D68) was created on the right table with the right
   header but pointing at `push`, and it took several round trips to see it.
