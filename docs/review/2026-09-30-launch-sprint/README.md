@@ -4,7 +4,7 @@ Owner selected sprint items **1, 2, and 4**: unify the release candidate, finish
 
 Branch: `codex/launch-sprint-2026-09-30`
 
-Workspace: `/Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season`
+Workspace: `~/.codex/worktrees/launch-sprint-2026-09-30/cup-season`
 
 Base: fetched `origin/main` at `5d70caeb`.
 

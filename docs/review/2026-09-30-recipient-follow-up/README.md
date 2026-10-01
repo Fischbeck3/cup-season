@@ -4,7 +4,7 @@ Owner asked “Start on other items” after the selected 1/2/4 sprint at `e700a
 
 Branch: `codex/launch-sprint-2026-09-30`.
 
-Workspace: `/Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season`.
+Workspace: `~/.codex/worktrees/launch-sprint-2026-09-30/cup-season`.
 
 Verified source candidate: **`6a35c3d6`** (following evidence commit is documentation only). Recipient production fix: `50b0483c`, on the unified Build 2 + D400 + Q2 + Book candidate. Fetched main remains `5d70caeb`. The dirty Match Programme checkout and Claude's active work were not edited.
 

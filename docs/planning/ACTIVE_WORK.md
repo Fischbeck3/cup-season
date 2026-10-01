@@ -4,7 +4,7 @@
 
 The owner asked “Start on other items” after items 1, 2 and 4 at `e700abc8`.
 Codex owns item 3 in `codex/launch-sprint-2026-09-30`, managed workspace
-`/Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season`:
+`~/.codex/worktrees/launch-sprint-2026-09-30/cup-season`:
 public buddy/plan sign-in doors and already-agreed invitation navigation on both
 clients, plus the exact-candidate recovery/widget device checklist for item 5.
 No production writes, pushes, uploads, or distribution change. Current main is
@@ -21,10 +21,10 @@ The owner's direction on September 28 was *"Prompt claude to address other findi
 - **Outside this lane:** App Store submission, Friends/external TestFlight, database/Edge, secrets, dependencies, the production mark/icon, outreach and new gameplay decisions.
 - **Held for the owner:** the push to main and the TestFlight upload wait for the owner's yes in chat on a verified candidate.
 
-**Owned integration branch:** `claude/ten-before-launch-2026-09-28` at `/Users/fischbeck3/cup-season-claude-ten`, cut from origin/main `1b5916b2`.
+**Owned integration branch:** `claude/ten-before-launch-2026-09-28` at `~/cup-season-claude-ten`, cut from origin/main `1b5916b2`.
 - **Integrator:** the root session. It is the only writer of `index.html` and `legal.html`.
 - **CSDesign/tokens** have exactly one owner, sub-lane N1.
-- **Sub-lanes:** each has its own branch and worktree, `claude/ten-<lane>-2026-09-28` at `/Users/fischbeck3/cup-season-claude-ten-<lane>`. They are integrated only by the root session.
+- **Sub-lanes:** each has its own branch and worktree, `claude/ten-<lane>-2026-09-28` at `~/cup-season-claude-ten-<lane>`. They are integrated only by the root session.
 - **Simulators:** task-created clones only; the owner's signed-in simulators are never used.
 - **Web evidence:** served on 127.0.0.1:8801. Ports 8791/8793/8794/8799 belong to other lanes.
 - **Not touched:** the old dirty checkout and every other lane's worktree.
@@ -35,7 +35,7 @@ The ledger is [docs/design/ten-2026-09-27/launch/LEDGER.md](../design/ten-2026-0
 
 The owner said **“Ship it”** after the local S1a/S1b handoff and its known
 verification limits. Owned release branch: `codex/ten-ship-2026-09-28`, isolated
-in `/Users/fischbeck3/cup-season-ten-ship`. Fresh main `5fabf861` fast-forwarded
+in `~/cup-season-ten-ship`. Fresh main `5fabf861` fast-forwarded
 to release `cf6d0663`; only the two reviewed product fixes and approved program
 documentation were integrated. Web is live; **Owner TestFlight 1.0.0 (1053)
 is available**, VALID, IN_BETA_TESTING, Owner YES, Friends no. Exact test notes
@@ -64,9 +64,9 @@ exceptions. Structural work stays post-launch. No push, merge, deployment,
 Apple action, dependency, production asset replacement or new decision is
 approved. The optional content direction authorizes no outreach or uploads.
 
-- Documentation: `codex/impeccable-ten-2026-09-27`, `/Users/fischbeck3/cup-season-ten`.
-- S1a: `codex/ten-door-label-2026-09-28`, `/Users/fischbeck3/cup-season-ten-door`.
-- S1b: `codex/ten-home-contrast-2026-09-28`, `/Users/fischbeck3/cup-season-ten-home`.
+- Documentation: `codex/impeccable-ten-2026-09-27`, `~/cup-season-ten`.
+- S1a: `codex/ten-door-label-2026-09-28`, `~/cup-season-ten-door`.
+- S1b: `codex/ten-home-contrast-2026-09-28`, `~/cup-season-ten-home`.
 
 Both fix branches start independently at freshly fetched `origin/main`
 `5fabf861`, the recorded Owner TestFlight1046 release. No other active Cup
@@ -113,7 +113,7 @@ Owned branch/workspace: `codex/play-share-store-review-2026-09-25` in
 
 ## Selected Compete release · 2026-09-24 (Codex) — database and web live; TestFlight held
 
-Owner requested “Push and deploy,” held TestFlight, then directed the Git deployment path. Remote `main` was fast-forwarded from `1e792793` to release `300266e4`; Netlify published it, verified at **2026-09-25 02:06 UTC** (September 24 in Phoenix). HTML and service worker both read `300266e`; signed-out startup, public routes, headers and the publish boundary pass. GitHub Client invariants/Migration hygiene and Supabase Preview pass. Production migration `20261118090000_the_book.sql` is applied: **255 total, none pending**, **37/37 production checks pass**. TestFlight is held; no ASC, archive, upload or Supabase Edge deployment. No merge commit or rebase; all repository work stays on the owned branch in `/Users/fischbeck3/cup-season-compete-explore`. This release-record follow-up changes documentation/evidence only. [Deployment evidence](../design/compete-2026-09-24/DEPLOYMENT.md). Earlier entries below are historical checkpoints.
+Owner requested “Push and deploy,” held TestFlight, then directed the Git deployment path. Remote `main` was fast-forwarded from `1e792793` to release `300266e4`; Netlify published it, verified at **2026-09-25 02:06 UTC** (September 24 in Phoenix). HTML and service worker both read `300266e`; signed-out startup, public routes, headers and the publish boundary pass. GitHub Client invariants/Migration hygiene and Supabase Preview pass. Production migration `20261118090000_the_book.sql` is applied: **255 total, none pending**, **37/37 production checks pass**. TestFlight is held; no ASC, archive, upload or Supabase Edge deployment. No merge commit or rebase; all repository work stays on the owned branch in `~/cup-season-compete-explore`. This release-record follow-up changes documentation/evidence only. [Deployment evidence](../design/compete-2026-09-24/DEPLOYMENT.md). Earlier entries below are historical checkpoints.
 
 ## Compete topo correction · 2026-09-24 (Codex) — local review
 
@@ -121,15 +121,15 @@ Owner requested text over continuous topo after spotting the clipped ember strip
 
 ## Selected Compete build · 2026-09-24 (Codex) — built and verified locally
 
-Owner approved **Scoreboard + the Book's Weeks view, with Race inside the Book**, including normal native/web app code and one local, unapplied read-contract migration (D381). Work remains only in `/Users/fischbeck3/cup-season-compete-explore` on `codex/compete-explorations-2026-09-24`. The Book has authoritative weekly/cumulative totals, golfers/squads/contributions, named receipts and reasoned adjustment rows. Small leagues keep Rounds & points. The shared 41–41 points rank and ember-label contrast are fixed. No scoring mechanic changed.
+Owner approved **Scoreboard + the Book's Weeks view, with Race inside the Book**, including normal native/web app code and one local, unapplied read-contract migration (D381). Work remains only in `~/cup-season-compete-explore` on `codex/compete-explorations-2026-09-24`. The Book has authoritative weekly/cumulative totals, golfers/squads/contributions, named receipts and reasoned adjustment rows. Small leagues keep Rounds & points. The shared 41–41 points rank and ember-label contrast are fixed. No scoring mechanic changed.
 
-[Selected build and deployment dependency](../design/compete-2026-09-24/SELECTED-BUILD.md) · [original proposal](../design/compete-2026-09-24/PROPOSAL.md). Gallery: `/Users/fischbeck3/cup-season-compete-explorations-review/index.html`; original 564 captures remain historical, with a separate Selected build section. The selected section adds **36 new simulator captures**, both printings, SE/standard and standard AX3. **1,520 distinct native tests pass** across the final relevant runs; Node **58 passed**, preflight **0 failures / 0 warnings**, Debug build green, and fresh local PostgreSQL contract checks pass. [Verification and retained failure output](../design/compete-2026-09-24/SELECTED-VERIFICATION.md). Implementation commits `49c219ea`, `bfe9a27b`, `f5f2a5db`. Everything remains unpushed. Migration `20261118090000_the_book.sql` is verified only in isolated local PostgreSQL. **Database and client deployment/distribution remain owed after separate approval; Edge: none.** The design rulings are settled; historical snapshots and very-large-field pagination remain separate future work.
+[Selected build and deployment dependency](../design/compete-2026-09-24/SELECTED-BUILD.md) · [original proposal](../design/compete-2026-09-24/PROPOSAL.md). Gallery: `~/cup-season-compete-explorations-review/index.html`; original 564 captures remain historical, with a separate Selected build section. The selected section adds **36 new simulator captures**, both printings, SE/standard and standard AX3. **1,520 distinct native tests pass** across the final relevant runs; Node **58 passed**, preflight **0 failures / 0 warnings**, Debug build green, and fresh local PostgreSQL contract checks pass. [Verification and retained failure output](../design/compete-2026-09-24/SELECTED-VERIFICATION.md). Implementation commits `49c219ea`, `bfe9a27b`, `f5f2a5db`. Everything remains unpushed. Migration `20261118090000_the_book.sql` is verified only in isolated local PostgreSQL. **Database and client deployment/distribution remain owed after separate approval; Edge: none.** The design rulings are settled; historical snapshots and very-large-field pagination remain separate future work.
 
 ## Compete explorations and the Book · 2026-09-24 (Codex) — local owner review
 
-On `codex/compete-explorations-2026-09-24` in `/Users/fischbeck3/cup-season-compete-explore` only. Three working DEBUG directions behind `-cs_dev_compete_exploration`: **Scoreboard** (ember points board), **Race** (points across the season on livery terrain), and **Broadsheet** (dense season/field comparison). The **Book** adds weekly and cumulative points, squads/golfers, squad contributions, a race and receipts, including dropped rounds and reasoned adjustment rows. No money. Small solo seasons get “Rounds & points.” Release keeps the shipped root and startup behavior.
+On `codex/compete-explorations-2026-09-24` in `~/cup-season-compete-explore` only. Three working DEBUG directions behind `-cs_dev_compete_exploration`: **Scoreboard** (ember points board), **Race** (points across the season on livery terrain), and **Broadsheet** (dense season/field comparison). The **Book** adds weekly and cumulative points, squads/golfers, squad contributions, a race and receipts, including dropped rounds and reasoned adjustment rows. No money. Small solo seasons get “Rounds & points.” Release keeps the shipped root and startup behavior.
 
-[Proposal, ranked recommendation and owner rulings](../design/compete-2026-09-24/PROPOSAL.md) · [verification and failure history](../design/compete-2026-09-24/VERIFICATION.md). New local gallery: `/Users/fischbeck3/cup-season-compete-explorations-review/index.html`; **564 fixture-only simulator captures**, audited with all **324 required combinations**, cover light/dark, standard/SE and standard AX3. Native checks **1,505 passed**, preflight **0 failures / 0 warnings**, Debug build green. Brief committed first as `788dd5b`, prototypes as `9959c620`; everything is **local and unpushed**.
+[Proposal, ranked recommendation and owner rulings](../design/compete-2026-09-24/PROPOSAL.md) · [verification and failure history](../design/compete-2026-09-24/VERIFICATION.md). New local gallery: `~/cup-season-compete-explorations-review/index.html`; **564 fixture-only simulator captures**, audited with all **324 required combinations**, cover light/dark, standard/SE and standard AX3. Native checks **1,505 passed**, preflight **0 failures / 0 warnings**, Debug build green. Brief committed first as `788dd5b`, prototypes as `9959c620`; everything is **local and unpushed**.
 
 Owner to choose the direction, live-only ember versus F11’s broader scope, Scoreboard’s proposed monochrome topo exception inside its ember band, the proposed **10 golfers or squads** Book threshold and small-league fallback, “counting today” versus historical snapshots, and shared points-rank / qualification-seed / final-tiebreak semantics. Recommend Scoreboard with the Book’s Weeks view, then Race, then Broadsheet. Naming is settled: **the Book**.
 
@@ -139,7 +139,7 @@ Found and documented without changing shipped code: the home rank window splits 
 ## Owner beta release · EXECUTED 2026-09-23 03:13–03:23 UTC (Claude, on the Mac) — `claude/owner-beta-release`
 
 Both approvals executed exactly as recorded, from a clean worktree of this
-branch (`/Users/fischbeck3/cup-season-owner-beta`), after steps 0 and 1
+branch (`~/cup-season-owner-beta`), after steps 0 and 1
 matched the packet on every line. The command-by-command record with
 timestamps and read-backs is in the [Owner beta packet](2026-09-22-owner-beta.md#executed-on-the-mac--2026-09-23-0313-0323-utc).
 
@@ -329,7 +329,7 @@ This section supersedes the historical release status and ownership assignments 
 
 - Live web audited: `963d0e6`; release evidence checkpoint `eca1b3c`. Release evidence records 242 production migrations, latest `20261103090000`, and native archive 857; TestFlight export/upload remains blocked separately by distribution signing. See [release evidence](../reviews/2026-09-13-release-evidence.md).
 - Owner requested an audit after finding mobile web visually behind, with Claude continuing as lead builder.
-- Codex audit: `codex/mobile-web-audit-2026-09-13`, `/Users/fischbeck3/cup-season-mobile-web-audit`. [Findings](../reviews/2026-09-13-mobile-web-experience-audit.md): the actual Compete creation link is dead; Home, Compete, season, posting and setup need focused responsive refinement.
+- Codex audit: `codex/mobile-web-audit-2026-09-13`, `~/cup-season-mobile-web-audit`. [Findings](../reviews/2026-09-13-mobile-web-experience-audit.md): the actual Compete creation link is dead; Home, Compete, season, posting and setup need focused responsive refinement.
 - Next packet: [mobile Safari experience sprint](2026-09-13-mobile-safari-experience-sprint.md). **Ready for Claude; not dispatched.** Claude owns `index.html`, related web tests and implementation fixes on a new owned branch. Codex owns independent review and integration/device verification. This explicitly supersedes the default web-editor row for this packet.
 - No application source or production deployment changed in the audit. Actual iPhone Safari acceptance remains owed; mobile-width Chromium checks are labeled as such.
 - Identity half, kept separate (Claude, 2026-09-13): D339's beta identity shipped natively only; [D339 · the web half](2026-09-13-d339-web-half.md) inventories every surface, reconciles with the Safari sprint, and asks for one ruling (does the web show the beta identity?) before its first checkpoint I-1 (door + sidebar brand, copy + mark). Branch `claude/d339-web-half`; nothing built; frozen release unchanged.
@@ -338,7 +338,7 @@ This section supersedes the historical release status and ownership assignments 
 
 Owner requested both phone surfaces, Safari first. The historical baselines below are retained as history, not the current release candidate.
 
-- Integration: `codex/today-release-2026-09-13`, `/Users/fischbeck3/cup-season-today-release`.
+- Integration: `codex/today-release-2026-09-13`, `~/cup-season-today-release`.
 - Claude implementation lead completed `99549ca` on `claude/release-fixes-2026-09-13`; integrated and independently audited. Codex now owns final edits, QA and release. Claude is idle.
 - R1 posting/setup/invitations/month facts and R4 snapshot/widget work are implemented. R2 complete-week and R3 competition chapters/event renewal remain explicitly scoped in [today's sprint](2026-09-13-today-release.md).
 - Eight reviewed migrations applied to production; readback 239 total, latest `20261101090000`, D345 absent. No Edge or Vault changes.
@@ -348,10 +348,10 @@ Owner requested both phone surfaces, Safari first. The historical baselines belo
 ## Baselines and current state
 
 - Audited candidate: `ca682da`, build 815. Keep it unchanged while Apple distribution signing is unavailable. Latest Claude handoff reviewed: `b2dac7e`; no signing issue is a reason to deploy D345.
-- Current planning workspace: `/Users/fischbeck3/cup-season-vision-next`, branch `codex/vision-next-2026-09-12`, based on `ca682da`.
+- Current planning workspace: `~/cup-season-vision-next`, branch `codex/vision-next-2026-09-12`, based on `ca682da`.
 - Codex's release workspace and Claude's existing workspace retain their owners. Do not switch or edit another agent's branch. A new implementation branch starts from the explicitly agreed integration checkpoint.
 - First execution checkpoint completed: interactive prototype/brand proof and an independent Claude C0 review. Production implementation had not started at that checkpoint. The 2026-09-13 busy-friends client slice below is now implemented on a separate review branch. See `docs/reviews/2026-09-12-next-checkpoint.md` for evidence and findings disposition.
-- Claude C0 ran to completion in `/Users/fischbeck3/cup-season-next-loop-contract`, branch `claude/next-loop-contract`, base `205a0ef`. Its report is imported unchanged with attribution; that bounded process has finished.
+- Claude C0 ran to completion in `~/cup-season-next-loop-contract`, branch `claude/next-loop-contract`, base `205a0ef`. Its report is imported unchanged with attribution; that bounded process has finished.
 
 ## Ownership defaults
 
@@ -451,7 +451,7 @@ Recommended next step: Q0 draft recovery and C0a contract packet, each on its ow
 
 Status: **Review**. Owner approved editable setup and brief language, then “Do it.”
 
-- Codex branch: `codex/busy-friends-native-2026-09-13`; workspace `/Users/fischbeck3/cup-season-busy-friends`; base `e0643c1` (planning checkpoint on audited `ca682da`).
+- Codex branch: `codex/busy-friends-native-2026-09-13`; workspace `~/cup-season-busy-friends`; base `e0643c1` (planning checkpoint on audited `ca682da`).
 - Built: explicit best-2/no-minimum suggestion, editable choices, native agreement, retained creation checkpoint for retry, exact review dates, truthful invite/member distinction, receipt reconciliation, and corresponding web setup disclosure. D346 records scope and tradeoffs.
 - Evidence and exact review request: [busy-friends native handoff](../reviews/2026-09-13-busy-friends-native.md).
 - Claude’s gameplay audit at `8dcd403` informed this work; its branch and workspace remain untouched. No automated Claude task was started or message sent.

@@ -30,12 +30,12 @@
     {
       "issueType" : "Runtime Warning",
       "message" : "Accessing FocusState's value outside of the body of a View. This will result in a constant Binding of the initial value and will not update.",
-      "sourceURL" : "file:///Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season/apps/ios/CupSeasonTests/OwnerQ46FieldTests.swift"
+      "sourceURL" : "file://~/.codex/worktrees/launch-sprint-2026-09-30/cup-season/apps/ios/CupSeasonTests/OwnerQ46FieldTests.swift"
     },
     {
       "issueType" : "Runtime Warning",
       "message" : "Accessing FocusState's value outside of the body of a View. This will result in a constant Binding of the initial value and will not update.",
-      "sourceURL" : "file:///Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season/apps/ios/CupSeasonTests/OwnerQ46FieldTests.swift"
+      "sourceURL" : "file://~/.codex/worktrees/launch-sprint-2026-09-30/cup-season/apps/ios/CupSeasonTests/OwnerQ46FieldTests.swift"
     }
   ],
   "skippedTests" : 0,
