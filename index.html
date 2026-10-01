@@ -14993,29 +14993,35 @@ $('#postScanFile')?.addEventListener('change',e=>{
 });
 async function csRunScan(f){
   const btn=$('#postScanBtn'); const was=btn.innerHTML;
+  /* the sheet's yes, if the golfer gave one for THIS account — consumed here,
+     so it backs exactly one attempt */
+  const uid = csScanUid();
+  const fresh = (uid && csScanFreshYes && csScanFreshYes.uid === uid) ? csScanFreshYes : null;
+  if(fresh) csScanFreshYes = null;
   btn.disabled=true; btn.textContent='Reading the card…';
   try{
-    /* the yes is on the profile before the photo leaves (a no-op once written) */
-    try{ await csScanConsentWrite; }catch(_){}
+    if(fresh){
+      /* nothing leaves until the tapped yes is on the profile */
+      let took = false;
+      try{ took = await fresh.write; }catch(_){ took = false; }
+      if(!took || csScanUid() !== uid){ toast(CS_SCAN_CONSENT.notSaved); return; }
+    }
     /* 2200px keeps handwritten digits legible for the model; ~½MB upload */
     const shot=await compressPhoto(f,2200,.9);
     const image = await b64ofBlob(shot);
-    const ask = () => window.sb.functions.invoke('scan', { body:{ image, media_type:'image/jpeg' } });
-    let { data, error } = await ask();
-    /* D403 · the server reads the PROFILE's yes before Anthropic sees anything. A
-       yes held only on this device (the write failed) is refused as no_consent:
-       write it to the profile once and ask again; if it still will not take, the
-       device flag is dropped so the next scan asks first — never a scan on a yes
-       the server cannot see. */
+    let { data, error } = await window.sb.functions.invoke('scan', { body:{ image, media_type:'image/jpeg' } });
+    /* D403 · the server reads the PROFILE's yes before Anthropic sees anything,
+       and its no is final: whatever this page believed is dropped. A scan sent
+       on a yes tapped in this attempt that is STILL refused stops here (no
+       loop); otherwise the golfer is asked, and only their tap retries it. */
     if(error){
       let reason = null;
       try{ reason = (await error.context?.json?.())?.reason || null; }catch(_){}
       if(reason === 'no_consent'){
-        try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
-        csScanYesThisVisit = false;
-        const saved = await csSetScanConsent(true) && !!window.CS?.profile?.scan_consent_at;
-        if(!saved){ try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){} toast(CS_SCAN_CONSENT.notSaved); return; }
-        ({ data, error } = await ask());
+        csScanForgetYes();
+        if(fresh){ toast(CS_SCAN_CONSENT.notSaved); return; }
+        csAskScanConsent(() => csRunScan(f));
+        return;
       }
     }
     if(error) throw error;
@@ -19404,8 +19410,10 @@ async function csRateCourse(id, stars, note){
     if(res.error) throw res.error;
     return csRatingPut(id, res.data || {});
   }catch(e){
-    /* D403 · a refused note is said, not swallowed */
-    if(String(e?.message||'').includes(CS_MODERATION_REFUSAL)) toast(CS_MODERATION_REFUSAL, 'neg');
+    /* D403 · a refused note is said, not swallowed — and said LAST: this
+       returns false (not null) so no caller lays its generic "Could not save"
+       over the refusal. null stays the ordinary failure the caller words. */
+    if(String(e?.message||'').includes(CS_MODERATION_REFUSAL)){ toast(CS_MODERATION_REFUSAL, 'neg'); return false; }
     return null;
   }
 }
@@ -19867,7 +19875,7 @@ function csCourseBooksWire(box){
       const out = same ? await csUnrateCourse(id) : await csRateCourse(id, v);
       if(!out){
         if(fill) fill.style.setProperty('--fill', csStarsWidth(had && had.mine != null ? had.mine : 0));
-        toast('Could not save that rating');
+        if(out !== false) toast('Could not save that rating');
         return;
       }
       csCourseRowRepaint(box, id);
@@ -19890,7 +19898,7 @@ function csCourseBooksWire(box){
       const out = await csRateCourse(id, v);
       if(!out){
         if(fill) fill.style.setProperty('--fill', csStarsWidth(cur));
-        toast('Could not save that rating');
+        if(out !== false) toast('Could not save that rating');
         return;
       }
       csCourseRowRepaint(box, id);
@@ -19910,7 +19918,9 @@ function csCourseBooksWire(box){
       inp.disabled = true;
       const out = await csRateCourse(id, r.mine, v);
       inp.disabled = false;
-      if(!out){ toast('Could not save that'); return; }
+      /* false = refused by the word list: its sentence is already up, and the
+         draft stays in the field to be edited (the next blur saves it) */
+      if(!out){ if(out !== false) toast('Could not save that'); return; }
       toast(v ? 'Saved' : 'Sentence removed');
     };
     inp.addEventListener('blur', save);
@@ -24845,23 +24855,39 @@ const CS_SCAN_CONSENT = {
   /* D403 · the server refused a yes it could not see on the profile, and saving it again failed */
   notSaved: 'Your yes to scanning didn’t save — type your nines in, or try the scan again.',
 };
-/* The yes is the PROFILE's. A device flag stands in only where the profile
-   cannot take it — the column not deployed yet, or set_scan_consent failing —
-   so a golfer who said yes can still scan; any answer the profile does take
-   clears the flag, and signing out forgets it (csForgetOnSignOut). */
+/* The yes is the PROFILE's, and the SERVER's word on it wins (D403 as
+   corrected 2026-10-01). Nothing on this device stands in for it: a yes this
+   page remembers (a profile read at boot, a device flag from an older build)
+   is a guess about the server, and the scan function refuses on the server's
+   answer alone. So a refusal for consent CLEARS what this page believed and
+   asks — it never writes a yes back on the golfer's behalf, because that
+   would undo a "no" given in Settings on another device. The only yes this
+   page ever writes is the one the golfer tapped on the sheet, for the account
+   signed in when they tapped it (csScanFreshYes), and one scan is retried on
+   it at most once. The legacy device flag is only ever removed. */
 const CS_SCAN_CONSENT_KEY = 'cs_scan_consent';
-let csScanYesThisVisit = false;    /* the sheet's yes, before its write lands */
-let csScanConsentWrite = null;     /* that write — the scan waits on it */
+let csScanFreshYes = null;         /* { uid, write } — the sheet's yes in THIS attempt, and its write */
+function csScanUid(){ return window.CS?.user?.id || null; }
 function csScanConsented(){
-  if(csScanYesThisVisit || window.CS?.profile?.scan_consent_at) return true;
-  try{ return localStorage.getItem(CS_SCAN_CONSENT_KEY) === '1'; }catch(_){ return false; }
+  const uid = csScanUid();
+  if(uid && csScanFreshYes && csScanFreshYes.uid === uid) return true;
+  const p = window.CS?.profile || null;
+  return !!(uid && p && (!p.id || p.id === uid) && p.scan_consent_at);
 }
-/* Resolves true when the switch is where the golfer put it. Deploy skew: a
-   missing column or function (or ANY error) keeps a yes on this device; a no
-   the profile would not take is reported, because the profile still says yes. */
+/* The server said no: forget every yes this page held, for every account. */
+function csScanForgetYes(){
+  csScanFreshYes = null;
+  const p = window.CS?.profile || null;
+  if(p) p.scan_consent_at = null;
+  try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
+}
+/* Resolves true when the PROFILE holds what the golfer chose. A yes the
+   profile would not take is a failure (never a device-only yes the server
+   cannot see); a no the profile would not take is reported, because the
+   profile still says yes. */
 async function csSetScanConsent(on){
   on = !!on;
-  if(!on) csScanYesThisVisit = false;
+  if(!on) csScanFreshYes = null;
   const p = window.CS?.profile || null;
   let saved = false;
   if(window.sb && !state.demo){
@@ -24871,27 +24897,27 @@ async function csSetScanConsent(on){
       saved = !error && data === on;
     }catch(_){ saved = false; }
   }
+  try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
   if(saved){
     if(p) p.scan_consent_at = on ? (p.scan_consent_at || new Date().toISOString()) : null;
-    try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
     return true;
   }
-  if(on){ try{ localStorage.setItem(CS_SCAN_CONSENT_KEY, '1'); }catch(_){} return true; }
-  try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
-  return !(p && p.scan_consent_at);
+  return on ? false : !(p && p.scan_consent_at);
 }
-/* The first scan asks before any photo leaves the device. The picker opens
-   INSIDE the tap on the yes — a file input will not open after an await — and
-   the yes is written while the golfer frames the card. "Type it in" sends
-   nothing and hands the golfer back to the gross box. */
+/* The scan asks before any photo leaves the device. The picker opens INSIDE
+   the tap on the yes — a file input will not open after an await — and the
+   yes is written while the golfer frames the card; the scan waits for that
+   write and sends nothing unless it landed. "Type it in" sends nothing and
+   hands the golfer back to the gross box. */
 function csAskScanConsent(proceed){
   openSheet(CS_SCAN_CONSENT.title, CS_SCAN_CONSENT.eyebrow, `
     <p class="lead" style="padding-top:0">${esc(CS_SCAN_CONSENT.what)}</p>
     <button class="btn" id="scnYes" style="margin-top:12px">${esc(CS_SCAN_CONSENT.yes)}</button>
     <button class="btn dark" id="scnNo" style="margin-top:8px">${esc(CS_SCAN_CONSENT.no)}</button>`);
   document.getElementById('scnYes')?.addEventListener('click', () => {
-    csScanYesThisVisit = true;
-    csScanConsentWrite = csSetScanConsent(true);
+    const uid = csScanUid();
+    if(!uid){ closeSheet(); return; }
+    csScanFreshYes = { uid, write: csSetScanConsent(true) };
     closeSheet();
     if(typeof proceed === 'function') proceed();
   });
@@ -33124,9 +33150,9 @@ function openProfileHub(){
       });
     }).catch(() => {});
   }
-  /* R9 · the scan's yes, revocable. Off means the next scan asks again; the
-     skew rules (a device flag where the profile cannot take it) live in
-     csSetScanConsent, so this switch and the sheet can never disagree. */
+  /* R9 · the scan's yes, revocable. Off means the next scan asks again. The
+     switch shows only what the profile holds (csSetScanConsent never keeps a
+     device-only yes), so this switch and the sheet can never disagree. */
   const scanTog = $('#phScanTog');
   const scanPaint = () => phSwitchSet(scanTog, csScanConsented());
   scanPaint();
@@ -35917,7 +35943,7 @@ async function renderModerationQueue(){
   };
   /* one deliberate step for the heavy actions: a sheet with the reason (and, for a
      removal, the handle typed back); confirming returns to the desk */
-  const confirmSheet = (title, sub, { needHandle, handle, cta }, run) => {
+  const confirmSheet = (title, sub, { needHandle, handle, cta, done }, run) => {
     openSheet(title, sub, `
       <label class="f" for="modWhy">Why — recorded with the action</label>
       <textarea class="f" id="modWhy" rows="3" maxlength="500" style="font-family:var(--sans)"></textarea>
@@ -35931,7 +35957,7 @@ async function renderModerationQueue(){
       const err = document.getElementById('modErr');
       if(why.length < 3){ err.textContent = 'Say why, in a few words.'; return; }
       e.currentTarget.disabled = true;
-      try{ await run(why, typed); closeSheet(); toast?.('Done, and recorded.'); window.openFounderDesk?.(); }
+      try{ await run(why, typed); closeSheet(); toast?.(done || 'Done, and recorded.'); window.openFounderDesk?.(); }
       catch(x){ e.currentTarget.disabled = false; err.textContent = humanError(x, 'That did not go through.'); }
     });
   };
@@ -35952,7 +35978,9 @@ async function renderModerationQueue(){
     const round = b.dataset.modkind === 'round_photo';
     confirmSheet(round ? 'Take the round photo down' : 'Take the profile photo down',
       round ? 'THE ROUND AND ITS SCORES STAY' : 'THE GOLFER KEEPS THEIR MARKER',
-      { cta: 'Take the photo down' },
+      /* D403 · the file's removal is queued (share-cleanup moves it out of reach of
+         every link already sent); copies people saved cannot be recalled */
+      { cta: 'Take the photo down', done: 'Taken down, and recorded. The file leaves storage within minutes; copies people already saved can’t be recalled.' },
       async (why) => {
         const { error } = await sb.rpc('takedown_photo', { p_kind: b.dataset.modkind, p_target: b.dataset.modref, p_reason: why, p_report: b.dataset.modphoto });
         if(error) throw error;

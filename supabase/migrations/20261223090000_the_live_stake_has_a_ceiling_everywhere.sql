@@ -6,10 +6,19 @@
 -- "the attribute is the affordance and the clamp is the guarantee" — and a clamp in one
 -- client guarantees nothing about another. This trigger is the guarantee.
 --
--- What it refuses: a NEW live round, or a CHANGED game_config, whose stake or unit is
--- above 200. What it never touches: a round already started (its config is not
--- re-checked when it finishes, so a pre-cap agreement can still be settled exactly as
--- agreed), game_result, the season buy-in (already CHECKed 0..20000 cents on
+-- What it refuses, on a NEW live round or a CHANGED game_config:
+--   · a game_config that is not a JSON object;
+--   · a `stake` or a `unit` that is present and is not a plain JSON number from 0 to
+--     200 — a string (even "" or "50"), an object, an array, a boolean, a negative or an
+--     amount over 200. Absent and JSON null mean "no amount".
+-- Each amount is read ON ITS OWN. A malformed sibling never turns an over-limit amount
+-- into zero (corrected 2026-10-01 after review: {"stake":1000,"unit":"bad"} had passed,
+-- because one bad cast zeroed both). Both clients only ever send numbers; production
+-- held no other shape when this was written.
+--
+-- What it never touches: a round already started — on an UPDATE, an amount whose JSON
+-- value did not change is not re-read, so a pre-cap agreement still settles exactly as
+-- agreed — game_result, the season buy-in (already CHECKed 0..20000 cents on
 -- league_settings, D113), event buy-ins, or any ledger amount. Nothing is clamped or
 -- rewritten: a refused write is refused, with a sentence the clients pass through.
 --
@@ -22,26 +31,36 @@ language plpgsql
 set search_path = public
 as $$
 declare
-  v_new numeric;
-  v_old numeric;
+  k     text;
+  v     jsonb;
+  amt   numeric;
+  v_bad boolean := false;
 begin
-  begin
-    v_new := greatest(coalesce((new.game_config ->> 'stake')::numeric, 0),
-                      coalesce((new.game_config ->> 'unit')::numeric, 0));
-  exception when others then
-    v_new := 0;   -- a non-numeric stake is no stake; never refuse a round over a shape
-  end;
-  if tg_op = 'UPDATE' then
-    begin
-      v_old := greatest(coalesce((old.game_config ->> 'stake')::numeric, 0),
-                        coalesce((old.game_config ->> 'unit')::numeric, 0));
-    exception when others then
-      v_old := null;
-    end;
-    if v_new is not distinct from v_old then return new; end if;
+  if tg_op = 'UPDATE' and new.game_config is not distinct from old.game_config then
+    return new;
   end if;
-  if v_new > 200 then
-    raise exception 'Stakes top out at $200 a golfer.';
+  if new.game_config is null or jsonb_typeof(new.game_config) <> 'object' then
+    raise exception using message = 'That game setup can''t be read — start the round again.',
+                          hint = 'cs_stake_refused';
+  end if;
+  -- each amount on its own; an over-limit amount is named first, whatever its sibling holds
+  foreach k in array array['stake', 'unit'] loop
+    v := new.game_config -> k;
+    -- an amount the agreement already carried is not re-read (grandfathered)
+    if tg_op = 'UPDATE' and jsonb_typeof(old.game_config) = 'object'
+       and v is not distinct from (old.game_config -> k) then
+      continue;
+    end if;
+    if v is null or jsonb_typeof(v) = 'null' then continue; end if;
+    if jsonb_typeof(v) <> 'number' then v_bad := true; continue; end if;
+    amt := (v #>> '{}')::numeric;
+    if amt > 200 then
+      raise exception using message = 'Stakes top out at $200 a golfer.', hint = 'cs_stake_refused';
+    end if;
+    if amt < 0 then v_bad := true; end if;
+  end loop;
+  if v_bad then
+    raise exception using message = 'That stake isn''t an amount — set it again.', hint = 'cs_stake_refused';
   end if;
   return new;
 end $$;

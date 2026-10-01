@@ -381,33 +381,29 @@ final class PostRoundModel {
 
   // MARK: - scan (6590–6657)
 
-  func scanPicked(_ image: UIImage?, consentRetried: Bool = false) async {
+  /// `freshYes` is true only when the golfer tapped yes on the consent sheet
+  /// for this very scan (and the server reported taking it).
+  func scanPicked(_ image: UIImage?, freshYes: Bool = false) async {
     guard let image, let shot = PostPhoto.compress(image, maxDim: 2200, quality: 0.9) else { toast.show(PostScan.restingToast); return }
     scanning = true; defer { scanning = false }
     switch await svc.scan(jpeg: shot) {
     case .unavailable(let reason):
-      // D403 · the function refused for CONSENT: the server holds no yes,
-      // whatever this phone remembered. The web's flow, step for step: drop
-      // the device-only yes, write the golfer's yes once, and scan this same
-      // shot once more only if the server now holds it; otherwise say it did
-      // not save. A golfer who never said yes here meets the sheet again.
-      // Nothing is ever scanned on a yes only this phone holds.
+      // D403 (corrected 2026-10-01) · the function refused for CONSENT: the
+      // server holds no yes, whatever this phone believed, and its answer is
+      // final. Every yes held here is dropped and nothing is written back —
+      // that could undo a "no" given in Settings on another device. The golfer
+      // meets the sheet again, and only their tap rescans this same shot, once.
+      // A yes tapped for this very scan that is still refused stops here.
       let owner = store.session?.user.id
-      let consent = ScanConsentStore.shared
-      let saidYes = consent.permits(owner) || consent.localYesPending(owner)
-      if let gate = ScanConsentGate.after(refusal: reason, saidYesHere: saidYes, retried: consentRetried) {
+      if let gate = ScanConsentGate.after(refusal: reason, freshYes: freshYes) {
+        if reason == "no_consent", let owner { ScanConsentStore.shared.serverRefused(owner: owner) }
         switch gate {
         case .closed:
           toast.show(ModerationCopy.closed, kind: .failed)
-        case .retryYes:
-          if let owner, await consent.reconfirm(owner: owner) {
-            await scanPicked(image, consentRetried: true)
-          } else {
-            toast.show(ScanConsentCopy.notSaved, kind: .failed)
-          }
-        case .ask where consentRetried:
+        case .notSaved:
           toast.show(ScanConsentCopy.notSaved, kind: .failed)
         case .ask, .scan:
+          consentShot = owner.map { (owner: $0, image: image) }
           scanConsentAgain = true
         }
         return
@@ -422,9 +418,21 @@ final class PostRoundModel {
     }
   }
   private var pendingScanShot: UIImage?
-  /// D403 · set when a scan came back `no_consent`; the screen re-runs its
-  /// consent door (retry a pending yes once, or the "Scan with Claude?" sheet).
+  /// D403 · set when a scan came back `no_consent`; the screen shows the
+  /// "Scan with Claude?" sheet again.
   var scanConsentAgain = false
+  /// The shot that was refused for consent, and whose it was. Rescanned once,
+  /// only after that golfer taps yes on the sheet (`rescanAfterYes`).
+  private(set) var consentShot: (owner: UUID, image: UIImage)?
+  /// The golfer tapped yes and the server took it: rescan the refused shot
+  /// once, on that fresh yes. False when there is no shot for this golfer.
+  func rescanAfterYes(owner: UUID) async -> Bool {
+    guard let held = consentShot, held.owner == owner else { consentShot = nil; return false }
+    consentShot = nil
+    await scanPicked(held.image, freshYes: true)
+    return true
+  }
+  func dropConsentShot() { consentShot = nil }
 
   func apply(_ scan: PostScan, row: Int) {
     scanToPick = nil

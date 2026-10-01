@@ -11,61 +11,66 @@ public enum ScanConsentCopy {
   public static let declined = "Nothing was sent — type your nines in"
   public static let setting = "Scorecard scanning with Claude"
   public static let settingNote = "A scan sends the scorecard photo to Anthropic’s Claude to read the scores. It isn’t used to train their models. Off means the next scan asks first."
-  /// D403 · the scan was refused for consent and the one re-save of the
-  /// golfer's yes did not land (the web's `CS_SCAN_CONSENT.notSaved`).
+  /// D403 · a scan refused for consent on a yes the golfer tapped in THIS
+  /// attempt, after the server reported taking it (the web's
+  /// `CS_SCAN_CONSENT.notSaved`). Also the sheet's yes failing to save.
   public static let notSaved = "Your yes to scanning didn’t save — type your nines in, or try the scan again."
+  /// Settings could not turn scanning on (the web's `settingFailed`).
+  public static let settingFailed = "Couldn’t change that — try again."
+  /// Settings could not save a "no" to the account; the phone keeps it and resends it.
+  public static let offPending = "Saved on this phone. We’ll retry syncing your choice when you reopen Settings."
 }
 
-/// D403 · what the scan door does next, decided from the server's answer
-/// alone. The `scan` Edge Function now reads `profiles.scan_consent_at` itself
-/// and refuses (403 `no_consent`) without it, so a yes that only this phone
-/// holds is not consent: a scan sent on it would be refused every time.
+/// D403 (corrected 2026-10-01) · what the scan door does next, decided from
+/// the server's answer alone. The `scan` Edge Function reads
+/// `profiles.scan_consent_at` itself and refuses (403 `no_consent`) without
+/// it, and that refusal is FINAL for whatever this phone believed: a yes read
+/// earlier, or one cached on the phone, is a guess about the server. So a
+/// refusal never writes a yes back on the golfer's behalf — that would undo a
+/// "no" given in Settings on another device. The only yes the phone writes is
+/// one the golfer just tapped on the sheet, and one scan is retried on it at
+/// most once.
 public enum ScanConsentGate: Sendable, Equatable {
   /// The server holds the golfer's yes: open the camera.
   case scan
-  /// A yes the golfer gave on this phone never reached the server: write it
-  /// once more before anything is sent.
-  case retryYes
-  /// Ask again with the existing "Scan with Claude?" sheet.
+  /// Ask with the existing "Scan with Claude?" sheet; only its yes goes further.
   case ask
+  /// A yes tapped in this attempt was refused anyway: say it did not save and
+  /// stop (`ScanConsentCopy.notSaved`) — never a loop.
+  case notSaved
   /// The account is closed: nothing to ask, nothing to send.
   case closed
 
-  /// Before a scan. `serverYes` is a yes the server CONFIRMED; `localYesPending`
-  /// is a yes saved only on this phone; `retried` is whether the one retry has
-  /// already run. Never `.scan` without the server's yes.
-  public static func before(serverYes: Bool, localYesPending: Bool, retried: Bool) -> ScanConsentGate {
-    if serverYes { return .scan }
-    if localYesPending && !retried { return .retryYes }
-    return .ask
-  }
+  /// Before a scan. `serverYes` is a yes the server CONFIRMED just now.
+  public static func before(serverYes: Bool) -> ScanConsentGate { serverYes ? .scan : .ask }
 
-  /// After the function refused a scan. A refusal for consent means the
-  /// server does not hold a yes, whatever this phone thought — so a yes the
-  /// golfer gave on this phone is written once more (and the scan asked once
-  /// more only if the server then holds it), and otherwise the golfer meets
-  /// the sheet again. After the one retry, `.ask` means "say it did not save"
-  /// (`ScanConsentCopy.notSaved`) — the web's flow, step for step. nil for
-  /// every other reason: the caller's ordinary toast.
-  public static func after(refusal reason: String?, saidYesHere: Bool, retried: Bool) -> ScanConsentGate? {
+  /// After the function refused a scan. `freshYes` is true only when the
+  /// golfer tapped yes on the sheet for this very attempt (and the server
+  /// reported saving it). nil for every other reason: the caller's ordinary toast.
+  public static func after(refusal reason: String?, freshYes: Bool) -> ScanConsentGate? {
     switch reason {
-    case "no_consent":     return saidYesHere && !retried ? .retryYes : .ask
+    case "no_consent":     return freshYes ? .notSaved : .ask
     case "account_closed": return .closed
     default:               return nil
     }
   }
 }
 
-/// Consent is scoped to the golfer. A failed write stays on this phone and is
-/// retried; a failed revocation must never become an apparent server success.
-/// D403 · and a yes only this phone holds never PERMITS a scan: `allowed` is
-/// the golfer's choice (what Settings shows), `permits` is the server's.
+/// Consent is scoped to the golfer, and the server's answer wins.
+/// - A yes is consent only once the server took it (`permits`). A yes the
+///   server did not take is a failure to report, never kept on the phone.
+/// - A "no" the server did not take is kept on the phone (`pendingSync`) and
+///   resent: a failed revocation must never become an apparent server success,
+///   and the private direction is the one that may wait.
+/// - A refusal from the scan function (`serverRefused`) drops every yes held
+///   here for that golfer.
 @MainActor @Observable
 public final class ScanConsentStore {
   public static let shared = ScanConsentStore()
   public private(set) var owner: UUID?
   public private(set) var allowed = false
   public private(set) var busy = false
+  /// A "no" saved on this phone that the account has not taken yet.
   public private(set) var pendingSync = false
   private let defaults: UserDefaults
   private let read: (UUID) async throws -> Bool
@@ -86,29 +91,18 @@ public final class ScanConsentStore {
     self.write = write ?? { try await SupabaseService.shared.call(Rpc.set_scan_consent(p_on: $0)) }
   }
   private func key(_ owner: UUID) -> String { "cs_scan_consent.\(owner.uuidString.lowercased())" }
-  /// D403 · a server-confirmed yes, and nothing less. A yes saved only on
-  /// this phone (`pendingSync`) is the golfer's choice but not consent the
-  /// `scan` function can see, so it does not open the camera.
+  /// D403 · a server-confirmed yes for this golfer, and nothing less.
   public func permits(_ owner: UUID?) -> Bool { owner != nil && owner == self.owner && allowed && !pendingSync }
-  /// A yes the golfer gave on this phone that the server has not yet taken.
-  public func localYesPending(_ owner: UUID?) -> Bool { owner != nil && owner == self.owner && allowed && pendingSync }
 
-  /// D403 · the function refused a scan for consent: the server is the
-  /// source of truth. The device-only yes is dropped and the golfer's yes is
-  /// written ONCE more. True only when the server took it; a failure leaves
-  /// no yes anywhere — never a phone-only one that would be refused forever.
-  @discardableResult public func reconfirm(owner: UUID) async -> Bool {
-    guard self.owner == owner else { return false }
+  /// D403 · the scan function refused for consent: the server holds no yes
+  /// for this golfer. Every yes held here is dropped, an in-flight read or
+  /// write is orphaned, and nothing is written — the golfer is asked.
+  public func serverRefused(owner: UUID) {
+    guard self.owner == owner else { return }
     generation += 1
-    let gen = generation
-    allowed = false; pendingSync = false
-    defaults.removeObject(forKey: key(owner))
-    busy = true
-    defer { if generation == gen { busy = false } }
-    let value = (try? await write(true)) ?? false
-    guard generation == gen, self.owner == owner else { return false }
-    allowed = value
-    return value
+    allowed = false
+    busy = false
+    if defaults.object(forKey: key(owner)) as? Bool == true { defaults.removeObject(forKey: key(owner)) }
   }
   public func reset() { generation += 1; owner = nil; allowed = false; busy = false; pendingSync = false }
 
@@ -116,21 +110,27 @@ public final class ScanConsentStore {
     generation += 1
     let gen = generation
     self.owner = owner
+    // Only a pending "no" is resent. A yes cached by an older build is not
+    // the golfer's choice for THIS attempt and is dropped unwritten: writing
+    // it later could undo a revocation made on another device since.
     let fallback = defaults.object(forKey: key(owner)) as? Bool
-    allowed = fallback ?? false
-    pendingSync = fallback != nil
+    if fallback == true { defaults.removeObject(forKey: key(owner)) }
+    let pendingNo = fallback == false
+    allowed = false
+    pendingSync = pendingNo
     busy = true
     defer { if generation == gen { busy = false } }
     do {
       let value: Bool
-      if let fallback { value = try await write(fallback) } else { value = try await read(owner) }
-      guard generation == gen else { return }
+      if pendingNo { value = try await write(false) } else { value = try await read(owner) }
+      guard generation == gen, self.owner == owner else { return }
       allowed = value; pendingSync = false
-      defaults.removeObject(forKey: key(owner))
+      if pendingNo { defaults.removeObject(forKey: key(owner)) }
     } catch { /* A read failure never implies permission; only an explicit yes does. */ }
   }
 
-  /// Returns false when only this device could save the choice.
+  /// True when the account holds the choice. A yes the account did not take
+  /// leaves scanning off; a "no" it did not take is kept here and resent.
   @discardableResult public func set(_ on: Bool, owner: UUID) async -> Bool {
     guard self.owner == owner, !busy else { return false }
     generation += 1
@@ -141,10 +141,11 @@ public final class ScanConsentStore {
       let value = try await write(on)
       guard generation == gen, self.owner == owner else { return false }
       allowed = value; pendingSync = false; defaults.removeObject(forKey: key(owner))
-      return true
+      return value == on
     } catch {
       guard generation == gen, self.owner == owner else { return false }
-      defaults.set(on, forKey: key(owner)); allowed = on; pendingSync = true
+      if on { return false }
+      defaults.set(false, forKey: key(owner)); allowed = false; pendingSync = true
       return false
     }
   }

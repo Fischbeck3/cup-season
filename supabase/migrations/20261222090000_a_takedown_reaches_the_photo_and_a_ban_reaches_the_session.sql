@@ -11,10 +11,22 @@
 --       kind 'profile' behind the same fence as a profile-photo report.
 --   2 · takedown_photo (founder only): a profile photo or a round photo. The reference
 --       is cleared (the round, its scores and its points are untouched — photo_path is
---       not a scoring column), the object is made unreadable to every client at once by
---       a restrictive storage policy (it is kept privately, as the record of what was
---       removed), and every share that could carry the photo is revoked, which queues
---       its public copies and preview for the existing share-cleanup function.
+--       not a scoring column), the object is hidden from every client query at once by
+--       a restrictive storage policy (so no NEW link can be minted), every share that
+--       could carry the photo is revoked (which queues its public copies and preview for
+--       share-cleanup), and the FILE ITSELF is queued for removal (media_takedowns).
+--       The policy alone is not enough: a signed URL minted before the takedown (both
+--       clients mint them for up to an hour) is served by Storage on its signature, not
+--       through RLS, so it keeps working until the object is gone. The share-cleanup
+--       function moves the object out of the `media` bucket into the private
+--       `moderation-hold` bucket (no client policy reads it), which kills every
+--       previously issued URL — original and transformed — at the origin; if the move
+--       fails it removes the object outright (removal beats retention), and either way
+--       _takedown_cleanup_report re-reads storage.objects before it records `removed`,
+--       retrying with backoff until it can. The kept evidence is purged after 90 days.
+--       Bounds that remain, and are stated rather than hidden: a CDN may keep serving an
+--       already-cached response until it is invalidated or expires, and a copy a viewer
+--       already downloaded or screenshotted cannot be recalled.
 --   3 · ban_account / unban_account (founder only). A ban needs the golfer's handle
 --       typed back as confirmation and a reason; it cannot target the founder or a
 --       deleted account. It sets auth.users.banned_until (no new sign-in, no refresh),
@@ -32,8 +44,15 @@
 --
 -- Grants: takedown_photo, ban_account, unban_account → authenticated (each checks the
 -- founder itself). The helpers used by storage policies → authenticated. The gate →
--- anon and authenticated (PostgREST runs it as the request's role). Nothing new is an
--- anon endpoint in public.
+-- anon, authenticated and service_role (PostgREST runs it as the request's role, for
+-- every role it serves). Nothing new is an anon endpoint in public.
+--
+-- The gate's limits, stated: it fails OPEN on an error inside it (a bug here must never
+-- take the API down), so a confirmed ban is not enforced on the API while its lookup
+-- is failing; it does not cover Realtime, which authorises a socket on the JWT; and the
+-- role setting names a function, so a future migration that drops or renames
+-- cs_internal.request_gate must reset pgrst.db_pre_request FIRST, or every API request
+-- fails. Storage writes are covered separately by the restrictive policies below.
 
 -- ---- tables -------------------------------------------------------------------
 create table if not exists public.account_bans (
@@ -64,14 +83,33 @@ alter table public.moderation_actions enable row level security;
 revoke all on table public.moderation_actions from public, anon, authenticated;
 
 create table if not exists public.media_takedowns (
-  bucket    text not null,
-  path      text not null,
-  taken_at  timestamptz not null default now(),
-  taken_by  uuid not null,
-  primary key (bucket, path)
+  id          uuid primary key default gen_random_uuid(),
+  bucket      text not null,
+  path        text not null,
+  taken_at    timestamptz not null default now(),
+  taken_by    uuid not null,
+  -- the file's removal from its bucket, done by share-cleanup and confirmed here
+  status      text not null default 'pending'
+              check (status in ('pending', 'error', 'removed', 'purged')),
+  attempts    integer not null default 0,
+  next_try    timestamptz not null default now(),
+  last_error  text,
+  removed_at  timestamptz,
+  -- the evidence, if the move kept it: moderation-hold/<hold_path>, never client-readable
+  hold_path   text,
+  purge_after timestamptz,
+  purged_at   timestamptz
 );
+create index if not exists media_takedowns_path on public.media_takedowns (bucket, path);
+create index if not exists media_takedowns_due on public.media_takedowns (status, next_try);
 alter table public.media_takedowns enable row level security;
 revoke all on table public.media_takedowns from public, anon, authenticated;
+
+-- the private bucket the evidence is moved into. No storage policy names it, so no
+-- client role can list, read, write or delete in it; only the service role can.
+insert into storage.buckets (id, name, public)
+values ('moderation-hold', 'moderation-hold', false)
+on conflict (id) do update set public = false;
 
 create unique index if not exists content_reports_profile_uni
   on public.content_reports (profile_id, reporter) where kind = 'profile';
@@ -88,20 +126,25 @@ $$;
 revoke all on function public.is_banned(uuid) from public, anon, authenticated;
 grant execute on function public.is_banned(uuid) to authenticated;
 
-create or replace function public.media_taken_down(p_name text)
+-- A takedown hides the object that was up WHEN it was taken down. A file written to
+-- the same path afterwards (a new avatar at <uid>/avatar.jpg) is a new photo, and the
+-- report path is the answer to it — never a path blocked forever.
+create or replace function public.media_taken_down(p_name text, p_version timestamptz default null)
 returns boolean
 language sql stable security definer
 set search_path = public
 as $$
-  select exists (select 1 from media_takedowns t where t.bucket = 'media' and t.path = p_name)
+  select exists (select 1 from media_takedowns t
+                  where t.bucket = 'media' and t.path = p_name
+                    and (p_version is null or p_version <= t.taken_at))
 $$;
-revoke all on function public.media_taken_down(text) from public, anon, authenticated;
-grant execute on function public.media_taken_down(text) to authenticated;
+revoke all on function public.media_taken_down(text, timestamptz) from public, anon, authenticated;
+grant execute on function public.media_taken_down(text, timestamptz) to authenticated;
 
 -- ---- storage: a taken-down object is unreadable; a banned golfer cannot write ------
 drop policy if exists media_takedown_hidden on storage.objects;
 create policy media_takedown_hidden on storage.objects as restrictive for select to authenticated
-  using (bucket_id <> 'media' or not public.media_taken_down(name));
+  using (bucket_id <> 'media' or not public.media_taken_down(name, coalesce(updated_at, created_at)));
 
 drop policy if exists banned_no_upload on storage.objects;
 create policy banned_no_upload on storage.objects as restrictive for insert to authenticated
@@ -118,7 +161,11 @@ create policy banned_no_delete on storage.objects as restrictive for delete to a
 -- ---- the session gate -------------------------------------------------------------
 create schema if not exists cs_internal;
 revoke all on schema cs_internal from public;
-grant usage on schema cs_internal to anon, authenticated;
+-- every role PostgREST can switch a request to runs the gate — service_role included.
+-- Without service_role here EVERY Edge-function call through the API fails 42501
+-- ("permission denied for function request_gate") before the gate's own fail-open
+-- code can run (found by the live local-stack proof, 2026-10-01).
+grant usage on schema cs_internal to anon, authenticated, service_role;
 
 create or replace function cs_internal.request_gate()
 returns void
@@ -141,7 +188,7 @@ begin
   end if;
 end $$;
 revoke all on function cs_internal.request_gate() from public;
-grant execute on function cs_internal.request_gate() to anon, authenticated;
+grant execute on function cs_internal.request_gate() to anon, authenticated, service_role;
 
 do $$
 begin
@@ -235,6 +282,7 @@ declare
   v_round  uuid;
   v_owner  uuid;
   v_shares int := 0;
+  v_take   uuid;
 begin
   if auth.uid() is null or auth.uid() is distinct from founder_id() then
     raise exception 'Only the founder can take a photo down';
@@ -263,9 +311,11 @@ begin
     raise exception 'unknown kind: %', p_kind;
   end if;
 
-  insert into media_takedowns (bucket, path, taken_by)
-  values ('media', v_path, auth.uid())
-  on conflict (bucket, path) do nothing;
+  -- the file itself: queued for share-cleanup to move into moderation-hold and
+  -- confirmed gone from `media` by _takedown_cleanup_report (never assumed)
+  v_take := gen_random_uuid();
+  insert into media_takedowns (id, bucket, path, taken_by, hold_path)
+  values (v_take, 'media', v_path, auth.uid(), v_take::text || '/' || v_path);
 
   if p_report is not null then
     update content_reports
@@ -276,12 +326,93 @@ begin
 
   insert into moderation_actions (actor, action, target_profile, target_round, report_id, reason, detail)
   values (auth.uid(), 'takedown_photo', v_owner, v_round, p_report, left(btrim(p_reason), 500),
-          jsonb_build_object('kind', p_kind, 'path', v_path, 'shares_revoked', v_shares));
+          jsonb_build_object('kind', p_kind, 'path', v_path, 'shares_revoked', v_shares,
+                             'takedown', v_take));
 
-  return jsonb_build_object('taken_down', true, 'kind', p_kind, 'shares_revoked', v_shares);
+  -- 'queued': the file's removal is share-cleanup's, and is not claimed done here
+  return jsonb_build_object('taken_down', true, 'kind', p_kind, 'shares_revoked', v_shares,
+                            'file', 'queued', 'takedown', v_take);
 end $$;
 revoke all on function public.takedown_photo(text, uuid, text, uuid) from public, anon, authenticated;
 grant execute on function public.takedown_photo(text, uuid, text, uuid) to authenticated;
+
+-- ---- the file's removal: share-cleanup's queue -----------------------------------------
+-- remove: move media/<path> into moderation-hold/<hold_path> (or delete it outright).
+-- purge:  delete the kept evidence once purge_after has passed.
+create or replace function public._takedown_cleanup_due(p_limit integer default 20)
+returns table (id uuid, phase text, bucket text, path text, hold_path text)
+language sql
+security definer
+set search_path = public
+as $$
+  (select t.id, 'remove'::text, t.bucket, t.path, t.hold_path
+     from media_takedowns t
+    where t.status in ('pending', 'error') and t.next_try <= now()
+    order by t.next_try
+    limit greatest(coalesce(p_limit, 20), 0))
+  union all
+  (select t.id, 'purge'::text, t.bucket, t.path, t.hold_path
+     from media_takedowns t
+    where t.status = 'removed' and t.hold_path is not null
+      and t.purge_after <= now() and t.next_try <= now()
+    order by t.purge_after
+    limit greatest(coalesce(p_limit, 20), 0))
+$$;
+
+-- The server decides from storage.objects itself, never from the caller's word.
+create or replace function public._takedown_cleanup_report(p_id uuid, p_phase text, p_error text default null)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare t media_takedowns%rowtype; v_up boolean; v_kept boolean;
+begin
+  select * into t from media_takedowns where id = p_id for update;
+  if not found then return 'unknown'; end if;
+  if p_phase = 'remove' then
+    if t.status in ('removed', 'purged') then return t.status; end if;
+    -- the version that was taken down (a newer upload at the same path is not it)
+    select exists (select 1 from storage.objects o
+                    where o.bucket_id = t.bucket and o.name = t.path
+                      and coalesce(o.updated_at, o.created_at) <= t.taken_at) into v_up;
+    if not v_up then
+      select exists (select 1 from storage.objects o
+                      where o.bucket_id = 'moderation-hold' and o.name = t.hold_path) into v_kept;
+      update media_takedowns
+         set status = 'removed', removed_at = now(), attempts = attempts + 1, next_try = now(),
+             hold_path = case when v_kept then hold_path end,
+             purge_after = case when v_kept then now() + interval '90 days' end,
+             last_error = case when v_kept then null
+                               else left('evidence not kept: ' || coalesce(nullif(p_error, ''), 'the move did not land'), 500) end
+       where id = p_id;
+      return 'removed';
+    end if;
+  elsif p_phase = 'purge' then
+    select exists (select 1 from storage.objects o
+                    where o.bucket_id = 'moderation-hold' and o.name = t.hold_path) into v_kept;
+    if not v_kept then
+      update media_takedowns set status = 'purged', purged_at = now(), last_error = null,
+             attempts = attempts + 1, next_try = now()
+       where id = p_id;
+      return 'purged';
+    end if;
+  else
+    raise exception 'unknown phase: %', p_phase;
+  end if;
+  update media_takedowns
+     set status = case when p_phase = 'remove' then 'error' else status end,
+         attempts = attempts + 1,
+         last_error = left(coalesce(nullif(p_error, ''), 'Storage reported success but the file is still stored'), 500),
+         -- back off: 2, 4, 8 … minutes, never more than a day between tries
+         next_try = now() + least(interval '1 day', make_interval(mins => power(2, least(attempts + 1, 11))::int))
+   where id = p_id;
+  return 'error';
+end $$;
+revoke all on function public._takedown_cleanup_due(integer) from public, anon, authenticated;
+revoke all on function public._takedown_cleanup_report(uuid, text, text) from public, anon, authenticated;
+grant execute on function public._takedown_cleanup_due(integer) to service_role;
+grant execute on function public._takedown_cleanup_report(uuid, text, text) to service_role;
 
 -- ---- ban_account / unban_account ------------------------------------------------------
 create or replace function public.ban_account(p_profile uuid, p_confirm text, p_reason text, p_report uuid default null)

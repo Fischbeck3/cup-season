@@ -1530,22 +1530,45 @@ select '59 · the public plan counts only an explicit yes as in',
 --     moderation actions are the founder's. Structural: the triggers exist on every
 --     listed table, PostgREST's pre-request gate is configured on the authenticator,
 --     the gate refuses nothing for a golfer who is not banned, and the three desk
---     actions are authenticated-only. tests/db/app-store-readiness.sql proves the
---     behaviour (refusals, takedown, ban, session gate) on a disposable cluster.
+--     actions are authenticated-only; a taken-down photo's file has a removal queue only
+--     the service role works, and the private evidence bucket exists.
+--     tests/db/app-store-readiness.sql proves the behaviour (refusals, takedown, ban,
+--     session gate) on a disposable cluster; tests/storage/takedown-live.mjs proves the
+--     file removal against a real local Storage.
 union all
 select '60 · a filter at the door, a takedown for photos, a ban that reaches the session (D403)',
-  case when t.problems = '' then 'PASS — 15 guarded tables, the gate configured, desk actions founder-only'
+  case when t.problems = '' then 'PASS — 19 guarded tables, the gate configured, desk actions founder-only, takedown files queued'
        else 'FAIL — ' || t.problems end,
   'cs_text_guard · cs_internal.request_gate · takedown_photo · ban_account'
 from (
   select concat_ws('; ',
-    case when (select count(*) from pg_trigger where tgname = 'cs_text_guard' and not tgisinternal) < 15
+    case when (select count(*) from pg_trigger where tgname = 'cs_text_guard' and not tgisinternal) < 19
          then 'cs_text_guard is missing from a listed table (20261221090000 not pushed?)' end,
+    case when not exists (select 1 from pg_trigger where tgname = 'cs_text_guard' and tgrelid = 'public.profiles'::regclass
+                           and pg_get_triggerdef(oid) like '%home_course:course%')
+         then 'profiles.home_course is not read by the word list' end,
+    case when to_regclass('public.scan_claims') is not null
+          and not exists (select 1 from pg_trigger where tgname = 'cs_text_guard' and tgrelid = 'public.scan_claims'::regclass)
+         then 'a scan claim''s guest name is not read by the word list' end,
+    case when to_regprocedure('public._takedown_cleanup_due(integer)') is null
+           or has_function_privilege('authenticated', 'public._takedown_cleanup_due(integer)', 'EXECUTE')
+           or has_function_privilege('authenticated', 'public._takedown_cleanup_report(uuid,text,text)', 'EXECUTE')
+           or not has_function_privilege('service_role', 'public._takedown_cleanup_report(uuid,text,text)', 'EXECUTE')
+         then 'the takedown file queue is missing or callable by clients' end,
+    case when not exists (select 1 from storage.buckets where id = 'moderation-hold' and not public)
+         then 'the private moderation-hold bucket is missing or public' end,
     case when to_regprocedure('cs_internal.request_gate()') is null
          then 'the pre-request gate does not exist (20261222090000 not pushed?)' end,
     case when not exists (select 1 from pg_roles r, unnest(r.rolconfig) c
                            where r.rolname = 'authenticator' and c = 'pgrst.db_pre_request=cs_internal.request_gate')
          then 'pgrst.db_pre_request is not cs_internal.request_gate on authenticator' end,
+    -- the gate runs for EVERY role PostgREST serves; a role without EXECUTE has every
+    -- request refused (service_role = every Edge function)
+    case when to_regprocedure('cs_internal.request_gate()') is not null
+          and exists (select 1 from unnest(array['anon','authenticated','service_role']) r(role)
+                       where not has_function_privilege(r.role, 'cs_internal.request_gate()', 'EXECUTE')
+                          or not has_schema_privilege(r.role, 'cs_internal', 'USAGE'))
+         then 'a role PostgREST serves cannot run the pre-request gate — its every request fails' end,
     case when to_regprocedure('public.takedown_photo(text,uuid,text,uuid)') is null
            or has_function_privilege('anon', 'public.takedown_photo(text,uuid,text,uuid)', 'EXECUTE')
            or has_function_privilege('anon', 'public.ban_account(uuid,text,text,uuid)', 'EXECUTE')

@@ -1,6 +1,7 @@
 -- Isolated PostgreSQL sandbox ONLY: synthetic cast, rolled back.
--- D402 / D403 · the word list, the golfer report, photo takedown, the ban and its
--- session gate, the live-stake ceiling, and the grants that guard them.
+-- D402 / D403 · the word list, the golfer report, photo takedown (and its file's
+-- removal queue), the ban and its session gate, the live-stake ceiling, and the grants
+-- that guard them.
 --
 --   tests/sim/sandbox/apply.sh   (builds the cluster with every migration)
 --   psql -h /tmp/cs-sim-sock -p 5478 -U postgres -d cupseason -f tests/db/app-store-readiness.sql
@@ -114,6 +115,71 @@ begin
 end $$;
 
 -- ============================================================================
+-- 1b · the rest of D403's coverage (review, 2026-10-01): home course, a scan claim's
+-- partner name and course, every typed course name, the Pro's ruling reason — with
+-- official course names, given names and factual rounds left alone
+-- ============================================================================
+-- an official catalogue name that happens to contain a listed word (Dildo is a real
+-- town in Newfoundland); fixtures are written as the server would
+insert into api_courses (id, club_name, course_name, city, state, country)
+values ('qa-asr-1', 'Dildo Arm Golf Club', 'Dildo Arm', 'Dildo', 'NL', 'Canada');
+insert into seasons (id, league_id, starts_on, ends_on)
+values ('00000000-0000-4000-8000-0000000005e1', '00000000-0000-4000-8000-00000000e001', current_date - 30, current_date + 60);
+
+set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f002');
+-- home course, through set_profile (the RPC both clients call)
+select pg_temp.refused($q$select set_profile('QA Alpha', null, 'Kill Yourself Country Club', null, null, null, null, null)$q$, 'Cup Season can''t take that wording');
+select pg_temp.refused($q$select set_profile('QA Alpha', null, 'R@pe Valley', null, null, null, null, null)$q$, 'Cup Season can''t take that wording');
+select set_profile('QA Alpha', null, 'Dildo Arm Golf Club', null, null, null, null, null);        -- official: passes
+select set_profile('QA Alpha', null, 'Dildo Arm Golf Club (Dildo, NL)', null, null, null, null, null); -- official words only
+select pg_temp.refused($q$select set_profile('QA Alpha', null, 'Dildo Arm Golf Club, dildos for all', null, null, null, null, null)$q$, 'Cup Season can''t take that wording');
+select set_profile('QA Alpha', null, 'Hooker Creek', null, null, null, null, null);              -- ordinary words pass
+-- a scan claim: the partner's name (name mode) and the course the recipient reads
+select pg_temp.refused($q$select create_scan_claim('n i g g e r', 84, '[]'::jsonb, 'QA Links', 70.1, 120, current_date, 18)$q$, 'Cup Season can''t take that wording');
+select pg_temp.refused($q$select create_scan_claim('Pat', 84, '[]'::jsonb, 'kys golf club', 70.1, 120, current_date, 18)$q$, 'Cup Season can''t take that wording');
+select create_scan_claim('Kike Hernandez', 84, '[]'::jsonb, 'Dildo Arm Golf Club', 70.1, 120, current_date, 18);  -- a given name, an official course
+-- a round typed in: its course name (direct insert, the clients' own path)
+select pg_temp.refused($q$insert into rounds (course_label, gross, rating, slope, played_on)
+  values ('f a g g o t links', 84, 70.2, 119, current_date - 2)$q$, 'Cup Season can''t take that wording');
+insert into rounds (course_label, gross, rating, slope, played_on)
+  values ('Dildo Arm Golf Club', 84, 70.2, 119, current_date - 2);
+-- a live round's course name, through start_live_round
+select pg_temp.refused($q$select start_live_round(null, null, null, 'go die CC', '{"holes":18}'::jsonb, 'none',
+  '[{"guest_name":"QA Alpha","guest_index":12,"guest_profile":"00000000-0000-4000-8000-00000000f002"}]'::jsonb, '{}'::jsonb, null)$q$, 'Cup Season can''t take that wording');
+-- the Pro's ruling reason, through adjust_points (it is posted to the board)
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f003');
+select pg_temp.refused($q$select adjust_points('00000000-0000-4000-8000-0000000005e1', '00000000-0000-4000-8000-00000000d001', -2, 'for being a retard')$q$, 'Cup Season can''t take that wording');
+reset role;
+
+do $$
+begin
+  -- a legacy row with old text: an unrelated edit still goes through
+  alter table public.profiles disable trigger cs_text_guard;
+  update profiles set home_course = 'legacy kys links' where id = '00000000-0000-4000-8000-00000000f003';
+  alter table public.profiles enable trigger cs_text_guard;
+  update profiles set city = 'Tempe' where id = '00000000-0000-4000-8000-00000000f003';
+  -- server-copied rounds are factual and never refused: a live round's or a claim's
+  insert into rounds (profile_id, course_label, gross, rating, slope, index_at_post, played_on, source)
+  values ('00000000-0000-4000-8000-00000000f003', 'legacy kys links', 90, 70.2, 119, 14.0, current_date - 3, 'live');
+  -- the month close's own reasons are facts, and never stop the close
+  insert into season_adjustments (season_id, month, kind, points, reason)
+  values ('00000000-0000-4000-8000-0000000005e1', date_trunc('month', current_date)::date, 'floor_penalty', -1,
+          'floor missed — legacy kys links');
+  -- and the same text in the Pro's own kind is refused at the table too
+  begin
+    insert into season_adjustments (season_id, month, kind, points, reason)
+    values ('00000000-0000-4000-8000-0000000005e1', date_trunc('month', current_date)::date, 'override', -1, 'kys');
+    raise exception 'coverage: an override reason with a listed phrase was accepted';
+  exception when raise_exception then
+    if sqlerrm not like 'Cup Season can''t take that wording%' then raise; end if;
+  end;
+  if (select home_course from profiles where id = '00000000-0000-4000-8000-00000000f002') <> 'Hooker Creek' then
+    raise exception 'coverage: the last good home course did not save';
+  end if;
+end $$;
+
+-- ============================================================================
 -- 2 · a golfer report (p_kind 'profile') files and wakes the founder
 -- ============================================================================
 set local role authenticated;
@@ -208,6 +274,76 @@ begin
   end if;
 end $$;
 
+-- 4b · the FILE: queued for removal, confirmed only from storage.objects, retried with
+-- backoff, and a new photo at the same path is a new photo (never blocked forever)
+do $$
+declare t media_takedowns; v text;
+begin
+  if (select count(*) from media_takedowns where status = 'pending') <> 2 then
+    raise exception 'takedown: both files were not queued for removal';
+  end if;
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f002/round1.jpg';
+  if t.hold_path <> t.id::text || '/' || t.path then raise exception 'takedown: hold path %', t.hold_path; end if;
+  -- the worker's due list carries it
+  if not exists (select 1 from _takedown_cleanup_due(20) d where d.id = t.id and d.phase = 'remove') then
+    raise exception 'takedown: the file is not due for removal';
+  end if;
+  -- a report while the file is still stored is an error with backoff, never "removed"
+  v := _takedown_cleanup_report(t.id, 'remove', null);
+  if v <> 'error' then raise exception 'takedown: reported % while the file was still stored', v; end if;
+  select * into t from media_takedowns where id = t.id;
+  if t.status <> 'error' or t.next_try <= now() or t.last_error is null then raise exception 'takedown: no backoff %', row_to_json(t); end if;
+  if exists (select 1 from _takedown_cleanup_due(20) d where d.id = t.id) then raise exception 'takedown: retried before its backoff'; end if;
+  -- the Storage API moves it into the hold (simulated here as the API's own effect)
+  update storage.objects set bucket_id = 'moderation-hold', name = t.hold_path
+   where bucket_id = 'media' and name = t.path;
+  v := _takedown_cleanup_report(t.id, 'remove', null);
+  if v <> 'removed' then raise exception 'takedown: reported % after the move', v; end if;
+  select * into t from media_takedowns where id = t.id;
+  if t.removed_at is null or t.hold_path is null or t.purge_after < now() + interval '89 days' then
+    raise exception 'takedown: removed without keeping the evidence on its clock %', row_to_json(t);
+  end if;
+  -- a removal that could not keep the evidence says so
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f002/avatar.jpg';
+  delete from storage.objects where bucket_id = 'media' and name = t.path;
+  v := _takedown_cleanup_report(t.id, 'remove', 'move to moderation-hold: not supported');
+  select * into t from media_takedowns where id = t.id;
+  if v <> 'removed' or t.hold_path is not null or t.last_error not like 'evidence not kept%' then
+    raise exception 'takedown: an unkept removal was not recorded honestly %', row_to_json(t);
+  end if;
+  -- purge: due once purge_after passes, and confirmed from the hold
+  update media_takedowns set purge_after = now() - interval '1 minute' where path = '00000000-0000-4000-8000-00000000f002/round1.jpg';
+  select * into t from media_takedowns where path = '00000000-0000-4000-8000-00000000f002/round1.jpg';
+  if not exists (select 1 from _takedown_cleanup_due(20) d where d.id = t.id and d.phase = 'purge') then
+    raise exception 'takedown: kept evidence never comes due for purge';
+  end if;
+  if _takedown_cleanup_report(t.id, 'purge', null) <> 'error' then raise exception 'takedown: purge claimed while kept'; end if;
+  delete from storage.objects where bucket_id = 'moderation-hold' and name = t.hold_path;
+  update media_takedowns set next_try = now() where id = t.id;
+  if _takedown_cleanup_report(t.id, 'purge', null) <> 'purged' then raise exception 'takedown: purge not confirmed'; end if;
+  -- a NEW avatar written at the same path after the takedown is readable again
+  insert into storage.objects (bucket_id, name, created_at, updated_at)
+  values ('media', '00000000-0000-4000-8000-00000000f002/avatar.jpg', now() + interval '1 second', now() + interval '1 second');
+end $$;
+set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f003');
+do $$ begin
+  if not exists (select 1 from storage.objects where bucket_id = 'media' and name = '00000000-0000-4000-8000-00000000f002/avatar.jpg') then
+    raise exception 'takedown: a new photo at a taken-down path stays hidden forever';
+  end if;
+  -- the hold bucket is nobody's but the service role's
+  if exists (select 1 from storage.objects where bucket_id = 'moderation-hold') then
+    raise exception 'takedown: a client can see the evidence bucket';
+  end if;
+end $$;
+select pg_temp.refused($q$insert into storage.objects (bucket_id, name) values ('moderation-hold', 'x/y.jpg')$q$, 'row-level security');
+reset role;
+do $$ begin
+  if not exists (select 1 from storage.buckets where id = 'moderation-hold' and not public) then
+    raise exception 'takedown: the evidence bucket is missing or public';
+  end if;
+end $$;
+
 -- ============================================================================
 -- 5 · the ban — founder only, typed confirmation, every session refused, unban
 -- ============================================================================
@@ -262,39 +398,95 @@ begin
 end $$;
 
 -- ============================================================================
--- 6 · the live stake ceiling — new or changed only; history stands
+-- 6 · the live stake ceiling — through start_live_round as an authenticated golfer;
+-- each amount read on its own; new or changed only; history settles as agreed
 -- ============================================================================
--- clients hold no INSERT on live_rounds (start_live_round is the door); the trigger
--- guards the table itself, whoever writes — so the refusals are asserted at the table
-select pg_temp.refused($q$insert into live_rounds (course_label, course_snapshot, game, game_config, starter_profile_id)
-  values ('QA Links', '{}'::jsonb, 'skins', '{"stake":250}'::jsonb, '00000000-0000-4000-8000-00000000f002')$q$,
-  'Stakes top out at $200 a golfer.');
-select pg_temp.refused($q$insert into live_rounds (course_label, course_snapshot, game, game_config, starter_profile_id)
-  values ('QA Links', '{}'::jsonb, 'sunningdale', '{"unit":201}'::jsonb, '00000000-0000-4000-8000-00000000f002')$q$,
-  'Stakes top out at $200 a golfer.');
-do $$
+create function pg_temp.start_with(p_cfg jsonb) returns jsonb language sql as $f$
+  select start_live_round(null, null, null, 'QA Links',
+    '{"label":"QA Links","rating":70.2,"slope":119,"holes":18,"pars":[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]}'::jsonb,
+    'skins',
+    '[{"guest_name":"QA Alpha","guest_index":12,"guest_profile":"00000000-0000-4000-8000-00000000f002"},
+      {"guest_name":"QA Bravo","guest_index":14,"guest_profile":"00000000-0000-4000-8000-00000000f003"}]'::jsonb,
+    p_cfg, null)
+$f$;
+grant execute on function pg_temp.start_with(jsonb) to authenticated;
+create function pg_temp.stake_refused(p_cfg text, p_msg text) returns void language plpgsql as $f$
 begin
-  insert into live_rounds (id, course_label, course_snapshot, game, game_config, starter_profile_id) values
-    ('00000000-0000-4000-8000-00000000a501', 'QA Links', '{}'::jsonb, 'skins', '{"stake":200}'::jsonb,
-     '00000000-0000-4000-8000-00000000f002');
-  -- a pre-cap agreement, written before this trigger existed
+  perform pg_temp.refused(format('select pg_temp.start_with(%L::jsonb)', p_cfg), p_msg);
+end $f$;
+grant execute on function pg_temp.stake_refused(text, text) to authenticated;
+
+set local role authenticated;
+select pg_temp.as_golfer('00000000-0000-4000-8000-00000000f002');
+-- over the cap, whatever its sibling holds — the review's case and its reverse
+select pg_temp.stake_refused('{"stake":1000,"unit":"bad"}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"unit":1000,"stake":"bad"}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"stake":1000,"unit":""}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"stake":1000,"unit":{}}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"stake":1000,"unit":[]}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"stake":1000,"unit":null}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"unit":1000}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"stake":200.01}', 'Stakes top out at $200');
+select pg_temp.stake_refused('{"stake":201}', 'Stakes top out at $200');
+-- malformed amounts are refused, not read as zero
+select pg_temp.stake_refused('{"stake":"bad"}', 'That stake isn''t an amount');
+select pg_temp.stake_refused('{"stake":""}', 'That stake isn''t an amount');
+select pg_temp.stake_refused('{"stake":"50"}', 'That stake isn''t an amount');
+select pg_temp.stake_refused('{"stake":{}}', 'That stake isn''t an amount');
+select pg_temp.stake_refused('{"stake":[]}', 'That stake isn''t an amount');
+select pg_temp.stake_refused('{"stake":true}', 'That stake isn''t an amount');
+select pg_temp.stake_refused('{"stake":-1}', 'That stake isn''t an amount');
+select pg_temp.stake_refused('{"stake":5,"unit":"bad"}', 'That stake isn''t an amount');
+-- a configuration that is not an object at all
+select pg_temp.stake_refused('[]', 'That game setup can''t be read');
+select pg_temp.stake_refused('"skins"', 'That game setup can''t be read');
+select pg_temp.stake_refused('5', 'That game setup can''t be read');
+-- accepted: boundaries, absent and null amounts, no config
+do $$
+declare c text;
+begin
+  foreach c in array array['{}', '{"stake":0}', '{"stake":200}', '{"unit":200}', '{"stake":199.99}', '{"stake":200,"unit":200}',
+                           '{"stake":null}', '{"stake":null,"unit":null}', '{"stake":5,"mode":"solo"}'] loop
+    if (pg_temp.start_with(c::jsonb)->>'live_round_id') is null then raise exception 'stake: % was not started', c; end if;
+  end loop;
+  if (pg_temp.start_with(null)->>'live_round_id') is null then raise exception 'stake: a null config was not started'; end if;
+end $$;
+reset role;
+
+-- a pre-cap agreement: started before the ceiling existed (written as the old server
+-- would have), then finished through the real RPC — settled exactly as agreed
+do $$
+declare v_lr uuid; v_seats jsonb; v_fin jsonb;
+begin
+  perform set_config('sim.uid', '00000000-0000-4000-8000-00000000f002', true);
+  v_lr := (pg_temp.start_with('{"stake":200}'::jsonb)->>'live_round_id')::uuid;
   alter table public.live_rounds disable trigger live_stake_ceiling;
-  insert into live_rounds (id, course_label, course_snapshot, game, game_config, starter_profile_id) values
-    ('00000000-0000-4000-8000-00000000a502', 'QA Links', '{}'::jsonb, 'skins', '{"stake":500}'::jsonb,
-     '00000000-0000-4000-8000-00000000f002');
+  update live_rounds set game_config = '{"stake":500}'::jsonb where id = v_lr;
   alter table public.live_rounds enable trigger live_stake_ceiling;
-  -- it still finishes exactly as agreed
-  update live_rounds set status = 'final', finished_at = now(), game_result = '{"stake":500}'::jsonb
-   where id = '00000000-0000-4000-8000-00000000a502';
-  if (select (game_config->>'stake')::numeric from live_rounds where id = '00000000-0000-4000-8000-00000000a502') <> 500 then
-    raise exception 'stake: a historical agreement was clamped';
-  end if;
+  -- an unrelated change to the config keeps the agreed amount (not re-read)...
+  update live_rounds set game_config = game_config || '{"si_estimated":true}'::jsonb where id = v_lr;
+  -- ...but raising or re-shaping it is a new amount
   begin
-    update live_rounds set game_config = '{"stake":300}'::jsonb where id = '00000000-0000-4000-8000-00000000a501';
-    raise exception 'stake: a raised stake was accepted';
-  exception when others then
+    update live_rounds set game_config = '{"stake":600,"si_estimated":true}'::jsonb where id = v_lr;
+    raise exception 'stake: a raised historical stake was accepted';
+  exception when raise_exception then
     if sqlerrm not like 'Stakes top out%' then raise; end if;
   end;
+  begin
+    update live_rounds set game_config = game_config || '{"unit":"bad"}'::jsonb where id = v_lr;
+    raise exception 'stake: a malformed new sibling was accepted';
+  exception when raise_exception then
+    if sqlerrm not like 'That stake isn''t an amount%' then raise; end if;
+  end;
+  select jsonb_agg(jsonb_build_object('player_id', id, 'strokes', jsonb_build_array(4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4)))
+    into v_seats from live_round_players where live_round_id = v_lr;
+  set local role authenticated;
+  v_fin := finish_live_round(v_lr, v_seats, false, '{"game":"skins","stake":500}'::jsonb);
+  reset role;
+  if (select status from live_rounds where id = v_lr) <> 'final' then raise exception 'stake: the historical round did not finish %', v_fin; end if;
+  if (select (game_config->>'stake')::numeric from live_rounds where id = v_lr) <> 500 then
+    raise exception 'stake: a historical agreement was clamped or rewritten';
+  end if;
   -- the season buy-in ceiling (D113) still holds at the table
   begin
     update league_settings set buyin_cents = 25000 where league_id = '00000000-0000-4000-8000-00000000e001';
@@ -314,9 +506,16 @@ begin
     if not has_function_privilege('authenticated', f, 'execute') then raise exception 'grant: authenticated cannot execute %', f; end if;
   end loop;
   foreach f in array array['public.cs_text_refused(text,boolean)', 'public._cs_text_guard()', 'public._cs_fold(text)',
-                           'public._live_stake_ceiling()', 'public.cs_text_refusal()'] loop
+                           'public._live_stake_ceiling()', 'public.cs_text_refusal()',
+                           'public._takedown_cleanup_due(integer)', 'public._takedown_cleanup_report(uuid,text,text)'] loop
     if has_function_privilege('authenticated', f, 'execute') or has_function_privilege('anon', f, 'execute') then
       raise exception 'grant: % is executable by a client role', f;
+    end if;
+  end loop;
+  -- the gate runs for every role PostgREST serves (the live proof found service_role missing)
+  foreach f in array array['anon', 'authenticated', 'service_role'] loop
+    if not has_function_privilege(f, 'cs_internal.request_gate()', 'execute') or not has_schema_privilege(f, 'cs_internal', 'usage') then
+      raise exception 'grant: % cannot run the pre-request gate, so its every API request would fail', f;
     end if;
   end loop;
   if has_table_privilege('authenticated', 'public.account_bans', 'select')

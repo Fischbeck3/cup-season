@@ -214,16 +214,25 @@ edge months** (blanket rule, decided). League timezone default
   "This account has been closed."), including requests on a token minted before
   the ban. A bug in it takes the whole API down, so it fails OPEN on anything
   unexpected and refuses only a confirmed, unlifted row in `account_bans`. Never
-  make it fail closed, never add a slow query to it, and keep it in
-  `cs_internal`, which PostgREST does not expose, so it is not an endpoint.
-  Check it from the database:
+  make it fail closed without the owner's ruling (the trade is laid out in
+  `docs/ios/app-store-package-2026-09-30.md` Part E), never add a slow query to
+  it, and keep it in `cs_internal`, which PostgREST does not expose, so it is
+  not an endpoint. **It runs for EVERY role PostgREST serves, `service_role`
+  included:** a role without EXECUTE on it (or USAGE on `cs_internal`) has every
+  request refused with 42501 before the fail-open code runs — that was live for
+  `service_role`, i.e. every Edge function, until the 2026-10-01 local-stack
+  proof caught it. And the role setting names the function: a migration that
+  drops or renames it must `alter role authenticator reset pgrst.db_pre_request`
+  FIRST, or the whole API fails. Check it from the database:
   `select rolconfig from pg_roles where rolname='authenticator'`.
-  `tests/db-checks.sql` check 60 asserts it.
+  `tests/db-checks.sql` check 60 asserts the setting and the three roles' grants.
 - **The text filter (`cs_text_guard`, migration `20261221090000`) refuses on INSERT,
   and on UPDATE only when the column changed.** Server-written posts (round,
-  system, moment) are exempt by the trigger's `WHEN`. A new user-text column is
+  system, moment) are exempt by the trigger's `WHEN`, and so are rounds the
+  server copies (`source` other than `quick`). A `:course` column passes any
+  official club, course or town name in `api_courses`. A new user-text column is
   unguarded until it is added to the trigger list in a NEW migration, and check
-  60 counts 15 guarded tables.
+  60 counts 19 guarded tables.
 - **A new Database Webhook silently defaults to the WRONG Edge Function.**
   The `season_email` hook (D68) was created on the right table with the right
   header but pointing at `push`, and it took several round trips to see it.

@@ -23,11 +23,17 @@
 --           word that is also a common given name.
 --
 -- Where it runs: BEFORE INSERT OR UPDATE triggers on every column a golfer types into
--- (the list is the trigger block at the foot). An UPDATE is checked only when that
+-- that another golfer can read (the list is the trigger block at the foot), including
+-- the typed course name wherever one is stored. A course field (':course') passes any
+-- official course or club name in the cached catalogue (api_courses), so a real place
+-- is never refused for its name; only typed words outside an official name are read. An UPDATE is checked only when that
 -- column changed, so an old row can never block an unrelated edit, and a server write
 -- that copies nothing new is never refused. Posts are filtered only for the kinds a
 -- golfer writes (chat, announce, bag): a round, system or moment post is written by
--- the server from facts, so a round can never be lost to its own story.
+-- the server from facts, so a round can never be lost to its own story. The same rule
+-- for rounds: only a round a golfer types in (source 'quick') has its course name read;
+-- a round the server copies from a live round or a scan claim carries a name that was
+-- read when it was typed, so finishing or claiming one is never refused.
 --
 -- What the golfer reads: one sentence, the same on both clients, naming no word:
 --   "Cup Season can't take that wording — no slurs, sexual content or threats. Edit it and try again."
@@ -135,7 +141,7 @@ returns text language sql immutable parallel safe set search_path = pg_catalog a
 $$;
 revoke all on function public.cs_text_refusal() from public, anon, authenticated;
 
--- TG_ARGV: column names; a trailing ':name' marks a name field
+-- TG_ARGV: column names; a trailing ':name' marks a name field, ':course' a course name
 create or replace function public._cs_text_guard()
 returns trigger
 language plpgsql
@@ -145,23 +151,44 @@ as $$
 declare
   arg    text;
   col    text;
+  mode   text;
   v_new  text;
   v_old  text;
+  v_left text;
+  r      record;
   j_new  jsonb := to_jsonb(new);
   j_old  jsonb;
 begin
   if tg_op = 'UPDATE' then j_old := to_jsonb(old); end if;
   foreach arg in array tg_argv loop
     col   := split_part(arg, ':', 1);
+    mode  := split_part(arg, ':', 2);
     v_new := j_new ->> col;
     if v_new is null then continue; end if;
     if tg_op = 'UPDATE' then
       v_old := j_old ->> col;
       if v_new is not distinct from v_old then continue; end if;
     end if;
-    if cs_text_refused(v_new, split_part(arg, ':', 2) = 'name') then
-      raise exception using message = cs_text_refusal(), hint = 'cs_text_refused';
+    if not cs_text_refused(v_new, mode = 'name') then continue; end if;
+    if mode = 'course' then
+      -- an official name inside the text is the place, not the golfer's words: take
+      -- every catalogue club, course and town name out (whole words, longest first),
+      -- then read what is left
+      v_left := lower(v_new);
+      for r in
+        select o.n from (
+          select distinct lower(btrim(v.n)) as n
+            from api_courses c, lateral (values (c.club_name), (c.course_name), (c.city)) v(n)
+           where v.n is not null and length(btrim(v.n)) >= 3
+             and position(lower(btrim(v.n)) in lower(v_new)) > 0) o
+         order by length(o.n) desc, o.n
+      loop
+        v_left := regexp_replace(v_left,
+                    '\m' || regexp_replace(r.n, '([.^$*+?()\[\]{}|\\-])', '\\\1', 'g') || '\M', ' ', 'g');
+      end loop;
+      if not cs_text_refused(v_left) then continue; end if;
     end if;
+    raise exception using message = cs_text_refusal(), hint = 'cs_text_refused';
   end loop;
   return new;
 end $$;
@@ -183,16 +210,16 @@ create trigger cs_text_guard before insert or update of body on public.round_com
   for each row execute function public._cs_text_guard('body');
 
 drop trigger if exists cs_text_guard on public.scheduled_rounds;
-create trigger cs_text_guard before insert or update of name, note on public.scheduled_rounds
-  for each row execute function public._cs_text_guard('name', 'note');
+create trigger cs_text_guard before insert or update of name, note, course_label on public.scheduled_rounds
+  for each row execute function public._cs_text_guard('name', 'note', 'course_label:course');
 
 drop trigger if exists cs_text_guard on public.leagues;
 create trigger cs_text_guard before insert or update of name, identity_description on public.leagues
   for each row execute function public._cs_text_guard('name', 'identity_description');
 
 drop trigger if exists cs_text_guard on public.profiles;
-create trigger cs_text_guard before insert or update of display_name, handle, city on public.profiles
-  for each row execute function public._cs_text_guard('display_name:name', 'handle:name', 'city');
+create trigger cs_text_guard before insert or update of display_name, handle, city, home_course on public.profiles
+  for each row execute function public._cs_text_guard('display_name:name', 'handle:name', 'city', 'home_course:course');
 
 drop trigger if exists cs_text_guard on public.forfeits;
 create trigger cs_text_guard before insert or update of name, terms, hangs_on, settled_note on public.forfeits
@@ -207,8 +234,8 @@ create trigger cs_text_guard before insert or update of name on public.squads
   for each row execute function public._cs_text_guard('name');
 
 drop trigger if exists cs_text_guard on public.events;
-create trigger cs_text_guard before insert or update of name on public.events
-  for each row execute function public._cs_text_guard('name');
+create trigger cs_text_guard before insert or update of name, course_label on public.events
+  for each row execute function public._cs_text_guard('name', 'course_label:course');
 
 drop trigger if exists cs_text_guard on public.event_teams;
 create trigger cs_text_guard before insert or update of name on public.event_teams
@@ -229,6 +256,31 @@ create trigger cs_text_guard before insert or update of buy_in_note on public.le
 drop trigger if exists cs_text_guard on public.live_round_players;
 create trigger cs_text_guard before insert or update of guest_name on public.live_round_players
   for each row execute function public._cs_text_guard('guest_name:name');
+
+-- the course name a live round is started with (it becomes each golfer's round)
+drop trigger if exists cs_text_guard on public.live_rounds;
+create trigger cs_text_guard before insert or update of course_label on public.live_rounds
+  for each row execute function public._cs_text_guard('course_label:course');
+
+-- a scorecard scan's partner rows: the name and course a claim link shows its recipient
+-- (scan_claim_info) and the claimed round carries
+drop trigger if exists cs_text_guard on public.scan_claims;
+create trigger cs_text_guard before insert or update of guest_name, course_label on public.scan_claims
+  for each row execute function public._cs_text_guard('guest_name:name', 'course_label:course');
+
+-- a round a golfer types in: its course name (the board and the round card show it).
+-- Server-copied rounds ('live', 'scan_claim') were read when their name was typed.
+drop trigger if exists cs_text_guard on public.rounds;
+create trigger cs_text_guard before insert or update of course_label on public.rounds
+  for each row when (new.source = 'quick')
+  execute function public._cs_text_guard('course_label:course');
+
+-- the Pro's ruling: its reason is posted to the board (adjust_points). Only the Pro's
+-- own kind; the month close writes its reasons from facts and must never stop.
+drop trigger if exists cs_text_guard on public.season_adjustments;
+create trigger cs_text_guard before insert or update of reason on public.season_adjustments
+  for each row when (new.kind = 'override')
+  execute function public._cs_text_guard('reason');
 
 -- self-check: the filter refuses what it must and passes what it must, or this
 -- migration does not apply

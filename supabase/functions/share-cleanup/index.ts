@@ -22,6 +22,13 @@
 // only when due (_media_cleanup_due), removed through the Storage API, and reported per
 // profile (_media_cleanup_report), which re-verifies storage.objects the same way.
 //
+// D403 · and a TAKEN-DOWN photo's file (public.media_takedowns, queued by takedown_photo):
+// moved out of `media` into the private `moderation-hold` bucket, which kills every URL
+// minted before the takedown (a signed URL is honoured on its signature, not through
+// RLS, so hiding the row is not enough), or removed outright when the move fails —
+// removal beats retention. _takedown_cleanup_report re-reads storage.objects before it
+// records `removed`, and backs off on failure. Kept evidence is deleted after 90 days.
+//
 // Auth: shared secret header (x-cleanup-secret); deploy with --no-verify-jwt (the push
 // function's pattern; pinned in supabase/config.toml since C-05). Secrets:
 // SHARE_CLEANUP_SECRET. Never returns a bare `ok` (CLAUDE.md: a misrouted webhook must
@@ -139,6 +146,42 @@ async function cleanMedia(profile: string): Promise<MediaOutcome> {
   return { profile, status: String(data), found, removed, ...(error ? { error } : {}) };
 }
 
+// ---- D403 · a taken-down photo's file ---------------------------------------------------
+const HOLD = 'moderation-hold';
+type TakedownRow = { id: string; phase: 'remove' | 'purge'; bucket: string; path: string; hold_path: string | null };
+type TakedownOutcome = { id: string; phase: string; status: string; error?: string };
+
+async function takeDown(row: TakedownRow): Promise<TakedownOutcome> {
+  let error: string | null = null;
+  try {
+    if (row.phase === 'remove') {
+      // only the bucket this queue was built for; the path comes from the definer's queue
+      if (row.bucket !== 'media' || !row.path || row.path.includes('..')) throw new Error('not a media path');
+      let moved = false;
+      if (row.hold_path) {
+        const { error: me } = await sb.storage.from(row.bucket).move(row.path, row.hold_path, { destinationBucket: HOLD });
+        if (me) error = `move to ${HOLD}: ${me.message}`;
+        else moved = true;
+      }
+      if (!moved) {
+        // removal beats retention: the published file goes even if the evidence cannot be kept
+        const { error: re } = await sb.storage.from(row.bucket).remove([row.path]);
+        if (re) error = `${error ? error + '; ' : ''}remove: ${re.message}`;
+      }
+    } else {
+      if (!row.hold_path) throw new Error('nothing kept to purge');
+      const { error: pe } = await sb.storage.from(HOLD).remove([row.hold_path]);
+      if (pe) error = `purge: ${pe.message}`;
+    }
+  } catch (e) {
+    error = `Storage API unreachable: ${e instanceof Error ? e.message : String(e)}`;
+  }
+  // the server decides, from storage.objects, whether the file is gone
+  const { data, error: re } = await sb.rpc('_takedown_cleanup_report', { p_id: row.id, p_phase: row.phase, p_error: error });
+  if (re) return { id: row.id, phase: row.phase, status: 'report_failed', error: re.message };
+  return { id: row.id, phase: row.phase, status: String(data), ...(error ? { error } : {}) };
+}
+
 Deno.serve(async (req) => {
   if (!SECRET || req.headers.get('x-cleanup-secret') !== SECRET) {
     console.log('[share-cleanup] refused: missing or wrong x-cleanup-secret');
@@ -175,13 +218,33 @@ Deno.serve(async (req) => {
     ...(me ? { error: 'queue_unreadable', detail: me.message } : {}),
   };
 
+  // D403 · then taken-down photos' files. Taken first-come by next_try; an unread queue is
+  // reported (status 500), never taken for an empty one.
+  const { data: downs, error: dueErr } = await sb.rpc('_takedown_cleanup_due', { p_limit: 20 });
+  // deploy skew: this function may go out before its migration; a queue that does not
+  // exist yet is not an outage (and is named in the summary, never read as empty-and-healthy)
+  const notYet = !!dueErr && /could not find the function|pgrst202|schema cache/i.test(`${dueErr.code ?? ''} ${dueErr.message ?? ''}`);
+  const te = notYet ? null : dueErr;
+  if (te) console.log('[share-cleanup] could not read the takedown queue:', te.message);
+  const takedowns: TakedownOutcome[] = [];
+  for (const row of te ? [] : ((downs ?? []) as TakedownRow[])) takedowns.push(await takeDown(row));
+  const takedownSummary = {
+    processed: takedowns.length,
+    removed: takedowns.filter((t) => t.status === 'removed').length,
+    purged: takedowns.filter((t) => t.status === 'purged').length,
+    failed: takedowns.filter((t) => t.status !== 'removed' && t.status !== 'purged').length,
+    ...(te ? { error: 'queue_unreadable', detail: te.message } : {}),
+    ...(notYet ? { skipped: 'takedown queue not deployed' } : {}),
+  };
+
   const summary = {
     processed: results.length,
     completed: results.filter((r) => r.status === 'completed').length,
     failed: results.filter((r) => r.status !== 'completed').length,
     results,
     media: { ...mediaSummary, results: media },
+    takedowns: { ...takedownSummary, results: takedowns },
   };
-  console.log('[share-cleanup]', JSON.stringify({ processed: summary.processed, completed: summary.completed, failed: summary.failed, media: mediaSummary }));
-  return new Response(JSON.stringify(summary), { status: me ? 500 : 200, headers: { 'content-type': 'application/json' } });
+  console.log('[share-cleanup]', JSON.stringify({ processed: summary.processed, completed: summary.completed, failed: summary.failed, media: mediaSummary, takedowns: takedownSummary }));
+  return new Response(JSON.stringify(summary), { status: me || te ? 500 : 200, headers: { 'content-type': 'application/json' } });
 });

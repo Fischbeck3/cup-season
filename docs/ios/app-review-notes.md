@@ -13,7 +13,7 @@ handoff or chat.
 **Before pasting, all of these must be true. Each is a separate check:**
 
 1. **The database deploy is live.**
-   - Required: migrations `20261221090000`, `20261222090000` and `20261223090000`, plus the `scan` function redeployed.
+   - Required: migrations `20261221090000`, `20261222090000` and `20261223090000`, plus the `scan` and `share-cleanup` functions redeployed.
    - Without them, the filter, the golfer report, photo takedown, removal and the server-side scan-consent check described below do not exist in production.
 2. **The figures are re-read on the final build.**
    - Ridgeline Cup's figures come from seed data and move as it ages.
@@ -43,10 +43,10 @@ THE POT
 Some groups keep a season pot. Cup Season keeps the ledger; the money moves between friends. The organiser records each golfer's buy-in (up to $200) and who has paid. A live game can record an optional amount per skin or point (up to $200), and its card shows the totals. Cup Season and Fischbeck3 LLC do not collect, hold, transfer or pay out money, take no fee, and offer no purchases. A pride bet is a forfeit in words, with no money. A league can play for bragging rights only ($0). The legal page's "The pot" section says the same and that Apple is not a sponsor.
 
 USER CONTENT AND SAFETY (1.2)
-- Filter: names, posts, comments, plans, league names and pride-bet wording are checked by our database against slurs, explicit sexual terms and threats before they are saved; refused text stays in the golfer's draft with a clear sentence. No AI service is used for this.
+- Filter: names, posts, comments, plans, league and course names and pride-bet wording are checked by our database against slurs, explicit sexual terms and threats before they are saved; refused text stays in the golfer's draft with a clear sentence. No AI service is used for this.
 - Report: board posts, comments and golfers (with a reason).
 - Block: blocked golfers' posts and comments disappear for you, and their requests, invites and notifications to you are refused by the server.
-- Act: every report sends a push notification to the operator, who reviews within 24 hours and can take down posts, comments and photos (round and profile, including shared copies) and remove an account. A removed account cannot sign in, post or contact anyone, including from a session that was already open.
+- Act: every report sends a push notification to the operator, who reviews within 24 hours and can take down posts, comments and photos (round and profile, including shared copies) and remove an account. A removed account cannot sign in, post or contact anyone; a session that was already open is refused from its next request.
 - Contact: the support page and email, linked in the app.
 
 ACCOUNT DELETION (5.1.1(v))

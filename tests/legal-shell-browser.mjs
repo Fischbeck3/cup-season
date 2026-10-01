@@ -43,8 +43,10 @@ const shell = () => { const r = join(homedir(), 'Library', 'Caches', 'ms-playwri
    data; diagnostics naming the phone model, system and build; the word list,
    which sends text to no one; the server's check of scan consent; the records
    kept on a closed account's internal number; and the terms' filter, takedown
-   and removal sentence. NOT reviewed by counsel (D402). */
-const TEXT_SHA = '0e225aaa9e72c23722be94098abee1827b5676c7162d867f7172724442a15d32'
+   and removal sentence. Re-pinned again the same day (D403 as amended) for one
+   sentence: a taken-down photo is kept privately for 90 days as the record, then
+   deleted. NOT reviewed by counsel (D402). */
+const TEXT_SHA = '0236be646c29dd5b48650d5a694bbb45526fe1d0d423518d9c9e398001fb84c5'
 
 const results = []
 const check = (name, ok, got) => { results.push({ name, ok: !!ok }); console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : '  got: ' + JSON.stringify(got))) }

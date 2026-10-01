@@ -42,6 +42,8 @@ struct PostRoundScreen: View {
   @State private var askSource = false
   @State private var askScanConsent = false
   @State private var scanConsent = ScanConsentStore.shared
+  /// D403 · the golfer whose yes was tapped on the sheet for the scan now opening.
+  @State private var freshYes: UUID?
 
   var body: some View {
     Group {
@@ -91,17 +93,25 @@ struct PostRoundScreen: View {
         Button(PostPlanCopy.keep, role: .cancel) { m.planAsking = nil }
       }
     } message: { Text(PostPlanCopy.explain(model?.planAsking, typedCourse: model?.card.course ?? "")) }
+    // D403 · a scan refused for consent comes back to the "Scan with Claude?" sheet;
+    // only its yes rescans the refused shot (PostRoundModel.rescanAfterYes)
+    .onChange(of: model?.scanConsentAgain ?? false) { _, again in
+      guard again else { return }
+      model?.scanConsentAgain = false
+      askScanConsent = true
+    }
     .sheet(isPresented: $askScanConsent) {
       ScanConsentSheet(busy: scanConsent.busy, agree: {
         Task {
           guard let owner = store.session?.user.id else { return }
           let saved = await scanConsent.set(true, owner: owner)
           guard store.session?.user.id == owner else { return }
-          // D403 · only a yes the SERVER took opens the camera: the `scan`
+          // D403 · only a yes the SERVER took goes further: the `scan`
           // function reads the stored consent and refuses without it. A yes
-          // saved only on this phone is retried on the next scan door.
+          // that did not save is reported and kept nowhere.
           guard saved, scanConsent.permits(owner) else {
             askScanConsent = false
+            model?.dropConsentShot()
             toast.show(ScanConsentCopy.notSaved, kind: .failed)
             return
           }
@@ -109,9 +119,13 @@ struct PostRoundScreen: View {
           // The consent sheet must leave before the camera/picker rises.
           try? await Task.sleep(for: .milliseconds(350))
           guard store.session?.user.id == owner else { return }
+          // a shot already refused for consent is rescanned once on this yes;
+          // otherwise the camera opens and the shot it takes carries the yes
+          if let model, await model.rescanAfterYes(owner: owner) { return }
+          freshYes = owner
           presentPicker(.scan)
         }
-      }, decline: { askScanConsent = false; toast.show(ScanConsentCopy.declined) })
+      }, decline: { askScanConsent = false; model?.dropConsentShot(); toast.show(ScanConsentCopy.declined) })
     }
     .csPhotoSource(model?.photo == nil ? RoundCopy.photoAdd : RoundCopy.photoReplace,
                    isPresented: $askSource, pick: choose)
@@ -133,16 +147,15 @@ struct PostRoundScreen: View {
   /// `#postPhotoFile`. So the scan keeps the camera and the photo offers both.
   private func present(_ p: PostPickPurpose) {
     if p == .scan {
+      freshYes = nil
       Task {
         guard let owner = store.session?.user.id else { return }
-        // `load` writes a yes saved only on this phone once more — the one
-        // retry D403 allows — before the gate reads the server's answer.
+        // the server's answer, read now — never a yes remembered from before
         await scanConsent.load(owner: owner)
         guard store.session?.user.id == owner else { return }
-        switch ScanConsentGate.before(serverYes: scanConsent.permits(owner),
-                                      localYesPending: scanConsent.localYesPending(owner), retried: true) {
+        switch ScanConsentGate.before(serverYes: scanConsent.permits(owner)) {
         case .scan: presentPicker(p)
-        case .retryYes, .ask, .closed: askScanConsent = true
+        case .ask, .notSaved, .closed: askScanConsent = true
         }
       }
     } else { presentPicker(p) }
@@ -172,8 +185,11 @@ struct PostRoundScreen: View {
     switch pickPurpose {
     case .photo: model.photoPicked(image)
     case .scan:
-      guard scanConsent.permits(store.session?.user.id) else { toast.show(ScanConsentCopy.declined); return }
-      await model.scanPicked(image)
+      let owner = store.session?.user.id
+      let fresh = owner != nil && freshYes == owner
+      freshYes = nil
+      guard scanConsent.permits(owner) else { toast.show(ScanConsentCopy.declined); return }
+      await model.scanPicked(image, freshYes: fresh)
     }
   }
 
@@ -351,12 +367,6 @@ private struct PostRoundBody: View {
     .sheet(isPresented: $model.showPars) { PostParsSheet(model: model) }
     .sheet(isPresented: $model.showEvenPar) { PostEvenParSheet(model: model) }
     .sheet(item: $model.scanToPick) { scan in PostScanPickSheet(scan: scan) { model.apply(scan, row: $0) } }
-    // D403 · a scan refused for consent comes back to the consent door.
-    .onChange(of: model.scanConsentAgain) { _, again in
-      guard again else { return }
-      model.scanConsentAgain = false
-      pickScan()
-    }
     // the curtain closes fully before the next sheet rises — a sheet presented mid-dismissal is dropped
     .fullScreenCover(item: $model.ceremony, onDismiss: { if !model.afterCeremony() { onDone() } }) { c in
       FinishCeremonyView(ceremony: c, photo: model.recapPhoto, onBack: { model.ceremony = nil }, roundId: model.acceptedRoundId)

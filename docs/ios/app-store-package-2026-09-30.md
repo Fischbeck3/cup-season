@@ -33,11 +33,11 @@ undeployed**; the deploy order is at the foot of this section.
 
 | Item | State in this branch | Still needed |
 |---|---|---|
-| Text filter (1.2 filtering, text) | Built: `20261221090000`, triggers on 15 tables (course-rating notes and the buy-in note included), both clients pass the one refusal through and keep the draft | Database deploy |
+| Text filter (1.2 filtering, text) | Built: `20261221090000`, triggers on 19 tables. Corrected 2026-10-01: adds home course, a scan claim's partner name and course, every typed course name, and the Pro's ruling reason. Official catalogue course names pass. Both clients pass the one refusal through and keep the draft (the web's course note included) | Database deploy |
 | Golfer reports | **Fixed defect**: both clients send `p_kind 'profile'`, which `report_content` refused ("nothing to report"). The branch is added and the founder is pushed. | Database deploy |
-| Photo takedown, account removal | Built on the existing desk (web): `takedown_photo`, `ban_account`, `unban_account`, audit rows, a PostgREST pre-request gate for open sessions, restrictive storage policies | Database deploy; owner rehearses once on test accounts |
-| Scan consent on the server | Built: `scan` refuses (403, zero provider calls) without a stored yes; both clients re-save a device-only yes once | **Database deploy first**, then the Edge redeploy |
-| Live-stake ceiling | Built: phone clamps at $200, server trigger refuses new or changed stakes above $200; history untouched | Database deploy + native build |
+| Photo takedown, account removal | Built on the existing desk (web): `takedown_photo`, `ban_account`, `unban_account`, audit rows, a PostgREST pre-request gate for open sessions, restrictive storage policies. Corrected 2026-10-01: the taken-down **file** is moved into the private `moderation-hold` bucket by `share-cleanup`, so links sent before the takedown stop at the origin (proven on a real local stack). The gate now runs for `service_role` as well; without that grant every Edge function would have failed. | Database deploy, **then** the `share-cleanup` and `scan` deploys; owner rehearses once on test accounts |
+| Scan consent on the server | Built: `scan` refuses (403, zero provider calls) without a stored yes. Corrected 2026-10-01: the server's no is final. Neither client writes a yes back on a refusal; they clear what they held and ask, and retry only on a yes tapped for that attempt | **Database deploy first**, then the Edge redeploy |
+| Live-stake ceiling | Built: the phone clamps at $200, and a server trigger refuses new or changed stakes above $200. Corrected 2026-10-01: `stake` and `unit` are validated each on its own, and malformed shapes are refused, never read as zero. History is untouched | Database deploy + native build |
 | Money door labels | "Buy-in" before the first tee, "Pride bet" after, on both clients | Client deploys |
 | Photo audience line | Both composers say who sees an attached photo, a scanned card included, beside the remove control | Client deploys |
 | Privacy manifest | Contacts linked; Other Financial Info, Emails or Text Messages and Other Diagnostic Data added | Native build; App Store Connect answers entered by the owner (§7 of the listing) |
@@ -45,8 +45,11 @@ undeployed**; the deploy order is at the foot of this section.
 | Pot classification | **No counsel opinion** (D402). The cap and labels resolve nothing legally. | Owner risk, recorded |
 
 **Deploy order (each step needs the owner's separate approval):**
-1. `supabase db push`: `20261221090000`, `20261222090000`, `20261223090000`. Then run `tests/db-checks.sql`; check 60 must PASS.
-2. `supabase functions deploy scan`. It reads `account_bans`, which exists only after step 1.
+1. `supabase db push`: `20261221090000`, `20261222090000`, `20261223090000`. Then run `tests/db-checks.sql`; check 60 must PASS (it now also asserts that the gate runs for `service_role`).
+2. `supabase functions deploy scan` and `supabase functions deploy share-cleanup` (`--no-verify-jwt` is pinned for share-cleanup in `config.toml`).
+   - `scan` reads `account_bans`, which exists only after step 1.
+   - `share-cleanup` is skew-safe either way, but takedown files move only once it is deployed.
+   - Confirm its every-minute schedule is still active in production.
 3. `git push` → Netlify (web).
 4. Archive and upload the native build. TestFlight first; App Store submission is separate.
 
@@ -60,7 +63,7 @@ days, 1 profile photo in total** (production, read-only, 2026-10-01).
 
 | Option | How it works | Friction / workload | Third party / consent | Build |
 |---|---|---|---|---|
-| **1 · Owner review hold** (recommended if no AI) | A new round photo, profile photo or league image is stored privately and visible only to its owner and the founder until approved on the desk. The round, its scores and its points post immediately; only the picture waits. | Photos appear when reviewed (target within 24h). About 2 minutes a day at today's volume. | None | 2–3 days: a held state, a storage policy, desk Approve/Remove, "Waiting for review" on both clients |
+| **1 · Owner review hold** (recommended if no AI) | A new round photo, profile photo or league image is stored privately and visible only to its owner and the founder until approved on the desk. The round, its scores and its points post immediately; only the picture waits. | Photos appear when reviewed (target within 24h). One decision per new photo: about 8 a month at the volume above. The time per decision has not been measured. | None | 2–3 days: a held state, a storage policy, desk Approve/Remove, "Waiting for review" on both clients |
 | **2 · Anthropic image screening** (existing provider) | `scan`-style Edge Function classifies each new social photo. A pass publishes; a fail or an outage holds it for the owner (fail closed). | No delay in the normal case | Photos go to Anthropic: guideline 5.1.2(i) requires **explicit permission** (a second consent, separate from scanning) plus a privacy update. Rough cost: ~1¢ a photo on Opus 5.5, ~¼¢ on Haiku 4.5; today, pennies a month. | 3–4 days: function, budget ledger under the $25 cap, consent on both clients |
 | 3 · Apple SensitiveContentAnalysis (on device) | iOS 17's nudity check | None | None. **Not a filter:** it runs only when the golfer has turned on Sensitive Content Warning or Communication Safety, it needs a new entitlement, and it does not cover web uploads | Not recommended |
 | 4 · A bundled on-device model | Core ML classifier | None | None | A new model dependency: not authorized |
@@ -69,6 +72,73 @@ days, 1 profile photo in total** (production, read-only, 2026-10-01).
 The owner's text ruling was "no AI". Options 1 and 2 are the two that actually filter
 photos before publication. Option 1 keeps the no-AI posture at the cost of a delay.
 Option 2 removes the delay at the cost of a consent prompt and a third party.
+## Part E · The ban gate's limits, and the alternative (owner decision)
+
+**What the gate is.** `cs_internal.request_gate` runs before every PostgREST request
+(`pgrst.db_pre_request` on `authenticator`). It refuses a golfer with an unlifted ban
+(`account_bans`), including one whose access token was minted before the ban. Proven
+live on a local stack: the removed golfer's token got 403 "This account has been
+closed." from tables and RPCs, Storage refused the upload, and after restore it worked
+again.
+
+**Its limits, as built:**
+1. **It fails open.**
+   - Any error inside the gate lets the request through. This is deliberate (CLAUDE.md): a bug in a function that runs before every request must not take the whole API down.
+   - The consequence: **a confirmed ban is not enforced on the API while the ban lookup is failing.**
+   - Sign-in and token refresh are still refused by `auth.users.banned_until`, and the golfer's sessions and refresh tokens were deleted at the ban.
+   - So the exposure is a token already issued (at most its lifetime, one hour by default), for as long as the lookup keeps failing.
+2. **It fails closed where it cannot help it.**
+   - A role without `EXECUTE` on the gate, or a dropped or renamed gate while the role setting still names it, makes **every** request fail.
+   - The first case was live in b3472292 for `service_role` and is fixed now; db-check 60 asserts it.
+   - The second is a rule for future migrations: reset `pgrst.db_pre_request` before touching the function.
+3. **Realtime is not behind it.**
+   - Realtime authorises a socket on the JWT and RLS, not through PostgREST.
+   - A removed golfer's already-open socket can keep receiving what RLS lets them read until the token expires.
+   - Sending still goes through PostgREST and is refused.
+4. **Edge functions:** a function a golfer calls has to check `account_bans` itself, as `scan` does. `courses` and `weather` do not check it; they serve course and weather data and hold nothing of the golfer's. The webhook-driven functions (`push`, `season-email`, `share-cleanup`) are not called by golfers.
+
+**The alternative (not built; your call):**
+- **Option A, fail closed on lookup errors.** A failed lookup refuses the request instead of passing it.
+  - Ban enforcement becomes unconditional on the API.
+  - The cost is availability: a broken `account_bans` read, a bad migration or a lock timeout would refuse every signed-in golfer.
+  - Mitigation if chosen: keep the lookup to one indexed primary-key read (it already is), and alert on gate errors.
+- **Option B, keep fail-open and shorten the window.**
+  - Set the project's JWT expiry to 10–15 minutes instead of an hour, so a removed golfer's leftover token dies sooner even if the lookup fails.
+  - The cost: more token refreshes for everyone, and the clients already refresh on their own.
+  - It also bounds the Realtime exposure in limit 3.
+- **Recommendation:** B now, because it is a dashboard setting and changes no code. Consider A only if bans become frequent.
+- Either way, no copy may say a removal is enforced "instantly and unconditionally": a removed golfer's open sessions stop at their next API request, within the limits above.
+
+## Live local proof · how it was run (2026-10-01)
+
+The SQL suite (`tests/db/app-store-readiness.sql`) runs on a bare Postgres sandbox with stubbed Storage, and the worker tests mock Storage. Neither proves HTTP behaviour.
+
+`tests/storage/takedown-live.mjs` does, against a real **local** Supabase stack (Storage with image transformation, PostgREST, Auth, the Edge runtime). It refuses to run against any host other than localhost.
+
+To reproduce:
+1. Start a stack from a scratch workdir **under your home folder**. Colima mounts only `$HOME`, so the Edge runtime cannot see functions anywhere else.
+   - Set a distinct `project_id`, shifted ports and `[storage.image_transformation] enabled = true`.
+   - Leave the scratch `migrations` folder empty.
+2. Run `supabase start`, then prepare the database:
+   - Revoke `supabase_admin`'s default `anon` grants in `public`. The local image ships them; the D37 seal migration refuses to apply over them.
+   - Apply every migration in order as `postgres`.
+   - Apply `tests/sim/sandbox/post.sql` as `supabase_admin` (the signup trigger).
+3. Run `supabase functions serve --env-file <file with SHARE_CLEANUP_SECRET>`.
+4. Run the test with `CS_LOCAL_URL`, `CS_LOCAL_ANON`, `CS_LOCAL_SERVICE`, `CS_LOCAL_DB_URL` and `CS_CLEANUP_SECRET` set from `supabase status`.
+
+**Proven there:**
+- URLs minted before a takedown serve before it and fail once the real `share-cleanup` has run, all six of them: original signed, transformed signed, the owner's own signed avatar, its transform, the public share copy, and its public transform.
+- **A signed URL kept working between the takedown and the worker's run (measured: HTTP 200).** That is b3472292's behaviour for the file's whole life, since it never moved the file. Now the window is bounded by the worker's next run.
+- The evidence sits in `moderation-hold`, readable by the service role and signable by no golfer.
+- The ban gate behaves as described in Part E.
+- `scan` refuses a revoked consent with no reservation written. As a positive control, a fresh yes passes the consent check.
+
+**Not provable locally:** CDN behaviour.
+- The local stack has no CDN.
+- Production may serve an already-cached response for a URL until the CDN invalidates it. Supabase's Smart CDN invalidates a deleted or moved object within about a minute, per Supabase's Storage CDN documentation. Without it, the bound is the object's `cache-control` max-age, one hour by default.
+- Check which applies to the project in the dashboard.
+- Copies a viewer already downloaded or screenshotted cannot be recalled by anyone.
+
 ---
 
 ## Part A · Publishable copy
