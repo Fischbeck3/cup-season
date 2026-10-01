@@ -61,6 +61,10 @@ public struct CSPalette: Sendable {
   public let folioRule: Color  // object · the folio hairline on an object, which is not the page rule
   public let scrimInk: Color  // object · type over a photograph — the photo is the ground, not the theme
   public let scrimMut: Color  // object
+  public let scoreGold: Color  // object · D401 · Home gross panel for a recorded performance >= +1; fixed matte champagne, earned only
+  public let scoreSilver: Color  // object · D401 · Home gross panel for recorded performance > -1 and < +1; fixed matte silver
+  public let scoreBronze: Color  // object · D401 · Home gross panel for recorded performance <= -1; fixed matte bronze
+  public let scoreInk: Color  // object · D401 · opaque ink for figures and labels on all three matte score objects
   public let pig0: Color  // pigment
   public let pig1: Color  // pigment
   public let pig2: Color  // pigment
@@ -119,6 +123,10 @@ public enum CSTokens {
     folioRule: Color(hex: 0x8B8F8B),
     scrimInk: Color(hex: 0xF1F4EF),
     scrimMut: Color(hex: 0xCBD2C8),
+    scoreGold: Color(hex: 0xD8B25A),
+    scoreSilver: Color(hex: 0xD6DCD4),
+    scoreBronze: Color(hex: 0xB78A61),
+    scoreInk: Color(hex: 0x1A1B14),
     pig0: Color(hex: 0x492D2C),
     pig1: Color(hex: 0x473C28),
     pig2: Color(hex: 0x293B2B),
@@ -174,6 +182,10 @@ public enum CSTokens {
     folioRule: Color(hex: 0x8B8F8B),
     scrimInk: Color(hex: 0xF1F4EF),
     scrimMut: Color(hex: 0xCBD2C8),
+    scoreGold: Color(hex: 0xD8B25A),
+    scoreSilver: Color(hex: 0xD6DCD4),
+    scoreBronze: Color(hex: 0xB78A61),
+    scoreInk: Color(hex: 0x1A1B14),
     pig0: Color(hex: 0xFDDAD8),
     pig1: Color(hex: 0xE6D8C2),
     pig2: Color(hex: 0xD6EBD7),
@@ -264,7 +276,7 @@ public enum CSTokens {
   public static let leafShade = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.22), x: 0, y: 1, blur: 0)
   public static let shadowLift = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.55), x: 0, y: 18, blur: 44)
 
-  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "brand-ink", "act", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "leaf-gold", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "ceremony-pig0", "ceremony-pig1", "ceremony-pig2", "ceremony-pig3", "ceremony-pig4", "ceremony-pig5", "crest", "folio-rule", "scrim-ink", "scrim-mut", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
+  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "brand-ink", "act", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "leaf-gold", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "ceremony-pig0", "ceremony-pig1", "ceremony-pig2", "ceremony-pig3", "ceremony-pig4", "ceremony-pig5", "crest", "folio-rule", "scrim-ink", "scrim-mut", "score-gold", "score-silver", "score-bronze", "score-ink", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
 }
 
 public extension Color {

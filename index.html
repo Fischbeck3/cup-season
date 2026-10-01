@@ -117,6 +117,10 @@
      because a physical object does not re-print. The last four are the
      off-palette literals four surface specs had written inline, named here
      so preflight 15 passes. */
+  --score-gold:#D8B25A; /* D401 · matte Home score object */
+  --score-silver:#D6DCD4; /* D401 · matte Home score object */
+  --score-bronze:#B78A61; /* D401 · matte Home score object */
+  --score-ink:#1A1B14; /* D401 · matte Home score object */
   --panel:#E9ECE3;                /* the panel: one opaque tile, <=96x96, one figure or one word */
   --panel-ink:#0B120E;            /* the figure on the panel */
   --panel-mut:#4C574F;            /* the agate label under it */
@@ -318,6 +322,10 @@ html[data-theme="light"]{
   --sq0:#002B40; --sq1:#603E35; --sq2:#4C705D;
   --sq3:#8B88A8;
   /* object */
+  --score-gold:#D8B25A; /* D401 · matte Home score object */
+  --score-silver:#D6DCD4; /* D401 · matte Home score object */
+  --score-bronze:#B78A61; /* D401 · matte Home score object */
+  --score-ink:#1A1B14; /* D401 · matte Home score object */
   --panel:#141A16; --panel-ink:#F4F1E9; --panel-mut:#A6AEA5;
   --leaf:#FFFDF7; --leaf-ink:#1A1B14; --leaf-mut:#5A625A; --leaf-gold:#795912;
   --ceremony:#0A0E0C; --ceremony-ink:#F1F4EF; --ceremony-mut:#9BA69D;
@@ -2071,6 +2079,20 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-foot .hrx{margin-top:0;}
 .hfr-go{flex:none; color:var(--mut);}
 
+/* D401 · a compact figure object beside the course, shared with photo rounds.
+   Actual result colors are fixed objects; personal action looks cannot tint them. */
+.hfscorebook .hfr-id{min-height:44px;}
+.hfscorebook .hfr-result{display:flex;align-items:center;gap:var(--s4);width:100%;margin-top:var(--s3);}
+.hfscorebook .hfr-details{display:flex;flex:1;min-width:0;flex-direction:column;gap:var(--s1);overflow-wrap:anywhere;}
+.hfscorebook .hfr-tee{color:var(--mut);}
+.hfscorebook .hfr-story{display:block;margin:var(--s1) 0 0;color:var(--ink);text-wrap:pretty;}
+.hfscorebook .hfr-score{display:flex;flex:none;flex-direction:column;align-items:center;justify-content:center;gap:var(--s1);min-width:72px;min-height:80px;padding:var(--s2);border-radius:var(--p);background:var(--bg2);color:var(--ink);}
+.hfscorebook .hfr-score-gold{background:var(--score-gold);color:var(--score-ink);}
+.hfscorebook .hfr-score-silver{background:var(--score-silver);color:var(--score-ink);}
+.hfscorebook .hfr-score-bronze{background:var(--score-bronze);color:var(--score-ink);}
+.hfscorebook .hfr-photo-door{width:100%;margin-top:var(--s3);}
+.hfscorebook .hfr-photo{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;}
+@media(max-width:360px){.hfscorebook .hfr-result{align-items:flex-start;flex-wrap:wrap;}.hfscorebook .hfr-details{flex-basis:100%;}}
 /* Home round boundaries: the actions belong to the record above; a spaced
    page rule closes it, equally with a photograph or without one. */
 .hfcard:is(.hfrecord,.hfstory)[data-hfr]{
@@ -21530,11 +21552,15 @@ function wireHomePhotos(box){
     if(img.complete){ if(img.naturalWidth===0) failed(); else if(path) csLastGoodPhoto.set(path, img.getAttribute('src')); }
   });
 }
+/* D401 · display only; edges match CSBands.scoreMetal and the five bands. */
+function csScoreMetal(performance){
+  if(performance==null || performance==='' || !Number.isFinite(Number(performance))) return 'neutral';
+  const value=Number(performance);
+  return value>=1 ? 'gold' : value>-1 ? 'silver' : 'bronze';
+}
 function feedRow(r, idx, stamp, opts){
-  /* A2 scorecard rail + B1 photo takeover (owner pick, feed boards 2026-07-23):
-     the face carries the name, the figure carries the score. A photo-backed
-     round is a plate; every other round is the D360 record. Whole card opens
-     the receipt; face + reactions keep their taps. */
+  /* D401 · Home Scorebook: identity, course/story with a matte gross panel,
+     optional photograph, then the existing doors. Controls remain independent. */
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const course = esc((r.course||'').trim() || 'Course not recorded');
@@ -21554,7 +21580,6 @@ function feedRow(r, idx, stamp, opts){
      door's phrase, so it reads in sentence case (§1.3, is-phrase). */
   const showCourse = !(opts && opts.course === false);
   const courseDoor = showCourse && cf.length ? csCourseDoorHtml(String(tk.course.api_course_id), cf) : '';
-  const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
   const sfNew = window._sfRid && r.round_id===window._sfRid && r.gross!=null;
@@ -21567,72 +21592,32 @@ function feedRow(r, idx, stamp, opts){
       <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
     </div>`;
 
-  if(r.photo_url && !homeFailedPhotos.has(r.photo_url)){
-    /* TEN P1 · THE PHOTOGRAPHED ROUND, REPAIRED. The picture is a PLATE: the
-       golfer, the course and the gross reverse out of its foot on §10.3's
-       bottom-anchored `.title` scrim, in the board face (§1.4 — the serif 82
-       is gone), on the pinned ceremony ground so the scrim ink holds while
-       the picture loads or if it never arrives. Everything that is not the
-       picture sits UNDER it, on the page's own ground, in the record's own
-       grammar: the one story, the course's circle, and ONE foot row —
-       applause · comment · Receipt ›. The foot used to live inside the
-       photograph as an opaque bg1 band with the course door after it, so the
-       band sliced the picture in two, the picture resumed under the door
-       (whose label could not be read on it), the two controls stacked in the
-       band, and nothing said Receipt. The marker medal keeps the plate's top
-       corner, as the board's stamp does. */
-    /* TEN / W7-083 · no role="button" around four buttons (an ARIA button makes
-       its children presentational): the card is a plain block, and the one
-       receipt control is the plate's name line, a real <button> named with the
-       printed story, beside the face, applause, course and comment buttons */
-    return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''}>
-      <div class="hsplate">
-        <img class="hsbg" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async">
-        <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
-        <div class="hscopy">
-          ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
-          <button type="button" class="hsid hfrcpt" data-rcptbtn aria-label="${who} — ${esc(homeRoundLine(r))}${story ? ' · ' + esc(story) : ''}, receipt"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(csDayMarker(r.played_on))}</span>`:''}</small></button>
-          ${r.gross!=null?`<div class="hsg"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
-        </div>
-      </div>
-      ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
-      ${courseDoor}
-      ${foot}</div>`;
-  }
-
-  /* D360 · A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD, complete and
-     worth keeping. D340 gave it course and gross; this gives it the shape —
-     a quiet identity row (face, name, day), the course as the title over a
-     fine rule with a restrained contour behind it, the gross in the
-     tournament figure labelled GROSS, ONE story beside it, and a foot that
-     holds the reactions and the way into the receipt. Tighter than the tall
-     treatment it replaces: one rule, not a heavy bar; the figure at `l`, not
-     `xl`; the story in body, not the serif. No placeholder for the picture
-     that is not there, and no decorative ember. */
-  const day = csDayMarker(r.played_on);   /* W7-075 · ONE day format for every round (HomeWireCopy.dayMarker: Today, a weekday inside six days, else 'Sep 25'): a stamped card said 'FRI' over an unstamped one that said 'SEP 25' for the same Friday */
-  /* TEN · THE COURSE IS THE TITLE, IN TITLE CASE. Condensed caps are the
-     board's voice (§1.3: caps only on the board); on the wire they set the
-     fixture's 100-character club at six lines and outweighed the golfer and
-     the score. The name wraps whole (never a clamp); the tee after its last
-     " · " steps down to mut, so the club reads first. */
+  /* D401 · photo and text rounds share the Scorebook structure. The metal
+     groups the recorded performance, never the gross or a milestone. */
+  const metal = csScoreMetal(r.pvi);
+  const day = csDayMarker(r.played_on);
   const cl = (r.course||'').trim(), cut = cl.lastIndexOf(' · ');
-  const title = !cl ? 'Course not recorded'
-    : cut > 0 ? `${esc(cl.slice(0, cut))}<span class="hfr-tee"> · ${esc(cl.slice(cut + 3))}</span>` : esc(cl);
-  return `<div class="hfcard hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''}>
+  const title = !cl ? 'Course not recorded' : esc(cut > 0 ? cl.slice(0, cut) : cl);
+  const tee = cut > 0 ? cl.slice(cut + 3) : '';
+  const performance = r.pvi!=null && Number.isFinite(Number(r.pvi)) ? vsPhrase(Number(r.pvi)) : '';
+  const cached = r.round_id && window.roundCache ? window.roundCache[r.round_id] : null;
+  const counts = (r.points ?? cached?.points)!=null && (r.month_rank ?? cached?.month_rank)!=null;
+  const extraPerformance = counts || r.is_first || r.is_pr || csSub80(r);
+  const saidPerformance = r.is_me ? performance : theirs(performance);
+  const spoken = `${r.is_me ? 'You' : (r.golfer||'A golfer')} — ${homeRoundLine(r)}${story ? ' · ' + story : ''}${extraPerformance && performance ? ' · ' + saidPerformance : ''}, receipt`;
+  const photo = r.photo_url && !homeFailedPhotos.has(r.photo_url)
+    ? `<button type="button" class="hfrcpt hfr-photo-door" data-rcptbtn tabindex="-1" aria-hidden="true"><img class="hsbg hfr-photo" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async"></button>` : '';
+  return `<div class="hfcard hfrecord hfscorebook stamped"${idx!==undefined?` data-hfr="${idx}"`:''}>
     <div class="hfr-id">
       ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,32)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,32)}</span>`}
       <b class="cs-social hfr-who">${whoTag}</b>
       ${day?`<span class="hfr-day cs-agate-s">${esc(day)}</span>`:''}
     </div>
-    <div class="hfr-title">
-      <button type="button" class="hfrcpt" data-rcptbtn aria-label="${who} — ${esc(homeRoundLine(r))}${story ? ' · ' + esc(story) : ''}, receipt"><b class="cs-social">${title}</b></button>
-      ${r.gross!=null?`<div class="hfr-gross"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
-      <svg class="hfr-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-        <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
-        <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
-      </g></svg>
-    </div>
-    ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
+    <button type="button" class="hfrcpt hfr-result" data-rcptbtn aria-label="${esc(spoken)}">
+      <span class="hfr-details"><b class="cs-social">${title}</b>${tee?`<span class="hfr-tee cs-agate-s">${esc(tee)}</span>`:''}${story?`<span class="hfr-story cs-story">${esc(story)}</span>`:''}</span>
+      ${r.gross!=null?`<span class="hfr-score hfr-score-${metal}"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></span>`:''}
+    </button>
+    ${photo}
     ${courseDoor}
     ${foot}</div>`;
 }

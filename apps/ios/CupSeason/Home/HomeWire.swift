@@ -75,7 +75,7 @@ struct HomeWireSlat: View {
 }
 
 /// Full-measure facts, with optional imagery below. Golfer and round remain
-/// independent targets; large text reflows identity before the result.
+/// independent targets; large text reflows the course and result. D401 scopes the matte metal to the score.
 private struct HomeProgrammeRound: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
@@ -104,54 +104,54 @@ private struct HomeProgrammeRound: View {
        let gross = row.gross {
       line = "\(gross) at \(course.club.isEmpty ? "Course not recorded" : row.course ?? course.club). \(story)"
     } else { line = HomeWireCopy.roundLine(row, holes: holes) }
-    return [name, line, day].compactMap { $0 }.joined(separator: ". ")
+    let needsPerformance = (points != nil && monthRank != nil) || row.is_first == true ||
+      row.is_pr == true || HomeWireCopy.claimsSub80(row, holes: holes)
+    let phrase = CSBands.scoreMetal(row.pvi) == .neutral ? "" : CSBands.vsPhrase(row.pvi)
+    let performance = needsPerformance ? (row.is_me == true ? phrase : CSBands.theirs(phrase)) : ""
+    return [name, line, performance.isEmpty ? nil : performance, day].compactMap { $0 }.joined(separator: ". ")
   }
 
+  private var metal: CSBands.ScoreMetal { CSBands.scoreMetal(row.pvi) }
+  private var scoreFill: Color {
+    switch metal {
+    case .gold: cs.scoreGold
+    case .silver: cs.scoreSilver
+    case .bronze: cs.scoreBronze
+    case .neutral: cs.bg2
+    }
+  }
+  private var scoreInk: Color { metal == .neutral ? cs.ink : cs.scoreInk }
+
   var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      HStack(alignment: .top, spacing: CSTokens.Space.s2) {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
         person
-        Button(action: open) {
-          A11yStack(alignment: .leading, rowAlignment: .top,
-                    spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-              Text(name).csType(.social).foregroundStyle(cs.ink)
-                .fixedSize(horizontal: false, vertical: true)
-              if showDay, let day {
-                Text(day).csType(.agateS).foregroundStyle(cs.mut)
-              }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            if let gross = row.gross {
-              VStack(alignment: .trailing, spacing: CSTokens.Space.s1) {
-                CSFigure("\(gross)", size: .l, label: nil)
-                Text(HomeWireCopy.grossUnit(holes: holes)).csType(.agateS, caps: true)
-                  .foregroundStyle(cs.mut)
-              }
-              .fixedSize(horizontal: !typeSize.isA11y, vertical: true)
-            }
-          }
-          .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
-          .contentShape(Rectangle())
+        if showDay, let day {
+          Text(day).csType(.agateS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
         }
-        .buttonStyle(.plain)
-        .multilineTextAlignment(.leading)
-        .accessibilityLabel(spoken)
-        .accessibilityHint("Opens the round")
-        .accessibilityIdentifier("home.round.\(row.round_id?.uuidString ?? "unknown")")
       }
       Button(action: open) {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-          Text(course.club.isEmpty ? "Course not recorded" : course.club)
-            .csType(.bodyS).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-          if let tee = course.tee {
-            Text(tee).csType(.bodyS).foregroundStyle(cs.mut)
+        A11yStack(alignment: .leading, rowAlignment: .center,
+                  spacing: CSTokens.Space.s4, columnSpacing: CSTokens.Space.s3) {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            Text(course.club.isEmpty ? "Course not recorded" : course.club)
+              .csType(.social).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
+            if let tee = course.tee {
+              Text(tee).csType(.agateS).foregroundStyle(cs.mut)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            if let story {
+              Text(story).csType(.story).foregroundStyle(cs.ink)
+                .padding(.top, CSTokens.Space.s1)
+                .fixedSize(horizontal: false, vertical: true)
+            }
           }
-          if let story {
-            Text(story).csType(.bodyS).foregroundStyle(cs.mut)
-              .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          if let gross = row.gross {
+            CSScorePanel("\(gross)", label: HomeWireCopy.grossUnit(holes: holes),
+                         fill: scoreFill, ink: scoreInk)
           }
         }
         .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
@@ -159,8 +159,9 @@ private struct HomeProgrammeRound: View {
       }
       .buttonStyle(.plain)
       .multilineTextAlignment(.leading)
-      // The adjacent round control speaks the complete course, tee and story.
-      .accessibilityHidden(true)
+      .accessibilityLabel(spoken)
+      .accessibilityHint("Opens the round")
+      .accessibilityIdentifier("home.round.\(row.round_id?.uuidString ?? "unknown")")
       if let photo {
         Button(action: open) {
           Color.clear
@@ -171,8 +172,6 @@ private struct HomeProgrammeRound: View {
                   .frame(width: proxy.size.width, height: proxy.size.height)
                   .clipped()
               }
-              // A fill image can extend beyond its drawn crop. Only the
-              // bounded photo control owns touches, never that image overlay.
               .allowsHitTesting(false)
             }
             .clipped()
@@ -188,9 +187,13 @@ private struct HomeProgrammeRound: View {
 
   private var person: some View {
     Button(action: openPerson) {
-      CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
-        .frame(minWidth: CSTokens.Space.rail, minHeight: CSTokens.Space.rail)
-        .contentShape(Rectangle())
+      HStack(spacing: CSTokens.Space.s3) {
+        CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+        Text(name).csType(.social).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, minHeight: CSTokens.Space.rail, alignment: .leading)
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityLabel("View \(name)'s golfer card")

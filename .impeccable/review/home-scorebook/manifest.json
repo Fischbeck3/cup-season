@@ -1,0 +1,262 @@
+{
+  "baseCommit": "9c3fdb2a",
+  "source": "local Scorebook implementation after base; no production edits after recovered build",
+  "captures": [
+    {
+      "path": "pro/home-missing-records.png",
+      "sha256": "97a8de0b583c377bf34e9346b2abd625838eaee849677dcf6076153beb902c0f",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testHomeRecordsAndPhotoFallback()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-failed-records.png",
+      "sha256": "a4fa9857950f20b7dd531b07f955d40449724aff8811348c6eec8aec97512f74",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testHomeRecordsAndPhotoFallback()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-no_photo-records.png",
+      "sha256": "179bc6c31fbf58659e342183811733419e5afe4e8a63a9208a2b9965b7f12e21",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testHomeRecordsAndPhotoFallback()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-photo-records.png",
+      "sha256": "b3c2d77a44a75a5499ad10c067c6b0b0118a6daa45a973b6bd60222143d553cd",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testHomeRecordsAndPhotoFallback()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-AX3-support.png",
+      "sha256": "e65d103b55d8562057fa212a44f4c2862e590c15b0caf7899a48fe4bfa858827",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-AX3-record.png",
+      "sha256": "61e4ccc997e25e0a33e46bba37b035fd745e4bb2087490f4c8b88491a2136703",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-phone_failed-light.png",
+      "sha256": "dd950d339105a9e5b97b2eaabcd7cc922cff223a34c0e72513c470383a73a0d7",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-phone_failed-dark.png",
+      "sha256": "b305dc107c73543616a3b17c6b4ba253259371ce6c5fe0a1877fcd41f1b7d4e1",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-phone_no_photo-light.png",
+      "sha256": "1477fd5a3d9eecd064979625618b813cddda1e3ceea68fe572f305921aef72bc",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-phone_no_photo-dark.png",
+      "sha256": "654a43a5bb934e60db5651dbe7cd22e8c201ce1d0701025131f472da922fc9ae",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-phone-light.png",
+      "sha256": "ae55cad9e35335ed393172bb2249dae8b7794e13da84f16895bd264eade1aad3",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "pro/home-feedback-phone-dark.png",
+      "sha256": "ce5ddf73559611fe6e7089592c04f78ba30b2cb2348e2ad10c615f7c84c87e69",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "02F6C3FB-CE51-415C-800B-B300099392E6",
+      "resultBundle": "/private/tmp/scorebook-pro.xcresult"
+    },
+    {
+      "path": "web/scorebook-dark-1280.png",
+      "sha256": "2d6568a81b76893cfaaecf489ec5a42968ce7b7573c8b975ceddde5f5ec7de63",
+      "dimensions": [
+        2560,
+        1868
+      ],
+      "source": "production feedRow, synthetic QA data, /private/tmp/scorebook-web-confirm.py"
+    },
+    {
+      "path": "web/scorebook-dark-375.png",
+      "sha256": "7bdc9be4364f0cc86316e34137da0060998bc2f034112eb0feca1b0b4688fa56",
+      "dimensions": [
+        750,
+        4272
+      ],
+      "source": "production feedRow, synthetic QA data, /private/tmp/scorebook-web-confirm.py"
+    },
+    {
+      "path": "web/scorebook-light-1280.png",
+      "sha256": "791289f4a0a0279c82673a08ae0e609ac926bc0499b04162be1fee9c8599e89e",
+      "dimensions": [
+        2560,
+        1868
+      ],
+      "source": "production feedRow, synthetic QA data, /private/tmp/scorebook-web-confirm.py"
+    },
+    {
+      "path": "web/scorebook-light-375.png",
+      "sha256": "b127f8c356593fe5a088881aa00116a3ad478f49e94069b9066ea7960a81f2d2",
+      "dimensions": [
+        750,
+        4272
+      ],
+      "source": "production feedRow, synthetic QA data, /private/tmp/scorebook-web-confirm.py"
+    },
+    {
+      "path": "se/home-feedback-AX3-support.png",
+      "sha256": "0ed3b39fb9e453cb56334a66d574f676946c670f9d8c4d01b0f5bb48ddcab793",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    },
+    {
+      "path": "se/home-feedback-AX3-record.png",
+      "sha256": "c5c221c7c525eaa0d124c4c2194b434df14842eee73001bdd1dadb4cabe450fb",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    },
+    {
+      "path": "se/home-feedback-phone_failed-light.png",
+      "sha256": "5f4574c4898c01e83992a697122c7eda96bad4fc3ac898f60131e4ad2d55ecb8",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    },
+    {
+      "path": "se/home-feedback-phone_failed-dark.png",
+      "sha256": "fedd63883bfeddcb0929d4c73da1721cacb951e4705509d41fe756c68b9a0639",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    },
+    {
+      "path": "se/home-feedback-phone_no_photo-light.png",
+      "sha256": "ee43d1df6b1d2fa5a493a73f284b901bf17350ea07cea617b9c8a60b072559e5",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    },
+    {
+      "path": "se/home-feedback-phone_no_photo-dark.png",
+      "sha256": "fedd63883bfeddcb0929d4c73da1721cacb951e4705509d41fe756c68b9a0639",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    },
+    {
+      "path": "se/home-feedback-phone-light.png",
+      "sha256": "ad3c008083cacb0324de870e01e9065f524da4575ec62875bb4ada387d272b9e",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    },
+    {
+      "path": "se/home-feedback-phone-dark.png",
+      "sha256": "ed63b70eec019f96f0b715f5c56e8a9ca48c9d597e35722024787c5f26ccfba2",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "test": "MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions()",
+      "device": "A1354402-B662-4A0D-912E-38ACFD6730A8",
+      "resultBundle": "/private/tmp/scorebook-se-confirm.xcresult"
+    }
+  ]
+}

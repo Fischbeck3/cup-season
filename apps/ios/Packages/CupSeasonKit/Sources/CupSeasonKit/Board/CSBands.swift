@@ -24,6 +24,16 @@
 import Foundation
 
 public enum CSBands {
+  /// D401 · a presentation grouping of the existing five bands, never scoring.
+  public enum ScoreMetal: String, Sendable { case gold, silver, bronze, neutral }
+
+  public static func scoreMetal(_ performance: Double?) -> ScoreMetal {
+    guard let performance, performance.isFinite else { return .neutral }
+    if performance >= 1 { return .gold }
+    if performance > -1 { return .silver }
+    return .bronze
+  }
+
   /// `public.cup_points(p_pvi numeric)` — the server rule, verbatim.
   public static func cupPoints(_ pvi: Double) -> Int {
     if pvi >= 3 { return 12 }
