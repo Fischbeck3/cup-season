@@ -2071,6 +2071,15 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-foot .hrx{margin-top:0;}
 .hfr-go{flex:none; color:var(--mut);}
 
+/* Home round boundaries: the actions belong to the record above; a spaced
+   page rule closes it, equally with a photograph or without one. */
+.hfcard:is(.hfrecord,.hfstory)[data-hfr]{
+  border-bottom:var(--hair) solid var(--rule);
+  padding-bottom:var(--s3);
+  margin-bottom:var(--s4);
+}
+.hfcard:is(.hfrecord,.hfstory)[data-hfr] + .hfcard:is(.hfrecord,.hfstory)[data-hfr]{border-top:0;}
+
 /* TEN P1 · THE PHOTOGRAPHED ROUND. The row is the record's (a rule above,
    the story, the course's circle and the one foot row below, on the page's
    own ground); the photograph is its PLATE — the one object on the wire with

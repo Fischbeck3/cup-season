@@ -434,15 +434,15 @@ struct HomeView: View {
   /// datelines — Coming up · Today · This week · Earlier — and every league
   /// note on the page folds into ONE line beneath all of them.
   ///
-  /// The head is the separator, so the first row of a group takes no rule; a
-  /// full-bleed band or a ceremony takes none anywhere, because it brings its
-  /// own edge.
+  /// The head separates groups. Within a group, a round's facts, photograph
+  /// and actions stay together; a spaced page rule closes that record before
+  /// the next row, whether or not either round has a photograph.
   @ViewBuilder private func wireRows(_ page: HomePage) -> some View {
     // Rows filed above the first dateline: the digest is a sentence about
     // every group under it, and the occasion is a card about the calendar.
     let loose = page.rows.filter { $0.period == nil }
     ForEach(Array(loose.enumerated()), id: \.element.id) { i, row in
-      if i > 0 { CSRule() }
+      if i > 0 { wireBoundary(before: row, after: loose[i - 1]) }
       wireRow(row, context: page.wireContext)
     }
     // **D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE.** A period holding
@@ -463,10 +463,11 @@ struct HomeView: View {
             .padding(.bottom, CSTokens.Space.s2)
         }
         ForEach(Array(rows.enumerated()), id: \.element.id) { i, row in
-          // With no head above it the rule is the only separator there is, so
-          // the first row of a headless period takes one too — unless it
-          // brings its own edge (a photograph, a card).
-          if (i > 0 || !headed.contains(period)), row.leadsWithRule { CSRule() }
+          if i > 0 {
+            wireBoundary(before: row, after: rows[i - 1], ordinaryRule: row.leadsWithRule)
+          } else if !headed.contains(period), row.leadsWithRule {
+            CSRule()
+          }
           wireRow(row, context: page.wireContext, showRoundDay: !(period == .today && headed.contains(period)))
         }
       }
@@ -479,6 +480,24 @@ struct HomeView: View {
                    act: notes.leagueId.map { id in { openCompetition(id, .board) } })
         .padding(.horizontal, CSTokens.Space.gutter)
     }
+  }
+
+  @ViewBuilder private func wireBoundary(before row: HomeWireRow, after previous: HomeWireRow,
+                                         ordinaryRule: Bool = true) -> some View {
+    let touchesRound = isRound(row) || isRound(previous)
+    if touchesRound {
+      CSRule(inset: CSTokens.Space.gutter)
+        .padding(.top, CSTokens.Space.s3)
+        .padding(.bottom, CSTokens.Space.s2)
+        .accessibilityHidden(true)
+    } else if ordinaryRule {
+      CSRule()
+    }
+  }
+
+  private func isRound(_ row: HomeWireRow) -> Bool {
+    if case .round = row.body { return true }
+    return false
   }
 
   /// One supporting line at reading sizes, separate 44pt controls at every
