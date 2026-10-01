@@ -85,7 +85,7 @@ public enum GolfersRoot {
   /// accessibility hint reads from this, so the name cannot drift back one
   /// surface at a time (§4 row 30 is the lint that says so).
   public enum CardName {
-    /// "Galen’s card" — or, with no name in hand, a card that belongs to
+    /// "Blake’s card" — or, with no name in hand, a card that belongs to
     /// somebody rather than to nobody.
     public static func title(_ name: String?) -> String {
       guard let n = name?.trimmingCharacters(in: .whitespaces), !n.isEmpty else { return "A golfer’s card" }

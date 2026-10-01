@@ -16,14 +16,14 @@ import Foundation
 private func item(_ key: String, _ tier: HomeDispatch.Tier, rank: Int? = nil,
                   human: Bool = true, spine: HomeDispatch.Spine = .mut,
                   route: HomeDispatch.Route? = .composer, at: String? = nil) -> HomeDispatch.Item {
-  .init(key: key, tier: tier, rank: rank, subject: "Galen", humanSubject: human,
-        eyebrow: key.uppercased(), headline: "Galen — \(key).", standfirst: "A standfirst.",
+  .init(key: key, tier: tier, rank: rank, subject: "Blake", humanSubject: human,
+        eyebrow: key.uppercased(), headline: "Blake — \(key).", standfirst: "A standfirst.",
         action: "Open it", route: route, spine: spine, at: at)
 }
 
 private func profile(rounds: Int?, index: Double? = nil, source: String? = nil,
                      home: String? = nil) -> Me.Profile {
-  .init(id: UUID(), display_name: "Sam", handle: "sam", marker: "flag", city: nil,
+  .init(id: UUID(), display_name: "Avery", handle: "avery", marker: "flag", city: nil,
         home_course: home, index_current: index, index_source: source,
         photo_path: nil, rounds_count: rounds, member_since: nil, is_founder: false)
 }
@@ -47,7 +47,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
       Me.Membership(league_id: id, name: name, code: nil, phase: "season", sandbox: false, role: "player", member_id: UUID(),
                     marker: nil, commissioner_name: nil, settings: nil, season: nil, squad: nil, standing: nil, pulse: nil)
     }
-    let ms = [membership(a, "Fellas"), membership(b, "Sunday Cup")]
+    let ms = [membership(a, "North Grove (fixture)"), membership(b, "Sunday Cup")]
     func chapter(_ key: String, _ league: UUID, rank: Int) -> HomeDispatch.Item {
       .init(key: key, tier: .chapter, rank: rank, subject: "You", humanSubject: false,
             eyebrow: "X · WEEK 3 OF 12", headline: "You are the one to catch.",
@@ -65,7 +65,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
     } + [page.wireEmptyItem?.key].compactMap { $0 }
     #expect(keys.contains("chapter:a") && keys.contains("chapter:b"), "two leagues are two facts")
     #expect(!keys.contains("chapter:a2"), "the same sentence about the same league is one line")
-    #expect(page.wireContext["chapter:a"] == "Fellas")
+    #expect(page.wireContext["chapter:a"] == "North Grove (fixture)")
     #expect(page.wireContext["chapter:b"] == "Sunday Cup")
     #expect(page.wireContext[lead.key] == nil, "a sentence that appears once needs no league")
   }
@@ -107,7 +107,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
 
   @Test("A golfer with a season is never the brand-new empty, however few rounds they have")
   func aSeasonIsNeverBrandNew() {
-    let m = Me.Membership(league_id: UUID(), name: "The Fellas", code: nil, phase: "active",
+    let m = Me.Membership(league_id: UUID(), name: "North Grove (fixture)", code: nil, phase: "active",
                           sandbox: false, role: "member", member_id: UUID(), marker: nil,
                           commissioner_name: nil, settings: nil, season: nil, squad: nil,
                           standing: nil, pulse: nil)
@@ -198,9 +198,9 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
                                     body: body, created_at: Date())])
     }
     let buckets = [
-      HomeFeedBucket(label: "Today", items: [.notes(note(a, "Fellas", "one")),
+      HomeFeedBucket(label: "Today", items: [.notes(note(a, "North Grove (fixture)", "one")),
                                              .notes(note(b, "Who\u{2019}s the bitch?", "two"))]),
-      HomeFeedBucket(label: "Earlier", items: [.notes(note(a, "Fellas", "three"))]),
+      HomeFeedBucket(label: "Earlier", items: [.notes(note(a, "North Grove (fixture)", "three"))]),
     ]
     let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
                              ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1)]),
@@ -211,7 +211,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
       }
     }
     #expect(page.notes?.count == 3)
-    #expect(page.notes?.line == "Fellas & Who\u{2019}s the bitch? · 3 league notes")
+    #expect(page.notes?.line == "North Grove (fixture) & Who\u{2019}s the bitch? · 3 league notes")
     #expect(page.notes?.leagueId != nil)
     // and a wire that carries only notes is NOT the roster empty
     #expect(!page.wireEmpty)
@@ -219,8 +219,8 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
 
   @Test("Past two leagues the names stop helping and the line counts them instead")
   func theNotesLineDegrades() {
-    #expect(HomeWireNotes(leagueNames: ["Fellas"], count: 1, leagueId: nil).line
-            == "Fellas · 1 league note")
+    #expect(HomeWireNotes(leagueNames: ["North Grove (fixture)"], count: 1, leagueId: nil).line
+            == "North Grove (fixture) · 1 league note")
     #expect(HomeWireNotes(leagueNames: ["A", "B", "C"], count: 9, leagueId: nil).line
             == "3 leagues · 9 league notes")
     #expect(HomeWireNotes(leagueNames: [], count: 2, leagueId: nil).line
@@ -231,26 +231,26 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
 
   @Test("DEF-3 · the wire says YOU to the golfer a board post is about")
   func theViewerIsYou() {
-    #expect(HomeWireCopy.viewerVoice("Jerecho set a personal best. New number to chase.",
-                                     viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("Avery set a personal best. New number to chase.",
+                                     viewer: "Avery Fixture")
             == "You set a personal best. New number to chase.")
     // the full display name, not only the given one
-    #expect(HomeWireCopy.viewerVoice("Jerecho Fischbeck posted 92 at Encanto GC.",
-                                     viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("Avery Fixture posted 92 at Encanto GC.",
+                                     viewer: "Avery Fixture")
             == "You posted 92 at Encanto GC.")
     // SECOND PERSON TAKES ITS COPULA
-    #expect(HomeWireCopy.viewerVoice("Jerecho has posted 8 weeks running. The streak holds.",
-                                     viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("Avery has posted 8 weeks running. The streak holds.",
+                                     viewer: "Avery Fixture")
             == "You have posted 8 weeks running. The streak holds.")
     // the object seat is lower case
-    #expect(HomeWireCopy.viewerVoice("Not the day Jerecho had in mind. We\u{2019}ll leave that one on the scorecard.",
-                                     viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("Not the day Avery had in mind. We\u{2019}ll leave that one on the scorecard.",
+                                     viewer: "Avery Fixture")
             == "Not the day you had in mind. We\u{2019}ll leave that one on the scorecard.")
-    #expect(HomeWireCopy.viewerVoice("First round since August for Jerecho. Welcome back.",
-                                     viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("First round since August for Avery. Welcome back.",
+                                     viewer: "Avery Fixture")
             == "First round since August for you. Welcome back.")
     // the possessive
-    #expect(HomeWireCopy.viewerVoice("Jerecho\u{2019}s buy-in is in.", viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("Avery\u{2019}s buy-in is in.", viewer: "Avery Fixture")
             == "Your buy-in is in.")
   }
 
@@ -260,39 +260,39 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
   /// sentence does not: it opens with the clock and puts the golfer in the
   /// SECOND clause. So the name lowercased to `you`, and the copula rule, which
   /// only knew `You`, left the verb alone. The owner photographed
-  /// "The clash closes today. you has answered. Jade has not." on the live site.
+  /// "The clash closes today. you has answered. Emery has not." on the live site.
   @Test("DEF-3 · a golfer in the second clause is still the subject")
   func theViewerIsYouAfterAFullStop() {
-    #expect(HomeWireCopy.viewerVoice("The clash closes today. Jerecho has answered. Jade has not.",
-                                     viewer: "Jerecho Fischbeck")
-            == "The clash closes today. You have answered. Jade has not.")
+    #expect(HomeWireCopy.viewerVoice("The clash closes today. Avery has answered. Emery has not.",
+                                     viewer: "Avery Fixture")
+            == "The clash closes today. You have answered. Emery has not.")
     // a question mark and an exclamation open a sentence too
-    #expect(HomeWireCopy.viewerVoice("Who is chasing? Jerecho is, by four.",
-                                     viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("Who is chasing? Avery is, by four.",
+                                     viewer: "Avery Fixture")
             == "Who is chasing? You are, by four.")
     // …and a closing quote between the stop and the name does not hide it
-    #expect(HomeWireCopy.viewerVoice("He called it \u{201C}a good week.\u{201D} Jerecho was not so sure.",
-                                     viewer: "Jerecho Fischbeck")
+    #expect(HomeWireCopy.viewerVoice("He called it \u{201C}a good week.\u{201D} Avery was not so sure.",
+                                     viewer: "Avery Fixture")
             == "He called it \u{201C}a good week.\u{201D} You were not so sure.")
     // the object seat inside a later clause stays lower case
-    #expect(HomeWireCopy.viewerVoice("The clash: Jade v Jerecho. Best round takes it.",
-                                     viewer: "Jerecho Fischbeck")
-            == "The clash: Jade v you. Best round takes it.")
+    #expect(HomeWireCopy.viewerVoice("The clash: Emery v Avery. Best round takes it.",
+                                     viewer: "Avery Fixture")
+            == "The clash: Emery v you. Best round takes it.")
     // a mid-clause name that happens to precede a copula is NOT a subject
-    #expect(HomeWireCopy.viewerVoice("Galen and Jerecho are level.",
-                                     viewer: "Jerecho Fischbeck")
-            == "Galen and you are level.")
+    #expect(HomeWireCopy.viewerVoice("Blake and Avery are level.",
+                                     viewer: "Avery Fixture")
+            == "Blake and you are level.")
   }
 
   @Test("It touches ONE name — the viewer's own — and nobody else's")
   func itNeverRenamesAnybodyElse() {
-    let said = "Galen set a personal best. New number to chase."
-    #expect(HomeWireCopy.viewerVoice(said, viewer: "Jerecho Fischbeck") == said)
+    let said = "Blake set a personal best. New number to chase."
+    #expect(HomeWireCopy.viewerVoice(said, viewer: "Avery Fixture") == said)
     #expect(HomeWireCopy.viewerVoice(said, viewer: nil) == said)
     #expect(HomeWireCopy.viewerVoice(said, viewer: "") == said)
     // a name inside another word is not the name
-    #expect(HomeWireCopy.viewerVoice("Jerechoville is not a place.", viewer: "Jerecho")
-            == "Jerechoville is not a place.")
+    #expect(HomeWireCopy.viewerVoice("Averyville is not a place.", viewer: "Avery")
+            == "Averyville is not a place.")
   }
 
   @Test("A wire stamp is a CLOCK ahead of today and a DATE behind it")
@@ -361,25 +361,25 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
 
   @Test("A wire round's line NEVER repeats the name on the face above it")
   func theRoundLineHasNoName() {
-    let r = HomeFeedRow.pr(golfer: "Galen Marr", gross: 79, course: "Papago")
+    let r = HomeFeedRow.pr(golfer: "Blake Sample", gross: 79, course: "Saguaro Flats")
     let line = HomeWireCopy.roundLine(r)
-    #expect(line == "79 at Papago — a personal best.")
-    #expect(!line.contains("Galen"))
+    #expect(line == "79 at Saguaro Flats — a personal best.")
+    #expect(!line.contains("Blake"))
   }
 
   @Test("A round with no gross says only what it knows")
   func noGrossNoNumber() {
-    let r = HomeFeedRow.plain(golfer: "Galen", gross: nil, course: "Papago")
-    #expect(HomeWireCopy.roundLine(r) == "A round at Papago.")
+    let r = HomeFeedRow.plain(golfer: "Blake", gross: nil, course: "Saguaro Flats")
+    #expect(HomeWireCopy.roundLine(r) == "A round at Saguaro Flats.")
   }
 
   @Test("The credit is the golfer's own, with a typographic apostrophe and the given name only")
   func theCredit() {
-    #expect(HomeWireCopy.possessive("Galen Marr") == "Galen\u{2019}s")
+    #expect(HomeWireCopy.possessive("Blake Sample") == "Blake\u{2019}s")
     #expect(HomeWireCopy.possessive("Chris Ames") == "Chris\u{2019}")
-    #expect(HomeWireCopy.photoCredit(HomeFeedRow.plain(golfer: "Galen Marr", gross: 79, course: "Papago",
+    #expect(HomeWireCopy.photoCredit(HomeFeedRow.plain(golfer: "Blake Sample", gross: 79, course: "Saguaro Flats",
                                                        playedOn: "2026-09-06"),
-                                     today: "2026-09-06") == "Galen\u{2019}s round · Today")
+                                     today: "2026-09-06") == "Blake\u{2019}s round · Today")
   }
 
   @Test("A field size is a WORD under a numeral and a digit past twenty")
@@ -403,9 +403,9 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
 
   @Test("EVERY GLOSS DEGRADES TO A TRUE SENTENCE — no blank, no dash, no guessed course")
   func theFirstRoundRowsDegrade() {
-    let full = HomeFirstRound.rows(starter: "12.0", homeCourse: "Papago")
+    let full = HomeFirstRound.rows(starter: "12.0", homeCourse: "Saguaro Flats")
     #expect(full[0].gloss == "12.0 becomes yours, not ours")
-    #expect(full[1].gloss == "Papago remembers your best")
+    #expect(full[1].gloss == "Saguaro Flats remembers your best")
 
     let bare = HomeFirstRound.rows()
     #expect(bare.count == 3)
@@ -420,7 +420,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
   @Test("D287 · the QUIET frame yields the round THE WIRE is already drawing")
   func theQuietFrameYieldsToTheWire() {
     let mine = HomeFeedRow.plain(golfer: "You", gross: 89, course: "UNM Championship")
-    let other = HomeFeedRow.plain(golfer: "Galen", gross: 79, course: "Lone Tree")
+    let other = HomeFeedRow.plain(golfer: "Blake", gross: 79, course: "Lone Tree")
     func quiet(_ id: UUID?) -> HomeDigest {
       HomeDigest(kind: .quiet, label: "Quiet since your last visit",
                  body: "Fri, Sep 4 — You posted 89 at UNM Championship",
@@ -465,7 +465,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
   func theSinceFrameSurvives() {
     let mine = HomeFeedRow.plain(golfer: "You", gross: 89, course: "UNM Championship")
     let since = HomeDigest(kind: .since, label: "Since you were here",
-                           body: "2 rounds and a personal best from Galen.",
+                           body: "2 rounds and a personal best from Blake.",
                            roundId: mine.round_id, photoURL: nil)
     let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]),
                              buckets: [HomeFeedBucket(label: "This week",
@@ -476,7 +476,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
 
   @Test("D287 · the block name yields ONLY where a dateline opens the wire")
   func theBlockNameYieldsToTheDateline() {
-    let r = HomeFeedRow.plain(golfer: "Galen", gross: 79, course: "Lone Tree")
+    let r = HomeFeedRow.plain(golfer: "Blake", gross: 79, course: "Lone Tree")
     let filed = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
                               ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1)]),
                               buckets: [HomeFeedBucket(label: "This week",

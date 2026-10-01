@@ -363,7 +363,7 @@ final class PostRoundModel {
     if seededFrom != nil {
       toast.show("Close this scorecard to keep it. Open a new round separately."); return
     }
-    card.startOver(); setPhoto(nil); clearDraft(); toast.show("Card cleared", kind: .confirmed)
+    card.startOver(); setPhoto(nil); clearDraft(); toast.show("Scorecard cleared", kind: .confirmed)
   }
   func scrapScan() { card.scrapScan(); toast.show("Scan scrapped — type your nines in", kind: .confirmed) }
 
@@ -742,7 +742,7 @@ final class PostRoundModel {
 extension PostRoundModel {
   /// `-cs_dev_post_seed <total|strip|scan|photo>` — a filled card for a
   /// simulator without a finger (IOS-020's "look" step). DEBUG-only; never posts.
-  ///   total · 41 out, 43 in on Papago Blue
+  ///   total · 41 out, 43 in on Saguaro Flats Blue
   ///   strip · the scorecard strip open with a few holes off par
   ///   scan  · the strip as the scan's confirm surface: two unread cells, one partner row
   ///   photo · IOS-066 · the hero's plate FILLED, which is where a scan lands
@@ -750,7 +750,7 @@ extension PostRoundModel {
   ///           needs a finger. The image is `ReceiptPhotoDev`'s drawn stand-in,
   ///           so the build carries one fabricated photograph and not two.
   func devSeed(_ kind: String) {
-    card.course = "Papago Golf Course · Blue"; card.rating = "71.2"; card.slope = "128"
+    card.course = "Saguaro Flats · Blue"; card.rating = "71.2"; card.slope = "128"
     switch kind {
     case "photo":
       card.f9 = "41"; card.b9 = "43"
@@ -803,11 +803,11 @@ enum PostWorthDev {
     guard let i = a.firstIndex(of: "-cs_dev_worth"), i + 1 < a.count else { return nil }
     let json: String
     switch a[i + 1] {
-    case "room":   json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":2,"worst":5}}]"#
-    case "full":   json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":4,"worst":5}}]"#
-    case "capped": json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":4,"worst":12}}]"#
+    case "room":   json = #"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":2,"worst":5}}]"#
+    case "full":   json = #"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":4,"worst":5}}]"#
+    case "capped": json = #"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":4,"worst":12}}]"#
     case "open":   json = #"[{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
-    case "two":    json = #"[{"league_name":"Fellas","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
+    case "two":    json = #"[{"league_name":"North Grove (fixture)","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
     default: return nil
     }
     return try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8))

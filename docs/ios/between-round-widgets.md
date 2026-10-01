@@ -74,3 +74,22 @@ captures prove layout; they do not substitute for that OS lifecycle check.
 No migration or Edge Function deployment is required. Distribution requires a
 new native build containing both the app and extension. Existing provisioning
 must retain `group.app.cupseason.shared` on both targets.
+
+## D400 · September 30, 2026: What's On, a Race that finds your season, and background refresh
+
+The owner reported that his widget "has shown the same thing for days". His Race widget said "Start a season" even though he was in three active seasons. The cause: it read only the last-opened league, Test1. Test1 is a first-week squads league that has not assigned him a squad yet, so no row on its table was his.
+
+- **The Race** now reads every season, starting with the league last opened. It prefers a table that has points on it over a week-1 table where everyone is on zero.
+  - In a squads league where you are not on a squad, the golfer rows are the race.
+  - "Start a season" is shown only to a golfer with no season. A golfer whose season has no row for them yet reads "Your place shows once the table has you."
+- **What's On** (`CSWhatsOnWidget`: small, medium, large, and Lock Screen rectangular) carries Home's served lead and deck, up to five items, copied word for word.
+  - The small tile, the medium tile's featured card and the Lock Screen line rotate every 20 minutes through six hours of timeline entries. The large tile lists every item.
+  - Each item opens its own route (receipt, plan, season pane, live round or Golfers). Any other route opens Home.
+  - A pot route, or any line with a currency figure, is dropped (L-10). A stale snapshot offers no verbs, and every tap opens Home.
+- **Background refresh.** `WidgetRefreshTask` registers the `BGAppRefreshTask` `app.cupseason.ios.widgets.refresh` at launch. It is scheduled whenever the app goes to the background, and again after each run.
+  - `WidgetBackgroundRead` makes Home's read without the screen: `home_dispatch`, the F12 played-plan drop and `HomeRank.arrange`, then the four slices.
+  - It runs only for the snapshot's owner and writes nothing to the server.
+  - iOS decides the actual cadence.
+  - To test it on a device, pause in the debugger and run `e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"app.cupseason.ios.widgets.refresh"]`.
+- **Gallery.** Launch with `-cs_dev_widgets -cs_widget_kind CSWhatsOnWidget` and `-cs_widget_state full|long|stale|empty`.
+- **Not built:** a silent push on board activity, which would refresh the widget for golfers who rarely open the app. It needs the `push` function to send `content-available`, and needs its own decision.

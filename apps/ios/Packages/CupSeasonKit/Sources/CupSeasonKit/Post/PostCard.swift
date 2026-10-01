@@ -525,7 +525,7 @@ public struct PostCourseMemory: Sendable, Equatable, Identifiable {
   public let slope: Int
   public var id: String { label }
   public init(label: String, rating: Double, slope: Int) { self.label = label; self.rating = rating; self.slope = slope }
-  /// The chip: "Papago · 71.2/128"
+  /// The chip: "Saguaro Flats · 71.2/128"
   public var chip: String { "\(label) · \(ratingText)/\(slope)" }
   /// A numeric as the web prints it raw: "71.2", "70".
   public var ratingText: String { CSCopy.points(rating) }

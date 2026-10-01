@@ -81,7 +81,7 @@ struct CoursesScreen: View {
           VStack(spacing: 0) {
             ForEach(0..<3, id: \.self) { _ in
               CSRule()
-              CourseRow(book: CourseModel.placeholder("Papago"), best: nil, open: {})
+              CourseRow(book: CourseModel.placeholder("Saguaro Flats"), best: nil, open: {})
             }
           }
           .csRedacted(true)
@@ -206,7 +206,7 @@ struct CourseRow: View {
         if let mine, !typeSize.isA11y {
           HStack(spacing: CSTokens.Space.s2) {
             CSStarRail(mine, size: 14)
-            Text(CSRating.format(mine)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            Text("Yours " + CSRating.format(mine)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           }
         }
         Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)

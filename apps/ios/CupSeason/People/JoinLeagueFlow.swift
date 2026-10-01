@@ -61,7 +61,10 @@ struct JoinLeagueFlow: View {
         // the golfer it was written for. A nil count still renders nothing
         // (L-44); a real zero renders the clause.
         CovenantSheet(covenant: c, postedRounds: store.me?.profile?.rounds_count,
-                      onJoin: { vm.covenant = nil; Task { await vm.join() } }, onNo: { vm.covenant = nil })
+                      onJoin: { vm.covenant = nil; Task { await vm.join() } }, onNo: { vm.covenant = nil }, error: vm.note,
+                      onOpen: {
+                        if let id = vm.openExisting(in: store.me?.memberships ?? []) { onJoined(id); dismiss() }
+                      })
       }
       .sheet(item: $vm.welcome, onDismiss: { if let id = vm.joinedId { PushAsk.shared.request(.leagueJoined); onJoined(id); dismiss() } }) { w in
         LeagueWelcomeSheet(welcome: w)
@@ -129,6 +132,17 @@ final class JoinModel {
     } catch { note = JoinService.joinError(error) }
   }
 
+  /// An already-recorded yes is navigation, never another join write.
+  func openExisting(in memberships: [Me.Membership], defaults: UserDefaults = .standard) -> UUID? {
+    note = nil
+    guard covenant?.agreed == true,
+          let member = memberships.first(where: { $0.code.map(JoinIntent.normalize) == JoinIntent.normalize(code) }) else {
+      note = "Could not open the season. Check your signal and try again."; return nil
+    }
+    JoinIntent.clear(ifMatching: code, defaults: defaults)
+    return member.league_id
+  }
+
   func welcome(from me: Me?) {
     let m = me?.memberships.first { $0.league_id == joinedId }
     welcome = LeagueWelcome(name: m?.name ?? leagueName ?? "the league", code: m?.code, buyinCents: m?.settings?.buyin_cents ?? 0,
@@ -147,36 +161,47 @@ struct CovenantSheet: View {
   var postedRounds: Int? = nil
   let onJoin: () -> Void
   let onNo: () -> Void
+  var error: String? = nil
+  var onOpen: (() -> Void)? = nil
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         // D375 · the frame says whether this is a first join or a re-up to
         // season N (`Covenant.head` / `.eyebrow`, twins of the desk's)
-        CSSheetHeader(title: covenant.head, sub: covenant.eyebrow)
+        CSSheetHeader(title: covenant.agreed == true ? covenant.name : covenant.head,
+                      sub: covenant.agreed == true ? nil : covenant.eyebrow)
         if covenant.agreed == true {
           // D375 · the yes is already on record: say so, and offer no join
           Text(covenant.alreadyInLine)
             .font(CSFont.sentenceBold).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
-          Button("Close") { onNo() }
-            .buttonStyle(.csSecondary()).padding(.top, 8)
+          if let error { CSNote(error, tone: .neg).accessibilityIdentifier("covenant.openError") }
+          if let onOpen {
+            Button("Open the season", action: onOpen)
+              .buttonStyle(.csPrimary()).padding(.top, 8)
+              .accessibilityLabel("Open the season")
+              .accessibilityIdentifier("covenant.openSeason")
+          } else {
+            Button("Close") { onNo() }.buttonStyle(.csSecondary()).padding(.top, 8)
+          }
         } else {
-          // WHO comes before the money — and for a re-up, the season comes
-          // before who. The order is the producer's, not this file's —
-          // `Covenant.facts` decides it, and a fact with no read is simply
-          // not in the list (L-44). W4 · today's date passes the clock, so
-          // where the season stands is said after its length.
-          ForEach(covenant.facts(postedRounds: postedRounds, today: CSDate.today()), id: \.0) { fact, line in
-            Text(line)
-              .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
-              // W4 · the stake is money, and money is ink (UI_SYSTEM §2.5):
-              // gold is for the pot or a thing won, and a buy-in is neither (D359)
-              .foregroundStyle(cs.ink)
-              .fixedSize(horizontal: false, vertical: true)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel(line)
+          // Q15(3): the producer owns order and omission, including the $0 covenant.
+          ForEach(covenant.groups(postedRounds: postedRounds, today: CSDate.today()), id: \.kind) { group in
+            VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+              CSSectionHead(group.kind.title)
+                .accessibilityIdentifier("covenant.group." + group.kind.rawValue)
+              ForEach(group.facts, id: \.0) { fact, line in
+                Text(line)
+                  .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
+                  .foregroundStyle(cs.ink)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .accessibilityLabel(line)
+              }
+            }
+            .padding(.top, CSTokens.Space.s3)
           }
           Button(covenant.joinLabel) { onJoin() }
             .buttonStyle(.csPrimary()).padding(.top, 8)
@@ -257,9 +282,9 @@ struct LeagueWelcomeSheet: View {
 }
 
 #Preview("Covenant") {
-  CovenantSheet(covenant: Covenant(name: "the Fellas", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
-                                   proName: "Galen Fischbeck", rosterCount: 8,
-                                   rosterNames: ["Marcus Webb", "Dev Patel", "Tash Boyle", "Ravi Shah", "Jules Kerr"],
+  CovenantSheet(covenant: Covenant(name: "North Grove (fixture)", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
+                                   proName: "Blake Fixture", rosterCount: 8,
+                                   rosterNames: ["Casey Placeholder", "Devon Testwell", "Emery Mockridge", "Finley Stubbs", "Gray Dummett"],
                                    startsOn: "2026-09-12", weeks: 13, countingCap: 3,
                                    split: .init(champion: 60, runnerUp: 25, pointsKing: 15),
                                    hasPayNote: true, phase: "setup"),
@@ -267,5 +292,5 @@ struct LeagueWelcomeSheet: View {
 }
 
 #Preview("Welcome") {
-  LeagueWelcomeSheet(welcome: LeagueWelcome(name: "PIGL", code: "PIGL2026", buyinCents: 5000)).csTheme()
+  LeagueWelcomeSheet(welcome: LeagueWelcome(name: "North Grove (fixture)", code: "NGFX26", buyinCents: 5000)).csTheme()
 }

@@ -58,23 +58,23 @@ import Foundation
    "playing_index":null,"pvi":-7.3,"band":"A little loose",
    "points":null,"month_rank":null,"counting_cap":null,
    "league_id":null,"season_id":null,"member_id":null,
-   "contributions":[{"league_name":"Fellas","month_rank":3,"counting_cap":2,"points":2},
+   "contributions":[{"league_name":"North Grove (fixture)","month_rank":3,"counting_cap":2,"points":2},
                     {"league_name":"Sunday Cup","month_rank":3,"counting_cap":null,"points":2}],
    "source":"app","attested":false,"photo_path":null,"live_round_id":null,
-   "profile_id":"00000000-0000-4000-8000-00000000a001","golfer":"Sam Fixture","is_mine":true,"played_with":[]}
+   "profile_id":"00000000-0000-4000-8000-00000000a001","golfer":"Casey Fixture","is_mine":true,"played_with":[]}
   """#
 
   /// The same call for a round counting in ONE league: the scalars ARE that lens.
   private let oneLeague = #"""
   {"id":"00000000-0000-4000-8000-00000000e001","gross":84,"holes_played":18,"played_on":"2026-09-01",
-   "course_label":"Papago","rating":70.1,"slope":120,"differential":12.5,"index_at_post":12.0,
+   "course_label":"Saguaro Flats","rating":70.1,"slope":120,"differential":12.5,"index_at_post":12.0,
    "index_provisional":false,"playing_index":12.0,"pvi":-0.5,"band":"Played to it",
    "points":7,"month_rank":2,"counting_cap":4,
    "league_id":"00000000-0000-4000-8000-00000000b001","season_id":"00000000-0000-4000-8000-00000000c001",
    "member_id":"00000000-0000-4000-8000-00000000d001",
-   "contributions":[{"league_name":"Fellas","month_rank":2,"counting_cap":4,"points":7}],
+   "contributions":[{"league_name":"North Grove (fixture)","month_rank":2,"counting_cap":4,"points":7}],
    "source":"app","attested":false,"photo_path":null,"live_round_id":null,
-   "profile_id":"00000000-0000-4000-8000-00000000a001","golfer":"Sam Fixture","is_mine":true,"played_with":[]}
+   "profile_id":"00000000-0000-4000-8000-00000000a001","golfer":"Casey Fixture","is_mine":true,"played_with":[]}
   """#
 
   @Test("build 905 decodes the new payload: every key it reads is present, and an unknown key is ignored")
@@ -109,6 +109,6 @@ import Foundation
       if case .math(let l, let v, _) = r, l.hasPrefix("This month") { return "\(l)=\(v)" }
       return nil
     }
-    #expect(months == ["This month · Fellas=BUMPED · 2 PTS", "This month · Sunday Cup=COUNTING #3 · 2 PTS"])
+    #expect(months == ["This month · North Grove (fixture)=BUMPED · 2 PTS", "This month · Sunday Cup=COUNTING #3 · 2 PTS"])
   }
 }

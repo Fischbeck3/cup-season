@@ -23,7 +23,7 @@ import CupSeasonKit
     model.prepareAgreement(); #expect(model.agreement == nil)
     model.dials.name = "Regulars"; model.dials.stake = 20
     model.prepareAgreement(); #expect(model.agreement == nil)
-    model.dials.buyInNote = "Pay Sam"
+    model.dials.buyInNote = "Pay Casey"
     model.prepareAgreement(); #expect(model.agreement != nil)
     #expect(model.createdHere == nil && !model.publishAttempted)
   }

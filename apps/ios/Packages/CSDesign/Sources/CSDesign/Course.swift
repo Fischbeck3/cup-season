@@ -289,7 +289,7 @@ public struct CSStarRail: View {
     .csAnimation(CSMotion.snap, value: value)
     .accessibilityElement(children: .contain)
     .accessibilityLabel("Your rating")
-    .accessibilityValue(unrated ? "Not yours yet" : CSStarRail.spoken(value))
+    .accessibilityValue(unrated ? "Your rating · not yet" : CSStarRail.spoken(value))
     .accessibilityAdjustableAction { d in
       // a step, bounded like the pair's: at 5 an increment set the SAME
       // value, which the caller reads as "take it off"
@@ -436,7 +436,7 @@ public struct CSRating: View {
   }
 
   @ViewBuilder private var mineLine: some View {
-    Text(mine.map { "Your rating · " + CSRating.format($0) } ?? "Not yours yet")
+    Text(mine.map { "Your rating · " + CSRating.format($0) } ?? "Your rating · not yet")
       .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
   }
@@ -498,7 +498,7 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
   /// `DINOSAUR MOUNTAIN` — the course, when the club is the headline.
   let course: String?
   let place: String?
-  /// `GALEN'S ROUND · AUG 24`. **A drawn plate has no photographer**, so this
+  /// `BLAKE'S ROUND · AUG 24`. **A drawn plate has no photographer**, so this
   /// is nil on rungs 2 and 3 — §10.2 forbids a caption that teaches the reader
   /// how to read the graphic.
   let credit: String?
@@ -566,7 +566,7 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
       }
       if copy {
         // D-8 fixes the plate at 252 — 29% of the frame — and that is a
-        // MINIMUM here: `PAPAGO GOLF COURSE` sets on two lines at `display` 34,
+        // MINIMUM here: `SAGUARO FLATS` sets on two lines at `display` 34,
         // and a fixed height would put a headline through the picture or the
         // drawn card's bars through the eyebrow.
         head(over: true).padding(CSTokens.Space.gutter).padding(.top, reserve)
@@ -587,7 +587,7 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
   @ViewBuilder private func head(over scrim: Bool) -> some View {
     // **At the accessibility sizes the panel leaves the row.** `display` grows
     // to 54 and the panel grows with its own numeral, and the two cannot share
-    // a 362pt measure: the first build's AX3 shot broke `PAPAGO GOLF COURSE`
+    // a 362pt measure: the first build's AX3 shot broke `SAGUARO FLATS`
     // mid-word into `PAPAG / O GOLF / COURS / E`, because a headline squeezed
     // into 150pt wraps by character. The panel goes under the name instead.
     if typeSize.isA11y {
@@ -726,7 +726,7 @@ public struct CSFactsLine: View {
 public struct CSQuote: View {
   @Environment(\.cs) private var cs
   let text: String
-  /// *"Jade, after an {82} here on Aug 30."* — braces mark the figure run.
+  /// *"Emery, after an {82} here on Aug 30."* — braces mark the figure run.
   let attribution: String?
 
   public init(_ text: String, attribution: String? = nil) {

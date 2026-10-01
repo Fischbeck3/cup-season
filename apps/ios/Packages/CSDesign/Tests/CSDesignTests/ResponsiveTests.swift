@@ -39,8 +39,8 @@ import SwiftUI
   /// `MeStripLayout` was written for and the one that still decides whether a
   /// name column can hold a name.
   @Test func theWidestWordIsWhatAColumnMustHold() {
-    let whole = CSAdvance.width("PRIYA RAGHUNATHAN", .name)
-    let word = CSAdvance.widestWord("PRIYA RAGHUNATHAN", .name)
+    let whole = CSAdvance.width("NOEL DRYRUN", .name)
+    let word = CSAdvance.widestWord("NOEL DRYRUN", .name)
     #expect(word < whole, "a two-word name breaks; the longest word is the floor")
     #expect(CSAdvance.widestWord("BARTHOLOMEW", .name) == CSAdvance.width("BARTHOLOMEW", .name),
             "a single token has nowhere to break and is measured whole")

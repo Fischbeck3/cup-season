@@ -157,6 +157,24 @@ struct SeasonBookTests {
     await store.load(league:b.league_id,season:b.season_id)
     #expect(store.snapshot?.season_id == b.season_id && store.error == nil && !store.loading)
   }
+  @Test @MainActor func refreshKeepsTheRecordThroughCancellationButShowsRealFailures() async throws {
+    let b=try book();var calls=0
+    var pending: CheckedContinuation<SeasonBookSnapshot,any Error>?
+    let store=SeasonBookStore(read:{ _,_ in
+      calls += 1
+      if calls == 1 { return b }
+      if calls == 2 { return try await withCheckedThrowingContinuation { pending=$0 } }
+      throw SeasonBookReadError.unavailable
+    })
+    await store.load(league:b.league_id,season:b.season_id)
+    let refresh=Task { await store.load(league:b.league_id,season:b.season_id) }
+    while pending == nil { await Task.yield() }
+    #expect(store.loading && store.snapshot?.season_id == b.season_id)
+    refresh.cancel(); pending?.resume(returning:b); await refresh.value
+    #expect(!store.loading && store.snapshot?.season_id == b.season_id && store.error == nil)
+    await store.load(league:b.league_id,season:b.season_id)
+    #expect(!store.loading && store.snapshot == nil && store.error != nil)
+  }
   @Test @MainActor func lateOldSeasonCannotReplaceTheNewSelection() async throws {
     let a=try book(), b=try book("tie")
     var pending: CheckedContinuation<SeasonBookSnapshot,any Error>?

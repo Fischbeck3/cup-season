@@ -32,7 +32,7 @@ struct DoorView: View {
   }
   /// QB-08 · the cold-install answer, typed rather than tapped.
   @State private var codeEntry = false
-  @State private var typedCode = ""
+  @State private var leagueCode = LeagueCodeModel()
   @FocusState private var focus: Field?
   enum Field { case email, code, password, joinCode }
   /// IOS-064 · which register the door draws in. A pure read of the window and
@@ -58,7 +58,7 @@ struct DoorView: View {
             Group {
               // QB-08 · **THE INVITED STRANGER MEETS A SENTENCE, NOT A BOX.**
               //
-              // `PendingLink.doorLine()` produces "You're joining The Fellas.
+              // `PendingLink.doorLine()` produces "You're joining North Grove (fixture).
               // Sign in and you're on the roster.", is asserted verbatim by
               // `OnboardingTests`, and was called from no view — so somebody who
               // tapped a friend's link, installed, and came back met a bare email
@@ -314,13 +314,18 @@ struct DoorView: View {
     if codeEntry {
       VStack(alignment: .leading, spacing: 8) {
         Text("League code").csType(.agate, caps: true).foregroundStyle(cs.mut)
-        CSField("SATURDAY26", text: $typedCode)
+        CSField("NORT4K7Q", text: $leagueCode.code)
+          .keyboardType(.asciiCapable)
           .textInputAutocapitalization(.characters).autocorrectionDisabled()
           .submitLabel(.done)
           .focused($focus, equals: .joinCode)
           .accessibilityLabel("League code")
           .onSubmit { takeCode() }
-        Button("That\u{2019}s my code") { takeCode() }.buttonStyle(.csSecondary())
+          .onChange(of: leagueCode.code) { leagueCode.edited() }
+        Text("From your Pro’s invite.").csType(.bodyS).foregroundStyle(cs.mut)
+        if let error = leagueCode.error { CSNote(error, tone: .neg).accessibilityIdentifier("door.leagueCode.error") }
+        Button("That\u{2019}s my code") { takeCode() }.buttonStyle(.csSecondary(busy: leagueCode.busy))
+          .disabled(leagueCode.busy)
       }
       .padding(.top, 16)
     } else if pending == nil {
@@ -437,17 +442,12 @@ struct DoorView: View {
   /// and all, so the door's own sentence and the covenant after the card both
   /// know which season this is.
   private func takeCode() {
-    let code = JoinIntent.normalize(typedCode)
-    guard code.count >= 4 else { toasts.show("That does not look like a code."); return }
-    JoinIntent.store(code)
-    codeEntry = false
-    pending = PendingLink.doorLine(deferringClaim: claimDeferred)
-    focus = .email
     Task {
-      if let n = ((try? await JoinService().leagueName(code)) ?? nil), !n.isEmpty {
-        JoinIntent.store(code, name: n)
-        pending = PendingLink.doorLine(deferringClaim: claimDeferred)
-      }
+      guard let answer = await leagueCode.take() else { return }
+      JoinIntent.store(answer.code, name: answer.name)
+      codeEntry = false
+      pending = PendingLink.doorLine(deferringClaim: claimDeferred)
+      focus = .email
     }
   }
   private func resend() { Task { await vm.resend() } }

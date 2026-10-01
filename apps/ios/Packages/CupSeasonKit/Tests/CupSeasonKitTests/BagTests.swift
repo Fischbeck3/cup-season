@@ -262,21 +262,21 @@ import Testing
 
 @Suite struct ReactionSentenceTests {
   private func mention(_ key: String?) -> HomeSocial.Mention {
-    HomeSocial.Mention(who: "Jade", emoji: key, gross: 90)
+    HomeSocial.Mention(who: "Emery", emoji: key, gross: 90)
   }
 
   @Test func everyTokenHasItsOwnSentence() {
-    #expect(HomeDigest.mention(mention("azalea"), gross: "90") == "Jade gave your 90 its flowers")
-    #expect(HomeDigest.mention(mention("jug"), gross: "90") == "Jade raised a glass to your 90")
-    #expect(HomeDigest.mention(mention("eagle"), gross: "90") == "Jade circled your 90 twice")
-    #expect(HomeDigest.mention(mention("rake"), gross: "90") == "Jade called you a sandbagger on your 90")
+    #expect(HomeDigest.mention(mention("azalea"), gross: "90") == "Emery gave your 90 its flowers")
+    #expect(HomeDigest.mention(mention("jug"), gross: "90") == "Emery raised a glass to your 90")
+    #expect(HomeDigest.mention(mention("eagle"), gross: "90") == "Emery circled your 90 twice")
+    #expect(HomeDigest.mention(mention("rake"), gross: "90") == "Emery called you a sandbagger on your 90")
   }
 
   /// A comment is not a reaction, and a token this build cannot read is
   /// neither — it falls to a neutral sentence rather than naming one it guessed.
   @Test func whatIsNotATokenIsNotNamed() {
-    #expect(HomeDigest.mention(mention(nil), gross: "90") == "Jade chimed in on your 90")
-    #expect(HomeDigest.mention(mention("🔥"), gross: "90") == "Jade reacted to your 90")
+    #expect(HomeDigest.mention(mention(nil), gross: "90") == "Emery chimed in on your 90")
+    #expect(HomeDigest.mention(mention("🔥"), gross: "90") == "Emery reacted to your 90")
   }
 
   /// **NO GLYPH IS EVER A VERB.** The shape of the old line, asserted against
@@ -301,34 +301,34 @@ import Testing
     HomeWireRow(id: UUID().uuidString, body: .line(marker: nil, text: "x", door: nil), period: p)
   }
 
-  /// **THE OWNER'S OWN HOME.** The lead was the clash with Galen in Who's the
+  /// **THE OWNER'S OWN HOME.** The lead was the clash with Blake in Who's the
   /// bitch?, carrying a `2ND OF TWO` chip; the very next row said "You are 4
-  /// back of Galen with 7 weeks left" — the standing the chip had just drawn.
+  /// back of Blake with 7 weeks left" — the standing the chip had just drawn.
   @Test func anItemThatRepeatsTheLeadsSubjectAndLeagueIsAnEcho() {
     let league = UUID()
-    let lead = item("clash:1", subject: "Galen", league: league)
-    #expect(HomePage.echoesLead(item("need:1", subject: "Galen", league: league), lead: lead))
+    let lead = item("clash:1", subject: "Blake", league: league)
+    #expect(HomePage.echoesLead(item("need:1", subject: "Blake", league: league), lead: lead))
   }
 
-  /// **BOTH HALVES ARE REQUIRED.** Two leagues can each be about Galen and
+  /// **BOTH HALVES ARE REQUIRED.** Two leagues can each be about Blake and
   /// those are two facts; a clash and a buddy's round in one league are two
   /// facts too. Only the pair makes them one story.
   @Test func neitherHalfAloneIsAnEcho() {
     let a = UUID(), b = UUID()
-    let lead = item("clash:1", subject: "Galen", league: a)
-    #expect(!HomePage.echoesLead(item("need:1", subject: "Galen", league: b), lead: lead))
-    #expect(!HomePage.echoesLead(item("need:1", subject: "Jade", league: a), lead: lead))
+    let lead = item("clash:1", subject: "Blake", league: a)
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Blake", league: b), lead: lead))
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Emery", league: a), lead: lead))
     // half a pair is a guess (L-44)
-    #expect(!HomePage.echoesLead(item("need:1", subject: "Galen"), lead: lead))
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Blake"), lead: lead))
     #expect(!HomePage.echoesLead(item("need:1", league: a), lead: lead))
     // and with no lead at all nothing echoes
-    #expect(!HomePage.echoesLead(item("need:1", subject: "Galen", league: a), lead: nil))
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Blake", league: a), lead: nil))
   }
 
   /// The lead can never suppress itself out of the deck.
   @Test func theLeadIsNotItsOwnEcho() {
     let league = UUID()
-    let lead = item("clash:1", subject: "Galen", league: league)
+    let lead = item("clash:1", subject: "Blake", league: league)
     #expect(!HomePage.echoesLead(lead, lead: lead))
   }
 
@@ -363,13 +363,13 @@ import Testing
     // non-alphanumeric; the phone stripped spaces only, so a derived name that
     // lost a dot the email carried pre-filled on the phone and not on the desk.
     #expect(OnboardingGate.isDerivedName("jsmith", email: "j.smith@x.com"))
-    #expect(OnboardingGate.isDerivedName("Jerecho Fischbeck", email: "jerechofischbeck@x.com"))
+    #expect(OnboardingGate.isDerivedName("Avery Fixture", email: "averyfixture@x.com"))
   }
 
   /// A typed name survives — that is the whole point of the guard being narrow.
   @Test func aRealNameIsNotTheGuess() {
-    #expect(!OnboardingGate.isDerivedName("Galen Marr", email: "galen@x.com"))
-    #expect(!OnboardingGate.isDerivedName("Tash", email: "natasha.bell@x.com"))
+    #expect(!OnboardingGate.isDerivedName("Blake Sample", email: "blake@x.com"))
+    #expect(!OnboardingGate.isDerivedName("Devon", email: "natasha.bell@x.com"))
   }
 
   /// **Nothing to compare is NOT a match.** With no email on the payload a

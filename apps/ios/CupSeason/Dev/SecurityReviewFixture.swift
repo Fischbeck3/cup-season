@@ -37,8 +37,8 @@ struct SecurityReviewFixtureView: View {
                 "name": .string(long ? "Alexandria Montgomery-Fairbanks" : "Alex"),
                 "host": .string(long ? "Alexandria Montgomery-Fairbanks" : "Alex"),
                 "marker": .string("pin"), "index": .number(12.4), "gross": .number(84),
-                "course": .string(long ? "The Championship Course at Desert Mountain" : "Papago"),
-                "course_label": .string(long ? "The Championship Course at Desert Mountain" : "Papago"),
+                "course": .string(long ? "The Championship Course at Desert Mountain" : "Saguaro Flats"),
+                "course_label": .string(long ? "The Championship Course at Desert Mountain" : "Saguaro Flats"),
                 "play_on": .string("2026-09-27"), "played_on": .string("2026-09-25"), "guest_name": .string("Alex")
               ]))
             }.buttonStyle(.csSecondary()).accessibilityIdentifier("open-" + kind.rawValue)

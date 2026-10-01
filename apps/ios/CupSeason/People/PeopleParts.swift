@@ -195,28 +195,33 @@ struct PersonInviteLink: View {
   var title: String? = nil
   var sub: String? = nil
   @State private var minting = false
+  @State private var cardLink = CardLinkOffModel()
   @State private var link: URL?
 
   var body: some View {
     if always || PeopleInviteLink.shareables(store).isEmpty {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       Button { mint() } label: { row }
         .buttonStyle(.plain)
-        .disabled(minting || store.me?.profile?.id == nil)
+        .disabled(minting || cardLink.busy || store.me?.profile?.id == nil)
         .accessibilityLabel("Text someone a link")
         .accessibilityHint("Sends a link to your card. They can join from it.")
         .sheet(item: $link) { url in
           ActivityView(items: [ShareIntent.person.message(name: store.me?.profile?.display_name), url])
         }
         .onChange(of: trigger) { _, n in if n > 0 { mint() } }
+      CSFine("Anyone with this link sees your name, your marker and how many rounds you've posted.")
+      CardLinkOffControl(model: cardLink, profile: store.me?.profile?.id, sharing: minting)
+      }
     }
   }
 
   private func mint() {
-    guard let me = store.me?.profile?.id, !minting else { return }
+    guard let me = store.me?.profile?.id, !minting, !cardLink.busy else { return }
     minting = true
     Task {
       switch await ShareLinkService().mint(.person, ref: me) {
-      case .ok(let url):   link = url
+      case .ok(let url):   cardLink.sharedAgain(); link = url
       case .notYet:        toast.show(ShareLinkService.notYetLine(hasSeason: hasSeason))
       case .failed(let m): toast.show(m)
       }

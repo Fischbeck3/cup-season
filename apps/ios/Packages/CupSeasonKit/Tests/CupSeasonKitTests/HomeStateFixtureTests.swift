@@ -176,7 +176,7 @@ struct HomeStateFixtureTests {
 
   /// R-J · the register the second sitting ruled, applied where it can be
   /// applied. A gendered pronoun inside a SENTENCE is legitimate when the same
-  /// card names the person — "Galen took it by twelve… he has not posted" is
+  /// card names the person — "Blake took it by twelve… he has not posted" is
   /// four words from its own antecedent. A pronoun in a CONTROL or a DATELINE
   /// never has one, because neither is a sentence; and the phrasing R-J retired
   /// may not come back anywhere, which is the half preflight §4.34 also holds.
@@ -202,7 +202,7 @@ struct HomeStateFixtureTests {
 
   /// The apostrophe. D254's numbered debt (b) is the repo-wide mix; nothing NEW
   /// may join it, and a fixture the next audit reads is copy like any other.
-  /// Found by looking: S17 rendered "Galen's lead" with a typewriter quote.
+  /// Found by looking: S17 rendered "Blake's lead" with a typewriter quote.
   @Test func everyFixtureUsesTheTypographicApostrophe() {
     for s in HomeStateFixtures.all {
       guard let p = HomeStateFixtures.payload(s.id) else { continue }

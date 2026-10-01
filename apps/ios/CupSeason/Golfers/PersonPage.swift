@@ -90,7 +90,7 @@ struct PersonPage: View {
   @ViewBuilder private func card(_ l: TourCardLoad) -> some View {
     let c = l.card, p = c.profile
     // **D312 · THE BAG'S FRONT DOOR.** The owner: *"Maybe a bag Icon in the
-    // corner. I should be able to click on Galen, click the bag icon and see
+    // corner. I should be able to click on Blake, click the bag icon and see
     // whats in it."* The section further down this page stays; what it lacked
     // was anything on the card that ANNOUNCED it — the bag was four scrolls
     // down, drawn only when non-empty, with no affordance above it.
@@ -254,7 +254,7 @@ struct PersonPage: View {
   }
 
   /// **One primary, and the alternative is a link** (§16A.5). A buddy gets
-  /// `Play Galen` alone; a stranger gets `Add buddy` with `Play Tash` as a
+  /// `Play Blake` alone; a stranger gets `Add buddy` with `Play Devon` as a
   /// tier-3 link centred under it — two ember-weight decisions side by side is
   /// the thing the blind review filed. A pending ask is a TAG, because there
   /// is nothing to tap that can do anything. **Your own card carries no action
@@ -355,7 +355,7 @@ struct PersonPage: View {
               $0.isEmpty ? nil : "\(RoundCopy.course($0)) is on the board because \(first) keeps it."
             } ?? TourCard.noRoundsYet(name),
             // **The door is required and never nil** — and it is never a
-            // second copy of the page's own primary either. `Play Galen` is
+            // second copy of the page's own primary either. `Play Blake` is
             // already the ember above; a second ember pill 300pt below it,
             // with the same verb, is one act offered twice at two weights
             // (§16A.5, and Home's own floor rule from Wave 1). On somebody

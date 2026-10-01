@@ -1,7 +1,7 @@
 import XCTest
 final class SeasonBookUITests: XCTestCase {
   @MainActor private func launch(_ fixture: String="squads",screen:String="book",extra:[String]=[]) -> XCUIApplication {
-    let app=XCUIApplication();app.launchArguments=["-cs_dev_compete_selected","-cs_selected_fixture",fixture,"-cs_selected_screen",screen,"-cs_dev_appearance","dark","-cs_dev_look","none"]+extra;app.launch();return app
+    let app=XCUIApplication();app.launchArguments=["-cs_dev_compete_selected","-cs_selected_fixture",fixture,"-cs_selected_screen",screen,"-cs_dev_appearance","dark","-cs_dev_look","none"]+extra;app.terminate();app.launch();return app
   }
   @MainActor func testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts() {
     let app=launch(), id="squad:c50b0000-0000-4000-8000-000000000300"
@@ -40,4 +40,24 @@ final class SeasonBookUITests: XCTestCase {
     let race=launch(extra:["-cs_selected_mode","Race"])
     XCTAssertTrue(race.staticTexts["seasonBook.race.title"].waitForExistence(timeout:15))
   }
+  @MainActor func testDelayedRefreshKeepsTheGolfersViewAndTotals() {
+    let app=launch(extra:["-cs_selected_refresh_read","yes"])
+    let group=app.segmentedControls["seasonBook.group"]
+    XCTAssertTrue(group.waitForExistence(timeout:15))
+    group.buttons["Golfers"].tap()
+    let mode=app.segmentedControls["seasonBook.mode"]
+    mode.buttons["Totals"].tap()
+    let scroll=app.scrollViews["seasonBook.scroll"]
+    XCTAssertEqual(scroll.value as? String,"Book read 1")
+    scroll.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.2))
+      .press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.85)))
+    let completed=NSPredicate(format:"value == %@","Book read 2")
+    expectation(for:completed,evaluatedWith:scroll)
+    waitForExpectations(timeout:10)
+    XCTAssertTrue(group.waitForExistence(timeout:10))
+    XCTAssertTrue(group.buttons["Golfers"].isSelected)
+    XCTAssertTrue(mode.buttons["Totals"].isSelected)
+    let shot=XCTAttachment(screenshot:app.screenshot()); shot.name="Book refreshed · Golfers and Totals"; shot.lifetime = .keepAlways; add(shot)
+  }
+
 }

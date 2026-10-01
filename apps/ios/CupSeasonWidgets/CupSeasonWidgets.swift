@@ -25,6 +25,44 @@ struct CupSeasonWidgets: WidgetBundle {
     BetweenRoundsWidget(kind: .nextTee)
     BetweenRoundsWidget(kind: .record)
     BetweenRoundsWidget(kind: .rivalry)
+    WhatsOnWidget()
+  }
+}
+
+// MARK: - D400 · What's On
+//
+// Home's ranked cards, turning. The provider lays out six hours of turns from
+// the snapshot in hand (one every 20 minutes), plus the stale line, and asks
+// again at the end of them or when the app writes a new snapshot.
+struct WhatsOnEntry: TimelineEntry {
+  let date: Date
+  let step: Int
+  let snapshot: BetweenRoundsSnapshot?
+}
+struct WhatsOnProvider: TimelineProvider {
+  func placeholder(in context: Context) -> WhatsOnEntry { .init(date: Date(), step: 0, snapshot: nil) }
+  func getSnapshot(in context: Context, completion: @escaping (WhatsOnEntry) -> Void) {
+    completion(.init(date: Date(), step: 0, snapshot: BetweenRoundsSnapshot.read()))
+  }
+  func getTimeline(in context: Context, completion: @escaping (Timeline<WhatsOnEntry>) -> Void) {
+    let now = Date(), snapshot = BetweenRoundsSnapshot.read()
+    // the large tile shows every item at once, so it has nothing to turn
+    let turns: [(date: Date, step: Int)] = context.family == .systemLarge
+      ? [(date: now, step: 0)] : (snapshot?.rotationDates(now: now) ?? [(date: now, step: 0)])
+    let entries = turns.map { WhatsOnEntry(date: $0.date, step: $0.step, snapshot: snapshot) }
+    let next = (turns.last?.date ?? now).addingTimeInterval(BetweenRoundsSnapshot.rotationStep)
+    completion(Timeline(entries: entries, policy: .after(max(next, now.addingTimeInterval(1800)))))
+  }
+}
+struct WhatsOnWidget: Widget {
+  var body: some WidgetConfiguration {
+    StaticConfiguration(kind: BetweenRoundsKind.whatsOn.rawValue, provider: WhatsOnProvider()) { entry in
+      WhatsOnWidgetView(snapshot: entry.snapshot, date: entry.date, step: entry.step)
+    }
+    .configurationDisplayName(BetweenRoundsKind.whatsOn.title)
+    .description(BetweenRoundsWidget(kind: .whatsOn).blurb)
+    .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
+    .contentMarginsDisabled()
   }
 }
 
@@ -52,16 +90,17 @@ struct BetweenRoundsWidget: Widget {
       BetweenRoundsWidgetView(kind: kind, snapshot: entry.snapshot, date: entry.date)
     }
     .configurationDisplayName(kind.title)
-    .description(description)
+    .description(blurb)
     .supportedFamilies(kind == .race || kind == .nextTee ? [.systemSmall, .systemMedium, .accessoryRectangular] : [.systemSmall, .systemMedium])
     .contentMarginsDisabled()
   }
-  private var description: String {
+  var blurb: String {
     switch kind {
     case .race: "Your place in the season, with the points and names around you."
     case .nextTee: "Your next tee time. Reply to an invitation right here."
     case .record: "A round to keep, from your own record."
     case .rivalry: "The weekly clash record between you and a familiar rival."
+    case .whatsOn: "What’s happening in your seasons and with your golfers, the way Home ranks it."
     }
   }
 }

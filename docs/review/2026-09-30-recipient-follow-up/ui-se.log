@@ -1,0 +1,194 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /private/tmp/codex-sprint-derived/Build/Products/CupSeason_iphonesimulator27.0-arm64.xctestrun -destination "platform=iOS Simulator,id=174C22E0-5668-4E7D-BCB6-D55E56F46DAF" -resultBundlePath /private/tmp/codex-recipient-ui-se-verified.xcresult "-only-testing:CupSeasonUITests/RecipientJourneyUITests" -parallel-testing-enabled NO -collect-test-diagnostics never
+
+Writing result bundle at path:
+	/private/tmp/codex-recipient-ui-se-verified.xcresult
+
+2026-09-30 14:18:06.497870-0700 CupSeasonUITests-Runner[52306:50374610] [Default] Running tests...
+2026-09-30 14:18:06.528144-0700 CupSeasonUITests-Runner[52306:50374678] [General] Failed to send CA Event for app launch measurements for ca_event_type: 0 event_name: com.apple.app_launch_measurement.FirstFramePresentationMetric
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-09-30 14:18:07.061.
+Test Suite 'CupSeasonUITests.xctest' started at 2026-09-30 14:18:07.062.
+Test Suite 'RecipientJourneyUITests' started at 2026-09-30 14:18:07.062.
+Test Case '-[CupSeasonUITests.RecipientJourneyUITests testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3]' started.
+    t =     0.00s Start Test at 2026-09-30 14:18:07.062
+2026-09-30 14:18:07.106605-0700 CupSeasonUITests-Runner[52306:50374679] [General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+    t =     0.06s Set Up
+    t =     0.06s Terminate app.cupseason.ios:0
+    t =     0.06s Open app.cupseason.ios
+    t =     0.06s     Launch app.cupseason.ios
+2026-09-30 14:18:07.320 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 14:18:07.320 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[52306]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10991c310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108dd0398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.07s         Setting up automation session
+    t =     1.81s         Wait for app.cupseason.ios to idle
+<unknown>:0: warning: -[CupSeasonUITests.RecipientJourneyUITests testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3] : Initial session emitted after attempting to refresh the local stored session.
+This is incorrect behavior and will be fixed in the next major release since it's a breaking change.
+To opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.
+The new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.
+If you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.
+
+Check https://github.com/supabase/supabase-swift/pull/822 for more information.
+    t =     3.17s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =     4.25s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =     4.25s         Checking existence of `"covenant.openSeason" Button`
+    t =     4.32s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =     5.35s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =     5.35s         Checking existence of `"covenant.openSeason" Button`
+    t =     5.37s Find the "covenant.openSeason" Button
+    t =     5.39s Find the "covenant.openSeason" Button
+    t =     5.41s Find the "covenant.openSeason" Button
+    t =     5.42s Find the "covenant.openSeason" Button
+    t =     5.44s Find the "covenant.openSeason" Button
+    t =     5.45s Find the "covenant.openSeason" Button
+    t =     5.46s Find the "covenant.openSeason" Button
+    t =     5.48s Find the "covenant.openSeason" Button
+    t =     5.49s Find the "covenant.openSeason" Button
+    t =     5.50s Find the "covenant.openSeason" Button
+    t =     5.51s Checking existence of `StaticText (First Match)`
+    t =     5.52s Find the StaticText (First Match)
+    t =     5.53s Find the "covenant.openSeason" Button
+    t =     5.54s Find the Target Application 'app.cupseason.ios'
+    t =     5.59s Added attachment named 'agreed-season-dark-large'
+    t =     5.59s Tap "covenant.openSeason" Button
+    t =     5.59s     Wait for app.cupseason.ios to idle
+    t =     5.59s     Find the "covenant.openSeason" Button
+    t =     5.60s     Check for interrupting elements affecting "covenant.openSeason" Button
+    t =     5.61s     Synthesize event
+    t =     5.90s     Wait for app.cupseason.ios to idle
+    t =     6.27s Waiting 10.0s for "recipient.opened" StaticText to exist
+    t =     7.31s     Checking `Expect predicate `existsNoRetry == 1` for object "recipient.opened" StaticText`
+    t =     7.31s         Checking existence of `"recipient.opened" StaticText`
+    t =     7.32s Terminate app.cupseason.ios:52321
+    t =     8.39s Terminate app.cupseason.ios:0
+    t =     8.39s Open app.cupseason.ios
+    t =     8.39s     Launch app.cupseason.ios
+2026-09-30 14:18:15.463 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 14:18:15.463 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     8.61s         Setting up automation session
+    t =     9.32s         Wait for app.cupseason.ios to idle
+    t =    10.57s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =    11.58s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =    11.59s         Checking existence of `"covenant.openSeason" Button`
+    t =    11.65s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =    12.70s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =    12.70s         Checking existence of `"covenant.openSeason" Button`
+    t =    12.73s Find the "covenant.openSeason" Button
+    t =    12.75s Find the "covenant.openSeason" Button
+    t =    12.77s Find the "covenant.openSeason" Button
+    t =    12.78s Find the "covenant.openSeason" Button
+    t =    12.79s Find the "covenant.openSeason" Button
+    t =    12.80s Find the "covenant.openSeason" Button
+    t =    12.82s Find the "covenant.openSeason" Button
+    t =    12.83s Find the "covenant.openSeason" Button
+    t =    12.84s Find the "covenant.openSeason" Button
+    t =    12.85s Find the "covenant.openSeason" Button
+    t =    12.86s Checking existence of `StaticText (First Match)`
+    t =    12.87s Find the StaticText (First Match)
+    t =    12.89s Find the "covenant.openSeason" Button
+    t =    12.90s Find the Target Application 'app.cupseason.ios'
+    t =    12.94s Added attachment named 'agreed-season-dark-accessibility3'
+    t =    12.94s Tap "covenant.openSeason" Button
+    t =    12.94s     Wait for app.cupseason.ios to idle
+    t =    12.94s     Find the "covenant.openSeason" Button
+    t =    12.95s     Check for interrupting elements affecting "covenant.openSeason" Button
+    t =    12.96s     Synthesize event
+    t =    13.25s     Wait for app.cupseason.ios to idle
+    t =    13.59s Waiting 10.0s for "recipient.opened" StaticText to exist
+    t =    14.65s     Checking `Expect predicate `existsNoRetry == 1` for object "recipient.opened" StaticText`
+    t =    14.65s         Checking existence of `"recipient.opened" StaticText`
+    t =    14.67s Terminate app.cupseason.ios:52386
+    t =    15.74s Terminate app.cupseason.ios:0
+    t =    15.74s Open app.cupseason.ios
+    t =    15.74s     Launch app.cupseason.ios
+2026-09-30 14:18:22.804 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 14:18:22.804 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    15.95s         Setting up automation session
+    t =    16.60s         Wait for app.cupseason.ios to idle
+    t =    17.85s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =    18.88s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =    18.89s         Checking existence of `"covenant.openSeason" Button`
+    t =    18.94s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =    19.98s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =    19.99s         Checking existence of `"covenant.openSeason" Button`
+    t =    20.01s Find the "covenant.openSeason" Button
+    t =    20.03s Find the "covenant.openSeason" Button
+    t =    20.04s Find the "covenant.openSeason" Button
+    t =    20.06s Find the "covenant.openSeason" Button
+    t =    20.07s Find the "covenant.openSeason" Button
+    t =    20.08s Find the "covenant.openSeason" Button
+    t =    20.10s Find the "covenant.openSeason" Button
+    t =    20.11s Find the "covenant.openSeason" Button
+    t =    20.12s Find the "covenant.openSeason" Button
+    t =    20.13s Find the "covenant.openSeason" Button
+    t =    20.14s Checking existence of `StaticText (First Match)`
+    t =    20.15s Find the StaticText (First Match)
+    t =    20.17s Find the "covenant.openSeason" Button
+    t =    20.18s Find the Target Application 'app.cupseason.ios'
+    t =    20.21s Added attachment named 'agreed-season-light-large'
+    t =    20.21s Tap "covenant.openSeason" Button
+    t =    20.21s     Wait for app.cupseason.ios to idle
+    t =    20.22s     Find the "covenant.openSeason" Button
+    t =    20.22s     Check for interrupting elements affecting "covenant.openSeason" Button
+    t =    20.23s     Synthesize event
+    t =    20.52s     Wait for app.cupseason.ios to idle
+    t =    20.86s Waiting 10.0s for "recipient.opened" StaticText to exist
+    t =    21.92s     Checking `Expect predicate `existsNoRetry == 1` for object "recipient.opened" StaticText`
+    t =    21.92s         Checking existence of `"recipient.opened" StaticText`
+    t =    21.94s Terminate app.cupseason.ios:52420
+    t =    23.02s Terminate app.cupseason.ios:0
+    t =    23.02s Open app.cupseason.ios
+    t =    23.03s     Launch app.cupseason.ios
+2026-09-30 14:18:30.091 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 14:18:30.091 xcodebuild[52279:50374203] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    23.24s         Setting up automation session
+    t =    23.95s         Wait for app.cupseason.ios to idle
+    t =    25.22s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =    26.27s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =    26.27s         Checking existence of `"covenant.openSeason" Button`
+    t =    26.31s Waiting 15.0s for "covenant.openSeason" Button to exist
+    t =    27.35s     Checking `Expect predicate `existsNoRetry == 1` for object "covenant.openSeason" Button`
+    t =    27.35s         Checking existence of `"covenant.openSeason" Button`
+    t =    27.37s Find the "covenant.openSeason" Button
+    t =    27.39s Find the "covenant.openSeason" Button
+    t =    27.40s Find the "covenant.openSeason" Button
+    t =    27.41s Find the "covenant.openSeason" Button
+    t =    27.42s Find the "covenant.openSeason" Button
+    t =    27.44s Find the "covenant.openSeason" Button
+    t =    27.45s Find the "covenant.openSeason" Button
+    t =    27.46s Find the "covenant.openSeason" Button
+    t =    27.47s Find the "covenant.openSeason" Button
+    t =    27.49s Find the "covenant.openSeason" Button
+    t =    27.49s Checking existence of `StaticText (First Match)`
+    t =    27.51s Find the StaticText (First Match)
+    t =    27.52s Find the "covenant.openSeason" Button
+    t =    27.53s Find the Target Application 'app.cupseason.ios'
+    t =    27.57s Added attachment named 'agreed-season-light-accessibility3'
+    t =    27.57s Tap "covenant.openSeason" Button
+    t =    27.57s     Wait for app.cupseason.ios to idle
+    t =    27.57s     Find the "covenant.openSeason" Button
+    t =    27.58s     Check for interrupting elements affecting "covenant.openSeason" Button
+    t =    27.59s     Synthesize event
+    t =    27.88s     Wait for app.cupseason.ios to idle
+    t =    28.23s Waiting 10.0s for "recipient.opened" StaticText to exist
+    t =    29.25s     Checking `Expect predicate `existsNoRetry == 1` for object "recipient.opened" StaticText`
+    t =    29.25s         Checking existence of `"recipient.opened" StaticText`
+    t =    29.27s Terminate app.cupseason.ios:52459
+    t =    30.35s Tear Down
+Test Case '-[CupSeasonUITests.RecipientJourneyUITests testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3]' passed (30.454 seconds).
+Test Suite 'RecipientJourneyUITests' passed at 2026-09-30 14:18:37.517.
+	 Executed 1 test, with 0 failures (0 unexpected) in 30.454 (30.455) seconds
+Test Suite 'CupSeasonUITests.xctest' passed at 2026-09-30 14:18:37.518.
+	 Executed 1 test, with 0 failures (0 unexpected) in 30.454 (30.456) seconds
+Test Suite 'Selected tests' passed at 2026-09-30 14:18:37.518.
+	 Executed 1 test, with 0 failures (0 unexpected) in 30.454 (30.457) seconds
+2026-09-30 14:18:37.831 xcodebuild[52279:50374203] [MT] IDETestOperationsObserverDebug: 32.572 elapsed -- Testing started completed.
+2026-09-30 14:18:37.831 xcodebuild[52279:50374203] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-30 14:18:37.831 xcodebuild[52279:50374203] [MT] IDETestOperationsObserverDebug: 32.572 sec, +32.572 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/codex-recipient-ui-se-verified.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

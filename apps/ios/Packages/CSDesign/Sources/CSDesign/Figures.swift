@@ -137,7 +137,7 @@ public struct CSFigure: View {
 // MARK: - The figure run
 
 /// A numeral set in the board face **inside a sentence**, so the number is
-/// always in the number's voice: "Best: **84**, Tash."
+/// always in the number's voice: "Best: **84**, Devon."
 ///
 /// **The producer marks the run. There is no regex.** A regex over prose also
 /// restyles dates, money, ordinals and any digit inside a course name — and it
@@ -152,14 +152,14 @@ public struct CSFigureRun: View {
   /// never the reader's; a run there is the board face at that same size.
   var fixed: CGFloat? = nil
 
-  /// `"Galen shot {74} at Papago"` at a fixed size, for a canvas that is
+  /// `"Blake shot {74} at Saguaro Flats"` at a fixed size, for a canvas that is
   /// exported (the settlement card, the record card).
   public init(_ marked: String, role: CSType.Role, fixed points: CGFloat) {
     self.init(marked, role: role)
     self.fixed = points
   }
 
-  /// `"Galen shot {74} at Papago"` — the braces are the producer's mark and
+  /// `"Blake shot {74} at Saguaro Flats"` — the braces are the producer's mark and
   /// never render.
   public init(_ marked: String, role: CSType.Role = .body) {
     var body = ""

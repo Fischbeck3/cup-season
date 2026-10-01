@@ -156,7 +156,7 @@ public enum RyderMath {
            sessionCount: room.event.session_count, sessionRows: room.sessions.count)
   }
 
-  /// `Forming` · `Live · week 2 of 3` · `Saguaros take the cup` ·
+  /// `Forming` · `Live · week 2 of 3` · `Fixture Owls take the cup` ·
   /// `Shared — both names on it`.
   ///
   /// **CASE BELONGS TO THE ROLE** (§1.3, and §9's producer edit 2). This
@@ -182,7 +182,7 @@ public enum RyderMath {
                closedSessions: room.sessions.filter { $0.isClosed }.count, sessionCount: room.event.session_count)
   }
 
-  /// `Final. Saguaros took it 5–4.` · `First to 5. Saguaros need 1½, Coyotes need 2½.`
+  /// `Final. Fixture Owls took it 5–4.` · `First to 5. Fixture Owls need 1½, Fixture Foxes need 2½.`
   ///
   /// **The sentence is the story; the figures above it are the record** (§9.9),
   /// so it is prose in `body` and not a fourth line of tracked caps. It shipped
@@ -539,7 +539,7 @@ public enum MajorMath {
                opensAhead: f.opensAhead, opensOn: f.session?.opens_on, today: today, calendar: calendar)
   }
 
-  /// D61 — "THE 2ND ANNUAL · MARCUS DEFENDS". nil until the chain has two editions.
+  /// D61 — "THE 2ND ANNUAL · CASEY DEFENDS". nil until the chain has two editions.
   public static func lineageLine(lineage: [EventLineageRow], eventId: UUID, complete: Bool) -> String? {
     let chain = lineage.filter { $0.isMajor }
     guard chain.count > 1, let idx = chain.firstIndex(where: { $0.eventId == eventId }) else { return nil }

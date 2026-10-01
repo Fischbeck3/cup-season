@@ -53,7 +53,6 @@ final class LiveRoundStore {
   /// F13 · `1 eagle · 1 birdie` from MY committed holes, or nil.
   var momentTally: String?
   private var momentLedger = HoleMomentLedger()
-  private var momentClear: Task<Void, Never>?
   var busy = false
   var scoreOnPhone = false
   var localSaveError: String?
@@ -275,9 +274,9 @@ final class LiveRoundStore {
   private func seedDevNearby() {
     var me = LivePlayer(n: "You", i: 8.4, ci: 1, guest: false, me: true, locked: true, team: "—")
     me.pid = UUID()
-    let jade = LivePlayer(id: "p:jade", n: "Jade", i: 11.2, ci: -1, guest: true, buddy: true,
+    let emery = LivePlayer(id: "p:emery", n: "Emery", i: 11.2, ci: -1, guest: true, buddy: true,
                           pid: UUID(), team: nil, regular: 0, nearby: true)
-    roster = [me, jade]
+    roster = [me, emery]
     sel = [0]
     rosterPrimed = true
     var fresh = LiveRoundState.fresh()
@@ -288,7 +287,7 @@ final class LiveRoundStore {
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_nearby_invite") {
       Task { @MainActor in
         try? await Task.sleep(for: .seconds(2))
-        self.incoming = NearbyInvite(from: UUID(), name: "Jerecho",
+        self.incoming = NearbyInvite(from: UUID(), name: "Avery",
                                      course: "Bajamar Golf Club", game: "Match play")
       }
     }
@@ -1011,14 +1010,14 @@ final class LiveRoundStore {
   }
 
   // D155 · walking holes moves the island too — it shows the hole you are on
-  func prevHole() { state.hole = max(0, state.hole - 1); persist(); refreshActivity() }
-  func nextHole() {
-    // F13 · the stepper persists every tap, so a score passing through 3 on
-    // its way to 5 has already been saved three times. LEAVING the hole is
-    // the moment the score stops changing, and that — the existing advance
-    // boundary, not a new "submit" — is when a birdie is real.
+  func prevHole() { moveHole(to: state.hole - 1) }
+  func nextHole() { moveHole(to: state.hole + 1) }
+  private func moveHole(to next: Int) {
+    guard next >= 0, next < state.liveHoles, next != state.hole else { return }
+    CSMotion.run { moment = nil }
     commitMoment(leaving: state.hole)
-    state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); refreshActivity()
+    state.hole = next
+    persist(); refreshActivity()
   }
 
   private func refreshActivity() {
@@ -1078,12 +1077,6 @@ final class LiveRoundStore {
     CSMotion.run { moment = LiveHoleMomentData(kind: m, hole: h + 1) }
     // distinct, optional, and heavier for the rarer bird
     if m == .eagle { CSHaptic.success() } else { CSHaptic.impact(.medium) }
-    momentClear?.cancel()
-    momentClear = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(3.2))
-      guard !Task.isCancelled, let self else { return }
-      CSMotion.run { self.moment = nil }
-    }
   }
   /// Arm the ledger WITHOUT speaking: a reopened card, a reconnect, another
   /// phone's echo of my scores. After this, nothing already on the card can

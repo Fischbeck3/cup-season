@@ -22,12 +22,12 @@ import Foundation
   /// record.** It names them, and the best gross is a marked figure run —
   /// braces from the producer, never a regex over prose.
   @Test func itNamesThemAndMarksTheFigure() {
-    let a = CoursePageAnswer(others: [row("Galen Marr", 79), row("Tash Bell", 84),
-                                      row("Jade Okafor", 88)])
+    let a = CoursePageAnswer(others: [row("Blake Sample", 79), row("Devon Testwell", 84),
+                                      row("Emery Mockridge", 88)])
     // D322 · "theirs", not "them". `others` excludes the viewer by
     // construction and the page prints a YOUR BEST tile directly above it, so
     // the word has to carry the exclusion the arithmetic already does.
-    #expect(a.friendsLine == "Galen, Tash and Jade. Galen’s {79} is the best of theirs.")
+    #expect(a.friendsLine == "Blake, Devon and Emery. Blake’s {79} is the best of theirs.")
   }
 
   /// **Nobody else has played it: the block does not render**, rather than a
@@ -48,24 +48,24 @@ import Foundation
   /// L-44 · a golfer with no gross still gets named; the page does not invent
   /// a number to finish its own sentence.
   @Test func noGrossMeansNoClaimAboutABest() {
-    #expect(CoursePageAnswer(others: [row("Dev Patel", nil)]).friendsLine == "Dev has played it.")
+    #expect(CoursePageAnswer(others: [row("Devon Testwell", nil)]).friendsLine == "Devon has played it.")
     // and with several, the list stands alone rather than inventing a best
-    #expect(CoursePageAnswer(others: [row("Dev Patel", nil), row("Tash Bell", nil)])
-              .friendsLine == "Dev and Tash.")
+    #expect(CoursePageAnswer(others: [row("Devon Testwell", nil), row("Emery Mockridge", nil)])
+              .friendsLine == "Devon and Emery.")
   }
 
   /// **THE BUG THE OWNER FOUND ON HIS OWN COURSE PAGE** (D322). One other
-  /// golfer had played Gold Canyon, and the page printed *"Galen. Galen's 92
+  /// golfer had played Gold Canyon, and the page printed *"Blake. Blake's 92
   /// is the best of them."* — the list clause introduces a GROUP and the
   /// second singles one out of it, so with one person both are the same name.
   /// **One round is not the best of anything**, so a lone golfer gets no
   /// superlative at all.
   @Test func oneOtherGolferIsNotAGroupAndHasNoBest() {
-    let one = CoursePageAnswer(others: [row("Galen Marr", 92)]).friendsLine
-    #expect(one == "Galen has played it — a {92}.")
+    let one = CoursePageAnswer(others: [row("Blake Sample", 92)]).friendsLine
+    #expect(one == "Blake has played it — a {92}.")
     #expect(!one.contains("best"))
     // the name is said ONCE
-    #expect(one.components(separatedBy: "Galen").count - 1 == 1)
+    #expect(one.components(separatedBy: "Blake").count - 1 == 1)
   }
 
   /// **No tee name, because `rounds` does not carry one.** The design asks for
@@ -73,8 +73,8 @@ import Foundation
   /// nothing else, so the row prints what is true.
   @Test func theSublineIsTheDateAndTheHoleCount() {
     let cal = Calendar(identifier: .gregorian)
-    #expect(row("Tash Bell", 84).subline(calendar: cal).contains("Aug 30"))
-    let nine = CourseRoundRow(id: UUID(), profileId: UUID(), name: "Tash", marker: nil,
+    #expect(row("Devon Testwell", 84).subline(calendar: cal).contains("Aug 30"))
+    let nine = CourseRoundRow(id: UUID(), profileId: UUID(), name: "Devon", marker: nil,
                               gross: 41, playedOn: "2026-08-30", holesPlayed: 9)
     #expect(nine.subline(calendar: cal).hasSuffix("nine holes"))
   }
@@ -124,14 +124,14 @@ import Foundation
       "friends": .number(4.5), "friends_count": .number(6), "mine": .number(5),
       "mine_note": .string("Best muni in the state and it isn’t close."),
       "notes": .array([
-        .object(["who": .string("Galen Marr"), "stars": .number(4.5),
+        .object(["who": .string("Blake Sample"), "stars": .number(4.5),
                  "note": .string("The 12th is the only hole that scares me.")]),
         .object(["who": .string(""), "stars": .number(3), "note": .string("no name")]),
-        .object(["who": .string("Jade"), "stars": .number(4), "note": .string("")])])])
+        .object(["who": .string("Emery"), "stars": .number(4), "note": .string("")])])])
     let r = CourseRatingService.decode(v)
     #expect(r.mineNote == "Best muni in the state and it isn’t close.")
     #expect(r.notes.count == 1)
-    #expect(r.notes.first?.line == "Galen Marr · 4.5")
+    #expect(r.notes.first?.line == "Blake Sample · 4.5")
   }
 
   /// A rating with no sentence is the common case, and it is nil rather than
@@ -170,14 +170,14 @@ import Foundation
 
   /// A course row is a first-name room.
   @Test func firstNames() {
-    #expect(CourseNames.first("Galen Marr") == "Galen")
+    #expect(CourseNames.first("Blake Sample") == "Blake")
     #expect(CourseNames.first("Dev") == "Dev")
   }
 
   @Test func theList() {
     #expect(CourseNames.list([]) == "")
-    #expect(CourseNames.list(["Galen"]) == "Galen")
-    #expect(CourseNames.list(["Galen", "Tash"]) == "Galen and Tash")
-    #expect(CourseNames.list(["Galen", "Tash", "Jade"]) == "Galen, Tash and Jade")
+    #expect(CourseNames.list(["Blake"]) == "Blake")
+    #expect(CourseNames.list(["Blake", "Devon"]) == "Blake and Devon")
+    #expect(CourseNames.list(["Blake", "Devon", "Emery"]) == "Blake, Devon and Emery")
   }
 }

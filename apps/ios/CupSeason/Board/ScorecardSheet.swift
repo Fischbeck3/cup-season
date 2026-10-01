@@ -190,11 +190,11 @@ struct ScorecardSheet: View {
 
 #Preview("scorecard") {
   let json = """
-  {"round":{"game":"match","course_label":"Papago","course_snapshot":{"holes":18,"pars":[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5],"si":[7,3,15,1,9,11,17,5,13,8,16,2,10,4,12,18,6,14]},
-   "game_config":{"side_a":["Jerecho"],"side_b":["Ed"]},
-   "game_result":{"story":"Jerecho def. Ed 3&2","holes":{"mode":"sides","cells":["a",null,"b","a",null,"a","a",null,"b","a",null,"a","a","a","b","a",null,null]}},
+  {"round":{"game":"match","course_label":"Saguaro Flats","course_snapshot":{"holes":18,"pars":[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5],"si":[7,3,15,1,9,11,17,5,13,8,16,2,10,4,12,18,6,14]},
+   "game_config":{"side_a":["Avery"],"side_b":["Ed"]},
+   "game_result":{"story":"Avery def. Ed 3&2","holes":{"mode":"sides","cells":["a",null,"b","a",null,"a","a",null,"b","a",null,"a","a","a","b","a",null,null]}},
    "finished_at":"2026-08-22T18:10:00Z"},
-   "players":[{"name":"Jerecho","guest":false,"strokes":[4,4,4,5,4,3,3,4,6,4,3,4,5,4,5,3,4,null]},
+   "players":[{"name":"Avery","guest":false,"strokes":[4,4,4,5,4,3,3,4,6,4,3,4,5,4,5,3,4,null]},
               {"name":"Ed","guest":true,"strokes":[5,4,3,6,4,4,4,4,5,5,3,5,6,5,4,4,4,null]}]}
   """
   let card = Scorecard(try! JSONDecoder().decode(JSONValue.self, from: Data(json.utf8)))!

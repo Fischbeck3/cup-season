@@ -70,12 +70,12 @@ public extension View {
 #Preview("A11yStack · reading vs accessibility") {
   VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
     A11yStack {
-      Text("Galen Ross").font(CSFont.subhead)
+      Text("Blake Ross").font(CSFont.subhead)
       Spacer()
       Text("27").font(CSFont.stat)
     }
     A11yStack(forceColumn: true) {
-      Text("Galen Ross").font(CSFont.subhead)
+      Text("Blake Ross").font(CSFont.subhead)
       Spacer()
       Text("27").font(CSFont.stat)
     }

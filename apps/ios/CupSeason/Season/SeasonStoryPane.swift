@@ -183,7 +183,7 @@ struct SeasonStoryPane: View {
     }
   }
 
-  /// `Sat Sep 5 · Papago` — **sentence case**, because it is a phrase and not a
+  /// `Sat Sep 5 · Saguaro Flats` — **sentence case**, because it is a phrase and not a
   /// label, and so it costs none of the viewport's ten tracked-caps lines.
   /// **Clamped to today**: a week-5 item dated tomorrow on a device reading
   /// today is a story about the future.

@@ -11,7 +11,7 @@
 // SEASONS as the leaf · TROPHIES as slats · HEAD TO HEAD.
 //
 // THE HEADLINE READS THE FIELD THE RAIL READS. The blind review's first
-// finding was that *"the best of them an 80, at Papago"* sat 200pt above
+// finding was that *"the best of them an 80, at Saguaro Flats"* sat 200pt above
 // `74 BEST` and a trophy reading `74 at Troon North` — three numbers for one
 // fact, and on the page whose promise is that every number shows its work,
 // that costs more credibility than any spacing error. `RecordModel.headline`

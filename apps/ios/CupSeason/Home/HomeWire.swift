@@ -329,7 +329,7 @@ struct HomeWireCourse: View {
 /// **THE RANKER PUT THIS ABOVE EVERY BOARD NOTE; THE PAGE HAS TO SAY SO.**
 /// A clash that is open, a standing that has moved, a plan on the books — the
 /// shipped wire drew all three at `bodyS` 15 `mut` behind a 34pt date column,
-/// which is the same object it drew *"Fellas · 4 earlier league notes"* with.
+/// which is the same object it drew *"North Grove (fixture) · 4 earlier league notes"* with.
 /// Ten rows of one weight is the wall the owner photographed.
 ///
 /// So it takes the page's reading size in `ink` — `body` 17, one step up and

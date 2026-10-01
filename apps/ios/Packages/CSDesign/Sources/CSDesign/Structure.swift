@@ -334,7 +334,7 @@ public struct CSRecordLeaf: View {
     public let id: String
     /// `2026`. Absent rather than guessed.
     public let year: String?
-    /// `The Fellas`
+    /// `North Grove (fixture)`
     public let competition: String
     /// `Season one` — the qualifier, in agate beside the name.
     public let qualifier: String?
@@ -346,7 +346,7 @@ public struct CSRecordLeaf: View {
     /// `FORMING`) — §14.1's degrade, printed in `column` rather than as a
     /// figure, so it is never mistaken for a place.
     public let line: String?
-    /// W2 · a LIVE season's standing (`2ND OF 6 · 41 PTS · IN SEASON`), under
+    /// W2 · a LIVE season's standing (`2ND OF 6 · 41 PTS`), under
     /// the name: a season in play has no finish, so its finish column says
     /// "In play" and the line that says where it stands moves here.
     public let standing: String?

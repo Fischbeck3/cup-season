@@ -198,7 +198,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
 
   // MARK: - the six facts, as sentences. A missing fact renders NOTHING (L-44).
 
-  /// 1 · WHO COMES BEFORE THE MONEY. "Galen runs the season (the Pro). Marcus,
+  /// 1 · WHO COMES BEFORE THE MONEY. "Blake runs the season (the Pro). Casey,
   /// Dev and two more are in." D132's noun, finally DEFINED at first contact.
   public var whoLine: String? {
     var parts: [String] = []
@@ -318,13 +318,11 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     // five-week season. The words stay the phone's (root's covenant ruling).
     let shortSeason = (weeks ?? 0) > 0 && (weeks ?? 0) < 6
     if finish == "points_table" || shortSeason { return "The season's points decide it. No reset." }
-    // Q35 (a) · the Cup Final still fits the monthly counting limit (web csCovenantFacts + CS_FINAL_COUNTING)
-    let counting = "Final rounds must also fit the monthly counting limit; an earlier round can take a place."
-    if finish == "cup_final", structure == "squads2" { return "Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start. \(counting)" }
+    if finish == "cup_final", structure == "squads2" { return "Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start. " + LeagueCopy.finalCounting }
     if finish == "cup_final", let structure {
-      return structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh. \(counting)" : "The top two squads qualify for a four-week Cup Final, scored fresh. \(counting)"
+      return (structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh." : "The top two squads qualify for a four-week Cup Final, scored fresh.") + " " + LeagueCopy.finalCounting
     }
-    if finish == "cup_final" { return "It ends with a four-week Cup Final between the top two." }
+    if finish == "cup_final" { return "It ends with a four-week Cup Final." }
     return "The season’s ending will appear here when its rules are set."
   }
 
@@ -414,7 +412,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// The head, and the order the screen draws the facts in. WHO comes before the
   /// money, and that order is a value rather than the way a View happens to be
   /// written.
-  /// `csCovenantTitle`: "Season 2 of the Fellas" for a re-up, else the first-join head.
+  /// `csCovenantTitle`: "Season 2 of North Grove (fixture)" for a re-up, else the first-join head.
   public var head: String {
     isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name == Covenant.unnamed ? "your league" : name)" : "Before you join \(name)"
   }
@@ -426,6 +424,34 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// pinned order (the web's `CS_COVENANT_FACTS`): `facts(today:)` splices it
   /// in after the length, as the web's sheet splices `csCovenantClock`.
   public enum Fact: String, Sendable, Equatable, CaseIterable { case season, who, length, structure, rules, ending, stake, ledger, split, pay, starter, joining }
+  /// Q15(3): one grouping producer, matching csCovenantGroups on the web.
+  public enum Group: String, Sendable, CaseIterable {
+    case who, scores, money
+    public var title: String {
+      switch self { case .who: "Who"; case .scores: "How it scores"; case .money: "The money" }
+    }
+  }
+  public struct FactGroup: Sendable {
+    public let kind: Group
+    public let facts: [(Fact, String)]
+  }
+  public func groups(postedRounds: Int? = nil, today: String? = nil,
+                     calendar: Calendar = .current) -> [FactGroup] {
+    let all = facts(postedRounds: postedRounds, today: today, calendar: calendar)
+    return Group.allCases.compactMap { group in
+      let kept = all.filter { fact, _ in
+        let kind: Group
+        switch fact {
+        case .season, .who, .structure: kind = .who
+        case .length, .joining, .rules, .ending, .starter: kind = .scores
+        case .stake, .ledger, .split, .pay: kind = .money
+        }
+        return kind == group
+      }
+      return kept.isEmpty ? nil : FactGroup(kind: group, facts: kept)
+    }
+  }
+
   /// Every fact this covenant can actually say, in order. A fact with no read is
   /// simply not in the list (L-44) — which is what makes "absent facts render
   /// nothing" a test rather than a promise.

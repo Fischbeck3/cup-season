@@ -53,8 +53,8 @@ enum CompeteFixture {
     let json = """
     {
       "profile": { "id": "C50F0000-0000-4000-8000-000000000001",
-                   "display_name": "Jerecho", "handle": "jerecho", "marker": "saguaro",
-                   "city": "Tempe", "home_course": "Papago", "index_current": 12.4,
+                   "display_name": "Avery", "handle": "avery", "marker": "saguaro",
+                   "city": "Mesa", "home_course": "Saguaro Flats", "index_current": 12.4,
                    "index_source": "derived", "photo_path": null, "rounds_count": 9,
                    "member_since": null, "is_founder": true },
       "memberships": [
@@ -62,7 +62,7 @@ enum CompeteFixture {
           "league_id": "C50F0000-0000-4000-8000-000000000010",
           "name": "Who's the bitch?", "code": "BITCH", "phase": "season", "sandbox": false,
           "role": "player", "member_id": "C50F0000-0000-4000-8000-000000000011",
-          "marker": "saguaro", "commissioner_name": "Galen", "members": 2, "roster": 2,
+          "marker": "saguaro", "commissioner_name": "Blake", "members": 2, "roster": 2,
           "settings": { "structure": "solo", "buyin_cents": 0, "counting_cap": 4,
                         "participation_floor": 2, "finish": "cup_final" },
           "season": { "id": "C50F0000-0000-4000-8000-000000000012", "number": 2,
@@ -70,13 +70,13 @@ enum CompeteFixture {
                       "week_no": 8, "weeks_total": 15, "days_left": 53 },
           "standing": { "rank": 2, "of": 2, "points": 15, "prev_rank": 2,
                         "leader_squad_id": null, "leader_points": 19,
-                        "gap_to_leader": 4, "gap_to_next": null, "leader_name": "Galen" }
+                        "gap_to_leader": 4, "gap_to_next": null, "leader_name": "Blake" }
         },
         {
           "league_id": "C50F0000-0000-4000-8000-000000000020",
-          "name": "The Fellas", "code": "FELLAS", "phase": "season", "sandbox": false,
+          "name": "North Grove (fixture)", "code": "NGFX26", "phase": "season", "sandbox": false,
           "role": "commissioner", "member_id": "C50F0000-0000-4000-8000-000000000021",
-          "marker": "lonetree", "commissioner_name": "Jerecho", "members": 8, "roster": 8,
+          "marker": "lonetree", "commissioner_name": "Avery", "members": 8, "roster": 8,
           "settings": { "structure": "solo", "buyin_cents": 6000, "counting_cap": 4,
                         "participation_floor": 2, "finish": "cup_final" },
           "buy_in": { "paid": true, "players": 8, "paid_count": 6, "collected_cents": 36000 },
@@ -85,14 +85,14 @@ enum CompeteFixture {
                       "week_no": 3, "weeks_total": 26, "days_left": 166 },
           "standing": { "rank": 1, "of": 8, "points": 25, "prev_rank": 2,
                         "leader_squad_id": null, "leader_points": 25,
-                        "gap_to_leader": 0, "gap_to_next": 6, "leader_name": "Jerecho",
-                        "runner_up_name": "Jade", "runner_up_points": 19 }
+                        "gap_to_leader": 0, "gap_to_next": 6, "leader_name": "Avery",
+                        "runner_up_name": "Emery", "runner_up_points": 19 }
         },
         {
           "league_id": "C50F0000-0000-4000-8000-000000000030",
           "name": "The Dew Sweepers", "code": "DEWSW", "phase": "season", "sandbox": false,
           "role": "player", "member_id": "C50F0000-0000-4000-8000-000000000031",
-          "marker": "dunes", "commissioner_name": "Tash", "members": 12, "roster": 12,
+          "marker": "dunes", "commissioner_name": "Devon", "members": 12, "roster": 12,
           "settings": { "structure": "squads4", "buyin_cents": 0, "counting_cap": 4,
                         "participation_floor": 2, "finish": "points" },
           "season": { "id": "C50F0000-0000-4000-8000-000000000032", "number": 1,
@@ -106,11 +106,11 @@ enum CompeteFixture {
           "league_id": "C50F0000-0000-4000-8000-000000000040",
           "name": "Sunningdale Society", "code": "SUNNI", "phase": "complete", "sandbox": false,
           "role": "player", "member_id": "C50F0000-0000-4000-8000-000000000041",
-          "marker": "pews", "commissioner_name": "Mike", "members": 8, "roster": 8,
+          "marker": "pews", "commissioner_name": "Gray", "members": 8, "roster": 8,
           "settings": { "structure": "solo", "buyin_cents": 6000, "finish": "cup_final" },
           "season": { "id": "C50F0000-0000-4000-8000-000000000042", "number": 1,
                       "starts_on": "\(day(-240))", "ends_on": "\(day(-58))", "status": "complete" },
-          "last_season": { "number": 1, "ended_on": "\(day(-58))", "champion_name": "Mike",
+          "last_season": { "number": 1, "ended_on": "\(day(-58))", "champion_name": "Gray",
                            "champion_is_me": false, "my_rank": 3, "of": 8 }
         }
       ],

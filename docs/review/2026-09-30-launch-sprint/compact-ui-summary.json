@@ -1,0 +1,100 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "174C22E0-5668-4E7D-BCB6-D55E56F46DAF",
+        "deviceName" : "CS-Codex-Sprint-SE-2026-09-30",
+        "modelName" : "iPhone SE (3rd generation)",
+        "osBuildNumber" : "23F77",
+        "osVersion" : "26.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 0,
+      "passedTests" : 15,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "CupSeason · Built with macOS 26.6.2",
+  "expectedFailures" : 0,
+  "failedTests" : 0,
+  "finishTime" : 1790800453.224,
+  "passedTests" : 15,
+  "result" : "Passed",
+  "runtimeWarnings" : [
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Initial session emitted after attempting to refresh the local stored session.\nThis is incorrect behavior and will be fixed in the next major release since it's a breaking change.\nTo opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.\nThe new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.\nIf you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.\n\nCheck https://github.com/supabase/supabase-swift/pull/822 for more information."
+    }
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1790800059.229,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+
+  ],
+  "title" : "Test - CupSeason",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "24% of duration",
+      "text" : "1 longest test run with outlier durations exceeding 80.60s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 15
+}

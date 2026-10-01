@@ -86,7 +86,7 @@ struct CalloutRoomView: View {
     // ---- E · the record ----------------------------------------------------
     //
     // **THE FOUR-COLUMN LEAF HAS NO PRODUCER, AND I DID NOT INVENT ONE.** §3 E
-    // draws `DATE · WHERE · GALEN · YOU` with both figures and a gold rule
+    // draws `DATE · WHERE · BLAKE · YOU` with both figures and a gold rule
     // under the winning cell. `head_to_head` returns `last_five` as
     // `{on, won, facet}` — no course, and no per-meeting figures at all — so
     // three of the leaf's four columns would be fabricated. What the payload
@@ -147,7 +147,7 @@ struct CalloutRoomView: View {
 
   // MARK: B · his number, mine, and the clock
 
-  /// `+2.1` / `GALEN, FRI` · `—` / `YOU` · `3` / `DAYS LEFT`.
+  /// `+2.1` / `BLAKE, FRI` · `—` / `YOU` · `3` / `DAYS LEFT`.
   ///
   /// The empty side renders `—` in `mut` and **never a zero and never a guess**.
   /// A callout's clock IS one of its three numbers, because a callout has no

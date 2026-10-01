@@ -827,6 +827,8 @@ final class HomeModel {
     if case .live = lead?.route { HomeLeadFlag.shared.liveIsLead = true }
     else { HomeLeadFlag.shared.liveIsLead = false }
     DispatchSnapshotFeed.publish(strip: strip, lead: usedFallback ? nil : lead, owner: m.profile?.id)
+    // D400 · What's On carries the served arrangement only, never the fallback's
+    if !usedFallback { BetweenRoundsFeed.shared.publishWhatsOn(lead: r.lead, deck: r.deck, owner: m.profile?.id) }
   }
 
   /// One load per payload. A pull and `.task(id:)` share a key; the second
@@ -1051,7 +1053,7 @@ private struct A11yReactionActions: ViewModifier {
     case .live(let id):      presenter.scorecard = id
     case .round(let id):     presenter.receipt = id
     case .scheduled(let id): presenter.scheduledRound = id
-    // D312 · the line that had no door. "Galen put a new driver in the bag."
+    // D312 · the line that had no door. "Blake put a new driver in the bag."
     case .bag(let id):       presenter.bagOfName = nil; presenter.bagOf = id
     }
   }

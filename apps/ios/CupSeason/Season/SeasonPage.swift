@@ -350,7 +350,7 @@ struct SeasonPage: View {
                               startsOn: model.clock.startsOn, endsOn: model.clock.endsOn))
         .csType(.bodyS).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
-      ScenarioLineView(parts: ScenarioLine.parts(model.scenarios))
+      ScenarioLineView(parts: ScenarioLine.parts(model.scenarios), receipt: ScenarioLine.clinchReceipt(model.scenarios))
     }
     .csGutter()
     .padding(.top, CSTokens.Space.s4)

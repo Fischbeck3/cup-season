@@ -1,0 +1,58 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "617C6011-962A-4907-B1F0-54921BAF6AC1",
+        "deviceName" : "CS-Codex-Build2-2026-09-30",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23F77",
+        "osVersion" : "26.5",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 0,
+      "passedTests" : 1808,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "CupSeason · Built with macOS 26.6.2",
+  "expectedFailures" : 0,
+  "failedTests" : 0,
+  "finishTime" : 1790799683.146,
+  "passedTests" : 1808,
+  "result" : "Passed",
+  "runtimeWarnings" : [
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing FocusState's value outside of the body of a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file:///Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season/apps/ios/CupSeasonTests/OwnerQ46FieldTests.swift"
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing FocusState's value outside of the body of a View. This will result in a constant Binding of the initial value and will not update.",
+      "sourceURL" : "file:///Users/fischbeck3/.codex/worktrees/launch-sprint-2026-09-30/cup-season/apps/ios/CupSeasonTests/OwnerQ46FieldTests.swift"
+    }
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1790799602.537,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+
+  ],
+  "title" : "Test - CupSeason",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "33% of duration",
+      "text" : "3 longest test runs with outlier durations exceeding 1.52s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 1808
+}

@@ -137,6 +137,7 @@ struct CupSeasonApp: App {
           switch phase {
           case .active:     CSTelemetry.sceneBecameActive()
           case .background: CSTelemetry.sceneEnteredBackground()
+                            WidgetRefreshTask.schedule()   // D400
           default:          break
           }
         }
@@ -155,7 +156,7 @@ struct CupSeasonApp: App {
             }
           }
           // QB-08 · the code is stored WITH THE SEASON'S NAME, because
-          // `PendingLink.doorLine()` can only say "You're joining The Fellas"
+          // `PendingLink.doorLine()` can only say "You're joining North Grove (fixture)"
           // if somebody told it the name. `store(code)` was called with none,
           // so the best the door could ever have managed was "a season" — and
           // it was rendering nothing at all. `league_by_code` is one of the

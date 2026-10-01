@@ -176,7 +176,7 @@ final class CompeteGameplayReviewTests: XCTestCase {
     let roster = app.descendants(matching: .any)["event.side-roster"]
     XCTAssertTrue(roster.waitForExistence(timeout: 30)); settle()
     XCTAssertEqual(app.scrollViews.matching(identifier: "event.side-roster").count, 0, "the roster does not scroll sideways")
-    let right = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Coyotes:")).firstMatch
+    let right = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Fixture Foxes:")).firstMatch
     for _ in 0..<4 where !right.isHittable { app.swipeUp() }
     XCTAssertTrue(right.exists)
     XCTAssertGreaterThanOrEqual(right.frame.minX, app.frame.minX)

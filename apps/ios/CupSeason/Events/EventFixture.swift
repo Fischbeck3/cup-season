@@ -65,10 +65,10 @@ enum EventFixture {
   /// by anybody, and no screenshot in this repo shows what the app does when a
   /// roster is longer than a screen.
   private static let cast: [(String, String)] = [
-    ("Galen Marr", "lonetree"), ("Jade Okafor", "shark"), ("Tash Bell", "dunes"),
-    ("Jerecho", "saguaro"), ("Dev Rana", "azalea"), ("Mike Fenner", "pews"),
+    ("Blake Sample", "lonetree"), ("Emery Mockridge", "shark"), ("Devon Testwell", "dunes"),
+    ("Avery", "saguaro"), ("Finley Stubbs", "azalea"), ("Gray Dummett", "pews"),
     ("Ruth Alderi", "island"), ("Cam Petrie", "lighthouse"), ("Noor Haddad", "thistle"),
-    ("Sol Barrera", "weebridge"), ("Wes Tanaka", "no2"), ("Priya Anand", "stamp"),
+    ("Sol Barrera", "weebridge"), ("Wes Tanaka", "no2"), ("Noel Anand", "stamp"),
   ]
 
   /// `-cs_dev_field <n>` — how many golfers are in the room. The Ryder splits
@@ -89,7 +89,7 @@ enum EventFixture {
   /// disc is yours.
   /// **THE IDS ARE FIXED, AND THAT IS NOT TIDINESS.** `CSFace` keys its pigment
   /// to the PROFILE id, so a fixture minting a fresh `UUID()` per launch gave
-  /// Galen a different coin in every screenshot — §6.2a's "a marker that
+  /// Blake a different coin in every screenshot — §6.2a's "a marker that
   /// drifts is not an identity system" arriving through the capture harness,
   /// and two of the wave's own shots disagreed about the cast before this was
   /// caught.
@@ -164,8 +164,8 @@ enum EventFixture {
                       starts_on: LeagueDates.addDays(today, -8), session_count: 3, session_weeks: 1,
                       winner_team_id: complete ? teamA : nil, buy_in: 80, pot_split: "places",
                       course_id: "gold-canyon-dinosaur", course_label: "Gold Canyon — Dinosaur Mountain"),
-      teams: [EventTeam(id: teamA, slot: 0, name: "Saguaros", color: 0, captain_player_id: a.first?.id),
-              EventTeam(id: teamB, slot: 1, name: "Coyotes", color: 3, captain_player_id: b.first?.id)],
+      teams: [EventTeam(id: teamA, slot: 0, name: "Fixture Owls", color: 0, captain_player_id: a.first?.id),
+              EventTeam(id: teamB, slot: 1, name: "Fixture Foxes", color: 3, captain_player_id: b.first?.id)],
       players: ps, sessions: sessions, duels: duels,
       scoreboard: [teamA: complete ? Double(half) + 1 : Double(half) / 2 + 0.5,
                    teamB: complete ? Double(half) : Double(half) / 2 - 0.5],
@@ -180,25 +180,25 @@ enum EventFixture {
     let today = CSDate.today()
     let closes = CalloutLength.defaultClose(today: today)
     let mine = EventPlayer(id: UUID(uuidString: "11111111-0000-4000-8000-000000000000")!, profileId: me,
-                           teamId: teamA, seed: 0, name: "Sam Ridley", marker: "island")
+                           teamId: teamA, seed: 0, name: "Casey Placeholder", marker: "island")
     let his = EventPlayer(id: UUID(uuidString: "11111111-0000-4000-8000-000000000001")!,
                           profileId: UUID(uuidString: "22222222-0000-4000-8000-000000000001")!,
-                          teamId: teamB, seed: 1, name: "Galen Marr", marker: "lonetree")
+                          teamId: teamB, seed: 1, name: "Blake Sample", marker: "lonetree")
     let duel = EventDuel(id: UUID(uuidString: "33333333-0000-4000-8000-000000000001")!, session_id: sess,
                          a_player: his.id, b_player: mine.id,
                          a_pvi: 2.1, b_pvi: nil, result: "pending")
     return EventRoom(
-      event: EventRow(id: id, name: "Sam v Galen", created_by: me, league_id: nil, kind: "ryder",
+      event: EventRow(id: id, name: "Casey v Blake", created_by: me, league_id: nil, kind: "ryder",
                       status: "live", starts_on: today, session_count: 1, session_weeks: 1),
-      teams: [EventTeam(id: teamA, slot: 0, name: "Sam", color: 0),
-              EventTeam(id: teamB, slot: 1, name: "Galen", color: 1)],
+      teams: [EventTeam(id: teamA, slot: 0, name: "Casey", color: 0),
+              EventTeam(id: teamB, slot: 1, name: "Blake", color: 1)],
       players: [mine, his],
       sessions: [EventSession(id: sess, session_no: 1, opens_on: today, closes_on: closes, status: "open")],
       duels: [duel],
       scoreboard: [:],
       targets: [duel.id: EventTarget(a: 2.1, b: nil)],
       posts: [EventPost(id: UUID(uuidString: "44444444-0000-4000-8000-000000000002")!, kind: "callout",
-                        body: "Galen called Sam out. “Loser buys the beers.”", created_at: Date())])
+                        body: "Blake called Casey out. “Loser buys the beers.”", created_at: Date())])
   }
 
   // MARK: the Major — a window and a board
@@ -230,7 +230,7 @@ enum EventFixture {
       event: EventRow(id: id, name: "The Saguaro Jug", created_by: me, league_id: nil, kind: "major",
                       status: "live", starts_on: LeagueDates.addDays(today, -2), session_count: 1,
                       buy_in: 20, pot_split: "places",
-                      course_id: "papago-blue", course_label: "Papago"),
+                      course_id: "saguaro flats-blue", course_label: "Saguaro Flats"),
       players: ps,
       sessions: [EventSession(id: sess, session_no: 1, opens_on: LeagueDates.addDays(today, -2),
                               closes_on: LeagueDates.addDays(today, 2), status: "open")],

@@ -517,6 +517,9 @@ public enum LeagueCopy {
     ("No rounds yet.", "The table fills with the first posted round.")
   }
 
+  /// Q35 · the monthly limit also governs the Final (CS_FINAL_COUNTING on web).
+  public static let finalCounting = "Final rounds must also fit the monthly counting limit; an earlier round can take a place."
+
   // MARK: - D126 · the endgame sentence
 
   /// `endgameLine()` (index.html:6318) verbatim — how the season ends, in one
@@ -555,12 +558,11 @@ public enum LeagueCopy {
     }
     let from = when.map { " from \($0)" } ?? ""
     // Q35 (a) · the Cup Final still fits the monthly counting limit (the wizard's words; web CS_FINAL_COUNTING)
-    let counting = "Final rounds must also fit the monthly counting limit; an earlier round can take a place."
     if structure == "squads2" {
-      return "Both squads play a four-week Cup Final\(from) — scored fresh, and the leader carries +10 in. \(counting) \(tiebreak)"
+      return "Both squads play a four-week Cup Final\(from) — scored fresh, and the leader carries +10 in. \(finalCounting) \(tiebreak)"
     }
     let who = structure == "solo" ? "The top 2 golfers" : "The top 2 squads"
-    return "\(who) go into a four-week Cup Final\(from) — scored fresh, so the weeks before it decide who is in, not who wins. \(counting) \(tiebreak)"
+    return "\(who) go into a four-week Cup Final\(from) — scored fresh, so the weeks before it decide who is in, not who wins. \(finalCounting) \(tiebreak)"
   }
 
   // MARK: - Q-27 · the floor sentence

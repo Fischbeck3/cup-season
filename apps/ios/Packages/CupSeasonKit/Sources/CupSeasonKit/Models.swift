@@ -131,10 +131,10 @@ public struct Me: Decodable, Sendable {
     public let gap_to_leader: Double?
     public let gap_to_next: Double?
     /// D130 / `native_home()` v2 · the leader BY NAME — `firstname(display_name)`
-    /// in a solo league (the board's own word: "Galen"), the squad's name
+    /// in a solo league (the board's own word: "Blake"), the squad's name
     /// otherwise. nil on a v1 payload (deploy skew): the copy then says "the lead".
     public let leader_name: String?
-    /// v2 · the rank-2 name, so a leader can say "22 clear of Jade"
+    /// v2 · the rank-2 name, so a leader can say "22 clear of Emery"
     /// (`gap_to_next` is nil for rank 1). nil when fewer than two.
     public let runner_up_name: String?
     /// v2 · the rank-2 total, for the "19 – 9" clause at n = 2.

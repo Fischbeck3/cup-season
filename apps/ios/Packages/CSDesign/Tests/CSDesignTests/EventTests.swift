@@ -14,7 +14,7 @@ import SwiftUI
 @Suite struct SideRosterTests {
 
   private func side(_ n: Int) -> CSSideRoster.Side {
-    CSSideRoster.Side(id: "s", name: "Saguaros", color: .red,
+    CSSideRoster.Side(id: "s", name: "Fixture Owls", color: .red,
                       faces: (0..<n).map { _ in CSFace.Model(id: UUID(), marker: "saguaro") },
                       names: (0..<n).map { "P\($0)" })
   }
@@ -58,8 +58,8 @@ import SwiftUI
 @Suite struct ScoreRailTests {
 
   @Test func theMetalSaysWhetherItIsRunning() {
-    let live = CSScoreRail([.init(id: "a", value: "3", half: true, label: "Saguaros")], metal: .live)
-    let done = CSScoreRail([.init(id: "a", value: "5", label: "Saguaros")], metal: .ink)
+    let live = CSScoreRail([.init(id: "a", value: "3", half: true, label: "Fixture Owls")], metal: .live)
+    let done = CSScoreRail([.init(id: "a", value: "5", label: "Fixture Owls")], metal: .ink)
     #expect(live.metal == .live)
     #expect(done.metal == .ink)
   }
@@ -78,7 +78,7 @@ import SwiftUI
   /// The half is a RIDER: the whole number and the fraction are two pieces, so
   /// a mixed number reads as one figure rather than as a small diagonal.
   @Test func theHalfIsCarriedByTheCellAndNotByTheString() {
-    let c = CSScoreRail.Cell(id: "a", value: "3", half: true, label: "Saguaros")
+    let c = CSScoreRail.Cell(id: "a", value: "3", half: true, label: "Fixture Owls")
     #expect(c.value == "3" && c.half)
     #expect(!c.value.contains("½"))
   }
@@ -87,7 +87,7 @@ import SwiftUI
   /// because it IS the clock.
   @Test func onlyTheClockLabelIsLive() {
     let clock = CSScoreRail.Cell(id: "c", value: "3", label: "Days left", labelLive: true)
-    let side = CSScoreRail.Cell(id: "a", value: "3", label: "Saguaros")
+    let side = CSScoreRail.Cell(id: "a", value: "3", label: "Fixture Owls")
     #expect(clock.labelLive && !side.labelLive)
   }
 }
@@ -98,8 +98,8 @@ import SwiftUI
 @Suite struct ClashRowTests {
 
   private func row(_ result: CSClashRow.Result, left: String? = "+2.1", right: String? = "−0.4") -> CSClashRow {
-    CSClashRow(left: CSFace.Model(id: UUID(), marker: "saguaro"), leftName: "Galen Marr",
-               right: CSFace.Model(id: UUID(), marker: "shark"), rightName: "Mike Fenner",
+    CSClashRow(left: CSFace.Model(id: UUID(), marker: "saguaro"), leftName: "Blake Sample",
+               right: CSFace.Model(id: UUID(), marker: "shark"), rightName: "Gray Dummett",
                mid: result == .open ? "vs" : result == .halved ? "halved" : "def.",
                leftFigure: left, rightFigure: right, result: result)
   }
@@ -107,17 +107,17 @@ import SwiftUI
   /// Colour is never the only channel: the result is carried by the WORD and by
   /// the loser's tone, and VoiceOver hears a sentence rather than four cells.
   @Test func oneVoiceOverElementSaysWhoBeatWhom() {
-    #expect(row(.left).spoken.hasPrefix("Galen Marr beat Mike Fenner"))
-    #expect(row(.right).spoken.hasPrefix("Mike Fenner beat Galen Marr"))
-    #expect(row(.halved).spoken.hasPrefix("Galen Marr and Mike Fenner halved"))
-    #expect(row(.open).spoken.hasPrefix("Galen Marr versus Mike Fenner"))
+    #expect(row(.left).spoken.hasPrefix("Blake Sample beat Gray Dummett"))
+    #expect(row(.right).spoken.hasPrefix("Gray Dummett beat Blake Sample"))
+    #expect(row(.halved).spoken.hasPrefix("Blake Sample and Gray Dummett halved"))
+    #expect(row(.open).spoken.hasPrefix("Blake Sample versus Gray Dummett"))
   }
 
   /// `—` is "not posted", and it is said rather than read out as a dash.
   @Test func anEmptySideIsSaidAndNeverGuessed() {
     let r = row(.open, left: "—", right: nil)
-    #expect(r.spoken.contains("Galen Marr has not posted"))
-    #expect(!r.spoken.contains("Mike Fenner ") || !r.spoken.contains("0"))
+    #expect(r.spoken.contains("Blake Sample has not posted"))
+    #expect(!r.spoken.contains("Gray Dummett ") || !r.spoken.contains("0"))
   }
 
   @Test func theFiguresAreSpokenAsWords() {

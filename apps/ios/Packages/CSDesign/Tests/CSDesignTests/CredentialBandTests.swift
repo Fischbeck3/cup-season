@@ -3,7 +3,7 @@
 // The defect this suite exists for: `CSCredential.head` laid the identity
 // block `.bottomLeading` inside a plate of FIXED height while the block
 // itself GROWS, so a two-line name at `display` 34 over a three-clause
-// identity reached the gold slot at the plate's head and `JER` of `JERECHO`
+// identity reached the gold slot at the plate's head and `AVE` of `AVERY`
 // printed behind `FOUNDER` — on the flagship object of the design, at the
 // DEFAULT reading size, on every device photographed.
 
@@ -26,7 +26,7 @@ import SwiftUI
   /// fits under the slot once the name drops a size — and it must, because
   /// this is the default reading size on the default device.
   @Test func aTwoLineNameOverAThreeClauseIdentityStaysUnderTheSlot() {
-    let name = "Jerecho Fischbeck"
+    let name = "Indigo Longname-Fixturington"
     // it genuinely does not set on one line at `display`
     #expect(CSCredential<EmptyView>.PlateBand.nameRole(name, measure: measure, size: .large) == .displayS)
     let band = CSCredential<EmptyView>.PlateBand.height(
@@ -39,7 +39,7 @@ import SwiftUI
 
   /// A short name keeps `display`, which is the artboard's own setting.
   @Test func aShortNameKeepsTheDisplaySize() {
-    #expect(CSCredential<EmptyView>.PlateBand.nameRole("Galen Marr", measure: measure, size: .large) == .display)
+    #expect(CSCredential<EmptyView>.PlateBand.nameRole("Blake Sample", measure: measure, size: .large) == .display)
   }
 
   /// And when the band genuinely cannot fit, the identity leaves the
@@ -50,7 +50,7 @@ import SwiftUI
       measure: measure, plateHeight: plate, size: .large))
     // the accessibility sizes always take that path (the `riding` rule)
     #expect(!CSCredential<EmptyView>.PlateBand.ridesThePlate(
-      name: "Galen Marr", identityClauses: 1,
+      name: "Blake Sample", identityClauses: 1,
       measure: measure, plateHeight: plate, size: .accessibility3))
   }
 }

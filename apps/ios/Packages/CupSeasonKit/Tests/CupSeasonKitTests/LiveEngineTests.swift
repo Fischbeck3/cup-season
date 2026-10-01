@@ -125,20 +125,20 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
 
   @Test func resultEnvelopeAndStory() {
     let a = S(3, 3, 3, 3, 3), b = S(4, 4, 4, 4, 4)
-    let s = round(["Jerecho", "Ed"], indices: [0, 0], scores: [a, b], game: .match, stake: 10, holes: 9)
+    let s = round(["Avery", "Ed"], indices: [0, 0], scores: [a, b], game: .match, stake: 10, holes: 9)
     let r = LiveResultBuilder.match(s)
     #expect(r.winner == "0" && r.status == "5&4")
-    #expect(r.story == "Jerecho beat Ed 5&4 · $10 a side")
-    #expect(r.share == "Jerecho beat Ed 5&4 for $10")
+    #expect(r.story == "Avery beat Ed 5&4 · $10 a side")
+    #expect(r.share == "Avery beat Ed 5&4 for $10")
     #expect(r.json["game"]?.string == "match")
     #expect(r.json["winner"]?.string == "0")
-    #expect(r.json["side_a"]?.string == "Jerecho" && r.json["side_b"]?.string == "Ed")
+    #expect(r.json["side_a"]?.string == "Avery" && r.json["side_b"]?.string == "Ed")
     #expect(r.json["stake"]?.double == 10)
     let H = r.json["holes"]
     #expect(H?["mode"]?.string == "sides" && H?["n"]?.int == 9 && H?["played"]?.int == 5 && H?["closed"]?.int == 5)
-    #expect(H?["hot"]?.string == "a" && H?["legend"]?.string == "Jerecho")
+    #expect(H?["hot"]?.string == "a" && H?["legend"]?.string == "Avery")
     #expect(H?["cells"]?.array?.count == 5)
-    #expect(r.recapRow.money == "ED PAYS JERECHO $10 · SETTLE UP")
+    #expect(r.recapRow.money == "ED PAYS AVERY $10 · SETTLE UP")
     #expect(r.holes?.highlights == ["WON 5 STRAIGHT · 1-5", "CLOSED OUT ON 5"])
   }
 
@@ -249,15 +249,15 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   @Test func resultEnvelope() {
     var picks: [LiveWolfPick?] = Array(repeating: nil, count: 18)
     picks[0] = .lone
-    let s = round(["Chuck", "Gary", "Jerecho", "Logan"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(3), S(4)], game: .wolf, stake: 2, wolfOrder: order, wolf: picks)
+    let s = round(["Chuck", "Gary", "Avery", "Logan"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(3), S(4)], game: .wolf, stake: 2, wolfOrder: order, wolf: picks)
     let r = LiveResultBuilder.wolf(s)
-    #expect(r.story == "Jerecho took Wolf, up $6 · Chuck -$2, Gary -$2, Jerecho +$6, Logan -$2 · $2/pt")
-    #expect(r.share == "Jerecho took Wolf, up $6")
+    #expect(r.story == "Avery took Wolf, up $6 · Chuck -$2, Gary -$2, Avery +$6, Logan -$2 · $2/pt")
+    #expect(r.share == "Avery took Wolf, up $6")
     #expect(r.shareMarked.hasSuffix(" took Wolf, up {$6}"))
     #expect(r.json["holes"]?["mode"]?.string == "wolf" && r.json["holes"]?["hot"]?.string == "w")
     #expect(r.json["holes"]?["legend"]?.string == "the wolf's side")
     #expect(r.json["holes"]?["played"]?.int == 18)
-    #expect(r.transfers.count == 3 && r.transfers.allSatisfy { $0.to == "Jerecho" && $0.amt == 2 })
+    #expect(r.transfers.count == 3 && r.transfers.allSatisfy { $0.to == "Avery" && $0.amt == 2 })
     #expect(r.recapRow.icon == "🐺")
     let level = round(["A", "B", "C", "D"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(4), S(4)], game: .wolf, wolfOrder: order, wolf: picks)
     #expect(LiveResultBuilder.wolf(level).story == "Wolf ended level · A +0, B +0, C +0, D +0 pts")
@@ -382,11 +382,11 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   }
 
   @Test func teamResultEnvelope() {
-    let s = round(["Jerecho", "Ed"], indices: [12, 20], scores: [S(3, 3, 4, 5, 5, 5, 6), S(4, 4, 4, 4, 4, 4, 4)], game: .sunningdale, stake: 5)
+    let s = round(["Avery", "Ed"], indices: [12, 20], scores: [S(3, 3, 4, 5, 5, 5, 6), S(4, 4, 4, 4, 4, 4, 4)], game: .sunningdale, stake: 5)
     let r = LiveResultBuilder.sunningdale(s)
     #expect(r.status == "3 up thru 7" && r.winner == "1" && r.bank == -1)
-    #expect(r.story == "Ed beat Jerecho 3 up thru 7. Sunningdale Rules · bank: Ed $5")
-    #expect(r.share == "Ed beat Jerecho 3 up thru 7 for $5")
+    #expect(r.story == "Ed beat Avery 3 up thru 7. Sunningdale Rules · bank: Ed $5")
+    #expect(r.share == "Ed beat Avery 3 up thru 7 for $5")
     #expect(r.json["unit"]?.double == 5 && r.json["bank"]?.int == -1)
     #expect(r.recapRow.money == "ED TAKES THE BANK - $5")
     // no handicaps: the strokes ladder never touches Sunningdale
@@ -488,11 +488,11 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   }
 
   @Test func matchCardLines() {
-    // CH 9 vs 8 on a 113 slope: Jerecho gets one stroke, on the estimated SI 1 (hole 4, a par 5) — Ed's 3 there halves it net
+    // CH 9 vs 8 on a 113 slope: Avery gets one stroke, on the estimated SI 1 (hole 4, a par 5) — Ed's 3 there halves it net
     var a = S(Array(repeating: 4, count: 15)), b = S(Array(repeating: 4, count: 15))
     for h in [0, 1, 2] { a[h] = 3 }
     b[3] = 3
-    let s = round(["Jerecho", "Ed"], indices: [8.6, 8.1], scores: [a, b], game: .match, stake: 10)
+    let s = round(["Avery", "Ed"], indices: [8.6, 8.1], scores: [a, b], game: .match, stake: 10)
     #expect(s.strokes == [1, 0] && s.strokeOn(0, 3) == 1)
     let c = LiveCopy.matchCard(s)!
     // DF-11 · the match block is TWO lines, as `lb-live.png` sets it. The
@@ -501,13 +501,13 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     // rule about the scorecard and is read there. Four lines here put the
     // screen's ONE primary below the fold.
     #expect(c.teams == "Match play · singles")
-    #expect(c.status == "JERECHO 3 UP · DORMIE · THRU 15")
+    #expect(c.status == "AVERY 3 UP · DORMIE · THRU 15")
     #expect(c.meta == "$10 A SIDE · EST. CARD")
     #expect(!c.teams.contains("vs"))
     a[15] = 4; b[15] = 4
-    let s2 = round(["Jerecho", "Ed"], indices: [8.6, 8.1], scores: [a, b], game: .match)
-    #expect(LiveCopy.matchCard(s2)!.status == "JERECHO WIN 3&2")
-    #expect(LiveCopy.scoreboard(s2, presence: []).hero == "JERECHO WIN 3&2")
+    let s2 = round(["Avery", "Ed"], indices: [8.6, 8.1], scores: [a, b], game: .match)
+    #expect(LiveCopy.matchCard(s2)!.status == "AVERY WIN 3&2")
+    #expect(LiveCopy.scoreboard(s2, presence: []).hero == "AVERY WIN 3&2")
   }
 
   @Test func skinsAndWolfCards() {
@@ -515,7 +515,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let k = LiveCopy.skinsCard(s)!
     #expect(k.status == "HOLE 4 WORTH 2 SKINS" && k.hot && k.meta == "Thru 3 · low net takes it · $5/skin")
     #expect(LiveCopy.scoreboard(s, presence: []).hero == "ED 2 · 2 CARRIED OVER")
-    var w = round(["Chuck", "Gary", "Jerecho", "Logan"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(3), S(4)], game: .wolf, stake: 2, wolfOrder: [2, 0, 3, 1])
+    var w = round(["Chuck", "Gary", "Avery", "Logan"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(3), S(4)], game: .wolf, stake: 2, wolfOrder: [2, 0, 3, 1])
     w.hole = 16
     let wc = LiveCopy.wolfCard(w)!
     #expect(wc.comeback && wc.who.hasSuffix(" IS THE WOLF · COMEBACK"))
@@ -523,11 +523,11 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   }
 
   @Test func strokePlayScoreboard() {
-    let s = round(["Jerecho Fischbeck", "Ed"], indices: [12.4, 8.1], scores: [S(4, 5), S(5, 5)], game: .score, slope: 123)
+    let s = round(["Avery Fixture", "Ed"], indices: [12.4, 8.1], scores: [S(4, 5), S(5, 5)], game: .score, slope: 123)
     let sb = LiveCopy.scoreboard(s, presence: ["Ed"])
-    #expect(sb.hero.hasPrefix("JERECHO LEADS · "))
+    #expect(sb.hero.hasPrefix("AVERY LEADS · "))
     #expect(sb.chips[1].present && !sb.chips[0].present)
-    #expect(sb.chips[0].name == "Jerecho")
+    #expect(sb.chips[0].name == "Avery")
     let blank = round(["A", "B"], indices: [0, 0], scores: [S(), S()], game: .score)
     #expect(LiveCopy.scoreboard(blank, presence: []).hero == "ALL TO PLAY")
   }
@@ -544,19 +544,19 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 scores saved on this phone; they send when you have signal.")
     #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 0) == "2 phones scoring · every score sent")
     #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Every score sent")
-    s.course.label = "Papago"
+    s.course.label = "Saguaro Flats"
     s.hole = 1
     let mine = LiveCopy.resumeBanner(s)!
-    #expect(mine.kicker == "Continue your round" && mine.line == "PAPAGO · STROKE PLAY" && mine.meta == "HOLE 2" && mine.go == "RESUME")   // D278 · the door says the word
-    s.mine = false; s.host = "Marcus Webb"
+    #expect(mine.kicker == "Continue your round" && mine.line == "SAGUARO FLATS · STROKE PLAY" && mine.meta == "HOLE 2" && mine.go == "RESUME")   // D278 · the door says the word
+    s.mine = false; s.host = "Casey Placeholder"
     let inv = LiveCopy.resumeBanner(s)!
-    #expect(inv.invite && inv.kicker == "Marcus started a live round with you" && inv.meta == "JUST TEED OFF · NOTHING SCORED YET" && inv.go == "JOIN")
+    #expect(inv.invite && inv.kicker == "Casey started a live round with you" && inv.meta == "JUST TEED OFF · NOTHING SCORED YET" && inv.go == "JOIN")
     s.scores[1][0] = 4
     #expect(LiveCopy.resumeBanner(s)!.meta == "HOLE 2 · THRU 1")
   }
 
   @Test func finishSheetNamesMissingHoles() {
-    var s = round(["Jerecho", "Ed"], indices: [0, 0], scores: [S(Array(repeating: 4, count: 18)), S(Array(repeating: 4, count: 16))], game: .score)
+    var s = round(["Avery", "Ed"], indices: [0, 0], scores: [S(Array(repeating: 4, count: 18)), S(Array(repeating: 4, count: 16))], game: .score)
     s.players[1].guest = true
     let f = LiveCopy.finishSheet(s)
     #expect(f.primary == "Post 1 card to the season")
@@ -608,12 +608,12 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   }
 
   @Test func eyebrowNeverRepeatsTheTee() {
-    var c = LiveCourseCard(label: "Papago · Blue", tee: "Blue", rating: 70.2, slope: 123)
-    #expect(c.eyebrow == "Live round · Papago · Blue · 70.2/123")
-    c.label = "Papago"
-    #expect(c.eyebrow == "Live round · Papago — Blue · 70.2/123")
+    var c = LiveCourseCard(label: "Saguaro Flats · Blue", tee: "Blue", rating: 70.2, slope: 123)
+    #expect(c.eyebrow == "Live round · Saguaro Flats · Blue · 70.2/123")
+    c.label = "Saguaro Flats"
+    #expect(c.eyebrow == "Live round · Saguaro Flats — Blue · 70.2/123")
     c.rating = nil; c.slope = nil
-    #expect(c.eyebrow == "Live round · Papago — Blue · 72/113")
+    #expect(c.eyebrow == "Live round · Saguaro Flats — Blue · 72/113")
   }
 }
 
@@ -750,7 +750,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
       "round": .object(["id": .string(UUID().uuidString), "status": .string("live"), "game": .string("skins"), "join_code": .string("c0de"),
                         "game_config": .object(["stake": .number(3)]), "course_snapshot": .object(["holes": .number(18)]), "course_label": .string("Encanto")]),
       "players": .array([
-        .object(["id": .string(UUID().uuidString), "member_id": .string(UUID().uuidString), "position": .number(0), "display_name": .string("Jerecho"), "index_current": .number(12)]),
+        .object(["id": .string(UUID().uuidString), "member_id": .string(UUID().uuidString), "position": .number(0), "display_name": .string("Avery"), "index_current": .number(12)]),
         .object(["id": .string(meSeat.uuidString), "guest_name": .string("Chuck"), "guest_index": .null, "index_source": .string("estimated"), "position": .number(1)]),
       ]),
       "scores": .array([]),
@@ -773,10 +773,10 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     ClaimIntent.clear(defaults: d)
     #expect(ClaimIntent.pending(defaults: d) == nil)
     #expect(ClaimIntent.url(t).absoluteString == "https://cupseason.app/?claim=\(t.uuidString.lowercased())")
-    let info: JSONValue = .object(["guest_name": .string("Sam Fixture"), "gross": .number(84), "course_label": .string("Papago"), "played_on": .string("2026-07-25")])
+    let info: JSONValue = .object(["guest_name": .string("Casey Fixture"), "gross": .number(84), "course_label": .string("Saguaro Flats"), "played_on": .string("2026-07-25")])
     var cal = Calendar(identifier: .gregorian)
     cal.locale = Locale(identifier: "en_US")
-    #expect(ClaimDoor.line(info) == "Sam Fixture — {84} at Papago.")
+    #expect(ClaimDoor.line(info) == "Casey Fixture — {84} at Saguaro Flats.")
     #expect(ClaimDoor.subLine(info, calendar: cal) == "Sat, Jul 25")
     // W4 · the club goes in the sentence; the course, tee and day go beneath
     // it (the web's csClaimLanding, pinned by the links harness)
@@ -786,8 +786,8 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(ClaimDoor.line(club) == "Avery Fixture — {91} at Mesquite Wash Golf Club (fixture).")
     #expect(ClaimDoor.subLine(club, calendar: cal) == "Mesquite Wash · Black · Sun, Sep 27")
     // no name and no gross read as the web's fallbacks; nothing beneath is nil
-    let bare: JSONValue = .object(["course_label": .string("Papago")])
-    #expect(ClaimDoor.line(bare) == "Your scorecard — Papago.")
+    let bare: JSONValue = .object(["course_label": .string("Saguaro Flats")])
+    #expect(ClaimDoor.line(bare) == "Your scorecard — Saguaro Flats.")
     // N4-040 · the sentence asks for nothing; the one act says the next step
     #expect(ClaimDoor.keepAction == "Sign in with your email to keep it")
     #expect(ClaimDoor.subLine(bare, calendar: cal) == nil)

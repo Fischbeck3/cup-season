@@ -99,7 +99,7 @@ public enum RivalryCopy {
     case .even: leadLabel(wins: 0, losses: 0)
     }
   }
-  /// **The named form: `YOU LEAD` · `GALEN LEADS` · `ALL SQUARE`.**
+  /// **The named form: `YOU LEAD` · `BLAKE LEADS` · `ALL SQUARE`.**
   ///
   /// `THEY LEAD` is not gendered and is fine in a row; on the clash it is the
   /// one line on the surface not addressed to every golfer in a mixed league,

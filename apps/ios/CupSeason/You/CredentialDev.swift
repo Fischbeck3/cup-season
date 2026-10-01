@@ -109,8 +109,8 @@ struct CredDevView: View {
     // them, and the signed-in account has none.
     case "clash":
       CSClash(left: .init(id: CredDev.id, marker: "saguaro", isViewer: true), leftName: "You",
-              right: .init(id: CredDev.other, marker: "thistle"), rightName: "Galen Marr",
-              leftSub: "10.6 index · Tempe", rightSub: "10.2 index · Mesa") {
+              right: .init(id: CredDev.other, marker: "thistle"), rightName: "Blake Sample",
+              leftSub: "10.6 index · Mesa", rightSub: "10.2 index · Mesa") {
         VStack(spacing: CSTokens.Space.s1) {
           CSFigure("6–5", size: .l, label: nil)
           CSRule(.heavy)
@@ -139,27 +139,27 @@ struct CredDevView: View {
   }
 
   private var crest: CSCrestPlate {
-    CSCrestPlate(marker: "saguaro", seed: "papago-golf-course", hasCourse: true)
+    CSCrestPlate(marker: "saguaro", seed: "saguaro flats-golf-course", hasCourse: true)
   }
 
   private var three: [CSCredentialGolfer.Figure] {
     // the viewer's own card: only it carries a position figure
     [.init("10.2", label: CredentialCopy.indexLabel(isMe: true)),
      .init("31", label: "Rounds"),
-     .init("1", label: "The Fellas", ordinal: "ST")]
+     .init("1", label: "North Grove (fixture)", ordinal: "ST")]
   }
   private var two: [CSCredentialGolfer.Figure] {
-    [.init("2", label: "Rounds"), .init("79", label: "Best", note: "Papago")]
+    [.init("2", label: "Rounds"), .init("79", label: "Best", note: "Saguaro Flats")]
   }
 
-  private func golfer(slot: String?, name: String = "Galen Marr",
+  private func golfer(slot: String?, name: String = "Blake Sample",
                       figures: [CSCredentialGolfer.Figure]) -> CSCredentialGolfer {
     CSCredentialGolfer(
       face: .init(id: CredDev.id, marker: "saguaro", initials: "GM"),
       name: name,
-      identity: CredentialCopy.identity(handle: "galenm", city: "Mesa, AZ", homeCourse: "Papago"),
+      identity: CredentialCopy.identity(handle: "blake", city: "Mesa, AZ", homeCourse: "Saguaro Flats"),
       slot: slot,
-      credit: "Galen’s round · Aug 24",
+      credit: "Blake’s round · Aug 24",
       figures: figures,
       club: CredentialCopy.club(markerName: CSMarkers.marker("saguaro").name))
   }

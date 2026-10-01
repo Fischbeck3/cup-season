@@ -8261,3 +8261,43 @@ Sources: docs/design/compete-2026-09-24/PROPOSAL.md, spec §16, D359, D376.
 - **Principles served.** Friends and seasons first; low friction; one fact, one place; no extra tracking or invented trends. No competition mechanics, historical rounds or scoring producers change.
 - **Tradeoffs.** Private images need signed URLs and designed loading/failure fallbacks. Richer customization adds an optional Pro task without adding a required creation step. Broad trend charts are deferred.
 - **CONFLICT (named).** The September 27 native adapter's no-build/no-shipping limitation yields within this scope to the owner's September 30 request. Existing tokens, protected semantic/earned colors, phase resolution and D222 peer ordering stand.
+
+### D401 · The home-screen widgets follow what is going on: the Race finds a season you are playing, What's On mirrors Home's ranked cards, and both refresh without the app open
+
+**Numbering.** Built and shipped to TestFlight 2024 as "D400". Club Spread took D400 on main first, so this entry is D401 from the 2026-09-30 merge. A "D400" in widget code comments, `docs/ios/between-round-widgets.md` or the launch-sprint review notes means this entry.
+
+**BUILT 2026-09-30 on the owner's go** (owner in chat, 2026-09-30: "my widget has shown the same thing for days. It is unengaging and doesnt point to items going on in my app", then "build all") · UI level (the widget family) and implementation level (a background read) · phone only (the web has no widget, D234's "not shared: layout and chrome") · no migration, no Edge Function
+
+- **Current mechanic.**
+  - The Race draws the ONE league last opened on the phone (`CSConfig.lastLeagueKey`). In a squads league it looks only at squad rows for the golfer's own. When no row is the golfer's, it draws the empty state, "Start a season and the race lands here."
+  - All four between-round widgets refresh only when Home loads, which means only when the app is opened.
+  - The ranked Home (`home_dispatch` → `HomeRank.arrange`: the lead and the deck) reaches the home screen nowhere. The four widgets show a single fact each.
+- **Problem.**
+  - The owner's own Race said "Start a season" for days while he was in three active seasons. He had last opened Test1, a squads league in its first week with no squad assigned to him, so no row was his. The widget never tried his other two seasons (Fellas, 64 pts, 1st; Who's the bitch?, 41 pts, 2nd).
+  - A widget that changes only when the app is opened cannot bring anyone back to the app, which is the one job a widget has.
+  - The four widgets repeat standings, a tee time, a round and a rivalry. None of them says what just happened.
+- **Recommendation (built).**
+  1. **The Race finds a season you are playing.**
+     - Every membership with a season is a candidate, starting with the one last opened. Each candidate's `season_book` is read.
+     - The first season whose table has points on it wins. A week-1 table where everyone sits on 0 yields to one where something has happened. Among equals, the last-opened league wins.
+     - In a squads league where the golfer is on no squad yet, the golfer rows are the race.
+     - "Start a season" is said only when the golfer has no season at all. A golfer with a season whose table has no row for them yet reads "Your place shows once the table has you."
+     - One failed read does not blank the Race while another read succeeded.
+  2. **A fifth widget, What's On** (`CSWhatsOnWidget`; small, medium, large and Lock Screen rectangular).
+     - It carries Home's lead and deck, up to five items, as `home_dispatch` wrote them: eyebrow, headline, verb and spine.
+     - Nothing is re-derived (L-34, one fact in one place). It is handed a list only when the ranker SERVED one: the declared fallback's composed items stay on Home (R-06).
+     - The small tile, the medium tile's featured card and the Lock Screen line rotate through the items every 20 minutes, from the snapshot in hand. The medium tile lists the next two items under its featured card, and the large tile lists all five. Each row is its own door.
+     - Doors open the item's own route (a receipt, a plan, a season pane, the live round). A route the widget cannot name opens Home, where the same card sits.
+     - L-10 holds structurally: a `.pot` route, or any line carrying a currency figure, is dropped before the snapshot is written.
+     - The snapshot keeps the stale rule (L-44): past 24 hours it says Open to refresh and offers no verb.
+  3. **The widgets refresh without the app open.**
+     - A `BGAppRefreshTask` (`app.cupseason.ios.widgets.refresh`) re-reads `home_dispatch` and the four slices, and reschedules itself about every 90 minutes. iOS decides the real cadence from how the phone is used.
+     - It runs only for the golfer who owns the snapshot (the IOS-034 owner and epoch rules). It reads with the session already on the device (Keychain, after first unlock). It writes nothing to the server.
+- **Principle served.** Everything shows its work (§16), because the Race copies server points and ranks and never computes them. L-34 (What's On is Home's own sentences). L-44 (every slice keeps its own clock and goes stale honestly). L-10 (no money on a home screen). L-32 (an empty state names the true next move).
+- **Expected user benefit.** The Race shows a season the golfer is actually playing. The home screen carries the thing Home would lead with: a buddy's round, a clash closing, a floor to hit, a tee time to answer. It changes through the day without the golfer having to open the app first.
+- **Tradeoffs.**
+  - Background refresh is best-effort. iOS may run it rarely for a golfer who seldom opens the app, which is exactly the golfer the widget most needs to reach.
+  - A silent push on board activity would close that gap. It is not built here: it needs the push function to send `content-available` and needs its own decision.
+  - Rotation cycles items that are already cached, so it changes what is shown, not how fresh it is.
+  - A fifth widget is one more choice in the gallery.
+- **CONFLICT (named).** None upward. D155/IOS-034 said the extension holds no network client, and it still holds none. The background read runs in the app process, which already holds the session.

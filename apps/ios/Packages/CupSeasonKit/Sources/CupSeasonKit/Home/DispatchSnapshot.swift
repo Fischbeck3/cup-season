@@ -46,7 +46,7 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
     public init(label: String, value: String) { self.label = label; self.value = value }
   }
 
-  /// `FELLAS · WEEK 7 OF 26 · SEASON LIVE` — the season row, verbatim.
+  /// `NORTH GROVE (FIXTURE) · WEEK 7 OF 26 · SEASON LIVE` — the season row, verbatim.
   public let seasonRow: String?
   /// The strip's facts, in the strip's order. Money is never among them.
   public let facts: [Fact]

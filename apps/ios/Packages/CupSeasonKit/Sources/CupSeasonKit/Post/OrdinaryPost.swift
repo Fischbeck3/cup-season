@@ -92,10 +92,10 @@ public enum OrdinaryPost {
   // refusal the server gave no reason for says exactly that, rather than
   // "Something went wrong" dressed up as a reason.
   public static let ambiguousCopy = "Couldn’t confirm the post. Press Add my round again to retry the same round — it can’t post twice."
-  public static let refusedUnknown = "The server didn’t accept this card and didn’t say why. Nothing was posted, and your card is kept — press Add my round to try again."
+  public static let refusedUnknown = "The server didn’t accept this scorecard and didn’t say why. Nothing was posted, and your scorecard is kept — press Add my round to try again."
   public static let alreadyPostedCopy = "This round already posted — it’s in your history."
-  public static let earlierPostedCopy = "Your earlier card had already posted — here it is. To change it, delete that round from your history and post again."
-  public static let earlierUnknownCopy = "Your earlier card may already have posted. Check your history before changing it — pressing Add my round again retries the same round."
+  public static let earlierPostedCopy = "Your earlier scorecard had already posted — here it is. To change it, delete that round from your history and post again."
+  public static let earlierUnknownCopy = "Your earlier scorecard may already have posted. Check your history before changing it — pressing Add my round again retries the same round."
 
   /// A definite refusal: nothing was written. The server's own sentence when
   /// it wrote one for a golfer (`HumanError` passes those through), and the
@@ -103,7 +103,7 @@ public enum OrdinaryPost {
   public static func refusal(_ error: Error) -> String {
     let why = HumanError.text(error)
     if why.hasPrefix("Something went wrong") { return refusedUnknown }
-    return "Nothing was posted: " + (why.hasSuffix(".") ? why : why + ".") + " Your card is kept."
+    return "Nothing was posted: " + (why.hasSuffix(".") ? why : why + ".") + " Your scorecard is kept."
   }
   public static let receiptUnsavedCopy = "Round posted. Couldn’t record that on this phone — don’t post it again."
   public static let photoDroppedCopy = "Couldn’t upload the photo. Posting the round without it."

@@ -64,7 +64,7 @@ import CupSeasonKit
     #expect(await disk.queue(round).isEmpty)
   }
   @Test func oldAttributesDecodeWithoutInteractiveAuthority() throws {
-    let data = Data("{\"course\":\"Papago\"}".utf8)
+    let data = Data("{\"course\":\"Saguaro Flats\"}".utf8)
     let attrs = try JSONDecoder().decode(CSRoundActivity.self, from: data)
     #expect(attrs.round == nil && attrs.owner == nil)
     let state = try JSONDecoder().decode(CSRoundActivity.ContentState.self, from: Data("{\"hole\":3,\"thru\":1,\"holes\":18}".utf8))

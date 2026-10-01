@@ -16,7 +16,7 @@ struct CompeteExplorationView: View {
         if ["season", "entry"].contains(CompeteExploration.screen) {
           ExploreSeasonView(season: seasons[0], direction: direction)
         } else if CompeteExploration.screen == "receipt" {
-          SeasonBookReceiptList(season: seasons[0], title: "Jerecho · Week 12",
+          SeasonBookReceiptList(season: seasons[0], title: "Avery · Week 12",
             entries: seasons[0].memberEntries(1).filter { $0.week == 12 })
         } else if CompeteExploration.screen == "round" {
           if let entry = seasons[0].entries.first { SeasonBookEntryReceipt(season: seasons[0], entry: entry) }
@@ -75,7 +75,7 @@ struct CompeteExplorationView: View {
             VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
               CSRule(.heavy)
               Text("A MOMENT").csType(.agate).foregroundStyle(cs.mut)
-              Text("Papago, Saturday").csType(.displayS)
+              Text("Saguaro Flats, Saturday").csType(.displayS)
               Text("The Dew Sweepers Cup · Sep 26").csType(.bodyS)
               Text("Teams named. Play begins Saturday.").csType(.story)
             }.padding(CSTokens.Space.gutter).id("moment")
@@ -185,7 +185,7 @@ private struct ExplorePressSeason: View {
         if let mine = season.mine, !season.upcoming {
           Text(season.rank(mine)).csType(.nameS, caps: false)
         }
-        Text(season.upcoming ? "First tee · Oct 5" : season.finished ? "Galen won the Cup." : "Week \(season.currentWeek) of \(season.weeks)")
+        Text(season.upcoming ? "First tee · Oct 5" : season.finished ? "Blake won the Cup." : "Week \(season.currentWeek) of \(season.weeks)")
           .csType(.bodyS).foregroundStyle(cs.mut)
       }
       Spacer(minLength: 0)
@@ -418,7 +418,7 @@ private struct SeasonBookView: View {
               if !teams {
                 Picker("Squad", selection: $memberFilter) {
                   Text("Every squad").tag("all")
-                  ForEach(0..<4) { i in Text(["Mudsharks", "Roadrunners", "Coyotes", "Saguaros"][i]).tag(String(i)) }
+                  ForEach(0..<4) { i in Text(["Fixture Wrens", "Fixture Jays", "Fixture Foxes", "Fixture Owls"][i]).tag(String(i)) }
                 }
               }
             }

@@ -160,7 +160,7 @@ struct EpilogueSheet: View {
     }
   }
 
-  /// "Played with Galen — he has not confirmed yet." One sentence, whatever the
+  /// "Played with Blake — he has not confirmed yet." One sentence, whatever the
   /// count, and it never claims the other golfer agreed to anything.
   static func playedWithLine(_ people: [PostEpilogue.Partner]) -> String {
     let names = EpilogueMovement.list(people.map(\.name))

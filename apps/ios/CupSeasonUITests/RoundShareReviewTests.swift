@@ -175,7 +175,7 @@ final class ReceiptMomentTests: XCTestCase {
 final class ReceiptLensesUITests: XCTestCase {
   @MainActor func testLensRowsAndDoors() throws {
     for (mode, appearance, expectRows, expectDoor) in [
-      ("two", "dark", ["This month · Fellas", "This month · Sunday Cup"], "Your rounds that count in"),
+      ("two", "dark", ["This month · North Grove (fixture)", "This month · Sunday Cup"], "Your rounds that count in"),
       ("bumped", "light", ["This month"], "Your rounds that count in"),
       ("uncapped", "dark", ["This month"], "Your rounds that count in"),
     ] {

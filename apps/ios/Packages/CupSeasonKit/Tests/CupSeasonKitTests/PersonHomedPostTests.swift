@@ -21,11 +21,11 @@ import Foundation
 @testable import CupSeasonKit
 
 private let me      = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
-private let galen   = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+private let blake   = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
 private let lone    = UUID(uuidString: "33333333-3333-3333-3333-333333333333")!
 private let myMemA  = UUID(uuidString: "aaaaaaaa-0000-0000-0000-000000000001")!
 private let myMemB  = UUID(uuidString: "aaaaaaaa-0000-0000-0000-000000000002")!
-private let galenMem = UUID(uuidString: "bbbbbbbb-0000-0000-0000-000000000001")!
+private let blakeMem = UUID(uuidString: "bbbbbbbb-0000-0000-0000-000000000001")!
 
 private let leagueOne = UUID(uuidString: "cccccccc-0000-0000-0000-000000000001")!
 private let leagueTwo = UUID(uuidString: "cccccccc-0000-0000-0000-000000000002")!
@@ -39,8 +39,8 @@ private let postOnPerson  = UUID(uuidString: "eeeeeeee-0000-0000-0000-0000000000
 
 private func at(_ s: Int) -> Date { Date(timeIntervalSince1970: 1_756_000_000 + Double(s)) }
 
-private let names: [UUID: String] = [me: "Jerecho", galen: "Galen", lone: "Blake"]
-private let roster: [UUID: UUID] = [myMemA: me, myMemB: me, galenMem: galen]
+private let names: [UUID: String] = [me: "Avery", blake: "Blake", lone: "Blake"]
+private let roster: [UUID: UUID] = [myMemA: me, myMemB: me, blakeMem: blake]
 
 // MARK: - 1 · the round with no season reaches a board
 
@@ -75,7 +75,7 @@ struct PersonHomedPostTests {
   /// person-homed one, and the OPEN league outranks another league's.
   @Test func theOpenLeagueWinsThenAnyLeagueThenThePerson() {
     let posts = [
-      HomeSocial.PostLite(id: postOnPerson, league_id: nil, profile_id: galen, round_id: roundLeagued, created_at: at(1)),
+      HomeSocial.PostLite(id: postOnPerson, league_id: nil, profile_id: blake, round_id: roundLeagued, created_at: at(1)),
       HomeSocial.PostLite(id: postOtherLeague, league_id: leagueTwo, profile_id: nil, round_id: roundLeagued, created_at: at(2)),
       HomeSocial.PostLite(id: postInLeague, league_id: leagueOne, profile_id: nil, round_id: roundLeagued, created_at: at(3)),
     ]
@@ -108,11 +108,11 @@ struct PersonHomedKudosTests {
   /// after carries `profile_id`; the backfill leaves the five existing rows
   /// carrying both. All three name the same golfer.
   @Test func allThreeErasNameTheSameGolfer() {
-    let legacy  = BoardKudos.Row(post_id: postInLeague, member_id: galenMem, emoji: "azalea")
-    let modern  = BoardKudos.Row(post_id: postInLeague, profile_id: galen, emoji: "azalea")
-    let both    = BoardKudos.Row(post_id: postInLeague, profile_id: galen, member_id: galenMem, emoji: "azalea")
+    let legacy  = BoardKudos.Row(post_id: postInLeague, member_id: blakeMem, emoji: "azalea")
+    let modern  = BoardKudos.Row(post_id: postInLeague, profile_id: blake, emoji: "azalea")
+    let both    = BoardKudos.Row(post_id: postInLeague, profile_id: blake, member_id: blakeMem, emoji: "azalea")
     for r in [legacy, modern, both] {
-      #expect(BoardKudos.author(r, memberToProfile: roster) == galen)
+      #expect(BoardKudos.author(r, memberToProfile: roster) == blake)
     }
   }
 
@@ -141,9 +141,9 @@ struct PersonHomedKudosTests {
     #expect(BoardKudos.isMine(viaB, me: me, myMemberIds: [myMemA], memberToProfile: roster) == true)
     #expect(BoardKudos.isMine(viaB, me: me, myMemberIds: [myMemA, myMemB]) == true)
     // and somebody else is still somebody else, by either road
-    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, profile_id: galen, emoji: "azalea"),
+    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, profile_id: blake, emoji: "azalea"),
                               me: me, myMemberIds: [myMemA, myMemB]) == false)
-    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, member_id: galenMem, emoji: "azalea"),
+    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, member_id: blakeMem, emoji: "azalea"),
                               me: me, myMemberIds: [myMemA, myMemB], memberToProfile: roster) == false)
   }
 
@@ -151,14 +151,14 @@ struct PersonHomedKudosTests {
   /// post and the same emoji. Two reactions, two names, and mine is mine.
   @Test func aMixedSetFoldsIntoOneHonestStrip() {
     let kudos = [
-      HomeSocial.KudoLite(post_id: postOnPerson, member_id: galenMem, emoji: "azalea", created_at: at(1)),
+      HomeSocial.KudoLite(post_id: postOnPerson, member_id: blakeMem, emoji: "azalea", created_at: at(1)),
       HomeSocial.KudoLite(post_id: postOnPerson, profile_id: me, emoji: "azalea", created_at: at(2)),
-      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: galen, emoji: "eagle", created_at: at(3)),
+      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: blake, emoji: "eagle", created_at: at(3)),
     ]
     let rx = HomeSocial.fold(kudos: kudos, names: names, me: me, myMemberIds: [myMemA], memberToProfile: roster)
     #expect(rx[postOnPerson]?["azalea"]?.n == 2)
     #expect(rx[postOnPerson]?["azalea"]?.me == true)
-    #expect(rx[postOnPerson]?["azalea"]?.who.sorted() == ["Galen", "Jerecho"])
+    #expect(rx[postOnPerson]?["azalea"]?.who.sorted() == ["Avery", "Blake"])
     // D309 · the vocabulary is the four tokens now, and the rule survives the
     // change intact: an eagle stays an eagle and never becomes the quick token
     #expect(rx[postOnPerson]?["eagle"]?.n == 1)
@@ -197,13 +197,13 @@ struct PersonHomedKudosTests {
     snap.targets = [roundLeagueless: HomeSocial.Target(postId: postOnPerson, leagueId: nil)]
     snap.raw = [
       HomeSocial.KudoLite(post_id: postOnPerson, member_id: myMemB, emoji: "azalea", created_at: at(100)),
-      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: galen, emoji: "eagle", created_at: at(101)),
+      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: blake, emoji: "eagle", created_at: at(101)),
     ]
-    let rows = [HomeFeedRow(round_id: roundLeagueless, profile_id: me, golfer: "Jerecho", marker: nil, handle: nil,
+    let rows = [HomeFeedRow(round_id: roundLeagueless, profile_id: me, golfer: "Avery", marker: nil, handle: nil,
                             gross: 84, pvi: nil, played_on: "2026-09-01", created_at: at(90),
-                            course: "Papago", is_pr: nil, is_first: nil, is_sub80: nil, is_me: true, photo_path: nil)]
+                            course: "Saguaro Flats", is_pr: nil, is_first: nil, is_sub80: nil, is_me: true, photo_path: nil)]
     let m = snap.mentions(rounds: rows, since: at(0), memberToProfile: roster)
     #expect(m.count == 1)
-    #expect(m.first?.who == "Galen")
+    #expect(m.first?.who == "Blake")
   }
 }

@@ -37,4 +37,20 @@ final class BetweenRoundsWidgetUITests: XCTestCase {
       app.terminate()
     }
   }
+  @MainActor func testWhatsOnSurvivesIntegrationInBothPrintings() {
+    let app=XCUIApplication()
+    for appearance in ["dark","light"] {
+      app.launchArguments=["-cs_dev_widgets","-cs_widget_kind","CSWhatsOnWidget","-cs_widget_state","full","-cs_dev_appearance",appearance]
+      app.terminate()
+      app.launch()
+      XCTAssertTrue(app.scrollViews["widgetReview"].waitForExistence(timeout:60))
+      XCTAssertTrue(app.staticTexts["What’s On"].firstMatch.exists)
+      XCTAssertTrue(app.staticTexts["You and Blake, two days left."].firstMatch.exists)
+      let shot=XCTAttachment(screenshot:app.screenshot()); shot.name="WhatsOn-"+appearance; shot.lifetime = .keepAlways; add(shot)
+      app.swipeUp()
+      let lower=XCTAttachment(screenshot:app.screenshot()); lower.name="WhatsOn-families-"+appearance; lower.lifetime = .keepAlways; add(lower)
+      app.terminate()
+    }
+  }
+
 }

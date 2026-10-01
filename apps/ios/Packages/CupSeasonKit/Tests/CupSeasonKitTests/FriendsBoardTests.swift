@@ -22,27 +22,27 @@ private func rows(_ json: String) throws -> [FriendsBoard.ServerRow] {
 }
 
 private let me = "11111111-1111-1111-1111-111111111111"
-private let tash = "22222222-2222-2222-2222-222222222222"
-private let marcus = "33333333-3333-3333-3333-333333333333"
+private let devon = "22222222-2222-2222-2222-222222222222"
+private let casey = "33333333-3333-3333-3333-333333333333"
 private let quiet = "44444444-4444-4444-4444-444444444444"
 
 /// IA §10.2's own worked example, plus a buddy whose `discoverable` is
 /// 'nobody' — the server does not send that column at all, which is the point.
 private let board = """
 [
-  { "profile_id": "\(tash)", "display_name": "Tash", "handle": "tash", "marker": "cactus",
+  { "profile_id": "\(devon)", "display_name": "Devon", "handle": "devon", "marker": "cactus",
     "index_current": 14.2, "rounds_30d": 4, "beats_30d": 3, "avg_vs_number_30d": 2.4,
     "best_vs_number_30d": 5.1, "last_round_on": "2026-09-01",
     "rank_by_form": 1, "rank_by_index": 3, "is_me": false },
-  { "profile_id": "\(me)", "display_name": "Jerecho", "handle": "jer", "marker": "saguaro",
+  { "profile_id": "\(me)", "display_name": "Avery", "handle": "ave", "marker": "saguaro",
     "index_current": 12.4, "rounds_30d": 6, "beats_30d": 2, "avg_vs_number_30d": 0.4,
     "best_vs_number_30d": 3.0, "last_round_on": "2026-09-04",
     "rank_by_form": 2, "rank_by_index": 2, "is_me": true },
-  { "profile_id": "\(marcus)", "display_name": "Marcus", "handle": "marc", "marker": "beer",
+  { "profile_id": "\(casey)", "display_name": "Casey", "handle": "marc", "marker": "beer",
     "index_current": 9.1, "rounds_30d": 2, "beats_30d": 0, "avg_vs_number_30d": -0.2,
     "best_vs_number_30d": 0.6, "last_round_on": "2026-08-28",
     "rank_by_form": 3, "rank_by_index": 1, "is_me": false },
-  { "profile_id": "\(quiet)", "display_name": "Jade", "handle": "jade", "marker": "flag",
+  { "profile_id": "\(quiet)", "display_name": "Emery", "handle": "emery", "marker": "flag",
     "index_current": 10.0, "rounds_30d": 0, "beats_30d": 0, "avg_vs_number_30d": null,
     "best_vs_number_30d": null, "last_round_on": null,
     "rank_by_form": 4, "rank_by_index": 4, "is_me": false }
@@ -55,7 +55,7 @@ private let board = """
 
   @Test func formIsTheDefaultAndBeatsLeadIt() throws {
     let b = FriendsBoard.parse(try rows(board))
-    #expect(b.ordered(.form).map(\.name) == ["Tash", "You", "Marcus", "Jade"])
+    #expect(b.ordered(.form).map(\.name) == ["Devon", "You", "Casey", "Emery"])
     // IA §10.2's example, exactly: four rounds and three beats leads six
     // rounds and two beats, because beats are the fact and rounds are the
     // tiebreak.
@@ -71,35 +71,35 @@ private let board = """
   /// says. The fixture below is the photographed board that caught it.
   @Test func theOrderFollowsThePrintedFigureAndNotTheServersRank() throws {
     let b = FriendsBoard.parse(try rows("""
-    [ { "profile_id": "\(tash)",   "display_name": "Tash",   "rounds_30d": 4, "beats_30d": 3,
+    [ { "profile_id": "\(devon)",   "display_name": "Devon",   "rounds_30d": 4, "beats_30d": 3,
         "avg_vs_number_30d": -2.6, "index_current": 14.2, "rank_by_form": 1, "rank_by_index": 3 },
-      { "profile_id": "\(me)",     "display_name": "Jerecho", "rounds_30d": 6, "beats_30d": 2,
+      { "profile_id": "\(me)",     "display_name": "Avery", "rounds_30d": 6, "beats_30d": 2,
         "avg_vs_number_30d": 1.0,  "index_current": 12.4, "rank_by_form": 2, "rank_by_index": 2, "is_me": true },
-      { "profile_id": "\(marcus)", "display_name": "Marcus", "rounds_30d": 2, "beats_30d": 2,
+      { "profile_id": "\(casey)", "display_name": "Casey", "rounds_30d": 2, "beats_30d": 2,
         "avg_vs_number_30d": 2.8,  "index_current": 9.1,  "rank_by_form": 3, "rank_by_index": 1 },
-      { "profile_id": "\(quiet)",  "display_name": "Jade",   "rounds_30d": 1, "beats_30d": 0,
+      { "profile_id": "\(quiet)",  "display_name": "Emery",   "rounds_30d": 1, "beats_30d": 0,
         "avg_vs_number_30d": -3.8, "index_current": 10.0, "rank_by_form": 4, "rank_by_index": 4 } ]
     """))
     // plus is better, so the figures descend down the rail
-    #expect(b.ordered(.form).map(\.name) == ["Marcus", "You", "Tash", "Jade"])
+    #expect(b.ordered(.form).map(\.name) == ["Casey", "You", "Devon", "Emery"])
     let figures = b.ordered(.form).compactMap(\.avgVsNumber)
     #expect(figures == figures.sorted(by: >), "the rail contradicts its own column")
     // and BOTH directions: a plus outranks a minus, and a bigger plus outranks
     // a smaller one
-    #expect(b.ranked(.form).first { $0.row.name == "Marcus" }?.rank == 1)
-    #expect(b.ranked(.form).first { $0.row.name == "Jade" }?.rank == 4)
+    #expect(b.ranked(.form).first { $0.row.name == "Casey" }?.rank == 1)
+    #expect(b.ranked(.form).first { $0.row.name == "Emery" }?.rank == 4)
     // the handicap lens ranks on the figure IT prints, ascending
-    #expect(b.ordered(.handicap).map(\.name) == ["Marcus", "Jade", "You", "Tash"])
+    #expect(b.ordered(.handicap).map(\.name) == ["Casey", "Emery", "You", "Devon"])
   }
 
   /// A golfer with no figure has nothing to be ranked on and takes the tail —
   /// never a zero, never a guess (L-44).
   @Test func aRowWithNoFigureTakesTheTail() throws {
     let b = FriendsBoard.parse(try rows(board))
-    #expect(b.ordered(.form).last?.name == "Jade")     // no rounds in the window
+    #expect(b.ordered(.form).last?.name == "Emery")     // no rounds in the window
     // **D324 · A GOLFER WITH NO ROUNDS IS NOT RANKED.** This asserted a `4`,
     // which is how the board came to print `04 05 06` beside three rows
-    // reading *"No rounds in the window · nothing yet"*. Jade is not fourth at
+    // reading *"No rounds in the window · nothing yet"*. Emery is not fourth at
     // anything — that is an absence dressed as a standing, and the board's own
     // note promises *"No badges, no streaks — just rounds."*
     #expect(b.ranked(.form).last?.rank == nil)
@@ -110,7 +110,7 @@ private let board = """
 
   @Test func theIndexIsTheSecondLensAndItReordersTheList() throws {
     let b = FriendsBoard.parse(try rows(board))
-    #expect(b.ordered(.handicap).map(\.name) == ["Marcus", "Jade", "You", "Tash"])
+    #expect(b.ordered(.handicap).map(\.name) == ["Casey", "Emery", "You", "Devon"])
     // and the two lenses genuinely disagree — a second lens that agrees with
     // the first is not a second lens
     #expect(b.ordered(.form).map(\.name) != b.ordered(.handicap).map(\.name))
@@ -149,10 +149,10 @@ private let board = """
 
   @Test func discoverableNobodyDoesNotHideMeFromMyBuddies() throws {
     let b = FriendsBoard.parse(try rows(board))
-    // Jade's `discoverable` is 'nobody'. The server does not filter on it and
+    // Emery's `discoverable` is 'nobody'. The server does not filter on it and
     // the payload does not carry it, because it is the SEARCH gate (L-37) and
     // a golfer who accepted you is not hidden from you by it.
-    #expect(b.rows.contains { $0.name == "Jade" })
+    #expect(b.rows.contains { $0.name == "Emery" })
     let fields = Mirror(reflecting: try #require(b.rows.first)).children.compactMap(\.label)
     #expect(!fields.contains("discoverable"))
   }
@@ -168,8 +168,8 @@ private let board = """
 
   @Test func theFigureIsABandAndNeverTheFloat() throws {
     let b = FriendsBoard.parse(try rows(board))
-    let tashRow = try #require(b.rows.first { $0.name == "Tash" })
-    // a real screenshot caught the board telling me Tash had beaten MY number
+    let tashRow = try #require(b.rows.first { $0.name == "Devon" })
+    // a real screenshot caught the board telling me Devon had beaten MY number
     #expect(tashRow.band == "Beat their number")
     #expect(try #require(b.rows.first { $0.isMe }).band == "Played to it")
     // T-07 · the raw figure never reaches the row's own display
@@ -180,13 +180,13 @@ private let board = """
 
   @Test func aWindowWithNoRoundsInvitesNoBand() throws {
     let b = FriendsBoard.parse(try rows(board))
-    let jade = try #require(b.rows.first { $0.name == "Jade" })
-    #expect(jade.rounds == 0)
+    let emery = try #require(b.rows.first { $0.name == "Emery" })
+    #expect(emery.rounds == 0)
     // L-44 · a band over no rounds is a band about nothing
-    #expect(jade.band == nil)
-    #expect(jade.formLine == "No rounds in the window")
+    #expect(emery.band == nil)
+    #expect(emery.formLine == "No rounds in the window")
     // she is still ON the board, with the count said out loud
-    #expect(jade.rankByForm == 4)
+    #expect(emery.rankByForm == 4)
   }
 
   @Test func everyFormLineNamesItsDenominator() throws {
@@ -198,8 +198,8 @@ private let board = """
 
   @Test func theFormLineCountsInWordsBelowThree() throws {
     let b = FriendsBoard.parse(try rows(board))
-    #expect(try #require(b.rows.first { $0.name == "Tash" }).formLine == "4 rounds · beat their playing HCP 3 times")
-    #expect(try #require(b.rows.first { $0.name == "Marcus" }).formLine == "2 rounds · didn’t beat their playing HCP")
+    #expect(try #require(b.rows.first { $0.name == "Devon" }).formLine == "4 rounds · beat their playing HCP 3 times")
+    #expect(try #require(b.rows.first { $0.name == "Casey" }).formLine == "2 rounds · didn’t beat their playing HCP")
   }
 
   // MARK: shape and decoding
@@ -207,18 +207,18 @@ private let board = """
   @Test func aRowWithNoProfileIsDropped() throws {
     let b = FriendsBoard.parse(try rows("""
     [ { "display_name": "Ghost", "rounds_30d": 3, "beats_30d": 3, "rank_by_form": 1, "rank_by_index": 1 },
-      { "profile_id": "\(tash)", "display_name": "Tash", "rounds_30d": 1, "beats_30d": 0,
+      { "profile_id": "\(devon)", "display_name": "Devon", "rounds_30d": 1, "beats_30d": 0,
         "rank_by_form": 2, "rank_by_index": 2 } ]
     """))
     // P-7 · a row that opens nothing is not a row
-    #expect(b.rows.map(\.name) == ["Tash"])
+    #expect(b.rows.map(\.name) == ["Devon"])
   }
 
   @Test func aPayloadThatPredatesAColumnStillDecodes() throws {
     // deploy-skew: every field is optional, and a missing figure is a missing
     // figure rather than a zero
     let b = FriendsBoard.parse(try rows("""
-    [ { "profile_id": "\(tash)", "display_name": "Tash" } ]
+    [ { "profile_id": "\(devon)", "display_name": "Devon" } ]
     """))
     let r = try #require(b.rows.first)
     #expect(r.rounds == 0)

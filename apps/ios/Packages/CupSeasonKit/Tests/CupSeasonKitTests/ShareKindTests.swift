@@ -57,7 +57,7 @@ struct ShareKindTests {
               "https://cupseason.app/?p=hello",
               "https://cupseason.app/?plan=%20",
               "https://cupseason.app/",
-              "https://cupseason.app/?join=PIGL2026"] {
+              "https://cupseason.app/?join=NGFX26"] {
       #expect(ShareIntent.of(URL(string: s)!) == nil, "\(s) should not resolve")
     }
   }
@@ -99,10 +99,10 @@ struct ShareKindTests {
     #expect(ShareIntent.person.message(name: nil).hasPrefix("Come and play."))
     #expect(ShareIntent.person.message(name: "  ").hasPrefix("Come and play."))
 
-    #expect(ShareIntent.plan.message(name: nil, course: "Papago", day: "Sat Sep 12")
-              == "Golf at Papago, Sat Sep 12. Tap to take the seat.")
-    #expect(ShareIntent.plan.message(name: nil, course: "Papago", day: nil)
-              == "Golf at Papago. Tap to take the seat.")
+    #expect(ShareIntent.plan.message(name: nil, course: "Saguaro Flats", day: "Sat Sep 12")
+              == "Golf at Saguaro Flats, Sat Sep 12. Tap to take the seat.")
+    #expect(ShareIntent.plan.message(name: nil, course: "Saguaro Flats", day: nil)
+              == "Golf at Saguaro Flats. Tap to take the seat.")
     #expect(ShareIntent.plan.message(name: nil, course: nil, day: nil)
               == "There’s a round on. Tap to take the seat.")
   }

@@ -51,7 +51,7 @@ with tempfile.TemporaryDirectory(prefix="cup-season-after-golf-test-") as temp:
             return result.stdout.strip()
         def reset(day="current_date-1", host=HOST, tags="{}", course="null"):
             sql("truncate scheduled_rounds,round_rsvp,rounds,plan_followups cascade;")
-            sql(f"insert into scheduled_rounds(id,profile_id,play_on,course_label,course_id,tagged) values('{PLAN}','{host}',{day},'Papago',{course},'{tags}');")
+            sql(f"insert into scheduled_rounds(id,profile_id,play_on,course_label,course_id,tagged) values('{PLAN}','{host}',{day},'Saguaro Flats',{course},'{tags}');")
         # D353 · the band now waits for an explicit capability. Every existing
         # case below is a CAPABLE client, so they keep testing what they tested;
         # the incapable client gets its own cases.
@@ -152,7 +152,7 @@ with tempfile.TemporaryDirectory(prefix="cup-season-after-golf-test-") as temp:
         ctx = prompts()[0]["context"]
         require(ctx["plan_id"] == PLAN, "the item carries the plan id outside the display key")
         require(ctx["play_on"] == sql("select (current_date-1)::text;"), "the item carries the day that was played")
-        require(ctx["course_label"] == "Papago", "the item carries the raw course label, not the uppercased eyebrow")
+        require(ctx["course_label"] == "Saguaro Flats", "the item carries the raw course label, not the uppercased eyebrow")
         require(ctx["course_id"] is None, "a plan with no catalogue course says so rather than inventing one")
         reset(course="'A'")
         require(prompts()[0]["context"]["course_id"] == "A", "a plan with a catalogue course carries its id")

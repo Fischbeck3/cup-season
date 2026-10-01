@@ -1,6 +1,7 @@
 import Testing
 import SwiftUI
 import CSDesign
+import CupSeasonKit
 @testable import CupSeason
 
 @MainActor @Suite struct OwnerQ34LayoutTests {
@@ -16,6 +17,25 @@ import CSDesign
           #expect(star.frame.width >= 43.99 && star.frame.height >= 43.99)
           #expect(star.frame.minX >= 19 && star.frame.maxX <= width - 19)
         }
+      }
+    }
+  }
+
+  @Test func theRatingSheetKeepsWholeAndHalfTargetsAt44Points() throws {
+    for width: CGFloat in [375, 402] {
+      for size in [DynamicTypeSize.large, .accessibility3] {
+        let host = HostedLayout(RateCourseSheet(courseId: "910001", course: "Saguaro Flats",
+                                               rating: .init(mine: 3.5), onChange: { _ in }),
+                                width: width, typeSize: size)
+        defer { host.tearDown() }
+        let stars = host.elements(prefix: "rating.star.")
+        let halves = host.elements(prefix: "rating.half.")
+        #expect(stars.count == 5 && halves.count == 2)
+        for target in stars + halves {
+          #expect(target.frame.width >= 43.99 && target.frame.height >= 43.99)
+          #expect(target.frame.minX >= 19 && target.frame.maxX <= width - 19)
+        }
+        #expect(host.horizontalScrollers.isEmpty)
       }
     }
   }

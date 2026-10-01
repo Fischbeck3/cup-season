@@ -572,7 +572,7 @@ struct RoundReceiptSheet: View {
     }
   }
 
-  /// `PAPAGO · BLUE · SUN SEP 6`. `ReceiptSeed.subtitle` joins the ISO date
+  /// `SAGUARO FLATS · BLUE · SUN SEP 6`. `ReceiptSeed.subtitle` joins the ISO date
   /// raw — it was written for a sheet title, and `2026-09-04` in tracked caps
   /// over a receipt is a database row rather than a dateline.
   private func dateline(_ r: ReceiptSeed) -> String {
@@ -742,7 +742,7 @@ struct RoundReceiptSheet: View {
   private func applyLensesHatch() {
     let a = ProcessInfo.processInfo.arguments
     guard let i = a.firstIndex(of: "-cs_dev_receipt_lenses"), i + 1 < a.count, var s = seed else { return }
-    let fellas = UUID(uuidString: "00000000-0000-4000-8000-00000000b001")!, sunday = UUID(uuidString: "00000000-0000-4000-8000-00000000b002")!
+    let northGrove = UUID(uuidString: "00000000-0000-4000-8000-00000000b001")!, sunday = UUID(uuidString: "00000000-0000-4000-8000-00000000b002")!
     let season1 = UUID(uuidString: "00000000-0000-4000-8000-00000000c001")!, season2 = UUID(uuidString: "00000000-0000-4000-8000-00000000c002")!
     let m1 = UUID(uuidString: "00000000-0000-4000-8000-00000000d001")!, m2 = UUID(uuidString: "00000000-0000-4000-8000-00000000d003")!
     let month = String((s.playedOn ?? CSDate.today()).prefix(7))
@@ -751,9 +751,9 @@ struct RoundReceiptSheet: View {
                           monthRank: rank, countingCap: cap, month: month)
     }
     switch a[i + 1] {
-    case "one":      s.contributions = [lens("Fellas", fellas, season1, m1, rank: 2, cap: 4, pts: 7)]
-    case "two":      s.contributions = [lens("Fellas", fellas, season1, m1, rank: 2, cap: 4, pts: 7), lens("Sunday Cup", sunday, season2, m2, rank: 1, cap: nil, pts: 9)]
-    case "bumped":   s.contributions = [lens("Fellas", fellas, season1, m1, rank: 5, cap: 4, pts: 2)]
+    case "one":      s.contributions = [lens("North Grove (fixture)", northGrove, season1, m1, rank: 2, cap: 4, pts: 7)]
+    case "two":      s.contributions = [lens("North Grove (fixture)", northGrove, season1, m1, rank: 2, cap: 4, pts: 7), lens("Sunday Cup", sunday, season2, m2, rank: 1, cap: nil, pts: 9)]
+    case "bumped":   s.contributions = [lens("North Grove (fixture)", northGrove, season1, m1, rank: 5, cap: 4, pts: 2)]
     case "uncapped": s.contributions = [lens("Sunday Cup", sunday, season2, m2, rank: 3, cap: nil, pts: 5)]
     default: return
     }
@@ -793,7 +793,7 @@ struct RoundReceiptSheet: View {
 #Preview("First round — no number yet") {
   RoundReceiptSheet(roundId: UUID(), seed: ReceiptSeed(
     id: UUID(), gross: 94, differential: 27.8, indexAtPost: 27.8, playedOn: "2026-09-03",
-    courseLabel: "Papago GC", holesPlayed: 18, rating: 70.2, slope: 125, pvi: 0, points: 7, monthRank: 1, countingCap: 3,
+    courseLabel: "Saguaro Flats", holesPlayed: 18, rating: 70.2, slope: 125, pvi: 0, points: 7, monthRank: 1, countingCap: 3,
     indexProvisional: true, provisionalRound: 1))
   .environment(SessionStore())
   .csTheme()

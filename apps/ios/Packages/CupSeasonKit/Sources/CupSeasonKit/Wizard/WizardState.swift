@@ -229,6 +229,9 @@ public struct WizardDials: Sendable, Equatable, Codable {
   public var stakeText: String { stake == 0 ? "None" : PotMath.dollars(stake) }
   /// `durLabel`
   public var lengthText: String { LeagueDates.durLabel(durWeeks) }
+  public var lengthGloss: String {
+    durWeeks >= 8 ? "About \(Self.durMonths(durWeeks)) months · ends the same weekday" : "Ends the same weekday"
+  }
   public var capText: String { Bylaws.capLabel(capN) }
   public var floorText: String { "\(floor) / mo" }
   /// D347 · the STORED cap, when the ladder does not carry it.
@@ -276,7 +279,7 @@ public struct WizardDials: Sendable, Equatable, Codable {
   }
   public var canPublish: Bool { !payNoteMissing }
 
-  /// The name, pre-filled from the roster and asked LAST. "Galen & Jerecho" at
+  /// The name, pre-filled from the roster and asked LAST. "Blake & Avery" at
   /// two; the crew's own shape above that. Never minted for them — the field
   /// opens with this in it and the golfer may type over it.
   public static func suggestedName(_ names: [String]) -> String {
@@ -291,7 +294,12 @@ public struct WizardDials: Sendable, Equatable, Codable {
   public var payKey: String { payout.map(String.init).joined(separator: ",") }
   public var structNote: String { Self.structNotes[structure] ?? "" }
   public var draftNote: String { Self.draftNotes[draftType] ?? Self.draftNotes["random"]! }
-  public var finishNote: String { Self.finishNotes[finish] ?? Self.finishNotes["cup_final"]! }
+  public var finishNote: String {
+    if finish == "cup_final", structure == "squads2" {
+      return "Cup Final: both squads play the last four weeks, and the leader starts +10. " + LeagueCopy.finalCounting
+    }
+    return Self.finishNotes[finish] ?? Self.finishNotes["cup_final"]!
+  }
   public var payNote: String { Self.payNotes[payKey] ?? Self.payNotes["60,25,15"]! }
 
   // MARK: season dates (7081–7099)
@@ -622,14 +630,14 @@ public enum WizardCopy {
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"
   public static let buyIn = ("Buy-in", "Per golfer · $0 is bragging rights")
-  public static let seasonLength = ("Season length", "Weeks or months · ends the same weekday")
+  public static let seasonLength = ("Season length", "Ends the same weekday")
   public static let firstTee = ("First tee", "Pick any day")
   public static let teamsEyebrow = "Squads"
   public static let teamsHelp = "How the league is organized. Solo means everyone competes individually: no squads. Squad modes split the league into squads the Pro picks or draws; more squads want more golfers (4 squads plays best at 8+)."
   public static let fillEyebrow = "How squads fill"
   public static let fillHelp = "How squads get filled. Random draw shuffles everyone and announces the reveal to the board, so nobody can rig the hat. Picking them yourself lets you place golfers, for groups who picked teams in the group chat."
   public static let endsEyebrow = "How it ends"
-  public static let endsHelp = "Cup Final: the top two compete in the last four weeks, with the monthly counting limit still applying. Points table: whoever leads at season end wins."
+  public static let endsHelp = "Cup Final: the last four weeks, with the monthly counting limit still applying. At two squads, both play and the leader starts +10; otherwise, the top two qualify. Points table: whoever leads at season end wins."
   public static let potEyebrow = "The pot split"
   public static let potHelp = "How the pot pays out at season’s end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — " + MoneyCopy.ledger
   /// W5 · the dial's second line says what it means: "N" was a variable

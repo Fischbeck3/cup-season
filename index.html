@@ -6013,6 +6013,7 @@ html[data-theme="light"] .room-dusk .stat{
 .sv .sv-unsub { margin-top:var(--s5); } .sv .sv-unsub .cs-body-s { color:var(--mut); margin:var(--s3) 0 var(--s4); }
 .sv .sv-retry { margin-top:var(--s4); }
 .sv .sv-note { color:var(--mut); margin-top:var(--s3); }
+.sv .sv-install { display:inline-flex; align-items:center; min-height:44px; margin-top:var(--s2); color:var(--ink); text-underline-offset:3px; }
 @media (min-width:1024px){
   /* the signature stays at the head of the page and the object sits in the
      middle of what is left, not in its top third (critique B) */
@@ -9346,12 +9347,14 @@ function csSeasonStoryLine(p){
   if(gap != null && Number(gap) <= 2 && Number(f.field||0) >= 2 && f.runner_up){
     const left = Number(f.weeks_left||0);
     const clock = left > 0 ? ` with ${csWord(left)} week${left===1?'':'s'} to play` : '';
-    if(Number(gap) <= 0) return { rung:3, text:`The top two are level${clock}.`, source:'standings_snapshots' };
+    /* Q2 · owner ruling 2026-09-29: in a field of two "the top two" is everybody, a cut worded as a cut (spec §14.3, SA-3): the two are named for what they are */
+    const two = Number(f.field||0) === 2, pair = two ? `the two ${solo ? 'golfers' : 'squads'}` : 'the top two';
+    if(Number(gap) <= 0) return { rung:3, text:`${csCapFirst(pair)} are level${clock}.`, source:'standings_snapshots' };
     const g = Number(gap);
     const head = g === 1 ? 'One point separates'
                : g === Math.round(g) ? `${csCapWord(csWord(g))} points separate`
                : `${csNum(g)} points separate`;
-    return { rung:3, text:`${head} the top two${clock}.`, source:'standings_snapshots' };
+    return { rung:3, text:`${head} ${pair}${clock}.`, source:'standings_snapshots' };
   }
   /* rung 4 · somebody has closed half the gap in a fortnight */
   const c = f.closer;
@@ -9864,6 +9867,8 @@ function renderClimb(){
        it is the opposite: a seat secured. "SEEDED" collides with seeds 1/2,
        which only exist once the window opens. IN. */
     if(settled) badge = (champCid!=null && t.id===champCid) ? '<span class="badge lock">CUP</span>' : '';
+    /* Q2 · at two squads both play the Final: nobody is IN or OUT of it (the leader carries the +10, which the scenario line says), so neither badge is drawn */
+    else if(state.structure==='squads2') badge='';
     else if(row && row.clinched) badge='<span class="badge lock">IN</span>';
     else if(row && row.eliminated) badge='<span class="badge out">OUT</span>';
     const spark = isMe ? climbSpark(series[i]) : '';
@@ -9873,6 +9878,7 @@ function renderClimb(){
     if(me && !isMe){ const d=t.pts-me.pts; al += d===0?', level with you':(d>0?`, ${d} ahead of you`:`, ${-d} behind you`); }
     else if(!me && i>0){ al += `, ${teams[0].pts-t.pts} behind the leader`; }
     if(settled){ if(champCid!=null && t.id===champCid) al+=', took the cup'; }
+    else if(state.structure==='squads2') al+='';   /* Q2 · both squads play the Final */
     else if(row && row.clinched) al+=', clinched'; else if(row && row.eliminated) al+=', eliminated';
     const cls='climb-rung'
       + (isMe?' me':'')
@@ -10012,7 +10018,7 @@ function renderCupRace(){
      that straddles two months lets one golfer count more than it says. The
      phone prints the count alone; the cap's own sentence is the server's
      cap_note, in the finalist's receipt. */
-  let html=`<tr><th colspan="2" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 IN THE FINAL BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th><th class="num">Pts</th></tr>`;   /* W7-066 · the totals stand under a head */
+  let html=`<tr><th colspan="2" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 ${state.structure==='squads2'?'HEAD START BY':'IN THE FINAL BY'} ${esc(String(race.seed_rung).toUpperCase())}`:''}</th><th class="num">Pts</th></tr>`;   /* W7-066 · the totals stand under a head */
   fins.forEach((f,i)=>{
     const id=f.squad_id||f.member_id, t=teams.find(x=>x.id===id);
     const ci=t?t.ci:(i%4), name=t?t.name:(f.name||'\u2014');
@@ -10038,7 +10044,8 @@ function showFinalist(f){
   let h='';
   if(head) h+=`<div class="mathrow pos"><span>Head start \u00b7 top seed</span><b>+${head}</b></div>`;
   h+=`<div class="mathrow"><span>Window rounds \u00b7 scored fresh</span><b>${wp}</b></div>`;
-  if(f.seed_rung) h+=`<div class="mathrow"><span>In the Final by</span><b class="mw">${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
+  /* Q2 · owner ruling 2026-09-29: at TWO SQUADS both are in the Final (spec §14.3, D126), so what a tiebreak rung decides is the +10 head start, not entry: 'Head start by', never 'In the Final by' */
+  if(f.seed_rung) h+=`<div class="mathrow"><span>${state.structure==='squads2'?'Head start by':'In the Final by'}</span><b class="mw">${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
   h+=`<div class="mathrow tot"><span>Total in the Final</span><b>${tot}</b></div>`;
   h+=`<div class="eyebrow" style="margin-top:18px">The rounds</div>`;
   /* D212 · the calendar cap does not stop at the window's edge. The sentence is
@@ -10049,7 +10056,7 @@ function showFinalist(f){
   h+= rounds.length
     ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(csRoundDay(r.played_on)).toUpperCase()}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs your playing HCP \u00b7 ${r.points} PTS</b></div>`).join('')
     : `<p class="fine">No rounds in the window yet.</p>`;
-  h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The weeks before it decided who is in; this is the race.</p>`;
+  h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. ${state.structure==='squads2'?'The weeks before it decided the head start':'The weeks before it decided who is in'}; this is the race.</p>`;
   openSheet(name, `SEED ${f.seed} \u00b7 ${tot} PTS IN THE FINAL`, h);
 }
 /* D108: the weekly clash — one spotlighted pairing per season week, as a chip
@@ -15856,7 +15863,7 @@ function syncWizSegs(){
   /* W5 · the squads note follows the chosen squads on every paint — it kept
      its markup default ("4 squads · best with 8 or more.") under 2 Squads */
   const sn=$('#structNote'); if(sn) sn.textContent=STRUCT_NOTES[state.structure]||'';
-  const fn=$('#finishNote'); if(fn) fn.textContent=FINISH_NOTES[state.finish||'cup_final'];
+  const fn=$('#finishNote'); if(fn) fn.textContent=csFinishNote(state.finish||'cup_final', state.structure);
   const pn=$('#payoutNote'); if(pn) pn.textContent=PAY_NOTES[payKey]||PAY_NOTES['60,25,15'];
   /* W-48 / D201 · #presetSummary stays SILENT: the selected card above it
      already says its one sentence, and a second copy read as a second fact. */
@@ -15992,11 +15999,18 @@ const FINISH_NOTES={
   cup_final:'Cup Final: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.',
   points_table:'Points table: whoever leads when the season ends takes the cup. The whole year is the race — no reset.',
 };
+/* Q2 (row 7) · owner ruling 2026-09-29: TWO SQUADS both play the Final (spec §14.3, D126), so the finish help says so instead of "the top two compete", a cut a field of two does not have */
+function csFinishNote(finish, structure){
+  if(finish !== 'cup_final') return FINISH_NOTES.points_table;
+  return structure === 'squads2'
+    ? 'Cup Final: both squads play the last four weeks, and the leader starts +10. ' + CS_FINAL_COUNTING
+    : FINISH_NOTES.cup_final;
+}
 $$('#finishSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#finishSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
   state.finish=b.dataset.e;
-  $('#finishNote').textContent=FINISH_NOTES[state.finish];
+  $('#finishNote').textContent=csFinishNote(state.finish, state.structure);
   renderBylaws();
 }));
 /* the pot split (payout columns already in league_settings) */
@@ -34177,6 +34191,16 @@ function scenSeedWord(meta){
   if(meta.level==='squad' && meta.structure==='squads2') return 'the top seed';
   return 'a Cup Final place';
 }
+/* Empty/incomplete reads cannot invent a seed. The draw's seed order survives a lead change. */
+function csFinalSeedNames(meta){
+  const seeds = Array.isArray(meta?.seeds) ? meta.seeds : [];
+  const count = meta?.structure==='squads2' ? 2 : (Number.isInteger(meta?.k) && meta.k>0 ? meta.k : null);
+  if((count!=null && seeds.length!==count) || !seeds.length || seeds.some(s=>!s?.id || !Number.isInteger(s.seed) || s.seed<1 || !String(s.name||'').trim())
+    || new Set(seeds.map(s=>s.id)).size!==seeds.length || new Set(seeds.map(s=>s.seed)).size!==seeds.length
+    || seeds.slice().sort((a,b)=>a.seed-b.seed).some((s,i)=>s.seed!==i+1)) return [];
+  return seeds.slice().sort((a,b)=>a.seed-b.seed).map(s=>String(s.name));
+}
+window.csFinalSeedNames = csFinalSeedNames;
 function renderScenarioLine(){
   const box = document.getElementById('scenarioLine'); if(!box) return;
   const sc = window.scenarios;
@@ -34193,7 +34217,9 @@ function renderScenarioLine(){
   const plural = meta.level==='squad';
   const names = list => list.length<3 ? list.join(' and ') : list.slice(0,-1).join(', ')+' and '+list[list.length-1];
   if(meta.locked){
-    const seeds = rows.slice(0, meta.k).map(r=>`<b>${nm(r.name)}</b>`);
+    /* Q2 row 2 · the engine's drawn finalists, never the current points order. */
+    const seeds = csFinalSeedNames(meta).map(name=>`<b>${nm(name)}</b>`);
+    if(!seeds.length) return hide();
     /* W7-068 [X05] · 'The Final is set' is the state's word (TERMINOLOGY row 141: 'seed' is never a verb; the phone's ScenarioLine says it) */
     box.innerHTML = `<span class="clinch">The Final is set:</span> ${names(seeds)} ${seeds.length>1||plural?'are':'is'} in.`;   /* D126 */
     box.style.display='block'; return;
@@ -35136,7 +35162,7 @@ function csCovenantFacts(info, postedRounds){
   const shortSeason = wk > 0 && wk < 6;
   const table = info.finish === 'points_table' || shortSeason;
   const ending = table ? "The season's points decide it. No reset."
-    : !st ? 'It ends with a four-week Cup Final between the top two.'
+    : !st ? 'It ends with a four-week Cup Final.'   /* Q2 row 9 · the older server's fallback said 'between the top two' of a field whose size it does not know */
     : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start. ' + window.CS_FINAL_COUNTING
     : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING
     : 'The top two squads qualify for a four-week Cup Final, scored fresh. ' + window.CS_FINAL_COUNTING;   /* Q35 (a): and its counting limit */
@@ -35226,7 +35252,23 @@ async function covenantGate(code){
   if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
   /* D375 · a member whose yes to this season is already on record is told so
      instead of being walked through a covenant they have already signed */
-  if(info && info.agreed === true){ toast(csAlreadyInLine(info.season_number)); return false; }
+  if(info && info.agreed === true){
+    // D375: this yes is already recorded. Open it; never call join_league again.
+    const owner = CS.user?.id;
+    try {
+      await loadMemberships();
+      if(!owner || CS.user?.id !== owner) return false;
+      const m = CS.memberships.find(x => x.league?.code?.toUpperCase() === code.trim().toUpperCase());
+      if(!m || !(await window.csOpenSeason(m.league.id))) throw new Error('Could not open the season. Try again.');
+      if(CS.user?.id !== owner) return false;
+      closeSheet(); hideWelcome();
+      if(localStorage.getItem('cs_code')?.toUpperCase() === code.trim().toUpperCase()){
+        localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name');
+      }
+      toast(csAlreadyInLine(info.season_number));
+      return 'opened';
+    } catch(e){ toast(humanError(e, 'Could not open the season.'), 'neg'); return false; }
+  }
   return showCovenant(info);
 }
 
@@ -35411,7 +35453,7 @@ $('#joinGo').addEventListener('click', async () => {
     return;
   }
   try {
-    if(!(await covenantGate(code))) return;   /* stake shown, golfer said not now */
+    if((await covenantGate(code)) !== true) return;   /* stake shown, golfer said not now */
     const { error } = await sb.rpc('join_league', { p_code: code });
     if(error) throw error;
     await loadMemberships();
@@ -35590,9 +35632,10 @@ function openJoinSheet(prefill){
   const go = async () => {
     const code = ($('#jCode').value||'').trim().toUpperCase();
     if(!code){ toast('Enter the league code'); return; }
-    $('#jGo').disabled = true;
+    const button = $('#jGo');
+    button.disabled = true;
     try{
-      if(!(await covenantGate(code))) return;   /* covenant sheet replaced this one */
+      if((await covenantGate(code)) !== true) return;   /* covenant sheet replaced this one */
       const { error } = await sb.rpc('join_league', { p_code: code });
       if(error) throw error;
       await loadMemberships();
@@ -35605,8 +35648,7 @@ function openJoinSheet(prefill){
       openLeagueWelcome(m.league.name);
     }catch(err){
       toast(/invalid/i.test(err.message||'') ? CS_NO_LEAGUE : humanError(err, 'Could not join.'));
-      $('#jGo').disabled = false;
-    }
+    } finally { button.disabled = false; }
   };
   $('#jGo').addEventListener('click', go);
   $('#jCode').addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
@@ -38713,7 +38755,7 @@ $('#wCodeGo').addEventListener('click', async () => {
   /* Q-14 (D116) · consent on EVERY join path. Three of the five join_league
      calls passed the covenant and two did not, so whether a golfer saw the
      terms they were agreeing to depended on which door they came through. */
-  if(!(await covenantGate(code))) return;
+  if((await covenantGate(code)) !== true) return;
   try {
     const { error } = await sb.rpc('join_league', { p_code: code });
     if(error) throw error;
@@ -38843,7 +38885,9 @@ async function boot(){
          most. It also deleted the pending code BEFORE trying, so any failure
          (or a "not now") threw the invite away and left no way back to it.
          Show the covenant first; keep the code until the server accepts the join. */
-      if(!(await covenantGate(pend))){
+      const gate = await covenantGate(pend);
+      if(gate === 'opened') return;
+      if(gate !== true){
         window.qaEvent?.('covenant_declined', { via: 'link' });
         /* a decline is a state, not a loss — the code stays for Home to offer */
       } else {
@@ -38916,7 +38960,9 @@ async function resumeAfterProfile(){
       try{
         /* S3-01: the stake is shown BEFORE join_league on this path too — the
            invite-link signup is the path most recipients take. */
-        if(await covenantGate(pend)){
+        const gate = await covenantGate(pend);
+        if(gate === 'opened') return { inLeague:true, viaInvite };
+        if(gate === true){
           /* Q-14 (D116) · the code used to be deleted BEFORE the attempt, which
              made the decline message a lie: "use code X whenever you're ready"
              about a code we had just thrown away. The audit's joiner re-typed
@@ -39038,8 +39084,10 @@ for(const L of CS_SHARE_LINKS){
   const tok = v.trim();
   try{ localStorage.setItem(L.key, tok); }catch(_){}
   window.growthEvent?.('link_opened', L.kind, tok);
-  window._csShareView = true;
-  renderShareView(tok);
+  if(new URLSearchParams(window.location.search).get('signin') !== '1'){
+    window._csShareView = true;
+    renderShareView(tok);
+  }
   break;
 }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
@@ -39099,6 +39147,7 @@ async function renderShareView(tok, _testInfo){
       <p class="sv-why cs-body-s">${esc(WHY)}</p>
       <a class="sv-action cs-name${o.primary ? ' is-primary' : ''}" href="${o.href || '/'}">${esc(o.cta)}</a>
       ${o.note ? `<p class="sv-note cs-body-s">${esc(o.note)}</p>` : ''}
+      ${o.install ? '<a class="sv-install cs-body-s" href="/get">Get the app</a>' : ''}
     </footer>`;
   let info = _testInfo || null, failed = false;
   if(!info) try{
@@ -39284,10 +39333,9 @@ async function renderShareView(tok, _testInfo){
           <span class="fig">${r.gross != null ? esc(String(r.gross)) : ''}</span>
           <span class="nm cs-body-s">${esc(r.course ? String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}</div>
       </div>` : ''}` +
-      /* W5 · "Get the app" is a destination (/get: the iPhone beta or the store,
-         the web app, and install-then-reopen said once), not the root.
-         D359 · getting the app is an ordinary action: act. */
-      foot({ cta: 'Get the app', href: '/get', primary: true,
+      /* D241: sign in with the same token; installation remains an optional
+         /get door. The confirmation after auth still owns the request. */
+      foot({ cta: CS.user ? 'Continue' : 'Sign in', href: '/?p=' + encodeURIComponent(tok) + '&signin=1', primary: true, install: true,
              note: `Sign in and you’ll be asked first. Nothing goes to ${info.name} until you say yes.` });
 
   } else if(info.kind === 'plan'){
@@ -39312,7 +39360,7 @@ async function renderShareView(tok, _testInfo){
         <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
         <p class="sv-where cs-body-s">${whoLine ? esc(whoLine) : `Just ${esc(info.host)} so far.`}</p>
       </div>` +
-      foot({ cta: 'Take the seat', primary: true,
+      foot({ cta: CS.user ? 'Take the seat' : 'Sign in to take the seat', href: '/?plan=' + encodeURIComponent(tok) + '&signin=1', primary: true, install: true,
              note: `Sign in and you’ll be asked first. The seat, and a buddy request to ${info.host}, wait for your yes.` });
 
   } else if(info.kind === 'recap'){
@@ -39877,6 +39925,17 @@ async function safeBoot(force){
        next step says what the next screen does (Q-15): the terms, then the yes. */
     csJoinLanding(pendName);
     openEmailBox($('#obJoin'), CS_JOIN_NEXT);
+  }
+  // The public buddy/plan action keeps its token in the URL and storage,
+  // then opens email without spending the request or seat before consent.
+  if(!CS.user && !pend && new URLSearchParams(location.search).get('signin') === '1'){
+    const link = CS_SHARE_LINKS.find(l => new URLSearchParams(location.search).get(l.q)?.trim());
+    if(link){
+      csLinkLanding({ kind:link.kind, label:link.kind === 'person' ? 'A golfer’s card' : 'A round invite',
+        headHtml:esc(link.kind === 'person' ? 'Sign in to play together.' : 'Sign in to view the plan.'),
+        sub:'You’ll be asked before anything is sent.' });
+      openEmailBox($('#obEmail'));
+    }
   }
   /* guest claim: the round is waiting at the door (anon-readable by token) */
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}

@@ -7,8 +7,8 @@
 // THE MARKER IS A FROZEN PAIR. `(pigment, glyph)` is resolved ONCE from the
 // profile row and never re-derived per surface, per theme, per size or per
 // component. All three blind reviewers filed the same class of defect and two
-// called it a brand failure rather than a bug: "Galen's marker is brown here
-// and maroon there"; "Sam carries a tee here and a cactus on his own card". A
+// called it a brand failure rather than a bug: "Blake's marker is brown here
+// and maroon there"; "Casey carries a tee here and a cactus on his own card". A
 // marker that drifts is not an identity system; it is decoration that happens
 // to be circular.
 //
@@ -77,7 +77,7 @@ public struct CSFace: View {
 
     /// **A face drawn before its surface has plumbed the profile id through.**
     ///
-    /// §6.2a keys the pigment to the GOLFER, so that two Saguaros in one list
+    /// §6.2a keys the pigment to the GOLFER, so that two Saguaro markers in one list
     /// become two different coins. Four shipped call sites — the two person
     /// rows in `People/Links.swift`, the scheduled round's comment list and the
     /// upcoming-rounds row — receive a marker string and no id, and plumbing
@@ -404,7 +404,7 @@ public struct CSFolio: View {
 public struct CSCredentialGolfer: Sendable {
   public let face: CSFace.Model
   public let name: String
-  /// One string, product-wide: `@GALENM · MESA, AZ · PAPAGO` — handle, city,
+  /// One string, product-wide: `@BLAKE · MESA, AZ · SAGUARO FLATS` — handle, city,
   /// home course. **It never carries `EST. JUL 2026`**: the founding fact is
   /// already the gold slot and the folio's serial, and a third telling is the
   /// duplication YRS-21 names. Produced by `CredentialCopy.identity`, in the
@@ -415,7 +415,7 @@ public struct CSCredentialGolfer: Sendable {
   public let slot: String?
   /// Replaces the slot while a round is live — the only ember on the card.
   public let liveTag: String?
-  /// The credit line over a photograph: `GALEN'S ROUND · AUG 24`. An image
+  /// The credit line over a photograph: `BLAKE'S ROUND · AUG 24`. An image
   /// the product borrowed and an image somebody took are told apart by this
   /// line and by nothing else.
   public let credit: String?
@@ -578,7 +578,7 @@ public struct CSCredential<Plate: View>: View {
   /// `.bottomLeading` inside a plate of FIXED height (58% of the card) while
   /// the block itself GROWS: a two-line name at `display` 34 over a three-clause
   /// identity is ~72% of a 180pt plate, so its top reached the slot at the
-  /// plate's head and `JER` of `JERECHO` printed behind `FOUNDER` — on the
+  /// plate's head and `AVE` of `AVERY` printed behind `FOUNDER` — on the
   /// flagship object of the design, at the DEFAULT reading size, on every
   /// device photographed. The `riding` comment guarded the AX3 case only.
   private func bandHeight(_ role: CSType.Role) -> CGFloat {
@@ -836,7 +836,7 @@ public struct CSCredential<Plate: View>: View {
         .accessibilityAddTraits(.isHeader)
       if identity, !golfer.identity.isEmpty {
         // **WAVE 10 · A LINE OF CLAUSES BREAKS ON ITS SEPARATORS; IT DOES NOT
-        // TRUNCATE** (§16.3, the `agate` row). `@JERECHO · PHOENIX, AZ ·
+        // TRUNCATE** (§16.3, the `agate` row). `@AVERY · PHOENIX, AZ ·
         // LOOKOUT MOUNTAIN GOL…` was the shipped result on a 402 measure, and
         // on an SE it lost the city too — a golfer's own card, cutting off
         // their own home course. The tail-ellipsis policy (§9.1) is for a

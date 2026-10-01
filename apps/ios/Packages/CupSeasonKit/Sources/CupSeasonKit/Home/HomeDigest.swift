@@ -46,7 +46,7 @@ public struct HomeDigest: Sendable, Equatable {
   static func who(_ r: HomeFeedRow) -> String { r.is_me == true ? "You" : (r.golfer ?? "a golfer") }
 
   /// **D311 · A REACTION IS A WORD, NOT A VERB.** This line used to build
-  /// `"\(who) \(emoji)’d your \(gross)"` — *"Jade 🔥’d your 90."* — a glyph
+  /// `"\(who) \(emoji)’d your \(gross)"` — *"Emery 🔥’d your 90."* — a glyph
   /// used as a verb, which no language does. D309 forces the fix rather than
   /// merely permitting it: **you cannot verb a drawn azalea.**
   ///
@@ -120,8 +120,8 @@ public struct HomeDigest: Sendable, Equatable {
   /// `spent` is F-2's set: the rounds the ranked deck above has already told a
   /// story about. The QUIET branch reaches for the best round in the feed, and
   /// on a quiet day that is the same round the CIRCLE card is already carrying
-  /// — "Galen posted 79 at Lone Tree · Personal best" in the deck and "Sun,
-  /// Aug 23 — Galen set a personal best — 79 at Lone Tree" one scroll below,
+  /// — "Blake posted 79 at Lone Tree · Personal best" in the deck and "Sun,
+  /// Aug 23 — Blake set a personal best — 79 at Lone Tree" one scroll below,
   /// which is A-6's worked example word for word. The digest yields.
   public static func make(rounds: [HomeFeedRow], posts: [HomePost], photoURLs: [UUID: URL] = [:], mark: Date?,
                           mentions: [HomeSocial.Mention] = [], spent: Set<UUID> = [],
@@ -135,8 +135,8 @@ public struct HomeDigest: Sendable, Equatable {
                         roundId: round.round_id, photoURL: round.round_id.flatMap { photoURLs[$0] },
                         strong: [who(round)], isRoundStory: true)
     }
-    // ONE league note is a sentence the product already wrote — "Galen put a
-    // round on the schedule — Sat · 2:10PM · Papago" — and hiding it behind
+    // ONE league note is a sentence the product already wrote — "Blake put a
+    // round on the schedule — Sat · 2:10PM · Saguaro Flats" — and hiding it behind
     // "1 league note." made a golfer hunt the board for a tee time the note
     // itself contained (owner, 2026-09-17). Say it, and when it is about a
     // booking, open that booking.

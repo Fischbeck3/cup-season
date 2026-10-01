@@ -119,8 +119,8 @@ import CSDesign
 @Suite struct AppleNameTests {
   @Test func formatsApplesComponentsAndRefusesEmpty() {
     var c = PersonNameComponents()
-    c.givenName = "Jerecho"; c.familyName = "Fischbeck"
-    #expect(AppleName.from(c) == "Jerecho Fischbeck")
+    c.givenName = "Avery"; c.familyName = "Fixture"
+    #expect(AppleName.from(c) == "Avery Fixture")
 
     var first = PersonNameComponents(); first.givenName = "Mitch"
     #expect(AppleName.from(first) == "Mitch")
@@ -137,8 +137,8 @@ import CSDesign
     // nothing stashed, nothing to take
     #expect(AppleName.take() == nil)
 
-    AppleName.stash("Priya Nair")
-    #expect(AppleName.take() == "Priya Nair")
+    AppleName.stash("Noel Nair")
+    #expect(AppleName.take() == "Noel Nair")
     // read-and-clear: a second golfer on a shared phone must not inherit it
     #expect(AppleName.take() == nil)
 

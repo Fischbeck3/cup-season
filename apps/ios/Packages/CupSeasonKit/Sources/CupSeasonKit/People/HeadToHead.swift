@@ -227,7 +227,7 @@ public enum HeadToHeadCopy {
   /// `csH2HHeadline` / `csH2HPersonClause` (bfce5aea).
   public static let everyMeeting = "across every meeting"
 
-  /// The headline: "You lead 6–5 across every meeting." · "Galen leads 6–5
+  /// The headline: "You lead 6–5 across every meeting." · "Blake leads 6–5
   /// across every meeting." · "All square, 5–5, across every meeting."
   /// Nil when nothing has been decided — a record of nought is not a sentence
   /// (L-44), and the empty state below is what renders instead.
@@ -298,7 +298,7 @@ public enum HeadToHeadCopy {
   public static func usesHeuristic(_ h: HeadToHead) -> Bool { h.facets.contains { $0.heuristic > 0 } }
 
   /// The one-clause form the PERSON page and Home's rivalry item borrow:
-  /// "Galen has beaten you six times out of eleven, across every meeting."
+  /// "Blake has beaten you six times out of eleven, across every meeting."
   /// Nil when nothing is decided.
   public static func personClause(_ h: HeadToHead) -> String? {
     guard h.record.settled > 0 else { return nil }
@@ -345,7 +345,7 @@ public enum HeadToHeadCopy {
       : titles + ". " + tail
   }
 
-  /// "YOU AND GALEN" — the page title, and the row label on the person page.
+  /// "YOU AND BLAKE" — the page title, and the row label on the person page.
   public static func pageTitle(_ h: HeadToHead) -> String { "You and \(h.opponent.name)" }
 
   /// The empty root, which still ends in a next move (L-32).

@@ -22,8 +22,8 @@ import Foundation
   private func room(status: String = "live", winner: UUID? = nil,
                     sessions: [EventSession] = [], players: Int = 6,
                     aPts: Double = 3.5, bPts: Double = 2.5) -> EventRoom {
-    let teamA = EventTeam(id: a, slot: 0, name: "Saguaros", color: 0)
-    let teamB = EventTeam(id: b, slot: 1, name: "Coyotes", color: 3)
+    let teamA = EventTeam(id: a, slot: 0, name: "Fixture Owls", color: 0)
+    let teamB = EventTeam(id: b, slot: 1, name: "Fixture Foxes", color: 3)
     let ps = (0..<players).map {
       EventPlayer(id: UUID(), profileId: nil, teamId: $0 < players / 2 ? a : b, seed: $0, name: "P\($0)")
     }
@@ -126,7 +126,7 @@ import Foundation
   @Test func theWinnerIsNamedInTheFinalSentence() {
     let closed = EventSession(id: s1, session_no: 1, opens_on: "2026-08-30", closes_on: "2026-09-05", status: "closed")
     let done = room(status: "complete", winner: a, sessions: [closed], aPts: 5, bPts: 4)
-    #expect(RyderMath.clinchLine(done) == "Final. Saguaros took it 5–4.")
+    #expect(RyderMath.clinchLine(done) == "Final. Fixture Owls took it 5–4.")
     let shared = room(status: "complete", winner: nil, sessions: [closed], aPts: 4.5, bPts: 4.5)
     #expect(RyderMath.clinchLine(shared) == "Final. It was shared, 4½–4½.")
   }

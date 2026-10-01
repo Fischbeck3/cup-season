@@ -79,7 +79,7 @@ struct DraftSquadCard: View {
     .accessibilityRemoveTraits(selected ? [] : .isButton)
   }
 
-  /// "The Pines, 3 players: Ed (captain), Mitch, Logan" — the card in one breath.
+  /// "Fixture Wrens, 3 players: Ed (captain), Mitch, Logan" — the card in one breath.
   private var a11yLabel: String {
     var s = squad.name + ", " + DraftCopy.players(squad.squad_members.count).lowercased()
     if squad.squad_members.isEmpty { return s + ", empty" }

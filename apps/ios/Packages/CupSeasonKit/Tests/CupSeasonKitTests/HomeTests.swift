@@ -3,7 +3,7 @@ import Foundation
 @testable import CupSeasonKit
 
 private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego", gross: Int? = 79, pvi: Double? = 2.1,
-                 playedOn: String, createdAt: Date? = nil, course: String? = "Papago GC", pr: Bool = false, sub80: Bool = false, first: Bool = false) -> HomeFeedRow {
+                 playedOn: String, createdAt: Date? = nil, course: String? = "Saguaro Flats", pr: Bool = false, sub80: Bool = false, first: Bool = false) -> HomeFeedRow {
   let json: [String: Any?] = [
     "round_id": id.uuidString, "profile_id": UUID().uuidString, "golfer": golfer, "marker": "saguaro", "handle": "d",
     "gross": gross, "pvi": pvi, "played_on": playedOn,
@@ -54,7 +54,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     let id = UUID()
     let r = row(id, me: true, gross: 84, playedOn: "2026-08-27", createdAt: now)
     let d = HomeDigest.make(rounds: [r], posts: [], mark: now.addingTimeInterval(-3600), now: now)!
-    #expect(d.body == "You posted 84 at Papago GC.")
+    #expect(d.body == "You posted 84 at Saguaro Flats.")
     #expect(d.roundId == id)
     #expect(d.isRoundStory)
   }
@@ -94,7 +94,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     ]
     let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
     #expect(d.kind == .quiet)
-    #expect(d.body.hasSuffix("Rosa broke 80 — 74 at Papago GC"))
+    #expect(d.body.hasSuffix("Rosa broke 80 — 74 at Saguaro Flats"))
   }
 }
 
@@ -168,7 +168,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     """.utf8))
     #expect(Occasion.nothingRunning([wrapped], today: "2026-09-08"))
     let live = try! JSONDecoder().decode(Me.Membership.self, from: Data("""
-    {"league_id":"\(UUID().uuidString)","member_id":"\(UUID().uuidString)","name":"The Fellas","phase":"season","role":"member",
+    {"league_id":"\(UUID().uuidString)","member_id":"\(UUID().uuidString)","name":"North Grove (fixture)","phase":"season","role":"member",
      "season":{"id":"\(UUID().uuidString)","starts_on":"2026-07-20","ends_on":"2027-01-17","status":"active"}}
     """.utf8))
     #expect(!Occasion.nothingRunning([live], today: "2026-09-08"))
@@ -324,7 +324,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(d.body == "2 rounds and Rosa's first round.")
     // one fresh debut is its own line, said as a debut
     let one = HomeDigest.make(rounds: [rounds[0]], posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
-    #expect(one.body == "Rosa posted their first round — 79 at Papago GC.")
+    #expect(one.body == "Rosa posted their first round — 79 at Saguaro Flats.")
   }
 
   @Test func theQuietPickRanksADebutAsADebut() {
@@ -335,8 +335,8 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
                   row(golfer: "Marco", gross: 90, pvi: 0.4, playedOn: "2026-08-25", createdAt: old, pr: true)]
     let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
     #expect(d.kind == .quiet)
-    #expect(d.body.hasSuffix("Marco set a personal best — 90 at Papago GC"))
+    #expect(d.body.hasSuffix("Marco set a personal best — 90 at Saguaro Flats"))
     let alone = HomeDigest.make(rounds: [rounds[0]], posts: [], mark: mark, holes: KnownHoles([rosa: 18]), now: now)!
-    #expect(alone.body.hasSuffix("Rosa posted their first round — 79 at Papago GC"))
+    #expect(alone.body.hasSuffix("Rosa posted their first round — 79 at Saguaro Flats"))
   }
 }

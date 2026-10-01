@@ -29,19 +29,19 @@ private func membership(phase: String = "season", buyin: Int = 0, role: String =
                         standing: Me.Standing? = Me.Standing(rank: 2, of: 8, points: 15, prev_rank: 2,
                                                              leader_squad_id: nil, leader_points: 19,
                                                              gap_to_leader: 4, gap_to_next: nil,
-                                                             leader_name: "Galen", runner_up_name: nil,
+                                                             leader_name: "Blake", runner_up_name: nil,
                                                              runner_up_points: nil, seed: nil, finalists: nil,
                                                              next_up: nil, next_down: nil),
                         last: Me.Membership.LastSeason? = nil) -> Me.Membership {
   Me.Membership(
-    league_id: UUID(), name: "The Fellas", code: "FELLAS", phase: phase, sandbox: false, role: role,
-    member_id: UUID(), marker: "saguaro", commissioner_name: "Galen",
+    league_id: UUID(), name: "North Grove (fixture)", code: "NGFX26", phase: phase, sandbox: false, role: role,
+    member_id: UUID(), marker: "saguaro", commissioner_name: "Blake",
     settings: Me.Settings(structure: "solo", preset: nil, counting_cap: 4, participation_floor: 2,
                           floor_penalty: nil, handicap_allowance: 95, buyin_cents: buyin,
                           payout_champ: 60, payout_runnerup: 25, payout_king: 15,
                           finish: "cup_final", locked_at: nil),
     season: s, squad: nil, standing: standing, pulse: nil, buy_in: nil,
-    roster: 8, members: 8, pro_name: "Galen", last_season: last)
+    roster: 8, members: 8, pro_name: "Blake", last_season: last)
 }
 
 private func rows(_ m: Me.Membership, today: String) -> CompeteRoot.List {
@@ -51,7 +51,7 @@ private func rows(_ m: Me.Membership, today: String) -> CompeteRoot.List {
 @Suite("D286 — the standing is a figure, and it is said once")
 struct CompeteStandingTests {
 
-  /// The owner's own shape: week 8 of 15, second of two, four back of Galen.
+  /// The owner's own shape: week 8 of 15, second of two, four back of Blake.
   @Test("a running season hands the row two numbers")
   func aRunningSeasonCarriesItsRank() {
     let m = membership(season: season(starts: "2026-07-13", ends: "2026-10-26", week: 8, of: 15))
@@ -68,7 +68,7 @@ struct CompeteStandingTests {
     let m = membership(season: season(starts: "2026-07-13", ends: "2026-10-26", week: 8, of: 15))
     let sub = rows(m, today: "2026-09-07").seasons.first?.sub ?? ""
     #expect(!sub.contains("2nd of 8"), "the rank is drawn, not printed — got: \(sub)")
-    #expect(sub.contains("back of Galen"), "the race is the story and it stays — got: \(sub)")
+    #expect(sub.contains("back of Blake"), "the race is the story and it stays — got: \(sub)")
   }
 
   /// The producer's third grain, tested on the producer rather than through
@@ -80,7 +80,7 @@ struct CompeteStandingTests {
     let without = SeasonFacts.seasonLine(m, week: true, rank: false, today: "2026-09-07", calendar: cal)
     #expect(withRank.contains("2nd of 8"))
     #expect(!without.contains("2nd of 8"))
-    #expect(without.contains("Week 8 of 15") && without.contains("back of Galen"))
+    #expect(without.contains("Week 8 of 15") && without.contains("back of Blake"))
     #expect(without.contains("on the books"), "the money clause is not collateral damage")
     #expect(!without.contains("· ·") && !without.contains(", ,"), "no orphan separator where the rank was")
   }
@@ -129,7 +129,7 @@ struct CompeteStandingTests {
     let ranked = membership(phase: "complete",
                             season: season("complete", starts: "2026-01-05", ends: "2026-07-01"),
                             standing: nil,
-                            last: .init(number: 2, ended_on: "2026-07-01", champion_name: "Mike",
+                            last: .init(number: 2, ended_on: "2026-07-01", champion_name: "Gray",
                                         champion_is_me: false, my_rank: 3, of: 8))
     #expect(rows(ranked, today: "2026-09-07").finished.first?.rank?.place == 3)
     #expect(rows(ranked, today: "2026-09-07").finished.first?.rank?.of == 8)
@@ -139,7 +139,7 @@ struct CompeteStandingTests {
     let unranked = membership(phase: "complete",
                               season: season("complete", starts: "2026-01-05", ends: "2026-07-01"),
                               standing: nil,
-                              last: .init(number: 2, ended_on: "2026-07-01", champion_name: "Mike",
+                              last: .init(number: 2, ended_on: "2026-07-01", champion_name: "Gray",
                                           champion_is_me: false, my_rank: nil, of: nil))
     #expect(rows(unranked, today: "2026-09-07").finished.first?.rank == nil)
   }

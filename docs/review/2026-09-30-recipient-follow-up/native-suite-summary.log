@@ -1,0 +1,21 @@
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.008 (0.009) seconds
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.016 (0.017) seconds
+	 Executed 3 tests, with 0 failures (0 unexpected) in 4.487 (4.488) seconds
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.183 (0.185) seconds
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.009 (0.010) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+	 Executed 48 tests, with 0 failures (0 unexpected) in 4.715 (4.744) seconds
+	 Executed 48 tests, with 0 failures (0 unexpected) in 4.715 (4.745) seconds
+◇ Suite RecipientJourneyTests started.
+✔ Suite RecipientJourneyTests passed after 0.591 seconds.
+✔ Test run with 153 tests in 38 suites passed after 24.076 seconds.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+✔ Test run with 141 tests in 36 suites passed after 0.103 seconds.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.015 (0.064) seconds
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.015 (0.064) seconds
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.015 (0.065) seconds
+✔ Test run with 1453 tests in 249 suites passed after 0.926 seconds.
+Test session results, code coverage, and logs:
+** TEST EXECUTE SUCCEEDED **

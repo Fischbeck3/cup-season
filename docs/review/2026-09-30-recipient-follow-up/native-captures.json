@@ -1,0 +1,58 @@
+[
+  {
+    "device": "pro",
+    "file": "captures/native-pro-agreed-season-light-accessibility3.png",
+    "sourceExport": "2DF911EB-60E3-4946-AC91-B9BADB8D44A8.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  },
+  {
+    "device": "pro",
+    "file": "captures/native-pro-agreed-season-light-large.png",
+    "sourceExport": "FA740794-6D21-4068-9333-C7B34E2EF1AD.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  },
+  {
+    "device": "pro",
+    "file": "captures/native-pro-agreed-season-dark-accessibility3.png",
+    "sourceExport": "057D5C44-8B82-4021-ADB5-7B572AA2AD7A.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  },
+  {
+    "device": "pro",
+    "file": "captures/native-pro-agreed-season-dark-large.png",
+    "sourceExport": "28711D6F-796F-4D32-BED3-45DEBCB5FF35.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  },
+  {
+    "device": "se",
+    "file": "captures/native-se-agreed-season-light-accessibility3.png",
+    "sourceExport": "C2F0A52D-0A07-4AE8-A689-6C5F5A6FB969.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  },
+  {
+    "device": "se",
+    "file": "captures/native-se-agreed-season-light-large.png",
+    "sourceExport": "65BBA23D-DA89-4713-80EF-CFA91052C422.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  },
+  {
+    "device": "se",
+    "file": "captures/native-se-agreed-season-dark-accessibility3.png",
+    "sourceExport": "CB07659D-1932-4ECD-8F27-C6E21CF93FA7.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  },
+  {
+    "device": "se",
+    "file": "captures/native-se-agreed-season-dark-large.png",
+    "sourceExport": "C583C98C-F935-405D-8260-2354442BD5EA.png",
+    "test": "RecipientJourneyUITests/testAlreadyAgreedOpensTheSeasonInBothPrintingsAndAtAX3()",
+    "synthetic": true
+  }
+]

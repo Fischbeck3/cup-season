@@ -5,7 +5,7 @@ import Foundation
 /// D353 · the covenant says the allowance and the whole counting rule.
 @Suite struct CovenantAllowanceTests {
   @Test func theAllowanceIsSaidInTheWizardsOwnWords() {
-    let c = Covenant(name: "the Fellas", buyinCents: 0, preset: "standard", floor: 2, finish: nil,
+    let c = Covenant(name: "North Grove (fixture)", buyinCents: 0, preset: "standard", floor: 2, finish: nil,
                      countingCap: 3, handicapAllowance: 95)
     // D373 · the same sentence the web pins (tests/app-tests.js "D373: the allowance clause says what it does")
     #expect(c.rulesLine == "Standard rules: honest scores, best three a month count, two a month keeps you in, scored against your playing HCP — your index at 95 percent.")
@@ -24,13 +24,13 @@ import Foundation
   }
 
   @Test func theTwoFactsDecodeFromThePayload() throws {
-    let json: JSONValue = .object(["name": .string("PIGL"), "buyin_cents": .number(0), "floor": .number(2),
+    let json: JSONValue = .object(["name": .string("NGFX26"), "buyin_cents": .number(0), "floor": .number(2),
                                    "counting_cap": .null, "every_round_counts": .bool(true),
                                    "handicap_allowance": .number(90), "ends_on": .string("2026-12-12")])
     let c = try #require(Covenant(json))
     #expect(c.everyRoundCounts == true && c.countingCap == nil && c.handicapAllowance == 90 && c.endsOn == "2026-12-12")
     // an older payload leaves both nil
-    let old = try #require(Covenant(.object(["name": .string("PIGL")])))
+    let old = try #require(Covenant(.object(["name": .string("NGFX26")])))
     #expect(old.everyRoundCounts == nil && old.handicapAllowance == nil)
   }
 }
@@ -42,10 +42,10 @@ import Foundation
     let d = UserDefaults(suiteName: name)!
     defer { d.removePersistentDomain(forName: name) }
     let owner = UUID(), request = UUID()
-    var dials = WizardDials(name: "The Fellas", stake: 50, durWeeks: 17, structure: "squads3")
+    var dials = WizardDials(name: "North Grove (fixture)", stake: 50, durWeeks: 17, structure: "squads3")
     dials.capExact = 5; dials.cap = Bylaws.capIndex(5); dials.buyInNote = "Venmo @fixture"; dials.invitees = [UUID(), UUID()]
     dials.expectedRoster = 9
-    let created = WizardService.Created(leagueId: UUID(), name: "The Fellas", code: "FELLAS26", memberId: UUID())
+    let created = WizardService.Created(leagueId: UUID(), name: "North Grove (fixture)", code: "NGFX26", memberId: UUID())
     try PendingCreate.write(PendingCreate(request: request, dials: dials, squadsChosen: true, created: created), owner: owner, defaults: d)
     let back = try #require(PendingCreate.read(owner: owner, defaults: d))
     #expect(back.request == request, "the SAME request id, so the replay is the same league")
@@ -130,7 +130,7 @@ import Foundation
 /// D356 · an event invitation says what it is and what it costs, or nothing.
 @Suite struct EventInviteTermsTests {
   @Test func aMajorWithAStakeSaysTheStakeAndTheLedger() {
-    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Galen",
+    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Blake",
                    startsOn: "2026-10-03", eventKind: "major", buyIn: 25)
     #expect(i.title == "Major invite" && i.isMajor)
     // D357 · a Major's window is two to four days, never a week.
@@ -138,19 +138,19 @@ import Foundation
                              "First tee Sat Oct 3.", "$25 each.", MoneyCopy.ledger])
   }
   @Test func aFreeRyderSaysNoBuyInAndNoLedger() {
-    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "Desert Ryder", inviter: "Galen",
+    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "Desert Ryder", inviter: "Blake",
                    startsOn: nil, eventKind: "ryder", buyIn: 0)
     #expect(i.eventTerms == ["A Ryder — two teams, one clash each week.", "No buy-in."])
     #expect(!i.eventTerms.contains(MoneyCopy.ledger), "the ledger line is above $0 only")
   }
   @Test func anOlderServerGivesNoTermsAndThereforeNoDoor() {
-    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Galen", startsOn: "2026-10-03")
+    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Blake", startsOn: "2026-10-03")
     #expect(i.eventTerms.isEmpty && i.stakeLine == nil && i.title == "Invite")
   }
   @Test func theExtendedRowDecodesWithAndWithoutTheNewColumns() throws {
-    let new = try JSONDecoder().decode(InviteRow.self, from: Data(#"{"id":"\#(UUID().uuidString)","kind":"event","container_id":null,"container_name":"The Bloom","inviter":"Galen","starts_on":"2026-10-03","event_kind":"major","buy_in":25}"#.utf8))
+    let new = try JSONDecoder().decode(InviteRow.self, from: Data(#"{"id":"\#(UUID().uuidString)","kind":"event","container_id":null,"container_name":"The Bloom","inviter":"Blake","starts_on":"2026-10-03","event_kind":"major","buy_in":25}"#.utf8))
     #expect(Invite(new)?.eventKind == "major" && Invite(new)?.buyIn == 25)
-    let old = try JSONDecoder().decode(InviteRow.self, from: Data(#"{"id":"\#(UUID().uuidString)","kind":"event","container_name":"The Bloom","inviter":"Galen"}"#.utf8))
+    let old = try JSONDecoder().decode(InviteRow.self, from: Data(#"{"id":"\#(UUID().uuidString)","kind":"event","container_name":"The Bloom","inviter":"Blake"}"#.utf8))
     #expect(Invite(old)?.eventKind == nil && Invite(old)?.eventTerms.isEmpty == true)
   }
 }

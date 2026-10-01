@@ -44,7 +44,7 @@ enum EpilogueFixture {
     if unknown { earned.append(.init(kind: "a_kind_this_build_does_not_know", label: "Longest drive")) }
     return PostEpilogueShow(
       epilogue: PostEpilogue(gross: 79, pvi: -1.3, points: 11, monthRank: 1, earned: earned),
-      course: "Papago Golf Course · Blue",
+      course: "Saguaro Flats · Blue",
       firstEver: false,
       roundId: UUID(),
       cap: 2,

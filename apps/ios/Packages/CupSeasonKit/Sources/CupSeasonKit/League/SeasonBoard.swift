@@ -214,7 +214,7 @@ public extension SeasonBoardCopy {
     return parts.joined(separator: " · ")
   }
 
-  /// `Season one · Mon Aug 3 – Mon Nov 2 · the Pro, Galen`.
+  /// `Season one · Mon Aug 3 – Mon Nov 2 · the Pro, Blake`.
   ///
   /// **An en dash, never `→`** (LINT-13), and **no week count**: the eyebrow
   /// directly above already reads `WEEK 5 OF 13`, and one fact gets one

@@ -1,0 +1,13 @@
+375 dark app-tests {"total":570,"failures":[]} page-errors []
+375 dark changed-leader draw PASS The Final is set: Fixture Javelinas and Fixture Wrens are in.
+375 light app-tests {"total":570,"failures":[]} page-errors []
+375 light changed-leader draw PASS The Final is set: Fixture Javelinas and Fixture Wrens are in.
+402 dark app-tests {"total":570,"failures":[]} page-errors []
+402 dark changed-leader draw PASS The Final is set: Fixture Javelinas and Fixture Wrens are in.
+402 light app-tests {"total":570,"failures":[]} page-errors []
+402 light changed-leader draw PASS The Final is set: Fixture Javelinas and Fixture Wrens are in.
+1280 dark app-tests {"total":570,"failures":[]} page-errors []
+1280 dark changed-leader draw PASS The Final is set: Fixture Javelinas and Fixture Wrens are in.
+1280 light app-tests {"total":570,"failures":[]} page-errors []
+1280 light changed-leader draw PASS The Final is set: Fixture Javelinas and Fixture Wrens are in.
+Q2 parent control: The Final is set: Fixture Foxes are in. FAILS PIN: true

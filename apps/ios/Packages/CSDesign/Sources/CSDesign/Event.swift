@@ -48,7 +48,7 @@ public struct CSSideRoster: View {
 
   public struct Side: Identifiable, Sendable {
     public let id: String
-    /// `SAGUAROS` — the squad's NAME, which is what makes the colour legal.
+    /// `FIXTURE OWLS` — the squad's NAME, which is what makes the colour legal.
     public let name: String
     public let color: Color
     public let faces: [CSFace.Model]

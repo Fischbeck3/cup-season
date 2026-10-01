@@ -43,7 +43,7 @@ struct PeoplePickerSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: title, sub: sub)
+          CSSheetHeader(title: title, sub: sub, subCaps: false)
           CSField("Find golfers by name or @handle", text: $vm.query, font: CSFont.body)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
           list

@@ -99,14 +99,14 @@ enum PricingDate {
 // MARK: - Preview fixtures (nothing here reaches the network)
 
 enum PricingSample {
-  static let pigl = UUID(uuidString: "5c1e8b2e-2a4b-4b1e-9d3f-0a1b2c3d4e5f")!
+  static let ngfx26 = UUID(uuidString: "5c1e8b2e-2a4b-4b1e-9d3f-0a1b2c3d4e5f")!
   static let other = UUID(uuidString: "0d2f7c1a-6b3e-4a9c-8e1f-2b3c4d5e6f70")!
 
   /// The plan's seed, switch ON.
   static let visible = PricingFlags.seed
-  /// The same, with PIGL as Founding League № 1.
+  /// The same, with NGFX26 as Founding League № 1.
   static let founding = PricingFlags(visible: true, anchorCents: PricingFlags.defaultAnchorCents, bands: PricingFlags.defaultBands,
-                                     firstYearFree: true, founding: .init(cap: 10, closed: false, ids: [pigl.uuidString.lowercased(): 1]))
+                                     firstYearFree: true, founding: .init(cap: 10, closed: false, ids: [ngfx26.uuidString.lowercased(): 1]))
 
   /// A membership row as `native_home()` would hand it over — decoded from
   /// JSON because `Me.Membership` has no memberwise init outside the Kit.
@@ -114,7 +114,7 @@ enum PricingSample {
                          seasonNumber: Int = 1, endsOn: String = "2026-09-26") -> Me.Membership {
     let json = """
     {"league_id": "\(id.uuidString)", "name": "\(name)", "code": "ABCD", "phase": "season", "role": "\(role)",
-     "member_id": "\(UUID().uuidString)", "commissioner_name": "Jerecho",
+     "member_id": "\(UUID().uuidString)", "commissioner_name": "Avery",
      "season": {"id": "\(UUID().uuidString)", "number": \(seasonNumber), "starts_on": "2026-05-03", "ends_on": "\(endsOn)", "status": "active"}}
     """
     // A fixture, not a path: the shape above is the contract's own, so a

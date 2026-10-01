@@ -134,7 +134,7 @@ public enum TrophyMeta {
     }
   }
 
-  /// **D291 · a BESTS slat says the round it was won on** — `79 at Papago ·
+  /// **D291 · a BESTS slat says the round it was won on** — `79 at Saguaro Flats ·
   /// Aug 24` — because a milestone that opens the afternoon it happened is
   /// the one engaging thing already wired into this surface (`round_id` has
   /// been on `my_achievements` since 2026-09-02) and nobody could find it.
@@ -147,7 +147,7 @@ public enum TrophyMeta {
     var lead = ""
     let course = round?.courseLabel.flatMap { $0.isEmpty ? nil : RoundCopy.course($0) }
     // X40 (1) · owner ruling 2026-09-29: A MILESTONE PRINTS THE ROUND THE
-    // GOLFER REMEMBERS — `83 at Papago · Aug 24` — a personal best as much as
+    // GOLFER REMEMBERS — `83 at Saguaro Flats · Aug 24` — a personal best as much as
     // a threshold. D291 printed the PB's DIFFERENTIAL ("4.1 vs course"), and
     // the differential lives on the receipt beside its arithmetic and nowhere
     // else (TERMINOLOGY row 92, P-16, L-14). D291's own worry, one sentence

@@ -68,7 +68,7 @@ for k, v in A.items():
         f"('{v}', '{k.lower()}.{v[:6]}@reach.test', 'authenticated', 'authenticated', {confirmed})", role=None)
     if k != "SHELL":   # the shell never finishes its golfer card: no handle, no marker
         sql(f"update profiles set display_name = '{k.title()} Golfer', handle = '{k.lower()}_{v[:5]}', "
-            f"marker = 'saguaro', city = 'Mesa', home_course = 'Papago', discoverable = 'everyone' "
+            f"marker = 'saguaro', city = 'Mesa', home_course = 'Saguaro Flats', discoverable = 'everyone' "
             f"where id = '{v}'", role=None)
 sql(f"update profiles set discoverable = 'nobody' where id = '{A['HIDDEN']}'", role=None)
 sql(f"insert into friendships (requester, addressee, status, responded_at) values "
@@ -78,7 +78,7 @@ SNAP = json.dumps({"rating": 72, "slope": 113, "holes": 18})
 CARD18 = [4] * 18
 
 
-def start(starter, seats, label="Papago GC"):
+def start(starter, seats, label="Saguaro Flats"):
     return sql("select start_live_round(null, null, null, " + f"'{label}'" + ", "
                f"'{SNAP}'::jsonb, 'none', '{json.dumps(seats)}'::jsonb)", starter)
 
@@ -135,7 +135,7 @@ record(refused(r, "can't be added by name"), "S1 a golfer who hid themselves can
 nud = lambda p: int(val(f"select count(*) from push_nudges where profile_id = '{p}'", role=None) or 0)
 row = val(f"select sender_id || '|' || from_stranger || '|' || title || '|' || body from push_nudges "
           f"where profile_id = '{A['VICTIM']}' order by created_at limit 1", role=None) or ""
-record(row.startswith(A["STRANGER"] + "|true|") and "Papago" not in row,
+record(row.startswith(A["STRANGER"] + "|true|") and "Saguaro Flats" not in row,
        "S3 a stranger's push is stamped with its sender and carries fixed words, not the typed label", row)
 v0 = nud(A["VICTIM"])
 record(v0 == 2, "S3 per-pair cap: a stranger reaches the same golfer at most twice a day", f"victim nudges={v0}")
@@ -310,7 +310,7 @@ record(row is not None and row.get("city") is None and row.get("index_current") 
 # ── S7 · plan comments carry who wrote them; blocked and taken-down ones don't show
 PLAN = str(uuid.uuid4())
 sql(f"insert into scheduled_rounds (id, profile_id, play_on, course_label, tagged) values "
-    f"('{PLAN}', '{A['STRANGER']}', current_date + 2, 'Papago', array['{A['LEAVER']}', '{A['HIDDEN']}']::uuid[])",
+    f"('{PLAN}', '{A['STRANGER']}', current_date + 2, 'Saguaro Flats', array['{A['LEAVER']}', '{A['HIDDEN']}']::uuid[])",
     role=None)
 sql(f"insert into round_comments (round_id, profile_id, body) values "
     f"('{PLAN}', '{A['LEAVER']}', 'from a golfer I blocked'), ('{PLAN}', '{A['HIDDEN']}', 'kept'), "
