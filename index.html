@@ -8565,10 +8565,10 @@ setInterval(function(){
      790-point gap to a third place that had never moved. A sign-in screen is
      a page people leave open. */
   const LB_CEIL=232, LB_BASE=181;
-  /* D406 · the board moves, the feed does not (see the gate below). A re-sort
-     every 9s is a table finding its order, not a league's traffic; the 5.2s it
-     ran at before read as activity. */
-  const FEED_STILL=true, LB_EVERY=9000;
+  /* D406 · both wings move, on slow clocks (see the gate below): the board
+     re-sorts every 9s (it ran at 5.2s before, which read as activity) and a
+     round card arrives every 5s (3.6s before). */
+  const FEED_EVERY=5000, LB_EVERY=9000;
   let fi=0, live=[], order=[0,1,2,3], lbRows=[], loopA=null, loopB=null, dead=false, lbSwaps=0;
   /* a link landing hides the wings (.ob-linked), so their loops stop for good */
   function gone(){ return !ob || ob.classList.contains('hide') || ob.classList.contains('ob-linked') || ob.classList.contains('ob-via'); }
@@ -8632,7 +8632,7 @@ setInterval(function(){
   const wingMq=matchMedia('(min-width:1100px)');
   function start(){
     if(rm || dead || loopB || !feedEl || !lbEl || !wingMq.matches) return;
-    if(!FEED_STILL) loopA=setInterval(feedTick, 3600);
+    loopA=setInterval(feedTick, FEED_EVERY);
     loopB=setInterval(lbTick, LB_EVERY);
   }
   if(feedEl && lbEl){
@@ -8647,12 +8647,12 @@ setInterval(function(){
     slotLb();
     /* crit-A door P1 (7141516f) froze both wings: invented rounds arriving and a
        table re-sorting on a sign-in screen read as a live league that does not
-       exist. D406 (owner, 2026-10-02) splits the ruling. THE FEED STAYS STILL —
-       a round arriving is the claim of traffic, and it was the half that read as
-       live. THE BOARD MOVES, slowly, because a table finding its order is how a
-       season reads, and the panel is labelled "An example season, in month 4 of
-       6". Reduced motion still draws three cards and four rows, still, and a
-       link landing (.ob-linked / .ob-via) still stops the loop for good. */
+       exist. D406 (owner, 2026-10-02) lets both move again, slowly — the board
+       first, then the feed at the owner's request (a card every 5s) — on cast
+       golfers at cast courses and a board labelled "An example season, in
+       month 4 of 6". Reduced motion still draws
+       three cards and four rows, still, and a link landing (.ob-linked /
+       .ob-via) still stops both loops for good. */
     if(!rm){
       setTimeout(start, 2600);
       setTimeout(()=>{ if(!dead && !document.hidden && !gone() && wingMq.matches) lbTick(); }, 3400);
