@@ -146,10 +146,20 @@ final class AfterGolfWirePlacementTests: XCTestCase {
     XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "had you on the plan"))
                     .firstMatch.waitForExistence(timeout: 25), "the reminder itself is gone")
     // Something else must be leading, or this is not the arrangement under test.
-    // The lead is ONE combined accessibility element (§7), so its headline is
-    // inside the button's label rather than a static text of its own.
-    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "two points off the lead"))
-                    .firstMatch.exists, "the lead above it was lost — this is not the displaced arrangement")
+    // This used to find the compact clash row — one Button whose label held the
+    // headline. The Match Programme Home (`e8e9f84b`, PR #8) retired that row:
+    // every lead is now the full-measure block, a labelled container whose one
+    // label speaks the whole block (eyebrow, headline, standfirst, standing —
+    // `HomeLead.spoken`), with its door a control of its own,
+    // `home.lead.action`, as the after-golf lead's door already was (the R1
+    // tests above tap it). So: the element that speaks the clash, and the
+    // clash's own door, are on the page.
+    let lead = app.descendants(matching: .any).matching(NSPredicate(
+      format: "label CONTAINS %@ AND label CONTAINS %@", "two points off the lead", "Four rounds still count this month")).firstMatch
+    XCTAssertTrue(lead.exists, "the lead above it was lost — this is not the displaced arrangement")
+    let leadDoor = app.buttons["home.lead.action"]
+    XCTAssertTrue(leadDoor.exists && leadDoor.label == "See the table",
+                  "the lead's door is not the clash's — this is not the displaced arrangement")
     reach(app.buttons["Add my round"].firstMatch, app, "the plan-aware round door")
     reach(app.buttons["Later"].firstMatch, app, "Later")
     reach(app.buttons["Didn’t play"].firstMatch, app, "Didn’t play")
