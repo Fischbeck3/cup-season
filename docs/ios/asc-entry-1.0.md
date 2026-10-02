@@ -4,10 +4,11 @@ Field-by-field values for the existing 1.0 draft (PREPARE_FOR_SUBMISSION). The c
 from [the package](app-store-package-2026-09-30.md): Part A §1–§10, C-1 and C-2 with the
 rulings recorded in D402 and D403. **Entered through the API on 2026-10-01 on the owner's yes,
 and read back:** App Information, Pricing and Availability, the age rating answers and every
-Version 1.0 field except the screenshots (the package's "Deployed" table). **Still the owner's,
+Version 1.0 field except the screenshots (the package's "Deployed" table); **the screenshots followed
+on 2026-10-02** (the nine approved frames). **Still the owner's,
 in App Store Connect:** the App Review contact phone and the reviewer **password** (Apple
 refused the review detail without the phone), the notes paste, App Privacy (no API), the
-content rights answer, and the screenshots once the owner approves the set. Never write the
+content rights answer. Never write the
 password or the phone into this repo.
 
 ## App Information
@@ -42,7 +43,7 @@ password or the phone into this repo.
 | Copyright | `2026 Fischbeck3 LLC` |
 | Version release | **Manually release this version** (currently AFTER_APPROVAL) |
 | Build | **1.0.0 (2114), from `c8cd8ea3`**, the same files as main's `ebbbfea3` (candidate 3, the owner's yes on 2026-10-02; it replaced 2097, which had replaced 2094). Export compliance is answered in the binary (`ITSAppUsesNonExemptEncryption = NO`). |
-| Screenshots (iPhone 6.9") | Replace all 8 September 25 frames with the **recast set** (store cast, `a48dac68`; §9 order; frame 9 optional), after the owner approves it. Upload: `~/cup-season-store-shots/asc/asc_metadata.py --apply --only screenshots --shots apps/ios/Screenshots/1.0 --display APP_IPHONE_67` (dry run first, without `--apply`) |
+| Screenshots (iPhone 6.9") | **Uploaded 2026-10-02 on the owner's yes ("All 9, with widgets"):** the nine frames of `apps/ios/Screenshots/1.0`, in §9 order, replaced all 8 September 25 frames; each read back COMPLETE at 1320 × 2868 with its checksum matching the committed file. To redo: `~/cup-season-store-shots/asc/asc_metadata.py --apply --only screenshots --shots apps/ios/Screenshots/1.0 --display APP_IPHONE_67` (dry run first, without `--apply`) |
 
 ## App Review Information
 

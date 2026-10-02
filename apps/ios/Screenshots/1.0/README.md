@@ -1,6 +1,7 @@
-# The 1.0 App Store set · iPhone 6.9" · AWAITING THE OWNER'S APPROVAL
+# The 1.0 App Store set · iPhone 6.9" · APPROVED AND UPLOADED 2026-10-02
 
-Recaptured 2026-10-01 on the owner's "Recast for the store". **Not uploaded yet.** Order, headlines
+Recaptured 2026-10-01 on the owner's "Recast for the store". **Approved and uploaded 2026-10-02** (the owner:
+"All 9, with widgets"). Order, headlines
 and captions are §9 of [the App Store package](../../../../docs/ios/app-store-package-2026-09-30.md),
 which supersedes [SHOT-LIST.md](../SHOT-LIST.md) for 1.0. The cast is invented: no real golfer, owner
 name, real course, price or ledger appears (§9's capture rules, X37).
@@ -22,8 +23,9 @@ name, real course, price or ledger appears (§9's capture rules, X37).
     scroll stops, about 50 points further down: that cuts the season in play and leaves a bare
     "Head to head" heading at the foot. 09 differs only in the widgets' sample standings and
     clock. The committed frames stand as the set for 2114.
-- **Upload (after approval):** frames 01–08, plus 09 if wanted, replace the September 25 frames in the
-  `APP_IPHONE_67` set.
+- **Uploaded 2026-10-02, 13:26 MST:** all nine, in this order, replaced the September 25 frames in App Store
+  Connect's `APP_IPHONE_67` set (`asc_metadata.py --apply --only screenshots`). Read back: each frame
+  COMPLETE at 1320 × 2868, its checksum matching the file here.
 - **Known:**
   - **Frame 5 was retaken 2026-10-02 after the in-line comments build (D405).** It still shows the foot
     of the round's comment composer above the receipt, now reading "Updates from this conversation are
