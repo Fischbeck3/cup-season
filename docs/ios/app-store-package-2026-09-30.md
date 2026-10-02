@@ -61,6 +61,7 @@ behind a DEBUG gate or an off flag. Evidence is in the
 | Native, candidate 3 | upload of the validated 1.0.0 (2114) IPA, on the owner's yes ("Upload and attach"); `asc.py owner 2114`; attach | VALID; Owner group only (IN_BETA_TESTING, not in Friends); **attached to App Store version 1.0** in place of 2097 (read back 2026-10-02 13:16 MST) |
 | App Store Connect | `asc_metadata.py --apply` (the owner's "Yes, enter it") | read back: en-US text and URLs, subtitle, privacy URL, Sports/Lifestyle, copyright, **Manual** release, age-rating answers (Apple computed TWELVE_PLUS), Free (USA base), **US only** with no new territories. Refused: the App Review detail (Apple requires the contact phone). Not touched: password, phone, App Privacy, content rights, screenshots, submission. |
 | App Store screenshots | `asc_metadata.py --apply --only screenshots`, on the owner's yes ("All 9, with widgets"), 2026-10-02 13:26 MST | the September 25 set's 8 frames deleted (204 each); the nine frames of `apps/ios/Screenshots/1.0` uploaded in §9 order, each read back COMPLETE at 1320 × 2868 with its checksum matching the committed file |
+| App Store description | the owner's text (2026-10-02), its money paragraph headed THE POT on the owner's choice; `asc_metadata.py --apply --only text`, 13:41 MST | read back identical to §4: 1,672 characters, en-US; keywords, promotional text and URLs unchanged |
 
 ## Candidate 2 · `6727fd04` / 1.0.0 (2097) · the build attached to 1.0 (owner's yes, 2026-10-01 ~20:50 MST)
 
@@ -320,7 +321,7 @@ You can change this at any time without review.
 The rounds you already play, made into a season: standings with your friends, rivalries that keep score, a Cup at the end, and a record worth keeping.
 ```
 
-### 4. Description · 2,366/4,000
+### 4. Description · 1,672/4,000
 
 Plain text: Apple renders no HTML or markdown, so the capitals are the
 headings.
@@ -328,37 +329,45 @@ headings.
 ```
 Cup Season turns the rounds you already play into a season with your friends.
 
-Post a score from any course and it counts: on the table, against the friends you always play, and toward a Cup at the end. Months later it's all still there: the round, the rivalry, the year you finally won.
-
-START A SEASON, OR JOIN ONE
-Whoever runs the group is the Pro. The Pro sets the season up once: who's in, how many weeks, how many rounds count each month, and how it ends, with a four-week Cup Final or on the points table. Play it solo or in squads. Everyone else joins with a code or a link.
+Play any course. Chase the Cup. Months later, it’s all still there: the round, the rivalry, the year you finally won.
 
 POST THE ROUND YOU PLAYED
-Pick the course and tees, then type your score: the total, the front and back nines, or hole by hole. Have a paper scorecard? Take a photo and, if you agree, the app reads the scores for you. Your number builds itself from the rounds you post, and every round tells you plainly how it went: beat your number, played to it, or a little loose. It's Cup Season's own number, not an official handicap.
+Pick the course and tees, then enter your score. Have a paper scorecard? Photograph it and check the scores the app reads for you.
+Your number comes from the rounds you post. Points reflect how you play against it, so golfers of different abilities can compete. It’s Cup Season’s own number, not an official handicap.
 
 FOLLOW THE COMPETITION
-The table moves as rounds come in. Tap a golfer to see the rounds behind their points, so every point has a receipt. In bigger seasons, the Book lays out every week. See where you stand among your buddies, and every meeting between you and any one of them.
+The table moves as rounds come in. See who’s leading, who’s climbing, and where you stand. Tap a golfer to see the rounds behind their points. Every point has a receipt.
+Follow your rivalries, too: every meeting between you and the friends you always want to beat.
 
 SCORE IT LIVE
-Match play, Wolf, Skins, Sunningdale, or just the score, hole by hole, on one phone or the whole group's. Guests don't need an account. If the signal drops, the scores stay on the phone. Keep score from the Lock Screen, then finish and share the card.
+Play Match Play, Wolf, Skins, Sunningdale, or just keep score. Guests don’t need an account. If the signal drops, the scores stay on the phone. Finish the round and share the card.
 
 KEEP THE MEMORIES
-Trophies stay in the case. Round photos go into the season's album. Every season ends with a final table and a moment for the champion, and it's all there when you come back. Share a round, a rivalry or the season's result with anyone. When it's over, the Pro can run it back.
+Trophies stay in the case. Round photos go into the season’s album. Every season ends with a final table and a moment for the champion. Share the moments worth keeping.
+
+START A SEASON, OR JOIN ONE
+Start a season with your friends. Set it up once, play as individuals or in squads, and invite everyone with a code or a link. When it’s over, run it back.
 
 BETWEEN ROUNDS
-The board is where the group talks. Put Saturday's tee time on the schedule, with the forecast, and see who's in. Home Screen widgets show the race, your next tee time and what's on. You can report a post or block a golfer at any time.
+The board is where the group talks. Put Saturday’s tee time on the schedule, check the forecast, and see who’s in.
 
 THE POT
-Some groups play for a pot, and some play for bragging rights. Cup Season keeps the ledger; the money moves between friends. Nothing is paid through the app.
-
-FREE
-Cup Season is free. There are no in-app purchases and no ads.
+Cup Season keeps the ledger; the money moves between friends. No payments are processed through the app.
 
 Where amateur golf counts.
 ```
 
-**THE POT paragraph is publishable only after counsel.** It is in Part B
-(B-1) for that reason. The rest of the description stands without it.
+**The owner's text, 2026-10-02.** Pasted in chat. On the owner's choice, the money paragraph's
+heading stays THE POT, so "the Book" keeps meaning the week-by-week points view (the 2026-09-24
+ruling: the Book shows no money). Every feature it names was checked in build 2114: course and
+tee pick, the scan, the number, receipts, rivalries, Match Play / Wolf / Skins / Sunningdale,
+guests, offline scores, the trophy case, the season album, the ceremony, run it back, the board,
+the schedule's weather line. It drops the earlier draft's lines on the Pro's setup, the Book,
+Lock Screen scoring, Home Screen widgets (frame 9 still shows them), reporting and blocking (the
+review notes cover them) and FREE.
+
+**THE POT is publishable under D402** (B-1): no counsel opinion is required before submission,
+and counsel has not reviewed it. B-2's two fixes are in the build (phone checks R6, R7).
 
 **Left out on purpose:**
 - **The Ryder and A Major.** A Release user can reach the event picker only
