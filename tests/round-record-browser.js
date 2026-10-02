@@ -7,7 +7,12 @@
    Serve this checkout, open `/?cs_home_state=round_evening&exit` so the desk
    lands on Home without a session, evaluate with web-verify.mjs. Prefix the
    script with `document.documentElement.setAttribute('data-theme','light');`
-   for the paper capture. */
+   for the paper capture.
+   D404 (Home Scorebook, 2026-10-01) · photo and text rounds share one structure:
+   the course, tee and story sit in the receipt button's details column beside a
+   matte score panel whose metal groups the recorded performance; a photograph,
+   when there is one, follows below. The D360 checks below are kept, re-pinned to
+   that structure (the title contour gave way to the panel). */
 (async function(){
   const check=(ok,label)=>{ if(!ok) throw new Error(label); };
   const until=(f,ms=6000)=>new Promise((res,rej)=>{ const t=Date.now(); (function tick(){ const v=f(); if(v) return res(v); if(Date.now()-t>ms) return rej(new Error('timeout: '+f)); setTimeout(tick,60); })(); });
@@ -56,18 +61,20 @@
   /* TEN (2026-09-28) · the title is set in `social`, title case, not the
      board's caps `name` role: caps set the fixture's long club at six lines
      on the wire (both judges and critique B). Still the title, still whole. */
-  check(ref.querySelector('.hfr-title .cs-social').textContent==='UNM Championship Course','the course is not the title');
-  check(ref.querySelector('.hfr-gross .cs-fig-l').textContent.trim()==='89','the gross is not the figure');
-  check(ref.querySelector('.hfr-gross .cs-agate-s').textContent==='GROSS','the figure is not labelled');
+  check(ref.querySelector('.hfr-details .cs-social').textContent==='UNM Championship Course','the course is not the title');
+  check(ref.querySelector('.hfr-score .cs-fig-l').textContent.trim()==='89','the gross is not the figure');
+  check(ref.querySelector('.hfr-score .cs-agate-s').textContent==='GROSS','the figure is not labelled');
   check(ref.querySelectorAll('.hfr-story').length===1 && ref.querySelector('.hfr-story').textContent==='2.0 over your playing HCP.','the story is not the handicap context: '+JSON.stringify(ref.querySelector('.hfr-story')?.textContent));
   /* W7-083 · the card is a plain block (no role="button" around four buttons); its one route into the receipt is a real
      button, the title, named with the printed line and ", receipt" */
   const rc=ref.querySelectorAll('[data-rcptbtn]');
-  check(ref.getAttribute('role')!=='button' && rc.length===1 && rc[0].tagName==='BUTTON' && /, receipt$/.test(rc[0].getAttribute('aria-label')||'') && rc[0].contains(ref.querySelector('.hfr-title .cs-social')),'no route into the receipt');
-  /* the title keeps its width, ink and wrap inside the button (the flex item is the button now) */
-  { const cs=getComputedStyle(rc[0]); check(cs.minWidth==='0px' && cs.overflowWrap==='anywhere' && parseFloat(cs.flexGrow)===1,'the receipt button does not carry the title\'s width and wrap: '+[cs.minWidth,cs.overflowWrap,cs.flexGrow].join(' ')); }
+  check(ref.getAttribute('role')!=='button' && rc.length===1 && rc[0].tagName==='BUTTON' && /, receipt$/.test(rc[0].getAttribute('aria-label')||'') && rc[0].contains(ref.querySelector('.hfr-details .cs-social')),'no route into the receipt');
+  /* the title keeps its width, ink and wrap inside the button (D404: the details column is the flex item) */
+  { const cs=getComputedStyle(ref.querySelector('.hfr-details')); check(cs.minWidth==='0px' && cs.overflowWrap==='anywhere' && parseFloat(cs.flexGrow)===1,'the details column does not carry the title\'s width and wrap: '+[cs.minWidth,cs.overflowWrap,cs.flexGrow].join(' ')); }
   check(ref.querySelector('.hfr-foot [data-hrx]') && !ref.querySelector('.hfr-foot [data-hreact]'),'no applause control in the foot (D365)');
-  check(ref.querySelector('.hfr-topo'),'no contour behind the title');
+  /* D404 · the panel's metal groups the recorded performance, never the gross: −2.0 bronze, +1.4 gold, none neutral, +3.1 gold, +0.2 silver */
+  { const metals=[0,1,2,3,4].map(i=>((at(i).querySelector('.hfr-score')?.className||'').match(/hfr-score-(\w+)/)||[])[1]);
+    check(JSON.stringify(metals)===JSON.stringify(['bronze','gold','neutral','gold','silver']),'the score metals do not follow the recorded performance: '+metals); }
   check(!ref.querySelector('img'),'the record grew a picture it does not have');
 
   /* the one story — the competition's consequence when the client has it */
@@ -79,13 +86,14 @@
   check(!at(3).textContent.includes('beat their'),'two stories on one round');
   /* no handicap context — the record stands on course and gross alone */
   check(!at(2).querySelector('.hfr-story'),'a round with no context invented one');
-  check(at(2).querySelector('.hfr-gross .cs-fig-l').textContent.trim()==='84','the gross went with the missing context');
+  check(at(2).querySelector('.hfr-score .cs-fig-l').textContent.trim()==='84','the gross went with the missing context');
   /* the long name wraps inside the card and never leaves it */
-  const long=at(1), lt=long.querySelector('.hfr-title');
+  const long=at(1), lt=long.querySelector('.hfr-details');
   check(lt.getBoundingClientRect().right<=long.getBoundingClientRect().right+1,'the long course name escaped the card');
   check(document.documentElement.scrollWidth<=innerWidth,'horizontal overflow');
   /* the photograph keeps its own presentation */
-  check(at(4).classList.contains('hfstory') && at(4).querySelector('img.hsbg'),'the photo round lost its presentation');
+  /* D404 · the photograph follows the shared record, below it */
+  check(at(4).classList.contains('hfscorebook') && at(4).querySelector('.hfr-result') && at(4).querySelector('img.hsbg.hfr-photo'),'the photo round lost its presentation');
 
   /* ── colour: no decorative ember, paper readable ───────────────────────── */
   const cs=getComputedStyle(document.documentElement);
@@ -97,7 +105,9 @@
   const contrast=(a,b)=>{ const l1=lum(a), l2=lum(b); return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05); };
   const ground=getComputedStyle(document.body).backgroundColor;
   const storyC=contrast(getComputedStyle(ref.querySelector('.hfr-story')).color, ground);
-  const figC=contrast(getComputedStyle(ref.querySelector('.hfr-gross .cs-fig-l')).color, ground);
+  /* D404 · the figure sits on its matte panel: read it against the panel, not the page */
+  const panel=ref.querySelector('.hfr-score');
+  const figC=contrast(getComputedStyle(panel.querySelector('.cs-fig-l')).color, getComputedStyle(panel).backgroundColor);
   check(storyC>=4.5 && figC>=4.5,'the record is not readable on this ground: story '+storyC.toFixed(2)+' figure '+figC.toFixed(2));
   out.theme=document.documentElement.getAttribute('data-theme')||'dark';
   out.contrast={ story:+storyC.toFixed(2), figure:+figC.toFixed(2) };
@@ -109,6 +119,11 @@
   await Promise.all([...document.fonts].map(f=>f.status==='loaded'?null:f.load().catch(()=>null)));
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   out.heights=cards.map(c=>Math.round(c.getBoundingClientRect().height));
+  /* D404 (2026-10-01) · the guard reads the REFERENCE round by its index, not the first card
+     in the DOM: the feed orders rounds by when they were posted, and these five fixtures are
+     made in the same instant, so the long-name round sometimes rendered first and the guard
+     measured it (256 for a reference round that measured 213–217 on every run). */
+  out.refHeight=Math.round(at(0).getBoundingClientRect().height);
   /* measured before this composition, same fixtures, 390 wide: 204 · 239 · 205.
      I10 (2026-09-28) · those numbers and the old caps (190 / 215) were read in
      whatever face had loaded; the page suites fetch Google Fonts live, so the
@@ -116,11 +131,15 @@
      face loaded, above) the record is 206 at 390 and 226 at 320 — identically
      on the pre-program baseline 1b5916b2 and on HEAD. The caps are those real
      heights plus 4px: a guard against growth, not a font lottery. */
-  check(out.heights[0]<=(innerWidth<360?230:210),'the record is still tall: '+out.heights[0]);
+  /* D404 (2026-10-01) re-baselined: the Scorebook reference record is 213 at 390, 217 at
+     desk widths and 288 at 320, where the details column wraps above the score panel by
+     design (@media max-width:360px). The caps are those heights plus 4px: still a guard
+     against growth, now of the approved structure. */
+  check(out.refHeight<=(innerWidth<360?292:221),'the record is still tall: '+out.refHeight);
 
   /* ── the routes ────────────────────────────────────────────────────────── */
   let opened=null; const realOpen=window.openRoundReceipt; window.openRoundReceipt=(r)=>{ opened=r; };
-  ref.querySelector('.hfr-title').click();
+  ref.querySelector('.hfr-result').click();
   check(opened && (opened===rows[0] || opened.round_id===rows[0].round_id || opened===rows[0].round_id),'the title did not open the receipt');
   window.openRoundReceipt=realOpen;
   /* D365 · the foot carries the one applause control; the glyph does not open the receipt */

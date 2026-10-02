@@ -1,0 +1,31 @@
+SIGN-IN
+Sign in as reviewer@cupseason.app (App Review Information). Enter it and tap "Send code": nothing is emailed; a Password field appears ("Review access: enter the password from the notes"). The password is in the Sign-in fields, not here. Every other golfer signs in with an emailed 8-digit code. There is no third-party or social login, so 4.8 does not apply.
+
+WHAT THE ACCOUNT HOLDS
+Four seeded leagues of fictional golfers; the reviewer is a player in each, never the organiser ("the Pro"). Please use Ridgeline Cup: active, July 5 to December 19, 2026; 8 golfers in two squads (Mudsharks, Sandbaggers); $75 buy-in.
+
+WALKTHROUGH
+1. Compete > Ridgeline Cup (YOUR SEASONS): "The squads", then "Every golfer". Tap a golfer (Tara Nguyen leads: 17 rounds, 112 points) for the rounds behind the points, then a round for its receipt. "Open the Book" shows the season week by week.
+2. Same league, scroll to "The pot" > "Who has paid": $600 pot ($75 each), 5 of 8 paid.
+3. Play (centre tab) > "Add a round you played" > "Add my round". Posting is fine.
+4. Play > "Score it live", pick a format, "Tee off", "Finish the round".
+5. Golfers > Marcus Reyes > the ... menu: "Block Marcus", "Report".
+6. You > Card & settings > Settings > "Your account" > "Delete my account" (please do not confirm).
+
+THE POT
+Some leagues keep a pot; others play for bragging rights ($0). Cup Season keeps the ledger; the money moves between friends. The organiser records each golfer's buy-in (up to $200) and who has paid. A live game can record an optional amount per point or skin (up to $200) and its card shows totals. Cup Season and Fischbeck3 LLC do not collect, hold, transfer or pay out money, take no fee, and sell nothing in the app.
+
+SAFETY (1.2)
+- Filter: names, posts, comments, plans, league and course names and pride-bet words are checked by our own database for slurs, explicit sexual terms and threats before they save; refused text stays in the draft.
+- Report: posts, comments and golfers, each with a reason (golfer reasons include "An inappropriate photo"). Block hides their posts and comments and stops their requests, invites and notifications.
+- Reports reach the operator, who reviews within 24 hours and can take down posts, comments and photos and remove accounts. A removed account cannot sign in or refresh; our server refuses its requests, and in any case a token issued earlier lapses within an hour.
+- Photos are not screened before they appear. The board is seen only by a league's golfers; a round photo, by golfers in the same seasons and accepted buddies. A reported photo is reviewed by the operator and leaves storage within minutes of takedown; a private copy is kept up to 90 days as the record, and deleting the account removes it sooner. Public links exist only when a golfer taps Share.
+
+ACCOUNT DELETION (5.1.1(v))
+You > Card & settings > Settings > "Your account" > "Delete my account" > "Delete permanently". The confirm text lists what goes: name, email, profile, posts, comments, shared links; photos are queued for removal; the login closes for good. Posted rounds stay as "Former member" so standings hold. Please do not confirm; we will give a throwaway account on request.
+
+AI (5.1.2)
+Only the optional scorecard scan. "Scan the scorecard" first asks "Scan with Claude?"; only after a yes saved to the golfer's account does our server send the photo to Anthropic's Claude to read the scores (not used for training). Off in Settings: "Scorecard scanning with Claude". The scanned card also becomes the round's photo, seen by golfers in their seasons and buddies; it can be removed before posting.
+
+OTHER
+Contacts only on "Check my contacts": SHA-256 hashes of emails and phone numbers are compared on our server and not stored. Push is opt-in. The "Who's on this tee" switch (Score it live) is off by default; turning it on shows the Local Network prompt. No purchases, ads or tracking; Settings shows "PLAN FREE".

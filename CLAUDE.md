@@ -243,6 +243,15 @@ edge months** (blanket rule, decided). League timezone default
   that moves or deletes a `media` object for a takedown outside that claim. Account
   deletion reaches the held copies too (`_held_media_cleanup_paths`; `_media_cleanup_report`
   waits for in-flight claims).
+- **Both SDKs pick a request's token when it is SENT, from whoever is signed in then (D403,
+  review of a3115801).** supabase-js's `fetchWithAuth` awaits the session and fills
+  `Authorization` only when the request has none; supabase-swift's adapter OVERWRITES any
+  `Authorization` you set on the shared client. A write that belongs to one golfer (a
+  consent choice, a scan) must carry that golfer's own token: on the web, resolve it, check
+  `csJwtSub(token)` against the attempt's uid and `csAuthGen`, then `.setHeader('Authorization',
+  'Bearer ' + token)` (or `functions.invoke(..., {headers})`); on the phone, send through
+  `SupabaseService.bound(to:)` / `call(_:token:)`. A header set on the shared Swift client
+  binds nothing; `a3115801` believed it did.
 - **A new Database Webhook silently defaults to the WRONG Edge Function.**
   The `season_email` hook (D68) was created on the right table with the right
   header but pointing at `push`, and it took several round trips to see it.

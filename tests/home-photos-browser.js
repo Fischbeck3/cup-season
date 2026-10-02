@@ -75,7 +75,8 @@
   csSignedClear();
   rows[1].photo_path='fixture/third.png';
   load([A,BAD]);
-  await until(()=>document.querySelector('#homeFeed [data-hfr="1"].hfrecord'), 4000);
+  /* D404 · every round is a record; the miss has landed when the second has no picture */
+  await until(()=>document.querySelector('#homeFeed [data-hfr="1"].hfrecord') && !document.querySelector('#homeFeed [data-hfr="1"] img'), 4000);
   check(imgs().length===1 && loaded().length===1,'the first photograph did not survive the second\'s failure');
   out.missWithoutPriorIsRecord=true;
 

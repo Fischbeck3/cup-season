@@ -1,6 +1,10 @@
 # App Store package · 1.0 · drafted 2026-09-30 · FOR OWNER REVIEW
 
-**Status: draft for review. Nothing in this file has been pasted into App Store
+**Status (2026-10-01 evening): the 1.0 release package for the candidate on
+`claude/app-store-listing-2026-09-30` (origin/main `e034915a` + the readiness
+commits + the Home Scorebook, D404). The App Review notes are final (§10).**
+
+**Original status: draft for review. Nothing in this file has been pasted into App Store
 Connect, uploaded or submitted.** It is built from the release source
 `origin/main` `e034915a`; cupseason.app served the same commit
 (`v23 · e034915`) when this was written. Once approved, it replaces §1–§8 of
@@ -35,13 +39,15 @@ undeployed**; the deploy order is at the foot of this section.
 |---|---|---|
 | Text filter (1.2 filtering, text) | Built: `20261221090000`, triggers on 19 tables. Corrected 2026-10-01: adds home course, a scan claim's partner name and course, every typed course name, and the Pro's ruling reason. Official catalogue course names pass. Both clients pass the one refusal through and keep the draft (the web's course note included) | Database deploy |
 | Golfer reports | **Fixed defect**: both clients send `p_kind 'profile'`, which `report_content` refused ("nothing to report"). The branch is added and the founder is pushed. | Database deploy |
-| Photo takedown, account removal | Built on the existing desk (web): `takedown_photo`, `ban_account`, `unban_account`, audit rows, a PostgREST pre-request gate for open sessions, restrictive storage policies. Corrected 2026-10-01: the taken-down **file** is moved into the private `moderation-hold` bucket by `share-cleanup`, so links sent before the takedown stop at the origin (proven on a real local stack). The gate now runs for `service_role` as well; without that grant every Edge function would have failed. Corrected again (review of 0e463792): only the taken-down object can be moved or deleted (the path is locked to writes until removal is confirmed plus 10 minutes, and worker claims never overlap), and account deletion removes held copies too (D396). Retention is up to 90 days, a duration that is **your decision to confirm**. | Database deploy, **then** the `share-cleanup` and `scan` deploys; owner rehearses once on test accounts |
-| Scan consent on the server | Built: `scan` refuses (403, zero provider calls) without a stored yes. Corrected 2026-10-01: the server's no is final. Neither client writes a yes back on a refusal; they clear what they held and ask, and retry only on a yes tapped for that attempt. Corrected again: each scan is bound to the golfer who started it, sent on that golfer's own token, and dropped whole if the account changes mid-scan | **Database deploy first**, then the Edge redeploy |
+| Photo takedown, account removal | Built on the existing desk (web): `takedown_photo`, `ban_account`, `unban_account`, audit rows, a PostgREST pre-request gate for open sessions, restrictive storage policies. Corrected 2026-10-01: the taken-down **file** is moved into the private `moderation-hold` bucket by `share-cleanup`, so links sent before the takedown stop at the origin (proven on a real local stack). The gate now runs for `service_role` as well; without that grant every Edge function would have failed. Corrected again (review of 0e463792): only the taken-down object can be moved or deleted (the path is locked to writes until removal is confirmed plus 10 minutes, and worker claims never overlap), and account deletion removes held copies too (D396). Retention is up to 90 days, **confirmed by the owner on 2026-10-01**. | Database deploy, **then** the `share-cleanup` and `scan` deploys; owner rehearses once on test accounts |
+| Scan consent on the server | Built: `scan` refuses (403, zero provider calls) without a stored yes. Corrected 2026-10-01: the server's no is final. Neither client writes a yes back on a refusal; they clear what they held and ask, and retry only on a yes tapped for that attempt. Corrected again: each scan is bound to the golfer who started it and dropped whole if the account changes mid-scan. Corrected a third time (review of a3115801): the consent **write** is bound too, on both clients, and the phone's scan now really rides its golfer's token (supabase-swift overwrote the header a3115801 set). Proven through the real supabase-js 2.112.4 and the real supabase-swift request path | **Database deploy first**, then the Edge redeploy; web and native builds |
 | Live-stake ceiling | Built: the phone clamps at $200, and a server trigger refuses new or changed stakes above $200. Corrected 2026-10-01: `stake` and `unit` are validated each on its own, and malformed shapes are refused, never read as zero. History is untouched | Database deploy + native build |
 | Money door labels | "Buy-in" before the first tee, "Pride bet" after, on both clients | Client deploys |
 | Photo audience line | Both composers say who sees an attached photo, a scanned card included, beside the remove control | Client deploys |
 | Privacy manifest | Contacts linked; Other Financial Info, Emails or Text Messages and Other Diagnostic Data added | Native build; App Store Connect answers entered by the owner (§7 of the listing) |
-| **Photo filtering before publication** | **UNRESOLVED**, owner decision; see Part D | — |
+| Photo filtering before publication | **RULED 2026-10-01: not in 1.0.** The owner reviews photos golfers report; nothing is screened before publication. See Part D | Review notes must not claim automated photo filtering |
+| Home Scorebook (D404) | **Included on the owner's yes** (2026-10-01): Codex's matte score panels and spaced rules between Home rounds, merged and renumbered from its branch's D401 | Web and native builds |
+| Ban gate, token lifetime | **RULED 2026-10-01: fail-open, 1-hour tokens kept for 1.0.** See Part E | Nothing for 1.0 |
 | Pot classification | **No counsel opinion** (D402). The cap and labels resolve nothing legally. | Owner risk, recorded |
 
 **Deploy order (each step needs the owner's separate approval):**
@@ -53,7 +59,14 @@ undeployed**; the deploy order is at the foot of this section.
 3. `git push` → Netlify (web).
 4. Archive and upload the native build. TestFlight first; App Store submission is separate.
 
-## Part D · Photo filtering before publication: the open decision
+## Part D · Photo filtering before publication: RULED, not in 1.0
+
+**Owner, 2026-10-01:** "I should only need to review photos others report." So 1.0
+ships with the text filter and with report → founder push → takedown for photos, and
+nothing screens a photo before league-mates see it. Neither option below is built. The
+review notes say exactly that. The residual risk: App Review may read 1.2's filter
+bullet as covering photos; the answer would then be screening (option 2) in an update.
+The analysis below is kept as the record of the choice.
 
 Guideline 1.2 asks for "a method for filtering objectionable material from being
 posted". The text filter covers words. **No photo is filtered before others see
@@ -72,7 +85,11 @@ days, 1 profile photo in total** (production, read-only, 2026-10-01).
 The owner's text ruling was "no AI". Options 1 and 2 are the two that actually filter
 photos before publication. Option 1 keeps the no-AI posture at the cost of a delay.
 Option 2 removes the delay at the cost of a consent prompt and a third party.
-## Part E · The ban gate's limits, and the alternative (owner decision)
+## Part E · The ban gate's limits, and the alternative (RULED: unchanged for 1.0)
+
+**Owner, 2026-10-01:** keep the fail-open gate and the current 1-hour tokens for 1.0.
+Shorter tokens are tested after launch; the production setting changes only on a
+separate approval. Nothing below is built or changed.
 
 **What the gate is.** `cs_internal.request_gate` runs before every PostgREST request
 (`pgrst.db_pre_request` on `authenticator`). It refuses a golfer with an unlifted ban
@@ -109,21 +126,19 @@ again.
 - **Recommendation:** B now, because it is a dashboard setting and changes no code. Consider A only if bans become frequent.
 - Either way, no copy may say a removal is enforced "instantly and unconditionally": a removed golfer's open sessions stop at their next API request, within the limits above.
 
-## iPhone UI tests · disposition of the 26 failures (2026-10-01)
+## iPhone UI tests · disposition of the 26 failures (updated 2026-10-01 evening)
 
-**Method.**
-- I ran the nine failing classes on two clean, signed-out iPhone 17 Pro clones of root's simulator, with the documented test-runner input `CS_PROGRAMME_QA_PHOTO` set.
-- One clone ran this branch; the other ran **e034915a**, main before any readiness change.
-- The per-test outcomes are **identical**: 11 pass and 25 fail in both. None of the 26 is caused by the readiness work.
-
-| Class | Count | Cause | Disposition |
+| Tests | Count | Result tonight | Evidence |
 |---|---|---|---|
-| `AcceptedRoundReviewTests`, `CompeteBoldReviewTests`, `CompeteGameplayReviewTests` (5), `ComposerWorthUITests` (3), `CoursePrepReviewTests` (3) | 15 | They launch with `-cs_dev_open`, which needs a **signed-in review simulator**. The failure screenshots show the signed-out door. | **BLOCKED.** No signed-in simulator exists here. Signing one in means entering an emailed code for a production account, which this session may not do. Run them on the owner's signed-in review simulator. |
-| `MatchProgrammeTests.testHomeRecordsAndPhotoFallback` | 1 | It needs `CS_PROGRAMME_QA_PHOTO` set in the test runner. | **PASS** once the input is supplied. |
-| `HomeNoPhotoTests` (4), `HomePhotoStabilityTests` (5) | 9 | **Stale against main.** They wait for `home.round.no-photo`, `home.round.photo` and `home.round.photo-loading`; `e8e9f84b` ("Build native Match Programme Home and Compete") removed all three. Home's photo behaviour is now covered by `MatchProgrammeTests`, which passes. | **Not changed here.** Rewriting them means re-deciding the Home design's expectations, which belongs to the native lane. Filed as a follow-up. |
-| `AfterGolfWirePlacementTests.testDisplacedCardWithAnEmptyFeedKeepsAllThreeActions` | 1 | The lead renders ("You are two points off the lead.", screenshot), but no longer as one combined accessibility element, which the test's comment calls a §7 rule. | **Pre-existing on main** (fails identically on e034915a). Either an accessibility regression from the Match Programme Home or a stale assertion; the native lane decides which. Filed as a follow-up. |
+| `HomeNoPhotoTests` (4), `HomePhotoStabilityTests` (5) | 9 | **PASS, rewritten** against main's Match Programme Home (PR #8). Each keeps the behaviour it protected: distinct golfer and round doors, the photo under the record, applause, the D360 story rules, and every D361 photo-loading case. Only the deliberately removed 168pt loading frame was dropped. Test files only; no app source. | 25/25 across the five related classes, then 26/26 executions with `-test-iterations 2` (commits `094bc8a9`, `9bb930ce`) |
+| `AfterGolfWirePlacementTests.testDisplacedCardWithAnEmptyFeedKeepsAllThreeActions` | 1 | **PASS: a stale assertion, corrected.** `e8e9f84b` removed the compact lead on purpose; every lead is now a labelled container plus its own `home.lead.action` door, which five other tests depend on. | Same runs |
+| `MatchProgrammeTests.testHomeRecordsAndPhotoFallback` | 1 | **PASS** with `CS_PROGRAMME_QA_PHOTO` supplied to the runner | Same runs |
+| `CoursePrepReviewTests` (3), `CompeteGameplayReviewTests` (4 of 5), `AcceptedRoundReviewTests` (2), `ComposerWorthUITests` (3), `CompeteBoldReviewTests` (2) | 15 | **BLOCKED.** They need a simulator signed in to a seeded backend. DEBUG builds already default to a local stack (`CSConfig.auditBackend`), so production is not needed. But the disposable stack sends 6-digit codes, the app accepts only 8 (as production does), and the auto-mode classifier refused the one-line local config change (`otp_length = 8`). Awaiting the owner's OK for that local edit. | No run; nothing seeded |
 
-**What this does and does not prove.** No UI test exercises scan consent, the takedown desk or account deletion. Those are covered by the Kit, app-unit, web, SQL and live-Storage suites. The composer UI tests are among the 15 BLOCKED by sign-in.
+- `CompeteGameplayReviewTests.testRulesAndHeadToHeadDoors` makes no assertions, so it passes signed out and is not counted among the 15.
+- `ReceiptMomentTests` and `ReceiptLensesUITests` open with `-cs_dev_open receipt` and need the same signed-in backend.
+- **Gap left for the native lane (not a regression):** `home.md` §7 asks for the Home lead to be one VoiceOver element. On main its parts are separate stops inside the labelled container, as they have been since `bf434ae6` (2026-09-06). Fixing it means deciding how the after-golf door stays separately tappable.
+- Matching failures on main never stood in for signed-in behaviour. The 15 stay BLOCKED until they run.
 
 ## Live local proof · how it was run (2026-10-01)
 
@@ -158,6 +173,11 @@ To reproduce:
   - The held copy is gone, and the account's cleanup completes only after the in-flight move reports.
   - No evidence is kept for an account deleted while its takedown was pending.
   - Another golfer's evidence is untouched.
+
+- The consent write's binding (review of a3115801), with `tests/storage/consent-live.mjs` and the real supabase-js 2.112.4:
+  - A request bound with `setHeader` lands on the token's golfer, whoever the client is signed in as; unbound, the client's session at send time decides (the race's root).
+  - index.html's own consent functions on that real client: B signing in while A's yes resolves its token writes nothing for B, and a switch after A's token is resolved still lands it on A only. On `a3115801` the first case wrote A's yes onto B.
+- Tonight's candidate run (2026-10-01 evening): takedown 8/8, consent 3/3, db-checks 60/60 (check 60 included; pg_cron exists on the local image).
 
 **Not provable locally:** CDN behaviour.
 - The local stack has no CDN.
@@ -353,99 +373,58 @@ Capture rules:
   leads (brand canon §7).
 - No other platform's chrome, per 2.3.10.
 
-### 10. App Review notes · outline
+### 10. App Review notes · final text (3,949 of 4,000 bytes)
 
-The full text is written after the B items close, from the final build. Paste
-limit: 4,000 bytes. The password goes **only** in App Store Connect's
-sign-in fields, never in this repo or a handoff.
+Paste-ready copy: [`app-review-notes-1.0.txt`](app-review-notes-1.0.txt) (ASCII, 3,949
+bytes by `wc -c`). Every label was checked against the code at `f4b60223`, and every
+figure was read from production, read-only, at 18:15–18:39 MST on 2026-10-01
+(`reviewer@cupseason.app`, Ridgeline Cup). The password goes **only** in App Store
+Connect's sign-in fields, never in this repo or a handoff.
 
-1. **Sign-in.**
-   - User `reviewer@cupseason.app`; the password goes in App Store Connect's
-     field.
-   - Typing that address shows a Password field with the note "Review access:
-     enter the password from the notes."
-   - Every other golfer signs in with an emailed 8-digit code.
-   - There is no third-party login and Sign in with Apple is not shown in this
-     build, so 4.8 does not apply: Cup Season uses its own account system.
-2. **What the account holds.**
-   - Four seeded leagues of fictional golfers. The reviewer is a player, not
-     the Pro, in every one.
-   - Walk **Ridgeline Cup**: active, July 5 → December 19, 2026, 8 golfers,
-     two squads, a $75 buy-in. This is a live read from 2026-09-30.
-   - **Sunset Match is finished** (it ended September 5); the old notes
-     pointed at it.
-   - Re-read every figure in the app on the final build. Do not quote seed
-     arithmetic.
-3. **Walkthrough, in the current labels.**
-   - **Home.**
-   - **Compete** → Ridgeline Cup → the table. Tap a golfer for their rounds,
-     then a round for its receipt. Then "Open the Book".
-   - **The pot** → "Who has paid".
-   - **Play** (⊕) → "Add a round you played" → "Add my round". Posting is
-     fine.
-   - **Play** → "Score it live" → "Tee off" → "Finish the round".
-   - **Golfers** → a golfer → ⋯ **Report** / **Block** → "Go head to head".
-   - **You** → **The record** → **Settings** → "Your account" → "Delete my
-     account". Do not confirm (see 6).
-4. **The ledger.** State facts only, in counsel-approved words (B-1). Make no
-   claim that the absence of a payment rail exempts the app from 5.3.
-   - The canonical sentence: "Cup Season keeps the ledger; the money moves
-     between friends."
-   - The Pro records season buy-ins of up to $200 per golfer and who has paid.
-   - Live games can carry an optional amount per point or per skin, and the
-     settlement shows totals. **This amount is currently uncapped on iPhone**
-     (B-2).
-   - A league can run on $0, shown as "Bragging rights".
-   - No money is collected, held, transferred or paid out by the app or by
-     Fischbeck3 LLC, and no fee is taken.
-   - `legal.html#pot` says so, and also says Apple is not a sponsor.
-5. **Safety (1.2).**
-   - **Report:** board posts, comments on posts, rounds and plans, and golfer
-     pages with reasons.
-   - **Block** is real and enforced in the database row-level security. The
-     blocked golfer's posts and comments disappear for you, and their
-     requests, invites and notifications to you are dropped.
-   - Every report pushes a notification to the operator. Posts and comments
-     come down from the operator's web desk, and reports are reviewed within
-     24 hours.
-   - The board is visible only inside private leagues. Round photos are
-     visible to golfers in the same seasons and accepted buddies. Public links exist only
-     when a golfer taps Share.
-   - **Do not claim automated pre-publication filtering unless it ships in
-     this build** (B-4).
-6. **Account deletion (5.1.1(v)).**
-   - Path: You → Card & settings → Settings → "Your account" → "Delete my
-     account" → "Delete permanently".
-   - Quote the confirm text as it appears on screen.
-   - A golfer with posted rounds keeps those rounds as "Former member", so
-     other people's standings stay true. Name, handle, email, photo, posts,
-     comments, shares and push tokens are removed.
-   - Photos are **queued** for removal, not erased in the same transaction.
-   - The login is closed for good.
-   - Deletion asks the Pro of a league that has other golfers to hand it off
-     or delete it first. The reviewer is not a Pro, so they will not see that
-     message.
-   - Please do not confirm on the review account. We will provide a
-     throwaway account on request.
-7. **AI processing.**
-   - The only AI call in the app is the scorecard scan, and it runs only when
-     the golfer taps "Scan the scorecard" and agrees to "Scan with Claude?".
-   - The photo goes through our server to Anthropic's Claude so the scores
-     can be read. It is not used to train Anthropic's models.
-   - Scanning can be turned off in Settings ("Scorecard scanning with
-     Claude").
-   - **The scanned photo also becomes the round's photo**, visible to
-     golfers in their seasons and buddies (B-5).
-   - No other content is sent to an AI service. If moderation screening ships
-     first, this section changes.
-8. **Contacts, push and Nearby.**
-   - Contacts: only when the golfer taps "Check my contacts". SHA-256 hashes
-     of emails and phone numbers are compared and not stored. **Do not call
-     them salted** (B-5).
-   - Push: opt-in.
-   - Nearby: the Local Network prompt appears only on "Who's on this tee".
-9. **No purchases.** No StoreKit, no in-app purchases, no ads. Settings shows
-   "PLAN FREE · Everything is free".
+Corrections against the outline this replaces:
+- The password field appears after tapping "Send code", not on typing. Nothing is emailed.
+- "Go head to head" is a "Start something" option. The golfer page carries a "You and <name>" record.
+- Deletion is You → Card & settings → Settings → "Your account" → "Delete my account" → "Delete permanently".
+- Reports cover posts, comments and golfers. Golfer reasons include "An inappropriate photo".
+- The safety section follows the 2026-10-01 rulings: photos are not screened before they appear, and a removed account's earlier token lapses within an hour (fail-open).
+
+The figures go stale at the November 1 month close and when Ridgeline flips to its Cup
+Final on November 22. The notes quote only individual figures, which the close does not
+move.
+
+```
+SIGN-IN
+Sign in as reviewer@cupseason.app (App Review Information). Enter it and tap "Send code": nothing is emailed; a Password field appears ("Review access: enter the password from the notes"). The password is in the Sign-in fields, not here. Every other golfer signs in with an emailed 8-digit code. There is no third-party or social login, so 4.8 does not apply.
+
+WHAT THE ACCOUNT HOLDS
+Four seeded leagues of fictional golfers; the reviewer is a player in each, never the organiser ("the Pro"). Please use Ridgeline Cup: active, July 5 to December 19, 2026; 8 golfers in two squads (Mudsharks, Sandbaggers); $75 buy-in.
+
+WALKTHROUGH
+1. Compete > Ridgeline Cup (YOUR SEASONS): "The squads", then "Every golfer". Tap a golfer (Tara Nguyen leads: 17 rounds, 112 points) for the rounds behind the points, then a round for its receipt. "Open the Book" shows the season week by week.
+2. Same league, scroll to "The pot" > "Who has paid": $600 pot ($75 each), 5 of 8 paid.
+3. Play (centre tab) > "Add a round you played" > "Add my round". Posting is fine.
+4. Play > "Score it live", pick a format, "Tee off", "Finish the round".
+5. Golfers > Marcus Reyes > the ... menu: "Block Marcus", "Report".
+6. You > Card & settings > Settings > "Your account" > "Delete my account" (please do not confirm).
+
+THE POT
+Some leagues keep a pot; others play for bragging rights ($0). Cup Season keeps the ledger; the money moves between friends. The organiser records each golfer's buy-in (up to $200) and who has paid. A live game can record an optional amount per point or skin (up to $200) and its card shows totals. Cup Season and Fischbeck3 LLC do not collect, hold, transfer or pay out money, take no fee, and sell nothing in the app.
+
+SAFETY (1.2)
+- Filter: names, posts, comments, plans, league and course names and pride-bet words are checked by our own database for slurs, explicit sexual terms and threats before they save; refused text stays in the draft.
+- Report: posts, comments and golfers, each with a reason (golfer reasons include "An inappropriate photo"). Block hides their posts and comments and stops their requests, invites and notifications.
+- Reports reach the operator, who reviews within 24 hours and can take down posts, comments and photos and remove accounts. A removed account cannot sign in or refresh; our server refuses its requests, and in any case a token issued earlier lapses within an hour.
+- Photos are not screened before they appear. The board is seen only by a league's golfers; a round photo, by golfers in the same seasons and accepted buddies. A reported photo is reviewed by the operator and leaves storage within minutes of takedown; a private copy is kept up to 90 days as the record, and deleting the account removes it sooner. Public links exist only when a golfer taps Share.
+
+ACCOUNT DELETION (5.1.1(v))
+You > Card & settings > Settings > "Your account" > "Delete my account" > "Delete permanently". The confirm text lists what goes: name, email, profile, posts, comments, shared links; photos are queued for removal; the login closes for good. Posted rounds stay as "Former member" so standings hold. Please do not confirm; we will give a throwaway account on request.
+
+AI (5.1.2)
+Only the optional scorecard scan. "Scan the scorecard" first asks "Scan with Claude?"; only after a yes saved to the golfer's account does our server send the photo to Anthropic's Claude to read the scores (not used for training). Off in Settings: "Scorecard scanning with Claude". The scanned card also becomes the round's photo, seen by golfers in their seasons and buddies; it can be removed before posting.
+
+OTHER
+Contacts only on "Check my contacts": SHA-256 hashes of emails and phone numbers are compared on our server and not stored. Push is opt-in. The "Who's on this tee" switch (Score it live) is off by default; turning it on shows the Local Network prompt. No purchases, ads or tracking; Settings shows "PLAN FREE".
+```
 
 ---
 
@@ -457,17 +436,18 @@ Nothing in this part is safe to paste or answer from the repository alone.
 |---|---|---|---|
 | **B-1** | **The pot: legal classification and the exact words in the description, review notes and age rating.** **RULED 2026-10-01 (D402, option B): no counsel opinion is required before submission.** The age rating answers Gambling: No. THE POT paragraph is publishable once B-2's two fixes ship. The text that follows in this row is the counsel brief, kept in case the owner consults later. | Counsel, then owner | Counsel has not approved. Send counsel the real features, not the paragraph alone: season buy-ins up to $200 with winner, runner-up and Points King splits; live-game amounts per point or skin (uncapped on iPhone); settlement totals; pride bets; no age gate; US-only. Whether 5.3/5.3.4 applies turns on the functionality. The age-rating Gambling answer (B-8) follows the same ruling. |
 | **B-2** | **Money surfaces found in the release build.** **D402: both fixes are required before submission and wait for "build it".** First, cap the phone's stake at $200 (a server clamp is recommended). Second, rename the money door on both clients; proposed: "Play for something". | Owner, with counsel | (a) On the web, the live-game stake is capped at $200 (`index.html:6974`, `CS_STAKE_MAX`). The iPhone field is a free decimal with no ceiling (`LiveSetupView.swift:428-430`, `LiveRoundStore.swift:567`), and no server clamp exists. D192's cap therefore holds on the web only. The old §6 and the review notes claim otherwise. (b) The start sheet's modifier row reads **"Put money on it"** (`StartIntent.swift:75`) and opens "Post a pride bet". The listing must not repeat either phrase; whether the in-app copy changes is your call. No code is changed by this package. |
-| **B-3** | **Screenshots recaptured from the final candidate.** | Engineering, then owner approval | The current App Store Connect set (8 images, `APP_IPHONE_67`) predates about 300 native UI commits. **Owner, 2026-10-01: wait for the final candidate.** Capture §9's order from that build, not from `e034915a`, so the set is not shot twice. |
-| **B-4** | **1.2's "method for filtering objectionable material".** | Owner (screening was already approved in the build list) | There is no automated screening before publication. The only server-side sanitising strips control characters. Takedown covers posts and comments; no function takes down a photo, and there is no ban function apart from self-deletion. The Terms promise to "remove the accounts that posted it". Report, block and operator notification exist. The review notes' safety section depends on whether screening ships in this build. |
+| **B-3** | **Screenshots recaptured from the final candidate.** Pipeline built 2026-10-01: §9's frames from the app's own fictional fixtures, on a 6.9" simulator, composed in the September 25 layout. | Engineering, then owner approval | The current App Store Connect set (8 images, `APP_IPHONE_67`) predates about 300 native UI commits. **Owner, 2026-10-01: wait for the final candidate.** Capture §9's order from that build, not from `e034915a`, so the set is not shot twice. |
+| ~~B-4~~ | **1.2's "method for filtering objectionable material". RULED 2026-10-01:** the D403 text filter ships; photos are reviewed when golfers report them, not screened first. The review notes say so. The text that follows is the original finding. | Owner | There is no automated screening before publication. The only server-side sanitising strips control characters. Takedown covers posts and comments; no function takes down a photo, and there is no ban function apart from self-deletion. The Terms promise to "remove the accounts that posted it". Report, block and operator notification exist. The review notes' safety section depends on whether screening ships in this build. |
 | **B-5** | **Privacy manifest corrections. They ride the final candidate build, and they do NOT block submission.** Corrected 2026-10-01: Apple enforces the manifest's required-reason API section at upload. The collected-data section feeds Xcode's privacy report, which developers "refer to" when filling App Store Connect privacy details. What must be accurate at submission is the App Store Connect answers (C-1), and those can be changed without a build. | Owner, then engineering | The manifest says Contacts is not linked, but the stored buddy list is a linked social graph. Its comment, and `app-review-notes.md`, call the contact hashes "salted"; the device sends plain SHA-256 (`ContactHash.swift:61-65`). Other Diagnostic Data, Emails or Text Messages, and Other Financial Info are undeclared if you accept the C-section recommendations. A scanned scorecard becomes the round photo (`PostRoundModel.swift:404`), which the scan consent does not say. |
 | ~~B-6~~ | **Copyright holder. CLOSED 2026-10-01.** | Owner | The owner confirmed that Fischbeck3 LLC holds the rights and that the App Store Connect seller is the LLC, which meets 5.1.1(ix)'s legal-entity expectation. `2026 Fischbeck3 LLC` stands. |
 | **B-7** | **Support page contact sufficiency, and an inbox that works.** | Counsel / owner | Apple ties the required contact information to local law. Confirm that email alone is acceptable, and that `jerecho@fischbeck3.com` receives mail. The App Review contact also needs a phone number in `+1` format. |
 | **B-8** | **The age-rating questionnaire, answered live** (Part C). | Owner; counsel for Gambling | All answers in App Store Connect are blank. The computed rating is **not known** until the form is filled. Do not assume 13+. |
 | **B-9** | **The App Privacy questionnaire, answered live** (Part C). | Owner | App Store Connect has no API read of the privacy answers, so the current state there is unknown. |
-| **B-10** | **App Store Connect settings that disagree with your decisions.** | Owner, in App Store Connect | The 2026-09-30 read-only read showed release type **AFTER_APPROVAL**; it must become **Manually release this version**. App availability is **not set up**; it must be United States only, with "future countries" unchecked. The price schedule exists with base territory USA, but the free tier could not be read back. Subtitle, categories, privacy URL, copyright, description, keywords, promotional text, support and marketing URLs are all empty. No build is attached. No App Review detail exists, so there is no contact, sign-in or notes. In-app purchases: 0. |
-| **B-11** | **The reviewer path on the final build.** | Owner on the phone | Confirm that the `reviewer@cupseason.app` password sign-in works in the Release build, then fill App Store Connect's sign-in fields. Re-read the Ridgeline Cup figures in the app. **Do not reseed.** `test-seed`'s reset removes every seed-domain league, not only the reviewer's, and Ridgeline is already valid through December 19. |
+| **B-10** | **App Store Connect settings that disagree with your decisions.** Re-read 2026-10-01 18:29 MST (GET only): unchanged. Version 1.0 PREPARE_FOR_SUBMISSION, release type AFTER_APPROVAL, availability 404, price rows 404 (a $0.00 USD price point exists, Free not confirmed), every localization field empty, subtitle/privacy URL/categories null, all 24 age-rating answers null, no App Review detail, no build, screenshots APP_IPHONE_67 × 8 (September 25). | Owner, in App Store Connect | The 2026-09-30 read-only read showed release type **AFTER_APPROVAL**; it must become **Manually release this version**. App availability is **not set up**; it must be United States only, with "future countries" unchecked. The price schedule exists with base territory USA, but the free tier could not be read back. Subtitle, categories, privacy URL, copyright, description, keywords, promotional text, support and marketing URLs are all empty. No build is attached. No App Review detail exists, so there is no contact, sign-in or notes. In-app purchases: 0. |
+| **B-11** | **The reviewer path on the final build.** Verified read-only 2026-10-01: the account exists, its email is confirmed, it is not banned, a password is set, it is a player (never the Pro) in four seed leagues, and every member is a seed account. The path is in Release code (`DoorView.swift`, `AuthRules.swift:39`, web door). | Owner on the phone | Confirm that the `reviewer@cupseason.app` password sign-in works in the Release build, then fill App Store Connect's sign-in fields. Re-read the Ridgeline Cup figures in the app. **Do not reseed.** `test-seed`'s reset removes every seed-domain league, not only the reviewer's, and Ridgeline is already valid through December 19. |
 | **B-12** | **Build provenance and push entitlement.** | Engineering | The source of the attached build must map to a committed SHA. `aps-environment` reads `development` in `project.yml`, so confirm that the App Store export carries `production`. |
-| **B-13** | **Deletion's asynchronous photo cleanup is deployed.** | Engineering (read-only check) | `share-cleanup`, its secret and its schedule or webhook are deploy steps that are not visible in the repo. The confirm text's "queued for removal" is accurate only if they run. |
+| **B-13** | **Deletion's asynchronous photo cleanup is deployed.** Read-only 2026-10-01: `cs-share-cleanup` runs every minute and is healthy (60 of 60 runs, HTTP 200), but on the OLD code until `share-cleanup` is redeployed. | Engineering (read-only check) | `share-cleanup`, its secret and its schedule or webhook are deploy steps that are not visible in the repo. The confirm text's "queued for removal" is accurate only if they run. |
+| **B-14** | **Reviewer account hygiene.** Found read-only 2026-10-01 (counts only; nothing about real golfers was read). | Owner, on the desk or as the reviewer | One accepted buddy of the reviewer is a NON-seed account and shows on its Golfers tab: confirm it is yours or remove the friendship. One unresolved test report filed by the reviewer (2026-09-03, a post) sits in the founder queue. The reviewer profile is discoverable by everyone. A finished Ryder event, "The Grudge", shows under FINISHED in Compete; the notes do not mention it, which is harmless. |
 
 ---
 

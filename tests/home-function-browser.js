@@ -128,7 +128,8 @@
     wrapper.id='cs-home-audit';wrapper.append(box);document.body.append(wrapper);
     const hide=document.createElement('style');hide.textContent='body > :not(#cs-home-audit):not(#sheet):not(#toast):not(svg){display:none!important}';document.head.append(hide);
     renderHomeFeed();
-    await until(()=>box.querySelector('[data-hfr="0"].hfrecord'),'Failed photo did not yield to record');
+    /* D404 · every round is a record now; a failed photo yields when its picture is gone */
+    await until(()=>box.querySelector('[data-hfr="0"].hfrecord') && !box.querySelector('[data-hfr="0"] img.hsbg'),'Failed photo did not yield to record');
     check(DEMO_FEED[0].photo_url===bad,'Photo failure mutated round data');
     const first=()=>box.querySelector('[data-hfr="0"]');
     const visitGolfer=async()=>{
@@ -139,7 +140,7 @@
       closeSheet();state.demo=true;
     };
     await visitGolfer();
-    first().querySelector('.hfr-title').click();check(openedRound===DEMO_FEED[0],'Receipt tap lost its source round');
+    first().querySelector('.hfr-result').click();check(openedRound===DEMO_FEED[0],'Receipt tap lost its source round');
     openedRound=null;
     const person=first().querySelector('.hfperson');person.focus();check(document.activeElement===person,'Golfer cannot take keyboard focus');
     const key=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});person.dispatchEvent(key);check(!key.defaultPrevented,'Receipt swallowed golfer keyboard activation');
@@ -167,7 +168,7 @@
     rxWrite=saved.write;state.demo=true;renderHomeFeed();
     const photoURL=DEMO_FEED[0].photo_url;DEMO_FEED[0].photo_url=good;renderHomeFeed();
     await until(()=>first().querySelector('.hsbg')?.naturalWidth>0,'Refreshed image did not load');
-    check(first().classList.contains('hfstory'),'Successful image lost its photo treatment');
+    check(first().querySelector('img.hsbg.hfr-photo')?.naturalWidth>0,'Successful image lost its photo treatment');   /* D404 · the picture follows the record */
     await visitGolfer();
     for(const course of [null,'','   ']){
       const missing={...DEMO_FEED[0],course,gross:null,pvi:-4,is_pr:true};
