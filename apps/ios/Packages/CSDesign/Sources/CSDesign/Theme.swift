@@ -152,6 +152,7 @@ public extension CSPalette {
               ceremonyPig0: ceremonyPig0, ceremonyPig1: ceremonyPig1, ceremonyPig2: ceremonyPig2,
               ceremonyPig3: ceremonyPig3, ceremonyPig4: ceremonyPig4, ceremonyPig5: ceremonyPig5,
               crest: crest, folioRule: folioRule, scrimInk: scrimInk, scrimMut: scrimMut,
+              scoreGold: scoreGold, scoreSilver: scoreSilver, scoreBronze: scoreBronze, scoreInk: scoreInk,
               pig0: pig0, pig1: pig1, pig2: pig2, pig3: pig3, pig4: pig4, pig5: pig5)
   }
 
@@ -181,6 +182,7 @@ public extension CSPalette {
               ceremonyPig0: ceremonyPig0, ceremonyPig1: ceremonyPig1, ceremonyPig2: ceremonyPig2,
               ceremonyPig3: ceremonyPig3, ceremonyPig4: ceremonyPig4, ceremonyPig5: ceremonyPig5,
               crest: crest, folioRule: scrimMut, scrimInk: scrimInk, scrimMut: scrimInk,
+              scoreGold: scoreGold, scoreSilver: scoreSilver, scoreBronze: scoreBronze, scoreInk: scoreInk,
               pig0: pig0, pig1: pig1, pig2: pig2, pig3: pig3, pig4: pig4, pig5: pig5)
   }
 }

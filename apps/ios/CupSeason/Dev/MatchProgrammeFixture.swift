@@ -20,7 +20,7 @@ import CupSeasonKit
         "profile_id": "C5000000-0000-4000-8000-00000000001\(index + 1)",
         "golfer": phone && index == 0 ? "QA Galen" : names[index], "marker": "lonetree", "gross": phone && index == 0 ? 79 : [82, 89, 78][index],
         "course": mode == "long" ? "QA championship course with a deliberately long name" : "QA Papago",
-        "played_on": CSDate.today(), "is_pr": false, "is_first": false,
+        "played_on": CSDate.today(), "pvi": [2.4, -1.0, 0.0][index], "is_pr": false, "is_first": false,
         "is_sub80": index == 2, "is_me": false
       ]
       if phone, index == 0 {

@@ -1,0 +1,28 @@
+eval@1280: [{"key":"gold","fill":"rgb(216, 178, 90)","ink":"rgb(26, 27, 20)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72},{"key":"bronze","fill":"rgb(183, 138, 97)","ink":"rgb(26, 27, 20)","width":72},{"key":"neutral","fill":"rgb(38, 53, 46)","ink":"rgb(241, 244, 239)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72}]
+overflow@1280: none
+shot /private/tmp/scorebook-web-confirm-dark/scorebook-dark-1280.png
+eval@375: [{"key":"gold","fill":"rgb(216, 178, 90)","ink":"rgb(26, 27, 20)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72},{"key":"bronze","fill":"rgb(183, 138, 97)","ink":"rgb(26, 27, 20)","width":72},{"key":"neutral","fill":"rgb(38, 53, 46)","ink":"rgb(241, 244, 239)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72}]
+overflow@375: none
+shot /private/tmp/scorebook-web-confirm-dark/scorebook-dark-375.png
+
+console: 4 message(s) · 0 error(s) · 0 warning(s)
+  [log] [boot] no session in storage — showing the door
+  [log] [home-state] S5 · An event live — a session open, a clash against one golfer — native_home.open_duels is decoded (Models.swift) and rendered by NOTHING on Home, and the ranker has no event item, so the only band-1 sentence this state can produce is the composer’s. The screenshot is the evidence for 
+  [log] [boot] no session in storage — showing the door
+  [log] [home-state] S5 · An event live — a session open, a clash against one golfer — native_home.open_duels is decoded (Models.swift) and rendered by NOTHING on Home, and the ranker has no event item, so the only band-1 sentence this state can produce is the composer’s. The screenshot is the evidence for 
+
+PASS — console clean but for known lines, and nothing scrolls horizontally
+eval@1280: [{"key":"gold","fill":"rgb(216, 178, 90)","ink":"rgb(26, 27, 20)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72},{"key":"bronze","fill":"rgb(183, 138, 97)","ink":"rgb(26, 27, 20)","width":72},{"key":"neutral","fill":"rgb(222, 216, 200)","ink":"rgb(21, 27, 23)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72}]
+overflow@1280: none
+shot /private/tmp/scorebook-web-confirm-light/scorebook-light-1280.png
+eval@375: [{"key":"gold","fill":"rgb(216, 178, 90)","ink":"rgb(26, 27, 20)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72},{"key":"bronze","fill":"rgb(183, 138, 97)","ink":"rgb(26, 27, 20)","width":72},{"key":"neutral","fill":"rgb(222, 216, 200)","ink":"rgb(21, 27, 23)","width":72},{"key":"silver","fill":"rgb(214, 220, 212)","ink":"rgb(26, 27, 20)","width":72}]
+overflow@375: none
+shot /private/tmp/scorebook-web-confirm-light/scorebook-light-375.png
+
+console: 4 message(s) · 0 error(s) · 0 warning(s)
+  [log] [boot] no session in storage — showing the door
+  [log] [home-state] S5 · An event live — a session open, a clash against one golfer — native_home.open_duels is decoded (Models.swift) and rendered by NOTHING on Home, and the ranker has no event item, so the only band-1 sentence this state can produce is the composer’s. The screenshot is the evidence for 
+  [log] [boot] no session in storage — showing the door
+  [log] [home-state] S5 · An event live — a session open, a clash against one golfer — native_home.open_duels is decoded (Models.swift) and rendered by NOTHING on Home, and the ranker has no event item, so the only band-1 sentence this state can produce is the composer’s. The screenshot is the evidence for 
+
+PASS — console clean but for known lines, and nothing scrolls horizontally

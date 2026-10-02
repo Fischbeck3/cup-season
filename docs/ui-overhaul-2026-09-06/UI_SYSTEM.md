@@ -2359,3 +2359,8 @@ in the artboards. These are the findings **declined**, each with its reason.*
 stand, and until the launch-argument hatches land, every light and AX statement here is computed rather
 than seen. (2) `PhotoScrimTests` still holds only `mut` body copy at tip; §10.3 makes extending it a
 gate on three of this system's signature moves, and that gate is a Phase 3 commit, not a Phase 2 claim.
+
+
+### D404 amendment · Home Scorebook (2026-09-30)
+
+The owner selected Scorebook and full matte performance panels. A golfer/date row precedes course, tee and the existing story beside the gross panel; a photograph is optional below, followed by the existing doors and a spaced rule. Use scoped `score-gold`, `score-silver`, `score-bronze`, `score-ink` object tokens. Recorded finite performance >= +1 is gold, > -1 and < +1 silver, <= -1 bronze; unknown stays neutral. Existing five bands and points remain. Normal panels are <=96pt; accessibility sizes reflow and grow for text. Several earned round panels may appear in one viewport; this supersedes the two-metal / one-gold-object rule only for these Home results. Personal looks, Profile, ordinary actions and competition signals remain governed by their existing roles. See decision D404.

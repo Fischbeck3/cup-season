@@ -8424,3 +8424,16 @@ Levels: trust and safety (vision: "the board is earned, the door is open"), IA (
      - `_media_cleanup_report` completes only when no held copy remains and no takedown of theirs is in a worker's hands, so a move in flight cannot leave evidence behind.
      - Other golfers' evidence is untouched.
   - **The retention duration is the owner's to confirm.** Ninety days is the proposed upper bound, not an Apple requirement, and account deletion always ends it sooner. No retention exception to D396 is introduced.
+
+### D404 · Home rounds carry a matte score panel (Scorebook)
+
+**Numbering.** Written as D401 on `codex/home-round-boundaries-2026-09-30` (cut from `b3f09975`, before D401 existed). Renumbered D404 when the owner approved it for 1.0 on 2026-10-01 ("Yes, include it"): D401 is the widgets entry and D402/D403 are the readiness entries.
+
+**RULED 2026-09-30** (owner selected C, proposed performance metals, then “GO on full matte”) · UI / semantic presentation only · both clients' Home round feed
+
+- **Current behavior.** A large gross sits beside golfer identity, with course and story below. Posted rounds share the page ground and blend together; web photo rounds use a different plate structure.
+- **Decision.** A quiet golfer/date row precedes course, tee and the existing story beside one compact matte gross panel. The optional photograph and existing social/course/receipt doors follow. A spaced page rule closes the complete round. Profile, Home ranking/lead and factual copy producers stay unchanged.
+- **Result colors.** Recorded finite performance >= +1 is gold (Torched it / Beat your number); performance > -1 and < +1 is silver (Played to it); performance <= -1 is bronze (A little loose / Posted anyway). Missing or invalid performance is neutral. Gross alone, a milestone, a league look or a personal best cannot determine the metal. This groups the existing five bands visually; it changes no points, handicap calculations or competition mechanics.
+- **Objects.** `score-gold`, `score-silver`, `score-bronze` and `score-ink` are scoped object tokens, fixed in both themes: matte champagne, pale silver, warm bronze and dark scorecard ink. Personal looks and Increase Contrast do not recolor results. The existing sentence remains the non-color explanation; the accessible round label also names the performance when a milestone or league-counting story occupies that line.
+- **Principles / tradeoffs.** Real rounds become distinct and quickly readable without adding taps or tracking. Bronze acknowledges a posted round without a red failure signal. A colored panel conveys performance, not finishing position or a medal. Large text reflows details and score; the normal panel stays below 96pt.
+- **CONFLICT (named).** D269's “two metals and only two” and the one-gold-object viewport budget yield narrowly for Home's earned round-performance panels to this owner ruling. Existing gold chrome/control prohibitions, competition ember and all unrelated surfaces stand. Multiple qualifying rounds may each show gold. The panel is result content inside the receipt target, not a separately styled gold action. The September 27 no-build limitation yields within this approved Home scope; no shipping is authorized by this decision.

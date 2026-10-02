@@ -152,6 +152,8 @@ object looks the same in both rooms.
 > **Champagne gold means *earned* — a lead, the pot, a trophy, a founder,
 > movement up. It is never chrome.**
 
+D404 (owner-approved September 30) adds matte gold, silver and bronze objects only to Home round-score panels. Recorded performance chooses the result color; missing performance stays neutral. They keep their own dark scorecard ink and do not follow personal looks. Several qualifying rounds may each carry earned gold. This is a scoped result signal, not a podium placement or a new scoring band.
+
 Gold on a button, tab, or nav is a defect. This rule is *why* the brand reads
 premium: scarcity of gold is the design-system version of "the board is
 earned." (History: gold carried brand chrome v23.106–130 to solve the Arccos

@@ -2605,6 +2605,11 @@ const lint = (id, name, hits, note = '') => {
        is the migration that resolves them to band / rule / rail / panel /
        leaf, which is also where the desk's 25 radii collapse to five. */
     html.split('\n').forEach((line, i) => {
+      // D404 · the named Home score object is a legal figure panel, not card
+      // chrome. Keep this exception scoped to its token radius and dimensions.
+      if (line.startsWith('.hfscorebook .hfr-score{') &&
+          line.includes('border-radius:var(--p)') && line.includes('background:var(--bg2)') &&
+          line.includes('min-width:72px') && line.includes('min-height:80px') && !line.includes('border:')) return;
       if (/border-radius:/.test(line) && /(border:\s*(?!none|0)|background)/.test(line)) {
         hits.push(`index.html:${i + 1} a boxed surface · ${line.trim().slice(0, 70)}`);
       }

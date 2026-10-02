@@ -1,0 +1,355 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /private/tmp/club-spread-build/Build/Products/Scorebook.xctestrun -destination "platform=iOS Simulator,id=A1354402-B662-4A0D-912E-38ACFD6730A8" -parallel-testing-enabled NO -collect-test-diagnostics never -resultBundlePath /private/tmp/scorebook-se-confirm.xcresult "-only-testing:CupSeasonUITests/MatchProgrammeTests/testPhoneFeedbackRoundAndSupportingActions" "-only-testing:CupSeasonUITests/MatchProgrammeTests/testPhoneFeedbackAtAccessibilitySize"
+
+Writing result bundle at path:
+	/private/tmp/scorebook-se-confirm.xcresult
+
+2026-09-30 19:14:33.968879-0700 CupSeasonUITests-Runner[82252:51307456] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-09-30 19:14:34.827.
+Test Suite 'CupSeasonUITests.xctest' started at 2026-09-30 19:14:34.828.
+Test Suite 'MatchProgrammeTests' started at 2026-09-30 19:14:34.828.
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackAtAccessibilitySize]' started.
+    t =     0.00s Start Test at 2026-09-30 19:14:34.828
+    t =     0.07s Set Up
+    t =     0.07s Open app.cupseason.ios
+    t =     0.07s     Launch app.cupseason.ios
+2026-09-30 19:14:35.098 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 19:14:35.098 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[82252]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a380310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a280398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.90s         Setting up automation session
+    t =     1.67s         Wait for app.cupseason.ios to idle
+<unknown>:0: warning: -[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackAtAccessibilitySize] : Initial session emitted after attempting to refresh the local stored session.
+This is incorrect behavior and will be fixed in the next major release since it's a breaking change.
+To opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.
+The new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.
+If you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.
+
+Check https://github.com/supabase/supabase-swift/pull/822 for more information.
+    t =     4.05s Waiting 15.0s for "home.lead.action" Button to exist
+    t =     5.08s     Checking `Expect predicate `existsNoRetry == 1` for object "home.lead.action" Button`
+    t =     5.09s         Checking existence of `"home.lead.action" Button`
+    t =     5.19s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     5.23s Swipe up Target Application 'app.cupseason.ios'
+    t =     5.23s     Wait for app.cupseason.ios to idle
+    t =     5.23s     Find the Target Application 'app.cupseason.ios'
+    t =     5.25s     Check for interrupting elements affecting "Cup Season" Application
+    t =     5.29s     Synthesize event
+    t =     5.72s     Wait for app.cupseason.ios to idle
+    t =     7.82s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.87s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.91s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.94s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.97s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     8.01s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     8.15s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     8.18s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     8.22s Find the Target Application 'app.cupseason.ios'
+    t =     8.26s Added attachment named 'home-feedback-AX3-record'
+    t =     8.26s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     8.29s Swipe up Target Application 'app.cupseason.ios'
+    t =     8.29s     Wait for app.cupseason.ios to idle
+    t =     8.29s     Find the Target Application 'app.cupseason.ios'
+    t =     8.31s     Check for interrupting elements affecting "Cup Season" Application
+    t =     8.33s     Synthesize event
+    t =     8.75s     Wait for app.cupseason.ios to idle
+    t =    10.86s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    10.91s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    10.94s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    10.96s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    10.99s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    11.02s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    11.05s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    11.08s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    11.10s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    11.13s Find the Target Application 'app.cupseason.ios'
+    t =    11.17s Added attachment named 'home-feedback-AX3-support'
+    t =    11.17s Tear Down
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackAtAccessibilitySize]' passed (11.429 seconds).
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackRoundAndSupportingActions]' started.
+    t =     0.00s Start Test at 2026-09-30 19:14:46.259
+    t =     0.03s Set Up
+    t =     0.03s Open app.cupseason.ios
+    t =     0.03s     Launch app.cupseason.ios
+    t =     0.03s         Terminate app.cupseason.ios:82280
+2026-09-30 19:14:47.346 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 19:14:47.346 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     1.96s         Wait for app.cupseason.ios to idle
+<unknown>:0: warning: -[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackRoundAndSupportingActions] : Initial session emitted after attempting to refresh the local stored session.
+This is incorrect behavior and will be fixed in the next major release since it's a breaking change.
+To opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.
+The new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.
+If you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.
+
+Check https://github.com/supabase/supabase-swift/pull/822 for more information.
+    t =     3.69s Waiting 15.0s for "home.lead.action" Button to exist
+    t =     4.73s     Checking `Expect predicate `existsNoRetry == 1` for object "home.lead.action" Button`
+    t =     4.73s         Checking existence of `"home.lead.action" Button`
+    t =     4.85s Press ScrollView (First Match)[0.50, 0.78] for 0.1 seconds, then drag to ScrollView (First Match)[0.50, 0.48] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     4.85s     Wait for app.cupseason.ios to idle
+    t =     4.85s     Find the ScrollView (First Match)
+    t =     4.86s     Check for interrupting elements affecting ScrollView
+    t =     4.88s     Synthesize event
+    t =     4.88s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =     4.89s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =     4.90s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =     4.91s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =     4.92s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =     5.63s     Wait for app.cupseason.ios to idle
+    t =     7.24s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.29s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.32s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.35s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.37s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.40s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.43s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.46s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.48s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.51s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.54s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.57s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.59s Find the "home.round.comments" Button
+    t =     7.62s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.65s Find the "home.round.comments" Button
+    t =     7.67s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.70s Find the "home.round.comments" Button
+    t =     7.72s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.74s Find the "home.round.comments" Button
+    t =     7.76s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =     7.79s Find the Target Application 'app.cupseason.ios'
+    t =     7.83s Added attachment named 'home-feedback-phone-dark'
+    t =     7.83s Terminate app.cupseason.ios:82391
+    t =     8.90s Open app.cupseason.ios
+    t =     8.90s     Launch app.cupseason.ios
+2026-09-30 19:14:55.159 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 19:14:55.159 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     9.38s         Setting up automation session
+    t =    10.16s         Wait for app.cupseason.ios to idle
+    t =    12.23s Waiting 15.0s for "home.lead.action" Button to exist
+    t =    13.27s     Checking `Expect predicate `existsNoRetry == 1` for object "home.lead.action" Button`
+    t =    13.27s         Checking existence of `"home.lead.action" Button`
+    t =    13.40s Press ScrollView (First Match)[0.50, 0.78] for 0.1 seconds, then drag to ScrollView (First Match)[0.50, 0.48] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    13.40s     Wait for app.cupseason.ios to idle
+    t =    13.41s     Find the ScrollView (First Match)
+    t =    13.42s     Check for interrupting elements affecting ScrollView
+    t =    13.46s     Synthesize event
+    t =    13.46s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    13.48s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    13.49s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    13.50s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    13.51s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    14.24s     Wait for app.cupseason.ios to idle
+    t =    15.83s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    15.88s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    15.91s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    15.94s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    15.96s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    15.99s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.01s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.04s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.08s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.11s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.14s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.18s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.21s Find the "home.round.comments" Button
+    t =    16.24s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.27s Find the "home.round.comments" Button
+    t =    16.29s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.32s Find the "home.round.comments" Button
+    t =    16.34s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.36s Find the "home.round.comments" Button
+    t =    16.39s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    16.41s Find the Target Application 'app.cupseason.ios'
+    t =    16.46s Added attachment named 'home-feedback-phone-light'
+    t =    16.47s Terminate app.cupseason.ios:82447
+    t =    17.52s Open app.cupseason.ios
+    t =    17.52s     Launch app.cupseason.ios
+2026-09-30 19:15:03.783 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 19:15:03.783 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    17.73s         Setting up automation session
+    t =    18.49s         Wait for app.cupseason.ios to idle
+    t =    20.22s Waiting 15.0s for "home.lead.action" Button to exist
+    t =    21.26s     Checking `Expect predicate `existsNoRetry == 1` for object "home.lead.action" Button`
+    t =    21.26s         Checking existence of `"home.lead.action" Button`
+    t =    21.38s Press ScrollView (First Match)[0.50, 0.78] for 0.1 seconds, then drag to ScrollView (First Match)[0.50, 0.48] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    21.38s     Wait for app.cupseason.ios to idle
+    t =    21.38s     Find the ScrollView (First Match)
+    t =    21.39s     Check for interrupting elements affecting ScrollView
+    t =    21.41s     Synthesize event
+    t =    21.41s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    21.42s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    21.43s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    21.44s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    21.45s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    22.16s     Wait for app.cupseason.ios to idle
+    t =    23.76s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.80s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.82s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.84s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.86s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.89s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.92s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.95s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    23.98s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.00s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.03s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.06s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.08s Find the "home.round.comments" Button
+    t =    24.11s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.13s Find the "home.round.comments" Button
+    t =    24.15s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.18s Find the "home.round.comments" Button
+    t =    24.20s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.22s Find the "home.round.comments" Button
+    t =    24.25s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    24.27s Find the Target Application 'app.cupseason.ios'
+    t =    24.31s Added attachment named 'home-feedback-phone_no_photo-dark'
+    t =    24.31s Terminate app.cupseason.ios:82637
+    t =    25.36s Open app.cupseason.ios
+    t =    25.37s     Launch app.cupseason.ios
+2026-09-30 19:15:11.627 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 19:15:11.627 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    25.58s         Setting up automation session
+    t =    26.32s         Wait for app.cupseason.ios to idle
+    t =    27.97s Waiting 15.0s for "home.lead.action" Button to exist
+    t =    29.01s     Checking `Expect predicate `existsNoRetry == 1` for object "home.lead.action" Button`
+    t =    29.02s         Checking existence of `"home.lead.action" Button`
+    t =    29.11s Press ScrollView (First Match)[0.50, 0.78] for 0.1 seconds, then drag to ScrollView (First Match)[0.50, 0.48] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    29.11s     Wait for app.cupseason.ios to idle
+    t =    29.11s     Find the ScrollView (First Match)
+    t =    29.12s     Check for interrupting elements affecting ScrollView
+    t =    29.14s     Synthesize event
+    t =    29.14s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    29.15s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    29.16s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    29.17s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    29.18s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    29.89s     Wait for app.cupseason.ios to idle
+    t =    31.50s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.56s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.58s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.60s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.62s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.65s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.68s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.71s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.73s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.76s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.79s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.82s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.84s Find the "home.round.comments" Button
+    t =    31.87s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.90s Find the "home.round.comments" Button
+    t =    31.92s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.95s Find the "home.round.comments" Button
+    t =    31.97s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    31.99s Find the "home.round.comments" Button
+    t =    32.02s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    32.04s Find the Target Application 'app.cupseason.ios'
+    t =    32.08s Added attachment named 'home-feedback-phone_no_photo-light'
+    t =    32.08s Terminate app.cupseason.ios:82680
+    t =    33.13s Open app.cupseason.ios
+    t =    33.13s     Launch app.cupseason.ios
+2026-09-30 19:15:19.390 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 19:15:19.390 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    33.34s         Setting up automation session
+    t =    34.07s         Wait for app.cupseason.ios to idle
+    t =    35.77s Waiting 15.0s for "home.lead.action" Button to exist
+    t =    36.80s     Checking `Expect predicate `existsNoRetry == 1` for object "home.lead.action" Button`
+    t =    36.80s         Checking existence of `"home.lead.action" Button`
+    t =    36.90s Press ScrollView (First Match)[0.50, 0.78] for 0.1 seconds, then drag to ScrollView (First Match)[0.50, 0.48] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    36.90s     Wait for app.cupseason.ios to idle
+    t =    36.90s     Find the ScrollView (First Match)
+    t =    36.91s     Check for interrupting elements affecting ScrollView
+    t =    36.93s     Synthesize event
+    t =    36.93s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    36.94s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    36.95s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    36.96s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    36.97s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    37.68s     Wait for app.cupseason.ios to idle
+    t =    39.28s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.33s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.35s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.37s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.39s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.42s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.45s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.48s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.51s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.53s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.56s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.59s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.61s Find the "home.round.comments" Button
+    t =    39.64s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.67s Find the "home.round.comments" Button
+    t =    39.69s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.71s Find the "home.round.comments" Button
+    t =    39.74s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.76s Find the "home.round.comments" Button
+    t =    39.79s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    39.81s Find the Target Application 'app.cupseason.ios'
+    t =    39.85s Added attachment named 'home-feedback-phone_failed-dark'
+    t =    39.85s Terminate app.cupseason.ios:82733
+    t =    40.91s Open app.cupseason.ios
+    t =    40.91s     Launch app.cupseason.ios
+2026-09-30 19:15:27.172 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-30 19:15:27.172 xcodebuild[82236:51307173] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    41.12s         Setting up automation session
+    t =    41.85s         Wait for app.cupseason.ios to idle
+    t =    43.55s Waiting 15.0s for "home.lead.action" Button to exist
+    t =    44.57s     Checking `Expect predicate `existsNoRetry == 1` for object "home.lead.action" Button`
+    t =    44.58s         Checking existence of `"home.lead.action" Button`
+    t =    44.69s Press ScrollView (First Match)[0.50, 0.78] for 0.1 seconds, then drag to ScrollView (First Match)[0.50, 0.48] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    44.69s     Wait for app.cupseason.ios to idle
+    t =    44.69s     Find the ScrollView (First Match)
+    t =    44.70s     Check for interrupting elements affecting ScrollView
+    t =    44.72s     Synthesize event
+    t =    44.72s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    44.73s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    44.74s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    44.75s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    44.76s         Find the ScrollView at {{0.0, 0.0}, {375.0, 667.0}}
+    t =    45.47s     Wait for app.cupseason.ios to idle
+    t =    47.06s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.11s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.13s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.15s Find the "home.round.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.18s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.20s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.23s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.26s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.29s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.32s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.34s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.37s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.40s Find the "home.round.comments" Button
+    t =    47.42s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.45s Find the "home.round.comments" Button
+    t =    47.48s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.51s Find the "home.round.comments" Button
+    t =    47.64s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.67s Find the "home.round.comments" Button
+    t =    47.70s Find the "home.round.course.C5000000-0000-4000-8000-000000000001" Button
+    t =    47.73s Find the Target Application 'app.cupseason.ios'
+    t =    47.77s Added attachment named 'home-feedback-phone_failed-light'
+    t =    47.77s Terminate app.cupseason.ios:82803
+    t =    48.87s Tear Down
+Test Case '-[CupSeasonUITests.MatchProgrammeTests testPhoneFeedbackRoundAndSupportingActions]' passed (48.985 seconds).
+Test Suite 'MatchProgrammeTests' passed at 2026-09-30 19:15:35.243.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 60.414 (60.416) seconds
+Test Suite 'CupSeasonUITests.xctest' passed at 2026-09-30 19:15:35.244.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 60.414 (60.416) seconds
+Test Suite 'Selected tests' passed at 2026-09-30 19:15:35.244.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 60.414 (60.416) seconds
+2026-09-30 19:15:35.595 xcodebuild[82236:51307173] [MT] IDETestOperationsObserverDebug: 62.939 elapsed -- Testing started completed.
+2026-09-30 19:15:35.595 xcodebuild[82236:51307173] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-30 19:15:35.595 xcodebuild[82236:51307173] [MT] IDETestOperationsObserverDebug: 62.939 sec, +62.939 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/scorebook-se-confirm.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started
