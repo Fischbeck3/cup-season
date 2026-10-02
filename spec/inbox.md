@@ -31,6 +31,10 @@ sorting.
 ---
 
 
+### 2026-10-02 · Remove the retired forecast's leftovers (D407)
+
+The `weather` function was retired server-side on 2026-10-02 (D407). It answers "unavailable", so both clients hide the line. Left behind on purpose, so that launch needed no app build: the phone's weather fetch and drawing (`ScheduleService.weather`, `ScheduledRoundSheet.swift`, the Home plan card's chip), the web's two `functions.invoke('weather', …)` call sites and the chip's CSS, the `weather_cache` table, and the stub function itself. **Lane:** native + web cleanup, with one migration to drop `weather_cache`. **Size:** small, both clients. **First question:** do it in the first post-launch build, once no live client is older than the stub?
+
 ### 2026-10-02 · A Pro cannot delete a draft league once anyone has live-scored in it
 
 Verified 2026-10-02 in production, removing the owner's test league "Test1" (draft). `delete_league` only deletes the `leagues` row and relies on cascades. Fifteen foreign keys into `league_members`, `seasons` and `squads` are NO ACTION (`live_scores.updated_by`, `live_rounds.started_by`, `posts.member_id`, `commissioner_log.actor_id`, `buy_ins.marked_by`, `season_adjustments.*`, the seasons' champion pointers and others). The NO ACTION check on the cascaded `league_members` delete can fire before the rows that point at those members have been cascaded away. "Test1" failed with 23503 on `live_scores_updated_by_fkey`, and nothing was deleted. The app's Delete button would show that raw error to a real Pro. `sandbox_scrap` avoids it by deleting in FK order, but it does not clear `live_rounds` either. **Lane:** gameplay/backend. **Size:** one migration. Either `delete_league` (and `sandbox_scrap`) delete live rounds, posts and the logs in order first, or the "who did it" columns become ON DELETE SET NULL. **First question:** which of the two, and should a Pro's delete of a draft with live rounds warn first?

@@ -36,7 +36,7 @@ password or the phone into this repo.
 | Field | Value |
 |---|---|
 | Promotional text | §3 (150/170) |
-| Description | §4 (1,672/4,000): **the owner's text, entered 2026-10-02** and read back identical, with the money paragraph headed THE POT (the owner's choice). D402: publishable now that the $200 phone cap and the money-door labels ship in this build. |
+| Description | §4 (1,651/4,000): **the owner's text, entered 2026-10-02** and read back identical, with the money paragraph headed THE POT (the owner's choice). "Check the forecast" came out when the forecast was retired (D407). D402: publishable now that the $200 phone cap and the money-door labels ship in this build. |
 | Keywords | §5: `handicap,skins,wolf,match,play,scorecard,league,standings,buddies,friends,rivalry,score,tee,live` |
 | Support URL | `https://cupseason.app/support` |
 | Marketing URL | `https://cupseason.app` |

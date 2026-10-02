@@ -183,7 +183,7 @@ again.
    - Realtime authorises a socket on the JWT and RLS, not through PostgREST.
    - A removed golfer's already-open socket can keep receiving what RLS lets them read until the token expires.
    - Sending still goes through PostgREST and is refused.
-4. **Edge functions:** a function a golfer calls has to check `account_bans` itself, as `scan` does. `courses` and `weather` do not check it; they serve course and weather data and hold nothing of the golfer's. The webhook-driven functions (`push`, `season-email`, `share-cleanup`) are not called by golfers.
+4. **Edge functions:** a function a golfer calls has to check `account_bans` itself, as `scan` does. `courses` does not check it; it serves course data and holds nothing of the golfer's. (`weather` was retired on 2026-10-02, D407: it answers "unavailable" to everyone.) The webhook-driven functions (`push`, `season-email`, `share-cleanup`) are not called by golfers.
 
 **The alternative (not built; your call):**
 - **Option A, fail closed on lookup errors.** A failed lookup refuses the request instead of passing it.
@@ -323,7 +323,7 @@ You can change this at any time without review.
 The rounds you already play, made into a season: standings with your friends, rivalries that keep score, a Cup at the end, and a record worth keeping.
 ```
 
-### 4. Description · 1,672/4,000
+### 4. Description · 1,651/4,000
 
 Plain text: Apple renders no HTML or markdown, so the capitals are the
 headings.
@@ -351,7 +351,7 @@ START A SEASON, OR JOIN ONE
 Start a season with your friends. Set it up once, play as individuals or in squads, and invite everyone with a code or a link. When it’s over, run it back.
 
 BETWEEN ROUNDS
-The board is where the group talks. Put Saturday’s tee time on the schedule, check the forecast, and see who’s in.
+The board is where the group talks. Put Saturday’s tee time on the schedule and see who’s in.
 
 THE POT
 Cup Season keeps the ledger; the money moves between friends. No payments are processed through the app.
@@ -363,8 +363,8 @@ Where amateur golf counts.
 heading stays THE POT, so "the Book" keeps meaning the week-by-week points view (the 2026-09-24
 ruling: the Book shows no money). Every feature it names was checked in build 2114: course and
 tee pick, the scan, the number, receipts, rivalries, Match Play / Wolf / Skins / Sunningdale,
-guests, offline scores, the trophy case, the season album, the ceremony, run it back, the board,
-the schedule's weather line. It drops the earlier draft's lines on the Pro's setup, the Book,
+guests, offline scores, the trophy case, the season album, the ceremony, run it back, the board
+and the schedule. "Check the forecast" came out on 2026-10-02, when the forecast was retired (D407). It drops the earlier draft's lines on the Pro's setup, the Book,
 Lock Screen scoring, Home Screen widgets (frame 9 still shows them), reporting and blocking (the
 review notes cover them) and FREE.
 
@@ -595,7 +595,7 @@ collected type below is **linked to the user** and **not used for tracking**.
 | Other Diagnostic Data | **Declare** (recommended) | App Functionality | no | no | device type, OS, build and error text on diagnostic rows |
 | Other Financial Info | **Owner decision** (lean declare) | App Functionality | no | "not collected" | Apple's definition includes debts. The ledger stores buy-ins, who has paid, payouts, live-game amounts and settlement totals. No payment instrument exists. |
 | Gameplay Content | Optional | App Functionality | no | no | Standings and live games can sit under Other User Content; declaring both is harmless. |
-| Coarse / Precise Location | Not collected | | | | No CoreLocation, and photo EXIF is stripped. The typed city is user content. Weather uses the course's coordinates on the server. |
+| Coarse / Precise Location | Not collected | | | | No CoreLocation, and photo EXIF is stripped. The typed city is user content. (The forecast, retired on 2026-10-02 under D407, only ever used the course's coordinates on the server.) |
 | Health, Fitness, Payment, Purchases, Browsing, Search, Sensitive, Audio, Advertising Data | Not collected | | | | none in code |
 
 Copy that must stay consistent with the label: `legal.html` §Privacy already
@@ -694,7 +694,7 @@ match it.
   - album and ceremony: `SeasonPage.swift`, `SeasonCeremonyView.swift`
   - Run it back: `LeagueCopy.swift:609-629`
   - board: `BoardScreen.swift`
-  - plans, RSVP and forecast: `ScheduledRoundSheet.swift`, `weather/index.ts`
+  - plans and RSVP: `ScheduledRoundSheet.swift` (the forecast was retired 2026-10-02, D407; `weather/index.ts` now answers "unavailable")
   - widgets: `CupSeasonWidgets.swift:21-30`
   - report and block: `SafetyMenu.swift`
   - ledger sentence: `MoneyCopy.swift:28`
