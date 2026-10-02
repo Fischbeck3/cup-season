@@ -103,7 +103,7 @@ final class SocialBlendTests: XCTestCase {
     person.tap()
     let round = app.buttons["course.round.22222222-2222-4222-8222-222222222222"]
     XCTAssertTrue(round.waitForExistence(timeout: 5)); round.tap()
-    XCTAssertTrue(app.staticTexts["THE ROUND"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label ==[c] %@", "Theo’s round")).firstMatch.waitForExistence(timeout: 5), "the page says whose round it is")
     capture(app, "course-source-round")
   }
 

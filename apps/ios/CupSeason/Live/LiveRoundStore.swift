@@ -228,7 +228,7 @@ final class LiveRoundStore {
     // -cs_dev_bar · the D163 top bar with a round in flight, for review
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar"), !state.active {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar_waiting") {
-        awaitingFrom = "Blake Sample"; return   // a cast name: no real person in a fixture
+        awaitingFrom = SynthCast.current.golfers[1].name; return   // a cast name: no real person in a fixture
       }
       seedDevRound(); return
     }
@@ -301,15 +301,18 @@ final class LiveRoundStore {
     // S2/C3 · under `-cs_dev_synthetic` the three are the synthetic world's
     // invented golfers and the course its fixture course.
     let synthetic = SyntheticSeam.on
-    let players = [("You", 8.4, 0, false, "saguaro"), (synthetic ? "Blake" : "Danny", 12.1, 1, false, "lonetree"),
-                   (synthetic ? "Casey" : "Chuck", 6.2, 2, false, "dunes"), (synthetic ? "Quinn" : "Gary", 18.0, 3, true, "beer")]
+    // `-cs_dev_cast store` renames them with the rest of the cast; the default
+    // cast's three are "Blake", "Casey" and "Quinn", as they always were.
+    let cast = SynthCast.current
+    let players = [("You", 8.4, 0, false, "saguaro"), (synthetic ? cast.first(2) : "Danny", 12.1, 1, false, "lonetree"),
+                   (synthetic ? cast.first(3) : "Chuck", 6.2, 2, false, "dunes"), (synthetic ? cast.guest : "Gary", 18.0, 3, true, "beer")]
       .map { LivePlayer(id: $0.0, n: $0.0, i: $0.1, ci: $0.3 ? -1 : $0.2, guest: $0.3,
                         me: $0.0 == "You", mk: $0.4) }
     var course = LiveCourseCard()
     course.pars = [4,4,3,5,4,4,3,4,5, 4,3,4,5,4,4,3,4,5]
     course.si   = [5,11,17,1,7,13,15,3,9, 6,18,12,2,8,14,16,4,10]
     course.siEst = false
-    course.label = synthetic ? "North Grove (fixture) — Blue" : "Encanto GC — Blue"
+    course.label = synthetic ? "\(cast.courses[0].name) — Blue" : "Encanto GC — Blue"
     var st = LiveRoundState.fresh(players: players, course: course)
     st.stage = .live; st.active = true; st.game = .match; st.hole = 14
     // S2/C3 · a synthetic round has an id, so its finish runs the real path

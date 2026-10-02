@@ -105,7 +105,7 @@ extension SyntheticWorld {
       "league": leagues.first?.name ?? NSNull(),
       "record": ["wins": 4, "losses": 5, "ties": 1, "total": 11], "lead": "down", "since": day(-134),
       "streak": ["who": "them", "n": 2], "last_five": tape,
-      "rivalry_name": who.n == 2 ? "The Grove Grudge (fixture)" : NSNull(),
+      "rivalry_name": who.n == 2 ? cast.rivalry : NSNull(),
       "facets": [
         "season_weeks": facet(2, 3, 0, -134, m - 8, "the better round against your playing HCP in a week you both posted", "v_rounds_ranked"),
         "clashes": facet(1, 2, 0, -43, m - 1, "the weekly clash the season opened and settled", "week_clashes"),

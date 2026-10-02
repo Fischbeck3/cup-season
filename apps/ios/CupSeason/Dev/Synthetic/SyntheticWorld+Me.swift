@@ -38,11 +38,11 @@ extension SyntheticWorld {
     let final = scenario == .seasonFinal, done = scenario == .ceremony
     let status = done ? "complete" : final ? "cup_final" : "active"
     var base = [
-      SynthLeague(n: 1_001, name: "Fixture Cup League", code: "FIXCUP", solo: true, finish: "cup_final", buyinCents: 4_000,
+      SynthLeague(n: 1_001, name: cast.cupLeague.name, code: cast.cupLeague.code, solo: true, finish: "cup_final", buyinCents: 4_000,
                   memberOrder: [2, 1, 4, 3, 9, 6, 5, 7],
                   targets: [2: 58, 4: 47, 3: 38, 9: 33, 6: 29, 5: 22, 7: 14],
                   weeksTotal: 13, week: done ? 13 : final ? 11 : 6, status: status),
-      SynthLeague(n: 1_002, name: "Placeholder Squads League", code: "FIXSQD", solo: false, finish: "points_table", buyinCents: 0,
+      SynthLeague(n: 1_002, name: cast.squadsLeague.name, code: cast.squadsLeague.code, solo: false, finish: "points_table", buyinCents: 0,
                   memberOrder: [6, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12],
                   targets: [6: 31, 2: 27, 3: 25, 4: 22, 5: 21, 7: 19, 8: 18, 9: 16, 10: 12, 11: 10, 12: 7],
                   weeksTotal: 10, week: done ? 10 : 4, status: done ? "complete" : "active"),
@@ -67,7 +67,7 @@ extension SyntheticWorld {
 
   /// Squads for the squads league: three sides of four.
   var squadNames: [(n: Int, name: String, color: Int)] {
-    [(6_001, "Team Placeholder", 0), (6_002, "Team Stub", 1), (6_003, "Team Sample", 2)]
+    [(6_001, cast.squads[0], 0), (6_002, cast.squads[1], 1), (6_003, cast.squads[2], 2)]
   }
   func squadOf(_ person: Int, in l: SynthLeague) -> Int? {
     guard !l.solo, let i = l.memberOrder.firstIndex(of: person) else { return nil }
@@ -102,7 +102,7 @@ extension SyntheticWorld {
       "id": me.ids,
       // Until the card is made, the signup trigger's own guess (D325): the
       // email's local part, which the gate knows not to pre-fill.
-      "display_name": card ? state.get("name", me.name) : "fixture_avery",
+      "display_name": card ? state.get("name", me.name) : me.handle,
       "handle": card ? state.get("handle", me.handle) : NSNull(),
       "marker": card ? state.get("marker", me.marker) : NSNull(),
       "city": card ? me.city : NSNull(),

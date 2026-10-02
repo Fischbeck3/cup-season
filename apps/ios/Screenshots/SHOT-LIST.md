@@ -1,5 +1,7 @@
 # The App Store shot list (IOS-035, 2026-09-05)
 
+> **For 1.0 this list is superseded** by §9 of `docs/ios/app-store-package-2026-09-30.md` (the owner's 2026-09-25 layout, X37's invented cast). The 1.0 set is in [`1.0/`](1.0/README.md).
+
 **This supersedes the order in `spec/appstore-launch-kit.md` §3.** That list
 led with Standings and the league wizard and put the composer third — a
 stranger's first two frames were a table and a settings screen, which is the

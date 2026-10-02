@@ -5,6 +5,8 @@
 //   · Every name is invented and reads as invented ("Avery Fixture",
 //     "Blake Sample", "North Grove (fixture)"); every email is
 //     `@example.invalid`; every id is `f1c7…` (a fixture id, never a row).
+//     `-cs_dev_cast store` swaps the NAMES, and only the names, for natural
+//     invented ones (App Store screenshots; `SyntheticCast.swift`).
 //   · Every date is an offset from `anchor`, the device's own today at boot,
 //     so "week 6 of 13", "three days ago" and "two days left" hold on any day
 //     the capture is taken. The anchor is logged and written to the manifest.
@@ -94,6 +96,8 @@ final class SyntheticWorld: @unchecked Sendable {
   /// The device's today at boot, "YYYY-MM-DD". Every fixture date hangs off it.
   let anchor: String
   let bootedAt = Date()
+  /// What the golfers, courses, leagues and squads are called (`SyntheticCast.swift`).
+  let cast: SynthCast
   let me: SynthPerson
   let people: [SynthPerson]
   let courses: [SynthCourse]
@@ -104,36 +108,41 @@ final class SyntheticWorld: @unchecked Sendable {
 
   /// The viewer's id in every signed-in scenario (the widget host reads it).
   static var viewerID: UUID? { SyntheticSeam.on ? fid(1) : nil }
-  static let inviteCode = "FIXTURE24"
-  static let inviteLeagueName = "Fixture Friday League"
+  /// The invite link's code and league: the launch's cast (the boot stores them
+  /// before any world exists). A world answers from its own `cast`.
+  static var inviteCode: String { SynthCast.current.inviteLeague.code }
+  static var inviteLeagueName: String { SynthCast.current.inviteLeague.name }
   static let claimToken = fid(9_001)
 
-  init(_ scenario: SynthScenario) {
+  init(_ scenario: SynthScenario, cast: SynthCast = .current) {
     self.scenario = scenario
+    self.cast = cast
     anchor = CSDate.today()
     let long = ProcessInfo.processInfo.arguments.contains("-cs_synth_long")
-    me = SynthPerson(n: 1, name: long ? "Avery Fixture-Montgomery Hollingsworth" : "Avery Fixture",
-                     handle: "fixture_avery", marker: "saguaro", index: 12.4, city: "Fixtureville")
+    let g = cast.golfers
+    me = SynthPerson(n: 1, name: long ? cast.viewerLong : g[0].name,
+                     handle: g[0].handle, marker: "saguaro", index: 12.4, city: g[0].city)
     people = [
       me,
-      SynthPerson(n: 2, name: "Blake Sample", handle: "fixture_blake", marker: "lonetree", index: 8.1, city: "Fixtureville"),
-      SynthPerson(n: 3, name: "Casey Placeholder", handle: "fixture_casey", marker: "dunes", index: 15.7, city: "Sampleton"),
-      SynthPerson(n: 4, name: "Devon Testcase", handle: "fixture_devon", marker: "thistle", index: 10.9, city: "Fixtureville"),
-      SynthPerson(n: 5, name: "Emerson Mockridge", handle: "fixture_emerson", marker: "lighthouse", index: 18.2, city: "Sampleton"),
-      SynthPerson(n: 6, name: "Finley Stub", handle: "fixture_finley", marker: "island", index: 6.3, city: "Fixtureville"),
-      SynthPerson(n: 7, name: "Gray Dummyton", handle: "fixture_gray", marker: "pews", index: 21.5, city: "Mockport"),
-      SynthPerson(n: 8, name: "Harper Fauxley", handle: "fixture_harper", marker: "azalea", index: 13.0, city: "Mockport"),
-      SynthPerson(n: 9, name: "Maximilian Placeholder-Worthington", handle: "fixture_maximilian_long", marker: "weebridge", index: 9.4, city: "Fixtureville"),
-      SynthPerson(n: 10, name: "Quinn Samplewood", handle: "fixture_quinn", marker: "stamp", index: 16.6, city: "Sampleton"),
-      SynthPerson(n: 11, name: "Rowan Mockingham", handle: "fixture_rowan", marker: "beer", index: 11.2, city: "Mockport"),
-      SynthPerson(n: 12, name: "Sage Exampleton", handle: "fixture_sage", marker: "shark", index: 19.8, city: "Fixtureville"),
+      SynthPerson(n: 2, name: g[1].name, handle: g[1].handle, marker: "lonetree", index: 8.1, city: g[1].city),
+      SynthPerson(n: 3, name: g[2].name, handle: g[2].handle, marker: "dunes", index: 15.7, city: g[2].city),
+      SynthPerson(n: 4, name: g[3].name, handle: g[3].handle, marker: "thistle", index: 10.9, city: g[3].city),
+      SynthPerson(n: 5, name: g[4].name, handle: g[4].handle, marker: "lighthouse", index: 18.2, city: g[4].city),
+      SynthPerson(n: 6, name: g[5].name, handle: g[5].handle, marker: "island", index: 6.3, city: g[5].city),
+      SynthPerson(n: 7, name: g[6].name, handle: g[6].handle, marker: "pews", index: 21.5, city: g[6].city),
+      SynthPerson(n: 8, name: g[7].name, handle: g[7].handle, marker: "azalea", index: 13.0, city: g[7].city),
+      SynthPerson(n: 9, name: g[8].name, handle: g[8].handle, marker: "weebridge", index: 9.4, city: g[8].city),
+      SynthPerson(n: 10, name: g[9].name, handle: g[9].handle, marker: "stamp", index: 16.6, city: g[9].city),
+      SynthPerson(n: 11, name: g[10].name, handle: g[10].handle, marker: "beer", index: 11.2, city: g[10].city),
+      SynthPerson(n: 12, name: g[11].name, handle: g[11].handle, marker: "shark", index: 19.8, city: g[11].city),
     ]
+    let c = cast.courses
     courses = [
-      SynthCourse(key: "fixture-north-grove", name: "North Grove (fixture)", city: "Fixtureville", state: "AZ", par: 72,
+      SynthCourse(key: "fixture-north-grove", name: c[0].name, city: c[0].city, state: "AZ", par: 72,
                   tees: [("White", 70.1, 124, 6180), ("Blue", 72.0, 130, 6640), ("Red", 67.9, 116, 5410)]),
-      SynthCourse(key: "fixture-sample-links", name: "Sample Links (fixture)", city: "Sampleton", state: "AZ", par: 71,
+      SynthCourse(key: "fixture-sample-links", name: c[1].name, city: c[1].city, state: "AZ", par: 71,
                   tees: [("White", 69.4, 121, 6020), ("Black", 73.2, 135, 6890)]),
-      SynthCourse(key: "fixture-placeholder-pines", name: "Placeholder Pines (fixture)", city: "Mockport", state: "AZ", par: 36,
+      SynthCourse(key: "fixture-placeholder-pines", name: c[2].name, city: c[2].city, state: "AZ", par: 36,
                   tees: [("Gold", 33.8, 112, 2950)]),
     ]
     rounds = buildRounds()

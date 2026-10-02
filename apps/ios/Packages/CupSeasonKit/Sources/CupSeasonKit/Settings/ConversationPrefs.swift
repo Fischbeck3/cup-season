@@ -19,8 +19,10 @@ public enum ConversationPrefs {
          sub: "When someone joins the conversation on a round you posted."),
     Pref(key: "replies", name: "Replies to me",
          sub: "When someone replies directly to one of your comments."),
-    Pref(key: "followed", name: "Conversations I follow",
-         sub: "New comments in threads you’ve chosen to follow."),
+    // D405 · the product has no follows (D25): the switch names what it is, the conversations
+    // a golfer has joined by commenting (or by choosing Every comment)
+    Pref(key: "followed", name: "Conversations I’m in",
+         sub: "New comments on rounds you’ve commented on."),
   ]
 
   /// The inbox's one door to them.

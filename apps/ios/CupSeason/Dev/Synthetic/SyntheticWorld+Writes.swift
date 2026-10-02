@@ -59,7 +59,20 @@ extension SyntheticWorld {
       return SynthOut.void
     case "mark_actionable_seen": return SynthOut.json(0)
     case "mark_notifications_read": return SynthOut.json(["ok": true, "unread": 0])
-    case "set_round_thread_state", "remove_posted_round_comment": return SynthOut.json(["ok": true])
+    case "set_round_thread_state":
+      let key = r.string("p_round")?.lowercased() ?? ""
+      let next = r.string("p_state") ?? "none"
+      state.set("thread:" + key, next)
+      return SynthOut.json(["ok": true, "state": next])
+    case "remove_posted_round_comment":
+      // forget it for every round that holds it (a removed comment leaves the thread, never the record)
+      let gone = r.string("p_comment")?.lowercased() ?? ""
+      for x in rounds {
+        let key = "removed:" + x.ids
+        var set: Set<String> = state.get(key, [])
+        set.insert(gone); state.set(key, set)
+      }
+      return SynthOut.json(["ok": true])
     case "confirm_share_cleanup": return SynthOut.json(["status": "completed", "remaining": 0])
     case "withdraw_round_shares": return SynthOut.json([fids(8_202)])
     case "prepare_round_share":
@@ -96,7 +109,7 @@ extension SyntheticWorld {
         "gross": gross, "holes": payload["holes_played"] ?? 18, "pvi": 1.6, "points": l == nil ? NSNull() as Any : 9 as Any,
         "month_rank": 2, "earned": first ? [["kind": "first_round", "label": NSNull()]] : [["kind": "personal_best", "label": NSNull()]],
         "rivals": hasBuddies ? [["name": person(2).name, "handle": person(2).handle, "wins": 3, "losses": 1, "ties": 0, "lead": "up",
-                                 "rivalry_name": "The Grove Grudge (fixture)"]] : [[String: Any]](),
+                                 "rivalry_name": cast.rivalry]] : [[String: Any]](),
         "season_id": l?.seasonIds ?? NSNull(), "rank_before": 3, "rank_after": 2, "of": l?.members.count ?? 0,
         "passed": l == nil ? [String]() : [person(4).first], "gap_to_next_after": 2, "played_with": [[String: Any]](),
       ] as [String: Any],

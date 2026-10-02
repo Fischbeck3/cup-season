@@ -139,6 +139,9 @@ struct RootView: View {
     // goes straight in, and an INVITED golfer skips it because a join's own
     // covenant is their teaching (D116, carried over from the retired screen).
     .onChange(of: stateKey, initial: true) { _, key in
+      // what one golfer typed in a conversation is not the next golfer's: leaving `.ready` (a sign-out, or a
+      // different account signing in) forgets it here, where the root outlives the screens that held it
+      if key != "ready" { CommentDrafts.reset() }
       // leaving `.ready` (a sign-out) puts the screen down with it, so the
       // next golfer on this device is judged fresh rather than inheriting it
       guard key == "ready", let me = store.me else { crewing = false; return }

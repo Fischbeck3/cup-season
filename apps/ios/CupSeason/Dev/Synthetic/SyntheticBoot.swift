@@ -13,6 +13,9 @@
 //   -cs_synth_long                  the viewer's own name is the long one
 //   -cs_synth_post_fail             the server refuses a posted round
 //   -cs_synth_must_update           the forced-update gate (min build above this one)
+//   -cs_dev_cast store              the store cast: natural invented names, for the
+//                                   App Store screenshots (`SyntheticCast.swift`);
+//                                   no argument is the fixture cast below
 //
 // Every identity here is invented and says so: "Avery Fixture", handle
 // `fixture_avery`, `@example.invalid`, "North Grove (fixture)". Nothing in this

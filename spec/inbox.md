@@ -31,6 +31,22 @@ sorting.
 ---
 
 
+### 2026-10-02 · Comments in line (D405): eleven things found and not built
+
+Verified 2026-10-02 on `claude/comments-in-line-2026-10-02` (the build, not the release). None blocks the in-line thread; each is named so it is not relearned.
+
+- **A comment from someone else shows when the thread, or Home, is next read.** D391 keeps round-keyed comments out of Realtime (their rows are invisible to a direct select by design), so a conversation in line is not live: a golfer's own comment appears at once, a friend's appears on the next read. The ··· menu has "Refresh comments", and Home's pull re-reads an open thread. **Lane:** Social (server + both clients). **Size:** medium. **First question:** does `add_posted_round_comment` send a Realtime broadcast (a nudge, never the comment), or is a refresh on foreground enough for 1.0?
+- **A comment's notice repeats the name when the commenter owns the round** ("Theo replied to you on Theo's round."). One rule, so no new copy was needed at the build. **Lane:** UX (copy). **First question:** "…on their round", or drop the possessive when the actor is the owner?
+- **Commenting turns a golfer's notices on for every later comment on that round**, until they pick "Replies to me". On a busy round that is a lot of in-app notices, and once `social_comment_push` is lit, a lot of pushes. **Lane:** Social. **First question:** should a follow lapse (a round older than a week, or a golfer who has not opened the thread since), or is the one-tap setting enough?
+- **Home reads `my_notifications` twice on load** (the digest's thread comments, and the Activity bell's own list). Harmless; both are one small read. **Lane:** Ops. **First question:** hand the bell's rows to the digest instead of reading twice?
+- **The comment push is still dark** (`app_flags.social_comment_push`). Its wording is the in-app sentences now ("Blake replied to you on Theo's round."), so lighting it is only the production decision and the device check. **Lane:** Launch. **First question:** light it with 1.0, or a week after?
+- **The Home digest counts a comment on your round only if the server made a notice for it.** A golfer who turned their own-round notice off hears nothing in the digest either, because round-keyed comments cannot be read directly (D391). **Lane:** Social. **First question:** is that the right coupling, or should the digest have a read of its own?
+- **"Notify me about" and the line under the composer answer two questions.** The menu's check is the choice stored for this round; the hint also folds in the global switches in Settings (with replies switched off, the menu can say "Replies to me" while the hint says "Reply notifications are off in settings."). Both are true. **Lane:** UX (copy). **First question:** say the global state in the menu too?
+- **A thread opened at the bottom of a scroller loads below the fold** (the web's boards, the phone's board and Home) and the golfer scrolls to read it. The door says it is open. **Lane:** UX. **First question:** scroll an opened thread into view once it has loaded?
+- **A comment sent on the web has no timeout.** A request that never settles (a captive portal, a stalled radio) keeps Send off on that thread until the browser gives up on it, which is minutes; the words and the key stay, so a reload and a retry are safe. **Lane:** web. **First question:** after about 25 seconds, turn Send back on with "Still waiting on the connection", leaving the first request to finish (the key makes a retry the same comment)?
+- **A thread opened with no door of its own (a link, a notice) cannot stamp its word on the web.** If the first doors read was asked before its comment landed, that read can make the door from the older count; the next read corrects it. The phone makes a count-only door from a thread alone; the web does not, because a door it invented would draw where the server never answered. **Lane:** web. **Low.**
+- **Words typed in one view of a thread appear in another open view only when that view next redraws.** The draft is one per round and what a view shows is what it sends, so nothing is sent unseen; the other view's box is simply a step behind. **Lane:** web. **Low.**
+
 ### 2026-09-29 · Four small follow-ups found at the round-3 merge (after launch)
 
 Verified 2026-09-29 at integration `e033161d`. None is a launch blocker; each is known debt, named so it is not relearned.

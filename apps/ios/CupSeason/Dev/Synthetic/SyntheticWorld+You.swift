@@ -85,7 +85,7 @@ extension SyntheticWorld {
   func displayName(_ p: SynthPerson) -> String {
     guard p.n == me.n else { return p.name }
     // The signup trigger's own guess until the card is made (D325).
-    return cardDone ? state.get("name", me.name) : "fixture_avery"
+    return cardDone ? state.get("name", me.name) : me.handle
   }
 
   // MARK: rounds and lenses
@@ -130,13 +130,13 @@ extension SyntheticWorld {
   func trophies() -> [[String: Any]] {
     guard hasRounds else { return [] }
     var out: [[String: Any]] = [
-      ["id": fids(7_501), "kind": "major", "title": "The Sample Invitational (fixture)", "subtitle": "Major champion",
+      ["id": fids(7_501), "kind": "major", "title": cast.majorTrophy, "subtitle": "Major champion",
        "placement": "winner", "season_year": 2026, "earned_on": day(-57)],
-      ["id": fids(7_502), "kind": "ryder", "title": "Spring Ryder (fixture)", "subtitle": "The Ryder",
+      ["id": fids(7_502), "kind": "ryder", "title": cast.ryderTrophy, "subtitle": "The Ryder",
        "placement": "winner", "season_year": 2026, "earned_on": day(-106)],
     ]
     if scenario == .ceremony {
-      out.insert(["id": fids(7_503), "kind": "league", "title": "Fixture Cup League", "subtitle": "Points King",
+      out.insert(["id": fids(7_503), "kind": "league", "title": cast.cupLeague.name, "subtitle": "Points King",
                   "placement": "points_king", "season_year": 2026, "earned_on": day(-2)], at: 0)
     }
     return out
@@ -209,13 +209,13 @@ extension SyntheticWorld {
       out.append(["league_id": l.ids, "league_name": l.name, "phase": l.status == "complete" ? "complete" : "season",
                   "sandbox": false, "structure": l.solo ? "solo" : "squads", "season_id": l.seasonIds, "number": 2,
                   "status": l.status, "starts_on": day(d.starts), "ends_on": day(d.ends),
-                  "squad_name": l.solo ? NSNull() as Any : "Team Stub" as Any, "place": l.solo ? rank : 2, "of": l.solo ? l.members.count : 3,
+                  "squad_name": l.solo ? NSNull() as Any : cast.squads[1] as Any, "place": l.solo ? rank : 2, "of": l.solo ? l.members.count : 3,
                   "tied": false, "won": l.status == "complete" && rank == 1, "runner_up": false, "king": false,
                   "points": l.points[rank - 1]])
       out.append(["league_id": l.ids, "league_name": l.name, "phase": "season", "sandbox": false,
                   "structure": l.solo ? "solo" : "squads", "season_id": fids(l.seasonN + 100), "number": 1,
                   "status": "complete", "starts_on": day(d.starts - 150), "ends_on": day(d.starts - 60),
-                  "squad_name": l.solo ? NSNull() as Any : "Team Stub" as Any, "place": 3, "of": l.solo ? l.members.count : 3,
+                  "squad_name": l.solo ? NSNull() as Any : cast.squads[1] as Any, "place": 3, "of": l.solo ? l.members.count : 3,
                   "tied": false, "won": false, "runner_up": false, "king": false, "points": l.solo ? 64 : 19])
     }
     return out.sorted { ($0["starts_on"] as? String ?? "") > ($1["starts_on"] as? String ?? "") }
@@ -269,16 +269,14 @@ extension SyntheticWorld {
       return ["visible": true, "is_me": p.n == me.n, "clubs": [Any](), "sideline": [Any](), "ball": NSNull(), "since": NSNull()]
     }
     let base = 7_200_000 + p.n * 100
-    let clubs: [(String, String)] = [("Driver", "Fixture 460 driver, 10.5 deg"), ("3-wood", "Sample 3-wood, 15 deg"),
-                                     ("Hybrid", "Placeholder hybrid, 22 deg"), ("5-iron", "Sample cavity 5"),
-                                     ("7-iron", "Sample cavity 7"), ("9-iron", "Sample cavity 9"), ("PW", "Sample cavity PW"),
-                                     ("54°", "Fixture wedge 54"), ("Putter", "Sample blade, 34 in")]
+    let slots = ["Driver", "3-wood", "Hybrid", "5-iron", "7-iron", "9-iron", "PW", "54°", "Putter"]
+    let clubs = Array(zip(slots, cast.bag.clubs))
     return [
       "visible": true, "is_me": p.n == me.n,
       "clubs": clubs.enumerated().map { i, c in ["id": fids(base + i), "slot": c.0, "label": c.1, "added_on": day(i == 0 ? -45 : -143)] },
-      "sideline": [["id": fids(base + 50), "slot": "Driver", "label": "Old fixture driver, 9 deg", "added_on": day(-143), "removed_on": day(-45)]],
-      "ball": ["id": fids(base + 60), "label": "Fixture Tour X (sample)", "added_on": day(-143)],
-      "since": ["id": fids(base), "slot": "Driver", "label": "Fixture 460 driver, 10.5 deg", "added_on": day(-45), "rounds": 8, "beat": 2],
+      "sideline": [["id": fids(base + 50), "slot": "Driver", "label": cast.bag.sidelinedDriver, "added_on": day(-143), "removed_on": day(-45)]],
+      "ball": ["id": fids(base + 60), "label": cast.bag.ball, "added_on": day(-143)],
+      "since": ["id": fids(base), "slot": "Driver", "label": cast.bag.clubs[0], "added_on": day(-45), "rounds": 8, "beat": 2],
     ]
   }
 
@@ -289,7 +287,7 @@ extension SyntheticWorld {
     return [
       ["opponent": person(2).ids, "display_name": person(2).name, "handle": person(2).handle, "marker": person(2).marker,
        "wins": 2, "losses": 3, "ties": 0, "meetings": 5, "lead": "down", "duel_wins": 0, "duel_losses": 0, "duel_halves": 0,
-       "rivalry_name": "The Grove Grudge (fixture)"],
+       "rivalry_name": cast.rivalry],
       ["opponent": person(3).ids, "display_name": person(3).name, "handle": person(3).handle, "marker": person(3).marker,
        "wins": 4, "losses": 1, "ties": 1, "meetings": 6, "lead": "up", "duel_wins": 1, "duel_losses": 1, "duel_halves": 0,
        "rivalry_name": NSNull()],

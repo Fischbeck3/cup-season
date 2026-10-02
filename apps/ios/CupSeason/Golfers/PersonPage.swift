@@ -263,10 +263,13 @@ struct PersonPage: View {
     if !p.isMe {
       let first = p.displayName?.split(separator: " ").first.map(String.init) ?? "them"
       VStack(spacing: CSTokens.Space.s3) {
-        if model.relation == .friend {
+        if model.relation == .friend || model.relation == .unknown {
           // a buddy → ONE primary, alone. The settled tag is for a state with
           // nothing to tap; "Buddies" printed over a live primary is a label
           // about the past sitting on top of the page's one live act.
+          // D405 · and so is a buddy list that did not answer: nothing is offered
+          // to ADD (a failed read is never an empty one), only the door that is
+          // right for a buddy and a stranger alike.
           play(first, tier: .primary)
         } else if let label = model.relation.actionLabel {
           Button(label) { Task { await model.addBuddy(profileId) } }

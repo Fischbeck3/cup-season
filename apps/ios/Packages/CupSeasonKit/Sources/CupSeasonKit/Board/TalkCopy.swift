@@ -6,21 +6,26 @@ import Foundation
 /// §Revisions: *"Other copy the web prints (reuse verbatim)"*. The phone had
 /// its own set ("Comments", "Start the conversation.", "Follow conversation",
 /// "Showing 3 of 240 comments."), so the same thread read two ways.
+///
+/// **D405 · the conversation lives in line and says whose round it is.** The
+/// composer, the round's page and the notices name the golfer and the score
+/// from the producers below (the web's twins are `csTalkPlaceholder`,
+/// `csTalkRoundTitle`, `csTalkHead`, `csTalkChoice` and `CS_INBOX.line`), and
+/// no control reads "Follow" or "Following": the product has no follows (D25).
 public enum TalkCopy {
+  /// the head when the round's owner is not known; otherwise `conversationHead`
   public static let head = "Conversation"
   public static let empty = "The conversation is yours to start."
   /// the composer's label, over the field
   public static let add = "Add a comment"
   public static let reply = "Your reply"
-  public static let placeholder = "Something for the crew…"
   public static let send = "Comment"
   public static let sendReply = "Reply"
   public static let failed = "Comment did not send."
   public static let readFailed = "Couldn’t load the conversation."
-  public static let follow = "Follow"
-  public static let following = "Following"
-  public static let mute = "Mute conversation"
-  public static let unmute = "Unmute conversation"
+  /// the ··· menu's one setting (D405). It replaces Follow / Following and
+  /// Mute / Unmute: *Every comment*, *Replies to me*, *Nothing*.
+  public static let notifyHead = "Notify me about"
   public static let mutedHint = "This conversation is muted."
   public static let followHint = "Updates from this conversation are on."
   public static let replyHint = "You’ll be notified of replies to you."
@@ -49,10 +54,94 @@ public enum TalkCopy {
   /// The line under the composer: what this golfer will hear about. The web's
   /// order, exactly: muted wins, then a followed thread with that switch on,
   /// then the replies switch.
-  public static func hint(state: String, followedOn: Bool, repliesOn: Bool) -> String {
+  /// D405 · a round's owner hears every comment (`own_round`) without having
+  /// followed anything, so their line says so rather than "replies to you".
+  public static func hint(state: String, followedOn: Bool, repliesOn: Bool,
+                          isMine: Bool = false, ownRoundOn: Bool = true) -> String {
     if state == "muted" { return mutedHint }
     if state == "following" && followedOn { return followHint }
+    if isMine && ownRoundOn { return followHint }
     return repliesOn ? replyHint : offHint
+  }
+
+  // MARK: - D405 · whose round it is
+
+  /// What the composer says it is writing on — *"Comment on Theo’s 84…"*, on
+  /// your own round *"Comment on your 79…"* — so a golfer commenting knows it
+  /// is on the round above them, and whose. The web's `csTalkPlaceholder`.
+  public static func placeholder(owner: String?, gross: Int?, mine: Bool) -> String {
+    if mine { return gross.map { "Comment on your \($0)…" } ?? "Comment on your round…" }
+    guard let name = named(owner) else { return "Comment on this round…" }
+    return gross.map { "Comment on \(first(name))’s \($0)…" } ?? "Comment on \(first(name))’s round…"
+  }
+
+  /// The round's own page: *"Theo’s round"* (set in capitals, beside their face);
+  /// the page keeps "Your round" for yours and "The round" for an owner the
+  /// server did not name. The web's `csTalkRoundTitle`.
+  public static func roundTitle(_ owner: String?) -> String {
+    named(owner).map { "\(first($0))’s round" } ?? "The round"
+  }
+
+  /// The conversation's head on the round's own page: *"On Theo’s 84"*,
+  /// *"On your 79"*, and plain "Conversation" for an owner nobody named.
+  public static func conversationHead(owner: String?, gross: Int?, mine: Bool) -> String {
+    if mine { return gross.map { "On your \($0)" } ?? "On your round" }
+    guard let name = named(owner) else { return head }
+    return gross.map { "On \(first(name))’s \($0)" } ?? "On \(first(name))’s round"
+  }
+
+  /// The button above the newest comments: *"Earlier comments (4)"*.
+  public static func earlier(_ n: Int) -> String { "Earlier comments (\(n))" }
+
+  /// The newest comment under a round before anyone taps:
+  /// *"Blake: Did the putt on 18 drop?"*.
+  public static func preview(author: String, body: String) -> String { "\(first(author)): \(body)" }
+
+  /// The ··· menu's one setting. The server stores a thread state per golfer
+  /// per round; this is how the three words map onto it, and the only place
+  /// that is written down.
+  public enum Notify: String, CaseIterable, Sendable, Identifiable {
+    case every, replies, nothing
+    public var id: String { rawValue }
+    public var label: String {
+      switch self {
+      case .every: "Every comment"
+      case .replies: "Replies to me"
+      case .nothing: "Nothing"
+      }
+    }
+    /// the `round_thread_states.state` it writes
+    public var state: String {
+      switch self {
+      case .every: "following"
+      case .replies: "replies"
+      case .nothing: "muted"
+      }
+    }
+  }
+
+  /// What a golfer is told about a round, given what the server stores. No row
+  /// ("none") is the baseline: replies to you, and — for the round's owner,
+  /// whose `own_round` switch is on — every comment, because that is what the
+  /// server does for them.
+  public static func notify(state: String, isMine: Bool, ownRoundOn: Bool) -> Notify {
+    switch state {
+    case "muted": return .nothing
+    case "following": return .every
+    default: return (isMine && ownRoundOn) ? .every : .replies
+    }
+  }
+
+  /// The owner (switch on) is offered two choices: "Replies to me" would say
+  /// something the server does not do for them.
+  public static func notifyOptions(isMine: Bool, ownRoundOn: Bool) -> [Notify] {
+    (isMine && ownRoundOn) ? [.every, .nothing] : [.every, .replies, .nothing]
+  }
+
+  /// a name with something in it, or nil
+  private static func named(_ name: String?) -> String? {
+    guard let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+    return name
   }
 
   /// `csTalkFirst`: the first word of a name, or "Someone".

@@ -43,6 +43,16 @@ public final class BoardStore {
   public var toast: String?
   /// Open comment threads, keyed by item id — preserved across refreshes.
   public var openThreads: Set<String> = []
+  /// D405 · a round post's door, by round: how many comments, and the newest.
+  /// Empty until `posted_rounds_social` answers (or on a server before D405's
+  /// migration, which sends the count and no newest comment).
+  public private(set) var roundDoors: [UUID: RoundSocialDoor] = [:]
+  /// D405 · moves when the board reads again (a load, a refresh of its social layer), so a
+  /// thread open under a post reads with it, as the door's count does
+  public private(set) var socialLoads = 0
+  /// D405 · a thread's word about its round (`noteThread`) is stamped when it arrives, so a doors read that
+  /// was asked BEFORE it does not take the count and the newest comment back
+  private var words = ThreadWords()
 
   public let realtime: LeagueRealtime
   /// The D86 doorbell, exposed for the live-round slice.
@@ -111,6 +121,7 @@ public final class BoardStore {
                            text: (leagueName.isEmpty ? "Your league" : leagueName) + " is live — post the first round")]
       }
       recomputeDigest()
+      socialLoads += 1
     } catch {
       // the web keeps the feed and warns; the phone says it once
       if items.isEmpty { toast = BoardText.humanError(error, "Could not load the board.") }
@@ -147,6 +158,16 @@ public final class BoardStore {
     let pids = built.compactMap(\.postId)
     guard !pids.isEmpty else { return }
     let (kudos, comments) = try await repo.social(postIds: pids)
+    // newest first and without repeats: the read is batched, and an unstable order (a Set's) would
+    // leave a different set of posts without a door on every launch
+    var seen = Set<UUID>()
+    let roundIds = built.reversed().compactMap { $0.kind == .round ? $0.roundId : nil }.filter { seen.insert($0).inserted }
+    let asked = words.now
+    if !roundIds.isEmpty, let doors = await repo.roundDoors(ids: roundIds) {
+      // a round the server left out is not visible any more (muted, voided): its old door goes with it;
+      // a round whose thread spoke after this was asked keeps what the thread said
+      for id in roundIds where !words.spoke(for: id, after: asked) { roundDoors[id] = doors[id] }
+    }
     // D238 · a reaction is keyed on the PERSON. The roster still resolves a
     // legacy row's membership to a profile; a row that resolves to neither is
     // "Someone", which is what the board has always said rather than guessing.
@@ -171,10 +192,20 @@ public final class BoardStore {
     }
   }
 
+  /// D405 · the open thread says how many comments it now holds and which is
+  /// newest (after a comment sent or removed in line), so the door and the line
+  /// under the card agree without another read.
+  public func noteThread(_ round: UUID, count: Int, newest: SocialComment?) {
+    // no door to correct: a count alone (whether this server sends a newest comment is not known here)
+    let door = roundDoors[round] ?? RoundSocialDoor(roundId: round, commentCount: count, latest: nil, sendsLatest: false)
+    roundDoors[round] = door.updating(count: count, newest: newest)
+    words.note(round)
+  }
+
   /// `refreshSocial` — re-pull just the social layer, no standings refetch.
   public func refreshSocial() async {
     var copy = items
-    do { try await fold(social: &copy); items = copy } catch { /* keep what we had */ }
+    do { try await fold(social: &copy); items = copy; socialLoads += 1 } catch { /* keep what we had */ }
   }
 
   private func item(from p: PostRow) -> BoardItem {

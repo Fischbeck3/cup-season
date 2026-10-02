@@ -334,10 +334,26 @@ public enum StandingsMath {
   /// drawn mark. `StandingsMath`'s absolute rule is unchanged: no clock, no
   /// claim — this returns nil and the movement column does not render either.
   public static func movedSince(_ since: String?, calendar: Calendar = .current) -> String? {
+    sinceDay(since, calendar: calendar).map { "moved since \($0)" }
+  }
+
+  /// **`GAP · SINCE SUN` — the phone's merged Gap cell names its clock**
+  /// (W7-112). The desk gives the movement mark a column of its own, headed
+  /// `Since Sun`; the phone keeps one cell, so its head says both. From
+  /// a9816440 the head printed the snapshot's raw `captured_at`
+  /// (`GAP · 2026-09-27T07:20:00.024279+00:00`) on every season with a
+  /// snapshot: a head is words, never a machine string. No clock, `Gap`.
+  public static func gapHead(since: String?, calendar: Calendar = .current) -> String {
+    sinceDay(since, calendar: calendar).map { "Gap · since \($0)" } ?? "Gap"
+  }
+
+  /// The weekday of the snapshot a movement is measured from, read from the
+  /// date its `captured_at` begins with. nil without one.
+  static func sinceDay(_ since: String?, calendar: Calendar) -> String? {
     guard let since, !since.isEmpty,
           let d = CSDate.local(String(since.prefix(10)), calendar: calendar) else { return nil }
     let wd = calendar.component(.weekday, from: d)
-    return "moved since \(LeagueDates.dow[max(0, min(6, wd - 1))])"
+    return LeagueDates.dow[max(0, min(6, wd - 1))]
   }
 
   /// **COMPETITION RANK, WITH TIES SHARED — 04, 04, 06.**

@@ -144,9 +144,15 @@ round-thread comments: founder only. `moderation_queue()` gains `comment_body`,
 ## 2 · Thread follow / mute and notification preferences
 
 ### `set_round_thread_state(p_round uuid, p_state text)` → jsonb
-`p_state` ∈ `"following" | "muted" | "none"`. Requires the round to be visible.
-`{ "ok": true, "state": "following" }`. Bad state → `22023`.
+`p_state` ∈ `"following" | "replies" | "muted" | "none"` (`"replies"` is v1.5, D405). Requires the round
+to be visible. `{ "ok": true, "state": "following" }`. Bad state → `22023`.
 Muted beats everything for that thread: no notification of any kind from it.
+`"replies"` is "replies to me only, chosen on purpose": it keeps `reply` (and the owner's `own_round`) and
+drops `followed`. `"none"` deletes the row: *no setting*.
+**Commenting joins the conversation (v1.5, D405):** `add_posted_round_comment` records `following` for a
+commenter who has NO row on that round and does not own it. A mute, a `replies` choice or an existing
+`following` is never overridden, and a replayed retry changes nothing. The product has no *follow*:
+clients say "Notify me about" (Every comment = `following`, Replies to me = `replies`, Nothing = `muted`).
 
 ### `social_notify_prefs()` → jsonb
 `{ "own_round": true, "replies": true, "followed": true }` (defaults true; no row = defaults).
@@ -165,6 +171,14 @@ Fan-out for comment C by actor A on round R (owner O), parent author P:
 | `reply` | P (author of the comment answered) | `replies` |
 | `own_round` | O | `own_round` |
 | `followed` | every profile with thread state `following` on R | `followed` |
+
+The sentences (v1.5, D405 — both clients print them from one table, and the dark push says the same without the course, which a lock-screen title has no room for):
+`reply` → "{A} replied to you on {O}’s round." ("…on your round." when `round_is_mine`);
+`own_round` → "{A} commented on your round."; `followed` → "{A} commented on {O}’s round at {course}."
+(without " at {course}" when it has no name; "{A} commented on your round." when `round_is_mine`, which happens when an
+owner who switched `own_round` off chose Every comment). When `round_is_mine` is absent (a server before v1.5, which
+does send `round_owner_name`) the older sentences stand ("…replied to your comment.", "…commented in a conversation you’re in."). The Settings switch
+for the `followed` kind reads "Conversations I’m in" / "New comments on rounds you’ve commented on." (it said "follow").
 
 One row per recipient, priority `reply` > `own_round` > `followed`. Never: A itself; a
 recipient who muted the thread; a mute either direction between recipient and A; a
@@ -188,6 +202,7 @@ alone keeps the v1 meaning (timestamp only) for old clients. One function, no ov
       "excerpt": "Caught the left edge. Finally.",   // ≤140 chars of the comment
       "course_name": "North Grove Municipal|null",
       "round_owner_name": "Alex Reed",
+      "round_is_mine": false,          // v1.5 (D405) · absent on an older server: keep the older sentence
       "link": { "kind": "round_comment", "round_id": "uuid", "comment_id": "uuid",
                 "web": "/?round=<round_id>&comment=<comment_id>" }
     }
@@ -230,8 +245,13 @@ or unknown ids are silently omitted.
     {
       "round_id": "uuid",
       "comment_count": 4,
+      "latest": {                               // v1.5 (D405) · the newest VISIBLE comment, or null with none;
+        "id": "uuid", "author": { person },     //   absent on a server before it — draw the count alone
+        "body": "Did the putt on 18 drop?",     //   first 140 characters
+        "created_at": "timestamptz"
+      },
       "can_comment": true,
-      "thread_state": "none",
+      "thread_state": "none",                   // none | following | replies | muted
       "course": {                               // null when the round has no api_course_id
         "api_course_id": "12345", "name": "North Grove Municipal",
         "circle_golfers": 3,                    // distinct circle golfers (incl. you) with a visible round there
@@ -406,3 +426,15 @@ highlighted (web client handles it after sign-in).
   (friend outside the league, viewer last, one row per stable id, void/deleted/muted/
   stranger-only courses absent, stranger's counts reveal nobody, empty, signed out, anon
   denied, 114 courses capped at 100 with the true total, counts equal `course_page`'s).
+- **v1.5 · 2026-10-02 · comments live in line (D405).** Migration
+  `20261224090000_comments_live_in_line.sql` (not yet pushed; nothing applied is edited), same
+  signatures, so the generated Swift does not change. `posted_rounds_social` gains `latest` (§4, one read
+  of the thread gives the count and the newest comment); `round_thread_states.state` and
+  `set_round_thread_state` learn `"replies"` (§2); `add_posted_round_comment` records `following` for a
+  commenter with no setting who does not own the round (§2); `my_notifications` gains `round_is_mine`
+  (§3); the dark comment push is worded as the in-app sentences, without the course. Clients ask `posted_rounds_social` in batches of 60. Clients: the conversation opens in place
+  under the round on Home and the board; the bare "Follow" / "Following" / "Mute conversation" strings of
+  the v1.2 reuse list are retired for one setting, "Notify me about" (§2). Tests:
+  `node tests/social-course-database.mjs` → 156 assertions (the newest comment hidden / muted / cut at 140,
+  joining never over a mute or a choice, never for the owner, never on a replay, the `replies` state, the
+  sentences, no overload).

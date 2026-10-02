@@ -13,8 +13,10 @@ struct TalkCopyTests {
     #expect(TalkCopy.empty == "The conversation is yours to start.")
     #expect([TalkCopy.add, TalkCopy.reply] == ["Add a comment", "Your reply"])
     #expect([TalkCopy.send, TalkCopy.sendReply] == ["Comment", "Reply"])
-    #expect([TalkCopy.follow, TalkCopy.following, TalkCopy.mute, TalkCopy.unmute]
-            == ["Follow", "Following", "Mute conversation", "Unmute conversation"])
+    // D405 · no control reads Follow or Following (D25), and Mute is the third
+    // answer to "Notify me about" rather than its own button
+    #expect(TalkCopy.notifyHead == "Notify me about")
+    #expect(TalkCopy.Notify.allCases.map(\.label) == ["Every comment", "Replies to me", "Nothing"])
     #expect(TalkCopy.courseSub == "Who of yours has played here, and your circle’s best")
     #expect(TalkCopy.truncated(200, of: 240) == "The newest 200 of 240 comments.")
     #expect(TalkCopy.to("Theo Park") == "To Theo")

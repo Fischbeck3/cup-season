@@ -31,6 +31,9 @@ struct ReactionBar: View {
   @State private var reporting = false
 
   private var threadOpen: Bool { store.openThreads.contains(item.id) }
+  /// D405 · a round post's door: how many comments, and the newest
+  private var door: RoundSocialDoor? { item.roundId.flatMap { store.roundDoors[$0] } }
+  private var commentCount: Int { item.roundId != nil ? (door?.commentCount ?? 0) : item.comments.count }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -62,11 +65,11 @@ struct ReactionBar: View {
         }
         if item.threads {
           Button {
-            if threadOpen { store.openThreads.remove(item.id) } else { store.openThreads.insert(item.id) }
+            if threadOpen { store.openThreads.remove(item.id) } else { openThread() }
           } label: {
             HStack(spacing: CSTokens.Space.s1) {
               CSGlyph(.comment, size: .inline)
-              if item.roundId == nil && !item.comments.isEmpty { Text("\(item.comments.count)").csType(.agateS) }
+              if commentCount > 0 { Text("\(commentCount)").csType(.agateS) }
             }
             .foregroundStyle(cs.mut)
             .padding(.horizontal, CSTokens.Space.s3).frame(minWidth: 36, minHeight: 28)
@@ -75,19 +78,30 @@ struct ReactionBar: View {
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
-          .accessibilityLabel(item.roundId != nil || item.comments.isEmpty ? "Comments" : "Comments, \(item.comments.count)")
+          .accessibilityLabel(commentCount == 0 ? "Comments" : "Comments, \(commentCount)")
           .accessibilityHint(threadOpen ? "Hides the thread" : "Shows the thread")
           .accessibilityAddTraits(threadOpen ? [.isSelected] : [])
         }
       }
-      if item.threads && threadOpen {
+      if item.threads {
         if let roundId = item.roundId {
-          RoundConversation(roundId: roundId)
-        } else { thread }
+          // D405 · the round's one conversation, in line: the newest comment
+          // beneath the post until it is opened, then the thread itself
+          InlineRoundThread(roundId: roundId, door: door, isOpen: threadOpen, reloadKey: store.socialLoads,
+                            idPrefix: "board.round", open: { openThread() })
+        } else if threadOpen { thread }
       }
     }
     .padding(.top, 6)
     .sheet(isPresented: $reporting) { ReportSheet(item: item, store: store) }
+    // the door follows its conversation, whichever view of it spoke last (see `followsThread`)
+    .followsThread(item.roundId) { round, count, newest in store.noteThread(round, count: count, newest: newest) }
+  }
+
+  /// Opening a post's thread: an empty conversation puts the cursor in its composer.
+  private func openThread() {
+    if let round = item.roundId { CommentDrafts.talk(round).autoFocused = false }
+    store.openThreads.insert(item.id)
   }
 
   // MARK: thread (`.cthread`)

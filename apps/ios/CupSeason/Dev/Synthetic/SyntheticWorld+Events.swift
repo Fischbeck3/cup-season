@@ -35,13 +35,13 @@ extension SyntheticWorld {
   var events: [SynthEvent] {
     guard hasSeasons else { return [] }
     let a = [me.n, 2, 3, 4], b = [5, 6, 7, 8]
-    let team = [(slot: 0, name: "Team Placeholder", color: 0), (slot: 1, name: "Team Stub", color: 3)]
+    let team = [(slot: 0, name: cast.ryderTeams[0], color: 0), (slot: 1, name: cast.ryderTeams[1], color: 3)]
     func golfers() -> [(person: Int, slot: Int?, captain: Bool, exhibition: Bool)] {
       a.map { ($0, 0, $0 == me.n, false) } + b.map { ($0, 1, $0 == 5, false) }
     }
     typealias P = SynthEvent.Pairing
     let live = SynthEvent(
-      n: 5_001, name: "Fixture Invitational", kind: "ryder", status: "live", league: 1_001, organizer: me.n,
+      n: 5_001, name: cast.liveRyder, kind: "ryder", status: "live", league: 1_001, organizer: me.n,
       weeks: [.init(no: 1, opens: -15, closes: -9, status: "closed"), .init(no: 2, opens: -8, closes: -2, status: "closed"),
               .init(no: 3, opens: -1, closes: 5, status: "open"), .init(no: 4, opens: 6, closes: 12, status: "upcoming")],
       teams: team, golfers: golfers(),
@@ -53,7 +53,7 @@ extension SyntheticWorld {
                  P(week: 3, a: 3, b: 6, result: "pending", aPVI: nil, bPVI: nil), P(week: 3, a: 4, b: 8, result: "pending", aPVI: nil, bPVI: nil)],
       buyIn: 0, winnerSlot: nil)
     let done = SynthEvent(
-      n: 5_002, name: "Fixture Autumn Cup", kind: "ryder", status: "complete", league: 1_001, organizer: me.n,
+      n: 5_002, name: cast.finishedRyder, kind: "ryder", status: "complete", league: 1_001, organizer: me.n,
       weeks: [.init(no: 1, opens: -29, closes: -23, status: "closed"), .init(no: 2, opens: -22, closes: -16, status: "closed"),
               .init(no: 3, opens: -15, closes: -9, status: "closed"), .init(no: 4, opens: -8, closes: -2, status: "closed")],
       teams: team, golfers: golfers(),
@@ -69,14 +69,14 @@ extension SyntheticWorld {
     var out = [live, done]
     if scenario == .eventLive {
       out.append(SynthEvent(
-        n: 5_003, name: "The Fixture Jug", kind: "major", status: "live", league: 1_001, organizer: 2,
+        n: 5_003, name: cast.major, kind: "major", status: "live", league: 1_001, organizer: 2,
         weeks: [.init(no: 1, opens: -2, closes: 1, status: "open")], teams: [],
         golfers: [(2, nil, false, false), (me.n, nil, false, false), (4, nil, false, false), (3, nil, false, true), (5, nil, false, false)],
         pairings: [], buyIn: 20, winnerSlot: nil))
       out.append(SynthEvent(
-        n: 5_004, name: "Avery v Blake", kind: "ryder", status: "live", league: nil, organizer: me.n,
+        n: 5_004, name: "\(me.first) v \(person(2).first)", kind: "ryder", status: "live", league: nil, organizer: me.n,
         weeks: [.init(no: 1, opens: -1, closes: 6, status: "open")],
-        teams: [(0, "Avery", 0), (1, "Blake", 1)], golfers: [(me.n, 0, true, false), (2, 1, false, false)],
+        teams: [(0, me.first, 0), (1, person(2).first, 1)], golfers: [(me.n, 0, true, false), (2, 1, false, false)],
         pairings: [P(week: 1, a: me.n, b: 2, result: "pending", aPVI: nil, bPVI: nil)], buyIn: 0, winnerSlot: nil))
     }
     return out
@@ -105,7 +105,7 @@ extension SyntheticWorld {
       if e.n == 5_001 {
         rows.append(["event_id": fids(5_005), "name": e.name, "kind": "ryder", "status": "complete", "starts_on": day(-148), "year": 2026,
                      "is_current": false, "champion": NSNull(), "champ_gross": NSNull(), "champ_pvi": NSNull(), "winner_slot": 0,
-                     "winner_team": "Team Placeholder", "winner_shared": false])
+                     "winner_team": cast.ryderTeams[0], "winner_shared": false])
       }
       rows.append(["event_id": e.ids, "name": e.name, "kind": e.kind, "status": e.status, "starts_on": day(e.weeks.first?.opens ?? 0),
                    "year": 2026, "is_current": true, "champion": NSNull(), "champ_gross": NSNull(), "champ_pvi": NSNull(),
@@ -193,14 +193,19 @@ extension SyntheticWorld {
   func eventPosts(_ e: SynthEvent) -> [[String: Any]] {
     switch e.n {
     case 5_001:
-      return [["id": fids(e.n * 100 + 90), "kind": "system", "body": "Week three is open: Avery against Emerson, Blake against Gray, Casey against Finley, Devon against Harper.", "created_at": stamp(-1, 6)],
-              ["id": fids(e.n * 100 + 91), "kind": "system", "body": "Week two is in. Team Placeholder lead four and a half to three and a half.", "created_at": stamp(-2, 7, 5)]]
+      // week three's pairings (`events`): the viewer v person 5, 2 v 7, 3 v 6, 4 v 8
+      let opening = "Week three is open: \(me.first) against \(person(5).first), \(person(2).first) against \(person(7).first), "
+        + "\(person(3).first) against \(person(6).first), \(person(4).first) against \(person(8).first)."
+      let lead = "Week two is in. \(cast.ryderTeams[0]) lead four and a half to three and a half."
+      return [["id": fids(e.n * 100 + 90), "kind": "system", "body": opening, "created_at": stamp(-1, 6)],
+              ["id": fids(e.n * 100 + 91), "kind": "system", "body": lead, "created_at": stamp(-2, 7, 5)]]
     case 5_002:
-      return [["id": fids(e.n * 100 + 90), "kind": "system", "body": "Team Placeholder take the cup, nine to seven.", "created_at": stamp(-1, 7, 6)]]
+      let took = "\(cast.ryderTeams[0]) take the cup, nine to seven."
+      return [["id": fids(e.n * 100 + 90), "kind": "system", "body": took, "created_at": stamp(-1, 7, 6)]]
     case 5_003:
       return [["id": fids(e.n * 100 + 90), "kind": "system", "body": "The window is open. The best card takes the jug.", "created_at": stamp(-2, 6)]]
     default:
-      return [["id": fids(e.n * 100 + 90), "kind": "system", "body": "Blake is in. The best round by \(weekday(6)) takes it. \u{201C}Loser buys the first round.\u{201D}", "created_at": stamp(-1, 18, 2)]]
+      return [["id": fids(e.n * 100 + 90), "kind": "system", "body": "\(person(2).first) is in. The best round by \(weekday(6)) takes it. \u{201C}Loser buys the first round.\u{201D}", "created_at": stamp(-1, 18, 2)]]
     }
   }
 }

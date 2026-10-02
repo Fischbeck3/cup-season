@@ -115,6 +115,23 @@ public struct HomeSocial: Sendable {
     }
   }
 
+  /// D405 · comments on the round's own conversation, as digest mentions.
+  /// They are round-keyed rows that no direct select can read (the `post_comments`
+  /// rows keyed by a post are the legacy league board's, which is all `mentions`
+  /// ever saw), so what landed on YOUR rounds since the mark is read from the
+  /// notices the server already made for you. A legacy board comment never makes
+  /// a notice, so nothing is counted twice.
+  public static func threadMentions(notices: [SocialNotice], rounds: [HomeFeedRow], since mark: Date) -> [Mention] {
+    var mine: [UUID: HomeFeedRow] = [:]
+    for r in rounds where r.is_me == true { if let id = r.round_id { mine[id] = r } }
+    return notices.compactMap { n in
+      guard let r = mine[n.roundId], let at = SocialStamp.parse(n.createdAt), at > mark else { return nil }
+      // the name as the other mentions carry it (a person's reaction and their comment on one round
+      // are one name in the sentence, not two)
+      return Mention(who: n.actor.name, emoji: nil, gross: r.gross, roundId: n.roundId)
+    }
+  }
+
   // MARK: - The two pure halves
 
   /// WHICH post a round's strip hangs on. The order is deliberate and it is

@@ -1371,7 +1371,7 @@ struct MainTabView: View {
     case "settings": tab = .you; youPath = NavigationPath(); youPath.append(YouRoute.settings)
     case "record": tab = .you; youPath = NavigationPath(); youPath.append(YouRoute.record)
     case "courses": tab = .you; openCourse(nil)
-    case "course": tab = .you; openCourse(CourseSheetRef(id: "fixture-north-grove", label: "North Grove (fixture)"))
+    case "course": tab = .you; openCourse(CourseSheetRef(id: "fixture-north-grove", label: SynthCast.current.courses[0].name))
     case "coursecard":
       tab = .you
       var kept: [CourseBook] = []
@@ -1389,7 +1389,7 @@ struct MainTabView: View {
     // `plan asked` · a buddy's plan the viewer owes an answer on (W7-039)
     case "plan": presenter.scheduledRound = fid(detail == "asked" ? 7_003 : 7_001)
     // `declare join` · a buddy's plan, got in on — the sheet's "You're in" line
-    case "declare": presenter.declare = DeclarePrefill(hostName: detail == "join" ? "Blake" : nil)
+    case "declare": presenter.declare = DeclarePrefill(hostName: detail == "join" ? SynthCast.current.first(2) : nil)
     case "tourcard": presenter.tourCard = detail == "other" ? blake : store.me?.profile?.id
     case "bag": presenter.showBag = true
     case "post": presenter.postOnComposer = false; presenter.showPost = true

@@ -231,6 +231,8 @@ struct HomeWireReactions: View {
   let day: String?
   var commentCount: Int? = nil
   var openComments: (() -> Void)? = nil
+  /// D405 · the conversation is open in place under this round
+  var commentsOpen = false
   let onToggle: (String) -> Void
 
   var body: some View {
@@ -251,6 +253,8 @@ struct HomeWireReactions: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("home.round.comments")
+        .accessibilityAddTraits(commentsOpen ? .isSelected : [])
+        .accessibilityHint(commentsOpen ? "Hides the conversation" : "Opens the conversation here")
       }
       Spacer(minLength: CSTokens.Space.s2)
       if let day {

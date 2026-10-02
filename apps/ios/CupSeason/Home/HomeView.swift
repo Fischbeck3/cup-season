@@ -57,7 +57,8 @@ struct HomeView: View {
   var push: (HomeRoute) -> Void = { _ in }
   @State private var vm = HomeModel()
   @State private var activity = false
-  @State private var discussion: RoundDiscussionDoor?
+  /// D405 · the one round whose conversation is open in place under its card
+  @State private var openThread: UUID?
   @State private var inbox = SocialInboxStore()
   /// D229 · Home has NO open league. The key is the payload's stamp.
   private var loadKey: HomeModel.LoadKey { .init(generated: store.me?.generated_at) }
@@ -214,7 +215,7 @@ struct HomeView: View {
       // sign-out or an account change: no picture and no credential survives
       HomePhotoStore.shared.clear()
       inbox.clear()
-      discussion = nil
+      openThread = nil
       activity = false
       Task { await SignedURLCache.shared.clear() }
     }
@@ -232,9 +233,6 @@ struct HomeView: View {
     // top is a photograph or a contour uses the scrim instead (§10.3).
     .csStatusCap(cs.bg0)
     .csSheet(isPresented: $activity) { SocialActivitySheet(inbox: inbox) }
-    .csSheet(item: $discussion) { door in
-      RoundReceiptSheet(roundId: door.roundId, seed: nil, focusComments: true)
-    }
   }
 
   /// §13.3 · the read did not land and there is something on screen. The
@@ -508,12 +506,15 @@ struct HomeView: View {
                 spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
         if let state = vm.social.state(for: rid) {
           HomeWireReactions(state: state, day: nil,
-                            commentCount: vm.roundSocial[rid]?["comment_count"]?.int,
-                            openComments: vm.roundSocial[rid] == nil ? nil : { discussion = RoundDiscussionDoor(roundId: rid) }) { emoji in
+                            commentCount: vm.door(rid)?.commentCount,
+                            // a thread that is open keeps its door, so it can be folded, even when the
+                            // read of the doors failed
+                            openComments: (vm.door(rid) == nil && openThread != rid) ? nil : { toggleThread(rid) },
+                            commentsOpen: openThread == rid) { emoji in
             react(r, emoji)
           }
-        } else if vm.roundSocial[rid] != nil {
-          Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
+        } else if vm.door(rid) != nil || openThread == rid {
+          Button { toggleThread(rid) } label: {
             Label("Comments", systemImage: "bubble.left").csType(.bodyS)
               .foregroundStyle(cs.ink).frame(minHeight: CSTokens.Space.rail).contentShape(Rectangle())
           }
@@ -538,6 +539,24 @@ struct HomeView: View {
     }
   }
 
+  /// D405 · the conversation, IN PLACE under the round it is on: the newest
+  /// comment while it is folded, the thread once its door is pressed. It sits
+  /// outside the card's long-press (applause), so a comment's words can be
+  /// selected without the card answering.
+  @ViewBuilder private func roundThread(_ r: HomeFeedRow) -> some View {
+    if let rid = r.round_id {
+      InlineRoundThread(roundId: rid, door: vm.door(rid), isOpen: openThread == rid, reloadKey: vm.loadedCount,
+                        idPrefix: "home.round", open: { toggleThread(rid) })
+    }
+  }
+
+  /// One thread open at a time, so Home never becomes a wall of comments.
+  private func toggleThread(_ rid: UUID) {
+    // opening an empty conversation puts the cursor in its composer; folding it and opening it again does too
+    if openThread != rid { CommentDrafts.talk(rid).autoFocused = false }
+    CSMotion.run(CSMotion.rise) { openThread = openThread == rid ? nil : rid }
+  }
+
   /// Which dateline opens the wire, so the first head sits on the section
   /// head's own spacing rather than adding a second gap to it.
   private func firstFilled(_ page: HomePage) -> HomeWirePeriod? {
@@ -548,35 +567,41 @@ struct HomeView: View {
     switch row.body {
     case .round(let r, let url):
       VStack(alignment: .leading, spacing: 0) {
-        // D361 · a round WITH an attachment goes through the band whether or not
-        // this load could sign it: the band knows the difference between a
-        // credential it could not get and a picture that is gone, and it keeps
-        // what it has. Only a round with no attachment is a record from here.
-        if url != nil || (r.photo_path.map { !$0.isEmpty } ?? false) {
-          HomeWireBand(row: r, photo: url, photos: HomePhotoStore.shared,
-                       denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false, showDay: showRoundDay,
-                       open: { if let id = r.round_id { presenter.receipt = id } },
-                       openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
-            .padding(.horizontal, CSTokens.Space.gutter)
-        } else {
-          HomeWireSlat(row: r, showDay: showRoundDay,
-                       open: { if let id = r.round_id { presenter.receipt = id } },
-                       openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
+        VStack(alignment: .leading, spacing: 0) {
+          // D361 · a round WITH an attachment goes through the band whether or not
+          // this load could sign it: the band knows the difference between a
+          // credential it could not get and a picture that is gone, and it keeps
+          // what it has. Only a round with no attachment is a record from here.
+          if url != nil || (r.photo_path.map { !$0.isEmpty } ?? false) {
+            HomeWireBand(row: r, photo: url, photos: HomePhotoStore.shared,
+                         denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false, showDay: showRoundDay,
+                         open: { if let id = r.round_id { presenter.receipt = id } },
+                         openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
+              .padding(.horizontal, CSTokens.Space.gutter)
+          } else {
+            HomeWireSlat(row: r, showDay: showRoundDay,
+                         open: { if let id = r.round_id { presenter.receipt = id } },
+                         openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
+              .padding(.horizontal, CSTokens.Space.gutter)
+          }
+          roundSupport(r)
             .padding(.horizontal, CSTokens.Space.gutter)
         }
-        roundSupport(r)
-          .padding(.horizontal, CSTokens.Space.gutter)
-
-      }
-      .contextMenu {
-        // D365 · one act on a long press, the same write path as the control.
-        if let rid = r.round_id, let state = vm.social.state(for: rid) {
-          let a = Applause.state(state)
-          Button { react(r, Applause.key) } label: {
-            Label { Text(a.me ? Applause.remove : Applause.give) } icon: { CSApplauseGlyph(points: 17, filled: a.me) }
+        .contextMenu {
+          // D365 · one act on a long press, the same write path as the control.
+          if let rid = r.round_id, let state = vm.social.state(for: rid) {
+            let a = Applause.state(state)
+            Button { react(r, Applause.key) } label: {
+              Label { Text(a.me ? Applause.remove : Applause.give) } icon: { CSApplauseGlyph(points: 17, filled: a.me) }
+            }
           }
         }
+        roundThread(r)
+          .padding(.horizontal, CSTokens.Space.gutter)
       }
+      // the door under the round follows its conversation, whichever view of it spoke last (the thread
+      // in line, the round's own page): its count and newest comment, without another read
+      .followsThread(r.round_id) { round, count, newest in vm.noteThread(round, count: count, newest: newest) }
 
     case .takeover(let item):
       HomeWireTakeover(item: item) { take(item) }
@@ -770,6 +795,26 @@ final class HomeModel {
   var loading = false
   var social = HomeSocial.Snapshot()
   var roundSocial: [UUID: JSONValue] = [:]
+  /// D405 · a thread opened in place told Home how many comments it holds and
+  /// which is newest, after a comment was sent or removed. Cleared by every load.
+  private var doorOverrides: [UUID: RoundSocialDoor] = [:]
+  /// D405 · a thread's word is stamped when it arrives, so a doors read asked BEFORE it does not take it back
+  private var words = ThreadWords()
+  /// D405 · moves when a load completes, so a thread that is open re-reads with the page
+  private(set) var loadedCount = 0
+  /// D405 · notices on the rounds' own threads: the only place a round-keyed
+  /// comment on one of MY rounds can be read from (the digest counts them)
+  private var threadNotices: [SocialNotice] = []
+
+  /// The round's door as the page draws it: the read, as the open thread last corrected it.
+  func door(_ round: UUID) -> RoundSocialDoor? {
+    doorOverrides[round] ?? roundSocial[round].map(RoundSocialDoor.init)
+  }
+  func noteThread(_ round: UUID, count: Int, newest: SocialComment?) {
+    guard let base = door(round), base.commentCount != count || base.latest?.id != newest?.id else { return }
+    doorOverrides[round] = base.updating(count: count, newest: newest)
+    words.note(round)
+  }
   private var markRead = false
   /// D252 · `app_flags.ios.major`, read once per model and only when a card
   /// that sells a Major is actually in its window. nil = not read yet.
@@ -841,7 +886,8 @@ final class HomeModel {
     let lead = r.lead
     spentRounds = r.spentRounds
     if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark,
-                                           mentions: social.mentions(rounds: rounds, since: mark),
+                                           mentions: social.mentions(rounds: rounds, since: mark)
+                                             + HomeSocial.threadMentions(notices: threadNotices, rounds: rounds, since: mark),
                                            spent: r.spentRounds) }
     if case .live = lead?.route { HomeLeadFlag.shared.liveIsLead = true }
     else { HomeLeadFlag.shared.liveIsLead = false }
@@ -987,6 +1033,7 @@ final class HomeModel {
                                      currentLeague: nil, me: (me ?? sessionMe).profile?.id)
     guard live(gen) else { return }
     social = snap
+    let asked = words.now
     do {
       let ids = rounds.compactMap(\.round_id).prefix(60).map { JSONValue.string($0.uuidString) }
       let extra = try await RoundSocialService().request("posted_rounds_social", ["p_rounds": .array(ids)])
@@ -996,11 +1043,20 @@ final class HomeModel {
         if let id = item["round_id"]?.string.flatMap(UUID.init) { next[id] = item }
       }
       roundSocial = next
+      // a thread that spoke after this read was asked knows more than the read does: its word stands
+      doorOverrides = doorOverrides.filter { words.spoke(for: $0.key, after: asked) }
     } catch {
       guard live(gen) else { return }
       // Never retain a social affordance after its visibility cannot be checked.
       roundSocial = [:]
+      doorOverrides = [:]
     }
+    // D405 · the digest's "chimed in" also counts comments on the round's own
+    // thread, which no direct read can see; best-effort, like the rest of the social layer
+    let notices = try? await RoundSocialService().request("my_notifications", ["p_limit": .number(50)])
+    guard live(gen) else { return }
+    threadNotices = (notices?["items"]?.array ?? []).compactMap(SocialNotice.init)
+    loadedCount += 1
     // F-2 · the digest is rebuilt inside `publishOutwards`, where the ranked
     // arrangement is in hand and the rounds it spent are known.
     publishOutwards(me: me ?? sessionMe)

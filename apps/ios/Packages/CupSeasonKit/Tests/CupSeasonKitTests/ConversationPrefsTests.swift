@@ -6,7 +6,7 @@ import Testing
 @Suite struct ConversationPrefsTests {
   @Test func theThreeSwitchesInTheWebsWords() {
     #expect(ConversationPrefs.all.map(\.key) == ["own_round", "replies", "followed"])
-    #expect(ConversationPrefs.all.map(\.name) == ["Comments on my rounds", "Replies to me", "Conversations I follow"])
+    #expect(ConversationPrefs.all.map(\.name) == ["Comments on my rounds", "Replies to me", "Conversations I’m in"])
     #expect(ConversationPrefs.door == "Notification settings")
   }
 

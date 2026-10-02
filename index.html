@@ -3662,7 +3662,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
   padding:11px 13px; margin-bottom:8px;
 }
-.msgrow .mtxt{font-size:13.5px; line-height:1.6; color:var(--ink); letter-spacing:.01em;}
+.msgrow .mtxt{font-size:13.5px; line-height:1.6; color:var(--ink); letter-spacing:.01em; flex:1; min-width:0;}
 .msgrow .mtxt b{color:var(--ink); font-weight:650; margin-right:6px;}
 /* TEN / W7-132 · the composer's foot (the answer and Add my round) sticks above the tab band below the desk, at the board composer's
    own offset; an opaque ground so the card never shows through; in flow at the desk, where the tab band is gone */
@@ -6104,6 +6104,35 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 .cs-talk-err{color:var(--neg); margin:0;}
 .cs-talk-err:empty{display:none;}
 .cs-talk-ctx{display:flex; align-items:center; justify-content:space-between; gap:var(--s3);}
+/* D405 · Notify me about: one native, labelled setting under the composer */
+.cs-talk-notify{display:flex; align-items:center; flex-wrap:wrap; gap:var(--s2); margin-top:var(--s1);}
+.cs-talk-notify select.f{width:auto; max-width:100%;}
+/* D405 · the conversation in line, under the round it is on (Home's card, the
+   board's post): the receipt's own component, tighter, inside the round's
+   column. The card is a door to the receipt; the thread is not. */
+.cs-talk-line{cursor:auto;}
+.cs-talk-line[hidden]{display:none;}
+/* where an open thread waits for the length of one repaint: rendered (so it
+   keeps the focus), drawn nowhere */
+.cs-talk-park{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%);}
+.cs-talk.is-inline{margin-top:var(--s1); padding-top:var(--s2);}
+.cs-talk.is-inline .cs-talk-compose{margin-top:var(--s3);}
+.cs-talk.is-inline textarea.cs-talk-input{min-height:64px;}
+.cs-talk-more{background:none; color:var(--mut); padding:0 var(--s2); margin-left:calc(var(--s2) * -1);}
+.cs-talk-more:hover{color:var(--ink);}
+/* the newest comment under a closed thread: one quiet line, the name in ink.
+   It is drawn 32 tall so it sits with the door above it, and its hit box
+   reaches 44 downward only, into the round's own foot space, never over the
+   controls above it (§16.2) */
+.cs-talk-peek{position:relative; display:flex; align-items:center; width:100%; min-width:0; min-height:32px; padding:0; background:none; border:0; color:var(--mut); text-align:left; cursor:pointer; font:inherit;}
+.cs-talk-peek::after{content:""; position:absolute; left:0; right:0; top:0; bottom:calc(-1 * var(--s3));}
+.cs-talk-peek > span{display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.cs-talk-peek b{color:var(--ink); font-weight:inherit;}
+.cs-talk-peek:hover > span{color:var(--ink);}
+.cs-talk-peek:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.msgrow .mtxt .cs-talk-peek b, .msgrow .mtxt .cs-talk-line b{margin-right:0;}
+/* the round's page names its golfer beside their face */
+.sheet h3 .rcpt-owner{display:inline-flex; vertical-align:middle; margin-right:var(--s2);}
 .cs-talk-door,.hfr-course{display:flex; width:100%; align-items:center; gap:var(--s3); padding:var(--s3) 0; background:none; border:0; border-bottom:var(--hair) solid var(--rule); color:var(--ink); text-align:left; cursor:pointer; min-height:44px; font:inherit;}
 .cs-talk-door > span:first-child,.hfr-course > span.cs-grow{display:flex; flex-direction:column; flex:1; min-width:0;}
 .cs-talk-door .cs-agate-s,.hfr-course .cs-agate-s{color:var(--mut);}
@@ -10771,16 +10800,19 @@ function socialBar(f, fi, opts){
   const ns=(opts&&opts.ns)||'';
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
-  /* D391 · a round post's conversation is the ROUND's, and it lives on the
-     receipt: the button becomes a door with the round's own count (which
-     already folds this board's comments in). Chat lines and every other post
-     keep the inline league thread below. Until posted_rounds_social answers,
-     nothing changes. */
+  /* D391 · a round post's conversation is the ROUND's: the button is a door
+     with the round's own count (which already folds this board's comments
+     in). D405 · the door opens that thread in line, under this post, and each
+     post opens on its own; the newest comment sits under a closed one. Chat
+     lines and every other post keep the inline league thread below. Until
+     posted_rounds_social answers, nothing changes. */
   const tk = (f.roundpost && f.rid && window.csTalkSocial) ? window.csTalkSocial[f.rid] : null;
   const talkN = tk ? (Number(tk.comment_count)||0) : 0;
+  const talkKey = tk ? ns + 'b|' + f.rid : null;
   const talkDoor = (tk && comments)
-    ? `<button class="rxcm" data-talk-open="${esc(f.rid)}" aria-label="${talkN ? talkN + ' comment' + (talkN===1?'':'s') + ', open the conversation' : 'Comment on this round'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${talkN?` ${talkN}`:''}</button>`
+    ? `<button type="button" class="rxcm" data-talk-open="${esc(f.rid)}" ${csTalkDoorAttrs(talkKey, talkN)}><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${talkN?` ${talkN}`:''}</button>`
     : '';
+  const talkLine = talkDoor ? csTalkLineHtml(talkKey, f.rid, tk) : '';
   const cmBtn = talkDoor || (comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '');
   const thread = (comments && !talkDoor) ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
       ${cm.map((c,ci)=>`<div class="crow">${c.id && !c.mine ? `<button class="crmore" type="button" data-cmore="${fi}:${ci}" aria-label="More actions for ${esc(c.w)}’s comment">⋯</button>` : ''}<b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
@@ -10795,7 +10827,7 @@ function socialBar(f, fi, opts){
       ${csPostReportable(f)?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">Report</button>`:''}
       ${cmBtn}
     </div>
-    ${thread}
+    ${thread}${talkLine}
   </div>`;
 }
 /* who am I on the board */
@@ -10926,9 +10958,14 @@ async function fetchSocial(pids){
   (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ id:c.id||null, w:window.memName?.(c.member_id) ?? 'Someone', t:c.body,
     pid:(window.CS?.members||[]).find(m=>m.id===c.member_id)?.profile_id || null, mine:!!(mine && c.member_id===mine) }); });
   feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
-  /* D391 · the round posts' conversation doors, on their own read */
+  /* D391 · the round posts' conversation doors, on their own read. D405 ·
+     and a thread open under a post reads again with them. */
   const rids = feed.filter(f=>f.roundpost && f.rid).map(f=>f.rid);
-  if(rids.length && window.csTalkFetch) window.csTalkFetch(rids).then(ok=>{ if(ok) rerenderFeeds(); });
+  if(rids.length && window.csTalkFetch) window.csTalkFetch(rids).then(ok=>{
+    if(!ok) return;
+    rerenderFeeds();
+    window.csTalkRefreshOpen?.(k=>/^(f-)?b\|/.test(k));
+  });
 }
 /* realtime nudge: a reaction/comment landed elsewhere — re-pull just the
    social layer (board + Home strips) and repaint, no standings refetch */
@@ -11048,8 +11085,13 @@ function wireSocial(el, ns){
   el.querySelectorAll('[data-rxpeople]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rxpeople]; if(f) openApplausePeople(ensureRx(f));
   }));
+  /* D405 · a round post's door (and the newest comment under it) opens the
+     round's thread in place, under the post */
   el.querySelectorAll('[data-talk-open]').forEach(b=>b.addEventListener('click',()=>{
-    window.csOpenPostedRound?.(b.dataset.talkOpen, { focusTalk:true, fresh:true });
+    csTalkToggle(b.dataset.talkDoor, b.dataset.talkOpen, 'board');
+  }));
+  el.querySelectorAll('[data-talk-peek]').forEach(b=>b.addEventListener('click',()=>{
+    csTalkToggle(b.dataset.talkPeek, b.dataset.rid, 'board');
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
@@ -11410,6 +11452,7 @@ document.addEventListener('keydown', e=>{
 function renderFeed(){
   const el=$('#feedList');
   const uiS=socialUiCapture(el);
+  const talkParked=csTalkLinePark(el);   /* D405 · an open thread rides through the rebuild */
   el.innerHTML='';
   /* E3: the Pro's latest announcement rides pinned above the noise —
      announcements are not chat, they must survive the scroll */
@@ -11476,6 +11519,7 @@ function renderFeed(){
   el.querySelectorAll('[data-fp]').forEach(b=>b.addEventListener('click',()=>{
     if(HIST[b.dataset.fp]) showPlayer(b.dataset.fp);
   }));
+  csTalkLineMount(el, talkParked);
   wireSocial(el);
   socialUiRestore(el, uiS);
   if($('#boardFull')?.classList.contains('open')) renderFeedFull();
@@ -11504,6 +11548,7 @@ function renderFeedFull(force){
   const uiS=socialUiCapture(el);
   const prevTop=el.scrollTop;
   const atBottom = el.scrollHeight - prevTop - el.clientHeight < 60;
+  const talkParked=csTalkLinePark(el);   /* D405 · an open thread rides through the rebuild */
   el.innerHTML='';
   /* F13 (3.3): quiet-day digest — same gate/content as the compact feed */
   const dg=boardDigestHtml();
@@ -11597,6 +11642,7 @@ function renderFeedFull(force){
   el.querySelectorAll('[data-rcpt]').forEach(c=>c.addEventListener('click',()=>{
     openRoundReceipt(c.dataset.rcpt);
   }));
+  csTalkLineMount(el, talkParked);
   wireSocial(el, 'f-');
   socialUiRestore(el, uiS, 'f-');
   /* F13 (3.3, follow-up fix): a digest at the top is pointless if force-scroll
@@ -11605,7 +11651,9 @@ function renderFeedFull(force){
      forced top on EVERY re-render while a digest shows, so a reaction tap
      mid-scroll (force=false, atBottom=false) yanked the reader back to the
      top — prevTop still wins whenever this isn't an open/follow moment. */
-  requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? (dg?0:el.scrollHeight) : prevTop; });
+  /* D405 · a thread opened, or a comment sent, redraws the board: at the bottom a reader stays at
+     the bottom (the thread is the newest thing there), whether or not a digest is showing */
+  requestAnimationFrame(()=>{ el.scrollTop = force ? (dg?0:el.scrollHeight) : atBottom ? el.scrollHeight : prevTop; });
 }
 /* F03 · ONE MODAL LIFECYCLE for the three layers that cover the page: the
    shared sheet, the full board and the post ceremony. The sheet said
@@ -21375,13 +21423,35 @@ function homeRxOf(r){
    Names need their own resolve: memName() only knows the open league's
    roster, and a reactor can sit in a shared league that isn't open. */
 async function fetchHomeSocial(){
-  window.homeRx = { post:{}, kud:{}, names:{}, mem2pid:{}, raw:[], cmine:[], myIds:new Set(), myPid:null };
+  window.homeRx = { post:{}, kud:{}, names:{}, mem2pid:{}, raw:[], cmine:[], notes:[], myIds:new Set(), myPid:null };
   if(state.demo || !window.sb || !window.CS?.user) return;
   const rids=[...new Set((window.homeFeedRows||[]).map(r=>r.round_id).filter(Boolean))];
   if(!rids.length) return;
   /* D391 · the doors ride their own read and repaint the wire when it lands;
-     a server without it leaves the wire exactly as it was */
-  csTalkFetch(rids).then(ok=>{ if(ok && typeof renderHomeFeed==='function') renderHomeFeed(); });
+     a server without it leaves the wire exactly as it was. D405 · and the
+     thread open under a round reads again with them. */
+  csTalkFetch(rids).then(ok=>{
+    if(!ok) return;
+    if(typeof renderHomeFeed==='function') renderHomeFeed();
+    csTalkRefreshOpen(k=>k.startsWith('h|'));
+  });
+  /* D405 · the digest's "chimed in on your 84" counted only the league
+     board's comments (`cmine`, keyed by post). A comment in a round's own
+     thread is keyed by the ROUND and no direct read can see it, so the inbox
+     is read once, best-effort, and `dgMentions` keeps the notices about the
+     golfer's own rounds. Any error is no extra mentions — never a failed Home. */
+  const H=window.homeRx;
+  const notesRead=(async()=>{
+    if(!(window.homeFeedRows||[]).some(r=>r && r.is_me && r.round_id)) return;   /* none of mine on the wire: nothing to count */
+    try{
+      const { data, error } = await window.sb.rpc('my_notifications', { p_limit: 50 });
+      if(!error && data && data.ok && Array.isArray(data.items)) H.notes=data.items;
+    }catch(_){}
+  })();
+  try{ await csHomeSocialRead(rids); }
+  finally{ await notesRead; }
+}
+async function csHomeSocialRead(rids){
   try{
     /* D238 · `profile_id` may not be on `posts` yet. ANY error retries the
        legacy shape — a 42501 never names its column (CLAUDE.md). */
@@ -21490,9 +21560,14 @@ function wireHomeSocial(box){
   box.querySelectorAll('[data-hrxpeople]').forEach(b=>b.addEventListener('click',()=>{
     const r=rows[+b.dataset.hrxpeople]; const rx=r && homeRxOf(r); if(rx) openApplausePeople(rx);
   }));
-  /* D391 · the conversation door and the course door */
+  /* D391 · the conversation door and the course door. D405 · the door opens
+     the thread in place, under the round, one at a time on Home; the newest
+     comment under a closed thread is the same door */
   box.querySelectorAll('[data-hftalk]').forEach(b=>b.addEventListener('click',()=>{
-    csOpenPostedRound(b.dataset.hftalk, { focusTalk:true, fresh:true });
+    csTalkToggle(b.dataset.talkDoor, b.dataset.hftalk, 'home');
+  }));
+  box.querySelectorAll('[data-talk-peek]').forEach(b=>b.addEventListener('click',()=>{
+    csTalkToggle(b.dataset.talkPeek, b.dataset.rid, 'home');
   }));
   box.querySelectorAll('[data-hfcourse]').forEach(b=>b.addEventListener('click',()=>csOpenCoursePeople(b.dataset.hfcourse)));
 }
@@ -21660,10 +21735,14 @@ function feedRow(r, idx, stamp, opts){
   const rx = idx!==undefined ? homeRxOf(r) : null;
   const social = rx ? `<div class="hrx">${homeRxChipsHtml(rx,idx)}</div>` : '';
   /* D391 · two doors off the round, both read from posted_rounds_social and
-     both absent until it answers: the conversation (a count, never a thread
-     inline — the thread lives on the receipt) and the course's circle */
+     both absent until it answers: the conversation and the course's circle.
+     D405 · the conversation's door is a toggle: the thread opens in line,
+     directly under this round (csTalkLineHtml's slot, after the foot), and
+     while it is closed the newest comment sits there instead, one line. */
   const tk = (idx!==undefined && r.round_id && window.csTalkSocial) ? window.csTalkSocial[r.round_id] : null;
-  const talk = tk ? `<button type="button" class="hfr-talk" data-hftalk="${esc(r.round_id)}" aria-label="${tk.comment_count ? esc(String(tk.comment_count)) + ' comment' + (tk.comment_count===1?'':'s') + ', open the conversation' : 'Comment on this round'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${tk.comment_count ? `<span class="cs-agate-s">${esc(String(tk.comment_count))}</span>` : ''}</button>` : '';
+  const talkKey = tk ? 'h|' + r.round_id : null, talkN = tk ? (Number(tk.comment_count) || 0) : 0;
+  const talk = tk ? `<button type="button" class="hfr-talk" data-hftalk="${esc(r.round_id)}" ${csTalkDoorAttrs(talkKey, talkN)}><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${talkN ? `<span class="cs-agate-s">${esc(String(talkN))}</span>` : ''}</button>` : '';
+  const talkLine = tk ? csTalkLineHtml(talkKey, r.round_id, tk) : '';
   const cf = tk && tk.course && Array.isArray(tk.course.faces) ? tk.course.faces : [];
   /* L-34 · the course's circle is a fact about the COURSE, not the round: the
      same "Casey, Blake and Jules have played here" printed under every round at
@@ -21712,7 +21791,8 @@ function feedRow(r, idx, stamp, opts){
     </button>
     ${photo}
     ${courseDoor}
-    ${foot}</div>`;
+    ${foot}
+    ${talkLine}</div>`;
 }
 /* D288 · WEIGHT 5 — a league moment is a LINE (VISUAL_PASS §1c). It was a
    44pt face, a bold sentence and a mono sub-line inside a dashed `bg2` card,
@@ -22132,6 +22212,20 @@ function dgMentions(mark){
     if(csKudoMine(c)) return;
     out.push({ who:csKudoWho(c), e:null, gross:r.gross, rid:r.round_id });
   });
+  /* D405 · a comment in a round's own thread, read from the inbox
+     (`fetchHomeSocial`): every notice about one of MY rounds on the wire,
+     after the mark, by somebody else. A league-board comment never makes a
+     notice, so nothing above is counted twice. */
+  const myRounds={};
+  (window.homeFeedRows||[]).forEach(r=>{ if(r && r.is_me && r.round_id) myRounds[r.round_id]=r; });
+  const me=window.CS?.user?.id || hr.myPid || null;
+  (hr.notes||[]).forEach(n=>{
+    if(!n || !n.created_at || dgTime(n.created_at)<=mark) return;
+    const r=myRounds[n.round_id]; if(!r) return;
+    const actor=n.actor && n.actor.id;
+    if(actor && (actor===me || actor===hr.myPid)) return;   /* my own comment isn't news */
+    out.push({ who:(n.actor && n.actor.name) || 'someone', e:null, gross:r.gross, rid:r.round_id });
+  });
   return out;
 }
 /* D311 · the four sentences. A fifth token owes a fifth line, which is the
@@ -22215,7 +22309,9 @@ function renderHomeDigest(){
 function wireFeedReceipts(box){
   box.querySelectorAll('[data-hfr]').forEach(el=>{
     const open = e => {
-      if(e.target.closest('[data-tc],button')) return;
+      /* D405 · the conversation open under the round is its own place: a tap
+         in the thread (a comment, the field, the setting) never opens the receipt */
+      if(e.target.closest('[data-tc],button,.cs-talk-line')) return;
       const src = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
       const r = src[Number(el.dataset.hfr)];
       if(r && typeof openRoundReceipt==='function') openRoundReceipt(r);
@@ -22353,6 +22449,9 @@ function renderHomeFeed(){
   /* TEN / W6 · the empty wire is a sentence WITH A DOOR (LINT-21), and the
      door is true to the golfer's life: `csWireEmpty`, below. */
   const we = html ? null : csWireEmpty();
+  /* D405 · an open conversation rides through the rebuild: lifted out here,
+     the same element put back under its round below (draft, caret, focus) */
+  const talkParked = csTalkLinePark(box);
   box.innerHTML = staleFeed + (html
     /* TEN / W7-073 · ONE sentence with its door inside it ("… Post one, or add
        some buddies."): the door on its own line left the sentence ending on
@@ -22362,6 +22461,7 @@ function renderHomeFeed(){
     const old = keep.get(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'));
     if(old) img.replaceWith(old);
   });
+  csTalkLineMount(box, talkParked);
   box.querySelectorAll('[data-notesplan]').forEach(el=>el.addEventListener('click',()=>{ window.openRoundSheet?.(el.dataset.notesplan); }));
   box.querySelectorAll('[data-notes]').forEach(el=>el.addEventListener('click',()=>{
     const id=el.dataset.notes;
@@ -27617,7 +27717,12 @@ function openRoundReceipt(x, opts){
      the round's own controls (photo, delete). The photo buttons used to come
      straight after the moment and the verdict sat below the card, outside
      every first screen (D362/D387). */
-  openSheet(mineOf(r) ? 'Your round' : 'The round', headSub, `
+  /* D405 · the page says whose round it is: "Theo’s round" beside their face,
+     from the row that opened it now and from the thread when it answers
+     (csRcptTitleFromThread); "Your round" stays, and an owner nobody named
+     keeps "The round" */
+  const rcptMine = mineOf(r), rcptOwner = rcptMine ? null : csTalkNamed(r.golfer);
+  openSheet(rcptMine ? 'Your round' : csTalkRoundTitle(rcptOwner), headSub, `
     ${figs}
     <div class="eyebrow">The receipt</div>
     <div id="rcptBody" class="rcpt-leaf">
@@ -27627,6 +27732,7 @@ function openRoundReceipt(x, opts){
     ${canPhoto ? csReceiptPhotoRow(r) : ''}
     <div id="rcptTalk"></div>
     ${canPhoto ? csReceiptDeleteRow() : ''}`);
+  if(rcptOwner) csRcptTitleSet(false, rcptOwner, r.profile_id, r.marker || (r.profile_id ? memberMarker(r.profile_id) : null));
   csRcptHeroWire(document.getElementById('rcptHero'));
   /* the finish's "Add a photo" rides `opts.photoIntent` into the photo control */
   if(canPhoto){ csWireReceiptPhoto(r, rid, stampOf, opts); csWireReceiptDelete(rid); }
@@ -27714,10 +27820,12 @@ async function csPaintReceiptCard(r, rid, mine){
 
 /* ================= D391 · a posted round keeps one conversation =============
    One thread per POSTED round (posted_round_thread and its siblings; the
-   contract is in the D391 handoff). It lives on the round's own receipt — the
-   element closest to the round — and the Home wire, the board and the inbox are
-   DOORS to it, never second copies of it. Three rules, the same three the
-   phone keeps:
+   contract is in the D391 handoff). Its page is the round's own receipt, which
+   keeps the whole conversation and is where a notification or a deep link
+   opens it. D405 · the same thread ALSO opens in line, directly under the
+   round on Home and on the league board: the same read, the same write, the
+   same notices — a second VIEW of the one thread, never a second store of it.
+   Three rules, the same three the phone keeps:
      · every word a golfer typed goes through esc(), and a comment is text;
      · a failed send KEEPS the draft (and the reply target) on screen;
      · a server that predates the migration hides the door — a read that did
@@ -27726,10 +27834,15 @@ async function csPaintReceiptCard(r, rid, mine){
    different object and is untouched. */
 const CS_TALK = {
   head:'Conversation', empty:'The conversation is yours to start.',
-  add:'Add a comment', reply:'Your reply', placeholder:'Something for the crew…',
+  add:'Add a comment', reply:'Your reply',
   send:'Comment', sendReply:'Reply', needText:'Add a comment first.',
   failed:'Comment did not send.', sent:'Comment added.', readFailed:'Couldn’t load the conversation.',
-  follow:'Follow', following:'Following', mute:'Mute conversation', unmute:'Unmute conversation',
+  /* D405 · ONE setting replaces Follow / Following and Mute / Unmute: the
+     product has no follows (D25). `csTalkChoice` maps it onto the state the
+     server keeps per golfer per round. */
+  notifyHead:'Notify me about',
+  notify:{ every:'Every comment', replies:'Replies to me', nothing:'Nothing' },
+  stateFailed:'That setting did not save.',
   mutedHint:'This conversation is muted.', followHint:'Updates from this conversation are on.',
   replyHint:'You’ll be notified of replies to you.', offHint:'Reply notifications are off in settings.',
   reported:'Reported — thanks. We’ll take a look.', removeArm:'Tap again to remove',
@@ -27743,21 +27856,107 @@ const CS_INBOX = {
   prefsHead:'Keep me in the conversation',
   prefs:[['own_round','Comments on my rounds','When someone joins the conversation on a round you posted.'],
          ['replies','Replies to me','When someone replies directly to one of your comments.'],
-         ['followed','Conversations I follow','New comments in threads you’ve chosen to follow.']],
+         ['followed','Conversations I’m in','New comments on rounds you’ve commented on.']],
   prefsNote:'Muted conversations stay quiet. You won’t be notified of your own comments.',
   /* TEN / W6 · the three switches live in Settings now (W2: one Notifications
      section, owner C); the inbox keeps a door to them, not a second copy */
   prefsDoor:'Notification settings',
-  /* the three sentences both clients print (contract §3) */
+  /* the sentences both clients print (contract §3). D405 · a notice names the
+     round it is about. A key an older server does not send keeps the older
+     sentence: no `round_is_mine` → "replied to your comment", no
+     `round_owner_name` → "commented in a conversation you’re in". When the
+     actor owns the round the name repeats ("Theo replied to you on Theo’s
+     round.") — one rule, no new copy. A golfer who chose Every comment on
+     their own round (their own-round notice off) gets the `followed` kind about
+     it, and it says "your round". */
   line: n => {
     const who = csTalkFirst(n && n.actor && n.actor.name);
-    return n.kind==='reply' ? `${who} replied to your comment.`
-         : n.kind==='own_round' ? `${who} commented on your round.`
-         : `${who} commented in a conversation you follow.`;
+    const ownerName = csTalkNamed(n && n.round_owner_name);
+    const owner = ownerName ? csTalkFirst(ownerName) : null;
+    const where = csTalkNamed(n && n.course_name);
+    if(n && n.kind === 'own_round') return `${who} commented on your round.`;
+    if(n && n.kind === 'reply'){
+      if(n.round_is_mine === true) return `${who} replied to you on your round.`;
+      if(n.round_is_mine === false && owner) return `${who} replied to you on ${owner}’s round.`;
+      return `${who} replied to your comment.`;
+    }
+    /* an older server says whose round it is but not whether it is the golfer's own (a golfer who
+       asked for every comment on their own round would be named in the third person): until it
+       does, the older words stand */
+    if(!n || n.round_is_mine == null) return `${who} commented in a conversation you’re in.`;
+    if(n.round_is_mine === true) return `${who} commented on your round.`;
+    return owner ? `${who} commented on ${owner}’s round${where ? ' at ' + where : ''}.`
+                 : `${who} commented in a conversation you’re in.`;
   },
 };
 const CS_RELATION = { me:'You', friend:'Friend', league:'In your seasons', event:'In your Ryders and Majors' };
 function csTalkFirst(name){ return String(name||'').trim().split(/\s+/)[0] || 'Someone'; }
+/* D405 · a name with something in it, or null (TalkCopy.named's twin) */
+function csTalkNamed(name){ const s = name == null ? '' : String(name).trim(); return s || null; }
+/* a gross the copy can print, or null */
+function csTalkGross(g){ const s = g == null ? '' : String(g).trim(); return s || null; }
+/* ---- D405 · WHAT A COMMENT IS ON. The producers both clients print; the
+   phone's twins are TalkCopy.placeholder / roundTitle / conversationHead /
+   earlier / preview / notify / notifyOptions. ---------------------------------- */
+/* the composer: "Comment on Theo’s 84…", on your own round "Comment on your 79…" */
+function csTalkPlaceholder(ownerName, gross, mine){
+  const g = csTalkGross(gross);
+  if(mine) return g ? `Comment on your ${g}…` : 'Comment on your round…';
+  const n = csTalkNamed(ownerName);
+  if(!n) return 'Comment on this round…';
+  return g ? `Comment on ${csTalkFirst(n)}’s ${g}…` : `Comment on ${csTalkFirst(n)}’s round…`;
+}
+/* the round's own page: "Theo’s round" ("Your round" stays the caller's) */
+function csTalkRoundTitle(ownerName){
+  const n = csTalkNamed(ownerName);
+  return n ? `${csTalkFirst(n)}’s round` : 'The round';
+}
+/* the conversation's head on the round's page: "On Theo’s 84", "On your 79" */
+function csTalkHead(ownerName, gross, mine){
+  const g = csTalkGross(gross);
+  if(mine) return g ? `On your ${g}` : 'On your round';
+  const n = csTalkNamed(ownerName);
+  if(!n) return CS_TALK.head;
+  return g ? `On ${csTalkFirst(n)}’s ${g}` : `On ${csTalkFirst(n)}’s round`;
+}
+/* the button over the newest three in line */
+function csTalkEarlier(n){ return `Earlier comments (${n})`; }
+/* the newest comment under a round, before anyone taps: "Blake: Did the putt on 18 drop?" */
+function csTalkPreview(authorName, body){ return `${csTalkFirst(authorName)}: ${body}`; }
+/* Notify me about · what the golfer is told, from what the server stores. No
+   row ("none") is the baseline: replies to you — and, for the round's owner
+   whose own-round notice is on, every comment, because that is what the
+   server does for them. */
+function csTalkChoice(state, isMine, ownRoundOn){
+  if(state === 'muted') return 'nothing';
+  if(state === 'following') return 'every';
+  return (isMine && ownRoundOn) ? 'every' : 'replies';
+}
+/* the owner (own-round notice on) gets two choices: "Replies to me" would say
+   something the server does not do for them */
+function csTalkChoiceOptions(isMine, ownRoundOn){
+  return (isMine && ownRoundOn) ? ['every', 'nothing'] : ['every', 'replies', 'nothing'];
+}
+/* the state a choice writes (`set_round_thread_state`) */
+function csTalkChoiceState(choice){
+  const map = { every:'following', replies:'replies', nothing:'muted' };
+  return Object.prototype.hasOwnProperty.call(map, choice) ? map[choice] : null;
+}
+/* the stored state, from either shape of the thread's `thread` object */
+function csTalkStateOf(th){
+  th = th || {};
+  return th.state || (th.muted ? 'muted' : th.following ? 'following' : 'none');
+}
+/* the line under the composer: what this golfer will hear about. Muted wins,
+   then a followed thread with that switch on, then the owner (who hears every
+   comment while the own-round switch is on), then the replies switch. */
+function csTalkHint(state, prefs, isMine){
+  const pr = prefs || {};
+  return state === 'muted' ? CS_TALK.mutedHint
+    : (state === 'following' && pr.followed !== false) ? CS_TALK.followHint
+    : (isMine && pr.own_round !== false) ? CS_TALK.followHint
+    : pr.replies !== false ? CS_TALK.replyHint : CS_TALK.offHint;
+}
 /* "Theo", "Theo and Mara", "Theo, Mara and Jules" — CourseNames.list's twin */
 function csTalkNames(n){ return n.length<2 ? (n[0]||'') : n.slice(0,-1).join(', ') + ' and ' + n[n.length-1]; }
 /* the server does not have D391 yet: hide the door instead of failing at it */
@@ -27766,14 +27965,15 @@ function csTalkSkew(e){
   return /PGRST202|42883|could not find the function|function .* does not exist|schema cache/i.test(m);
 }
 /* round id → { text, parent, clientId, clientFor }. Survives a repaint and a
-   failed send; cleared only when the server says the comment landed. */
+   failed send; cleared only when the server says the comment landed. One
+   draft per round, whichever view of the thread it was typed in. */
 const csTalkDrafts = new Map();
 function csTalkDraft(rid){
   let d = csTalkDrafts.get(rid);
   if(!d){ d = { text:'', parent:null, clientId:null, clientFor:null }; csTalkDrafts.set(rid, d); }
   return d;
 }
-/* round id → the posted_rounds_social row (count + course door) */
+/* round id → the posted_rounds_social row (count, newest comment, course door) */
 window.csTalkSocial = window.csTalkSocial || {};
 /* "Now" · "12m" · "2h" · "Sep 20" — the thread reads like a record */
 function csTalkWhen(ts){
@@ -27798,19 +27998,238 @@ function csTalkUuid(){
   const h = [...b].map(x=>x.toString(16).padStart(2,'0')).join('');
   return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
 }
+/* which word about a round's thread is newer. A doors read is stamped when it was ASKED; a
+   thread's word about its own size, when its snapshot was TAKEN (a read: when it was asked; a
+   comment that landed: when the server answered). An answer older than the word already on a
+   door never overwrites it (a read in flight when a comment landed would take the count and the
+   newest comment back). */
+let csTalkClock = 0;
+/* whether the server's doors carry `latest` (D405 and later): learned from any doors read, so a
+   thread opened with no door of its own (a link, a notice) still knows what the server does */
+window.csTalkHasLatest = window.csTalkHasLatest === undefined ? null : window.csTalkHasLatest;
 /* the doors' counts and course faces for a set of posted rounds. False when
    the read did not happen (skew, signal) — callers keep what they drew. */
 async function csTalkFetch(rids){
-  rids = [...new Set((rids||[]).filter(Boolean).map(String))].slice(0, 60);
+  rids = [...new Set((rids||[]).filter(Boolean).map(String))];
   if(!rids.length || state.demo || !window.sb || !window.CS?.user) return false;
-  try{
-    const { data, error } = await window.sb.rpc('posted_rounds_social', { p_rounds: rids });
-    if(error) throw error;
-    ((data && data.items) || []).forEach(it => { if(it && it.round_id) window.csTalkSocial[it.round_id] = it; });
-    return true;
-  }catch(_){ return false; }
+  const asked = ++csTalkClock;
+  /* the read takes at most 60 rounds and a board holds more (its feed runs oldest
+     first, so cutting to the first 60 left the NEWEST posts without a door), so it
+     asks in batches, in the order given. A batch that fails leaves its rounds
+     exactly as they were; a batch that answers and leaves a round out says that
+     round is not visible to this golfer any more (muted, voided), and its door goes. */
+  const batches = [];
+  for(let i = 0; i < rids.length; i += 60) batches.push(rids.slice(i, i + 60));
+  const done = await Promise.all(batches.map(async batch => {
+    try{
+      const { data, error } = await window.sb.rpc('posted_rounds_social', { p_rounds: batch });
+      if(error) throw error;
+      const got = new Set();
+      ((data && data.items) || []).forEach(it => {
+        if(!it || !it.round_id) return;
+        const cur = window.csTalkSocial[it.round_id];
+        let row = it;
+        row.__spoke = asked;      /* a word about the thread taken before this was asked is older than this row */
+        /* the thread spoke after this was asked: its count and newest comment stand */
+        if(cur && cur.__spoke > asked){
+          row = Object.assign({}, it, { comment_count: cur.comment_count, __spoke: cur.__spoke });
+          if(Object.prototype.hasOwnProperty.call(cur, 'latest')) row.latest = cur.latest;
+        }
+        window.csTalkSocial[it.round_id] = row;
+        window.csTalkHasLatest = Object.prototype.hasOwnProperty.call(it, 'latest');
+        got.add(String(it.round_id));
+      });
+      batch.forEach(id => { if(!got.has(id)) delete window.csTalkSocial[id]; });
+      return true;
+    }catch(_){ return false; }
+  }));
+  return done.some(Boolean);
 }
 window.csTalkFetch = csTalkFetch;
+/* the newest comment as the doors' read carries it (`latest`: its first 140
+   characters, counted as the server counts them) */
+function csTalkLatestOf(c){
+  return c ? { id:c.id, author:c.author || null, body:Array.from(String(c.body || '')).slice(0, 140).join(''), created_at:c.created_at } : null;
+}
+/* the doors' row agrees with what the thread just said: its count and — only
+   where the server sends one (D405; an older server sends no `latest`, and the
+   door stays a count) — its newest comment. True when either moved. */
+function csTalkSocialSync(rid, count, comments, at){
+  const row = window.csTalkSocial && window.csTalkSocial[rid];
+  if(!row) return false;
+  at = at || ++csTalkClock;
+  if((row.__spoke || 0) > at) return false;     /* a word taken later is already on the door */
+  row.__spoke = at;
+  let moved = false;
+  const n = Number(count);
+  if(Number.isFinite(n) && n !== Number(row.comment_count)){ row.comment_count = n; moved = true; }
+  if(Object.prototype.hasOwnProperty.call(row, 'latest') && Array.isArray(comments)){
+    const next = csTalkLatestOf(comments.length ? comments[comments.length - 1] : null);
+    if(((row.latest && row.latest.id) || null) !== ((next && next.id) || null)){ row.latest = next; moved = true; }
+  }
+  return moved;
+}
+/* the surfaces that draw a door for this round repaint it (an open thread
+   rides through the repaint: csTalkLinePark / csTalkLineMount) */
+function csTalkDoorsRefresh(rid){
+  const id = CSS.escape(String(rid));
+  if(document.querySelector(`#homeFeed [data-hftalk="${id}"]`) && typeof renderHomeFeed === 'function') renderHomeFeed();
+  if(document.querySelector(`#feedList [data-talk-open="${id}"], #feedListFull [data-talk-open="${id}"]`) && typeof rerenderFeeds === 'function') rerenderFeeds();
+}
+
+/* ---- D405 · the conversation in line ---------------------------------------
+   The door under a round on Home (`feedRow`) and on the board (`socialBar`)
+   opens the thread directly beneath that round: no sheet, no new page. Which
+   threads are open, and each one's live element, are held HERE, outside the
+   markup, because both surfaces rebuild their markup on every refresh. A
+   renderer parks its open threads before it rebuilds and puts the SAME
+   element back after, so a refresh never closes a thread, never loses a draft
+   and never takes the caret out of a comment being typed. Home keeps one
+   thread open at a time, so Home never becomes a wall of comments; on the
+   board each post opens on its own. A key is the surface and the round:
+   `h|<rid>` on Home, `b|<rid>` and `f-b|<rid>` on the board's two lists. */
+function csTalkUi(){ return window.__csTalkUi || (window.__csTalkUi = { open:new Set(), els:new Map() }); }
+function csTalkIsOpen(key){ return !!key && csTalkUi().open.has(key); }
+function csTalkLineId(key){ return 'cs-talk-' + String(key).replace(/[^A-Za-z0-9-]/g, '-'); }
+/* the door's words: the count, and what pressing it does */
+function csTalkDoorLabel(n, open){
+  return n ? `${n} comment${n === 1 ? '' : 's'}, ${open ? 'hide' : 'open'} the conversation` : 'Comment on this round';
+}
+/* the door is a real toggle: expanded or not, and the thread it controls */
+function csTalkDoorAttrs(key, n){
+  const open = csTalkIsOpen(key);
+  return `data-talk-door="${esc(key)}" aria-expanded="${open ? 'true' : 'false'}" aria-controls="${esc(csTalkLineId(key))}" aria-label="${esc(csTalkDoorLabel(n, open))}"`;
+}
+/* under the door: the newest comment while the thread is closed (only when
+   the server sent one and there is something to say), and the thread's slot */
+function csTalkLineHtml(key, rid, tk){
+  const open = csTalkIsOpen(key);
+  const n = Number(tk && tk.comment_count) || 0;
+  const L = tk && tk.latest;
+  let peek = '';
+  if(!open && n > 0 && L && L.body != null && String(L.body).trim()){
+    const who = (L.author && L.author.name) || '';
+    const s = csTalkPreview(who, String(L.body));
+    const cut = csTalkFirst(who).length + 1;
+    peek = `<button type="button" class="cs-talk-peek" data-talk-peek="${esc(key)}" data-rid="${esc(rid)}" aria-expanded="false" aria-controls="${esc(csTalkLineId(key))}">`
+      + `<span class="cs-agate-s is-phrase"><b>${esc(s.slice(0, cut))}</b>${esc(s.slice(cut))}</span></button>`;
+  }
+  return peek + `<div class="cs-talk-line" id="${esc(csTalkLineId(key))}" data-talk-line="${esc(key)}" data-rid="${esc(rid)}"${open ? '' : ' hidden'}></div>`;
+}
+/* a thread open in line reads again when its surface reads again (a Home
+   load, a board refresh), as the phone's re-reads with its page: a comment
+   from somebody else shows when the page is next read (D405). Never while the
+   golfer is in it (typing, choosing, reporting) or its comment is on the way
+   (a send in flight): that thread waits for the next read rather than redraw
+   under their hands. A thread whose round is on no surface now (its board is
+   not the one showing) is not read at all; it reads when it comes back. */
+function csTalkRefreshOpen(match){
+  csTalkUi().els.forEach((el, key) => {
+    if(!match(key) || !el.__talk || !el.dataset.rid || !el.isConnected || el.__talkSending || el.contains(document.activeElement)) return;
+    csPaintRoundTalk(el.dataset.rid, null, false, el);
+  });
+}
+window.csTalkRefreshOpen = csTalkRefreshOpen;
+/* press the door (or the newest comment): open or close the thread in place */
+function csTalkToggle(key, rid, surface){
+  if(!key || !rid) return;
+  const ui = csTalkUi();
+  const opening = !ui.open.has(key);
+  if(surface === 'home') [...ui.open].filter(k => k !== key && k.startsWith('h|')).forEach(csTalkLineDrop);
+  if(opening) ui.open.add(key); else csTalkLineDrop(key);
+  if(surface === 'home'){ if(typeof renderHomeFeed === 'function') renderHomeFeed(); }
+  else if(typeof rerenderFeeds === 'function') rerenderFeeds();
+  /* a disclosure keeps the focus on its own door */
+  document.querySelector(`[data-talk-door="${CSS.escape(key)}"]`)?.focus({ preventScroll:true });
+}
+window.csTalkToggle = csTalkToggle;
+function csTalkLineDrop(key){
+  const ui = csTalkUi();
+  ui.open.delete(key);
+  const el = ui.els.get(key); ui.els.delete(key);
+  if(el){ el.__talkSeq = (el.__talkSeq || 0) + 1; el.remove(); }
+}
+/* move an element without blurring it where the browser can (moveBefore keeps
+   focus, the caret and an open IME); anywhere else it is an ordinary insert */
+function csTalkMoveInto(parent, el, before){
+  try{
+    if(typeof parent.moveBefore === 'function' && parent.isConnected && el.isConnected){ parent.moveBefore(el, before || null); return; }
+  }catch(_){}
+  parent.insertBefore(el, before || null);
+}
+/* where an open thread waits while its surface rebuilds: beside the surface,
+   so it stays in the surface's own layer (never inert while the surface is
+   not, which would cost it the focus), and drawn nowhere */
+function csTalkParkBox(box){
+  const host = box.parentNode || document.body;
+  let pk = host.querySelector(':scope > .cs-talk-park');
+  if(!pk){ pk = document.createElement('div'); pk.className = 'cs-talk-park'; host.appendChild(pk); }
+  return pk;
+}
+/* before a surface rebuilds: lift its open threads out, and remember where
+   the focus and the caret were in case the move could not keep them */
+function csTalkLinePark(box){
+  const out = [];
+  if(!box) return out;
+  /* a door (or the newest comment under it) that holds the focus is redrawn
+     by the rebuild: the focus goes back to that round's door */
+  const fa = document.activeElement;
+  const fd = fa && box.contains(fa) && fa.closest ? fa.closest('[data-talk-door],[data-talk-peek]') : null;
+  out.door = fd ? (fd.dataset.talkDoor || fd.dataset.talkPeek || null) : null;
+  csTalkUi().els.forEach((el, key) => {
+    if(!el.isConnected || !box.contains(el)) return;
+    const a = document.activeElement;
+    const rec = { key, el, focus: (a && a !== el && el.contains(a)) ? a : null, sel: null, top: 0, pk: csTalkParkBox(box) };
+    if(rec.focus){
+      try{ if(typeof rec.focus.selectionStart === 'number') rec.sel = [rec.focus.selectionStart, rec.focus.selectionEnd, rec.focus.selectionDirection]; }catch(_){}
+      rec.top = rec.focus.scrollTop || 0;
+    }
+    csTalkMoveInto(rec.pk, el, null);
+    out.push(rec);
+  });
+  return out;
+}
+/* after a surface rebuilds: every open thread goes back under its own round,
+   and a thread opened for the first time is read */
+function csTalkLineMount(box, parked){
+  if(!box) return;
+  const ui = csTalkUi();
+  box.querySelectorAll('[data-talk-line]').forEach(ph => {
+    const key = ph.dataset.talkLine, rid = ph.dataset.rid;
+    if(!ui.open.has(key)) return;
+    let el = ui.els.get(key);
+    if(el && el !== ph){
+      /* a thread that waited off every surface (its board was not the one showing) says what it
+         said when it left: it reads again as it comes back */
+      const away = !el.isConnected;
+      csTalkMoveInto(ph.parentNode, el, ph);
+      ph.remove();
+      el.hidden = false;
+      if(away && !el.__talkSending && el.dataset.rid) csPaintRoundTalk(el.dataset.rid, null, false, el);
+    } else if(!el){
+      el = ph;
+      el.hidden = false;
+      el.__talkInline = true;
+      el.__talkPfx = csTalkLineId(key) + '-';
+      ui.els.set(key, el);
+      el.innerHTML = '<p class="fine">Loading…</p>';
+      csPaintRoundTalk(rid, null, false, el);
+    }
+    /* a thread inside the folded part of the list unfolds with it */
+    const fold = el.closest('details'); if(fold && !fold.open) fold.open = true;
+  });
+  (parked || []).forEach(rec => {
+    /* its round is not on this surface now: the thread waits, still open */
+    if(rec.el.parentNode === rec.pk){ rec.el.remove(); return; }
+    if(!rec.el.isConnected || !rec.focus || !rec.focus.isConnected || document.activeElement === rec.focus) return;
+    try{ rec.focus.focus({ preventScroll:true }); }catch(_){}
+    if(rec.sel) try{ rec.focus.setSelectionRange(rec.sel[0], rec.sel[1], rec.sel[2] || 'none'); }catch(_){}
+    if(rec.top) rec.focus.scrollTop = rec.top;
+  });
+  if(parked && parked.door && (!document.activeElement || document.activeElement === document.body)){
+    box.querySelector(`[data-talk-door="${CSS.escape(parked.door)}"]`)?.focus({ preventScroll:true });
+  }
+}
 
 /* roots oldest first, each followed by its replies oldest first; a reply whose
    root is gone stands on its own */
@@ -27823,7 +28242,10 @@ function csTalkOrder(list){
   });
   return out;
 }
-function csTalkRow(c, child, focusId){
+/* one comment. `p` prefixes its ids: the receipt's thread keeps the bare ones,
+   a thread in line carries its own, so two views of one round never share an id */
+function csTalkRow(c, child, focusId, p){
+  p = p || '';
   const a = c.author || {};
   const name = a.name || 'A golfer';
   const first = csTalkFirst(name);
@@ -27834,7 +28256,7 @@ function csTalkRow(c, child, focusId){
       ? `<button type="button" class="mini" data-talk-remove="${esc(c.id)}">Remove</button>`
       : (!c.is_mine ? `<button type="button" class="mini" data-talk-report="${esc(c.id)}" aria-label="Report ${esc(first)}’s comment">Report</button>` : ''),
   ].join('');
-  return `<article class="cs-talk-c${child?' is-reply':''}${target?' is-target':''}" id="talk-c-${esc(c.id)}" tabindex="-1" aria-label="Comment by ${esc(name)}${target?(c.is_mine?', just added':', opened from a notification'):''}">
+  return `<article class="cs-talk-c${child?' is-reply':''}${target?' is-target':''}" id="${esc(p)}talk-c-${esc(c.id)}" tabindex="-1" aria-label="Comment by ${esc(name)}${target?(c.is_mine?', just added':', opened from a notification'):''}">
     ${face(a.id, a.marker, 28)}
     <div class="cs-talk-body">
       <div class="cs-talk-who"><b class="cs-social">${esc(name)}</b><span class="cs-agate-s">${esc(csTalkWhen(c.created_at))}</span></div>
@@ -27846,11 +28268,18 @@ function csTalkRow(c, child, focusId){
   </article>`;
 }
 
-/* the conversation's slot on the receipt: read, then draw */
-async function csPaintRoundTalk(rid, focusId, scrollTo){
-  const slot = document.getElementById('rcptTalk');
+/* a view of the conversation: read, then draw. `at` is the slot — the
+   receipt's `#rcptTalk` when it is not given, or a thread in line */
+async function csPaintRoundTalk(rid, focusId, scrollTo, at){
+  const slot = at || document.getElementById('rcptTalk');
   if(!slot || !rid || state.demo || !window.sb || !window.CS?.user) return;
+  const inline = !!slot.__talkInline;
   slot.dataset.rid = rid;
+  const seq = slot.__talkSeq = (slot.__talkSeq || 0) + 1;
+  const askedAt = ++csTalkClock;
+  /* a receipt that closed is gone; a thread in line may be parked while its
+     surface repaints, and still wants its answer */
+  const live = () => slot.dataset.rid === rid && slot.__talkSeq === seq && (inline || slot.isConnected);
   let d = null;
   try{
     /* the focus rides the read, so a comment past the newest page still opens;
@@ -27860,73 +28289,125 @@ async function csPaintRoundTalk(rid, focusId, scrollTo){
     if(res.error) throw res.error;
     d = res.data;
   }catch(e){
-    if(!slot.isConnected || slot.dataset.rid !== rid) return;
+    if(!live()) return;
     if(csTalkSkew(e)){ slot.innerHTML = ''; return; }
     slot.innerHTML = `<p class="fine">${esc(CS_TALK.readFailed)} <button type="button" class="mini" data-talk-retry>Try again</button></p>`;
-    slot.querySelector('[data-talk-retry]')?.addEventListener('click', ()=>csPaintRoundTalk(rid, focusId, scrollTo));
+    slot.querySelector('[data-talk-retry]')?.addEventListener('click', ()=>csPaintRoundTalk(rid, focusId, scrollTo, at));
     return;
   }
-  if(!slot.isConnected || slot.dataset.rid !== rid) return;
-  if(!d || !d.ok){ slot.innerHTML = ''; return; }
-  if(window.csTalkSocial[rid]) window.csTalkSocial[rid].comment_count = d.count;
+  if(!live()) return;
+  if(!d || !d.ok){ slot.innerHTML = inline ? `<p class="fine">${esc(CS_TALK.gone)}</p>` : ''; return; }
   slot.__talk = d;
+  const moved = csTalkSocialSync(rid, d.count, d.comments, askedAt);
+  /* D405 · the round's page says whose round it is, from the thread's answer */
+  if(!inline) csRcptTitleFromThread(slot, d.round);
   csTalkRender(slot, rid, focusId);
-  const el = focusId ? document.getElementById('talk-c-' + focusId) : null;
-  if(el){ el.scrollIntoView({ block:'center' }); el.focus({ preventScroll:true }); }
-  else if(scrollTo) slot.scrollIntoView({ block:'start' });
+  csTalkFocusAt(slot, focusId, scrollTo);
+  if(moved) csTalkDoorsRefresh(rid);
 }
 window.csPaintRoundTalk = csPaintRoundTalk;
+function csTalkFocusAt(slot, focusId, scrollTo){
+  const el = focusId ? slot.querySelector('#' + CSS.escape((slot.__talkPfx || '') + 'talk-c-' + focusId)) : null;
+  if(el){ el.scrollIntoView({ block: slot.__talkInline ? 'nearest' : 'center' }); el.focus({ preventScroll:true }); }
+  else if(scrollTo && !slot.__talkInline) slot.scrollIntoView({ block:'start' });
+}
 
 function csTalkRender(slot, rid, focusId){
   const d = slot.__talk; if(!d) return;
+  const inline = !!slot.__talkInline, p = slot.__talkPfx || '';
   const dr = csTalkDraft(rid);
   const list = Array.isArray(d.comments) ? d.comments : [];
   const parent = dr.parent ? list.find(c=>c.id===dr.parent && c.can_reply) : null;
   if(dr.parent && !parent) dr.parent = null;
-  const th = d.thread || {}, pr = d.notify_prefs || {};
-  const hint = th.muted ? CS_TALK.mutedHint
-    : (th.following && pr.followed !== false) ? CS_TALK.followHint
-    : pr.replies !== false ? CS_TALK.replyHint : CS_TALK.offHint;
-  const course = d.round && d.round.course;
-  const door = course && course.api_course_id && course.name
+  /* the reply target this view draws is the one it sends (csTalkSend): one draft, but a view
+     that was not redrawn when another view chose a target must not send that target unseen */
+  slot.__talkParent = parent ? parent.id : null;
+  const th = d.thread || {}, pr = d.notify_prefs || {}, rd = d.round || {};
+  const st = csTalkStateOf(th);
+  const mine = !!rd.is_mine, owner = rd.owner && rd.owner.name;
+  const ownOn = pr.own_round !== false;
+  const choice = csTalkChoice(st, mine, ownOn);
+  const hint = csTalkHint(st, pr, mine);
+  const head = csTalkHead(owner, rd.gross, mine);
+  const count = Number(d.count) || 0;
+  const course = rd.course;
+  /* the receipt keeps the WHOLE conversation, a reply under its comment, and
+     the course's door; in line it is the newest three, oldest first and flat
+     (a reply still says "To …"), with every earlier one a press away */
+  let rows, above = '';
+  if(inline){
+    const all = !!slot.__talkAll;
+    /* N = the thread's count less the three shown (never fewer than the rows
+       in hand, so a count that did not arrive cannot hide a comment) */
+    const more = all ? 0 : Math.max(0, Math.max(count, list.length) - 3);
+    rows = (all ? list : list.slice(-3)).map(c=>csTalkRow(c, false, focusId, p));
+    above = (all && d.page && d.page.truncated) ? `<p class="fine">${esc(CS_TALK.truncated(d.page.newest, d.count))}</p>`
+      : more ? `<button type="button" class="mini cs-talk-more" data-talk-earlier>${esc(csTalkEarlier(more))}</button>` : '';
+  } else {
+    rows = csTalkOrder(list).map(([c,ch])=>csTalkRow(c, ch, focusId, p));
+    above = (d.page && d.page.truncated) ? `<p class="fine">${esc(CS_TALK.truncated(d.page.newest, d.count))}</p>` : '';
+  }
+  const door = !inline && course && course.api_course_id && course.name
     ? `<button type="button" class="cs-talk-door" data-talk-course="${esc(course.api_course_id)}"><span><b class="cs-name">${esc(course.name)}</b><span class="cs-agate-s is-phrase">${esc(CS_TALK.courseSub)}</span></span><span aria-hidden="true">›</span></button>`
     : '';
-  slot.innerHTML = `<section class="cs-talk" aria-labelledby="talkHead">
+  const notify = `<div class="cs-talk-notify"><label class="cs-agate-s" for="${esc(p)}talkNotify">${esc(CS_TALK.notifyHead)}</label>`
+    + `<select class="f" id="${esc(p)}talkNotify" data-talk-notify data-choice="${choice}">`
+    + csTalkChoiceOptions(mine, ownOn).map(k=>`<option value="${k}"${k===choice?' selected':''}>${esc(CS_TALK.notify[k])}</option>`).join('')
+    + `</select></div>`;
+  slot.innerHTML = `<section class="cs-talk${inline ? ' is-inline' : ''}" ${inline ? `aria-label="${esc(head)}"` : `aria-labelledby="talkHead"`}>
     ${door}
-    <div class="cs-talk-head">
-      <h3 class="eyebrow" id="talkHead">${esc(CS_TALK.head)}<span class="cs-agate-s"> · ${esc(String(d.count || 0))}</span></h3>
-      <button type="button" class="mini" data-talk-follow aria-pressed="${th.following?'true':'false'}">${esc(th.following ? CS_TALK.following : CS_TALK.follow)}</button>
-    </div>
-    ${(d.page && d.page.truncated) ? `<p class="fine">${esc(CS_TALK.truncated(d.page.newest, d.count))}</p>` : ''}
-    <div class="cs-talk-list">${list.length ? csTalkOrder(list).map(([c,ch])=>csTalkRow(c, ch, focusId)).join('') : `<p class="fine">${esc(CS_TALK.empty)}</p>`}</div>
+    ${inline ? '' : `<div class="cs-talk-head"><h3 class="eyebrow" id="talkHead">${esc(head)}<span class="cs-agate-s"> · ${esc(String(count))}</span></h3></div>`}
+    ${above}
+    <div class="cs-talk-list">${rows.length ? rows.join('') : `<p class="fine">${esc(CS_TALK.empty)}</p>`}</div>
     <div class="cs-talk-compose">
       ${parent ? `<div class="cs-talk-ctx"><span class="cs-agate-s">Replying to ${esc(csTalkFirst(parent.author && parent.author.name))}</span><button type="button" class="mini" data-talk-cancel aria-label="Cancel reply">Cancel</button></div>` : ''}
-      <label class="cs-agate-s" for="talkDraft">${esc(parent ? CS_TALK.reply : CS_TALK.add)}</label>
-      <textarea id="talkDraft" class="f cs-talk-input" maxlength="500" rows="3" placeholder="${esc(CS_TALK.placeholder)}">${esc(dr.text)}</textarea>
-      <div class="cs-talk-send"><span class="fine" id="talkHint">${esc(hint)}</span><button type="button" class="btn" id="talkSend">${esc(parent ? CS_TALK.sendReply : CS_TALK.send)}</button></div>
-      <p class="fine cs-talk-err" id="talkErr" role="alert"></p>
-      <div><button type="button" class="mini" data-talk-mute aria-pressed="${th.muted?'true':'false'}">${esc(th.muted ? CS_TALK.unmute : CS_TALK.mute)}</button></div>
+      <label class="${inline ? 'cs-sr' : 'cs-agate-s'}" for="${esc(p)}talkDraft">${esc(parent ? CS_TALK.reply : CS_TALK.add)}</label>
+      <textarea id="${esc(p)}talkDraft" class="f cs-talk-input" data-talk-draft maxlength="500" rows="${inline ? 2 : 3}" placeholder="${esc(csTalkPlaceholder(owner, rd.gross, mine))}">${esc(dr.text)}</textarea>
+      <div class="cs-talk-send"><span class="fine" id="${esc(p)}talkHint" data-talk-hint>${esc(hint)}</span><button type="button" class="btn${inline ? ' dark' : ''}" id="${esc(p)}talkSend" data-talk-send${slot.__talkSending ? ' disabled' : ''}>${esc(parent ? CS_TALK.sendReply : CS_TALK.send)}</button></div>
+      <p class="fine cs-talk-err" id="${esc(p)}talkErr" data-talk-err role="alert"></p>
+      ${notify}
     </div>
   </section>`;
-  const ta = slot.querySelector('#talkDraft');
+  const ta = slot.querySelector('[data-talk-draft]');
   ta?.addEventListener('input', ()=>{ dr.text = ta.value; });
-  slot.querySelector('#talkSend')?.addEventListener('click', ()=>csTalkSend(slot, rid));
-  slot.querySelector('[data-talk-cancel]')?.addEventListener('click', ()=>{ dr.parent = null; csTalkRender(slot, rid); slot.querySelector('#talkDraft')?.focus(); });
+  slot.querySelector('[data-talk-send]')?.addEventListener('click', ()=>csTalkSend(slot, rid));
+  slot.querySelector('[data-talk-cancel]')?.addEventListener('click', ()=>{
+    dr.parent = null; csTalkRender(slot, rid); csTalkRenderOthers(slot, rid);
+    slot.querySelector('[data-talk-draft]')?.focus();
+  });
   slot.querySelectorAll('[data-talk-reply]').forEach(b=>b.addEventListener('click', ()=>{
-    dr.parent = b.dataset.talkReply; csTalkRender(slot, rid);
-    slot.querySelector('#talkDraft')?.focus();
+    dr.parent = b.dataset.talkReply; csTalkRender(slot, rid); csTalkRenderOthers(slot, rid);
+    slot.querySelector('[data-talk-draft]')?.focus();
   }));
-  slot.querySelector('[data-talk-follow]')?.addEventListener('click', ()=>csTalkState(slot, rid, th.following ? 'none' : 'following'));
-  slot.querySelector('[data-talk-mute]')?.addEventListener('click', ()=>csTalkState(slot, rid, th.muted ? 'none' : 'muted'));
+  slot.querySelector('[data-talk-earlier]')?.addEventListener('click', ()=>{
+    slot.__talkAll = true; csTalkRender(slot, rid);
+    /* the first earlier comment takes the focus the button had */
+    slot.querySelector('.cs-talk-c')?.focus();
+  });
+  slot.querySelector('[data-talk-notify]')?.addEventListener('change', e=>csTalkState(slot, rid, e.currentTarget));
   slot.querySelector('[data-talk-course]')?.addEventListener('click', e=>csOpenCoursePeople(e.currentTarget.dataset.talkCourse));
   slot.querySelectorAll('[data-talk-remove]').forEach(b=>b.addEventListener('click', ()=>csTalkRemove(slot, rid, b)));
   slot.querySelectorAll('[data-talk-report]').forEach(b=>b.addEventListener('click', ()=>csTalkReportForm(slot, b.dataset.talkReport)));
 }
 
+/* a line the golfer can SEE: drawn (a closed sheet and a view that is not showing are both
+   display:none), inside the window, and not under something (a sheet or the full board opened over
+   it). Where the refusal cannot be seen the toast says it as well. */
+function csTalkSeen(el){
+  if(!el || !el.isConnected || !el.getClientRects().length) return false;
+  const r = el.getBoundingClientRect();
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  if(x < 0 || y < 0 || x > window.innerWidth || y > window.innerHeight) return false;
+  const hit = document.elementFromPoint(x, y);
+  return !!hit && (el.contains(hit) || hit.contains(el));
+}
 async function csTalkSend(slot, rid){
   const dr = csTalkDraft(rid);
-  const ta = slot.querySelector('#talkDraft'), err = slot.querySelector('#talkErr'), btn = slot.querySelector('#talkSend');
+  const ta = slot.querySelector('[data-talk-draft]'), err = slot.querySelector('[data-talk-err]');
   if(ta) dr.text = ta.value;
+  /* what the composer shows is what is sent: a reply target another view chose, and this view
+     was not redrawn for, is not sent unseen */
+  dr.parent = slot.__talkParent || null;
   const text = dr.text.trim();
   if(!text){ if(err) err.textContent = CS_TALK.needText; ta?.focus(); return; }
   /* one idempotency key per (draft, words): a retry of the same words is the
@@ -27934,30 +28415,110 @@ async function csTalkSend(slot, rid){
   if(!dr.clientId || dr.clientFor !== text + '\u0000' + (dr.parent||'')){
     dr.clientId = csTalkUuid(); dr.clientFor = text + '\u0000' + (dr.parent||'');
   }
-  if(btn) btn.disabled = true;
-  if(err) err.textContent = '';
+  /* a send in flight is a state of the thread, not of two elements: a repaint (a read, a Reply
+     pressed) draws the button off, and the answer finds the controls again where they are NOW */
+  const busy = on => {
+    slot.__talkSending = on;
+    const b = slot.querySelector('[data-talk-send]'); if(b) b.disabled = on;
+    const e = slot.querySelector('[data-talk-err]'); if(on && e) e.textContent = '';
+  };
+  busy(true);
+  let data = null;
   try{
-    const { data, error } = await window.sb.rpc('add_posted_round_comment',
+    const res = await window.sb.rpc('add_posted_round_comment',
       { p_round: rid, p_body: text, p_parent: dr.parent || null, p_client_id: dr.clientId });
-    if(error) throw error;
-    if(!data || !data.ok) throw new Error(CS_TALK.failed);
-    csTalkDrafts.delete(rid);
-    if(window.csTalkSocial[rid]) window.csTalkSocial[rid].comment_count = data.count;
-    toast(CS_TALK.sent);
-    await csPaintRoundTalk(rid, data.comment && data.comment.id);
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.ok) throw new Error(CS_TALK.failed);
+    data = res.data;
   }catch(e){
-    /* the draft, the reply target and the key all stay: nothing typed is lost */
-    if(btn) btn.disabled = false;
-    if(err) err.textContent = humanError(e, CS_TALK.failed);
+    /* the draft, the reply target and the key all stay: nothing typed is lost. The refusal is written
+       with them, and said by the toast too when the golfer cannot see the line (a thread folded, a
+       sheet closed or opened over it, a view switched away from) */
+    busy(false);
+    const msg = humanError(e, CS_TALK.failed), line = slot.querySelector('[data-talk-err]');
+    if(line) line.textContent = msg;
+    if(!csTalkSeen(line)) toast(msg, 'neg');
+    /* the button that held the focus was off while it sent, and the browser dropped the focus on the page */
+    else if(!document.activeElement || document.activeElement === document.body) slot.querySelector('[data-talk-send]')?.focus({ preventScroll:true });
+    return;
   }
+  slot.__talkSending = false;
+  csTalkDrafts.delete(rid);
+  toast(CS_TALK.sent);
+  csTalkLanded(slot, rid, data);
 }
-async function csTalkState(slot, rid, next){
+/* D405 · a comment the server took shows AT ONCE, in every open view of its
+   thread, from the server's own answer (no second read), and the doors' count
+   and newest comment follow it. Commenting is joining the conversation: from
+   D405 on the server records `following` for a golfer who had no setting on the
+   round and does not own it, so the control and the hint say so now (a server
+   that has not got D405 records nothing, and its doors' rows carry no `latest`:
+   the control does not promise what it will not do). */
+function csTalkLanded(slot, rid, data){
+  const c = data && data.comment;
+  const views = new Set([slot, ...csTalkViewsOf(rid)]);
+  const row = window.csTalkSocial && window.csTalkSocial[rid];
+  /* the round's own door says whether this server has D405; a thread opened with no door (a link, a
+     notice) goes by what the last doors read said */
+  const older = row ? !Object.prototype.hasOwnProperty.call(row, 'latest') : window.csTalkHasLatest === false;
+  let mine = false;
+  views.forEach(v => {
+    const d = v.__talk; if(!d) return;
+    /* a read that began before this landed answers with a thread that does not hold the
+       comment: it is stale now and must not redraw the thread over it */
+    v.__talkSeq = (v.__talkSeq || 0) + 1;
+    if(c && c.id && !(d.comments || []).some(x=>x.id === c.id)) d.comments = (d.comments || []).concat([c]);
+    const n = Number(data.count); if(Number.isFinite(n)) d.count = n;
+    if(d.round && d.round.is_mine) mine = true;
+    if(!older && csTalkStateOf(d.thread) === 'none' && !(d.round && d.round.is_mine)) d.thread = { state:'following', following:true, muted:false };
+    csTalkRender(v, rid, v === slot && c ? c.id : null);
+  });
+  csTalkFocusAt(slot, c && c.id, false);
+  if(row && !older && (row.thread_state == null || row.thread_state === 'none') && !mine) row.thread_state = 'following';
+  const landedAt = ++csTalkClock;
+  csTalkReadsAgain(rid);
+  if(csTalkSocialSync(rid, data.count, (slot.__talk && slot.__talk.comments) || null, landedAt)) csTalkDoorsRefresh(rid);
+}
+/* a view in line whose FIRST read is still out has nothing to patch, and its answer would predate
+   what just landed: it reads again (the earlier answer is discarded, its sequence is stale) */
+function csTalkReadsAgain(rid){
+  csTalkUi().els.forEach(el => {
+    if(el.dataset.rid === rid && !el.__talk && el.isConnected) csPaintRoundTalk(rid, null, false, el);
+  });
+}
+/* Notify me about · the write, and a failed one puts the control back */
+async function csTalkState(slot, rid, sel){
+  const prev = sel.dataset.choice || '', choice = sel.value, next = csTalkChoiceState(choice);
+  if(!next || choice === prev) return;
+  const seq = sel.__talkSeq = (sel.__talkSeq || 0) + 1;
   try{
     const { error } = await window.sb.rpc('set_round_thread_state', { p_round: rid, p_state: next });
     if(error) throw error;
-    const d = slot.__talk;
-    if(d){ d.thread = { state: next, following: next==='following', muted: next==='muted' }; csTalkRender(slot, rid); }
-  }catch(e){ toast(humanError(e, 'That setting did not save.'), 'neg'); }
+    if(seq !== sel.__talkSeq) return;
+    sel.dataset.choice = choice;
+    /* the choice is the golfer's, per round: every open view of the thread says it, and a read that
+       began before it was made must not put the old one back */
+    const views = new Set([slot, ...csTalkViewsOf(rid)]);
+    views.forEach(v => {
+      const d = v.__talk; if(!d) return;
+      v.__talkSeq = (v.__talkSeq || 0) + 1;
+      d.thread = { state: next, following: next === 'following', muted: next === 'muted' };
+      if(v !== slot){ csTalkRender(v, rid); return; }
+      /* the golfer's own view stays under their hands: its control (a read may have drawn a newer one
+         while the write was out, with the old choice) and its hint */
+      const cur = v.querySelector('[data-talk-notify]');
+      if(cur){ cur.value = choice; cur.dataset.choice = choice; }
+      const h = v.querySelector('[data-talk-hint]');
+      if(h) h.textContent = csTalkHint(next, d.notify_prefs, !!(d.round && d.round.is_mine));
+    });
+    csTalkReadsAgain(rid);
+    const row = window.csTalkSocial && window.csTalkSocial[rid];
+    if(row) row.thread_state = next;
+  }catch(e){
+    if(seq !== sel.__talkSeq) return;
+    sel.value = prev;
+    toast(humanError(e, CS_TALK.stateFailed), 'neg');
+  }
 }
 async function csTalkRemove(slot, rid, b){
   if(!b.dataset.armed){ b.dataset.armed = '1'; b.textContent = CS_TALK.removeArm; return; }
@@ -27965,16 +28526,35 @@ async function csTalkRemove(slot, rid, b){
   try{
     const { error } = await window.sb.rpc('remove_posted_round_comment', { p_comment: b.dataset.talkRemove });
     if(error) throw error;
-    await csPaintRoundTalk(rid);
-  }catch(e){ b.disabled = false; toast(humanError(e, 'Could not remove that comment.'), 'neg'); }
+  }catch(e){ b.disabled = false; toast(humanError(e, 'Could not remove that comment.'), 'neg'); return; }
+  /* the view it was removed from reads again, and so does every other open
+     view of the same thread */
+  const others = csTalkViewsOf(rid).filter(v => v !== slot);
+  await csPaintRoundTalk(rid, null, false, slot);
+  others.forEach(v => csPaintRoundTalk(rid, null, false, v));
+}
+/* every open view of one round's thread: its threads in line and, while the
+   sheet shows it, the receipt's */
+function csTalkViewsOf(rid){
+  const out = [];
+  csTalkUi().els.forEach(el => { if(el.dataset.rid === rid && el.__talk) out.push(el); });
+  const rc = document.getElementById('rcptTalk');
+  if(rc && rc.dataset.rid === rid && rc.__talk && rc.isConnected && document.getElementById('sheet')?.classList.contains('open')) out.push(rc);
+  return out;
+}
+/* the draft (its words, its reply target) is one per round: a view that was not the one
+   typed in draws it again, so every view of the thread says what it will send */
+function csTalkRenderOthers(slot, rid){
+  csTalkViewsOf(rid).forEach(v => { if(v !== slot) csTalkRender(v, rid); });
 }
 /* the report is inline: a sheet here would replace the round it is about */
 function csTalkReportForm(slot, cid){
   const box = slot.querySelector(`[data-talk-repbox="${CSS.escape(cid)}"]`); if(!box) return;
   if(!box.hidden){ box.hidden = true; box.innerHTML = ''; return; }
+  const p = slot.__talkPfx || '';
   box.hidden = false;
-  box.innerHTML = `<label class="cs-agate-s" for="talkRep-${esc(cid)}">What’s wrong with it?</label>
-    <input class="f" id="talkRep-${esc(cid)}" maxlength="500" autocomplete="off">
+  box.innerHTML = `<label class="cs-agate-s" for="${esc(p)}talkRep-${esc(cid)}">What’s wrong with it?</label>
+    <input class="f" id="${esc(p)}talkRep-${esc(cid)}" maxlength="500" autocomplete="off">
     <div class="cs-talk-acts"><button type="button" class="mini" data-talk-repgo>Send the report</button><button type="button" class="mini" data-talk-repno>Cancel</button></div>`;
   const inp = box.querySelector('input');
   inp?.focus();
@@ -27990,6 +28570,22 @@ function csTalkReportForm(slot, cid){
   });
 }
 
+/* D405 · the round's page says whose round it is: "Theo’s round" beside their
+   face; "Your round" stays; "The round" when nobody named the owner. Set from
+   the row that opened it, and again when the thread answers. */
+function csRcptTitleSet(mine, name, pid, marker){
+  const h = document.getElementById('shTitle'); if(!h) return;
+  const n = csTalkNamed(name);
+  if(mine){ h.textContent = 'Your round'; return; }
+  if(!n){ h.textContent = csTalkRoundTitle(null); return; }
+  h.innerHTML = `<span class="rcpt-owner" aria-hidden="true">${face(pid, marker, 28)}</span>${esc(csTalkRoundTitle(n))}`;
+}
+function csRcptTitleFromThread(slot, rd){
+  if(!rd || !slot.isConnected || slot.id !== 'rcptTalk' || !document.getElementById('shBody')?.contains(slot)) return;
+  const o = rd.owner || {};
+  csRcptTitleSet(!!rd.is_mine, o.name, o.id, o.marker);
+}
+
 /* a friend outside the league cannot read `round_card` (it is league-scoped),
    but may read the round through its conversation — the same facts the wire
    already showed them, and never a point */
@@ -28001,8 +28597,11 @@ async function csRoundGate(rid){
     if(error) return csTalkSkew(error) ? { state:'skew' } : { state:'error', error };
     if(!data || !data.ok || !data.round) return { state:'gone' };
     const r = data.round;
+    /* D405 · the owner rides along, so the page can be titled with their name */
     return { state:'ok', round: { id: rid, profile_id: r.owner && r.owner.id, gross: r.gross, holes_played: r.holes,
-             played_on: r.played_on, course_label: (r.course && r.course.label) || '', photo_path: r.photo_path || null } };
+             played_on: r.played_on, course_label: (r.course && r.course.label) || '', photo_path: r.photo_path || null,
+             golfer: (r.owner && r.owner.name) || null, marker: (r.owner && r.owner.marker) || null,
+             is_mine: r.is_mine != null ? !!r.is_mine : undefined } };
   }catch(e){ return { state:'error', error:e }; }
 }
 
@@ -31791,8 +32390,15 @@ async function openTourCard(profileId){
       psFriends()
     ]);
     card = cr.data;
-    const f = (fr||[]).find(x => x.profile_id === profileId);
-    if(f){ tcFid = f.friendship_id; tcRel = f.status==='accepted' ? 'friend' : (f.incoming ? 'incoming' : 'requested'); }
+    /* D405 · L-32: a buddy list that could not be read is not an empty one.
+       psFriends answers null when it could not ask, and `(fr||[])` read that
+       as "not a buddy" — an existing buddy was offered Add buddy. Unknown
+       draws no add action at all. */
+    if(fr == null) tcRel = 'unknown';
+    else {
+      const f = fr.find(x => x.profile_id === profileId);
+      if(f){ tcFid = f.friendship_id; tcRel = f.status==='accepted' ? 'friend' : (f.incoming ? 'incoming' : 'requested'); }
+    }
   }catch(_){ card=null; }
   if(!card || !card.visible){
     openSheet('A golfer’s card','PRIVATE','<p class="fine" style="padding:8px 0">This golfer keeps their card private, or you don’t share a season yet.</p>');
@@ -31981,7 +32587,7 @@ async function openTourCard(profileId){
      most people opened this sheet. Settled states render as a tag, not a
      button, so there is nothing to tap that cannot do anything. */
   let addHtml='';
-  if(!p.is_me){
+  if(!p.is_me && tcRel!=='unknown'){
     addHtml = tcRel==='friend'
       ? `<div style="margin-top:12px"><span class="ptag ok">Buddies</span></div>`
       : tcRel==='requested'

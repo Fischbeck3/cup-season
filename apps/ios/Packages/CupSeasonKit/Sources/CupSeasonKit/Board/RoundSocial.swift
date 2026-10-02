@@ -50,6 +50,14 @@ public struct PostedRoundThread: Sendable, Equatable {
   /// `notify_prefs`: the switches the composer's line reports (on unless off)
   public let followedOn: Bool
   public let repliesOn: Bool
+  public let ownRoundOn: Bool
+  /// D405 · whose round it is and what it was, from `round` — the composer,
+  /// the round's page and its conversation head say them
+  public let ownerId: UUID?
+  public let ownerName: String?
+  public let ownerMarker: String?
+  public let gross: Int?
+  public let isMine: Bool
   public init(_ json: JSONValue) {
     visible = json["ok"]?.bool == true
     canComment = json["can_comment"]?.bool == true
@@ -63,7 +71,27 @@ public struct PostedRoundThread: Sendable, Equatable {
     truncated = json["page"]?["truncated"]?.bool ?? (count > comments.count)
     followedOn = json["notify_prefs"]?["followed"]?.bool != false
     repliesOn = json["notify_prefs"]?["replies"]?.bool != false
+    ownRoundOn = json["notify_prefs"]?["own_round"]?.bool != false
+    ownerId = json["round"]?["owner"]?["id"]?.string.flatMap(UUID.init)
+    ownerName = json["round"]?["owner"]?["name"]?.string
+    ownerMarker = json["round"]?["owner"]?["marker"]?.string
+    gross = json["round"]?["gross"]?.int
+    isMine = json["round"]?["is_mine"]?.bool == true
   }
+  /// D405 · what this golfer will hear about (derived from the stored state)
+  public var notify: TalkCopy.Notify { TalkCopy.notify(state: state, isMine: isMine, ownRoundOn: ownRoundOn) }
+  public var notifyOptions: [TalkCopy.Notify] { TalkCopy.notifyOptions(isMine: isMine, ownRoundOn: ownRoundOn) }
+  public var placeholder: String { TalkCopy.placeholder(owner: ownerName, gross: gross, mine: isMine) }
+  public var conversationHead: String { TalkCopy.conversationHead(owner: ownerName, gross: gross, mine: isMine) }
+  public var hint: String {
+    TalkCopy.hint(state: state, followedOn: followedOn, repliesOn: repliesOn, isMine: isMine, ownRoundOn: ownRoundOn)
+  }
+  /// The in-line view (D405): the newest `limit` comments, flat, oldest first.
+  /// A reply says "To Blake"; the round's own page keeps replies nested.
+  public func recent(_ limit: Int = 3) -> [SocialComment] { Array(comments.suffix(limit)) }
+  /// N in "Earlier comments (N)": the comments the server says exist that the
+  /// in-line view is not showing.
+  public func earlierCount(showing: Int) -> Int { max(0, count - showing) }
   /// An unavailable root must not make its visible replies disappear.
   public var roots: [SocialComment] {
     let ids = Set(comments.map(\.id))
@@ -82,6 +110,10 @@ public struct SocialNotice: Sendable, Equatable, Identifiable {
   public let course: String?
   public let createdAt: String
   public var read: Bool
+  /// D405 · `my_notifications` names the round's owner and says whether it is
+  /// yours. nil on a server before the migration, which keeps the older sentences.
+  public let roundOwnerName: String?
+  public let roundIsMine: Bool?
   public init?(_ json: JSONValue) {
     guard let id = json["id"]?.string.flatMap(UUID.init), let actor = SocialPerson(json["actor"]),
           let roundId = json["round_id"]?.string.flatMap(UUID.init),
@@ -90,18 +122,115 @@ public struct SocialNotice: Sendable, Equatable, Identifiable {
     kind = json["kind"]?.string ?? "own_round"; excerpt = json["excerpt"]?.string ?? ""
     course = json["course_name"]?.string; createdAt = json["created_at"]?.string ?? ""
     read = json["read"]?.bool == true
+    roundOwnerName = json["round_owner_name"]?.string
+    roundIsMine = json["round_is_mine"]?.bool
   }
+  /// The three sentences both clients print (contract §3), naming the round
+  /// since D405: *"Blake replied to you on Theo’s round."*, *"Blake commented
+  /// on Theo’s round at North Grove."*, *"Blake commented on your round."*.
+  /// A server that predates D405 does not say whose round it is, and the older
+  /// words stand rather than guess. When the commenter owns the round the
+  /// sentence repeats the name — one rule, no special case.
   public var sentence: String {
     let name = CourseNames.first(actor.name)
+    let owner = roundOwnerName.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : TalkCopy.first($0) }
     switch kind {
-    case "reply": return "\(name) replied to your comment."
-    case "followed": return "\(name) commented in a conversation you follow."
+    case "reply":
+      if roundIsMine == true { return "\(name) replied to you on your round." }
+      if roundIsMine == false, let owner { return "\(name) replied to you on \(owner)’s round." }
+      return "\(name) replied to your comment."
+    case "followed":
+      // an older server does not say whether the round is yours (it does say whose it is), and a golfer
+      // who chose Every comment on their own round would be named in the third person: until it does, the
+      // older words stand
+      guard let mine = roundIsMine else { return "\(name) commented in a conversation you’re in." }
+      // a golfer who chose Every comment on their own round (their own-round notice off) is told
+      // about it as a followed thread: it is their round
+      if mine { return "\(name) commented on your round." }
+      guard let owner else { return "\(name) commented in a conversation you’re in." }
+      let at = course.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+      return "\(name) commented on \(owner)’s round" + (at.map { " at \($0)" } ?? "") + "."
     default: return "\(name) commented on your round."
     }
   }
   /// N4-099 (root's ruling) · an inbox at zero is a cleared queue, not an
   /// empty object, so it has no door: the web's `CS_INBOX.empty`, word for word.
   public static let inboxEmpty = "You’re all caught up."
+}
+
+/// A server timestamp (`2026-09-25T17:02:11.123456+00:00`, with or without the
+/// fraction) as a Date — one parser for the notices, the digest and the door.
+public enum SocialStamp {
+  public static func parse(_ text: String) -> Date? {
+    let fractional = ISO8601DateFormatter()
+    fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return fractional.date(from: text) ?? ISO8601DateFormatter().date(from: text)
+  }
+}
+
+public extension SocialStamp {
+  /// How long ago a comment was said, in the web's words (`csTalkWhen`): "Now",
+  /// "12m", "2h", then the day, "Sep 20". A thread reads like a record of who
+  /// said what, and an absolute clock time on every line read like a log.
+  static func when(_ text: String, now: Date = Date()) -> String {
+    guard let date = parse(text) else { return "" }
+    let seconds = max(0, now.timeIntervalSince(date))
+    if seconds < 60 { return "Now" }
+    if seconds < 3600 { return "\(Int(seconds / 60))m" }
+    if seconds < 86_400 { return "\(Int(seconds / 3600))h" }
+    return date.formatted(.dateTime.month(.abbreviated).day())
+  }
+}
+
+/// D405 · one item of `posted_rounds_social`, the read that draws a round's door
+/// on Home and the board: how many comments, the newest one (so the banter shows
+/// before anyone taps), and this golfer's setting. `latest` is absent from a
+/// server before the migration, and the door then says the count alone.
+public struct RoundSocialDoor: Sendable, Equatable {
+  public struct Latest: Sendable, Equatable {
+    public let id: UUID
+    public let author: SocialPerson
+    public let body: String
+    public let createdAt: String
+    public init(id: UUID, author: SocialPerson, body: String, createdAt: String) {
+      self.id = id; self.author = author; self.body = body; self.createdAt = createdAt
+    }
+  }
+  public let roundId: UUID?
+  public let commentCount: Int
+  public let latest: Latest?
+  public let threadState: String
+  /// Whether the server sends a newest comment at all: it does from D405 on, and says so
+  /// with the `latest` key (null for a round with no comment). An older server never does,
+  /// and a door it sent stays a count: the phone does not draw a preview its web twin would not.
+  public let sendsLatest: Bool
+  public init(roundId: UUID?, commentCount: Int, latest: Latest?, threadState: String = "none", sendsLatest: Bool = true) {
+    self.roundId = roundId; self.commentCount = commentCount; self.latest = latest; self.threadState = threadState
+    self.sendsLatest = sendsLatest
+  }
+  /// The door after the open thread reported a new count and newest comment
+  /// (a comment sent or removed in line), without another read. The body is
+  /// cut as the server cuts it.
+  public func updating(count: Int, newest: SocialComment?) -> RoundSocialDoor {
+    RoundSocialDoor(roundId: roundId, commentCount: count,
+                    latest: sendsLatest ? newest.map { Latest(id: $0.id, author: $0.author, body: String($0.body.prefix(140)), createdAt: $0.createdAt) } : nil,
+                    threadState: threadState, sendsLatest: sendsLatest)
+  }
+  public init(_ json: JSONValue) {
+    roundId = json["round_id"]?.string.flatMap(UUID.init)
+    commentCount = json["comment_count"]?.int ?? 0
+    threadState = json["thread_state"]?.string ?? "none"
+    sendsLatest = json["latest"] != nil
+    if let l = json["latest"], let id = l["id"]?.string.flatMap(UUID.init), let author = SocialPerson(l["author"]),
+       let body = l["body"]?.string, !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      latest = Latest(id: id, author: author, body: body, createdAt: l["created_at"]?.string ?? "")
+    } else { latest = nil }
+  }
+  /// *"Blake: Did the putt on 18 drop?"* — only when there is a comment to show
+  public var previewLine: String? {
+    guard commentCount > 0, let latest else { return nil }
+    return TalkCopy.preview(author: latest.author.name, body: latest.body)
+  }
 }
 
 /// Writes use the complete request once. In particular a retry must never drop

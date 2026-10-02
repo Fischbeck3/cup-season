@@ -11,6 +11,11 @@
 // filtering, legacy league-board comments staying league-only, moderation, the dark
 // push switch, a course best that sits OUTSIDE the latest 60 rounds, and the Courses
 // front door (course_home) over the same circle.
+//
+// D405 (section 9, last): the newest comment on the doors' read (hidden, muted and long
+// comments), commenting as joining the conversation (never over a mute or a choice made
+// on purpose, never for the owner, never on a replay), the 'replies' thread state, and the
+// sentences that name the round (the dark push, `round_is_mine`).
 
 import { readFileSync, readdirSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
@@ -453,6 +458,106 @@ try {
   ok(big.courses.slice(4).every((c, i, a) => i === 0 || a[i - 1].api_course_id < c.api_course_id)
      && big.courses[4].rounds_total === 2, 'same-day courses break the tie by id, each grouped before the limit');
   ok(!sql(`select count(*) from pg_proc where proname = 'course_home'`).includes('2'), 'exactly one course_home');
+
+  // ---- 9 · D405 · comments live in line: the newest comment on the door, joining by commenting, 'replies' ----
+  // Runs LAST: the sections above count rounds and circles, so this adds comments and ONE friendship
+  // (l–f, so a third golfer can see l's round) and nothing else.
+  sql(`insert into friendships(requester, addressee, status) values ('${U.l}','${U.f}','accepted')`);
+  const apos = '’';
+  const stateOf = (u, r) => sql(`select coalesce((select state from round_thread_states where profile_id='${U[u]}' and round_id='${r}'),'none')`);
+  const doorOf = (u, r) => j(u, `posted_rounds_social(array['${r}']::uuid[])`).items[0];
+  const kindOf = (u, c) => sql(`select kind from social_notifications where recipient='${U[u]}' and comment_id='${c.comment.id}'`);
+  const heardBy = (u, c) => sql(`select count(*) from social_notifications where recipient='${U[u]}' and comment_id='${c.comment.id}'`);
+  const pushTitle = (u, c) => sql(`select title from push_nudges where kind='comment' and profile_id='${U[u]}' and payload->>'comment_id' = '${c.comment.id}'`);
+
+  ok(doorOf('a', R.l1).comment_count === 0 && doorOf('a', R.l1).latest === null, 'an empty conversation has a count of zero and no latest comment');
+
+  // commenting joins the conversation
+  const kJ = '30000000-0000-4000-8000-000000000009';
+  const j1 = j('a', `add_posted_round_comment('${R.l1}', 'Sixty-eight, from a Blue tee?', null, '${kJ}')`);
+  ok(stateOf('a', R.l1) === 'following', 'commenting on someone else’s round turns its notices on for you');
+  const d1 = doorOf('a', R.l1);
+  ok(d1.comment_count === 1 && d1.latest.id === j1.comment.id && d1.latest.author.id === U.a && d1.latest.author.name
+     && d1.latest.body === 'Sixty-eight, from a Blue tee?' && d1.latest.created_at, 'the door’s latest is the newest comment, with its author');
+  ok(d1.thread_state === 'following', 'and the door reports the thread state');
+
+  // the round's owner is left alone, and the sentences name the round
+  const j2 = j('l', `add_posted_round_comment('${R.l1}', 'Blue. Dry day.', '${j1.comment.id}')`);
+  ok(stateOf('l', R.l1) === 'none', 'the round’s owner is not made a follower: own_round already tells them');
+  ok(kindOf('a', j2) === 'reply' && pushTitle('a', j2) === `L replied to you on L${apos}s round`, 'a reply names the round it is on');
+  const j3 = j('l', `add_posted_round_comment('${R.l1}', 'Anyone for Saturday?')`);
+  ok(kindOf('a', j3) === 'followed' && pushTitle('a', j3) === `L commented on L${apos}s round`, 'a thread you are in names whose round it is');
+  const own = j('a', `add_posted_round_comment('${R.a1}', 'Thanks, all')`);
+  const ownRep = j('f', `add_posted_round_comment('${R.a1}', 'Level par on the front?', '${own.comment.id}')`);
+  ok(kindOf('a', ownRep) === 'reply' && pushTitle('a', ownRep) === 'F replied to you on your round', 'on your own round it says so');
+  ok(stateOf('a', R.a1) === 'none', 'and commenting on your own round sets nothing');
+  // an owner who switched own_round off and asked for every comment on their own round hears "your round"
+  j('a', `set_social_notify_prefs(p_own_round => false)`);
+  j('a', `set_round_thread_state('${R.a1}', 'following')`);
+  const ownFollow = j('f', `add_posted_round_comment('${R.a1}', 'Anyone seen the card?')`);
+  ok(kindOf('a', ownFollow) === 'followed' && pushTitle('a', ownFollow) === 'F commented on your round', 'a followed thread on your own round says your round');
+  j('a', `set_round_thread_state('${R.a1}', 'none')`);
+  j('a', `set_social_notify_prefs(p_own_round => true)`);
+
+  // Replies to me is a setting of its own, and commenting never overrides a choice
+  ok(j('a', `set_round_thread_state('${R.l1}', 'replies')`).state === 'replies' && stateOf('a', R.l1) === 'replies', 'Replies to me is its own setting');
+  ok(doorOf('a', R.l1).thread_state === 'replies', 'the door reports it');
+  const j6 = j('f', `add_posted_round_comment('${R.l1}', 'Not a reply to a')`);
+  ok(heardBy('a', j6) === '0', 'Replies to me: a plain comment from someone else does not reach you');
+  const j7 = j('f', `add_posted_round_comment('${R.l1}', 'A reply to a', '${j1.comment.id}')`);
+  ok(kindOf('a', j7) === 'reply', 'but a reply to you does');
+  j('a', `add_posted_round_comment('${R.l1}', 'One more from a')`);
+  ok(stateOf('a', R.l1) === 'replies', 'commenting does not undo a choice made on purpose');
+  j('a', `set_round_thread_state('${R.l1}', 'muted')`);
+  j('a', `add_posted_round_comment('${R.l1}', 'Muted, still talking')`);
+  ok(stateOf('a', R.l1) === 'muted', 'nor a mute');
+  const j8 = j('f', `add_posted_round_comment('${R.l1}', 'Into a mute', '${j1.comment.id}')`);
+  ok(heardBy('a', j8) === '0', 'a muted thread reaches nobody who muted it, even a reply');
+
+  // no setting is the ABSENCE of a row; a replay joins nothing; a new comment joins
+  j('a', `set_round_thread_state('${R.l1}', 'none')`);
+  ok(stateOf('a', R.l1) === 'none' && sql(`select count(*) from round_thread_states where profile_id='${U.a}' and round_id='${R.l1}'`) === '0', 'no setting is no row');
+  const replay = j('a', `add_posted_round_comment('${R.l1}', 'Sixty-eight, from a Blue tee?', null, '${kJ}')`);
+  ok(replay.replayed === true && stateOf('a', R.l1) === 'none', 'a replayed retry joins nothing');
+  j('a', `add_posted_round_comment('${R.l1}', 'Back in')`);
+  ok(stateOf('a', R.l1) === 'following', 'a new comment from a golfer with no setting joins the conversation');
+  as('a', `select set_round_thread_state('${R.l1}', 'everything');`, { expectError: 'Unknown conversation setting' });
+  ok(true, 'an unknown setting is refused');
+
+  // the notification says whose round it is
+  const ni = j('a', `my_notifications(null, 50)`).items;
+  ok(ni.some(i => i.round_id === R.a1 && i.round_is_mine === true), 'a notification on your own round says it is yours');
+  ok(ni.some(i => i.round_id === R.l1 && i.round_is_mine === false && i.round_owner_name === 'L Fixture' && i.course_name === 'Fixture Oaks'),
+     'and on another golfer’s round says whose it is, and where');
+
+  // the newest VISIBLE comment: a hidden one, a muted golfer's and a long one
+  const lastOf = u => j(u, `posted_round_thread('${R.a1}')`).comments.at(-1);
+  const lc = j('l', `add_posted_round_comment('${R.a1}', 'Newest on the round')`);
+  ok(doorOf('f', R.a1).latest.id === lc.comment.id && lastOf('f').id === lc.comment.id, 'the door’s latest is the thread’s last comment');
+  as('a', `select hide_content('comment', '${lc.comment.id}', 'Pro takedown');`);
+  ok(doorOf('f', R.a1).latest.id !== lc.comment.id && doorOf('f', R.a1).latest.id === lastOf('f').id, 'a hidden comment is never the latest');
+  const lc2 = j('l', `add_posted_round_comment('${R.a1}', 'Newest again')`);
+  sql(`insert into mutes(muter, muted) values ('${U.f}','${U.l}')`);
+  ok(doorOf('f', R.a1).latest.author.id !== U.l && doorOf('f', R.a1).latest.id === lastOf('f').id
+     && doorOf('f', R.a1).latest.id !== lc2.comment.id, 'a golfer you muted is never the latest');
+  sql(`delete from mutes where muter = '${U.f}' and muted = '${U.l}'`);
+  j('a', `add_posted_round_comment('${R.l1}', '${'x'.repeat(300)}')`);
+  ok(doorOf('a', R.l1).latest.body.length === 140, 'the latest is cut at 140 characters');
+  as('anon', `select posted_rounds_social(array['${R.l1}']::uuid[]);`, { expectError: 'permission denied' }); ok(true, 'anon still cannot read the doors');
+  ok(sql(`select count(*) from pg_proc where proname in ('set_round_thread_state','add_posted_round_comment','posted_rounds_social','my_notifications')`) === '4',
+     'no overload appeared beside the four re-created functions');
+
+  // the post-push verifier (tests/db-checks.sql, check 61) is run here, on the migrated cluster: it must be valid
+  // SQL and PASS once 20261224090000 has run — and the same block FAILS on a database that has not got it
+  const checks = readFileSync(join(root, 'tests/db-checks.sql'), 'utf8');
+  const from = checks.indexOf('-- 61 · D405'), to = checks.lastIndexOf('\n)\nselect * from checks');
+  ok(from > 0 && to > from, 'db-checks.sql carries check 61');
+  const block = checks.slice(from, to).replace(/^(--[^\n]*\n)+/, '').replace(/^union all\s*/, '');
+  const verdict = sql(block);
+  ok(/^61 · .*\|PASS — /.test(verdict), 'db-checks check 61 passes on the migrated cluster: ' + verdict.slice(0, 160));
+  sql(`alter table public.round_thread_states drop constraint round_thread_states_state_check;
+       alter table public.round_thread_states add constraint round_thread_states_state_check check (state in ('following', 'muted'));`);
+  ok(/\|FAIL — .*replies state/.test(sql(block)), 'and check 61 fails when the replies state is missing');
 
   console.log(`\nALL PASS (${passed})`);
 } catch (e) {

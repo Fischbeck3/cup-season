@@ -432,6 +432,10 @@ public enum BuddyRelation: Sendable, Equatable {
   case friend
   case incoming(friendshipId: UUID)
   case requested
+  /// The buddy list did not answer. A failed read is never an empty one
+  /// (L-32): reading it as "not a buddy" offered "Add buddy" to a golfer who
+  /// already is one. Nothing is offered to add; the page's other door stands.
+  case unknown
 
   public static func from(_ friends: [Rpc.my_friends.Row], profile: UUID) -> BuddyRelation {
     guard let f = friends.first(where: { $0.profile_id == profile }) else { return .none }
@@ -439,13 +443,18 @@ public enum BuddyRelation: Sendable, Equatable {
     if f.incoming == true, let fid = f.friendship_id { return .incoming(friendshipId: fid) }
     return .requested
   }
+  /// nil = the list could not be read
+  public static func from(_ friends: [Rpc.my_friends.Row]?, profile: UUID) -> BuddyRelation {
+    guard let friends else { return .unknown }
+    return from(friends, profile: profile)
+  }
 
   /// The button label, when there is one to tap.
   public var actionLabel: String? {
     switch self {
     case .none: "Add buddy"
     case .incoming: "Accept buddy request"
-    case .friend, .requested: nil
+    case .friend, .requested, .unknown: nil
     }
   }
   /// The settled tag, when there is nothing to tap.
@@ -474,7 +483,7 @@ public struct TourCardRepository: Sendable {
   /// `tour_card` + `my_friends` + `my_mutes` in parallel; the avatar best-effort.
   public func load(_ profileId: UUID) async throws -> TourCardLoad {
     async let cardJSON = svc.call(Rpc.tour_card(p_profile: profileId))
-    async let friends: [Rpc.my_friends.Row] = (try? await svc.call(Rpc.my_friends())) ?? []
+    async let friends: [Rpc.my_friends.Row]? = try? await svc.call(Rpc.my_friends())
     async let mutes: [UUID] = (try? await svc.call(Rpc.my_mutes())) ?? []
     async let avatar: URL? = signedAvatar(profileId)
     let card = TourCard.parse(try await cardJSON)

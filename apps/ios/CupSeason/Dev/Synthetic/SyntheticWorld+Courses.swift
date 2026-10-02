@@ -172,7 +172,7 @@ extension SyntheticWorld {
     [
       "course_id": key, "rated": mine != nil, "stars": 4.0, "count": 3, "friends": 4.5, "friends_count": 1,
       "mine": mine ?? NSNull(), "mine_note": mine == nil ? NSNull() : "Greens roll true after the rain.",
-      "notes": [["who": person(2).name, "marker": person(2).marker, "stars": 4.5, "note": "The best par fives in Fixtureville."]],
+      "notes": [["who": person(2).name, "marker": person(2).marker, "stars": 4.5, "note": "The best par fives in \(courses[0].city)."]],
     ]
   }
 }

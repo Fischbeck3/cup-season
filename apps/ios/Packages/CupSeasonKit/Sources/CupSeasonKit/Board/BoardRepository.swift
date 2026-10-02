@@ -74,6 +74,14 @@ public protocol BoardRepository: Sendable {
   func report(post: UUID, reason: String) async throws
   func scorecard(liveRound: UUID) async throws -> JSONValue
   func founderId() async -> UUID?
+  /// D405 · each round post's door (its comment count and newest comment).
+  /// nil is a read that did not happen (no signal, an older server): the board keeps
+  /// what it has. An answer that leaves a round out says it is no longer visible.
+  func roundDoors(ids: [UUID]) async -> [UUID: RoundSocialDoor]?
+}
+
+public extension BoardRepository {
+  func roundDoors(ids: [UUID]) async -> [UUID: RoundSocialDoor]? { nil }
 }
 
 public struct SupabaseBoardRepository: BoardRepository {
@@ -82,6 +90,24 @@ public struct SupabaseBoardRepository: BoardRepository {
   var db: SupabaseClient { svc.client }
 
   // MARK: reads
+
+  public func roundDoors(ids: [UUID]) async -> [UUID: RoundSocialDoor]? {
+    guard !ids.isEmpty else { return [:] }
+    // the read takes at most 60 rounds; a board holds more, so it asks in batches, in the order given
+    var out: [UUID: RoundSocialDoor] = [:]
+    var start = 0
+    while start < ids.count {
+      let batch = ids[start..<min(start + 60, ids.count)]
+      guard let answer = try? await RoundSocialService().request(
+        "posted_rounds_social", ["p_rounds": .array(batch.map { .string($0.uuidString) })]) else { return nil }
+      for item in answer["items"]?.array ?? [] {
+        let door = RoundSocialDoor(item)
+        if let id = door.roundId { out[id] = door }
+      }
+      start += 60
+    }
+    return out
+  }
 
   public func posts(league: UUID, limit: Int, before: Date?) async throws -> [PostRow] {
     // D92: live_round_id is what makes a settlement row openable. Retry

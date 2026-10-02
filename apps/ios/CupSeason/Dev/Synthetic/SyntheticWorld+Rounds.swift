@@ -62,15 +62,32 @@ extension SyntheticWorld {
       return SynthOut.json(["posted": [["name": me.name, "gross": 84, "holes": 18, "round_id": fids(4_902), "profile_id": me.ids],
                                        ["name": person(2).name, "gross": 81, "holes": 18, "round_id": fids(4_903), "profile_id": person(2).ids],
                                        ["name": person(3).name, "gross": 88, "holes": 18, "round_id": fids(4_904), "profile_id": person(3).ids]],
-                            "guests": [["name": "Quinn", "claim_token": Self.claimToken.uuidString.lowercased()]],
+                            "guests": [["name": cast.guest, "claim_token": Self.claimToken.uuidString.lowercased()]],
                             "skipped": [Any](), "casual": false])
     case "abandon_live_round": return SynthOut.void
     case "add_posted_round_comment":
       let body = r.string("p_body") ?? ""
-      let comment: [String: Any] = ["id": r.string("p_client_id") ?? fids(8_050), "author": ["id": me.ids, "name": me.name, "marker": me.marker],
-                                    "body": body, "parent_id": r.params["p_parent"] ?? NSNull(), "root_id": r.params["p_parent"] ?? NSNull(),
-                                    "created_at": stamp(0, 9, 41), "is_mine": true, "can_reply": true, "origin": "round"]
-      return SynthOut.json(["ok": true, "comment": comment])
+      // the refusal path under test: a comment that says so is refused the way the server's rate limit refuses,
+      // and one that says [slow] is refused three seconds late (a thread folded while its comment is on the way)
+      if body.contains("[refuse]") {
+        var refusal = SynthOut.error("Easy — try again in a minute.", code: "P0001", status: 400)
+        if body.contains("[slow]") { refusal.delay = 3 }
+        return refusal
+      }
+      let key = r.string("p_round")?.lowercased() ?? ""
+      // a comment is kept for the rest of the launch, so the thread read after a send contains it
+      let parent = r.string("p_parent")
+      var replyTo: Any = NSNull()
+      if let parent, let target = threadComments(x).first(where: { ($0["id"] as? String)?.lowercased() == parent.lowercased() }),
+         let who = target["author"] as? [String: Any] { replyTo = ["id": parent, "name": who["name"] ?? ""] }
+      let comment: [String: Any] = ["id": r.string("p_client_id") ?? fids(8_050 + state.next("comment")), "author": ["id": me.ids, "name": me.name, "marker": me.marker],
+                                    "body": body, "parent_id": parent ?? NSNull(), "root_id": parent ?? NSNull(), "reply_to": replyTo,
+                                    "created_at": isoNow(), "is_mine": true, "can_reply": true, "origin": "round"]
+      var added: [[String: Any]] = state.get("comments:" + key, [])
+      added.append(comment); state.set("comments:" + key, added)
+      // commenting is joining the conversation (D405): a golfer with no setting, who does not own the round
+      if let x, x.owner.n != me.n, state.get("thread:" + key, "none") == "none" { state.set("thread:" + key, "following") }
+      return SynthOut.json(["ok": true, "replayed": false, "comment": comment, "count": threadComments(x).count])
     default: return nil
     }
   }
@@ -107,24 +124,40 @@ extension SyntheticWorld {
     ]
   }
 
-  func thread(_ x: SynthRound) -> [String: Any] {
-    let comments: [[String: Any]] = x.owner.n == me.n || x.n == 4_101 ? [
-      ["id": fids(8_000 + x.n % 1_000), "parent_id": NSNull(), "root_id": NSNull(),
+  /// A posted round's conversation, said by the cast, then anything this launch
+  /// has added. Home's door (`roundSocial`) reads the SAME list, so the count, the
+  /// newest comment and the thread agree.
+  func threadComments(_ x: SynthRound?) -> [[String: Any]] {
+    guard let x else { return [] }
+    let tidy: [String: Any] = ["id": fids(8_000 + x.n % 1_000), "parent_id": NSNull(), "root_id": NSNull(),
        "author": ["id": person(2).ids, "name": person(2).name, "marker": person(2).marker],
        "body": "Tidy \(x.gross) in the wind.", "created_at": stamp(x.day, 20, 2), "reply_to": NSNull(),
-       "is_mine": false, "can_reply": true, "origin": "round"],
-      ["id": fids(8_500 + x.n % 1_000), "parent_id": NSNull(), "root_id": NSNull(),
+       "is_mine": false, "can_reply": true, "origin": "round"]
+    let tees: [String: Any] = ["id": fids(8_500 + x.n % 1_000), "parent_id": NSNull(), "root_id": NSNull(),
        "author": ["id": person(9).ids, "name": person(9).name, "marker": person(9).marker],
        "body": "Same tees next week?", "created_at": stamp(x.day + 1, 8, 15), "reply_to": NSNull(),
-       "is_mine": false, "can_reply": true, "origin": "round"],
-    ] : []
+       "is_mine": false, "can_reply": true, "origin": "round"]
+    let cast: [[String: Any]] = x.owner.n == me.n || x.n == 4_101 || x.n % 3 == 2 ? [tidy, tees] : (x.n % 3 == 1 ? [tees] : [])
+    let added: [[String: Any]] = state.get("comments:" + x.ids, [])
+    let gone: Set<String> = state.get("removed:" + x.ids, [])
+    return (cast + added).filter { !gone.contains(($0["id"] as? String)?.lowercased() ?? "") }
+  }
+
+  func thread(_ x: SynthRound) -> [String: Any] {
+    let comments = threadComments(x)
+    let stored = state.get("thread:" + x.ids, "none")
     return [
-      "ok": true, "can_comment": true, "thread": ["state": "none"], "count": comments.count, "comments": comments,
+      "ok": true, "can_comment": true, "thread": ["state": stored, "following": stored == "following", "muted": stored == "muted"] as [String: Any],
+      "notify_prefs": ["own_round": true, "replies": true, "followed": true],
+      "count": comments.count, "comments": comments,
       "round": ["id": x.ids, "owner": ["id": x.owner.ids, "name": x.owner.name, "marker": x.owner.marker], "is_mine": x.owner.n == me.n,
                 "gross": x.gross, "holes": x.holes, "played_on": day(x.day),
                 "course": ["api_course_id": x.course.key, "name": x.course.name]] as [String: Any],
     ]
   }
+
+  /// The wall-clock instant a comment sent now carries.
+  func isoNow() -> String { ISO8601DateFormatter().string(from: Date()) }
 
   /// A hole-by-hole card that adds up to the gross (for two of Avery's rounds).
   func scorecard(_ x: SynthRound) -> [String: Any] {

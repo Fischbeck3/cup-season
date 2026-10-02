@@ -116,6 +116,19 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(StandingsMath.movedSince("not-a-date") == nil)
   }
 
+  /// W7-112 · the phone's Gap head names the day its marks are measured from,
+  /// in words. Build 2094 printed the raw `captured_at`, the shape production's
+  /// `standings_snapshots` sends, on every season with a snapshot.
+  @Test func theGapHeadNamesTheDayNotTheTimestamp() {
+    let head = StandingsMath.gapHead(since: "2026-09-27T07:20:00.024279+00:00")
+    #expect(head == "Gap · since Sun")
+    #expect(!head.contains("2026") && !head.contains(":"))
+    #expect(StandingsMath.gapHead(since: "2026-09-28T14:10:00Z") == "Gap · since Mon")
+    #expect(StandingsMath.gapHead(since: nil) == "Gap")
+    #expect(StandingsMath.gapHead(since: "") == "Gap")
+    #expect(StandingsMath.gapHead(since: "not-a-date") == "Gap")
+  }
+
   @Test func seriesIsSnapshotsThenNow() {
     let teams = [team(a, "A", 30), team(b, "B", 18)]
     let s = StandingsMath.series(teams: teams, snapshots: [snap(1, [(a, 10), (b, 12)]), snap(2, [(a, 20), (b, 15)])], weeks: 18, solo: false)

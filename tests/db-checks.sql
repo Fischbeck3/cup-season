@@ -1599,5 +1599,46 @@ from (
          then 'the live stake ceiling is missing (20261223090000 not pushed?)' end
   ) as problems
 ) t
+
+-- 61 · D405 · comments live in line: the doors' read carries the newest comment, commenting joins
+--     the conversation, Replies to me is a setting of its own, and the inbox says whose round it is.
+--     Structural: the four re-created functions exist with their grants (authenticated, never anon),
+--     the thread-state check knows 'replies', and each function carries its D405 change (a plain
+--     `create or replace` that never ran leaves the older body, which still answers — so the body is read).
+--     tests/social-course-database.mjs section 9 proves the behaviour on a disposable cluster, and runs
+--     THIS block against it.
+union all
+select '61 · comments live in line: the newest comment on the door, joining by commenting, Replies to me (D405)',
+  case when t.problems = '' then 'PASS — latest on the doors, joining on comment, the replies state, round_is_mine on notices'
+       else 'FAIL — ' || t.problems end,
+  'posted_rounds_social · add_posted_round_comment · set_round_thread_state · my_notifications'
+from (
+  select concat_ws('; ',
+    case when exists (select 1 from unnest(array['public.posted_rounds_social(uuid[])',
+                                                 'public.add_posted_round_comment(uuid,text,uuid,uuid)',
+                                                 'public.set_round_thread_state(uuid,text)',
+                                                 'public.my_notifications(timestamptz,integer,uuid)']) f(sig)
+                       where to_regprocedure(f.sig) is null
+                          or not has_function_privilege('authenticated', f.sig, 'EXECUTE')
+                          or has_function_privilege('anon', f.sig, 'EXECUTE'))
+         then 'a D405 function is missing, or its grant is wrong (authenticated yes, anon never)' end,
+    case when not exists (select 1 from pg_constraint
+                           where conrelid = 'public.round_thread_states'::regclass and contype = 'c'
+                             and pg_get_constraintdef(oid) like '%replies%')
+         then 'round_thread_states does not know the replies state (20261224090000 not pushed?)' end,
+    case when to_regprocedure('public.posted_rounds_social(uuid[])') is not null
+          and position('''latest''' in pg_get_functiondef('public.posted_rounds_social(uuid[])'::regprocedure)) = 0
+         then 'the doors'' read does not carry the newest comment (20261224090000 not pushed?)' end,
+    case when to_regprocedure('public.add_posted_round_comment(uuid,text,uuid,uuid)') is not null
+          and position('insert into round_thread_states' in pg_get_functiondef('public.add_posted_round_comment(uuid,text,uuid,uuid)'::regprocedure)) = 0
+         then 'commenting does not join the conversation (add_posted_round_comment is the older body)' end,
+    case when to_regprocedure('public.set_round_thread_state(uuid,text)') is not null
+          and position('''replies''' in pg_get_functiondef('public.set_round_thread_state(uuid,text)'::regprocedure)) = 0
+         then 'set_round_thread_state does not accept replies' end,
+    case when to_regprocedure('public.my_notifications(timestamptz,integer,uuid)') is not null
+          and position('round_is_mine' in pg_get_functiondef('public.my_notifications(timestamptz,integer,uuid)'::regprocedure)) = 0
+         then 'a notification does not say whether the round is yours' end
+  ) as problems
+) t
 )
 select * from checks order by check_name;

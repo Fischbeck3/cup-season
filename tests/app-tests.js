@@ -2030,6 +2030,102 @@
     t('L-44: no meetings, no tape', csTapeHtml([], {}), '');
   })();
 
+  /* ── D405 · comments live in line and say whose round it is. The copy both
+     clients print, pinned here as `TalkCopyTests` pins the phone's twin. ── */
+  (function(){
+    t('D405: the composer names the round it is on',
+      [csTalkPlaceholder('Theo Fixture', 84, false), csTalkPlaceholder('Theo Fixture', null, false), csTalkPlaceholder(null, 84, false),
+       csTalkPlaceholder('   ', 84, false), csTalkPlaceholder('You Fixture', 79, true), csTalkPlaceholder(null, null, true)],
+      ['Comment on Theo’s 84…', 'Comment on Theo’s round…', 'Comment on this round…',
+       'Comment on this round…', 'Comment on your 79…', 'Comment on your round…']);
+    t('D405: the round’s page is titled for its golfer',
+      [csTalkRoundTitle('Blake Fixture'), csTalkRoundTitle(''), csTalkRoundTitle(null)], ['Blake’s round', 'The round', 'The round']);
+    t('D405: the conversation head says what it is on',
+      [csTalkHead('Theo Fixture', 84, false), csTalkHead('Theo Fixture', null, false), csTalkHead('You Fixture', 79, true),
+       csTalkHead(null, null, true), csTalkHead(null, 84, false)],
+      ['On Theo’s 84', 'On Theo’s round', 'On your 79', 'On your round', 'Conversation']);
+    t('D405: the earlier comments and the newest one',
+      [csTalkEarlier(4), csTalkPreview('Blake Fixture', 'Did the putt on 18 drop?'), csTalkPreview('', 'Nice.')],
+      ['Earlier comments (4)', 'Blake: Did the putt on 18 drop?', 'Someone: Nice.']);
+    t('D405: the door says what pressing it does',
+      [csTalkDoorLabel(3, false), csTalkDoorLabel(3, true), csTalkDoorLabel(1, true), csTalkDoorLabel(0, false), csTalkDoorLabel(0, true)],
+      ['3 comments, open the conversation', '3 comments, hide the conversation', '1 comment, hide the conversation',
+       'Comment on this round', 'Comment on this round']);
+    t('D405: Notify me about, in three words',
+      [CS_TALK.notifyHead, CS_TALK.notify.every, CS_TALK.notify.replies, CS_TALK.notify.nothing, CS_TALK.stateFailed],
+      ['Notify me about', 'Every comment', 'Replies to me', 'Nothing', 'That setting did not save.']);
+    t('D405 / D25: nothing in the conversation says Follow, and the old placeholder is gone',
+      [CS_TALK.follow, CS_TALK.following, CS_TALK.mute, CS_TALK.unmute, CS_TALK.placeholder].every(v => v === undefined)
+        && !Object.values(CS_TALK).some(v => typeof v === 'string' && /\bfollow/i.test(v)), true);
+    t('D405: the choice the stored state means',
+      [csTalkChoice('muted', false, true), csTalkChoice('following', false, true), csTalkChoice('replies', false, true),
+       csTalkChoice('none', false, true), csTalkChoice(undefined, false, true), csTalkChoice('none', true, true),
+       csTalkChoice('none', true, false), csTalkChoice('replies', true, true), csTalkChoice('muted', true, true)],
+      ['nothing', 'every', 'replies', 'replies', 'replies', 'every', 'replies', 'every', 'nothing']);
+    t('D405: the owner (own-round notice on) is offered two choices',
+      [csTalkChoiceOptions(true, true), csTalkChoiceOptions(true, false), csTalkChoiceOptions(false, true)],
+      [['every', 'nothing'], ['every', 'replies', 'nothing'], ['every', 'replies', 'nothing']]);
+    t('D405: each choice writes its state',
+      [csTalkChoiceState('every'), csTalkChoiceState('replies'), csTalkChoiceState('nothing'), csTalkChoiceState('follow')],
+      ['following', 'replies', 'muted', null]);
+    t('D405: the hint under the composer',
+      [csTalkHint('muted', { followed:true }, true), csTalkHint('following', { followed:true }, false),
+       csTalkHint('following', { followed:false }, false), csTalkHint('none', { own_round:true }, true),
+       csTalkHint('none', { own_round:false }, true), csTalkHint('replies', {}, false), csTalkHint('none', { replies:false }, false)],
+      [CS_TALK.mutedHint, CS_TALK.followHint, CS_TALK.replyHint, CS_TALK.followHint, CS_TALK.replyHint, CS_TALK.replyHint, CS_TALK.offHint]);
+    const line = o => CS_INBOX.line(Object.assign({ actor:{ id:'a', name:'Blake Fixture' } }, o));
+    t('D405: a notice names the round it is about',
+      [line({ kind:'own_round', round_owner_name:'You Fixture', round_is_mine:true }),
+       line({ kind:'reply', round_is_mine:true, round_owner_name:'You Fixture' }),
+       line({ kind:'reply', round_is_mine:false, round_owner_name:'Theo Fixture' }),
+       line({ kind:'followed', round_is_mine:false, round_owner_name:'Theo Fixture', course_name:'North Grove' }),
+       line({ kind:'followed', round_is_mine:false, round_owner_name:'Theo Fixture', course_name:'  ' }),
+       line({ kind:'reply', round_is_mine:false, round_owner_name:'Blake Fixture' }),
+       line({ kind:'followed', round_is_mine:true, round_owner_name:'You Fixture', course_name:'North Grove' })],
+      ['Blake commented on your round.', 'Blake replied to you on your round.', 'Blake replied to you on Theo’s round.',
+       'Blake commented on Theo’s round at North Grove.', 'Blake commented on Theo’s round.', 'Blake replied to you on Blake’s round.',
+       'Blake commented on your round.']);
+    t('D405: a notice from an older server keeps the older sentence',
+      [line({ kind:'reply' }), line({ kind:'reply', round_owner_name:'Theo Fixture' }), line({ kind:'reply', round_is_mine:false }),
+       line({ kind:'followed', course_name:'North Grove' }), line({ kind:'followed', round_owner_name:'' }), line({ kind:'own_round' }),
+       line({ kind:'followed', round_owner_name:'Theo Fixture', course_name:'North Grove' })],
+      ['Blake replied to your comment.', 'Blake replied to your comment.', 'Blake replied to your comment.',
+       'Blake commented in a conversation you’re in.', 'Blake commented in a conversation you’re in.', 'Blake commented on your round.',
+       'Blake commented in a conversation you’re in.']);
+    /* the doors' row follows a thread: the count always, the newest comment only
+       where the server sent one (a server without `latest` keeps the count alone) */
+    const keep = window.csTalkSocial;
+    try{
+      window.csTalkSocial = { a:{ comment_count:1 }, b:{ comment_count:1, latest:null } };
+      const c = { id:'c2', author:{ id:'p', name:'Mara Fixture' }, body:'x'.repeat(150), created_at:'2026-10-02T12:00:00Z' };
+      const moved = [csTalkSocialSync('a', 2, [c]), csTalkSocialSync('b', 2, [c]), csTalkSocialSync('b', 2, [c])];
+      t('D405: the doors follow the thread, and an older server grows no preview',
+        [moved, 'latest' in window.csTalkSocial.a, window.csTalkSocial.a.comment_count, window.csTalkSocial.b.latest.id, window.csTalkSocial.b.latest.body.length],
+        [[true, true, false], false, 2, 'c2', 140]);
+    } finally { window.csTalkSocial = keep; }
+  })();
+  await (async function(){
+    /* the doors' read takes 60 rounds at most and a board holds more: it asks in batches, in
+       the order given, and a round the server leaves out (muted, voided) loses its door */
+    {
+      const was = { sb:window.sb, user:window.CS && window.CS.user, demo:state.demo, social:window.csTalkSocial };
+      const asked = [];
+      window.sb = { rpc: async (name, args) => { asked.push(args.p_rounds.slice());
+        return { data:{ items: args.p_rounds.filter(id => id !== 'r070').map(id => ({ round_id:id, comment_count:1 })) }, error:null }; } };
+      window.CS = window.CS || {}; window.CS.user = { id:'u' }; state.demo = false;
+      window.csTalkSocial = { r070:{ comment_count:9 } };
+      try{
+        const ids = Array.from({ length:130 }, (_, i) => 'r' + String(i).padStart(3, '0'));
+        const ok = await csTalkFetch(ids.concat(ids.slice(0, 5)));
+        t('D405: the doors are read in batches of 60, in order, each round once', [ok, asked.map(a=>a.length), asked[0][0], asked[2][9]], [true, [60, 60, 10], 'r000', 'r129']);
+        t('D405: a round the server leaves out loses its door; the others keep theirs', [window.csTalkSocial.r070, !!window.csTalkSocial.r069], [undefined, true]);
+        window.sb = { rpc: async () => ({ data:null, error:{ message:'Failed to fetch' } }) };
+        window.csTalkSocial = { r001:{ comment_count:2 } };
+        t('D405: a read that fails leaves every door as it was', [await csTalkFetch(['r001']), window.csTalkSocial.r001.comment_count], [false, 2]);
+      } finally { window.sb = was.sb; if(window.CS) window.CS.user = was.user; state.demo = was.demo; window.csTalkSocial = was.social; }
+    }
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

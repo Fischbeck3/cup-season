@@ -99,7 +99,7 @@ struct StandingsTableView: View {
                          // §1.4a · the top table of a squads season ranks
                          // SQUADS, and a squad has no face and no given name.
                          nameHead: teams.allSatisfy(\.solo) ? "Golfer" : "Squad",
-                         changeHead: model.priorSince.map { "Gap · " + $0 } ?? "Gap",
+                         changeHead: StandingsMath.gapHead(since: model.priorSince),
                          hasFaces: teams.allSatisfy(\.solo), showsGap: !model.isComplete) { k, abbreviate in
           let i = indices[k]
           if let n = hidden[i] { ellipsis(n) }

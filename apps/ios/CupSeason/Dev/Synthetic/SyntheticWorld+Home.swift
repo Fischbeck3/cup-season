@@ -32,12 +32,12 @@ extension SyntheticWorld {
     // The signed-out door and the two links a recipient can tap.
     case "door_flags": return SynthOut.json(["apple_sign_in": false])
     case "league_by_code":
-      return SynthOut.json(r.string("p_code") == Self.inviteCode ? Self.inviteLeagueName as Any : NSNull() as Any)
+      return SynthOut.json(r.string("p_code") == cast.inviteLeague.code ? cast.inviteLeague.name as Any : NSNull() as Any)
     case "guest_live_state":
       return SynthOut.json(["round": ["status": "final", "course_label": courses[0].name]])
     case "claim_round_info":
       guard r.string("p_token")?.lowercased() == Self.claimToken.uuidString.lowercased() else { return SynthOut.json(NSNull()) }
-      return SynthOut.json(["guest_name": "Quinn", "gross": 88, "course_label": "\(courses[0].name) · White", "played_on": day(-2),
+      return SynthOut.json(["guest_name": cast.guest, "gross": 88, "course_label": "\(courses[0].name) · White", "played_on": day(-2),
                             "claimed": false, "host": person(2).name, "holes_played": 18])
     case "scan_claim_info": return SynthOut.json(NSNull())
     default: return nil
@@ -139,7 +139,7 @@ extension SyntheticWorld {
                           action: "Put a round on the schedule", route: ["kind": "declare"], league: l.ids, spine: "mut"))
       }
       items.append(item("invite:\(fids(9_101))", tier: "closing", rank: 2, subject: person(8).first,
-                        eyebrow: "An invitation", headline: "\(person(8).first) put you on \(Self.inviteLeagueName).",
+                        eyebrow: "An invitation", headline: "\(person(8).first) put you on \(cast.inviteLeague.name).",
                         standfirst: "See the terms before you’re in.", action: "See the terms",
                         route: ["kind": "invite", "id": fids(1_003), "pane": "league"], league: fids(1_003), spine: "ember", at: day(-1)))
     }
@@ -196,8 +196,15 @@ extension SyntheticWorld {
     let faces = feedRounds.filter { $0.course.key == r.course.key }.prefix(3).map {
       ["id": $0.owner.ids, "name": $0.owner.name, "marker": $0.owner.marker]
     }
-    return ["round_id": r.ids, "comment_count": r.owner.n == me.n ? 2 : (r.n % 3),
-            "course": ["api_course_id": r.course.key, "name": r.course.name, "faces": Array(faces)]]
+    let thread = threadComments(r)
+    var out: [String: Any] = ["round_id": r.ids, "comment_count": thread.count, "can_comment": true,
+                              "thread_state": state.get("thread:" + r.ids, "none"),
+                              "course": ["api_course_id": r.course.key, "name": r.course.name, "faces": Array(faces)]]
+    // D405 · the newest comment, so the banter shows under the round before a tap
+    if let last = thread.last, let body = last["body"] as? String {
+      out["latest"] = ["id": last["id"] as Any, "author": last["author"] as Any, "body": String(body.prefix(140)), "created_at": last["created_at"] as Any]
+    }
+    return out
   }
 
   func kudos() -> [[String: Any]] {
@@ -283,10 +290,12 @@ extension SyntheticWorld {
     let items: [[String: Any]] = [
       ["id": fids(9_201), "kind": "own_round", "actor": ["id": person(2).ids, "name": person(2).name, "marker": person(2).marker],
        "round_id": mine.ids, "comment_id": fids(9_301), "created_at": stamp(mine.day + 1, 8, 12), "read": false,
-       "excerpt": "That \(mine.gross) in the wind counts double.", "course_name": mine.course.name],
+       "excerpt": "That \(mine.gross) in the wind counts double.", "course_name": mine.course.name,
+       "round_owner_name": me.name, "round_is_mine": true],
       ["id": fids(9_202), "kind": "reply", "actor": ["id": person(9).ids, "name": person(9).name, "marker": person(9).marker],
        "round_id": mine.ids, "comment_id": fids(9_302), "created_at": stamp(mine.day + 1, 9, 40), "read": true,
-       "excerpt": "Rematch at the same tees next week.", "course_name": mine.course.name],
+       "excerpt": "Rematch at the same tees next week.", "course_name": mine.course.name,
+       "round_owner_name": me.name, "round_is_mine": true],
     ]
     return ["ok": true, "unread": 1, "next_before": NSNull(), "next_before_id": NSNull(), "items": items]
   }
@@ -295,7 +304,7 @@ extension SyntheticWorld {
 
   func invites() -> [[String: Any]] {
     guard hasSeasons else { return [] }
-    return [["id": fids(9_101), "kind": "league", "container_id": fids(1_003), "container_name": Self.inviteLeagueName,
+    return [["id": fids(9_101), "kind": "league", "container_id": fids(1_003), "container_name": cast.inviteLeague.name,
              "inviter": person(8).name, "starts_on": day(12), "created_at": stamp(-1, 19), "buy_in": 25,
              "season_number": 1, "reup": false]]
   }
@@ -303,7 +312,7 @@ extension SyntheticWorld {
   /// The join covenant: what joining a season agrees to, in the season's terms.
   func covenant() -> [String: Any] {
     [
-      "name": Self.inviteLeagueName, "buyin_cents": 2_500, "preset": "standard", "floor": 1, "finish": "cup_final",
+      "name": cast.inviteLeague.name, "buyin_cents": 2_500, "preset": "standard", "floor": 1, "finish": "cup_final",
       "roster": ["pro_name": person(8).first, "count": 6,
                  "names": [person(8).name, person(2).name, person(3).name, person(4).name, person(10).name, person(11).name]],
       "starts_on": day(12), "weeks": 10, "counting_cap": 4,

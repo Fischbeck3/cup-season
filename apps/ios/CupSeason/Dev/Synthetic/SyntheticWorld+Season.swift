@@ -175,9 +175,9 @@ extension SyntheticWorld {
     if ProcessInfo.processInfo.arguments.contains("-cs_synth_clinch") {
       return ["meta": ["finish": "cup_final", "structure": "squads2", "level": "squad",
                        "k": 1, "months_left": 2, "locked": false, "cap": 4],
-              "rows": [["id": fids(9_101), "name": "Fixture Javelinas", "points": 171,
+              "rows": [["id": fids(9_101), "name": cast.clinchSquads[0], "points": 171,
                         "max_final": 900, "needs": 351, "clinched": false, "eliminated": false],
-                       ["id": fids(9_102), "name": "Fixture Wrens", "points": 137,
+                       ["id": fids(9_102), "name": cast.clinchSquads[1], "points": 137,
                         "max_final": 521, "needs": 0, "clinched": false, "eliminated": false]]]
     }
     let d = seasonDates(l)

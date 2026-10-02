@@ -38,6 +38,13 @@ import PhotosUI
 import CSDesign
 import CupSeasonKit
 
+/// D405 · the golfer a round belongs to, as its conversation read names them
+private struct RoundOwner: Equatable {
+  let id: UUID
+  let name: String
+  let marker: String?
+}
+
 struct RoundReceiptSheet: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
@@ -91,6 +98,9 @@ struct RoundReceiptSheet: View {
   @State private var linkNote: String?
   @State private var revokingLink = false
   @State private var courseId: String?
+  /// D405 · whose round this is, from the round's own conversation read — the
+  /// page is titled with their name and wears their face ("Theo’s round")
+  @State private var owner: RoundOwner?
   @State private var commentScrollTask: Task<Void, Never>?
   #if DEBUG
   @State private var artifactPreview = false
@@ -122,8 +132,17 @@ struct RoundReceiptSheet: View {
             // its ground when there is one, so the separate photo slot goes.
             // F03 · the sheet's title is its heading: what VoiceOver's heading
             // rotor lands on, and the name the sheet is read by
-            Text(mine(r) ? "Your round" : "The round").csType(.displayS, caps: true).foregroundStyle(cs.ink)
-              .accessibilityAddTraits(.isHeader)
+            // D405 · the page says whose round it is: their face and "Theo’s round".
+            // "Your round" stays; a round whose owner nobody named stays "The round".
+            HStack(spacing: CSTokens.Space.s3) {
+              if !mine(r), let owner {
+                // the name is in the title beside it: the face is silent for VoiceOver
+                CSFace(.init(id: owner.id, marker: owner.marker), size: .list).accessibilityHidden(true)
+              }
+              Text(mine(r) ? "Your round" : TalkCopy.roundTitle(owner?.name)).csType(.displayS, caps: true).foregroundStyle(cs.ink)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("round.title")
+            }
             // one fact, one place: the dateline already names the course on the
             // phone, so the moment's own course line stands down when it does
             ReceiptMoment(dateline: dateline(r),
@@ -635,6 +654,9 @@ struct RoundReceiptSheet: View {
     // The conversation identifies the course. The league-scoring receipt
     // does not carry api_course_id, so loading its figures must not erase it.
     courseId = socialRecord?.courseId
+    if let t = socialRecord, t.visible, let id = t.ownerId, let name = t.ownerName, !name.isEmpty {
+      owner = RoundOwner(id: id, name: name, marker: t.ownerMarker)
+    }
     if seed == nil, let cached = await ReceiptCache.shared.get(roundId) { seed = cached }
     let repo = RoundsRepository()
     // the second pass: one read, then redraw in place

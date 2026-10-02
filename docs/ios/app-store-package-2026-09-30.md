@@ -1,8 +1,11 @@
 # App Store package · 1.0 · drafted 2026-09-30 · FOR OWNER REVIEW
 
-**Status (2026-10-01 evening): the 1.0 release package for the candidate on
-`claude/app-store-listing-2026-09-30` (origin/main `e034915a` + the readiness
-commits + the Home Scorebook, D404). The App Review notes are final (§10).**
+**Status (2026-10-01 night): Cup Season 1.0.0 (2097), built from `6727fd04`, is attached to
+App Store version 1.0 and is in the Owner TestFlight group. The candidate's database, Edge
+functions and web are deployed, each on the owner's approval (the "Deployed" table). Nothing is
+submitted. The App Review notes are final (§10). Still the owner's: the review contact phone and
+reviewer password, App Privacy, content rights, approval of the recast screenshot set, the phone
+checks, and submission.**
 
 **Original status: draft for review. Nothing in this file has been pasted into App Store
 Connect, uploaded or submitted.** It is built from the release source
@@ -29,6 +32,47 @@ behind a DEBUG gate or an off flag. Evidence is in the
 
 
 ---
+
+## The 1.0 candidate · frozen 2026-10-01 19:00 MST
+
+| | |
+|---|---|
+| Source | **`48d5f40e`** on `claude/app-store-listing-2026-09-30`: origin/main `e034915a` plus 11 commits (the three readiness commits, the Home tests, Codex's Scorebook merged as D404, the consent fix, the suites and records). A fast-forward of main. |
+| Native | **Cup Season 1.0.0 (2094)**: Release archive and export from a clean detached worktree at `48d5f40e`. IPA SHA-256 `cc2aea0996332a556586c76559325b12bd212bf85b88898aca9320a755f40353` (22 MB). `aps-environment = production` (B-12), `get-task-allow = false`, `ITSAppUsesNonExemptEncryption = NO`, widget extension included. **Apple validation: VERIFY SUCCEEDED, no errors** (altool, 19:11 MST). Not uploaded at the freeze (uploaded since: see the next table). |
+| CI replay | 11/11 `ci.yml` steps pass at `48d5f40e` (preflight, unit files, edge guards, build, untouched migrations). |
+| Web | 21/21 Node test files; 44/44 browser suites; preflight 0 failures, 0 warnings. |
+| Native tests | Kit 1,482 (Swift Testing) + 18 (XCTest); app 158 + 48; consent suites 20/20; the 25 Home and After Golf UI tests (run twice). |
+| Live local | takedown 8/8, consent 3/3, db-checks 60/60 on a disposable stack. |
+| Consent race | Fails on `a3115801` in all three proofs (model, real supabase-js, live stack); passes at the candidate. |
+| Production at the freeze | 3 migrations pending (`20261221090000`–`20261223090000`), nothing else; `scan` and `share-cleanup` undeployed; web at `e034915`. All of it deployed since: see the next table. |
+
+## Deployed · 2026-10-01 evening, on the owner's explicit approval ("Approve, Claude runs all four")
+
+| Layer | Action | Read-back |
+|---|---|---|
+| Database | `supabase db push`: `20261221090000`, `20261222090000`, `20261223090000` (dry run first: exactly these three) | production `tests/db-checks.sql`: **60/60 PASS**, check 60 included; the public API answers (anon `door_flags` 200) |
+| Edge | `supabase functions deploy scan` (v10), `share-cleanup` (v31) | `cs-share-cleanup` active, `* * * * *`, last runs succeeded; responses since the deploy are HTTP 200 with the new `takedowns` section; `scan` without a session → 401 |
+| Web | `git push origin 48d5f40e:main` (fast-forward from `e034915a`) | cupseason.app serves `v23 · 48d5f40` (page and `sw.js`); GitHub CI for `48d5f40e` succeeded |
+| Native | upload of the validated 1.0.0 (2094) IPA; `asc.py owner 2094` | VALID; in the **Owner** group only (IN_BETA_TESTING, not in Friends); attached to App Store version 1.0, **then replaced there by 2097** (next row) |
+| Native, candidate 2 | upload of the validated 1.0.0 (2097) IPA, on the owner's second yes; `asc.py owner 2097`; attach | VALID; Owner group only; **attached to App Store version 1.0** in place of 2094 (read back 2026-10-01 ~21:00 MST) |
+| App Store Connect | `asc_metadata.py --apply` (the owner's "Yes, enter it") | read back: en-US text and URLs, subtitle, privacy URL, Sports/Lifestyle, copyright, **Manual** release, age-rating answers (Apple computed TWELVE_PLUS), Free (USA base), **US only** with no new territories. Refused: the App Review detail (Apple requires the contact phone). Not touched: password, phone, App Privacy, content rights, screenshots, submission. |
+
+## Candidate 2 · `6727fd04` / 1.0.0 (2097) · the build attached to 1.0 (owner's yes, 2026-10-01 ~20:50 MST)
+
+**Why.** The screenshot audit's raw-machine-string rule caught build 2094 heading the
+standings table's Gap column with the weekly snapshot's raw `captured_at`
+(`GAP · 2026-09-27T07:20:00.024279+00:00`). It came in with `a9816440` (W7-112's phone
+twin, 2026-09-30, "runtime verification pending"), so TestFlight 2083 has it too. In
+production every active league with a snapshot shows it, **Ridgeline Cup included**
+(5 snapshots, read-only 2026-10-01): the table the App Review notes send the reviewer to.
+
+| | |
+|---|---|
+| Source | **`6727fd04`** = the deployed `48d5f40e` + two docs-only commits + the fix. No web, database or Edge change: nothing to deploy but the phone. |
+| The fix | The head now reads "Gap · since Sun" (the desk's own "Since Sun" column, said in the phone's one merged cell); no snapshot, "Gap". The day comes from the same reading as the season page's "moved since Sun". |
+| Tests | Kit **1,483/1,483** on a simulator (the new `theGapHeadNamesTheDayNotTheTimestamp` included); preflight 0 failures. No UI test reads the head (it is hidden from VoiceOver), so the UI results below on the `48d5f40e` build stand for this one. |
+| Native | Release archive and export from a clean detached worktree at `6727fd04`, vault signing. IPA SHA-256 `e5f33dc1da233bb4303fb7b9d2f9caefc4ecb23e8a14f90c5bc4f8b31cf93671` (23.6 MB). `CFBundleVersion 2097`, `aps-environment = production`, `get-task-allow = false` (app and widget), `ITSAppUsesNonExemptEncryption = NO`, widget extension included. **Apple validation: VERIFY SUCCEEDED, no errors** (altool, 20:34 MST). |
+| Shipped (owner's yes: "Yes, swap in 2097") | Uploaded 20:50 MST (`altool`, UPLOAD SUCCEEDED, no errors). `asc.py owner 2097`: VALID, **Owner group only** (IN_BETA_TESTING, not in Friends). `asc_metadata.py --apply --only build --build 2097`: 204. Read back: version 1.0 PREPARE_FOR_SUBMISSION, release MANUAL, **attached build 2097 (VALID)**. Nothing submitted. Phone sheet: R1, R10 and the new R11 on 2097. |
 
 ## Build status · 2026-10-01 (branch `claude/app-store-listing-2026-09-30`)
 
@@ -133,12 +177,41 @@ again.
 | `HomeNoPhotoTests` (4), `HomePhotoStabilityTests` (5) | 9 | **PASS, rewritten** against main's Match Programme Home (PR #8). Each keeps the behaviour it protected: distinct golfer and round doors, the photo under the record, applause, the D360 story rules, and every D361 photo-loading case. Only the deliberately removed 168pt loading frame was dropped. Test files only; no app source. | 25/25 across the five related classes, then 26/26 executions with `-test-iterations 2` (commits `094bc8a9`, `9bb930ce`) |
 | `AfterGolfWirePlacementTests.testDisplacedCardWithAnEmptyFeedKeepsAllThreeActions` | 1 | **PASS: a stale assertion, corrected.** `e8e9f84b` removed the compact lead on purpose; every lead is now a labelled container plus its own `home.lead.action` door, which five other tests depend on. | Same runs |
 | `MatchProgrammeTests.testHomeRecordsAndPhotoFallback` | 1 | **PASS** with `CS_PROGRAMME_QA_PHOTO` supplied to the runner | Same runs |
-| `CoursePrepReviewTests` (3), `CompeteGameplayReviewTests` (4 of 5), `AcceptedRoundReviewTests` (2), `ComposerWorthUITests` (3), `CompeteBoldReviewTests` (2) | 15 | **BLOCKED.** They need a simulator signed in to a seeded backend. DEBUG builds already default to a local stack (`CSConfig.auditBackend`), so production is not needed. But the disposable stack sends 6-digit codes, the app accepts only 8 (as production does), and the auto-mode classifier refused the one-line local config change (`otp_length = 8`). Awaiting the owner's OK for that local edit. | No run; nothing seeded |
+| The 15 signed-in tests, below | 15 | **RAN on the candidate (2026-10-01, ~19:45–20:10 MST): 11 PASS, 4 FAIL, and none of the 4 is the app or the data.** Signed in to a seeded **local** stack only (the owner approved `otp_length = 8` there). The four are stale test code (3) and a test that contradicts a deliberate product change (1). | Result bundles in the session scratchpad: `run1.xcresult` (all 18), `run2-confirm-failures.xcresult` (the 4 again, all failed again), `diag-compete-row.xcresult` |
 
-- `CompeteGameplayReviewTests.testRulesAndHeadToHeadDoors` makes no assertions, so it passes signed out and is not counted among the 15.
-- `ReceiptMomentTests` and `ReceiptLensesUITests` open with `-cs_dev_open receipt` and need the same signed-in backend.
-- **Gap left for the native lane (not a regression):** `home.md` §7 asks for the Home lead to be one VoiceOver element. On main its parts are separate stops inside the labelled container, as they have been since `bf434ae6` (2026-09-06). Fixing it means deciding how the after-golf door stays separately tappable.
-- Matching failures on main never stood in for signed-in behaviour. The 15 stay BLOCKED until they run.
+**The 15, one by one** (`48d5f40e`, iPhone 17 Pro simulator, iOS 26.5, Xcode 27.0):
+
+| Tests | Result | Why |
+|---|---|---|
+| `CoursePrepReviewTests` (3): kept course opens a prefilled plan, save Bajamar then use it offline, the same at an accessibility size | **PASS** | Screens checked: Bajamar reads "Ready offline · 18 holes" with "Use Black tees"; the plan sheet opens prefilled |
+| `AcceptedRoundReviewTests` (2) | **PASS** | |
+| `CompeteGameplayReviewTests` (4 of its 6): labelled gameplay rooms, large-text headers, the Ryder roster at large text, the season look in both rooms | **PASS** | |
+| `ComposerWorthUITests` (2 of 3): the worth lines, readable through typing and dismissal | **PASS** | |
+| `CompeteBoldReviewTests` (2), `CompeteGameplayReviewTests.testRealCompeteSeasonAndCreationDoors` | **FAIL: a stale query in the tests** | The season row has been `LeagueIdentitySpread` since `b10e3e69` (2026-09-30): one Button that hides its children. The tests look for an Other container with a button inside, so nothing matches, although the row is on screen (the hierarchy at failure lists `Button, identifier 'compete.row.league:…'`). With `app.buttons.matching(identifier BEGINSWITH "compete.row.")` all three pass (diagnostic run; the change was reverted, nothing committed). **Fix for the native lane:** that one query at `CoursePrepCompeteReviewTests.swift:103` and `ReturnFlowReviewTests.swift:67` and `:91` |
+| `ComposerWorthUITests.testReadableOnASmallPhoneAtAnEnlargedSize` | **FAIL: the test contradicts a deliberate product change** | N4-021 (`bf67db31`, 2026-09-29, an owner-judged P1) pins the gross field at the top at accessibility sizes and lets the worth sentence run under the keypad. It added its own check to `N4PostUITests` but left this D362 test (2026-09-14) asserting the opposite. At AX3 the sentence sits at y 830.7 in an 874-point window. **As shipped, a golfer at AX3 does not see the worth sentence while the keypad is up. Native lane / owner: recast the test, or revisit the trade-off** |
+
+- `CompeteGameplayReviewTests.testRulesAndHeadToHeadDoors` passes but makes no assertions, so it is not counted among the 15.
+- `ReceiptLensesUITests.testLensRowsAndDoors`: **PASS** signed in.
+- `ReceiptMomentTests.testMomentStatesInBothAppearances`: **FAIL in all 4 states, a stale assertion.** It expects the receipt's label to carry "any time"; Q45 (`50f89277`) took the tagline off the private receipt and updated `N2ReceiptUITests`, not this test. The stale-UI session (`claude/epic-pascal-a9eced`, uncommitted) already rewrites this assertion.
+- **How it was set up:** fictional golfer "Casey Ridgeway" (`rc-uitest-golfer@example.invalid`) and seven fictional bots, created through the local auth admin API; league "Saguaro Test Cup" (code `RCUIT1`), two squads, an active season seven weeks in, 6–9 rounds each, three accepted buddies; course 100 "Bajamar / Local test card" with invented figures. Sign-in through the DEBUG hatch (`-cs_dev_email` / `-cs_dev_code`) with a code from the local admin `generate_link`, because the local email template carries a link only. Both scripts refuse any host that is not local, and re-running the seed changes nothing.
+- **To re-run them on any later build** (committed as `tests/ios-signed-in/`): build for testing (`cd apps/ios && xcodegen generate && xcodebuild build-for-testing -project CupSeason.xcodeproj -scheme CupSeason -destination 'generic/platform=iOS Simulator' -derivedDataPath <dd>`), then `tests/ios-signed-in/run.sh <worktree> <dd>`. It seeds the world (`seed.sh` + `world.sql`), makes a throwaway simulator, points the app at the local stack in the app's own preferences, signs the test golfer in, runs the seven classes, prints each result and deletes the simulator. It needs the disposable stack running with `[auth.email] otp_length = 8` (`~/.cache/cs-readiness-stack` by default, `CS_STACK_WORKDIR` otherwise) and refuses any host that is not local. Run end to end on 2026-10-01 against the candidate build: the same 11 PASS and 4 FAIL.
+- **Gap left for the native lane (not a regression):** `home.md` §7 asks for the Home lead to be one VoiceOver element. On main its parts are separate stops inside the labelled container, as they have been since `bf434ae6` (2026-09-06). Fixing it means deciding how the after-golf door stays separately tappable. IOS-084 (`claude/frosty-mcclintock-ee15f5`, uncommitted) does exactly that, and rewrites the same 9 Home tests differently from the candidate: the two need reconciling in the native lane.
+
+### The whole UI suite on the candidate build (2026-10-01, 20:32–21:50 MST)
+
+All 165 `CupSeasonUITests` on the `48d5f40e` build (no UI test reads the one line candidate 2
+changed). Freshly erased iPhone 17 Pro simulator, signed out (the IOS-084 baseline's condition),
+QA photo supplied. **125 PASS, 30 FAIL, 10 SKIPPED** (the skips are capture plans and checks that
+skip themselves without their setup).
+
+| The 30 failures | Count | Verdict |
+|---|---|---|
+| The signed-in group (they need the signed-in setup; signed in they are the 11 PASS / 4 FAIL above) | 15 | Expected signed out |
+| IOS-084's "13 stale outside Home" on `e034915a`: `N2LivePlayUITests` ×3 and `N2LiveRecapUITests` ×1 and `SyntheticRouteTests.testLiveFinishToRecap` (W7-128/W7-116 copy), `N4PostUITests.testStartOverAsksBeforeItClearsTheCard` (W7-136), `OfflineTripReviewTests` ×3, `ReceiptLensesUITests` (passes signed in), `ReceiptMomentTests` (Q45), `ReturnFlowReviewTests.testSignInTopoStaysVisibleAndControlsWork`, `SeasonBookUITests.testRealRootUsesTheSameTieAndOpensTheBookDoor` | 13 | Pre-existing on main; the stale-UI session (`claude/epic-pascal-a9eced`) is updating them |
+| `RoundShareReviewTests.testFixturePreviewAndNativeShareCancellation` | 1 | IOS-084's known flaky one. It failed again when run alone, at the same line: the app's part works (preview, send, Apple's share sheet opens), and the test's tap on Close in Apple's sheet is lost while the sheet is still rising. The stale-UI session's uncommitted edit lets the sheet settle and taps again. Test-side |
+| `N4SheetsUITests.testFittedSheetsCloseIsA44ptTargetOnScreen` | 1 | Not in the baseline. In the full run, Close measured 15 × 15 while the sheet was still presenting, on a machine at load 100+. **Run alone on the same build it PASSES** (35.8 s). Timing, not the app |
+
+**Every Home test passes on the candidate**: the 9 rewritten Home tests, `AfterGolfWirePlacementTests` and `MatchProgrammeTests`. **No regression:** the only failure outside IOS-084's baseline passed when run alone.
 
 ## Live local proof · how it was run (2026-10-01)
 
@@ -436,7 +509,7 @@ Nothing in this part is safe to paste or answer from the repository alone.
 |---|---|---|---|
 | **B-1** | **The pot: legal classification and the exact words in the description, review notes and age rating.** **RULED 2026-10-01 (D402, option B): no counsel opinion is required before submission.** The age rating answers Gambling: No. THE POT paragraph is publishable once B-2's two fixes ship. The text that follows in this row is the counsel brief, kept in case the owner consults later. | Counsel, then owner | Counsel has not approved. Send counsel the real features, not the paragraph alone: season buy-ins up to $200 with winner, runner-up and Points King splits; live-game amounts per point or skin (uncapped on iPhone); settlement totals; pride bets; no age gate; US-only. Whether 5.3/5.3.4 applies turns on the functionality. The age-rating Gambling answer (B-8) follows the same ruling. |
 | **B-2** | **Money surfaces found in the release build.** **D402: both fixes are required before submission and wait for "build it".** First, cap the phone's stake at $200 (a server clamp is recommended). Second, rename the money door on both clients; proposed: "Play for something". | Owner, with counsel | (a) On the web, the live-game stake is capped at $200 (`index.html:6974`, `CS_STAKE_MAX`). The iPhone field is a free decimal with no ceiling (`LiveSetupView.swift:428-430`, `LiveRoundStore.swift:567`), and no server clamp exists. D192's cap therefore holds on the web only. The old §6 and the review notes claim otherwise. (b) The start sheet's modifier row reads **"Put money on it"** (`StartIntent.swift:75`) and opens "Post a pride bet". The listing must not repeat either phrase; whether the in-app copy changes is your call. No code is changed by this package. |
-| **B-3** | **Screenshots recaptured from the final candidate.** Pipeline built 2026-10-01: §9's frames from the app's own fictional fixtures, on a 6.9" simulator, composed in the September 25 layout. | Engineering, then owner approval | The current App Store Connect set (8 images, `APP_IPHONE_67`) predates about 300 native UI commits. **Owner, 2026-10-01: wait for the final candidate.** Capture §9's order from that build, not from `e034915a`, so the set is not shot twice. |
+| **B-3** | **Screenshots recaptured from the final candidate.** Pipeline built 2026-10-01: §9's frames from the app's own fictional fixtures, on a 6.9" simulator, composed in the September 25 layout. | Engineering, then owner approval | The current App Store Connect set (8 images, `APP_IPHONE_67`) predates about 300 native UI commits. **Owner, 2026-10-01: wait for the final candidate.** Capture §9's order from that build, not from `e034915a`, so the set is not shot twice. **Captured 2026-10-01 evening from `48d5f40e`:** all 8 frames plus the optional widgets frame, 1320 × 2868, 8-bit RGB, no alpha, each screen checked against its accessibility tree and OCR; a second run reproduced them (5 of 8 byte-identical, the rest differing only in glass shimmer and a few points of scroll). The leak audit finds no real golfer, owner name, "QA" prefix, real course, dollar figure or other platform's chrome. That first set was **not uploaded**: every frame showed the synthetic cast, whose names read as test data by design ("Team Placeholder", "Devon Testcase", "North Grove (fixture)"), and 2.1 asks that placeholder text be scrubbed. **Owner, 2026-10-01: "Recast for the store."** `a48dac68` (merged as `10d0d5bf`) adds a DEBUG-only store cast, `-cs_dev_cast store`, with natural invented names (Mulligan Cup League, Team Avery, Blake Hartwell, Larkspur Hollow); the shipped Release code is unchanged. **The recast set:** all 8 frames plus the widgets frame recaptured from `a48dac68`, frame 1 in its strict framing (candidate 2's head reads "GAP · SINCE MON"). Audit: **zero findings in all nine frames.** 1320 × 2868, RGB, no alpha. Committed in `apps/ios/Screenshots/1.0/` with its SHA-256 list. **Waiting for the owner's approval before upload.** Two notes: frame 5 still shows the foot of the comment composer above the receipt, so retake it if the in-line comment proposal is built. Frame 9's widgets say "AS OF 10:30 PM" (the wall clock) under a 9:41 status bar, as the September 25 set did. **Do not submit with the September 25 set:** it shows a real Phoenix course with a rating. |
 | ~~B-4~~ | **1.2's "method for filtering objectionable material". RULED 2026-10-01:** the D403 text filter ships; photos are reviewed when golfers report them, not screened first. The review notes say so. The text that follows is the original finding. | Owner | There is no automated screening before publication. The only server-side sanitising strips control characters. Takedown covers posts and comments; no function takes down a photo, and there is no ban function apart from self-deletion. The Terms promise to "remove the accounts that posted it". Report, block and operator notification exist. The review notes' safety section depends on whether screening ships in this build. |
 | **B-5** | **Privacy manifest corrections. They ride the final candidate build, and they do NOT block submission.** Corrected 2026-10-01: Apple enforces the manifest's required-reason API section at upload. The collected-data section feeds Xcode's privacy report, which developers "refer to" when filling App Store Connect privacy details. What must be accurate at submission is the App Store Connect answers (C-1), and those can be changed without a build. | Owner, then engineering | The manifest says Contacts is not linked, but the stored buddy list is a linked social graph. Its comment, and `app-review-notes.md`, call the contact hashes "salted"; the device sends plain SHA-256 (`ContactHash.swift:61-65`). Other Diagnostic Data, Emails or Text Messages, and Other Financial Info are undeclared if you accept the C-section recommendations. A scanned scorecard becomes the round photo (`PostRoundModel.swift:404`), which the scan consent does not say. |
 | ~~B-6~~ | **Copyright holder. CLOSED 2026-10-01.** | Owner | The owner confirmed that Fischbeck3 LLC holds the rights and that the App Store Connect seller is the LLC, which meets 5.1.1(ix)'s legal-entity expectation. `2026 Fischbeck3 LLC` stands. |
