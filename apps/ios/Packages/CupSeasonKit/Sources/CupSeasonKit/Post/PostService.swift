@@ -357,14 +357,15 @@ public struct PostService: Sendable {
   private struct ScanBody: Encodable { let image: String; let media_type: String }
 
   /// The `scan` Edge Function reads the card (2200px JPEG, base64 in the body).
-  /// D403 · bound to `attempt`: the request carries the starting golfer's OWN token, read
-  /// and checked here, so a sign-out or a new sign-in mid-scan can never send one golfer's
-  /// photo under another's account.
+  /// D403 · bound to `attempt`: the starting golfer's OWN token is read and checked here,
+  /// and the request goes out on a client bound to it, so a sign-out or a new sign-in
+  /// mid-scan can never send one golfer's photo under another's account. (Review of
+  /// a3115801: an `Authorization` header set on the shared client is overwritten by
+  /// supabase-swift with the current session's token, so it bound nothing.)
   public func scan(jpeg: Data, attempt: ScanAttempt) async -> ScanOutcome {
     guard let session = await svc.currentSession(), attempt.isCurrent(session.user.id) else { return .stale }
     do {
-      let reply: JSONValue = try await db.functions.invoke("scan", options: .init(
-        headers: ["Authorization": "Bearer \(session.accessToken)"],
+      let reply: JSONValue = try await svc.bound(to: session.accessToken).functions.invoke("scan", options: .init(
         body: ScanBody(image: jpeg.base64EncodedString(), media_type: "image/jpeg")))
       if reply["unavailable"]?.bool == true { return .unavailable(reason: reply["reason"]?.string) }
       guard reply["ok"]?.bool == true, let scan = PostScan(json: reply) else { return .unreadable }

@@ -50,7 +50,7 @@ import Testing
 
   @Test func scanDoesNotAcquirePermissionFromAReadFailure() async {
     let owner = UUID(), d = defaults()
-    let consent = ScanConsentStore(defaults: d, read: { _ in throw Failure.offline }, write: { _ in throw Failure.offline })
+    let consent = ScanConsentStore(defaults: d, read: { _ in throw Failure.offline }, write: { _, _ in throw Failure.offline })
     await consent.load(owner: owner)
     #expect(!consent.permits(owner))
     #expect(!consent.pendingSync)
@@ -67,7 +67,7 @@ import Testing
 
   @Test func aFailedNoIsKeptAndResentAndRevocationWinsOnThisPhone() async {
     let d = defaults(), owner = UUID(), other = UUID()
-    let offline = ScanConsentStore(defaults: d, read: { $0 == owner }, write: { _ in throw Failure.offline })
+    let offline = ScanConsentStore(defaults: d, read: { $0 == owner }, write: { _, _ in throw Failure.offline })
     await offline.load(owner: owner)
     #expect(offline.permits(owner))
     #expect(await offline.set(false, owner: owner) == false)
@@ -76,7 +76,7 @@ import Testing
     await offline.load(owner: other)
     #expect(!offline.permits(other) && !offline.pendingSync)      // scoped to its golfer
     var writes: [Bool] = []
-    let online = ScanConsentStore(defaults: d, read: { _ in true }, write: { writes.append($0); return $0 })
+    let online = ScanConsentStore(defaults: d, read: { _ in true }, write: { on, _ in writes.append(on); return on })
     await online.load(owner: owner)
     #expect(writes == [false])                                    // the "no" is resent, not read over
     #expect(!online.permits(owner) && !online.pendingSync)
@@ -88,7 +88,7 @@ import Testing
     let d = defaults(), owner = UUID()
     d.set(true, forKey: "cs_scan_consent.\(owner.uuidString.lowercased())")
     var writes: [Bool] = []
-    let consent = ScanConsentStore(defaults: d, read: { _ in false }, write: { writes.append($0); return $0 })
+    let consent = ScanConsentStore(defaults: d, read: { _ in false }, write: { on, _ in writes.append(on); return on })
     await consent.load(owner: owner)
     #expect(writes.isEmpty)
     #expect(!consent.permits(owner))
@@ -129,7 +129,7 @@ import Testing
     let server = Server()
     func device() -> ScanConsentStore {
       ScanConsentStore(defaults: defaults(), read: { _ in server.consent },
-                       write: { server.writes.append($0); server.consent = $0; return $0 })
+                       write: { on, _ in server.writes.append(on); server.consent = on; return on })
     }
     /// the scan function: refuses without the stored yes, before any provider call
     func scan() -> String? { if !server.consent { return "no_consent" }; server.provider += 1; return nil }
@@ -169,13 +169,35 @@ import Testing
     #expect(!attempt.isCurrent(nil))    // signed out mid-scan
   }
 
+  /// D403 (review of a3115801) · an answer that comes back after the account changed is
+  /// the last golfer's: it changes nothing the next golfer sees, and it was sent for the
+  /// golfer who chose.
+  @Test func aConsentAnswerAfterTheAccountChangedChangesNothing() async {
+    let a = UUID(), b = UUID()
+    var answer: CheckedContinuation<Bool, Never>?
+    var sentFor: [UUID] = []
+    let consent = ScanConsentStore(defaults: defaults(), read: { _ in false }, write: { _, owner in
+      sentFor.append(owner)
+      return await withCheckedContinuation { answer = $0 }
+    })
+    await consent.load(owner: a)
+    let choice = Task { await consent.set(true, owner: a) }
+    while answer == nil { await Task.yield() }
+    await consent.load(owner: b)                      // B signed in while A's yes was in flight
+    answer?.resume(returning: true)
+    #expect(await choice.value == false)
+    #expect(sentFor == [a])
+    #expect(consent.owner == b)
+    #expect(!consent.permits(b))
+  }
+
   /// A refusal orphans a write or read in flight: it cannot land a yes afterwards.
   @Test func aRefusalOrphansAnInFlightRead() async {
     var answer: CheckedContinuation<Bool, Never>?
     let owner = UUID()
     let consent = ScanConsentStore(defaults: defaults(), read: { _ in
       await withCheckedContinuation { answer = $0 }
-    }, write: { $0 })
+    }, write: { on, _ in on })
     let read = Task { await consent.load(owner: owner) }
     while answer == nil { await Task.yield() }
     consent.serverRefused(owner: owner)
@@ -191,7 +213,7 @@ import Testing
     var answer: CheckedContinuation<Bool, Never>?
     let consent = ScanConsentStore(defaults: defaults(), read: { _ in
       await withCheckedContinuation { answer = $0 }
-    }, write: { $0 })
+    }, write: { on, _ in on })
     let owner = UUID()
     let read = Task { await consent.load(owner: owner) }
     while answer == nil { await Task.yield() }

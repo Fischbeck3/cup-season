@@ -15044,7 +15044,8 @@ async function csRunScan(f){
       /* nothing leaves until the tapped yes is on the profile */
       let took = false;
       try{ took = await fresh.write; }catch(_){ took = false; }
-      if(stale()) return;
+      /* null: the account changed under the yes — nothing was written, nothing to say */
+      if(stale() || took === null) return;
       if(!took){ toast(CS_SCAN_CONSENT.notSaved); return; }
     }
     /* 2200px keeps handwritten digits legible for the model; ~½MB upload */
@@ -24904,28 +24905,57 @@ function csScanForgetYes(){
   if(p) p.scan_consent_at = null;
   try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
 }
-/* Resolves true when the PROFILE holds what the golfer chose. A yes the
-   profile would not take is a failure (never a device-only yes the server
-   cannot see); a no the profile would not take is reported, because the
-   profile still says yes. */
-async function csSetScanConsent(on){
+/* Resolves true when the PROFILE holds what the golfer chose, false when it
+   does not, and null when the account changed before the answer could count.
+   A yes the profile would not take is a failure (never a device-only yes the
+   server cannot see); a no the profile would not take is reported, because
+   the profile still says yes.
+   D403 (review of a3115801) · a choice is ONE golfer's, like a scan. The
+   account and the auth generation are fixed when the golfer chooses (the
+   sheet's tap, the Settings switch); that golfer's own token is resolved and
+   checked against them, and the RPC carries it. The shared client picks its
+   token asynchronously at send time (supabase-js's fetchWithAuth awaits the
+   session, then fills Authorization only when the request has none), so
+   without this a sign-in in another tab during that wait would write A's
+   choice onto B. Stale before sending: nothing is sent. Stale on return: the
+   answer changes nothing on this page. */
+async function csSetScanConsent(on, forUid, forGen){
   on = !!on;
-  if(!on) csScanFreshYes = null;
-  const p = window.CS?.profile || null;
+  const uid = forUid === undefined ? csScanUid() : forUid;
+  const gen = forGen === undefined ? (window.csAuthGen || 0) : forGen;
+  const stale = () => !uid || csScanUid() !== uid || (window.csAuthGen || 0) !== gen;
+  if(stale()) return null;
+  if(!on && csScanFreshYes && csScanFreshYes.uid === uid) csScanFreshYes = null;
   let saved = false;
   if(window.sb && !state.demo){
+    let token = null, unread = false;
     try{
-      /* returns true when consent is ON after the call */
-      const { data, error } = await window.sb.rpc('set_scan_consent', { p_on: on });
-      saved = !error && data === on;
-    }catch(_){ saved = false; }
+      const { data, error } = await window.sb.auth.getSession();
+      unread = !!error;
+      token = data?.session?.access_token || null;
+    }catch(_){ unread = true; }
+    if(stale()) return null;
+    /* no session, or the client's token already speaks for someone else: the account
+       is changing under this choice (a session that could not be READ is a failure) */
+    if(!unread && (!token || csJwtSub(token) !== uid)) return null;
+    if(token){
+      try{
+        /* returns true when consent is ON after the call */
+        const { data, error } = await window.sb.rpc('set_scan_consent', { p_on: on })
+          .setHeader('Authorization', 'Bearer ' + token);
+        saved = !error && data === on;
+      }catch(_){ saved = false; }
+    }
   }
+  if(stale()) return null;
   try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
+  const p = window.CS?.profile || null;
+  const mine = p && (!p.id || p.id === uid) ? p : null;
   if(saved){
-    if(p) p.scan_consent_at = on ? (p.scan_consent_at || new Date().toISOString()) : null;
+    if(mine) mine.scan_consent_at = on ? (mine.scan_consent_at || new Date().toISOString()) : null;
     return true;
   }
-  return on ? false : !(p && p.scan_consent_at);
+  return on ? false : !(mine && mine.scan_consent_at);
 }
 /* The scan asks before any photo leaves the device. The picker opens INSIDE
    the tap on the yes — a file input will not open after an await — and the
@@ -24943,7 +24973,7 @@ function csAskScanConsent(proceed, forUid, forGen){
   document.getElementById('scnYes')?.addEventListener('click', () => {
     const uid = csScanUid();
     if(!uid || uid !== askUid || (window.csAuthGen || 0) !== askGen){ closeSheet(); return; }
-    csScanFreshYes = { uid, write: csSetScanConsent(true) };
+    csScanFreshYes = { uid, write: csSetScanConsent(true, uid, askGen) };
     closeSheet();
     if(typeof proceed === 'function') proceed();
   });
@@ -33184,7 +33214,9 @@ function openProfileHub(){
   scanPaint();
   scanTog?.addEventListener('click', async () => {
     scanTog.disabled = true;
-    if(!(await csSetScanConsent(!csScanConsented()))) toast(CS_SCAN_CONSENT.settingFailed);
+    /* D403 · null: the account changed mid-write — the switch repaints for whoever is
+       signed in now, and nothing is said to them about the last golfer's choice */
+    if((await csSetScanConsent(!csScanConsented())) === false) toast(CS_SCAN_CONSENT.settingFailed);
     scanPaint();
     scanTog.disabled = false;
   });

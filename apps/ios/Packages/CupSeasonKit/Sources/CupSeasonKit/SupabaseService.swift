@@ -42,6 +42,9 @@ public final class SupabaseService: Sendable {
 
   public let client: SupabaseClient
   public let realtime: SupabaseClient
+  /// The transport `client` rides; a bound client (`bound(to:)`) rides it too, so
+  /// the DEBUG offline and synthetic seams answer it as well.
+  private let transport: URLSession
 
   /// OE-4 · **A BAD SIGNAL MUST NOT BE WORSE THAN NO SIGNAL.** Nothing set a
   /// request timeout anywhere in the app, so every call inherited
@@ -79,12 +82,14 @@ public final class SupabaseService: Sendable {
   }
 
   private init() {
+    let transport = SupabaseService.tunedSession()
+    self.transport = transport
     client = SupabaseClient(
       supabaseURL: CSConfig.supabaseURL,
       supabaseKey: CSConfig.supabasePublishableKey,
       options: SupabaseClientOptions(
         auth: .init(storage: SupabaseService.authStorage(), flowType: .implicit, emitLocalSessionAsInitialSession: true),
-        global: .init(headers: ["x-client-info": "cupseason-ios"], session: SupabaseService.tunedSession())
+        global: .init(headers: ["x-client-info": "cupseason-ios"], session: transport)
       )
     )
     realtime = SupabaseClient(
@@ -145,6 +150,37 @@ public final class SupabaseService: Sendable {
     try? await client.auth.session
   }
 
+  // MARK: - one golfer's request (D403, review of a3115801)
+
+  /// The session of `owner`, or nil when someone else, or no one, is signed in.
+  public func session(of owner: UUID) async -> Session? {
+    guard let s = await currentSession(), s.user.id == owner else { return nil }
+    return s
+  }
+
+  /// A client that sends exactly `token` and nothing else.
+  ///
+  /// The shared `client` resolves the CURRENT session's token for every request,
+  /// and supabase-swift's adapter overwrites any `Authorization` a caller set
+  /// (`SupabaseClient.adaptRequest`). So a request a golfer started could leave
+  /// under whoever is signed in when it is finally sent. A write that belongs to
+  /// one golfer (a consent choice, a scan) is sent through a client bound to that
+  /// golfer's token instead: no session of its own, no refresh, no auth listener.
+  public func bound(to token: String) -> SupabaseClient {
+    Self.boundClient(token: token, transport: transport)
+  }
+
+  static func boundClient(token: String, transport: URLSession) -> SupabaseClient {
+    SupabaseClient(
+      supabaseURL: CSConfig.supabaseURL,
+      supabaseKey: CSConfig.supabasePublishableKey,
+      options: SupabaseClientOptions(
+        auth: .init(storage: EphemeralStorage(), autoRefreshToken: false, accessToken: { token }),
+        global: .init(headers: ["x-client-info": "cupseason-ios"], session: transport)
+      )
+    )
+  }
+
   public func signOut() async throws {
     try await client.auth.signOut()
   }
@@ -156,9 +192,12 @@ public final class SupabaseService: Sendable {
 
   // MARK: - RPC with the skew retry
 
-  public func call<C: RpcCall>(_ call: C) async throws -> C.Returns {
+  /// `token`: send as that golfer only (see `bound(to:)`); nil sends as the
+  /// current session.
+  public func call<C: RpcCall>(_ call: C, token: String? = nil) async throws -> C.Returns {
+    let on = token.map(bound(to:)) ?? client
     do {
-      return try await invoke(C.name, params: call, as: C.Returns.self)
+      return try await invoke(C.name, params: call, as: C.Returns.self, on: on)
     } catch {
       let droppable = C.optionalArgs
       let first = RpcError(name: C.name, underlying: Self.describe(error), droppedArgs: [])
@@ -170,7 +209,7 @@ public final class SupabaseService: Sendable {
       for k in present { dict.removeValue(forKey: k) }
       let slim = try JSONDecoder().decode(JSONValue.self, from: JSONSerialization.data(withJSONObject: dict))
       do {
-        return try await invoke(C.name, params: slim, as: C.Returns.self)
+        return try await invoke(C.name, params: slim, as: C.Returns.self, on: on)
       } catch {
         throw RpcError(name: C.name, underlying: Self.describe(error), droppedArgs: present)
       }
@@ -181,11 +220,12 @@ public final class SupabaseService: Sendable {
   /// writes must retain their idempotency/reply fields, and pagination cursors
   /// must keep the server's fractional-second timestamp verbatim.
   public func callJSON<C: RpcCall>(_ endpoint: C.Type, params: JSONValue) async throws -> C.Returns {
-    do { return try await invoke(C.name, params: params, as: C.Returns.self) }
+    do { return try await invoke(C.name, params: params, as: C.Returns.self, on: client) }
     catch { throw RpcError(name: C.name, underlying: Self.describe(error), droppedArgs: []) }
   }
 
-  private func invoke<R: Decodable & Sendable>(_ name: String, params: some Encodable & Sendable, as: R.Type) async throws -> R {
+  private func invoke<R: Decodable & Sendable>(_ name: String, params: some Encodable & Sendable, as: R.Type,
+                                               on client: SupabaseClient) async throws -> R {
     if R.self == RpcVoid.self {
       try await client.rpc(name, params: params).execute()
       return RpcVoid() as! R

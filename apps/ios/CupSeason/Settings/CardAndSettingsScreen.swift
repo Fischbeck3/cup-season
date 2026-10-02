@@ -687,6 +687,8 @@ private struct SettingsPane: View {
         Task {
           guard let owner = store.session?.user.id else { return }
           let saved = await scanConsent.set(value, owner: owner)
+          // D403 · the account changed mid-write: nothing to say to whoever is here now
+          guard store.session?.user.id == owner else { return }
           // a yes the account did not take is not kept; a "no" is kept and resent
           if !saved { toast.show(value ? ScanConsentCopy.settingFailed : ScanConsentCopy.offPending, kind: value ? .failed : .neutral) }
         }

@@ -6,8 +6,16 @@
 // without a stored yes) is proven separately in edge-security-courses-scan.test.mjs;
 // here "provider calls" counts what the stand-in Edge would have sent to Anthropic.
 //
+// The client is a FAITHFUL model of the shipped SDK's request boundary (review of
+// a3115801): supabase-js 2.112.4's fetchWithAuth resolves the token by AWAITING the
+// session when a request is SENT, not when the call is made, and keeps an
+// Authorization header the caller set (dist index.mjs:297-304). The stand-in server
+// applies every request to the account its Authorization header names. Session reads
+// can be held open (`gates.session[n]`), so the account can change mid-resolution.
+// tests/scan-consent-sdk.test.mjs runs the same race through the real SDK.
+//
 // CS_INDEX=<path> runs the same scenarios against another build of index.html
-// (used to show the regression fails on b3472292).
+// (used to show the regressions fail on b3472292, 0e463792 and a3115801).
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {test} from 'node:test';
@@ -29,35 +37,68 @@ function makeServer({consent = {}, readFails = false} = {}) {
   return {consent: {...consent}, readFails, writes: [], scanCalls: 0, providerCalls: 0, sentAs: []};
 }
 
-/* a token for a golfer: an unsigned JWT whose `sub` is theirs (the page reads only `sub`) */
+/* a token for a golfer: an unsigned JWT whose `sub` is theirs (the page reads only `sub`);
+   `v` changes when the same golfer's token is refreshed */
 const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
-const tokenFor = (uid) => uid ? `${b64u({ alg: 'none' })}.${b64u({ sub: uid })}.x` : null;
+const tokenFor = (uid, v = 1) => uid ? `${b64u({ alg: 'none' })}.${b64u({ sub: uid, v })}.x` : null;
 const subOf = (h) => { try { return JSON.parse(Buffer.from(String(h).replace(/^Bearer /, '').split('.')[1], 'base64url')).sub; } catch { return null; } };
 const deferred = () => { let resolve; const promise = new Promise((r) => { resolve = r; }); return { promise, resolve }; };
 
+/* supabase-js 2.112.4's fetchWithAuth: the token is resolved by awaiting the session
+   when the request is SENT, and an Authorization header the caller set is kept. */
+function sdkFetch(getSession, headers, send) {
+  return (async () => {
+    const { data } = await getSession();
+    const token = data?.session?.access_token ?? null;
+    if (!headers.Authorization) headers.Authorization = 'Bearer ' + (token ?? 'publishable-key');
+    return send(headers);
+  })();
+}
+
 /* One signed-in tab. Its profile is whatever the server held when it loaded. `gates`
-   hold a step open (compress, encode, invoke, json) so the account can change mid-way. */
+   hold a step open (compress, encode, invoke, json, a session read by index, a write's
+   response) so the account can change mid-way. */
 function tab(server, uid, { deviceFlag = false, writeGate = null, gates = {} } = {}) {
   const store = deviceFlag ? { cs_scan_consent: '1' } : {};
   const toasts = [], sheets = [], picked = [];
   let buttons = {};
   const CS = { user: { id: uid }, profile: { id: uid, scan_consent_at: server.consent[uid] ? '2026-09-30T12:00:00Z' : null } };
   const win = { CS, csAuthGen: 1 };
-  let sessionUid = uid;                                // the client's token: can change before CS.user does
+  let sessionUid = uid, tokenVersion = 1;              // the client's token: can change before CS.user does
+  let sessionReads = 0;
+  /* auth-js reads the stored session after its own awaits (initialize, the lock, storage),
+     so the answer reflects the account at resolution time, not at call time */
+  const getSession = async () => {
+    const i = sessionReads++;
+    await null;
+    if (gates.session?.[i]) await gates.session[i].promise;
+    return { data: { session: sessionUid ? { access_token: tokenFor(sessionUid, tokenVersion) } : null } };
+  };
   const sb = {
-    auth: { getSession: async () => ({ data: { session: sessionUid ? { access_token: tokenFor(sessionUid) } : null } }) },
-    rpc: async (name, args) => {
+    auth: { getSession },
+    rpc: (name, args) => {
       assert.equal(name, 'set_scan_consent');
-      const who = sessionUid;                          // the JWT at the moment of the call
-      if (writeGate) await writeGate.promise;
-      server.writes.push({ uid: who, on: args.p_on });
-      if (writeGate?.fail) return { error: { message: 'network' } };
-      server.consent[who] = args.p_on;
-      return { data: args.p_on };
+      const headers = {};
+      const builder = {
+        setHeader(k, v) { headers[k] = v; return builder; },
+        then(resolve, reject) {
+          return sdkFetch(getSession, headers, async (h) => {
+            const who = subOf(h.Authorization);        // the account the request carried
+            if (writeGate) await writeGate.promise;
+            if (gates.response) await gates.response.promise;
+            server.writes.push({ uid: who, on: args.p_on });
+            if (writeGate?.fail) return { error: { message: 'network' } };
+            if (!who) return { error: { message: 'JWT required' } };
+            server.consent[who] = args.p_on;
+            return { data: args.p_on };
+          }).then(resolve, reject);
+        },
+      };
+      return builder;
     },
-    functions: { invoke: async (name, opts) => {
+    functions: { invoke: (name, opts) => sdkFetch(getSession, { ...(opts?.headers || {}) }, async (h) => {
       assert.equal(name, 'scan');
-      const who = opts?.headers?.Authorization ? subOf(opts.headers.Authorization) : sessionUid;
+      const who = subOf(h.Authorization);
       server.scanCalls++;
       server.sentAs.push(who);
       if (gates.invoke) await gates.invoke.promise;
@@ -66,7 +107,7 @@ function tab(server, uid, { deviceFlag = false, writeGate = null, gates = {} } =
       }
       server.providerCalls++;
       return { data: { ok: true, scan: { players: [{ name: 'Me', holes: Array(18).fill(4) }], par_row: Array(18).fill(4) } } };
-    } },
+    }) },
   };
   win.sb = sb;
   const btn = { innerHTML: 'Scan', disabled: false, textContent: '' };
@@ -103,6 +144,8 @@ function tab(server, uid, { deviceFlag = false, writeGate = null, gates = {} } =
       if (boot) { CS.user = { id: next }; CS.profile = { id: next, scan_consent_at: server.consent[next] ? 'x' : null }; }
     },
     signOut: () => { sessionUid = null; win.csAuthGen++; CS.user = null; CS.profile = null; },
+    /* the same golfer's token refreshed: a new access token, no new generation */
+    refreshToken: () => { tokenVersion++; },
   };
 }
 
@@ -316,4 +359,136 @@ test('normal scanning still works, sent on the golfer\'s own token', async () =>
   assert.deepEqual(server.sentAs, [A]);
   assert.equal(t.picked.length, 1);
   assert.equal(server.providerCalls, 1);
+});
+
+// ---- D403 (review of a3115801) · the consent WRITE belongs to the golfer who chose ------
+// The shared client resolves its token when the request is sent. These hold that
+// resolution open (`gates.session[n]`, n = the nth session read after the tab loads)
+// and change the account meanwhile: another tab's sign-in reaches the client's token
+// first and this page's auth handler second (`bumpGen: false` models the gap).
+for (const reached of [false, true]) {
+  test(`the review's reproduction${reached ? ' (the sign-in already reached this page)' : ''}: A taps yes, B signs in while the write resolves its token — B's consent is unchanged and nothing reaches B`, async () => {
+    const server = makeServer({ consent: { [B]: false } });
+    const g = deferred();
+    const t = tab(server, A, { gates: { session: { 0: g } } });
+    await t.tapScan();                                 // asked for A
+    t.tapYes(); await settle();                        // A's yes: its write is resolving a token
+    t.otherTabSignsIn(B, { bumpGen: reached, boot: false });
+    g.resolve(); await settle();
+    t.otherTabSignsIn(B);                              // the sign-in reaches this page; it boots as B
+    await settle();
+    assert.deepEqual(server.writes.filter((w) => w.uid === B), [], "A's choice went out as B");
+    assert.equal(server.consent[B], false, "B's consent changed");
+    assert.equal(server.scanCalls, 0, 'a photo went out');
+    assert.equal(t.picked.length, 0, 'a result was applied');
+    assert.deepEqual(t.sheets, ['Scan with Claude?'], 'a prompt opened for B');
+    assert.equal(t.toasts.length, 0, 'B was told about A\'s choice');
+    assert.equal(t.CS.profile.scan_consent_at, null, "B's page shows a yes");
+  });
+}
+
+test("A's token is resolved, then B signs in while the SDK resolves its own: the request still carries A's token, and A's scan stops", async () => {
+  const server = makeServer({ consent: { [B]: false } });
+  const g = deferred();
+  const t = tab(server, A, { gates: { session: { 1: g } } });   // read 0 is the golfer's, read 1 the SDK's
+  await t.tapScan();
+  t.tapYes(); await settle();
+  t.otherTabSignsIn(B, { bumpGen: false, boot: false });
+  g.resolve(); await settle();
+  assert.deepEqual(server.writes, [{ uid: A, on: true }], 'the write did not go out on the token of the golfer who chose');
+  assert.equal(server.consent[B], false);
+  assert.deepEqual(server.sentAs, [], "A's photo went out on B's token");
+});
+
+for (const reached of [false, true]) {
+  test(`A's revocation${reached ? ' (the sign-in already reached this page)' : ''}, B signs in while it resolves its token: B's yes stands and nothing goes out as B`, async () => {
+    const server = makeServer({ consent: { [A]: true, [B]: true } });
+    const g = deferred();
+    const t = tab(server, A, { gates: { session: { 0: g } } });
+    const answer = t.setConsent(false); await settle();
+    t.otherTabSignsIn(B, { bumpGen: reached, boot: false });
+    g.resolve();
+    const result = await answer;
+    assert.deepEqual(server.writes.filter((w) => w.uid === B), [], "A's revocation went out as B");
+    assert.equal(server.consent[B], true, "B's yes was revoked");
+    assert.equal(result, null, 'a stale choice is not reported as saved or failed');
+  });
+}
+
+test('sign-out while the write resolves its token: no request, no toast, no scan', async () => {
+  const server = makeServer();
+  const g = deferred();
+  const t = tab(server, A, { gates: { session: { 0: g } } });
+  await t.tapScan();
+  t.tapYes(); await settle();
+  t.signOut();
+  g.resolve(); await settle();
+  assert.equal(server.writes.length, 0, 'a request went out after sign-out');
+  assert.equal(server.scanCalls, 0);
+  assert.equal(t.toasts.length, 0);
+});
+
+test("a token refresh while the write resolves: the same golfer's yes lands and the scan goes on", async () => {
+  const server = makeServer();
+  const g = deferred();
+  const t = tab(server, A, { gates: { session: { 0: g } } });
+  await t.tapScan();
+  t.tapYes(); await settle();
+  t.refreshToken();
+  g.resolve(); await settle();
+  assert.deepEqual(server.writes, [{ uid: A, on: true }]);
+  assert.equal(server.consent[A], true);
+  assert.deepEqual(server.sentAs, [A]);
+  assert.equal(server.providerCalls, 1);
+  assert.equal(t.picked.length, 1);
+});
+
+test("an account switch while A's yes is in flight: it lands for A only, and B's page takes nothing from it", async () => {
+  const server = makeServer({ consent: { [B]: false } });
+  const g = deferred();
+  const t = tab(server, A, { gates: { response: g } });
+  await t.tapScan();
+  t.tapYes(); await settle();
+  t.otherTabSignsIn(B);                                // sent as A; the answer has not come back
+  g.resolve(); await settle();
+  assert.deepEqual(server.writes, [{ uid: A, on: true }]);
+  assert.equal(server.consent[B], false);
+  assert.equal(t.CS.profile.scan_consent_at, null, "B's page took A's yes");
+  assert.equal(t.consented(), false);
+  assert.equal(server.scanCalls, 0);
+  assert.equal(t.toasts.length, 0);
+  assert.deepEqual(t.sheets, ['Scan with Claude?']);
+});
+
+test("an account switch while A's revocation is in flight: the answer is stale, B's page keeps its yes", async () => {
+  const server = makeServer({ consent: { [A]: true, [B]: true } });
+  const g = deferred();
+  const t = tab(server, A, { gates: { response: g } });
+  const answer = t.setConsent(false); await settle();
+  t.otherTabSignsIn(B);
+  g.resolve();
+  assert.equal(await answer, null);
+  assert.equal(server.consent[A], false, "A's no landed for A");
+  assert.equal(server.consent[B], true);
+  assert.equal(t.CS.profile.scan_consent_at, 'x', "B's page lost its yes");
+});
+
+test('a failed revocation is still reported, and a pending one still waits for its answer', async () => {
+  const server = makeServer({ consent: { [A]: true } });
+  const fail = { promise: Promise.resolve(), fail: true };
+  const t = tab(server, A, { writeGate: fail });
+  assert.equal(await t.setConsent(false), false, 'the profile still says yes: reported');
+  const g = deferred();
+  const u = tab(server, A, { gates: { response: g } });
+  let settled = false;
+  const answer = u.setConsent(false).then((r) => { settled = true; return r; });
+  await settle();
+  assert.equal(settled, false, 'reported before the server answered');
+  g.resolve();
+  assert.equal(await answer, true);
+  assert.equal(server.consent[A], false);
+});
+
+test('Settings says nothing about a stale choice: its switch toasts only on an explicit false', () => {
+  assert.match(source, /if\(\(await csSetScanConsent\(!csScanConsented\(\)\)\) === false\) toast\(CS_SCAN_CONSENT\.settingFailed\)/);
 });

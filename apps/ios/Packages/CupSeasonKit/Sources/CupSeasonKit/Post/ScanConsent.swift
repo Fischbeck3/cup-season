@@ -83,21 +83,43 @@ public final class ScanConsentStore {
   public private(set) var pendingSync = false
   private let defaults: UserDefaults
   private let read: (UUID) async throws -> Bool
-  private let write: (Bool) async throws -> Bool
+  private let write: (Bool, UUID) async throws -> Bool
   private var generation = 0
 
+  /// D403 (review of a3115801) · the golfer a consent read or write belongs to is no
+  /// longer the one signed in. Nothing was sent.
+  public struct NotTheirs: Error, Equatable {}
+
+  /// `read(owner)` and `write(on, owner)` act for `owner` ONLY. By default each resolves
+  /// that golfer's token at the moment it sends (`NotTheirs` when someone else, or no
+  /// one, is signed in) and sends it on a client bound to it, because the shared client
+  /// would put whoever is signed in at send time on the request.
   public init(defaults: UserDefaults = .standard,
               read: ((UUID) async throws -> Bool)? = nil,
-              write: ((Bool) async throws -> Bool)? = nil) {
+              write: ((Bool, UUID) async throws -> Bool)? = nil) {
     self.defaults = defaults
     self.read = read ?? { owner in
+      guard let session = await SupabaseService.shared.session(of: owner) else { throw NotTheirs() }
       struct Row: Decodable { let scan_consent_at: String? }
-      let rows: [Row] = try await SupabaseService.shared.client.from("profiles")
+      let rows: [Row] = try await SupabaseService.shared.bound(to: session.accessToken).from("profiles")
         .select("scan_consent_at").eq("id", value: owner).execute().value
       guard let row = rows.first else { throw CancellationError() }
       return row.scan_consent_at != nil
     }
-    self.write = write ?? { try await SupabaseService.shared.call(Rpc.set_scan_consent(p_on: $0)) }
+    self.write = write ?? Self.boundWrite(
+      tokenOf: { await SupabaseService.shared.session(of: $0)?.accessToken },
+      send: { on, token in try await SupabaseService.shared.call(Rpc.set_scan_consent(p_on: on), token: token) })
+  }
+
+  /// The consent write for one golfer: `tokenOf` resolves THAT golfer's token when the
+  /// write is sent (nil when the account changed), and `send` must put exactly that token
+  /// on the request — production uses a client bound to it (`SupabaseService.bound(to:)`).
+  nonisolated static func boundWrite(tokenOf: @escaping @Sendable (UUID) async -> String?,
+                         send: @escaping @Sendable (Bool, String) async throws -> Bool) -> @Sendable (Bool, UUID) async throws -> Bool {
+    { on, owner in
+      guard let token = await tokenOf(owner) else { throw NotTheirs() }
+      return try await send(on, token)
+    }
   }
   private func key(_ owner: UUID) -> String { "cs_scan_consent.\(owner.uuidString.lowercased())" }
   /// D403 · a server-confirmed yes for this golfer, and nothing less.
@@ -131,7 +153,7 @@ public final class ScanConsentStore {
     defer { if generation == gen { busy = false } }
     do {
       let value: Bool
-      if pendingNo { value = try await write(false) } else { value = try await read(owner) }
+      if pendingNo { value = try await write(false, owner) } else { value = try await read(owner) }
       guard generation == gen, self.owner == owner else { return }
       allowed = value; pendingSync = false
       if pendingNo { defaults.removeObject(forKey: key(owner)) }
@@ -147,7 +169,7 @@ public final class ScanConsentStore {
     busy = true
     defer { if generation == gen { busy = false } }
     do {
-      let value = try await write(on)
+      let value = try await write(on, owner)
       guard generation == gen, self.owner == owner else { return false }
       allowed = value; pendingSync = false; defaults.removeObject(forKey: key(owner))
       return value == on
