@@ -23,6 +23,9 @@ name, real course, price or ledger appears (§9's capture rules, X37).
     scroll stops, about 50 points further down: that cuts the season in play and leaves a bare
     "Head to head" heading at the foot. 09 differs only in the widgets' sample standings and
     clock. The committed frames stand as the set for 2114.
+  - **They stand for 2206 too (2026-10-02).** Build 2206 (`7eaefb8b`) differs from 2114 only by the
+    retired forecast's code and the reviewer password field. No frame shows a planned round's sheet,
+    the only screen that drew a forecast, or the reviewer door.
 - **Uploaded 2026-10-02, 13:26 MST:** all nine, in this order, replaced the September 25 frames in App Store
   Connect's `APP_IPHONE_67` set (`asc_metadata.py --apply --only screenshots`). Read back: each frame
   COMPLETE at 1320 × 2868, its checksum matching the file here.

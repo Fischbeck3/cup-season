@@ -1,13 +1,19 @@
 # App Store package · 1.0 · drafted 2026-09-30 · FOR OWNER REVIEW
 
-**Status (2026-10-02 afternoon): Cup Season 1.0.0 (2114), built from `c8cd8ea3` (the same files
-as main's `ebbbfea3`), is attached to App Store version 1.0 and is in the Owner TestFlight group,
-and the version's screenshots are the nine approved frames. It is candidate 2 plus D405, comments
-in line under the round. D405's migration and web client are deployed, and every earlier layer
-stands (the "Deployed" table). Nothing is submitted. The App Review notes are final (§10); D405
-changes nothing in them. The owner entered the review contact phone and reviewer password, and the
-phone checks passed on 2114 (the owner's report, 2026-10-02). Still the owner's: App Privacy, content
-rights, and submission.**
+**Status (2026-10-02 evening): Cup Season 1.0.0 (2206), built from `7eaefb8b` on main, is attached to
+App Store version 1.0 and is in the Owner TestFlight group.** It is candidate 4: 2114 without the retired
+forecast's code (D407's amendment, the owner's "I don't want to ship a dead line product") and with the
+reviewer password field's fix. The version's screenshots are the nine approved frames, and they stay
+accurate. The web half of `7eaefb8b` (the same forecast code, gone) deploys with the next push of main;
+it changes nothing a golfer sees. Nothing is submitted. The App Review notes are final (§10). Still the
+owner's: phone checks R1 and R14 on 2206, re-entering the owner's own keywords (§5 holds the package's
+list since an overwrite on 2026-10-02), App Privacy, content rights, and submission.
+
+**Earlier status (2026-10-02 afternoon): Cup Season 1.0.0 (2114), built from `c8cd8ea3` (the same files
+as main's `ebbbfea3`), was attached to App Store version 1.0** with the nine approved frames: candidate
+2 plus D405, comments in line under the round. D405's migration and web client are deployed, and every
+earlier layer stands (the "Deployed" table). The owner entered the review contact phone and reviewer
+password, and the phone checks passed on 2114 (the owner's report, 2026-10-02).
 
 **Original status: draft for review. Nothing in this file has been pasted into App Store
 Connect, uploaded or submitted.** It is built from the release source
@@ -59,11 +65,13 @@ behind a DEBUG gate or an off flag. Evidence is in the
 | Native, candidate 2 | upload of the validated 1.0.0 (2097) IPA, on the owner's second yes; `asc.py owner 2097`; attach | VALID; Owner group only; attached to App Store version 1.0 in place of 2094 (read back 2026-10-01 ~21:00 MST), **then replaced there by 2114** (below) |
 | Database, D405 | `supabase db push` by the owner, 2026-10-02, from the D405 session's worktree: `20261224090000_comments_live_in_line` | production `tests/db-checks.sql`, read-only, 12:58 MST: **61/61 PASS**, check 61 (D405) included. The word filter's `cs_text_guard` triggers stand on `posts`, `post_comments` and `round_comments`, so the re-created comment function cannot go around it |
 | Web, D405 | `git push origin release/d405-squash:main` by the owner, 12:51 MST: `ebbbfea3`, one squash of 20 commits on `48d5f40e`, tree identical to `c8cd8ea3` | cupseason.app serves `v23 · ebbbfea` (page and `sw.js`). No Edge change in D405 |
-| Native, candidate 3 | upload of the validated 1.0.0 (2114) IPA, on the owner's yes ("Upload and attach"); `asc.py owner 2114`; attach | VALID; Owner group only (IN_BETA_TESTING, not in Friends); **attached to App Store version 1.0** in place of 2097 (read back 2026-10-02 13:16 MST) |
+| Native, candidate 3 | upload of the validated 1.0.0 (2114) IPA, on the owner's yes ("Upload and attach"); `asc.py owner 2114`; attach | VALID; Owner group only (IN_BETA_TESTING, not in Friends); **attached to App Store version 1.0** in place of 2097 (read back 2026-10-02 13:16 MST), **then replaced there by 2206** (below) |
 | App Store Connect | `asc_metadata.py --apply` (the owner's "Yes, enter it") | read back: en-US text and URLs, subtitle, privacy URL, Sports/Lifestyle, copyright, **Manual** release, age-rating answers (Apple computed TWELVE_PLUS), Free (USA base), **US only** with no new territories. Refused: the App Review detail (Apple requires the contact phone). Not touched: password, phone, App Privacy, content rights, screenshots, submission. |
 | App Store screenshots | `asc_metadata.py --apply --only screenshots`, on the owner's yes ("All 9, with widgets"), 2026-10-02 13:26 MST | the September 25 set's 8 frames deleted (204 each); the nine frames of `apps/ios/Screenshots/1.0` uploaded in §9 order, each read back COMPLETE at 1320 × 2868 with its checksum matching the committed file |
-| App Store description | the owner's text (2026-10-02), its money paragraph headed THE POT on the owner's choice; `asc_metadata.py --apply --only text`, 13:41 MST | read back identical to §4: 1,672 characters, en-US; keywords, promotional text and URLs unchanged |
+| App Store description | the owner's text (2026-10-02), its money paragraph headed THE POT on the owner's choice; `asc_metadata.py --apply --only text`, 13:41 MST | read back identical to §4: 1,672 characters, en-US; promotional text and URLs unchanged. **The same apply wrote §5's 96-byte keywords over the owner's own 100-character set**, which had been edited directly in App Store Connect; found afterwards, and that set is not recorded here. The owner re-enters it; the script now refuses `--only text` without `--fields` |
 | App Review notes | `asc_metadata.py --apply --only review`, 2026-10-02, after the owner saved the contact phone and the reviewer password (the PATCH leaves both alone) | read back identical to `app-review-notes-1.0.txt` (3,948 characters); phone and password still set; sign-in required |
+| Edge + web, D407 | `supabase functions deploy weather` (v8) and `git push` of `6efa5d8b`, on the owner's "deploy and push", 2026-10-02 15:28 MST | the function answers `{"unavailable":true,"reason":"retired"}` to a request with only the publishable key; cupseason.app serves `v23 · 6efa5d8`; the privacy policy names no Open-Meteo ("Last updated: October 2, 2026"); GitHub CI for `6efa5d8b` succeeded |
+| Native, candidate 4 | upload of the validated 1.0.0 (2206) IPA, on the owner's "roll the new update to App Store Connect"; `asc.py owner 2206`; attach (dry run read first) | VALID; Owner group only (IN_BETA_TESTING, not in Friends), What to Test set; **attached to App Store version 1.0** in place of 2114 (read back 2026-10-02 16:24 MST: PREPARE_FOR_SUBMISSION, MANUAL) |
 
 ## Candidate 2 · `6727fd04` / 1.0.0 (2097) · the build attached to 1.0 (owner's yes, 2026-10-01 ~20:50 MST)
 
@@ -100,6 +108,24 @@ and Home's digest counts round-thread comments.
 | Shipped (owner's yes: "Upload and attach") | Uploaded 13:12 MST (`altool`, UPLOAD SUCCEEDED, no errors). `asc.py owner 2114`: VALID, **Owner group only** (IN_BETA_TESTING, not in Friends), What to Test set. `asc_metadata.py --apply --only build --build 2114`: 204. Read back 13:16 MST: version 1.0 PREPARE_FOR_SUBMISSION, release MANUAL, **attached build 2114 (VALID)**. Nothing submitted. |
 | Phone sheet | R1–R13 on 2114 (`phone-checks-1.0.md`); R12 and R13 are D405's. |
 | Screenshots | The nine committed frames were checked against `c8cd8ea3`: a full retake (audit clean) shows the same screens. See `apps/ios/Screenshots/1.0/README.md`. Approved and uploaded 2026-10-02 (the Deployed table). |
+
+## Candidate 4 · `7eaefb8b` / 1.0.0 (2206) · the build attached to 1.0 (the owner: "roll the new update to App Store Connect", 2026-10-02 ~16:00 MST)
+
+**Why.** The forecast was retired server-side that afternoon (D407), and both clients already hid its
+line, so 2114 showed none of it. The owner did not want to ship the dead code behind it: "I don't want
+to ship a dead line product." D407's amendment moves the client cleanup into 1.0.
+
+| | |
+|---|---|
+| Source | **`7eaefb8b`** on main = `6efa5d8b` (the deployed main, D407) + one commit. Since 2114's tree (`ebbbfea3`), the app code differs by that commit only: the commits between are docs, the web's Door (D406) and the server-only D407. |
+| The change | **Phone:** the `Weather` model, `ScheduleService.weather`, the plan sheet's weather line and its load, the `sun` and `cloud` glyphs and the synthetic world's stub are gone. **Web:** both weather call sites, the chip's markup and CSS, `csWxGlyph` and the two symbols are gone. **The reviewer door's password field** stops auto-capitalizing and autocorrecting (inbox 2026-10-02). **Kept, on purpose:** the `weather` stub (TestFlight builds through 2114 still call it) and `weather_cache` (a migration, the owner's push); both are in the inbox. |
+| Build number | **The trap is closed.** `tools/ios-archive.sh` adds `BUILD_OFFSET=100` to the commit count: `7eaefb8b` counts 2106, so the build is 2206, above the 2114 already uploaded. Raise the offset, never lower it, if history is rewritten again. |
+| Tests | On a fresh iPhone 17 Pro simulator (iOS 26.5): Kit **1,526/1,526**, app **220/220**, design **143/143**. The design suite first ran 142/143. Its token-count canary had read 89 since D404 added four score tokens (93), so it was red on 2094–2114 too. It was brought up to date in a test-only commit, and the app binary does not depend on it. The plan sheet, opened on the synthetic phone, draws no forecast line and leaves no gap: a one-off UI check, not committed. Its first attempt hit a cold simulator and landed on the door; the retry passed. Web: `tests/app-tests.js` **588**, with one failure, D225, the known one; preflight 0 failures, 0 warnings. No UI test covers the password field, because XCUITest reads a secure field's value as bullets. |
+| Native | Release archive and export from a clean detached worktree at `7eaefb8b` (`~/cup-season-rc4-archive`), vault signing. IPA SHA-256 `5eb0066b3cba9678deaa20cb247d6a29dc5bfd0f022971b45b41702b666deeb4` (22.6 MB). `CFBundleVersion 2206`, `CFBundleShortVersionString 1.0.0`, `aps-environment = production`, `get-task-allow = false` (app and widget), `ITSAppUsesNonExemptEncryption = NO`, widget extension included. Neither binary carries a forecast string. **Apple validation: VERIFY SUCCEEDED, no errors** (altool, 16:09 MST). |
+| Shipped (the owner's "roll the new update to App Store Connect") | Uploaded 16:19 MST (`altool`, no errors). `asc.py owner 2206`: VALID, **Owner group only** (IN_BETA_TESTING, not in Friends), What to Test set. `asc_metadata.py --apply --only build --build 2206`, after reading its dry run: 204. Read back 16:24 MST: version 1.0 PREPARE_FOR_SUBMISSION, release MANUAL, **attached build 2206 (VALID)**. Nothing submitted. |
+| Web | The same commit's web half deploys with the next push of main (the owner's yes); nothing a golfer sees changes. |
+| Phone sheet | R1 and the new R14 on 2206 (`phone-checks-1.0.md`). R2–R13 passed on 2114, and the code they exercise is unchanged. |
+| Screenshots | Unchanged, and still accurate: none of the nine frames shows a planned round's sheet, the only screen that drew the forecast. |
 
 ## Build status · 2026-10-01 (branch `claude/app-store-listing-2026-09-30`)
 
@@ -694,7 +720,7 @@ match it.
   - album and ceremony: `SeasonPage.swift`, `SeasonCeremonyView.swift`
   - Run it back: `LeagueCopy.swift:609-629`
   - board: `BoardScreen.swift`
-  - plans and RSVP: `ScheduledRoundSheet.swift` (the forecast was retired 2026-10-02, D407; `weather/index.ts` now answers "unavailable")
+  - plans and RSVP: `ScheduledRoundSheet.swift` (the forecast was retired 2026-10-02, D407; `weather/index.ts` now answers "unavailable", and build 2206 carries no weather code)
   - widgets: `CupSeasonWidgets.swift:21-30`
   - report and block: `SafetyMenu.swift`
   - ledger sentence: `MoneyCopy.swift:28`

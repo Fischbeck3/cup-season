@@ -1,6 +1,11 @@
 # 1.0 phone checks · the owner's solo run sheet
 
-**Build:** Cup Season 1.0.0 (**2114**) from `c8cd8ea3` (the same files as main's `ebbbfea3`),
+**Build:** Cup Season 1.0.0 (**2206**) from `7eaefb8b` on main, on your own iPhone through TestFlight
+(Owner group). It is 2114 without the retired forecast's code (D407's amendment) and with the reviewer
+password field's fix, and nothing else in the app changed. **On 2206, run R1 again and the new R14**
+(the section below). R2–R13 passed on 2114, and the code they exercise is unchanged.
+
+**The 2114 run (kept for the record):** Cup Season 1.0.0 (**2114**) from `c8cd8ea3` (the same files as main's `ebbbfea3`),
 on your own iPhone through TestFlight (Owner group). It is 2097 plus D405, comments in line under
 the round (R12, R13), which reworks Home's round cards, so run every row on 2114, R10 included.
 Every server layer it needs is deployed (D405's migration and web client on 2026-10-02, the rest
@@ -16,6 +21,13 @@ NOT RUN.
 
 **Run on 2114, 2026-10-02: the owner ran this sheet and reported "all looks good".** No row failed.
 The owner's report covers the rows; no per-row screenshots were collected.
+
+## On 2206 (candidate 4)
+
+| # | Check | Steps | Expected | Result |
+|---|---|---|---|---|
+| R1 again | Reviewer door, typed by hand | Sign out. Type `reviewer@cupseason.app`, tap **Send code**, then type the reviewer password yourself (not autofill). | When the Password field takes focus, the keyboard does not start in capitals; the letters stay as you type them. You land signed in, and Ridgeline Cup reads as in R1. Sign out after. | NOT RUN |
+| R14 | Planned round, no forecast (D407) | Compete → the schedule, or Home's plan card → open any planned round (one on a real course if you have one). | The sheet shows the countdown and who's in on one rule, then the worth line, the course, who's in and the board. There is no weather line, no blank space where it was, and no dash. | NOT RUN |
 
 ## The readiness checks (new in this candidate)
 

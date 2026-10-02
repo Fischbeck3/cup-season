@@ -76,7 +76,16 @@ import SwiftUI
     // the ceremony ramp's pigments — a face drawn on a ceremony object keeps
     // the DARK disc in both printings, where the web's `.evcard` had re-typed
     // the hexes by hand. Like `leaf-gold`, they do not turn over.
-    #expect(CSTokens.tokenNames.count == 89)
+    //
+    // **93 since D404** (`7a50fc78`, merged into the 1.0 candidate at
+    // `1c0f2afd`): `object.score-gold`, `-silver`, `-bronze` and `-ink`, Home's
+    // matte score panels, fixed in both printings. The count moved there and
+    // this line did not, so the canary was red in builds 2094–2114; the runs
+    // recorded for those candidates name the Kit's and the app's suites, not
+    // this one. Found and brought up to date 2026-10-02.
+    #expect(CSTokens.tokenNames.count == 93)
+    #expect(CSTokens.dark.scoreGold == CSTokens.light.scoreGold
+            && CSTokens.dark.scoreInk == CSTokens.light.scoreInk, "the matte score panels do not turn over")
     #expect(CSTokens.dark.ceremonyPig0 == CSTokens.light.ceremonyPig0
             && CSTokens.dark.ceremonyPig5 == CSTokens.light.ceremonyPig5, "the ceremony's pigments do not turn over")
     #expect(CSTokens.dark.leafGold == CSTokens.light.leafGold, "gold on paper does not turn over")
