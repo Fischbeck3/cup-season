@@ -20,7 +20,7 @@ NOT RUN.
 |---|---|---|---|---|
 | R1 | Reviewer door (B-11) | Sign out. Type `reviewer@cupseason.app`, tap **Send code**. Enter the password you will put in App Store Connect. | A Password field appears ("Review access: enter the password from the notes"); nothing is emailed; you land signed in. Compete → Ridgeline Cup → "Every golfer": Tara Nguyen 112 points, 17 rounds. Sign out after. | NOT RUN |
 | R2 | Scan consent | Post a round → **Scan the scorecard**. Tap **Type it in**. Then scan again → **Scan with Claude** → photograph a card. Then Settings → **Scorecard scanning with Claude** off → scan again. | "Type it in" sends nothing ("Nothing was sent — type your nines in"). The yes scans and fills the rows. After switching off, the next scan asks again. | NOT RUN |
-| R3 | Text filter | On a test league's board, type a word from the D403 list and post it. | The refusal sentence appears and your draft stays in the box. Remove the word and it posts. | NOT RUN |
+| R3 | Text filter | In the comment box under one of your own rounds (the test leagues were removed on 2026-10-02), type a word from the D403 list and send it. | The refusal sentence appears and your draft stays in the box. Remove the word and it posts; delete that comment after. | NOT RUN |
 | R4 | Photo takedown, rehearsed once | As a test account, post a round with a photo. As yourself, report it (golfer ⋯ → Report → "An inappropriate photo"). On the web desk, take it down. | The founder push arrives. After the takedown, the photo is gone from Home within about a minute, and a link to it shared before the takedown stops loading. | NOT RUN |
 | R5 | Ban, rehearsed once (optional) | On the desk, remove a test account (type its handle). Use the app as that account. Then restore it. | Its next action is refused ("This account has been closed."); it cannot sign in again. After restore, it works. | NOT RUN |
 | R6 | Live stake ceiling | **Score it live** → set an amount per point above $200. | The field stops at $200. | NOT RUN |
@@ -34,6 +34,6 @@ NOT RUN.
 
 ## Carried from `docs/design/ten-2026-09-27/launch/HUMAN.md` §4
 
-Run at least these on 2094: **D1** VoiceOver names and order, **D2** real keyboard, **D6**
+Run at least these on 2114: **D1** VoiceOver names and order, **D2** real keyboard, **D6**
 offline → reconnect, **D7** kill → resume, **D9** widgets, **D10** Live Activity, **D12**
 live finish → recap. D3–D5, D8, D11 and D13 are as written there.
