@@ -1,9 +1,9 @@
 // Cup Season — the tee sheet data layer (spec/scheduled-rounds-arc.md).
 //
 // RPCs through `call` (the skew retry drops `declare_round`'s optional args on
-// ANY error — the web did the same by message, 16712). The two Edge Functions
-// (`courses`, `weather`) fail SOFT: the course search stands on the cache, and
-// the weather chip hides on any miss — never a blank panel.
+// ANY error — the web did the same by message, 16712). The `courses` Edge
+// Function fails SOFT: the course search stands on the cache. (The `weather`
+// call is gone with the forecast, D407.)
 
 import Foundation
 import Supabase
@@ -69,20 +69,6 @@ public struct ScheduleService: Sendable {
   public func retag(_ id: UUID, tagged: [UUID]) async throws { _ = try await svc.call(Rpc.retag_round(p_id: id, p_tagged: tagged)) }
   public func rsvp(_ id: UUID, status: String) async throws { _ = try await svc.call(Rpc.set_round_rsvp(p_round: id, p_status: status)) }
   public func comment(_ id: UUID, body: String) async throws { _ = try await svc.call(Rpc.add_round_comment(p_round: id, p_body: body)) }
-
-  // MARK: weather (Stage 5) — nil on ANY miss
-
-  private struct WeatherBody: Encodable { let lat: Double?; let lon: Double?; let date: String; let course_id: String? }
-  private struct WeatherReply: Decodable { let ok: Bool?; let unavailable: Bool?; let weather: Weather? }
-
-  public func weather(lat: Double?, lon: Double?, date: String, courseId: String?) async -> Weather? {
-    guard lat != nil || courseId != nil else { return nil }
-    do {
-      let r: WeatherReply = try await svc.client.functions.invoke("weather", options: .init(body: WeatherBody(lat: lat, lon: lon, date: date, course_id: courseId)))
-      if r.unavailable == true { return nil }
-      return r.weather
-    } catch { return nil }
-  }
 
   // MARK: week by week (14417)
 

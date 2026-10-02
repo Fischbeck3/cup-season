@@ -394,6 +394,11 @@ struct DoorView: View {
         .accessibilityLabel("Password")
         .font(CSFont.mono)
         .textContentType(.password)
+        // the keyboard never changes a password: App Review types this one on
+        // a phone, and the web's plain password input capitalizes nothing
+        // (inbox 2026-10-02 — a fresh reviewer password was refused here)
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled()
         .accessibilityLabel("Review password")
         .padding(.horizontal, 14).frame(minHeight: 48)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

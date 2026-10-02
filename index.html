@@ -3288,10 +3288,6 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .rsheet .rs-course b{font-size:19px; display:block; letter-spacing:-.01em;}
 .rsheet .rs-course .meta{display:block; font-size:11px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--mut); margin-top:1px;}
-.rs-when{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
-/* the weather chip spent GOLD on a forecast — a metal that means EARNED */
-.wxchip{font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); background:var(--bg2); border:0; border-radius:var(--p); padding:0 10px; min-height:28px; display:inline-flex; align-items:center; gap:6px;}
-.wxchip .sun{color:var(--gold);} .wxchip b{color:var(--ink);}
 .rs-note{font-style:italic; color:var(--mut); font-size:13px; margin-top:10px;}
 .rs-riv{margin-top:12px; color:var(--mut);}
 /* the sheet's labels are the agate role (§1.4: mono never sets a section
@@ -3414,7 +3410,6 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .hr-side{display:flex; align-items:center; gap:7px; flex:none;}
 .hr-in{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--pos); background:rgba(78,197,132,.14); border-radius:var(--p); padding:3px 8px;}
 .hr-c{font-size:11px; color:var(--mut);}
-.hr-wx{font-size:11px; color:var(--mut);}
 .cthread{margin-top:10px;}
 .crow{
   font-size:12.5px; color:var(--mut); padding:7px 2px;
@@ -6251,16 +6246,6 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <circle cx="17" cy="9" r="2.3"/>
     <path d="M15.2 13.2A5 5 0 0 1 20.7 18"/>
   </symbol>
-  <!-- the weather, DRAWN. `Weather.line` no longer embeds a literal sun
-       (UI_SYSTEM 5.3's emoji ban, LINT-12): a producer that puts a glyph in a
-       string decides for every surface how the weather is drawn, in a face
-       nobody chose, at a size nobody set. -->
-  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 8.2a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/>
-  </symbol>
-  <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M7.6 18.5h9.1a3.7 3.7 0 00.4-7.4 5.3 5.3 0 00-10.1-.6 3.7 3.7 0 00.6 8"/>
-  </symbol>
   <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 5v14M5 12h14"/>
   </symbol>
@@ -8218,16 +8203,6 @@ const PILOT=true;   /* flip false to strip pilot chrome: chip + boot narration *
    so var() resolves per printing. The literal palette never rendered the
    tokens, and its orange (#FB8B4B) read as ember on every live-scoring bar. */
 const SQHEX = [0, 1, 2, 3].map(i => `var(--sq${i})`);
-/* Which drawn mark the weather takes. The phone's twin is
-   `ScheduledRoundSheet.weatherGlyph`; neither client types a glyph into a
-   string any more (LINT-12). **Classic-side, and bridged** — the round sheet
-   that draws the other chip lives in the module, and a module name is not
-   visible to a classic script (CLAUDE.md's boundary landmine). */
-function csWxGlyph(w){
-  const k = ((w&&w.icon)||'') + ' ' + ((w&&w.summary)||'');
-  return /cloud|rain|storm|snow/i.test(k) ? 'i-cloud' : 'i-sun';
-}
-window.csWxGlyph = csWxGlyph;
 /* "Sat Sep 12", classic-side. The module has `csDowMonDay`; the event room is
    drawn from the classic block and cannot see it. */
 function csEvDowMonDay(iso){
@@ -23570,7 +23545,8 @@ function renderUpNext(){
 }
 /* Stage 6 of the round-object arc: Home surfaces the next few rounds (yours +
    your circle — Home keeps buddies, D38) as rich cards that tap into the round
-   object, with a course + RSVP glance and a lazy weather peek. */
+   object, with a course + RSVP glance. (The lazy weather peek went with the
+   forecast, D407.) */
 function homeRoundCard(sr, demo){
   const M = window.mkr || (()=>'⛳');
   const d = sr.play_on ? localDate(sr.play_on) : null;
@@ -23585,7 +23561,7 @@ function homeRoundCard(sr, demo){
     <span class="num">${M(sr.marker||'saguaro')}</span>
     <div class="hr-body"><b>${when}${rel?` · <span class="fine" style="padding:0; color:var(--mut)">${rel}</span>`:''}</b>
       <small>${who}${bits?' · '+bits:''}</small></div>
-    <div class="hr-side">${inN?`<span class="hr-in">${inN} in</span>`:''}${cN?`<span class="hr-c"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg> ${cN}</span>`:''}<span class="hr-wx mono" id="hrwx-${demo?'demo':sr.id}" style="display:none"></span></div>
+    <div class="hr-side">${inN?`<span class="hr-in">${inN} in</span>`:''}${cN?`<span class="hr-c"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg> ${cN}</span>`:''}</div>
   </div>`;
 }
 function renderHomeRounds(){
@@ -23606,23 +23582,8 @@ function renderHomeRounds(){
   head.style.display='';
   box.innerHTML = rounds.map(sr=>homeRoundCard(sr)).join('');
   box.querySelectorAll('[data-hround]').forEach(el=>el.addEventListener('click',()=>{ if(window.openRoundSheet) window.openRoundSheet(el.dataset.hround); }));
-  rounds.forEach(sr=>{ if(sr.course_id) fillHomeWeather(sr); });   /* lazy, cached, fail-silent */
 }
 window.renderHomeRounds = renderHomeRounds;
-async function fillHomeWeather(sr){
-  if(state.demo || !window.sb || !sr.course_id) return;
-  try{
-    const { data } = await window.sb.functions.invoke('weather', { body:{ course_id:sr.course_id, date:sr.play_on } });
-    if(!data || data.unavailable || !data.weather) return;
-    const el=document.getElementById('hrwx-'+sr.id); if(!el) return;
-    /* D81 R3: the function already returned lo/wind/summary and the chip
-       threw them away — richer glance costs zero fetches. Compact form:
-       "71 degrees, 9mph" with a DRAWN mark (summary drops on the chip; the
-       round object has it). */
-    const w=data.weather;
-    el.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#${csWxGlyph(w)}"/></svg> ${w.hi}\u00b0${w.wind?` \u00b7 ${w.wind}mph`:''}`; el.style.display='';
-  }catch(_){ /* no glance is fine — never a blank */ }
-}
 const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Kit', handle:'kit', marker:'weebridge'}];
 /* incoming friend requests, front and center on Home — used to hide in the
    Tour Card and nobody found them. */
@@ -38686,7 +38647,7 @@ async function openDeclareSheet(prefillISO, opts){
      <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the schedule'}</button>
      <p class="fine" style="padding-top:8px">Posts to your seasons' boards: tagged golfers are named. Scratch it any time from the schedule.</p>`);
   bindTagChips('drtag', tagged);
-  attachCourseSearch('#drCourse');   /* pick a real course -> stamps course_id -> course info + weather in the sheet */
+  attachCourseSearch('#drCourse');   /* pick a real course -> stamps course_id -> course info in the sheet */
   if(opts.courseId){ const dc=document.getElementById('drCourse'); if(dc) dc.dataset.courseId=opts.courseId; }
   document.getElementById('drGo').addEventListener('click', async () => {
     const btn = document.getElementById('drGo'); btn.disabled = true;
@@ -38912,9 +38873,9 @@ window.csRoundWorthLine  = csRoundWorthLine;
 window.csRoundWorthLines = csRoundWorthLines;
 
 /* ===== the round as an object: tap into a scheduled round (arc Stages 1–5) =====
-   course info + weather + who's-in + a mini board. Everything degrades
-   gracefully: a round with no linked course shows the typed name (never blank),
-   and weather simply hides when there's no location or it's out of range. */
+   course info + who's-in + a mini board. Everything degrades gracefully: a
+   round with no linked course shows the typed name (never blank). The weather
+   chip went with the forecast (D407). */
 async function openRoundSheet(id){
   if(state.demo || !window.sb){ toast('Sign in to open a round'); return; }
   openSheet('Round', 'Loading…', '<p class="fine" style="padding:10px 0">Loading the round…</p>');
@@ -39088,7 +39049,6 @@ function renderRoundSheet(id, d){
   const courseBlock = typeof csPlanCourseHtml==='function' ? csPlanCourseHtml(d.course_id, d.course && d.course.tee) : '';
   const body = `<div class="rsheet">
     <div class="rs-course"><b>${esc(courseName)}</b>${meta && !courseBlock?`<span class="meta cs-agate-s">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
-    <div class="rs-when"><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
     ${courseBlock}
     ${worthHtml}
     ${d.note?`<div class="rs-note">“${esc(d.note)}”</div>`:''}
@@ -39103,7 +39063,6 @@ function renderRoundSheet(id, d){
   </div>`;
   openSheet(dateTxt, tee?`${tee} tee`:'On the schedule', body);
 
-  loadRoundWeather(d);
   const reload=()=>openRoundSheet(id);
   $('#shBody').querySelectorAll('[data-rcmore]').forEach(b=>b.addEventListener('click',()=>{
     const c=comments[+b.dataset.rcmore]; if(!c || !c.id) return;
@@ -39134,20 +39093,6 @@ function renderRoundSheet(id, d){
     catch(err){ toast(humanError(err, 'That did not cancel.'), 'neg'); b.disabled=false; }
   });
 }
-/* weather rides in async; if there's no location or it's out of range, the chip
-   just stays hidden — never a blank panel (the founder's one ask). */
-async function loadRoundWeather(d){
-  const el=$('#rsWx'); if(!el) return;
-  if(!d.course || d.course.lat==null || d.course.lon==null || !d.play_on){ el.style.display='none'; return; }
-  try{
-    const { data } = await sb.functions.invoke('weather', { body:{ lat:d.course.lat, lon:d.course.lon, date:d.play_on, course_id:d.course_id } });
-    if(!data || data.unavailable || !data.weather){ el.style.display='none'; return; }
-    const w=data.weather;
-    el.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#${window.csWxGlyph(w)}"/></svg> <b>${w.hi}\u00b0</b> ${esc(w.summary||'')}${w.wind?` \u00b7 ${w.wind}mph`:''}`;
-    el.style.display='';
-  }catch(_){ el.style.display='none'; }
-}
-
 /* retag your own declared round — add the buddy you forgot */
 async function openRetagSheet(id){
   const sr = (window.mySchedule||[]).find(x => x.id === id);

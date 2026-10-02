@@ -248,6 +248,8 @@ Presented, not pushed (the IA is unchanged): `rs` 24 top corners, `bg0` ground, 
    the weekday — the surface never renders an empty title.
 3. **`agate` dateline**, two lines: `SAT SEP 12 · PAPAGO, PHOENIX` / `MATCH PLAY · BLUE TEES`
    (`game` and the tee from the plan; the second line is omitted when both are absent).
+   > **D407 (2026-10-02): the forecast is retired.** The weather cell in item 4 and the weather
+   > sentence in item 5 are gone from both clients; what follows is the design as drawn.
 4. **Four figures on one 2pt `ink` rule** — the countdown, the tee time, the field and the weather, all
    as one object: `6` / `DAYS OUT` · `7:40` / `TEE, A.M.` · `3` / `IN` · `71°` / `HIGH`.
    `figure` 27, tabular, `agateS` labels at `mut`. **The rule is `ink`, not `brand`** — a plan six days

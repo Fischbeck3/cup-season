@@ -4,8 +4,8 @@
 #   tools/ios-archive.sh            archive + export an .ipa (no upload)
 #   tools/ios-archive.sh --upload   … and upload to App Store Connect
 #
-# Build number = the commit count on this branch, so two archives from the
-# same tree carry the same number and the store never sees a collision (the
+# Build number = the commit count on this branch plus a fixed offset (below),
+# so two archives from the same tree carry the same number and the store never sees a collision (the
 # web stamps its version from the SHA for the same reason — CLAUDE.md rule 2).
 # The marketing version stays in apps/ios/project.yml (MARKETING_VERSION).
 #
@@ -32,7 +32,14 @@ if [ -n "$(git status --porcelain)" ]; then
   echo "✗ Review and commit the working tree before archiving."
   exit 1
 fi
-BUILD=$(git rev-list --count HEAD)
+# THE OFFSET (2026-10-02). The D405 squash (ebbbfea3) took 19 commits out of
+# main's history, so main counted 2095 while 2097 and 2114 had already been
+# uploaded from the unsquashed branch — and the store refuses a build number at
+# or below one it has seen for the version. The offset is only ever raised: if
+# history is rewritten again, raise it past the highest upload
+# (`tools/asc.py builds`).
+BUILD_OFFSET=100
+BUILD=$(( $(git rev-list --count HEAD) + BUILD_OFFSET ))
 SHA=$(git rev-parse --short HEAD)
 mkdir -p build/archive
 OUT=$(mktemp -d "build/archive/run-$BUILD-$SHA.XXXXXX")

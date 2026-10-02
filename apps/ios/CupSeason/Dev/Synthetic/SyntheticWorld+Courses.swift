@@ -1,7 +1,7 @@
 // Cup Season — synthetic reads for COURSES: the books this phone keeps
 // (`my_course_books`, the only disk-book source in a synthetic launch), the
 // course home list, the course page and its circle, ratings, the course
-// cache tables, and the `courses` / `weather` edge functions.
+// cache tables, and the `courses` edge function.
 // Contracts traced from CourseHomeScreen / CourseScreen / CourseCircleSection /
 // CourseBookStore / PostService (2026-09-28).
 
@@ -84,8 +84,6 @@ extension SyntheticWorld {
          "tees": c.tees.map { ["tee_name": $0.name, "gender": $0.name == "Red" ? "female" : "male", "course_rating": $0.rating,
                                "slope_rating": $0.slope, "number_of_holes": c.par == 36 ? 9 : 18] }] as [String: Any]
       }])
-    case "weather":
-      return SynthOut.json(["ok": true, "weather": ["hi": 78, "lo": 55, "wind": 9, "summary": "Mostly sunny", "icon": "sun"]])
     case "scan":
       return SynthOut.json(["unavailable": true, "reason": "disabled"])
     default: return nil

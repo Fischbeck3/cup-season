@@ -1,6 +1,8 @@
 // Cup Season — THE PLAN SHEET, rebuilt in Wave 6 as a title card in a sheet
 // (surfaces/event.md §4). *A planned round is the same head as an event, with
-// the countdown, the tee time, the field and the weather on one rule.*
+// the countdown, the tee time and the field on one rule.* §4 also names the
+// weather: the forecast retired at launch (D407), and its line left this sheet
+// with it, so nothing on the sheet waits on a third party.
 //
 // WHAT WENT, AND TWO OF THEM WERE `LINT-11` FAILURES ON THE SAME SCREEN:
 //
@@ -21,9 +23,9 @@
 // and the four facts become one `CSScoreRail` on an `ink` rule — `ink`, not
 // `brand`, because a plan six days out is not live; it goes `brand` on the day.
 //
-// EVERYTHING DEGRADES THE WAY §4 SAYS: no weather removes the fourth cell and
-// the rule shortens; no tee time removes the second. **It never renders a dash
-// and never shows a blank panel.**
+// EVERYTHING DEGRADES THE WAY §4 SAYS: a fact the plan does not have is left
+// off and the rule shortens — no date removes the countdown. **It never renders
+// a dash and never shows a blank panel.**
 
 import SwiftUI
 import CSDesign
@@ -122,17 +124,7 @@ struct ScheduledRoundSheet: View {
       // 4 · the four figures on ONE rule
       CSScoreRail(facts(d), size: .m, metal: isToday(d) ? .live : .ink)
 
-      // 5 · the weather sentence — a DRAWN glyph at the icon family's stroke,
-      // and the producer's own words beside it.
-      if let w = vm.weather {
-        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-          CSGlyph(weatherGlyph(w), size: .row).foregroundStyle(cs.mut)
-          Text(w.line).csType(.bodyS).foregroundStyle(cs.mut)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(w.line)
-      }
+      // 5 · (the weather sentence retired with the forecast, D407)
 
       // 6 · the worth line — verbatim, and nothing at all when the server sends
       // no `worth` key (L-44).
@@ -365,19 +357,12 @@ struct ScheduledRoundSheet: View {
     }
     out.append(.init(id: "in", value: String(d.inCount), label: "In",
                      spoken: "\(d.inCount) in"))
-    // N4-136 · the high is said once, in the weather line under the rail
-    // ("78° Mostly sunny · 9mph"), not again as a figure; the tee time is on
-    // the dateline
+    // N4-136 · the tee time is on the dateline, not a figure; the high that
+    // left the rail with it went with the forecast (D407)
     return out
   }
 
   private func isToday(_ d: RoundDetail) -> Bool { d.playOn == CSDate.today() }
-
-  private func weatherGlyph(_ w: Weather) -> CSGlyph.Name {
-    let key = ((w.icon ?? "") + " " + (w.summary ?? "")).lowercased()
-    return key.contains("cloud") || key.contains("rain") || key.contains("storm") || key.contains("snow")
-      ? .cloud : .sun
-  }
 
   /// The forfeit's own words, if this plan carries one. `forfeits` has no money
   /// column by rule (T-02 / D242), so a stake is a sentence or it is nothing.
@@ -530,7 +515,6 @@ final class RoundSheetModel {
   var stale = false
   /// D261 · this phone holds a course book for this round's course.
   var kept = false
-  var weather: Weather?
   var rivals: [Rpc.my_rivalries.Row] = []
   var draft = ""
   var sending = false
@@ -596,10 +580,6 @@ final class RoundSheetModel {
       rating = await CourseRatingService().rating(cid)
     }
     rivals = await RivalsCache.shared.rivals()
-    // weather rides in async; no location or out of range → the chip just stays hidden
-    if let d = detail, let c = d.course, let lat = c.lat, let lon = c.lon, let on = d.playOn {
-      weather = await sched.weather(lat: lat, lon: lon, date: on, courseId: d.courseId)
-    } else { weather = nil }
   }
 
   func rsvp(_ status: String) async {

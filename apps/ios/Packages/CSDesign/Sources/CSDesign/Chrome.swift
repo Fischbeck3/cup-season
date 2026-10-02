@@ -28,10 +28,7 @@ public struct CSGlyph: View {
     case home, pennant, play, people, card
     // furniture
     case check, cross, chevron, star, dot, share, search, more, plus
-    // the weather, drawn — `Weather.line` no longer embeds a literal `☀`
-    // (`LINT-12`), so the mark is a path in this family at the family's own
-    // stroke rather than an emoji in whatever face the sentence happens to be
-    case sun, cloud
+    // (`sun` and `cloud` drew the weather line, and left with the forecast, D407)
     // WAVE 8 · the four icon systems become one family (D277). SF Symbols
     // survived in nineteen places the seven surface waves never opened — a
     // camera on the composer, a calendar on the schedule, a bell on the push
@@ -63,8 +60,6 @@ public struct CSGlyph: View {
       case .search: "M10.8 4.5a6.3 6.3 0 100 12.6 6.3 6.3 0 000-12.6M15.4 15.4l4.6 4.6"
       case .more: "M6 12h.01M12 12h.01M18 12h.01"
       case .plus: "M12 5v14M5 12h14"
-      case .sun: "M12 8.2a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"
-      case .cloud: "M7.6 18.5h9.1a3.7 3.7 0 00.4-7.4 5.3 5.3 0 00-10.1-.6 3.7 3.7 0 00.6 8"
       case .camera: "M3.5 7.8h3.6l1.5-2.3h6.8l1.5 2.3h3.6V19H3.5zM12 16.6a3.5 3.5 0 100-7 3.5 3.5 0 000 7"
       case .photo: "M3.5 5h17v14h-17zM3.5 15.4l4.8-4.4 3.5 3.2 3.6-3.9 5.1 5.1M8.2 9.4a1.5 1.5 0 100-3 1.5 1.5 0 000 3"
       case .calendar: "M4 5.5h16V21H4zM4 10.5h16M8.5 3v4.5M15.5 3v4.5"

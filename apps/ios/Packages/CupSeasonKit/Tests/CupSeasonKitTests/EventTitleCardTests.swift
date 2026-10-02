@@ -140,16 +140,3 @@ import Foundation
     #expect(RyderMath.nth(3) == "3rd")
   }
 }
-
-/// §5.3's emoji ban, on the one producer that carried a glyph inside a string.
-@Suite struct WeatherGlyphTests {
-  @Test func theProducerReturnsWordsAndTheMarkIsDrawn() {
-    let w = Weather(hi: 71, lo: 55, wind: 9, summary: "Mostly sunny", icon: "sun")
-    #expect(w.line == "71° Mostly sunny · 9mph")
-    #expect(w.glance == "71° · 9mph")
-    for s in [w.line, w.glance] {
-      #expect(!s.unicodeScalars.contains { $0.properties.isEmoji && $0.value > 0x238C },
-              "the weather producer is drawing a glyph again")
-    }
-  }
-}

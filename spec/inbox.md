@@ -33,13 +33,19 @@ sorting.
 
 ### 2026-10-02 · Remove the retired forecast's leftovers (D407)
 
-The `weather` function was retired server-side on 2026-10-02 (D407). It answers "unavailable", so both clients hide the line. Left behind on purpose, so that launch needed no app build: the phone's weather fetch and drawing (`ScheduleService.weather`, `ScheduledRoundSheet.swift`, the Home plan card's chip), the web's two `functions.invoke('weather', …)` call sites and the chip's CSS, the `weather_cache` table, and the stub function itself. **Lane:** native + web cleanup, with one migration to drop `weather_cache`. **Size:** small, both clients. **First question:** do it in the first post-launch build, once no live client is older than the stub?
+**The client half is done (2026-10-02, D407's amendment).** The owner did not want to ship dead code, so both clients' weather code left in the new 1.0 build that replaces 2114: the phone's model, fetch, line, glyphs and synthetic stub, and the web's two call sites, chip and glyphs. (The phone's Home plan card never drew a forecast: `Weather.glance` had no caller.) **What remains:** the `weather_cache` table, and the stub function, which answers "unavailable". The stub must keep answering until no installed TestFlight build is 2114 or older, because their hidden line depends on it. Then `supabase functions delete weather`. **Lane:** backend. **Size:** one migration (drop `weather_cache`) and one function delete, both the owner's to push. **First question:** after 1.0 is live and the testers have updated?
+
+### 2026-10-02 · `tests/ios-archive-safety.py` fails on main, and did before the build-number offset
+
+Verified 2026-10-02 on `6efa5d8b`'s own `tools/ios-archive.sh`: the test fails at the success phase. Two causes. Its fake `security` exits 1 for every subcommand, and `ORIG_KEYCHAINS=$(security list-keychains …)` (added with the local signing vault, 2026-09-14) stops the script under `set -euo pipefail`. Fixing that alone is not enough: the test runs with the real `$HOME`, so on the Mac that holds `~/.appstoreconnect/cupseason-dist` it takes the vault branch with fake tools and fails there. It is not in preflight, so nothing went red. **Lane:** tooling. **Size:** the fixture answers `list-keychains` and runs under a temporary `HOME`. **First question:** none; it is a fixture fix.
 
 ### 2026-10-02 · A Pro cannot delete a draft league once anyone has live-scored in it
 
 Verified 2026-10-02 in production, removing the owner's test league "Test1" (draft). `delete_league` only deletes the `leagues` row and relies on cascades. Fifteen foreign keys into `league_members`, `seasons` and `squads` are NO ACTION (`live_scores.updated_by`, `live_rounds.started_by`, `posts.member_id`, `commissioner_log.actor_id`, `buy_ins.marked_by`, `season_adjustments.*`, the seasons' champion pointers and others). The NO ACTION check on the cascaded `league_members` delete can fire before the rows that point at those members have been cascaded away. "Test1" failed with 23503 on `live_scores_updated_by_fkey`, and nothing was deleted. The app's Delete button would show that raw error to a real Pro. `sandbox_scrap` avoids it by deleting in FK order, but it does not clear `live_rounds` either. **Lane:** gameplay/backend. **Size:** one migration. Either `delete_league` (and `sandbox_scrap`) delete live rounds, posts and the logs in order first, or the "who did it" columns become ON DELETE SET NULL. **First question:** which of the two, and should a Pro's delete of a draft with live rounds warn first?
 
 ### 2026-10-02 · The phone's reviewer password field lets the keyboard change the password
+
+**Fixed 2026-10-02 in the new 1.0 build** (the one that replaces 2114): the field now sets `.textInputAutocapitalization(.never)` and `.autocorrectionDisabled()`. There is no UI test. XCUITest reads a secure field's value as bullets, so a test cannot see a capital letter. Instead, the owner's phone check types the reviewer password by hand. The reviewer password still starts with a digit, so 1.0 sign-in works either way.
 
 Verified 2026-10-02 on `c8cd8ea3` (build 2114, attached to 1.0).
 

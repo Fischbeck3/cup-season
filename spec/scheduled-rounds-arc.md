@@ -60,6 +60,11 @@ the real course from the cache: name, city, tee rating/slope, par, hole list.
 Pure client — read `api_courses`/`api_course_tees`/`api_course_holes`. No new
 backend.
 
+> **Superseded by D407 (2026-10-02).** The forecast is retired: Open-Meteo's
+> free tier is for non-commercial use only. The `weather` function answers
+> "unavailable", and neither client asks it any more (D407's amendment). Stage 5
+> below is the record of what was built, not the current product.
+
 **Stage 5 — weather.** With the course's `latitude`/`longitude` (from
 `api_courses`) + `play_on`, fetch a forecast. Use **Open-Meteo** (free, keyless)
 behind a small cached `weather` Edge Function — routing through `*.supabase.co`

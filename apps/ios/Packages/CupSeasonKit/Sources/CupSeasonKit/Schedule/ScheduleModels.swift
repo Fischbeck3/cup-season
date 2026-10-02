@@ -565,38 +565,6 @@ public struct RoundDetail: Sendable, Equatable {
   public var worthLines: [String] { RoundWorth.lines(worth) }
 }
 
-/// The `weather` function's payload (`{ ok, weather }`; `{ unavailable }` on a miss).
-public struct Weather: Decodable, Sendable, Equatable {
-  public let hi: Int
-  public let lo: Int?
-  public let wind: Int?
-  public let summary: String?
-  public let icon: String?
-  public init(hi: Int, lo: Int?, wind: Int?, summary: String?, icon: String?) { self.hi = hi; self.lo = lo; self.wind = wind; self.summary = summary; self.icon = icon }
-
-  /// The sheet's line: `"71° Mostly sunny · 9mph"`.
-  ///
-  /// **THE LITERAL `☀` IS GONE** (§5.3's emoji ban, `LINT-12`). A producer that
-  /// embeds a glyph in a string decides for every surface how the weather is
-  /// DRAWN, in a face nobody chose, at a size nobody set, in a colour that is
-  /// whatever the text is — and it is the one emoji in the product that a
-  /// surface then had no way to replace. The mark is drawn from `icon` by the
-  /// icon family at the sentence's own stroke weight; the producer returns
-  /// words.
-  public var line: String {
-    var s = "\(hi)°"
-    if let summary, !summary.isEmpty { s += " \(summary)" }
-    if let wind, wind > 0 { s += " · \(wind)mph" }
-    return s
-  }
-  /// The Home glance: `"71° · 9mph"`.
-  public var glance: String {
-    var s = "\(hi)°"
-    if let wind, wind > 0 { s += " · \(wind)mph" }
-    return s
-  }
-}
-
 // MARK: - Course search (`attachCourseSearch`, 6729)
 
 public struct CourseTee: Sendable, Equatable, Identifiable, Decodable {
