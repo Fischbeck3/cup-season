@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// D401 · matte result content. The owning record supplies its semantic paint;
+/// D404 · matte result content. The owning record supplies its semantic paint;
 /// this object has no action and does not inherit a personal look's panel tint.
 public struct CSScorePanel: View {
   let value: String

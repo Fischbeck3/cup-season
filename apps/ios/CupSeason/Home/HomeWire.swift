@@ -75,7 +75,7 @@ struct HomeWireSlat: View {
 }
 
 /// Full-measure facts, with optional imagery below. Golfer and round remain
-/// independent targets; large text reflows the course and result. D401 scopes the matte metal to the score.
+/// independent targets; large text reflows the course and result. D404 scopes the matte metal to the score.
 private struct HomeProgrammeRound: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize

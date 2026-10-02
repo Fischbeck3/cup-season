@@ -117,10 +117,10 @@
      because a physical object does not re-print. The last four are the
      off-palette literals four surface specs had written inline, named here
      so preflight 15 passes. */
-  --score-gold:#D8B25A; /* D401 · matte Home score object */
-  --score-silver:#D6DCD4; /* D401 · matte Home score object */
-  --score-bronze:#B78A61; /* D401 · matte Home score object */
-  --score-ink:#1A1B14; /* D401 · matte Home score object */
+  --score-gold:#D8B25A; /* D404 · matte Home score object */
+  --score-silver:#D6DCD4; /* D404 · matte Home score object */
+  --score-bronze:#B78A61; /* D404 · matte Home score object */
+  --score-ink:#1A1B14; /* D404 · matte Home score object */
   --panel:#E9ECE3;                /* the panel: one opaque tile, <=96x96, one figure or one word */
   --panel-ink:#0B120E;            /* the figure on the panel */
   --panel-mut:#4C574F;            /* the agate label under it */
@@ -322,10 +322,10 @@ html[data-theme="light"]{
   --sq0:#002B40; --sq1:#603E35; --sq2:#4C705D;
   --sq3:#8B88A8;
   /* object */
-  --score-gold:#D8B25A; /* D401 · matte Home score object */
-  --score-silver:#D6DCD4; /* D401 · matte Home score object */
-  --score-bronze:#B78A61; /* D401 · matte Home score object */
-  --score-ink:#1A1B14; /* D401 · matte Home score object */
+  --score-gold:#D8B25A; /* D404 · matte Home score object */
+  --score-silver:#D6DCD4; /* D404 · matte Home score object */
+  --score-bronze:#B78A61; /* D404 · matte Home score object */
+  --score-ink:#1A1B14; /* D404 · matte Home score object */
   --panel:#141A16; --panel-ink:#F4F1E9; --panel-mut:#A6AEA5;
   --leaf:#FFFDF7; --leaf-ink:#1A1B14; --leaf-mut:#5A625A; --leaf-gold:#795912;
   --ceremony:#0A0E0C; --ceremony-ink:#F1F4EF; --ceremony-mut:#9BA69D;
@@ -2079,7 +2079,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-foot .hrx{margin-top:0;}
 .hfr-go{flex:none; color:var(--mut);}
 
-/* D401 · a compact figure object beside the course, shared with photo rounds.
+/* D404 · a compact figure object beside the course, shared with photo rounds.
    Actual result colors are fixed objects; personal action looks cannot tint them. */
 .hfscorebook .hfr-id{min-height:44px;}
 .hfscorebook .hfr-result{display:flex;align-items:center;gap:var(--s4);width:100%;margin-top:var(--s3);}
@@ -21552,14 +21552,14 @@ function wireHomePhotos(box){
     if(img.complete){ if(img.naturalWidth===0) failed(); else if(path) csLastGoodPhoto.set(path, img.getAttribute('src')); }
   });
 }
-/* D401 · display only; edges match CSBands.scoreMetal and the five bands. */
+/* D404 · display only; edges match CSBands.scoreMetal and the five bands. */
 function csScoreMetal(performance){
   if(performance==null || performance==='' || !Number.isFinite(Number(performance))) return 'neutral';
   const value=Number(performance);
   return value>=1 ? 'gold' : value>-1 ? 'silver' : 'bronze';
 }
 function feedRow(r, idx, stamp, opts){
-  /* D401 · Home Scorebook: identity, course/story with a matte gross panel,
+  /* D404 · Home Scorebook: identity, course/story with a matte gross panel,
      optional photograph, then the existing doors. Controls remain independent. */
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
@@ -21592,7 +21592,7 @@ function feedRow(r, idx, stamp, opts){
       <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
     </div>`;
 
-  /* D401 · photo and text rounds share the Scorebook structure. The metal
+  /* D404 · photo and text rounds share the Scorebook structure. The metal
      groups the recorded performance, never the gross or a milestone. */
   const metal = csScoreMetal(r.pvi);
   const day = csDayMarker(r.played_on);

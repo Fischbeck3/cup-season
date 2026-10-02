@@ -4,7 +4,7 @@ The owner selected C / Scorebook, suggested gold, silver and bronze performance 
 
 ## Behavior and governing decision
 
-D401 in `spec/decision-log.md` records the scope and the narrow exception to D269's two-metal rule and the one-gold-object viewport budget. The brand canon and UI system carry that amendment. The source token file owns four fixed score-object paints; generated outputs come from `node tools/build-tokens.mjs`.
+D404 in `spec/decision-log.md` records the scope and the narrow exception to D269's two-metal rule and the one-gold-object viewport budget. The brand canon and UI system carry that amendment. The source token file owns four fixed score-object paints; generated outputs come from `node tools/build-tokens.mjs`.
 
 Each round reads golfer/date, course and tee with its existing story beside a compact gross panel, optional photo, then the existing supporting actions. The previous spaced page rules close the round. Recorded finite performance picks gold at >= +1, silver between -1 and +1 exclusively, bronze at <= -1. Missing/nonfinite performance stays neutral. Existing five scoring bands and points are unchanged. The actual performance phrase remains in the accessible round name when a milestone or counting story takes the visible story line.
 
@@ -28,14 +28,14 @@ Viewed all 12 Pro, 8 SE and 4 final web screenshots. The native paths cover phot
 
 The initial web capture raced image painting. The confirmation waited for image decode and two animation frames, then showed the photo correctly without a production edit. Native source produced one failed build while disk space was very low; after removing only unused generated caches from this task's previous builds, the final build passed. The first SE run logged two passing tests but produced an empty result summary and no exportable screenshots. It was not accepted as capture evidence. A serial confirmation on the same source passed both tests and retained all eight frames. Existing Supabase session runtime warnings are recorded in the result summaries; this refinement does not change authentication.
 
-Visual work stopped after the batched native review and the web confirmation. No further design edits followed the final build. `DESIGN.md` is an older compiled record; the amended canonical UI system, brand canon and D401 govern this change. It was not regenerated as an unrelated context repair.
+Visual work stopped after the batched native review and the web confirmation. No further design edits followed the final build. `DESIGN.md` is an older compiled record; the amended canonical UI system, brand canon and D404 govern this change. It was not regenerated as an unrelated context repair.
 
 ## Files and handoff
 
 - Native: `HomeWire.swift`, shared `CSScorePanel`, `Theme.swift`, `CSBands.swift`, DEBUG fixture and two focused test suites.
 - Web: `index.html` Home feed renderer and scoped CSS.
 - Tokens: source JSON and its generated CSS, TypeScript and Swift outputs.
-- Canon: D401, brand canon and UI system amendment.
+- Canon: D404, brand canon and UI system amendment.
 - Guard: LINT-10 recognizes only the named token-based Home figure panel, with its dimensions and no border. No broad lint suppression or baseline increase.
 - Evidence: original captures, provenance manifest, final build/preflight/browser/test logs and summaries.
 

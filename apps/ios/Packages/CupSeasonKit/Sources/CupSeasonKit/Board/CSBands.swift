@@ -24,7 +24,7 @@
 import Foundation
 
 public enum CSBands {
-  /// D401 · a presentation grouping of the existing five bands, never scoring.
+  /// D404 · a presentation grouping of the existing five bands, never scoring.
   public enum ScoreMetal: String, Sendable { case gold, silver, bronze, neutral }
 
   public static func scoreMetal(_ performance: Double?) -> ScoreMetal {

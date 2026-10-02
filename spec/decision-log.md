@@ -8262,7 +8262,7 @@ Sources: docs/design/compete-2026-09-24/PROPOSAL.md, spec §16, D359, D376.
 - **Tradeoffs.** Private images need signed URLs and designed loading/failure fallbacks. Richer customization adds an optional Pro task without adding a required creation step. Broad trend charts are deferred.
 - **CONFLICT (named).** The September 27 native adapter's no-build/no-shipping limitation yields within this scope to the owner's September 30 request. Existing tokens, protected semantic/earned colors, phase resolution and D222 peer ordering stand.
 
-### D401 · Home rounds carry a matte score panel (Scorebook)
+### D404 · Home rounds carry a matte score panel (Scorebook)
 
 **RULED 2026-09-30** (owner selected C, proposed performance metals, then “GO on full matte”) · UI / semantic presentation only · both clients' Home round feed
 

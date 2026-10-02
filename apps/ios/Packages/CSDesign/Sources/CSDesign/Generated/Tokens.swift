@@ -61,10 +61,10 @@ public struct CSPalette: Sendable {
   public let folioRule: Color  // object · the folio hairline on an object, which is not the page rule
   public let scrimInk: Color  // object · type over a photograph — the photo is the ground, not the theme
   public let scrimMut: Color  // object
-  public let scoreGold: Color  // object · D401 · Home gross panel for a recorded performance >= +1; fixed matte champagne, earned only
-  public let scoreSilver: Color  // object · D401 · Home gross panel for recorded performance > -1 and < +1; fixed matte silver
-  public let scoreBronze: Color  // object · D401 · Home gross panel for recorded performance <= -1; fixed matte bronze
-  public let scoreInk: Color  // object · D401 · opaque ink for figures and labels on all three matte score objects
+  public let scoreGold: Color  // object · D404 · Home gross panel for a recorded performance >= +1; fixed matte champagne, earned only
+  public let scoreSilver: Color  // object · D404 · Home gross panel for recorded performance > -1 and < +1; fixed matte silver
+  public let scoreBronze: Color  // object · D404 · Home gross panel for recorded performance <= -1; fixed matte bronze
+  public let scoreInk: Color  // object · D404 · opaque ink for figures and labels on all three matte score objects
   public let pig0: Color  // pigment
   public let pig1: Color  // pigment
   public let pig2: Color  // pigment
