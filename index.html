@@ -8565,6 +8565,10 @@ setInterval(function(){
      790-point gap to a third place that had never moved. A sign-in screen is
      a page people leave open. */
   const LB_CEIL=232, LB_BASE=181;
+  /* D406 · the board moves, the feed does not (see the gate below). A re-sort
+     every 9s is a table finding its order, not a league's traffic; the 5.2s it
+     ran at before read as activity. */
+  const FEED_STILL=true, LB_EVERY=9000;
   let fi=0, live=[], order=[0,1,2,3], lbRows=[], loopA=null, loopB=null, dead=false, lbSwaps=0;
   /* a link landing hides the wings (.ob-linked), so their loops stop for good */
   function gone(){ return !ob || ob.classList.contains('hide') || ob.classList.contains('ob-linked') || ob.classList.contains('ob-via'); }
@@ -8627,9 +8631,9 @@ setInterval(function(){
   function kill(){ dead=true; stop(); }
   const wingMq=matchMedia('(min-width:1100px)');
   function start(){
-    if(rm || dead || loopA || !feedEl || !lbEl || !wingMq.matches) return;
-    loopA=setInterval(feedTick, 3600);
-    loopB=setInterval(lbTick, 5200);
+    if(rm || dead || loopB || !feedEl || !lbEl || !wingMq.matches) return;
+    if(!FEED_STILL) loopA=setInterval(feedTick, 3600);
+    loopB=setInterval(lbTick, LB_EVERY);
   }
   if(feedEl && lbEl){
     for(let i=0;i<3;i++){ const c=cardEl(FEED[fi]); fi=(fi+1)%FEED.length; feedEl.appendChild(c); live.push(c); }
@@ -8641,14 +8645,15 @@ setInterval(function(){
       lbEl.appendChild(el); lbRows.push(el);
     });
     slotLb();
-    /* crit-A door P1 (round 1, still open in round 2's delta) · AN EXAMPLE DOES
-       NOT TICK. W4 labelled the wings "An example season"; the critique's fix was
-       the label AND a still specimen — invented rounds arriving and a table
-       re-sorting on a sign-in screen read as a live league that does not exist.
-       Every golfer now gets what reduced motion already drew: three cards and
-       four rows, still. The loops stay for a future ruling to switch back on. */
-    const WINGS_STILL = true;
-    if(!rm && !WINGS_STILL){
+    /* crit-A door P1 (7141516f) froze both wings: invented rounds arriving and a
+       table re-sorting on a sign-in screen read as a live league that does not
+       exist. D406 (owner, 2026-10-02) splits the ruling. THE FEED STAYS STILL —
+       a round arriving is the claim of traffic, and it was the half that read as
+       live. THE BOARD MOVES, slowly, because a table finding its order is how a
+       season reads, and the panel is labelled "An example season, in month 4 of
+       6". Reduced motion still draws three cards and four rows, still, and a
+       link landing (.ob-linked / .ob-via) still stops the loop for good. */
+    if(!rm){
       setTimeout(start, 2600);
       setTimeout(()=>{ if(!dead && !document.hidden && !gone() && wingMq.matches) lbTick(); }, 3400);
       document.addEventListener('visibilitychange', ()=>{ document.hidden ? stop() : start(); });
