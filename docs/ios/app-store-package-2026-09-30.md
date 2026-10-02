@@ -5,8 +5,9 @@ as main's `ebbbfea3`), is attached to App Store version 1.0 and is in the Owner 
 and the version's screenshots are the nine approved frames. It is candidate 2 plus D405, comments
 in line under the round. D405's migration and web client are deployed, and every earlier layer
 stands (the "Deployed" table). Nothing is submitted. The App Review notes are final (§10); D405
-changes nothing in them. Still the owner's: the review contact phone and reviewer password, App
-Privacy, content rights, the phone checks (R1–R13 on 2114), and submission.**
+changes nothing in them. The owner entered the review contact phone and reviewer password, and the
+phone checks passed on 2114 (the owner's report, 2026-10-02). Still the owner's: App Privacy, content
+rights, and submission.**
 
 **Original status: draft for review. Nothing in this file has been pasted into App Store
 Connect, uploaded or submitted.** It is built from the release source
@@ -62,6 +63,7 @@ behind a DEBUG gate or an off flag. Evidence is in the
 | App Store Connect | `asc_metadata.py --apply` (the owner's "Yes, enter it") | read back: en-US text and URLs, subtitle, privacy URL, Sports/Lifestyle, copyright, **Manual** release, age-rating answers (Apple computed TWELVE_PLUS), Free (USA base), **US only** with no new territories. Refused: the App Review detail (Apple requires the contact phone). Not touched: password, phone, App Privacy, content rights, screenshots, submission. |
 | App Store screenshots | `asc_metadata.py --apply --only screenshots`, on the owner's yes ("All 9, with widgets"), 2026-10-02 13:26 MST | the September 25 set's 8 frames deleted (204 each); the nine frames of `apps/ios/Screenshots/1.0` uploaded in §9 order, each read back COMPLETE at 1320 × 2868 with its checksum matching the committed file |
 | App Store description | the owner's text (2026-10-02), its money paragraph headed THE POT on the owner's choice; `asc_metadata.py --apply --only text`, 13:41 MST | read back identical to §4: 1,672 characters, en-US; keywords, promotional text and URLs unchanged |
+| App Review notes | `asc_metadata.py --apply --only review`, 2026-10-02, after the owner saved the contact phone and the reviewer password (the PATCH leaves both alone) | read back identical to `app-review-notes-1.0.txt` (3,948 characters); phone and password still set; sign-in required |
 
 ## Candidate 2 · `6727fd04` / 1.0.0 (2097) · the build attached to 1.0 (owner's yes, 2026-10-01 ~20:50 MST)
 

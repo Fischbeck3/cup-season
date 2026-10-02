@@ -6,9 +6,9 @@ rulings recorded in D402 and D403. **Entered through the API on 2026-10-01 on th
 and read back:** App Information, Pricing and Availability, the age rating answers and every
 Version 1.0 field except the screenshots (the package's "Deployed" table); **the screenshots followed
 on 2026-10-02** (the nine approved frames). **Still the owner's,
-in App Store Connect:** the App Review contact phone and the reviewer **password** (Apple
-refused the review detail without the phone), the notes paste, App Privacy (no API), the
-content rights answer. Never write the
+in App Store Connect:** App Privacy (no API) and the content rights answer. The owner entered
+the contact phone and the reviewer **password** on 2026-10-02; the notes followed through the API
+the same day. Never write the
 password or the phone into this repo.
 
 ## App Information
