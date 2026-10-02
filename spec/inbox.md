@@ -31,6 +31,12 @@ sorting.
 ---
 
 
+### 2026-10-02 · The phone's reviewer password field lets the keyboard change the password
+
+Verified 2026-10-02 on `c8cd8ea3` (build 2114, attached to 1.0).
+
+- **The reviewer door's `SecureField` (`DoorView.swift`, `passwordStage`) sets only `.textContentType(.password)`.** It has no `.textInputAutocapitalization(.never)` and no `.autocorrectionDisabled()`. The web's field is a plain `type=password` input, which no browser capitalizes. On 2026-10-02 a newly set reviewer password was refused on the phone ("Invalid login credentials") until it was set again. The cause was not isolated: a capitalized first letter, autofill of an older saved password, or the stored string itself. App Review types this password on a phone. **Lane:** native (the door). **Size:** two modifiers, plus a UI test that types a lowercase-first password. **First question:** ship it in the next build, or keep the reviewer password starting with a digit so 1.0 needs nothing?
+
 ### 2026-10-02 · Comments in line (D405): eleven things found and not built
 
 Verified 2026-10-02 on `claude/comments-in-line-2026-10-02` (the build, not the release). None blocks the in-line thread; each is named so it is not relearned.
