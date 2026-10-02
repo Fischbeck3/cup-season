@@ -1,10 +1,11 @@
 # 1.0 phone checks · the owner's solo run sheet
 
-**Build:** Cup Season 1.0.0 (**2097**) from `6727fd04`, on your own iPhone through TestFlight
-(Owner group). It is 2094 (`48d5f40e`) plus one fix, the standings head (R11); a check already
-passed on 2094 carries over, except R1 and R10, which should be run again on 2097. **Run it only after** the database push, the `scan` and `share-cleanup`
-deploys and the web push. Before them, the filter, takedown, ban and scan-consent checks
-below test the old server, not the candidate.
+**Build:** Cup Season 1.0.0 (**2114**) from `c8cd8ea3` (the same files as main's `ebbbfea3`),
+on your own iPhone through TestFlight (Owner group). It is 2097 plus D405, comments in line under
+the round (R12, R13), which reworks Home's round cards, so run every row on 2114, R10 included.
+Every server layer it needs is deployed (D405's migration and web client on 2026-10-02, the rest
+on 2026-10-01), so the filter, takedown, ban and scan-consent checks below test the candidate's
+own server.
 
 **No strangers.** No testers are recruited for 1.0 (owner, 2026-10-01). Where a second golfer
 is needed, use one of your own `jerecho+…@fischbeck3.com` test accounts. Never use
@@ -28,6 +29,8 @@ NOT RUN.
 | R9 | Account deletion | On a THROWAWAY test account only: You → Card & settings → Settings → **Your account** → **Delete my account** → **Delete permanently**. | The confirm text matches the review notes; the account signs out and cannot sign in again. | NOT RUN |
 | R10 | Home Scorebook (D404) | Open Home with a few posted rounds. | Each round has its matte score panel (gold, silver or bronze by how the round went) and a spaced rule after it; the round opens its receipt and the golfer opens their card. | NOT RUN |
 | R11 | Standings head (candidate 2) | Compete → a league in season that is past its first Sunday → the table. One of your own leagues, or Ridgeline Cup while you are signed in as the reviewer for R1. | The column head reads "GAP · SINCE SUN". On 2094 it printed a raw timestamp (`2026-09-27T07:20:00…`). | NOT RUN |
+| R12 | Comments in line (D405) | On Home, tap the comments line of a buddy's round (have one of your test accounts comment first if none has any). Write a comment and send it. Tap the same line again. Then do the same on a league board post. | The thread opens right under the round: no new page, no sheet. The newest three comments show, with "Earlier comments (N)" above them when there are more. The box reads "Comment on [first name]’s [score]…" (on your own round, "Comment on your [score]…"). Your comment appears in line at once with "Updates from this conversation are on."; the same tap folds the thread. No button anywhere says "Follow". | NOT RUN |
+| R13 | Whose round, and who hears (D405) | Tap into that buddy's round from Home and open its ⋯ menu. Then have a test account reply to the comment you left in R12. | The page is titled "[first name]’s round" beside their face ("Your round" on yours), and its conversation head reads "On [first name]’s [score]". The ⋯ menu offers "Notify me about": Every comment · Replies to me · Nothing. The reply reaches your notices as "[name] replied to you on [first name]’s round." Back on Home, a round with comments shows its newest one under the card before any tap. | NOT RUN |
 
 ## Carried from `docs/design/ten-2026-09-27/launch/HUMAN.md` §4
 

@@ -1,11 +1,12 @@
 # App Store package · 1.0 · drafted 2026-09-30 · FOR OWNER REVIEW
 
-**Status (2026-10-01 night): Cup Season 1.0.0 (2097), built from `6727fd04`, is attached to
-App Store version 1.0 and is in the Owner TestFlight group. The candidate's database, Edge
-functions and web are deployed, each on the owner's approval (the "Deployed" table). Nothing is
-submitted. The App Review notes are final (§10). Still the owner's: the review contact phone and
-reviewer password, App Privacy, content rights, approval of the recast screenshot set, the phone
-checks, and submission.**
+**Status (2026-10-02 afternoon): Cup Season 1.0.0 (2114), built from `c8cd8ea3` (the same files
+as main's `ebbbfea3`), is attached to App Store version 1.0 and is in the Owner TestFlight group.
+It is candidate 2 plus D405, comments in line under the round. D405's migration and web client
+are deployed, and every earlier layer stands (the "Deployed" table). Nothing is submitted. The
+App Review notes are final (§10); D405 changes nothing in them. Still the owner's: the review
+contact phone and reviewer password, App Privacy, content rights, approval of the screenshot set
+(checked against 2114's commit), the phone checks (R1–R13 on 2114), and submission.**
 
 **Original status: draft for review. Nothing in this file has been pasted into App Store
 Connect, uploaded or submitted.** It is built from the release source
@@ -46,7 +47,7 @@ behind a DEBUG gate or an off flag. Evidence is in the
 | Consent race | Fails on `a3115801` in all three proofs (model, real supabase-js, live stack); passes at the candidate. |
 | Production at the freeze | 3 migrations pending (`20261221090000`–`20261223090000`), nothing else; `scan` and `share-cleanup` undeployed; web at `e034915`. All of it deployed since: see the next table. |
 
-## Deployed · 2026-10-01 evening, on the owner's explicit approval ("Approve, Claude runs all four")
+## Deployed · each on the owner's explicit approval (2026-10-01 evening: "Approve, Claude runs all four"; 2026-10-02: D405 and candidate 3)
 
 | Layer | Action | Read-back |
 |---|---|---|
@@ -54,7 +55,10 @@ behind a DEBUG gate or an off flag. Evidence is in the
 | Edge | `supabase functions deploy scan` (v10), `share-cleanup` (v31) | `cs-share-cleanup` active, `* * * * *`, last runs succeeded; responses since the deploy are HTTP 200 with the new `takedowns` section; `scan` without a session → 401 |
 | Web | `git push origin 48d5f40e:main` (fast-forward from `e034915a`) | cupseason.app serves `v23 · 48d5f40` (page and `sw.js`); GitHub CI for `48d5f40e` succeeded |
 | Native | upload of the validated 1.0.0 (2094) IPA; `asc.py owner 2094` | VALID; in the **Owner** group only (IN_BETA_TESTING, not in Friends); attached to App Store version 1.0, **then replaced there by 2097** (next row) |
-| Native, candidate 2 | upload of the validated 1.0.0 (2097) IPA, on the owner's second yes; `asc.py owner 2097`; attach | VALID; Owner group only; **attached to App Store version 1.0** in place of 2094 (read back 2026-10-01 ~21:00 MST) |
+| Native, candidate 2 | upload of the validated 1.0.0 (2097) IPA, on the owner's second yes; `asc.py owner 2097`; attach | VALID; Owner group only; attached to App Store version 1.0 in place of 2094 (read back 2026-10-01 ~21:00 MST), **then replaced there by 2114** (below) |
+| Database, D405 | `supabase db push` by the owner, 2026-10-02, from the D405 session's worktree: `20261224090000_comments_live_in_line` | production `tests/db-checks.sql`, read-only, 12:58 MST: **61/61 PASS**, check 61 (D405) included. The word filter's `cs_text_guard` triggers stand on `posts`, `post_comments` and `round_comments`, so the re-created comment function cannot go around it |
+| Web, D405 | `git push origin release/d405-squash:main` by the owner, 12:51 MST: `ebbbfea3`, one squash of 20 commits on `48d5f40e`, tree identical to `c8cd8ea3` | cupseason.app serves `v23 · ebbbfea` (page and `sw.js`). No Edge change in D405 |
+| Native, candidate 3 | upload of the validated 1.0.0 (2114) IPA, on the owner's yes ("Upload and attach"); `asc.py owner 2114`; attach | VALID; Owner group only (IN_BETA_TESTING, not in Friends); **attached to App Store version 1.0** in place of 2097 (read back 2026-10-02 13:16 MST) |
 | App Store Connect | `asc_metadata.py --apply` (the owner's "Yes, enter it") | read back: en-US text and URLs, subtitle, privacy URL, Sports/Lifestyle, copyright, **Manual** release, age-rating answers (Apple computed TWELVE_PLUS), Free (USA base), **US only** with no new territories. Refused: the App Review detail (Apple requires the contact phone). Not touched: password, phone, App Privacy, content rights, screenshots, submission. |
 
 ## Candidate 2 · `6727fd04` / 1.0.0 (2097) · the build attached to 1.0 (owner's yes, 2026-10-01 ~20:50 MST)
@@ -73,6 +77,25 @@ production every active league with a snapshot shows it, **Ridgeline Cup include
 | Tests | Kit **1,483/1,483** on a simulator (the new `theGapHeadNamesTheDayNotTheTimestamp` included); preflight 0 failures. No UI test reads the head (it is hidden from VoiceOver), so the UI results below on the `48d5f40e` build stand for this one. |
 | Native | Release archive and export from a clean detached worktree at `6727fd04`, vault signing. IPA SHA-256 `e5f33dc1da233bb4303fb7b9d2f9caefc4ecb23e8a14f90c5bc4f8b31cf93671` (23.6 MB). `CFBundleVersion 2097`, `aps-environment = production`, `get-task-allow = false` (app and widget), `ITSAppUsesNonExemptEncryption = NO`, widget extension included. **Apple validation: VERIFY SUCCEEDED, no errors** (altool, 20:34 MST). |
 | Shipped (owner's yes: "Yes, swap in 2097") | Uploaded 20:50 MST (`altool`, UPLOAD SUCCEEDED, no errors). `asc.py owner 2097`: VALID, **Owner group only** (IN_BETA_TESTING, not in Friends). `asc_metadata.py --apply --only build --build 2097`: 204. Read back: version 1.0 PREPARE_FOR_SUBMISSION, release MANUAL, **attached build 2097 (VALID)**. Nothing submitted. Phone sheet: R1, R10 and the new R11 on 2097. |
+
+## Candidate 3 · `c8cd8ea3` / 1.0.0 (2114) · the build attached to 1.0 (owner's yes, 2026-10-02 ~13:10 MST)
+
+**Why.** The owner, 2026-10-01 night, before launch: comments "must fall in line" and say whose
+round they are on. D405 (owner-approved 2026-10-02, `spec/decision-log.md`) opens a round's
+thread in place under it on Home and the board, on both clients; names whose round it is; shows
+the newest comment under the round; and replaces the bare "Follow" with "Notify me about". In
+the same pass, the person page no longer offers "Add buddy" when the buddy list fails to load,
+and Home's digest counts round-thread comments.
+
+| | |
+|---|---|
+| Source | **`c8cd8ea3`** (local branch `claude/comments-in-line-2026-10-02`) = candidate 2's line through `2b5004c4` (the Gap-head fix, the store cast, the frames, the signed-in harness, these records) + 11 D405 commits. **Main carries it as one squash, `ebbbfea3`, with the identical tree** (`git diff c8cd8ea3 ebbbfea3` is empty). The squash keeps a private note out of the public history; the 20 commits stay local and are never pushed. |
+| Build number | `tools/ios-archive.sh` numbers a build by its commit count: `c8cd8ea3` counts **2114**. Main after the squash counts 2095, below the 2097 already uploaded, so an archive of main would be refused. **Any later 1.0.0 build meets the same trap**: decide before it (an offset in the script, or archive from a branch that carries the history). |
+| Tests (the D405 session) | Kit 1,503 pass (CommentsInLineTests, BoardDoorsTests, TalkCopyTests); app InlineThreadPreviewTests; UI CommentsInLineUITests (8), SocialBlendTests and N2ReceiptUITests on a 17 Pro simulator; web `tests/app-tests.js` 585 (one failure, D225, the same on the base commit); preflight 0 failures; the migration on a disposable PG17 (`tests/social-course-database.mjs`, 159 assertions). Four read-only reviews of the build, each fix pinned by a test shown to fail without it. |
+| Native | Release archive and export from a clean detached worktree at `c8cd8ea3`, vault signing. IPA SHA-256 `c78d64e10ea769444c33e30c1b7c8c5d415ef0276c9f954e42cc1e79e2bfea70` (23.7 MB). `CFBundleVersion 2114`, `aps-environment = production`, `get-task-allow = false` (app and widget), `ITSAppUsesNonExemptEncryption = NO`, widget extension included. **Apple validation: VERIFY SUCCEEDED, no errors** (altool, 13:04 MST). |
+| Shipped (owner's yes: "Upload and attach") | Uploaded 13:12 MST (`altool`, UPLOAD SUCCEEDED, no errors). `asc.py owner 2114`: VALID, **Owner group only** (IN_BETA_TESTING, not in Friends), What to Test set. `asc_metadata.py --apply --only build --build 2114`: 204. Read back 13:16 MST: version 1.0 PREPARE_FOR_SUBMISSION, release MANUAL, **attached build 2114 (VALID)**. Nothing submitted. |
+| Phone sheet | R1–R13 on 2114 (`phone-checks-1.0.md`); R12 and R13 are D405's. |
+| Screenshots | The nine committed frames were checked against `c8cd8ea3`: a full retake (audit clean) shows the same screens. See `apps/ios/Screenshots/1.0/README.md`. |
 
 ## Build status · 2026-10-01 (branch `claude/app-store-listing-2026-09-30`)
 

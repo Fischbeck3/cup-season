@@ -1,4 +1,4 @@
-# App Store Connect entry sheet · Cup Season 1.0 (build 2097)
+# App Store Connect entry sheet · Cup Season 1.0 (build 2114)
 
 Field-by-field values for the existing 1.0 draft (PREPARE_FOR_SUBMISSION). The copy comes
 from [the package](app-store-package-2026-09-30.md): Part A §1–§10, C-1 and C-2 with the
@@ -7,7 +7,7 @@ and read back:** App Information, Pricing and Availability, the age rating answe
 Version 1.0 field except the screenshots (the package's "Deployed" table). **Still the owner's,
 in App Store Connect:** the App Review contact phone and the reviewer **password** (Apple
 refused the review detail without the phone), the notes paste, App Privacy (no API), the
-content rights answer, and the screenshots once their recast is approved. Never write the
+content rights answer, and the screenshots once the owner approves the set. Never write the
 password or the phone into this repo.
 
 ## App Information
@@ -41,7 +41,7 @@ password or the phone into this repo.
 | Marketing URL | `https://cupseason.app` |
 | Copyright | `2026 Fischbeck3 LLC` |
 | Version release | **Manually release this version** (currently AFTER_APPROVAL) |
-| Build | **1.0.0 (2097), from `6727fd04`** (candidate 2, the owner's yes on 2026-10-01; it replaced 2094). Export compliance is answered in the binary (`ITSAppUsesNonExemptEncryption = NO`). |
+| Build | **1.0.0 (2114), from `c8cd8ea3`**, the same files as main's `ebbbfea3` (candidate 3, the owner's yes on 2026-10-02; it replaced 2097, which had replaced 2094). Export compliance is answered in the binary (`ITSAppUsesNonExemptEncryption = NO`). |
 | Screenshots (iPhone 6.9") | Replace all 8 September 25 frames with the **recast set** (store cast, `a48dac68`; §9 order; frame 9 optional), after the owner approves it. Upload: `~/cup-season-store-shots/asc/asc_metadata.py --apply --only screenshots --shots apps/ios/Screenshots/1.0 --display APP_IPHONE_67` (dry run first, without `--apply`) |
 
 ## App Review Information
@@ -51,7 +51,7 @@ password or the phone into this repo.
 | Contact | the owner's name · `jerecho@fischbeck3.com` (the support page's address) · phone: **owner enters (+1 format)** |
 | Sign-in required | Yes |
 | User name | `reviewer@cupseason.app` |
-| Password | **Owner enters in App Store Connect only** (works on build 2097, check R1) |
+| Password | **Owner enters in App Store Connect only** (works on build 2114, check R1) |
 | Notes | [`app-review-notes-1.0.txt`](app-review-notes-1.0.txt), verbatim (3,949 bytes) |
 
 ## Age rating answers (C-2 with the rulings)

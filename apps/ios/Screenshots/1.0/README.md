@@ -15,6 +15,13 @@ name, real course, price or ledger appears (§9's capture rules, X37).
   - An audit of the on-screen text and OCR of the pixels found zero findings in all nine frames: no real
     names, real courses, dollar figures, raw machine strings, debug chrome or test-looking names.
   - Every file is 1320 × 2868, 8-bit RGB, no alpha.
+  - **Checked against the build that ships (2026-10-02).** All nine were retaken from `c8cd8ea3`,
+    the commit build 2114 was archived from (main's `ebbbfea3` has the same files), with a clean
+    audit. 02–05 match the committed files to within noise. 01, 06 and 07 differ only in the
+    synthetic world's dates, one day later, and one points total. 08 differs only in where the
+    scroll stops, about 50 points further down: that cuts the season in play and leaves a bare
+    "Head to head" heading at the foot. 09 differs only in the widgets' sample standings and
+    clock. The committed frames stand as the set for 2114.
 - **Upload (after approval):** frames 01–08, plus 09 if wanted, replace the September 25 frames in the
   `APP_IPHONE_67` set.
 - **Known:**
@@ -23,8 +30,8 @@ name, real course, price or ledger appears (§9's capture rules, X37).
     on." (it read "You'll be notified of replies to you."). Retaken with `capture.sh --only 05-receipt`
     from `868dcb95` (audit clean). The synthetic world is date-relative, so one receipt row differs from
     the 2026-10-01 frame (the Mulligan Cup League line reads "BUMPED · 7 PTS", where it read "COUNTING #4
-    OF 4 · 7 PTS", and the round's date is Sep 30). **Retake it once more from the commit that ships**,
-    like the rest of the set: the frames are the build that is uploaded.
+    OF 4 · 7 PTS", and the round's date is Sep 30). The retake from the commit that ships matches it
+    (Checks, above).
   - Frame 9 says "AS OF 10:30 PM" (the capture's wall clock) under a 9:41 status bar.
 
 | File | SHA-256 |
