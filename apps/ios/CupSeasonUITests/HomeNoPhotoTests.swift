@@ -1,23 +1,67 @@
 import XCTest
 
-final class HomeNoPhotoTests: XCTestCase {
+/// D360 / D365 · a round on Home, drawn by the production `HomeWireBand`,
+/// `HomeWireSlat` and `HomeWireReactions` on the `-cs_dev_no_photo` design
+/// fixture (`HomeNoPhotoFixture`: labelled rows, local destinations, no reads).
+///
+/// **Recast 2026-10-01 for the Match Programme record** (`e8e9f84b`, then the
+/// owner phone-feedback correction `1664d7cd`, `docs/home-phone-feedback-2026-09-30.md`).
+/// One record per round, photograph or not: the golfer is its own control,
+/// `home.round.person.<profile id>`; the round control, `home.round.<round id>`,
+/// is the identity and the gross and speaks the complete record once; the
+/// course, tee and story lines and any photograph sit under it, open the same
+/// round, and are hidden from VoiceOver so nothing is said twice. A photograph
+/// is a 16:9 insert below the facts and an absent one reserves no space. The
+/// 168pt full-bleed band and its identifiers (`home.round.photo`,
+/// `home.round.no-photo`) went with the design that had them, so the facts are
+/// read here from the round control's label.
+@MainActor final class HomeNoPhotoTests: XCTestCase {
+  /// the fixture's own round (`is_me`, 89 at UNM Championship Course)
+  private let yourRound = "home.round.A0000000-0000-4000-8000-000000000001"
+  private let yourCard = "home.round.person.A0000000-0000-4000-8000-000000000011"
+
+  /// The applause control directly under a round: the top of that round's
+  /// supporting line.
+  private func applauseBelow(_ round: XCUIElement, in app: XCUIApplication) -> CGRect? {
+    let bottom = round.frame.maxY
+    return app.buttons.matching(identifier: "applause.give").allElementsBoundByIndex
+      .map { $0.frame }.filter { $0.minY >= bottom - 1 }.min { $0.minY < $1.minY }
+  }
+
   @MainActor func testLoadedPhotoFaceAndRoundHaveDistinctDestinations() {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_loaded_photo", "-cs_dev_text_size", "large", "-cs_dev_look", "none"]
     app.terminate(); app.launch()
-    let photo = app.descendants(matching: .any)["home.round.photo"].firstMatch
+    let round = app.buttons[yourRound]
     // the first launch on a freshly booted phone can take most of a minute:
     // 20s timed out there, the one first-launch flake (root's run and E's)
-    XCTAssertTrue(photo.waitForExistence(timeout: 60))
-    XCTAssertEqual(photo.frame.height, 168, accuracy: 1)
+    XCTAssertTrue(round.waitForExistence(timeout: 60))
+    // the loaded photograph is a 16:9 insert under the record's facts, at the
+    // record's width (the fixture lays photo rounds edge to edge)
+    let insert = app.frame.width * 9 / 16
+    guard let applause = applauseBelow(round, in: app) else { return XCTFail("the round has no supporting line under it") }
+    XCTAssertGreaterThanOrEqual(applause.minY - round.frame.maxY, insert, "the loaded photograph is not under the record")
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = "Loaded photo control fixture"; shot.lifetime = .keepAlways; add(shot)
-    // The 44pt face starts at the 20pt gutter and ends 12pt above the band bottom.
-    photo.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 42, dy: 134)).tap()
+    // three doors on one record, and the photograph's fill never takes a tap
+    // meant for the controls above it: the golfer opens the golfer …
+    let person = app.buttons[yourCard]
+    XCTAssertTrue(person.isHittable)
+    XCTAssertFalse(person.frame.intersects(round.frame), "the golfer and the round share a target")
+    person.tap()
     XCTAssertTrue(app.staticTexts["Golfer · You"].waitForExistence(timeout: 5))
+    // … the round control opens the round …
     app.terminate(); app.launch()
-    XCTAssertTrue(photo.waitForExistence(timeout: 20))
-    photo.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).tap()
+    XCTAssertTrue(round.waitForExistence(timeout: 20))
+    round.tap()
+    XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
+    // … and so does the photograph: its centre sits the record's 12pt bottom
+    // padding (`s3`) and half an insert above the supporting line
+    app.terminate(); app.launch()
+    XCTAssertTrue(round.waitForExistence(timeout: 20))
+    guard let line = applauseBelow(round, in: app) else { return XCTFail("the round has no supporting line under it") }
+    app.coordinate(withNormalizedOffset: .zero)
+      .withOffset(CGVector(dx: app.frame.midX, dy: line.minY - 12 - insert / 2)).tap()
     XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
   }
 
@@ -25,9 +69,11 @@ final class HomeNoPhotoTests: XCTestCase {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_failed_photo", "-cs_dev_text_size", "ax3", "-cs_dev_look", "none"]
     app.launch()
-    let record = app.buttons.matching(identifier: "home.round.no-photo").firstMatch
+    let record = app.buttons[yourRound]
     XCTAssertTrue(record.waitForExistence(timeout: 20))
     XCTAssertTrue(record.isHittable)
+    // the picture failed; the record did not — the score and the course are all there
+    XCTAssertTrue(record.label.contains("89 at UNM Championship Course"), "an unavailable photo took facts with it")
     let photoFallback = XCTAttachment(screenshot: app.screenshot())
     photoFallback.name = "Unavailable photo at AX3"; photoFallback.lifetime = .keepAlways; add(photoFallback)
     // D365 · one appreciation action: give applause, and the count appears
@@ -39,7 +85,7 @@ final class HomeNoPhotoTests: XCTestCase {
     record.tap()
     XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
     app.terminate(); app.launch()
-    let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons["Open golfer card: You"]
+    let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons[yourCard]
     XCTAssertTrue(golfer.waitForExistence(timeout: 20))
     golfer.tap()
     XCTAssertTrue(app.staticTexts["Golfer · You"].waitForExistence(timeout: 5))
@@ -83,22 +129,32 @@ final class HomeNoPhotoTests: XCTestCase {
     XCTAssertTrue(app.buttons["Give applause"].firstMatch.exists)   // D365
   }
 
-  /// D360 · the five states of the record, photographed in both appearances
-  /// and at an accessibility size: the reference round, a milestone, a long
-  /// course name with no handicap context, and the consequence case.
+  /// D360 · the record's states, photographed in both appearances and at an
+  /// accessibility size: the reference round, a milestone, a long course name
+  /// with no handicap context, and the consequence case. The round control
+  /// speaks what the visible lines print, from the same producers
+  /// (`HomeWireCopy.roundLine` / `roundStory`): course and gross, then ONE
+  /// supported story or none.
   @MainActor func testRecordStatesInBothAppearances() {
     for (appearance, size) in [("dark", "large"), ("light", "large"), ("dark", "ax3")] {
       let app = XCUIApplication()
       app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_text_size", size, "-cs_dev_look", "none", "-cs_dev_appearance", appearance]
       app.launch()
-      let record = app.buttons.matching(identifier: "home.round.no-photo").firstMatch
-      XCTAssertTrue(record.waitForExistence(timeout: 20))
-      XCTAssertTrue(app.staticTexts["UNM Championship Course"].exists, "the course is the title")
-      XCTAssertTrue(app.staticTexts["89"].exists, "the gross is the figure")
-      XCTAssertTrue(app.staticTexts["2.0 over your playing HCP."].exists, "the story is the handicap context")
+      let reference = app.buttons[yourRound]
+      XCTAssertTrue(reference.waitForExistence(timeout: 20))
+      XCTAssertTrue(reference.label.contains("89 at UNM Championship Course"), "the course and the gross")
+      XCTAssertTrue(reference.label.contains("2.0 over your playing HCP"), "the story is the handicap context")
+      let milestone = app.buttons["home.round.A0000000-0000-4000-8000-000000000002"]
+      XCTAssertTrue(milestone.label.contains("79 at Saguaro Flats"))
+      XCTAssertTrue(milestone.label.contains("a personal best"), "a milestone says the milestone")
+      let long = app.buttons["home.round.A0000000-0000-4000-8000-000000000003"]
+      XCTAssertTrue(long.label.contains("108 at Gold Canyon — Dinosaur Mountain · Championship tees"), "a long course name, whole")
+      XCTAssertFalse(long.label.contains("playing HCP"), "a story was invented for a round with no context")
       // TEN / W6 · the month's count, not a rank: the cap is its denominator
-      XCTAssertTrue(app.staticTexts["9 pts · counting #2 of 4 this month"].exists, "the consequence is the story when it is known")
-      XCTAssertFalse(app.staticTexts["Beat their playing HCP by 3.1."].exists, "two stories on one round")
+      let consequence = app.buttons["home.round.A0000000-0000-4000-8000-000000000004"]
+      XCTAssertTrue(consequence.label.contains("9 pts · counting #2 of 4 this month"), "the consequence is the story when it is known")
+      // the handicap story this round would otherwise carry, in its story form
+      XCTAssertFalse(consequence.label.contains("Beat their playing HCP by 3.1"), "two stories on one round")
       let shot = XCTAttachment(screenshot: app.screenshot())
       shot.name = "record-states-\(appearance)-\(size)"; shot.lifetime = .keepAlways; add(shot)
       app.terminate()
@@ -109,14 +165,18 @@ final class HomeNoPhotoTests: XCTestCase {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_text_size", "large", "-cs_dev_look", "none"]
     app.launch()
-    let record = app.buttons.matching(identifier: "home.round.no-photo").firstMatch
+    let record = app.buttons[yourRound]
     XCTAssertTrue(record.waitForExistence(timeout: 20))
     XCTAssertTrue(record.isHittable)
+    let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons[yourCard]
+    XCTAssertTrue(golfer.isHittable)
+    XCTAssertGreaterThanOrEqual(golfer.frame.width, 44 - 0.5, "the golfer is under the tap target")
+    XCTAssertGreaterThanOrEqual(golfer.frame.height, 44 - 0.5, "the golfer is under the tap target")
+    XCTAssertFalse(record.frame.intersects(golfer.frame), "the golfer and the round share a target")
     record.tap()
     XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
     app.terminate()
     app.launch()
-    let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons["Open golfer card: You"]
     XCTAssertTrue(golfer.waitForExistence(timeout: 20))
     golfer.tap()
     XCTAssertTrue(app.staticTexts["Golfer · You"].waitForExistence(timeout: 5))
