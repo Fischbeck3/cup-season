@@ -1,5 +1,12 @@
 # App Store package · 1.0 · drafted 2026-09-30 · FOR OWNER REVIEW
 
+**Status (2026-10-02, 19:17 MST): SUBMITTED FOR REVIEW by the owner.** Version 1.0 with build 2206 is
+WAITING_FOR_REVIEW, release **MANUAL**: an approval publishes nothing until the owner presses Release.
+Read back through the API: build 2206 attached; keywords 100 bytes (the owner's own set, re-entered);
+content rights USES_THIRD_PARTY_CONTENT. App Privacy was answered and published by the owner (there is no
+API read of it, and Apple does not accept a submission without it). Not recorded: whether R1 and R14
+were run on 2206.
+
 **Status (2026-10-02 evening): Cup Season 1.0.0 (2206), built from `7eaefb8b` on main, is attached to
 App Store version 1.0 and is in the Owner TestFlight group.** It is candidate 4: 2114 without the retired
 forecast's code (D407's amendment, the owner's "I don't want to ship a dead line product") and with the
@@ -72,6 +79,7 @@ behind a DEBUG gate or an off flag. Evidence is in the
 | App Review notes | `asc_metadata.py --apply --only review`, 2026-10-02, after the owner saved the contact phone and the reviewer password (the PATCH leaves both alone) | read back identical to `app-review-notes-1.0.txt` (3,948 characters); phone and password still set; sign-in required |
 | Edge + web, D407 | `supabase functions deploy weather` (v8) and `git push` of `6efa5d8b`, on the owner's "deploy and push", 2026-10-02 15:28 MST | the function answers `{"unavailable":true,"reason":"retired"}` to a request with only the publishable key; cupseason.app serves `v23 · 6efa5d8`; the privacy policy names no Open-Meteo ("Last updated: October 2, 2026"); GitHub CI for `6efa5d8b` succeeded |
 | Native, candidate 4 | upload of the validated 1.0.0 (2206) IPA, on the owner's "roll the new update to App Store Connect"; `asc.py owner 2206`; attach (dry run read first) | VALID; Owner group only (IN_BETA_TESTING, not in Friends), What to Test set; **attached to App Store version 1.0** in place of 2114 (read back 2026-10-02 16:24 MST: PREPARE_FOR_SUBMISSION, MANUAL) |
+| Submission | the owner, in App Store Connect, 2026-10-02 19:17 MST (`reviewSubmissions` submittedDate 2026-10-03T02:17:30Z) | version 1.0 WAITING_FOR_REVIEW with build 2206, release MANUAL; keywords 100 bytes, the owner's set; content rights USES_THIRD_PARTY_CONTENT; App Privacy published by the owner |
 
 ## Candidate 2 · `6727fd04` / 1.0.0 (2097) · the build attached to 1.0 (owner's yes, 2026-10-01 ~20:50 MST)
 

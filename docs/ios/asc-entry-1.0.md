@@ -37,7 +37,7 @@ password or the phone into this repo.
 |---|---|
 | Promotional text | §3 (150/170) |
 | Description | §4 (1,651/4,000): **the owner's text, entered 2026-10-02** and read back identical, with the money paragraph headed THE POT (the owner's choice). "Check the forecast" came out when the forecast was retired (D407). D402: publishable now that the $200 phone cap and the money-door labels ship in this build. |
-| Keywords | §5: `handicap,skins,wolf,match,play,scorecard,league,standings,buddies,friends,rivalry,score,tee,live`. **This is what App Store Connect holds since 2026-10-02**, when an apply of the text section overwrote the owner's own 100-character set, which had been edited directly in App Store Connect and is not recorded here. The owner re-enters theirs before submission; `asc_metadata.py --only text` now refuses to run without `--fields`. |
+| Keywords | **The owner's own set, re-entered 2026-10-02 and submitted with 1.0** (100 bytes, read back): `handicap,skins,wolf,match,scorecard,league,standings,friends,rivalry,score,tee,golf,birdie,eagle,tee`. Keywords change only with a new version. For 1.0.1: `tee` appears twice, and `golf` is already indexed from the subtitle, so 8 bytes can carry new terms. (§5's 96-byte list was in App Store Connect for part of 2026-10-02, after an apply overwrote this set; `asc_metadata.py --only text` now refuses to run without `--fields`.) |
 | Support URL | `https://cupseason.app/support` |
 | Marketing URL | `https://cupseason.app` |
 | Copyright | `2026 Fischbeck3 LLC` |
