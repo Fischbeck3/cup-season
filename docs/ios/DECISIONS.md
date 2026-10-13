@@ -250,6 +250,8 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Decision.** Supersedes the email-OTP-only guardrail (IOS-018's list) for the door only: Apple sign-in is offered as a second door, code-only email stays the first. Client: `SupabaseService.signInWithApple(idToken:nonce:)` through the service (preflight 16 still forbids direct auth calls and any redirect URL); the button renders only when `app_flags.ios.apple_sign_in` is true, so the owner enables it after the Apple portal + Supabase provider are configured. **Why P1.** Apple requires it if any other third-party login ever ships, and the OTP delay is a measured drop-off. **Owner owes:** the Sign in with Apple capability on the App ID, the Services ID/key in Supabase Auth → Providers → Apple, then the flag. **Reversibility.** EASY (flag).
 
+**Amended 2026-10-12 by D411:** the door is unmounted; `app_flags.ios.apple_sign_in` no longer opens it. The button, nonce, `AppleName` and `signInWithApple` stay in the tree, and re-mounting the door is a reviewed build.
+
 ## IOS-024 · Reliability floor — MetricKit, five events, `test-seed` gated — **P2 · PROCEEDING 2026-08-27**
 
 **Decision.** (1) MetricKit crash/hang diagnostics land in `client_events` (fire-and-forget, 4-frame stack kept — the ghost lesson); (2) five product events: `signed_in`, `card_set`, `league_created`, `league_locked`, `round_posted`; (3) `test-seed` requires the caller to be the founder (`profiles.is_founder`) — SEC-H2 closes. **Reversibility.** EASY.

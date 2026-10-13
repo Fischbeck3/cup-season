@@ -8498,3 +8498,59 @@ Levels: trust and safety (vision: "the board is earned, the door is open"), IA (
 - **CONFLICT.** None. The scheduled-rounds arc's Stage 5 (the forecast) is superseded.
 
 **Amendment, 2026-10-02 (owner: "I don't want to ship a dead line product").** The client cleanup no longer waits for a post-launch build. It ships in a new 1.0 build that replaces 2114 at App Store Connect before submission; the 1.0 package records the build number and its commit. Gone from the phone: the `Weather` model, `ScheduleService.weather`, the plan sheet's weather line and its load, the `sun` and `cloud` glyphs (nothing else drew them), and the synthetic world's weather stub. Gone from the web: both `functions.invoke('weather', …)` call sites (the plan sheet and Home's plan card), the chip's markup and CSS, `csWxGlyph` and the `i-sun`/`i-cloud` symbols. Nothing a golfer sees changes, because the line was already hidden. Two things stay, on purpose. The `weather` stub stays because TestFlight builds through 2114 still call it, and it is their answer that hides the line. `weather_cache` stays because dropping it is a migration, and pushing one is the owner's step. Neither is reachable from the new build. The same build carries one unrelated two-line fix from `spec/inbox.md`: the reviewer door's password field stops auto-capitalizing and autocorrecting, as the web's never did.
+
+### D411 · Nothing switched off ships in the binary: the league-pass cards and the Apple door leave the phone, and the plan row leaves Settings
+
+**Numbering.** D411 was the next free ID across every branch on 2026-10-12 (the sprint line holds D408–D410). If another branch takes it first, renumber at merge, as D401 and D407 were.
+
+**OWNER-RULED 2026-10-12** ("build it", on the cleanup laid out after App Review's Guideline 2.1(b) questions on version 1.0, build 2206) · UI and monetization-surface level · no competition mechanic, scoring rule or points figure changes · both clients (D234): the phone loses the cards, the door and the row; the web loses the row (it never had the cards or the door).
+
+- **Current state.**
+  - D56/D101 built three league-pass cards on the phone (`apps/ios/CupSeason/Pricing/`: `PricingPassCard` in the wizard, `PotPassCard` and `PricingPotFinePrint` on the pot pane, `MembershipCard` in Settings) behind `app_flags.pricing.visible`, which is seeded false. D183 parked the price and kept the cards "built and dormant — they cost nothing at rest and are the fastest road back."
+  - With the flag off, Settings on both clients shows a "Membership" eyebrow, a `PLAN … FREE` row and the line "Everything is free — every season, every match, every round. No trial, nothing to enter." That is D183's durable line.
+  - IOS-023's Sign in with Apple button is complete and mounted on the Door behind `app_flags.ios.apple_sign_in`. Prod has no such key, so it decodes closed.
+- **Problem.**
+  - App Review held 1.0 on 2026-10-12 under 2.1(b), asking what is paid and how. Nothing is. But the binary carries priced copy ("the pass is paid to Cup Season", "After year 1 · $89/year") that one row write would show to every golfer with no review. A second door opens the same way. Guideline 2.3.1(a) rules out hidden or dormant features, and a priced service shown without In-App Purchase is a 3.1.1 question. "Costs nothing at rest" was true of the code and false of the review.
+  - A row headed PLAN that answers FREE and "No trial" uses subscription vocabulary to say there is no subscription. It reads as the free tier of something, which is exactly what Apple asked about.
+- **Decision.**
+  1. The phone deletes `Pricing/` (four files), `CupSeasonKit/Pricing/PricingFlags.swift` and `PricingTests.swift`, and the three mounts. The pot pane keeps `MoneyCopy.ledger` ("Cup Season keeps the ledger; the money moves between friends.") as its only fine print.
+  2. Both clients delete the Settings "Membership" eyebrow, the PLAN row and its line, with nothing in their place.
+  3. The phone unmounts the Apple door: `DoorView` stops reading `door_flags`, and the button's mount goes. The button, the nonce, `AppleName` and `signInWithApple` stay in the tree, unreachable. Turning Apple sign-in on is now a reviewed build, not a row.
+  4. Untouched: the `app_flags.pricing` row (D183 keeps its bands as the record), the `door_flags` RPC (older builds still read it) and D101's numbers. Nothing is migrated.
+- **Also in this build (copy, no mechanic).** `legal.html` stops saying no payment detail is ever asked for, because an organiser's how-to-pay note is free text the league can see. It now states the money ceilings per surface (D412). `/get` stops calling the iPhone app a beta.
+- **Principle served.** A feature reaches golfers through a reviewed build. Copy describes only what the product does today (D183: say what is true and promise nothing structural). D39's ledger posture is unchanged.
+- **Expected user benefit.** The answer to "what is paid?" is "nothing", with no condition attached, in the binary as well as in the database.
+- **Tradeoffs.**
+  - Bringing a price back is now a build and a review, not a row. The fastest road back is closed on purpose.
+  - Whenever pricing returns, its first question is Apple's 3.1.1 and 3.1.3 (how a paid feature used in the app is offered there), before any card is drawn.
+  - The Apple door's code is kept but unexercised, and it can rot.
+- **CONFLICT (named).**
+  - Supersedes D183's "the phone's three pricing cards stay built and dormant", and D56's "the flag makes it a one-row change".
+  - Amends IOS-023: `app_flags.ios.apple_sign_in` no longer opens the door.
+  - Amends D183's plan-row wording: neither client has the row now.
+
+### D412 · A Major's buy-in has the same $200 ceiling as every other money field
+
+**Numbering.** Taken with D411 on 2026-10-12; renumber at merge if needed.
+
+**OWNER-RULED 2026-10-12** ("build it") · mechanic level (the range of a money field) · both clients and the database (one migration).
+
+- **Current mechanic.**
+  - D113, D192 and D402 cap every money field at $200:
+    - the season buy-in (the `league_settings` CHECK, 0–20,000 cents);
+    - the live-round stake per point, skin, side or bank unit, on both clients and, since D402, in a server trigger.
+  - A Major's "Buy-in per golfer" was left out:
+    - the phone field is a free number (`MajorSetupSheet.swift`);
+    - the web field (`#mjBuy`) has `min="0"` and no max;
+    - `create_major` accepts anything from 0 to 100,000.
+- **Problem.** The 1.0 review notes told App Review that buy-ins are "up to $200", and `legal.html` says the same. For a Major, both statements were untrue. D192's reason applies unchanged: "A cap is not a rule about what friends may bet. It is a statement about what this product is for."
+- **Decision.**
+  - **Phone.** The field clamps with `MoneyLimits.clampStake`, and `MoneyLimits.upTo` sits under it. A prefilled run-back clamps too.
+  - **Web.** `#mjBuy` gets `max="200"`, and the send clamps with `CS_MAX_STAKE`, the prefill as well.
+  - **Server.** Migration `20261224120000_a_majors_buy_in_has_the_same_ceiling.sql` anchor-patches `create_major`'s range check from 100000 to 200. The patch is marked `[D412]` and idempotent, and keeps the D393 and stage-D gates.
+  - Only new values are refused. No existing event is rewritten: prod held no Major above $200 on 2026-10-12.
+- **Skew.** A build that predates this one (2206 and earlier) sending more than $200 gets the existing "buy-in out of range" refusal, and nothing else changes. The timestamp sits between prod's latest (`20261224090000`) and the sprint line's first (`20261225090000`), so neither push needs `--include-all`.
+- **Principle served.** D192. D234: one ceiling, on both clients and in the database.
+- **Expected user benefit.** Every dollar field in the product stops at the same number, and the review notes and the legal page are true as written.
+- **Tradeoffs.** A crew that wants a bigger Major records the difference outside the app. D192 accepted the same tradeoff for the stake.
+- **CONFLICT.** None. This extends D192 and D402 to the one field they missed.
