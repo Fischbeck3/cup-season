@@ -1,5 +1,11 @@
 # Pricing surfaces on the phone — IOS-021 executing D56, amended by D101
 
+> **RETIRED 2026-10-12 by D411.** The three cards, `PricingFlags` and their mounts were deleted from the
+> phone, and the Settings plan row left both clients: a binary must not carry a priced surface a server row can
+> reveal (Guideline 2.3.1). The `app_flags.pricing` row stays as D183's record of D101's numbers. This file is kept
+> as the record of what was built; nothing below exists in the app any more. Whenever pricing returns, it starts from
+> Apple's 3.1.1/3.1.3, not from these mounts.
+
 > **D101 (2026-08-27 evening) — the unit is the league-year.** One pass covers
 > every season a league runs in twelve months; the first year is free; the
 > numbers are 25% under the per-league comps: **$59 ≤9 · $89 10–13 · $109 14+**

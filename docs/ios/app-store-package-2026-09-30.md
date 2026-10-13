@@ -411,7 +411,7 @@ and counsel has not reviewed it. B-2's two fixes are in the build (phone checks 
   a feature the reader cannot find is a 2.1 and 2.3.1 risk.
 - **Drafts.** Captains do not draft; squads fill by random draw or are
   placed by the Pro (TM-22).
-- **Sign in with Apple.** It is flagged off.
+- **Sign in with Apple.** It is flagged off. *(2026-10-12: D411 unmounts it from the next build; this row is the 2206 record.)*
 - **Nearby phones.**
 - **Pride bets.** A pride bet is a forfeit agreed in words. The in-app door to
   it reads "Put money on it" (see B-2).

@@ -72,7 +72,7 @@ Find-friends sends one-way hashes only when the golfer taps "Check my contacts";
 | 2.1 cannot evaluate | Re-read Ridgeline Cup on the build. **Do not reseed:** `test-seed`'s reset removes every seed-domain league, not only the reviewer's. |
 | 5.1.1(v) deletion | The deletion paragraph; the `delete_account` RPC. |
 | 5.1.2 AI sharing | The AI paragraph. The server-side check is in `supabase/functions/scan/index.ts`, and `tests/edge-security-courses-scan.test.mjs` proves zero provider calls without consent. |
-| 4.8 | The only way in is a code we email (our own account system). Sign in with Apple ships behind `ios.apple_sign_in`, which is off. |
+| 4.8 | The only way in is a code we email (our own account system). Sign in with Apple is not in the build (D411 unmounted it; no flag can open it). |
 
 **What these notes deliberately do not claim:**
 - photo screening before publication (unresolved; see the package)

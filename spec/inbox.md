@@ -31,6 +31,17 @@ sorting.
 ---
 
 
+### 2026-10-12 · Found while building D411/D412 and not built
+
+All verified 2026-10-12 on `claude/2-1b-cleanup-2026-10-12`. Lanes: UX (1–3), Ops/legal (4–6).
+
+1. **The Major's server refusal never says the ceiling.** A build from before D412, or a stale web tab, sending more than $200 gets "Could not set the Major. Something went wrong — please try again." from both clients' `humanError`. First question: should `create_major` raise a golfer sentence like D402's "Stakes top out at $200 a golfer."? That would amend D412, and needs a new migration.
+2. **The web draws "Up to $200 a golfer." only under the Major and in the wizard's Other label.** The phone draws `MoneyLimits.upTo` under the wizard buy-in, the live stake and the Major (D234 parity). First question: should the line go under `#lrStake` too?
+3. **`/get`'s meta description says "coming to the App Store".** The script now rewrites the visible summary when the App Store link is pasted, but the meta tag is static. On approval day, edit it in the same commit that pastes the link.
+4. **`legal/privacy-policy.md` and `legal/pot-disclaimer.md` are stale unpublished mirrors.** They still carry the September wording and the old pot sentences. First question: delete the mirrors, or sync them from `legal.html`?
+5. **The `app_flags.pricing` row is still readable by any signed-in account through REST.** `flags_read` is `using (true)`. No client reads the row now (D411). First question: narrow `flags_read` to the keys the clients read (`ios`, `scan`), or leave the row as D183's record?
+6. **The Sign in with Apple entitlement is still declared.** D411 unmounted the button; the capability stays in `project.yml` and the entitlements. First question: drop it (provisioning profiles regenerate), or keep it for the day the door returns?
+
 ### 2026-10-02 · Remove the retired forecast's leftovers (D407)
 
 **The client half is done (2026-10-02, D407's amendment).** The owner did not want to ship dead code, so both clients' weather code left in the new 1.0 build that replaces 2114: the phone's model, fetch, line, glyphs and synthetic stub, and the web's two call sites, chip and glyphs. (The phone's Home plan card never drew a forecast: `Weather.glance` had no caller.) **What remains:** the `weather_cache` table, and the stub function, which answers "unavailable". The stub must keep answering until no installed TestFlight build is 2114 or older, because their hidden line depends on it. Then `supabase functions delete weather`. **Lane:** backend. **Size:** one migration (drop `weather_cache`) and one function delete, both the owner's to push. **First question:** after 1.0 is live and the testers have updated?
