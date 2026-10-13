@@ -4,7 +4,12 @@
 // takes an email and nothing else. The reviewer address takes a password.
 // The crest is the Forge's rest frame (ForgeView) — first run plays the show
 // and hands off to the email stage; every run after rests on the mark.
-// Sign in with Apple (IOS-023) is a second door behind `app_flags.ios.apple_sign_in`.
+// Sign in with Apple (IOS-023) is unmounted by D411: nothing switched off ships
+// as a door a row can open. `DoorAppleButton`, `DoorNonce`, `AppleName`,
+// `DoorModel.apple` and `SupabaseService.signInWithApple` stay in the tree.
+// Nothing reaches the button, so `AppleName`'s stash is never written; the
+// golfer card still calls `AppleName.take()`, which finds nothing. Turning
+// Apple sign-in on is a reviewed build, not a flag.
 
 import SwiftUI
 import CSDesign
@@ -19,7 +24,6 @@ struct DoorView: View {
   @State private var showingBuild = false
   @State private var playForge: Bool? = nil
   @State private var risen = false
-  @State private var flags = DoorFlags.closed
   @State private var toasts = CSToastCenter()   // the door sits above the tab host, so it carries its own
   /// QB-08 · what is waiting, said above the email field. Read once on
   /// appearance and again whenever a link lands while the door is up.
@@ -135,13 +139,6 @@ struct DoorView: View {
     }
     .onReceive(NotificationCenter.default.publisher(for: .csShareTokenPending)) { _ in
       pending = PendingLink.doorLine(deferringClaim: claimDeferred)
-    }
-    // the flag never blocks the email field: it lands whenever it lands
-    .task {
-      #if DEBUG
-      if DoorDev.forceApple { flags = DoorFlags(appleSignIn: true); return }
-      #endif
-      flags = await DoorFlags.load()
     }
     #if DEBUG
     // The developer hatch (the web's `/?exit` family): a simulator cannot type.
@@ -282,13 +279,6 @@ struct DoorView: View {
         .padding(.top, CSTokens.Space.s2)
         .id(DoorLayout.action)
         .accessibilityIdentifier("door.email.send")
-      if flags.appleSignIn {
-        DoorAppleButton(
-          onToken: { token, nonce, name in Task { await vm.apple(idToken: token, nonce: nonce, appleName: name) } },
-          onFailure: { error in vm.appleFailed(error) })
-          .padding(.top, 4)
-          .disabled(vm.busy)
-      }
       // R02 · the ONE other fact beside the action: there is no password. The
       // button already says a code is coming, so this line does not say it again.
       Text(DoorCopy.noPassword)

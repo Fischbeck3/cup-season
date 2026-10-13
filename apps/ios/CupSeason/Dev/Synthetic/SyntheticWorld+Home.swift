@@ -29,8 +29,8 @@ extension SyntheticWorld {
     case "join_covenant_for_invite", "join_covenant_info": return SynthOut.json(covenant())
     case "respond_invite": return SynthOut.void
     case "my_actionable_count", "mark_actionable_seen": return SynthOut.json(hasSeasons ? 1 : 0)
-    // The signed-out door and the two links a recipient can tap.
-    case "door_flags": return SynthOut.json(["apple_sign_in": false])
+    // The two links a recipient can tap from the signed-out door. (D411 · the
+    // door no longer reads `door_flags`, so the world stopped answering it.)
     case "league_by_code":
       return SynthOut.json(r.string("p_code") == cast.inviteLeague.code ? cast.inviteLeague.name as Any : NSNull() as Any)
     case "guest_live_state":
@@ -50,7 +50,7 @@ extension SyntheticWorld {
       switch r.filter("key") {
       case "ios": return SynthOut.rows([["key": "ios", "value": ["major": true, "min_build": 0]]], r)
       case "scan": return SynthOut.rows([["key": "scan", "value": ["enabled": false]]], r)
-      default: return SynthOut.rows([], r)     // pricing and the rest: the hidden stub
+      default: return SynthOut.rows([], r)     // the rest: no row, so every read fails closed
       }
     case "posts":
       if r.query["event_id"] != nil { return SynthOut.rows(event(r.filter("event_id")).map(eventPosts) ?? [], r) }

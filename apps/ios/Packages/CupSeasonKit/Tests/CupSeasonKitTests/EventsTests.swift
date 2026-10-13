@@ -331,3 +331,37 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
               == "Casey Placeholder: 0 won, 1 lost, 0 halved")
   }
 }
+
+// MARK: D412 · a Major's buy-in takes the same $200 ceiling
+
+@Suite struct MajorBuyInCeilingTests {
+  private func draft(_ buyIn: Double, lineage: UUID? = nil) -> MajorDraft {
+    MajorDraft(name: "The Jug", finalOn: "2026-07-12", days: 4, buyIn: buyIn, potSplit: "places", league: nil, lineage: lineage)
+  }
+
+  @Test func theDraftHoldsNothingAboveTheCeiling() {
+    #expect(draft(250).buyIn == 200)
+    #expect(draft(100_000).buyIn == Double(MoneyLimits.maxStake))
+    #expect(draft(200).buyIn == 200)
+    #expect(draft(-5).buyIn == 0)
+    #expect(draft(.nan).buyIn == 0)
+  }
+
+  @Test func anOrdinaryBuyInIsUntouched() {
+    #expect(draft(0).buyIn == 0)
+    #expect(draft(20).buyIn == 20)
+    #expect(draft(12.5).buyIn == 12.5)
+  }
+
+  /// The wire value is bounded even when the draft's field is written after
+  /// it was built, and the skew retry (no `p_lineage`) sends the same number.
+  @Test func whatGoesOverTheWireIsBounded() {
+    var d = draft(50, lineage: UUID())
+    d.buyIn = 500
+    let full = MajorCreateCall.of(d, tz: "America/Phoenix", lineage: d.lineage)
+    let slim = MajorCreateCall.of(d, tz: "America/Phoenix", lineage: nil)
+    #expect(full.p_buy_in == 200 && slim.p_buy_in == 200)
+    #expect(full.p_lineage == d.lineage && slim.p_lineage == nil)
+    #expect(MajorCreateCall.of(draft(35), tz: nil, lineage: nil).p_buy_in == 35)
+  }
+}

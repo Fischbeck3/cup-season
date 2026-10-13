@@ -2126,6 +2126,70 @@
     }
   })();
 
+  /* D411 / D412 (App Review, Guideline 2.1(b), 2026-10-12). Every server call is
+     answered here, so neither sheet reaches the network. */
+  await (async function(){
+    const C = window.CS, S = window.sb;
+    const was = { user:C.user, profile:C.profile, memberships:C.memberships, demo:state.demo,
+      ownRpc:Object.prototype.hasOwnProperty.call(S, 'rpc'), rpc:S.rpc, prefill:window.MJ_PREFILL };
+    const sent = [];
+    S.rpc = async (name, args) => { sent.push([name, Object.assign({}, args)]); return { data:null, error:{ message:'fixture: no server here' } }; };
+    const tick = ms => new Promise(r => setTimeout(r, ms));
+    try{
+      C.user = { id:'00000000-0000-4000-8000-00000000d411' };
+      C.profile = { id:C.user.id, display_name:'Avery Fixture', handle:'avery', marker:'island' };
+      C.memberships = []; state.demo = false;
+
+      /* D411 · nothing is sold, so Settings says nothing about a plan: the
+         "Membership" eyebrow, the PLAN … FREE row and its "Everything is free"
+         line left both clients with nothing in their place. These fail if any
+         of them comes back. */
+      window.openProfileHub();
+      await tick(120);
+      const pane = document.getElementById('phPaneSettings');
+      const heads = pane ? [...pane.querySelectorAll('.eyebrow[role="heading"]')].map(h => h.textContent.trim()) : [];
+      const text = pane ? pane.textContent.replace(/\s+/g, ' ') : '';
+      t('D411: Settings drew (its Your account head is there)', heads.includes('Your account'), true);
+      t('D411: Settings has no Membership head', heads.filter(h => /membership/i.test(h)), []);
+      t('D411: Settings has no PLAN row',
+        !!pane && ([...pane.querySelectorAll('.byrow')].some(r => /^\s*plan\s*$/i.test((r.firstElementChild || {}).textContent || '')) || /\bPLAN\b/.test(text)), false);
+      t('D411: Settings says nothing about a free plan or a trial', /Everything is free|No trial|nothing to enter|\bFREE\b/.test(text), false);
+      closeSheet();
+      await tick(50);
+
+      /* D412 · a Major's buy-in has the same $200 ceiling as every other money
+         field: the field says so and stops there, a run-back prefill arrives
+         clamped, and the send clamps whatever the field holds. */
+      sent.length = 0;
+      window.MJ_PREFILL = { name:'The Fixture Jug', buy:500, split:'wta' };
+      await window.openMajorSetup();
+      const buy = document.getElementById('mjBuy'), go = document.getElementById('mjGo');
+      t('D412: the buy-in field carries the ceiling and says it',
+        [buy && buy.min, buy && buy.max, (document.getElementById('mjBuyCap') || {}).textContent, buy && buy.getAttribute('aria-describedby')],
+        ['0', '200', 'Up to $200 a golfer.', 'mjBuyCap']);
+      t('D412: a run-back prefilled above $200 arrives at $200, and the pot split still shows',
+        [buy && buy.value, document.getElementById('mjSplitWrap').style.display], ['200', 'block']);
+      const type = v => { buy.value = v; buy.dispatchEvent(new Event('input', { bubbles:true })); return buy.value; };
+      t('D412: the field clamps as it is typed',
+        [type('350'), type('75'), type('100000'), type('200'), type('-5'), type('0'), type('')], ['200', '75', '200', '200', '0', '0', '']);
+      t('D412: no buy-in hides the pot split', document.getElementById('mjSplitWrap').style.display, 'none');
+      /* past the field's own clamp (a value set without an input event): the send still holds the line */
+      const send = async v => { sent.length = 0; buy.value = v; go.disabled = false; go.click(); await tick(60);
+        const c = sent.find(x => x[0] === 'create_major'); return c ? c[1].p_buy_in : 'not sent'; };
+      t('D412: create_major never carries more than $200, or less than $0',
+        [await send('999'), await send('200'), await send('35'), await send('-20'), await send('')], [200, 200, 35, 0, 0]);
+      closeSheet();
+      /* the wizard's Other buy-in said "Any number, per golfer" while it clamped at $200 */
+      const other = document.getElementById('stakeOther');
+      t('D412: the wizard\'s Other buy-in names the same ceiling',
+        [other && other.max, ((other && other.closest('.setrow')) || document).querySelector('.lab small')?.textContent], ['200', 'Up to $200 a golfer']);
+    } finally {
+      if(was.ownRpc) S.rpc = was.rpc; else delete S.rpc;
+      C.user = was.user; C.profile = was.profile; C.memberships = was.memberships; state.demo = was.demo;
+      window.MJ_PREFILL = was.prefill || null;
+    }
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

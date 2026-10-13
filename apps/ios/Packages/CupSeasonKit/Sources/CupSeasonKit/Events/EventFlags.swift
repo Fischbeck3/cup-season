@@ -2,8 +2,8 @@
 //
 // One `app_flags` row keyed `ios` carries the phone's own switches; `major`
 // opens the Major's door in the event picker and un-darkens the four Home
-// occasion cards that sell a jug. Read the way `PricingFlags.load` and
-// `PostService.scanEnabled` read: `.limit(1)`, decode the array, and on no row
+// occasion cards that sell a jug. Read the way `PostService.scanEnabled`
+// reads: `.limit(1)`, decode the array, and on no row
 // / no read / a bad shape the door stays SHUT (fail closed).
 //
 // **D252 / R-E — the flag is being opened**, by

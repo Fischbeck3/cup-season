@@ -45,6 +45,15 @@ struct MajorCreateCall: RpcCall {
   let p_league: UUID?
   let p_tz: String?
   let p_lineage: UUID?
+
+  /// D412 · the one place a Major's args are built, so the buy-in that goes
+  /// over the wire takes the same $200 ceiling (`MoneyLimits`) as every other
+  /// money field, whatever the draft was handed. `create_major` refuses above
+  /// it too; the phone bounds it first so a golfer never meets that refusal.
+  static func of(_ d: MajorDraft, tz: String?, lineage: UUID?) -> MajorCreateCall {
+    MajorCreateCall(p_name: d.name, p_final_on: d.finalOn, p_days: d.days, p_buy_in: MoneyLimits.clampStake(d.buyIn),
+                    p_pot_split: d.potSplit, p_league: d.league, p_tz: tz, p_lineage: lineage)
+  }
 }
 
 /// What the Ryder setup sheet sends (openRyderSetup 15988–16000).
@@ -63,7 +72,8 @@ public struct RyderDraft: Sendable, Equatable {
   }
 }
 
-/// What the Major setup sheet sends (openMajorSetup 16110–16118).
+/// What the Major setup sheet sends (openMajorSetup 16110–16118). D412: the
+/// buy-in is bounded to 0…`MoneyLimits.maxStake` on the way in.
 public struct MajorDraft: Sendable, Equatable {
   public var name: String
   public var finalOn: String
@@ -73,7 +83,7 @@ public struct MajorDraft: Sendable, Equatable {
   public var league: UUID?
   public var lineage: UUID?
   public init(name: String, finalOn: String, days: Int, buyIn: Double, potSplit: String, league: UUID?, lineage: UUID?) {
-    self.name = name; self.finalOn = finalOn; self.days = days; self.buyIn = buyIn; self.potSplit = potSplit
+    self.name = name; self.finalOn = finalOn; self.days = days; self.buyIn = MoneyLimits.clampStake(buyIn); self.potSplit = potSplit
     self.league = league; self.lineage = lineage
   }
 }
@@ -198,12 +208,10 @@ public struct EventsRepository: Sendable {
   /// `create_major` — drop `p_lineage` and retry (16121–16125).
   public func createMajor(_ d: MajorDraft) async throws -> UUID {
     let tz = Self.deviceTimeZone
-    let full = MajorCreateCall(p_name: d.name, p_final_on: d.finalOn, p_days: d.days, p_buy_in: d.buyIn, p_pot_split: d.potSplit,
-                               p_league: d.league, p_tz: tz, p_lineage: d.lineage)
+    let full = MajorCreateCall.of(d, tz: tz, lineage: d.lineage)
     do { return try await svc.call(full) } catch {
       guard isSkew(error), d.lineage != nil else { throw error }
-      let slim = MajorCreateCall(p_name: d.name, p_final_on: d.finalOn, p_days: d.days, p_buy_in: d.buyIn, p_pot_split: d.potSplit,
-                                 p_league: d.league, p_tz: tz, p_lineage: nil)
+      let slim = MajorCreateCall.of(d, tz: tz, lineage: nil)
       return try await svc.call(slim)
     }
   }

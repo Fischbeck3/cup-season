@@ -550,9 +550,14 @@ try {
   // the post-push verifier (tests/db-checks.sql, check 61) is run here, on the migrated cluster: it must be valid
   // SQL and PASS once 20261224090000 has run — and the same block FAILS on a database that has not got it
   const checks = readFileSync(join(root, 'tests/db-checks.sql'), 'utf8');
-  const from = checks.indexOf('-- 61 · D405'), to = checks.lastIndexOf('\n)\nselect * from checks');
-  ok(from > 0 && to > from, 'db-checks.sql carries check 61');
-  const block = checks.slice(from, to).replace(/^(--[^\n]*\n)+/, '').replace(/^union all\s*/, '');
+  // from its own `select '61 · ` to the next check's `union all` (or the end of the CTE), so the
+  // checks after it are never swept into this block
+  const from = checks.indexOf('-- 61 · D405'), sel61 = checks.indexOf("select '61 · ", from);
+  const cte = checks.lastIndexOf('\n)\nselect * from checks'), next = checks.indexOf('\nunion all', sel61);
+  const to = next > sel61 && next < cte ? next : cte;
+  ok(from > 0 && sel61 > from && to > sel61, 'db-checks.sql carries check 61');
+  const block = checks.slice(sel61, to).replace(/(?:\n[ \t]*(?:--[^\n]*)?)+$/, '');
+  ok(sql(`select count(*) from (${block}) c`) === '1', 'the check-61 block is one check, never its neighbours');
   const verdict = sql(block);
   ok(/^61 · .*\|PASS — /.test(verdict), 'db-checks check 61 passes on the migrated cluster: ' + verdict.slice(0, 160));
   sql(`alter table public.round_thread_states drop constraint round_thread_states_state_check;

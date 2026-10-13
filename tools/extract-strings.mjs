@@ -152,10 +152,10 @@ export const IDENTIFIER_SHAPE = [
 const looksLikeIdentifier = t => { const x = t.trim(); return x.length < 40 && IDENTIFIER_SHAPE.some(re => re.test(x)); };
 
 /* A JSON payload (a decode fixture, a sample body) and a REGEX pattern are
-   both machine text: neither is a sentence anybody reads. Measured on
-   `PricingParts.swift:116` (a `Me.Membership` fixture) and
-   `PeopleModels.swift:152` (an auth-error pattern), which are the two shapes
-   in the tree. */
+   both machine text: neither is a sentence anybody reads. Measured on a
+   `Me.Membership` decode fixture (in the pricing parts D411 deleted) and
+   `PeopleModels.swift:152` (an auth-error pattern), the two shapes the tree
+   held. */
 const looksLikePayload = t => {
   const x = t.trim();
   if (/^[[{][\s\S]*[\]}],?$/.test(x) && /"\s*:/.test(x)) return true;          // JSON

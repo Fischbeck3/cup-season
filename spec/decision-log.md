@@ -8543,13 +8543,13 @@ Levels: trust and safety (vision: "the board is earned, the door is open"), IA (
     - the phone field is a free number (`MajorSetupSheet.swift`);
     - the web field (`#mjBuy`) has `min="0"` and no max;
     - `create_major` accepts anything from 0 to 100,000.
-- **Problem.** The 1.0 review notes told App Review that buy-ins are "up to $200", and `legal.html` says the same. For a Major, both statements were untrue. D192's reason applies unchanged: "A cap is not a rule about what friends may bet. It is a statement about what this product is for."
+- **Problem.** The 1.0 review notes told App Review that buy-ins are "up to $200", and for a Major that was untrue. `legal.html` stated one per-season cap that named no Major. D192's reason applies unchanged: "A cap is not a rule about what friends may bet. It is a statement about what this product is for."
 - **Decision.**
   - **Phone.** The field clamps with `MoneyLimits.clampStake`, and `MoneyLimits.upTo` sits under it. A prefilled run-back clamps too.
   - **Web.** `#mjBuy` gets `max="200"`, and the send clamps with `CS_MAX_STAKE`, the prefill as well.
   - **Server.** Migration `20261224120000_a_majors_buy_in_has_the_same_ceiling.sql` anchor-patches `create_major`'s range check from 100000 to 200. The patch is marked `[D412]` and idempotent, and keeps the D393 and stage-D gates.
   - Only new values are refused. No existing event is rewritten: prod held no Major above $200 on 2026-10-12.
-- **Skew.** A build that predates this one (2206 and earlier) sending more than $200 gets the existing "buy-in out of range" refusal, and nothing else changes. The timestamp sits between prod's latest (`20261224090000`) and the sprint line's first (`20261225090000`), so neither push needs `--include-all`.
+- **Skew.** A build that predates this one (2206 and earlier) sending more than $200 is refused with the existing words, "buy-in out of range". Neither client matches on them: both show their generic "Could not set the Major. Something went wrong — please try again.", and no Major is made. Nothing else changes. The timestamp sits between prod's latest (`20261224090000`) and the sprint line's first (`20261225090000`), so neither push needs `--include-all`.
 - **Principle served.** D192. D234: one ceiling, on both clients and in the database.
 - **Expected user benefit.** Every dollar field in the product stops at the same number, and the review notes and the legal page are true as written.
 - **Tradeoffs.** A crew that wants a bigger Major records the difference outside the app. D192 accepted the same tradeoff for the stake.

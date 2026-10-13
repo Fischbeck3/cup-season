@@ -47,8 +47,18 @@ const shell = () => { const r = join(homedir(), 'Library', 'Caches', 'ms-playwri
    sentence: a taken-down photo is kept privately for 90 days as the record, then
    deleted. Re-pinned a third time (review of 0e463792) for that sentence's correction:
    "for up to 90 days" (the owner confirms the duration), and deleted with the account
-   (D396). NOT reviewed by counsel (D402). */
-const TEXT_SHA = '11c61a2ab9cce5e8f432b128cd646391393510f665bb46537952ca56880ae2ac'
+   (D396). NOT reviewed by counsel (D402).
+   Re-pinned 2026-10-12 (D411/D412, after App Review's 2.1(b) questions) for these
+   changes and no others. (1) D407's removal of the Open-Meteo line and its "Last updated"
+   (October 2), which moved the words without moving this pin: 11c61a2a… held on the page
+   before 6efa5d8b and failed on it (5c370291…). (2) The pot ledger no longer says no
+   payment detail is ever asked for: the Pro's note on how to pay them is free text the
+   league's golfers can see, and no card or bank detail is ever asked for. (3) The pot
+   states each money ceiling: a league's buy-in, $200 per golfer per season; a Major's
+   buy-in, $200 per golfer; a live game's stake, $200 per point, skin, side or bank unit.
+   (4) Both changed documents' "Last updated" lines read October 12, 2026. "Between
+   adults", the age and "not a game of chance" are untouched. NOT reviewed by counsel. */
+const TEXT_SHA = '375a43cda1aa9e2c974c2425dcacfa54fcee516ae23207c5ba4fe98fd1a80815'
 
 const results = []
 const check = (name, ok, got) => { results.push({ name, ok: !!ok }); console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : '  got: ' + JSON.stringify(got))) }

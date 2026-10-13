@@ -4719,7 +4719,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 #view-stats .youdoor-row .tt small, #youGuide .check .tt small{font-family:var(--sans); font-size:13px; font-weight:400; letter-spacing:0; line-height:1.4;}
 /* W7-033 · the sheet's 'How it works' rows are ruled rows, as the You door rows above are (§3.1: a row
    never gets a container; no container inside a container): they were bordered cards between the ruled
-   Notifications rows and the ruled Membership row, with a typed arrow (AW2-08 took the arrows). The
+   Notifications rows and the ruled Membership row (gone since D411), with a typed arrow (AW2-08 took the arrows). The
    phone draws them as ruled rows (HowItWorks is CSRow(last:) around YouDoorRow) with no box. */
 #youGuide .check{background:none; border:0; border-top:1px solid var(--rule); border-radius:0; padding:var(--s3) 0; margin:0; min-height:52px;}
 #youGuide .check:last-child{border-bottom:1px solid var(--rule);}
@@ -7430,8 +7430,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <!-- D225 · Other. The ladder is [0,25,50,75,100,150,200] and $20 was
                impossible; this is the escape hatch, and nothing else moves. -->
           <div class="setrow" id="stakeOtherRow">
-            <div class="lab">Other<small>Any number, per golfer</small></div>
-            <input class="f" id="stakeOther" type="number" min="0" max="10000" inputmode="numeric" placeholder="20"
+            <div class="lab">Other<small>Up to $200 a golfer</small></div>
+            <input class="f" id="stakeOther" type="number" min="0" max="200" inputmode="numeric" placeholder="20"
                    style="max-width:120px; padding:9px 11px; font-family:var(--sans);" aria-label="Buy-in in dollars">
           </div>
           <!-- D225 / R18 · the ONE required field the wizard gains. Above $0
@@ -30951,6 +30951,12 @@ document.getElementById('payNote')?.addEventListener('input', csRenderPayNote);
    leaving exactly the unlocked founder-alone husk D225 exists to remove.
    `WizardDials.maxStake` is the phone's twin. */
 const CS_MAX_STAKE = 200;
+/* D412 · the fine line under a capped money field, in the phone's words: its
+   `MoneyLimits.upTo` is the twin, and the phone draws it under the wizard's
+   buy-in, the live stake and the Major's buy-in. The web draws it under the
+   Major's buy-in (#mjBuyCap); the wizard's Other field says it in its label
+   (#stakeOtherRow). Read this, never retype it. */
+const CS_MONEY_UP_TO = 'Up to $' + CS_MAX_STAKE + ' a golfer.';
 document.getElementById('stakeOther')?.addEventListener('input', e => {
   const n = Math.max(0, Math.min(CS_MAX_STAKE, parseInt(String(e.target.value).replace(/[^0-9]/g,''), 10) || 0));
   /* the FIELD clamps too: a stake still showing 250 while the league is built
@@ -33430,12 +33436,6 @@ function openProfileHub(){
            card: it moved here from the You page -->
       ${(typeof PILOT !== 'undefined' && PILOT) ? `<button type="button" class="check tap" id="phFeedback" style="width:100%; text-align:left; cursor:pointer"><div class="tt"><b>Tell us how it’s going</b><small>A line to the people who make this</small></div></button>` : ''}
     </div>
-
-    <!-- D183: free until a thousand golfers. Says what is true and promises
-         nothing structural (D39) — no "at launch", no "the pilot" (D132). -->
-    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">Membership</div>
-    <div class="byrow"><span>PLAN</span><b>FREE</b></div>
-    <p class="fine" style="padding-left:0">Everything is free — every season, every match, every round. No trial, nothing to enter.</p>
 
     <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">Your account</div>
     <!-- §16A.5 · one primary per surface and the alternative is a link: Sign
@@ -37753,7 +37753,10 @@ async function openMajorSetup(){
     <div class="seg" id="mjDays">${[2,3,4].map(n=>`<button data-n="${n}" class="${n===4?'on':''}">${n} days</button>`).join('')}</div>
     <p class="fine" style="padding:4px 0 0" id="mjWhen"></p>
     <label class="f" style="margin-top:10px" for="mjBuy">Buy-in per golfer <span style="color:var(--mut)">($0 is bragging rights)</span></label>
-    <input class="f" id="mjBuy" type="number" min="0" step="1" value="0" inputmode="numeric" style="font-family:var(--sans)">
+    <input class="f" id="mjBuy" type="number" min="0" max="${CS_MAX_STAKE}" step="1" value="0" inputmode="numeric" aria-describedby="mjBuyCap" style="font-family:var(--sans)">
+    <!-- D412 · a Major's buy-in has the same $200 ceiling as every other money
+         field (D192, D402), and says so under the field as the phone does -->
+    <p class="fine" id="mjBuyCap" style="padding:4px 0 0">${esc(CS_MONEY_UP_TO)}</p>
     <div id="mjSplitWrap" style="display:none">
       <label class="f" style="margin-top:10px; display:block">The pot pays</label>
       <div class="seg" id="mjSplit"><button data-s="places" class="on">Top 3 · 60/25/15</button><button data-s="wta">Winner takes all</button></div>
@@ -37786,8 +37789,14 @@ async function openMajorSetup(){
   document.querySelectorAll('#mjDays button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjDays button').forEach(x=>x.classList.remove('on'));b.classList.add('on');days=+b.dataset.n; whenLine();}));
   document.querySelectorAll('#mjSplit button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjSplit button').forEach(x=>x.classList.remove('on'));b.classList.add('on');split=b.dataset.s;}));
   document.getElementById('mjFinal')?.addEventListener('change', whenLine);
-  document.getElementById('mjBuy')?.addEventListener('input', ()=>{
-    const v=Number(document.getElementById('mjBuy').value||0);
+  /* D412 · 0 to CS_MAX_STAKE, the phone's `MoneyLimits.clampStake`. The FIELD
+     clamps as it is typed, as the wizard's Other does (a buy-in still showing
+     250 while the Major is set at 200 is a second way to be lied to), and the
+     prefill and the send clamp again, because an attribute is a suggestion. */
+  const mjClamp = v => Math.min(CS_MAX_STAKE, Math.max(0, Number(v)||0));
+  document.getElementById('mjBuy')?.addEventListener('input', e=>{
+    const raw=e.target.value, v=mjClamp(raw);
+    if(raw!=='' && Number(raw)!==v) e.target.value=String(v);
     document.getElementById('mjSplitWrap').style.display = v>0?'block':'none';
   });
   whenLine();
@@ -37798,8 +37807,8 @@ async function openMajorSetup(){
     if(pf.name) document.getElementById('mjName').value = pf.name;
     if(pf.final) document.getElementById('mjFinal').value = pf.final;
     if(pf.days){ days=pf.days; document.querySelectorAll('#mjDays button').forEach(x=>x.classList.toggle('on', +x.dataset.n===days)); }
-    if(pf.buy!=null){ document.getElementById('mjBuy').value=pf.buy;
-      document.getElementById('mjSplitWrap').style.display = pf.buy>0?'block':'none'; }
+    if(pf.buy!=null){ const b=mjClamp(pf.buy); document.getElementById('mjBuy').value=b;
+      document.getElementById('mjSplitWrap').style.display = b>0?'block':'none'; }
     if(pf.split){ split=pf.split; document.querySelectorAll('#mjSplit button').forEach(x=>x.classList.toggle('on', x.dataset.s===split)); }
     if(pf.league) document.getElementById('mjLeague').value = pf.league;
     (pf.invitees||[]).forEach(p=>{ if(p.pid && p.pid!==CS.user?.id) mjStaged.set(p.pid,{name:p.name,handle:p.handle||'?',marker:p.marker}); });
@@ -37829,7 +37838,7 @@ async function openMajorSetup(){
         p_name:name,
         p_final_on:document.getElementById('mjFinal').value||nextSundayISO(),
         p_days:days,
-        p_buy_in:Number(document.getElementById('mjBuy').value||0),
+        p_buy_in:mjClamp(document.getElementById('mjBuy').value),
         p_pot_split:split,
         p_league:document.getElementById('mjLeague').value||null,
         p_tz:(()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||null; }catch(_){ return null; } })(),

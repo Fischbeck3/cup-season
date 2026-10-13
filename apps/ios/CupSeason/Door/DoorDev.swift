@@ -4,7 +4,6 @@
 //   -cs_dev_door    present the door over the root whatever the session is
 //                   (no auth call fires unless a button is tapped)
 //   -cs_dev_forge   replay the Forge (screenshots, video)
-//   -cs_dev_apple   render the Apple button as if the flag were on
 // `-cs_dev_email` / `-cs_dev_code` live in DoorModel.devHatch.
 
 #if DEBUG
@@ -14,7 +13,6 @@ enum DoorDev {
   private static let args = ProcessInfo.processInfo.arguments
   static let forced = args.contains("-cs_dev_door")
   static let replayForge = args.contains("-cs_dev_forge")
-  static let forceApple = args.contains("-cs_dev_apple")
   /// Visual-only context: no real invitation is stored or redeemed.
   static var pendingLine: String? {
     args.contains("-cs_dev_pending_join") ? "You're joining QA season. Sign in to review and join." : nil

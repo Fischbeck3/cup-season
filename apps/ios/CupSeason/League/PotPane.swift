@@ -20,9 +20,13 @@
 // renders, twice on one screen 250pt apart).
 //
 // CONSUMED UNCHANGED: `PotMath.trioCents` (the settlement's own split, to the
-// cent), `SeasonFacts.owe` (the Pro's payment words — built, tested, and called
-// from nowhere in the shipped UI until now), `PotPassCard` and
-// `PricingPotFinePrint`, which move below the ledger.
+// cent) and `SeasonFacts.owe` (the Pro's payment words — built, tested, and
+// called from nowhere in the shipped UI until now).
+//
+// D411 · the league-pass card and its fine print (`PotPassCard`,
+// `PricingPotFinePrint`) are deleted, not hidden: nothing switched off ships
+// in the binary. With the flag off the fine print only repeated the ledger
+// line below, so `MoneyCopy.ledger` at the foot is the pane's one fine print.
 
 import SwiftUI
 import UIKit
@@ -37,8 +41,6 @@ struct PotPane: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.dynamicTypeSize) private var typeSize
   @State private var busy: UUID?
-  /// D56 / IOS-021: the Pro's season-pass card + the fine print; hidden until the flag says otherwise
-  @State private var pricing = PricingFlags.hidden
 
   var body: some View {
     let b = model.bylaws
@@ -88,13 +90,6 @@ struct PotPane: View {
       }
       .csGutter()
 
-      if let m = mine {
-        PotPassCard(flags: pricing, league: m, isPro: model.isPro, yearStartsOn: model.season?.starts_on, roster: model.potPlayers)
-          .csGutter()
-      }
-      PricingPotFinePrint(flags: pricing)
-        .csGutter()
-        .task { pricing = await PricingFlags.load() }
       ForfeitLedgerView()
         .csGutter()
     }

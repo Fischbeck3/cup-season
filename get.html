@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#0F1A15">
 <title>Cup Season — Get the app</title>
-<meta name="description" content="Get Cup Season on your phone. The web app works on any phone today; the iPhone app is in beta. If somebody sent you a link, open it: it works in your browser.">
+<meta name="description" content="Get Cup Season on your phone. The web app works on any phone today; the iPhone app is coming to the App Store. If somebody sent you a link, open it: it works in your browser.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -123,7 +123,7 @@
 
   <main>
   <h1>Where amateur golf counts. Get it on your phone.</h1>
-  <p class="sum">It works in your phone’s browser today, and the iPhone app is in beta.</p>
+  <p class="sum">It works in your phone’s browser today, and the iPhone app is coming to the App Store.</p>
   <p class="handoff">On your phone, open <b>cupseason.app/get</b></p>
 
   <!-- the web app LEADS: it is the one path that works on every phone now,
@@ -152,16 +152,17 @@
 
   <section id="iphone">
     <h2>The iPhone app</h2>
-    <!-- THE ONE PLACE A STORE LINK LIVES. The owner pastes the real public
-         TestFlight invitation into data-href (App Store Connect → TestFlight →
-         the external group → enable the public link) and, on approval day, the
-         App Store link with data-label "Get it on the App Store". Until a real
-         link is here the button stays hidden and the sentence below is the
-         truth: there is nothing to tap yet. Never a generic testflight.apple.com
-         page — that is not an installation of Cup Season. -->
-    <a class="btn" id="ios" data-href="" data-label="Join the iPhone beta" hidden>Join the iPhone beta</a>
-    <p class="status" id="iosStatus"><i></i><span>In beta with the founding league</span></p>
-    <p class="note" id="iosNote">Its public invitation lands here when the beta opens to everyone.</p>
+    <!-- THE ONE PLACE A STORE LINK LIVES. On approval day the owner pastes
+         the App Store link into data-href. Until a real link is here the
+         button stays hidden and the sentence below is the truth: there is
+         nothing to tap yet. D411 · App Review reads this page (the support
+         page's footer links here), so it never calls the app a beta, and
+         the script below has no beta branch left to switch on: only an
+         apps.apple.com link draws the button. A TestFlight link, invitation
+         or not, leaves it hidden. -->
+    <a class="btn" id="ios" data-href="" data-label="Get it on the App Store" hidden>Get it on the App Store</a>
+    <p class="status" id="iosStatus"><i></i><span>Coming to the App Store</span></p>
+    <p class="note" id="iosNote">Its App Store link lands here the day it goes live.</p>
   </section>
 
   <!-- what works NOW leads (the link opens in the browser), and the app
@@ -179,17 +180,19 @@
   </footer>
 </div>
 <script>
-  /* the iPhone button exists only when a real https link has been pasted */
+  /* the iPhone button exists only when a real App Store link has been pasted
+     (D411: the TestFlight branch and its beta words are gone) */
   (function () {
     var a = document.getElementById('ios'), s = document.getElementById('iosStatus'), n = document.getElementById('iosNote');
     var href = (a && a.getAttribute('data-href') || '').trim();
-    if (!a || !/^https:\/\/(testflight\.apple\.com\/join\/|apps\.apple\.com\/)/.test(href)) return;
+    if (!a || !/^https:\/\/apps\.apple\.com\//.test(href)) return;
     a.href = href; a.rel = 'noopener'; a.textContent = a.getAttribute('data-label') || a.textContent; a.hidden = false;
-    var store = /apps\.apple\.com/.test(href);
-    if (s) s.lastElementChild.textContent = store ? 'On the App Store' : 'Public beta on TestFlight';
-    if (n) n.textContent = store
-      ? 'It signs in to the same account as the web app.'
-      : 'TestFlight is Apple’s own app for pre-release apps: install TestFlight first, then Cup Season from the invitation. When Apple approves the listing this becomes the App Store button.';
+    if (s) s.lastElementChild.textContent = 'On the App Store';
+    if (n) n.textContent = 'It signs in to the same account as the web app.';
+    /* the summary line says the same thing the button does (the meta
+       description is static: change it by hand on approval day) */
+    var sum = document.querySelector('p.sum');
+    if (sum) sum.textContent = 'It works in your phone\u2019s browser today, and the iPhone app is on the App Store.';
   })();
 </script>
 </body>

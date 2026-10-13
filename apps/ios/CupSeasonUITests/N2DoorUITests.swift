@@ -31,6 +31,11 @@ final class N2DoorUITests: N2UITestCase {
     XCTAssertTrue(send.exists)
     XCTAssertEqual(send.label, "Send code")
     XCTAssertFalse(app.buttons["Continue with email"].exists)
+    // D411 · the email is the only way in. The Apple button sat right under
+    // Send code, behind a flag; it is unmounted, and nothing may bring it back.
+    // Any element type: Apple's control is a UIKit button, not a SwiftUI one.
+    XCTAssertFalse(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] %@", "with Apple")).firstMatch.exists,
+                   "D411 · the door offers no Sign in with Apple")
     XCTAssertTrue(app.staticTexts["No password needed."].exists)
     XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'One code'")).firstMatch.exists,
                    "the code is said once, on the button")

@@ -1,4 +1,7 @@
-// Cup Season — the door's helpers (IOS-023): the nonce, the flag, the Forge clock.
+// Cup Season — the door's helpers (IOS-023): the nonce and the Forge clock.
+// D411 unmounted the Apple door and deleted the flag that opened it, and its
+// decode tests went with it. The nonce and `AppleName` stay: nothing reaches
+// the button, so the stash is never written, but the golfer card still reads it.
 
 import Testing
 import Foundation
@@ -22,27 +25,6 @@ import CSDesign
     #expect(DoorNonce.sha256(n) == DoorNonce.sha256(n))
     #expect(DoorNonce.sha256(n).count == 64)
     #expect(DoorNonce.sha256(n) != n)
-  }
-}
-
-@Suite struct DoorFlagsTests {
-  @Test func missingKeyIsClosed() {
-    // the row as migration 20260827130100 seeds it
-    let seeded = DoorFlags.decode(Data(#"{"min_build": 0, "note": "Raise min_build…"}"#.utf8))
-    #expect(seeded == .closed)
-    #expect(seeded.appleSignIn == false)
-  }
-
-  @Test func ownerWriteOpensIt() {
-    #expect(DoorFlags.decode(Data(#"{"min_build": 0, "apple_sign_in": true}"#.utf8)).appleSignIn == true)
-    #expect(DoorFlags.decode(Data(#"{"apple_sign_in": false}"#.utf8)).appleSignIn == false)
-  }
-
-  @Test func badShapesFailClosed() {
-    #expect(DoorFlags.decode(Data("not json".utf8)) == .closed)
-    #expect(DoorFlags.decode(Data(#"{"apple_sign_in": "yes"}"#.utf8)) == .closed)
-    #expect(DoorFlags.decode(Data("[]".utf8)) == .closed)
-    #expect(DoorFlags.decode(Data()) == .closed)
   }
 }
 

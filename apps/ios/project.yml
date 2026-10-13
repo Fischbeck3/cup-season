@@ -135,8 +135,11 @@ targets:
         # APNs — the server side (device_tokens + the push function's APNs
         # branch) is built; M4 lights it.
         aps-environment: development
-        # Sign in with Apple (IOS-023). The App ID capability + the Supabase
-        # provider are the owner's; the button renders only behind the flag.
+        # Sign in with Apple (IOS-023). D411 unmounted the button: nothing in
+        # this build reaches it, and no flag can. The capability stays so a
+        # reviewed build can turn Apple sign-in on; dropping it touches the
+        # provisioning profiles, which are the owner's. The App ID capability
+        # and the Supabase provider are the owner's too.
         com.apple.developer.applesignin:
           - Default
         # IOS-034 · the App Group the widget's snapshot lives in. The app

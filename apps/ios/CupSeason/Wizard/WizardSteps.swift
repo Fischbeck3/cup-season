@@ -347,7 +347,6 @@ struct WizardStakeStep: View {
   @State private var help: Set<String> = []
   @State private var otherOpen = false
   @State private var otherText = ""
-  @State private var pricing = PricingFlags.hidden
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -419,13 +418,6 @@ struct WizardStakeStep: View {
         .accessibilityIdentifier("wizard-review")
         .disabled(!model.dials.canPublish || model.dials.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       CSFine("Nothing starts and no league invitations are sent until you confirm.")
-      PricingPassCard(flags: pricing, roster: model.roster, buyInCents: model.dials.stake * 100)
-        .task {
-          #if DEBUG
-          if model.fixtureMode { return }
-          #endif
-          pricing = await PricingFlags.load()
-        }
     }
   }
 

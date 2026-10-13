@@ -635,7 +635,6 @@ private struct SettingsPane: View {
   let openGuide: (GuideRoute) -> Void
   @State private var push = PushService.shared
   @State private var scanConsent = ScanConsentStore.shared
-  @State private var pricing = PricingFlags.hidden
   /// The Developer section, revealed by a long press on the build line.
   @State private var developer = CSDevHatch.developer
 
@@ -707,12 +706,10 @@ private struct SettingsPane: View {
       Text("Palette").csEyebrow().padding(.top, 14)
       LookPaletteDial()
 
-      // D183: no billing to speak of — the eyebrow matches the web's.
-      Text("Membership").csEyebrow().padding(.top, 14)
-      // D56 / IOS-021: Founding · free season · (paid, future) — the PILOT stub verbatim while hidden
-      MembershipCard(flags: pricing, memberships: store.me?.memberships ?? [], proNames: nil)
-        .task { pricing = await PricingFlags.load() }
-      // Y-13 · no league yet: the doors, here, where the membership is discussed.
+      // D411 · the Membership eyebrow, its plan row and the line under it are
+      // gone on both clients, with nothing in their place: a plan row read as
+      // the free tier of a subscription the product does not have.
+      // Y-13 · no league yet: the doors, here, under the look dials.
       // Y-13 · the same default as the card pane's `noLeagues`: an unloaded
       // `store.me` is not evidence of no league, and the two panes disagreeing
       // meant the doors flashed in one and not the other on the same state.
@@ -748,8 +745,8 @@ private struct SettingsPane: View {
       // — the same rows the Pro reads and a brand-new golfer reads — and it was
       // filed under a page about your own record. Settings is already the
       // drawer for things you consult rather than things you are.
-      // Y-14 · it sits with Membership, above the account-ending actions: the
-      // guide is something you consult, and it was filed below "Delete my account".
+      // Y-14 · it sits above the account-ending actions: the guide is
+      // something you consult, and it was filed below "Delete my account".
       CSSectionHead("How it works").padding(.top, 14)
       HowItWorks { row in
         if row.key == "scoring" { openGuide(.scoring) }

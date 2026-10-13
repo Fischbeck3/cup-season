@@ -3,6 +3,8 @@
 // choice — the split shows only when > 0), a league to run it with, staged
 // golfers, "How it plays". `create_major` with the skew retry dropping
 // `p_lineage`. D61: "Run it back — same jug, next year" arrives prefilled.
+// D412: the buy-in takes the same $200 ceiling as every other money field
+// (`MoneyLimits`) — the field, the draft it builds and a run-back's prefill.
 
 import SwiftUI
 import CSDesign
@@ -25,7 +27,8 @@ struct MajorPrefill: Identifiable {
     name = room.event.name
     days = s.map { (CSDate.days(from: $0.opens_on, to: $0.closes_on) ?? 3) + 1 } ?? 4
     final = s.flatMap { EventDates.isoPlus($0.closes_on, 364) }   // same weekday, next year
-    buy = room.event.buy_in ?? 0
+    // D412 · a Major set before the ceiling can be run back, never above it
+    buy = MoneyLimits.clampStake(room.event.buy_in ?? 0)
     split = room.event.pot_split ?? "places"
     league = room.event.league_id
     lineage = room.event.lineage_id ?? room.event.id
@@ -70,7 +73,7 @@ struct MajorSetupSheet: View {
   }
 
   private var finalISO: String { CSDate.iso(final) }
-  private var buyIn: Double { Double(buy.trimmingCharacters(in: .whitespaces)) ?? 0 }
+  private var buyIn: Double { MoneyLimits.clampStake(Double(buy.trimmingCharacters(in: .whitespaces)) ?? 0) }
   private var memberships: [Me.Membership] { store.me?.memberships ?? [] }
 
   var body: some View {
@@ -85,6 +88,14 @@ struct MajorSetupSheet: View {
       if let when = MajorMath.whenLine(finalOn: finalISO, days: days) { CSFine(when) }
       EventFieldLabel(text: "Buy-in per golfer", hint: "($0 is bragging rights)")
       CSField("0", text: $buy, font: CSFont.mono).keyboardType(.numberPad).accessibilityLabel("Buy-in per golfer, dollars")
+        .onChange(of: buy) { _, v in
+          // D412 · the FIELD clamps too, as the live stake's does: a buy-in the
+          // field still shows as 250 while the Major is set at 200 is a second
+          // way to be lied to.
+          let typed = Double(v.trimmingCharacters(in: .whitespaces)) ?? 0
+          if typed > Double(MoneyLimits.maxStake) { buy = String(MoneyLimits.maxStake) }
+        }
+      CSFine(MoneyLimits.upTo)
       if buyIn > 0 {
         EventFieldLabel(text: "The pot pays")
         CSSegment([("places", "Top 3 · 60/25/15"), ("wta", "Winner takes all")], selection: $split)

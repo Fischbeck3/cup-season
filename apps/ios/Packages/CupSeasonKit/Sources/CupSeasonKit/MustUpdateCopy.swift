@@ -5,14 +5,14 @@ import Foundation
 /// as "999,999".
 public enum MustUpdateCopy {
   public static let title = "Update Cup Season"
-  public static let line = "This build is behind the season. Grab the newest one from TestFlight or the App Store, then come back."
+  public static let line = "This build is behind the season. Get the newest one from the App Store, then come back."
 
   /// The wall's one door. A wall with no door is a dead end.
   public static let door = "Get the update"
 
   /// **The one place a store link lives** is the site's /get page
-  /// (`get.html`): it carries the public TestFlight invitation now and the
-  /// App Store listing on approval day, so the phone never holds a store
+  /// (`get.html`): it carries the App Store listing from approval day (D411
+  /// took its TestFlight branch out), so the phone never holds a store
   /// link or an App Store ID of its own, and never goes stale when the
   /// listing changes.
   public static let getURL = URL(string: "https://cupseason.app/get")!

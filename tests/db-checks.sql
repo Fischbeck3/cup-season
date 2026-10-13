@@ -1640,5 +1640,40 @@ from (
          then 'a notification does not say whether the round is yours' end
   ) as problems
 ) t
+
+-- 62 · D412 · a Major's buy-in has the same $200 ceiling as every other money field.
+--     Read from the FUNCTION, never the data: create_major's live body refuses a buy-in
+--     above 200 and carries [D412], and the anchor patch kept what no migration file holds
+--     whole — the [D393] reach gate and the stage-D write gate (is_active_member,
+--     20261112090000). Existing events are not judged: D412 refuses new values only.
+--     tests/major-buy-in-database.mjs runs THIS block on a disposable cluster (FAIL before
+--     20261224120000, PASS after it, FAIL again on a retyped body), and
+--     tests/db/a-majors-buy-in-has-the-same-ceiling.sql proves the refusal itself.
+union all
+select '62 · a Major''s buy-in tops out at $200 (D412)',
+  case when t.problems = '' then 'PASS — create_major refuses a buy-in above $200; the [D393] and stage-D gates are intact'
+       else 'FAIL — ' || t.problems end,
+  'create_major live body · [D412] · [D393] · is_active_member · grants'
+from (
+  select concat_ws('; ',
+    case when d.def is null
+         then 'create_major(text,date,integer,numeric,text,uuid,text,uuid) is missing — its signature moved' end,
+    case when d.def is not null and (position('[D412]' in d.def) = 0 or position('v_buy > 200 then' in d.def) = 0
+                                     or position('100000' in d.def) > 0)
+         then 'create_major still takes a buy-in above $200 (20261224120000 not pushed?)' end,
+    case when d.def is not null and (position('[D393]' in d.def) = 0 or position('_reach_gate(' in d.def) = 0)
+         then 'create_major lost its [D393] reach gate — the body was retyped, not patched' end,
+    case when d.def is not null and (position('is_active_member(p_league)' in d.def) = 0
+                                     or position('is_league_member(' in d.def) > 0)
+         then 'create_major lost its stage-D write gate (is_active_member)' end,
+    case when d.def is not null and position('''buy-in out of range''' in d.def) = 0
+         then 'the refusal no longer says ''buy-in out of range'' (D412 keeps its words)' end,
+    case when d.def is not null
+          and (has_function_privilege('anon', d.fn, 'EXECUTE') or not has_function_privilege('authenticated', d.fn, 'EXECUTE'))
+         then 'create_major''s grant is wrong (authenticated yes, anon never)' end
+  ) as problems
+  from (select f.fn, pg_get_functiondef(f.fn) as def
+          from (select to_regprocedure('public.create_major(text,date,integer,numeric,text,uuid,text,uuid)')::oid as fn) f) d
+) t
 )
 select * from checks order by check_name;

@@ -621,9 +621,23 @@ const SETTINGS = [
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
-    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings'), notifyGroups(['On your devices', 'By email', 'In Cup Season']), ariaWellFormed('#phPaneSettings'),
+    /* TEN / W6 · AW2-06: the pane's labels and sentences are never mono. D411 · the PLAN row was its one bylaw row and its only NEED, so
+       the need moved to labels the pane always draws (a switch's name, an account link); a bylaw row that comes back is still judged */
+    check: all(notMono(['#phPaneSettings .byrow > span', '#phPaneSettings .phsw-t b', '#phPaneSettings .phsw-t small', '#phPaneSettings #youGuide .tt b',
+      '#phPaneSettings #youGuide .tt small', '#phPaneSettings #phTheme .mini', '#phPaneSettings .phlink'], ['#phPaneSettings .phsw-t b', '#phPaneSettings .phlink']),
+      isSystemSegment('#phSeg', 'Settings'), notifyGroups(['On your devices', 'By email', 'In Cup Season']), ariaWellFormed('#phPaneSettings'),
       /* TEN / W6 · Q5 · Settings keeps the build stamp's line */
-      async (page) => page.evaluate(() => /Cup Season · v23 · /.test((document.getElementById('phPaneSettings') || {}).textContent || '') ? true : 'Settings lost its build line')) },
+      async (page) => page.evaluate(() => /Cup Season · v23 · /.test((document.getElementById('phPaneSettings') || {}).textContent || '') ? true : 'Settings lost its build line'),
+      /* D411 · nothing is sold, so Settings says nothing about a plan: the "Membership" eyebrow, the PLAN … FREE row and its
+         "Everything is free" line left both clients, with nothing in their place */
+      async (page) => page.evaluate(() => {
+        const pane = document.getElementById('phPaneSettings'), text = pane.textContent.replace(/\s+/g, ' ')
+        const heads = [...pane.querySelectorAll('.eyebrow[role="heading"]')].map((h) => h.textContent.trim())
+        if (heads.some((h) => /membership/i.test(h))) return 'Settings draws a Membership head again'
+        if ([...pane.querySelectorAll('.byrow')].some((r) => /^\s*plan\s*$/i.test((r.firstElementChild || {}).textContent || '')) || /\bPLAN\b/.test(text)) return 'Settings draws a PLAN row again'
+        if (/Everything is free|No trial|nothing to enter|\bFREE\b/.test(text)) return 'Settings says something about a free plan again'
+        return heads.includes('Your account') ? true : 'Settings lost its Your account head'
+      })) },
   /* W7-082 · a server that cannot answer the recap or the conversation switches (D68, D391 not deployed): their groups hide with their heads, and the devices group stands alone */
   { family: 'settings', id: 'notify-skew', variant: 'member', fullPage: false, title: 'Card & settings · Settings when the server has no season email or conversation switches',
     world: { errors: { rpc: { set_email_recap: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' }, social_notify_prefs: { __error: 'fixture: no such function', status: 404, code: 'PGRST202' } } } },
@@ -888,6 +902,34 @@ const homeScreenSteps = async (page) => page.evaluate(() => {
   if (!lists.every((l) => parseFloat(getComputedStyle(l).paddingLeft) >= 16)) return 'the lists are not indented as steps'
   return true
 })
+/* D411 · App Review reads /get (the support page's footer links to it), so its iPhone section never calls the app a beta. With no link
+   pasted the button is hidden; the page's own script, re-run against a pasted link, draws 'Get it on the App Store' for an apps.apple.com
+   link (and the summary line turns to 'is on the App Store') and nothing for any TestFlight link. The section and the summary are put back as
+   they shipped before the capture is taken. */
+const iphoneSection = async (page) => page.evaluate(() => {
+  const sec = document.getElementById('iphone'), BETA = /beta|TestFlight|founding/i
+  if (!sec || !document.getElementById('ios')) return 'the page has no iPhone section'
+  const said = () => sec.innerText.replace(/\s+/g, ' ').trim()
+  if (BETA.test(said())) return `the iPhone section reads ${JSON.stringify(said())}`
+  const shown = (el) => !el.hidden && el.getBoundingClientRect().width > 0
+  if (shown(document.getElementById('ios'))) return 'the iPhone button shows with no link pasted'
+  const src = [...document.scripts].map((s) => s.textContent).find((t) => t.includes("getElementById('ios')"))
+  if (!src) return 'the page has no iPhone link script'
+  const before = sec.innerHTML, sum = document.querySelector('p.sum'), sumBefore = sum ? sum.textContent : ''
+  if (!sum || !/coming to the App Store/.test(sumBefore) || BETA.test(sumBefore)) return `the summary reads ${JSON.stringify(sumBefore)}`
+  const paste = (href) => { sec.innerHTML = before; sum.textContent = sumBefore; document.getElementById('ios').setAttribute('data-href', href); new Function(src)(); const a = document.getElementById('ios'); return { a, text: said() } }
+  try {
+    const store = paste('https://apps.apple.com/us/app/cup-season/id0000000000')
+    if (!shown(store.a) || store.a.textContent.trim() !== 'Get it on the App Store' || store.a.getAttribute('href') !== 'https://apps.apple.com/us/app/cup-season/id0000000000') return `an App Store link draws ${JSON.stringify(store.text)}`
+    if (!/On the App Store/.test(store.text) || BETA.test(store.text)) return `an App Store link reads ${JSON.stringify(store.text)}`
+    if (!/is on the App Store\./.test(sum.textContent)) return `an App Store link leaves the summary reading ${JSON.stringify(sum.textContent)}`
+    for (const tf of ['https://testflight.apple.com/join/AbCd1234', 'https://testflight.apple.com/']) {
+      const r = paste(tf)
+      if (shown(r.a) || BETA.test(r.text) || sum.textContent !== sumBefore) return `the TestFlight link ${tf} draws ${JSON.stringify(r.text)}`
+    }
+  } finally { sec.innerHTML = before; sum.textContent = sumBefore }
+  return true
+})
 const STATIC = [
   /* TEN / W8 · W7-159 [A2-get-1, B2-get-4] · at a desk pointer the page says how to get to the phone: 'On your phone, open cupseason.app/get' in the page's h2 role, the sentence in mut and the
      address in ink, directly under the summary; on a phone it is not drawn (a phone is already where the page is going) */
@@ -895,6 +937,7 @@ const STATIC = [
     check: async (page) => {
       const base = await staticPage('get', '/get.html', '', 'Cup Season').check(page); if (base !== true) return base
       const steps = await homeScreenSteps(page); if (steps !== true) return steps
+      const iphone = await iphoneSection(page); if (iphone !== true) return iphone
       return page.evaluate(() => {
         const h = document.querySelector('.handoff'), desk = matchMedia('(min-width:720px) and (pointer:fine)').matches
         if (!h) return 'the page has no hand-off line'

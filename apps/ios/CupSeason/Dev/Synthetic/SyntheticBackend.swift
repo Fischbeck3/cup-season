@@ -180,7 +180,7 @@ final class SyntheticBackend: @unchecked Sendable {
 
   /// The reads a boot needs. In `failures` they succeed unless named, so the
   /// failure lands on the ROUTE's own read and not on the door.
-  private static let bootReads: Set<String> = ["native_home", "founding_ids", "founder_id", "league_looks", "door_flags"]
+  private static let bootReads: Set<String> = ["native_home", "founding_ids", "founder_id", "league_looks"]
 
   func respond(_ request: URLRequest, _ body: Data?) -> SyntheticReply {
     let r = SynthRequest(request, body)
